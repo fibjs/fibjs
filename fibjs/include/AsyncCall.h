@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <string>
 #include <functional>
 #include <exlib/include/fiber.h>
@@ -103,10 +104,55 @@ public:
     obj_ptr<object_base> m_ctxo;
 
 protected:
+    void captureErrorContext(int32_t v)
+    {
+        // Success path: nothing to carry. The slot stays empty instead of
+        // constructing an empty payload, and an event that never failed never
+        // allocates one either.
+        if (v >= 0) {
+            m_errorPayload.reset();
+            return;
+        }
+
+        ErrorPayload payload = takeErrorPayload();
+
+        if (payload.empty()) {
+            m_errorPayload.reset();
+            return;
+        }
+
+        if (m_errorPayload)
+            *m_errorPayload = std::move(payload);
+        else
+            m_errorPayload.reset(new ErrorPayload(std::move(payload)));
+    }
+
+    void applyErrorContext() const
+    {
+        if (m_errorPayload && !m_errorPayload->empty())
+            setErrorPayload(*m_errorPayload);
+    }
+
+protected:
     Isolate* m_isolate;
+
+    // Payloads only exist on failure: keeping them behind a pointer leaves every
+    // successfully completed event free of payload construction, and of the
+    // ~130 bytes the payload itself would otherwise occupy.
+    static const ErrorPayload& emptyErrorPayload()
+    {
+        static const ErrorPayload s_empty;
+        return s_empty;
+    }
+
+    const ErrorPayload& errorPayload() const
+    {
+        return m_errorPayload ? *m_errorPayload : emptyErrorPayload();
+    }
 
 private:
     kStateType m_state;
+    std::unique_ptr<ErrorPayload> m_errorPayload;
 };
 
 class AsyncCall : public AsyncEvent {
@@ -124,9 +170,10 @@ public:
 
     virtual int32_t post(int32_t v)
     {
+        captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
             m_error_code = Runtime::errCode();
-            m_error_type = Runtime::errType();
+            m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();
         }
 
@@ -160,8 +207,10 @@ public:
         else
             m_v = hr;
 
+        if (m_v < 0)
+            applyErrorContext();
         if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error_type, m_error_code, m_error);
+            Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
     }
@@ -173,7 +222,7 @@ protected:
 private:
     exlib::string m_error;
     result_t m_error_code = 0;
-    ErrorType m_error_type = kError;
+    exlib::string m_error_type_name;
     int32_t m_v;
 };
 
@@ -192,9 +241,10 @@ public:
 
     virtual int32_t post(int32_t v)
     {
+        captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
             m_error_code = Runtime::errCode();
-            m_error_type = Runtime::errType();
+            m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();
         }
 
@@ -214,8 +264,10 @@ public:
             return hr;
 
         weak.wait();
+        if (m_v < 0)
+            applyErrorContext();
         if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error_type, m_error_code, m_error);
+            Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
     }
@@ -227,7 +279,7 @@ protected:
 private:
     exlib::string m_error;
     result_t m_error_code = 0;
-    ErrorType m_error_type = kError;
+    exlib::string m_error_type_name;
     int32_t m_v;
 };
 
@@ -328,6 +380,7 @@ public:
         if (++m_epoch != 1)
             state_lock_violation("non-initial post() (direct dispatch into a machine that has already been dispatched)", v, FIBJS_ASYNC_STATE_CALLER());
 #endif
+        captureErrorContext(v);
         return post_(v);
     }
 
@@ -348,8 +401,10 @@ protected:
             if (m_cont.expect.load(std::memory_order_relaxed) == m_epoch.load(std::memory_order_relaxed))
                 ++m_epoch;
 #endif
-            if (hr < 0)
+            if (hr < 0) {
+                applyErrorContext();
                 hr = error(hr);
+            }
 
 #if defined(FIBJS_ASYNC_STATE_CHECK)
             // error() 内可能再次发牌（同步跳转），执行下一个状态函数之前同样就地消费
@@ -398,6 +453,7 @@ protected:
     {
         m_bAsyncState = true;
         m_v = v;
+        captureErrorContext(v);
 
         async(CALL_E_NOSYNC);
     }
@@ -625,9 +681,10 @@ public:
 public:
     int32_t post_result(int32_t v)
     {
+        captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
             m_error_code = Runtime::errCode();
-            m_error_type = Runtime::errType();
+            m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();
         }
 
@@ -682,7 +739,7 @@ protected:
 private:
     exlib::string m_error;
     result_t m_error_code = 0;
-    ErrorType m_error_type = kError;
+    exlib::string m_error_type_name;
     v8::Global<v8::StackTrace> m_stack_trace;
     v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     int32_t m_v;

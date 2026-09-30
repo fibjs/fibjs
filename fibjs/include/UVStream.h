@@ -444,8 +444,14 @@ public:
             if (v < 0) {
                 obj_ptr<Stream_base> stream = m_pThis;
                 Isolate* isolate = m_isolate;
-                isolate->sync([stream, v]() -> int32_t {
+                // Same cross-thread rule as the other emit paths: the error
+                // description and the payload must travel with the closure.
+                Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
+                ErrorPayload payload = takeErrorPayload();
+                isolate->sync([stream, v, desc, payload]() -> int32_t {
                     JSFiber::EnterJsScope s;
+
+                    Runtime::applyErrorDescription(desc, payload);
 
                     v8::Local<v8::Value> err = FillError(v);
                     bool retVal;
@@ -532,8 +538,8 @@ public:
     {
         UVStream_tmpl* pThis = container_of(handle, UVStream_tmpl, m_handle);
 
-        AsyncRead::post_all_result(pThis, UV_EPIPE);
-        AsyncWrite::post_all_result(pThis, UV_EPIPE);
+        AsyncRead::post_all_result(pThis, CALL_E_CLOSED_SOCKET);
+        AsyncWrite::post_all_result(pThis, CALL_E_CLOSED_SOCKET);
 
         pThis->on_handle_closed();
 
@@ -554,8 +560,8 @@ public:
             if (uv_is_closing(&this->m_handle)) {
                 // Handle is already closing — still need to abort any pending
                 // reads/writes so callers don't block forever.
-                AsyncRead::post_all_result(this, UV_EPIPE);
-                AsyncWrite::post_all_result(this, UV_EPIPE);
+                AsyncRead::post_all_result(this, CALL_E_CLOSED_SOCKET);
+                AsyncWrite::post_all_result(this, CALL_E_CLOSED_SOCKET);
                 if (ac)
                     ac->apost(0);
                 return;

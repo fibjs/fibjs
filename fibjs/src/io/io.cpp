@@ -65,6 +65,25 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             return m_to->writeBuffer(m_buf, next(read));
         }
 
+        int32_t error(int32_t v) override
+        {
+            // A closed stream - or any other non-I/O end of the copy - surfaces
+            // as an internal code. Those are normal ends of the operation and
+            // must not build detail that the error path would only discard;
+            // only a real I/O failure gets the failing leg named.
+            if (v < 0 && v > CALL_E_MAX) {
+                ErrorPayload payload = takeErrorPayload();
+
+                if (at(write))
+                    payload.arg("to", m_to.get());
+                else
+                    payload.arg("from", m_from.get());
+                setErrorPayload(payload);
+            }
+
+            return v;
+        }
+
     public:
         obj_ptr<Stream_base> m_from;
         obj_ptr<Stream_base> m_to;

@@ -15,7 +15,6 @@ namespace fibjs {
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
-    setErrorContext("ftruncate", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -24,14 +23,13 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
         len = 0;
 
     if (::truncate(path.c_str(), len) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("ftruncate", path));
 
     return 0;
 }
 
 result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    setErrorContext("lchmod", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -40,7 +38,7 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 #else
     if (::lchmod(path.c_str(), mode))
 #endif
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lchmod", path));
 
     return 0;
 }

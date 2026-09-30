@@ -35,6 +35,15 @@ public:
     // WHATWG encoding label normalization, returns canonical name or nullptr
     static const char* normalizeEncoding(const exlib::string& label);
 
+    // true for the codecs implemented natively as Buffer codecs (hex, base64,
+    // base64url, base32, base58, the UCS / UTF families, binary / latin1).
+    static bool is_buffer_codec(const exlib::string& codec);
+
+    // Resolve a label to its canonical name: the WHATWG / Buffer set first,
+    // then ICU (the charsets fibjs exposes as an extension). Unknown labels
+    // return false.
+    static bool resolve(const exlib::string& label, exlib::string& canonicalName);
+
     exlib::string charset() const
     {
         return m_charset;

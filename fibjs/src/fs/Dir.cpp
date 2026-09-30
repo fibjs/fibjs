@@ -34,8 +34,6 @@ result_t Dir::load()
     if (m_loaded)
         return 0;
 
-    setErrorContext("scandir", m_path);
-
     exlib::string path;
     result_t hr = normalize_file_path_like(m_path, path);
     if (hr < 0)
@@ -46,7 +44,7 @@ result_t Dir::load()
     AutoReq req;
     int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "scandir", m_path);
 
     uv_dirent_t dirent;
     while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {

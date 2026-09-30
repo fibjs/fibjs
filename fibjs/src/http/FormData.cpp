@@ -118,8 +118,8 @@ result_t FormData::append(exlib::string name, Variant value, exlib::string filen
     // WHATWG FormData: the filename argument is only allowed for Blob/File values.
     obj_ptr<Blob_base> blob = Blob_base::getInstance((v8::Local<v8::Value>)value);
     if (!blob)
-        return Runtime::setError(kTypeError,
-            "Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.");
+        return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+            .with_message("Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'."));
 
     return append(name, blob.get(), filename);
 }
@@ -158,8 +158,8 @@ result_t FormData::set(exlib::string name, Variant value, exlib::string filename
 {
     obj_ptr<Blob_base> blob = Blob_base::getInstance((v8::Local<v8::Value>)value);
     if (!blob)
-        return Runtime::setError(kTypeError,
-            "Failed to execute 'set' on 'FormData': parameter 2 is not of type 'Blob'.");
+        return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+            .with_message("Failed to execute 'set' on 'FormData': parameter 2 is not of type 'Blob'."));
 
     remove(name);
     append(name, blob.get(), filename);

@@ -54,9 +54,44 @@ static result_t setAbortError(AbortSignal_base* signal)
     AbortSignal* s = signal ? static_cast<AbortSignal*>(signal) : NULL;
 
     if (s && s->is_timeout_abort())
-        return Runtime::setError(kTimeoutError, "The operation timed out.");
+        return Runtime::setError(ErrorPayload::make(errtype::kTimeoutError)
+            .with_message("The operation timed out."));
 
-    return Runtime::setError(kAbortError, "The operation was aborted.");
+    return Runtime::setError(ErrorPayload::make(errtype::kAbortError)
+        .with_message("The operation was aborted."));
+}
+
+// Diagnostics-only view of a request URL: protocol/host/path/query with the
+// credentials removed, so an error payload can never leak userinfo.
+static exlib::string sanitize_url_for_error(Url* url)
+{
+    if (!url)
+        return exlib::string();
+
+    exlib::string str = url->protocol();
+
+    if (!url->host().empty())
+        str.append("//").append(url->host());
+
+    str.append(url->pathname());
+    str.append(url->search());
+
+    return str;
+}
+
+// Attach request diagnostics to an error payload: the method plus a sanitized
+// URL, so the failing request can be identified without leaking secrets.
+static ErrorPayload with_request_args(ErrorPayload payload,
+    const exlib::string& method, Url* url)
+{
+    if (!method.empty())
+        payload.arg("method", method);
+
+    exlib::string url_str = sanitize_url_for_error(url);
+    if (!url_str.empty())
+        payload.arg("url", url_str);
+
+    return payload;
 }
 
 static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal)
@@ -71,7 +106,8 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
         method[i] = (char)toupper((unsigned char)method[i]);
 
     if (method != "GET" && method != "HEAD")
-        return CHECK_ERROR(Runtime::setError(kTypeError, "fetch(file:): only GET and HEAD are supported"));
+        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+            .with_message("fetch(file:): only GET and HEAD are supported")));
 
     FileStream file;
     hr = file.open(path, "r");
@@ -2139,7 +2175,8 @@ public:
 
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
-            return CHECK_ERROR(Runtime::setError(kTypeError, "fetch: redirect not allowed"));
+            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                .with_message("fetch: redirect not allowed")));
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -2155,7 +2192,8 @@ public:
         m_o->u->toString(m_url);
 
         if (m_urls.find(m_url) != m_urls.end())
-            return CHECK_ERROR(Runtime::setError(kTypeError, "HttpClient: redirect cycle"));
+            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                .with_message("HttpClient: redirect cycle")));
 
         // 303: per spec force GET and clear request body
         if (status == 303) {
@@ -2236,14 +2274,32 @@ public:
             }
         }
 
+        // Attach request diagnostics to the terminal error. The payload is kept
+        // on this thread for the callback/promise path and passed by value into
+        // the event-emit fiber, which may run on another thread. Exactly one of
+        // the two stores runs, so a terminal error copies it once.
+        //
+        // The description of a CALL_E_EXCEPTION (name/message) is per-thread as
+        // well, so it is captured here and restored in the emit fiber: without
+        // it an aborted request would report "[0] Success" there.
+        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
+        ErrorPayload payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
+
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {
-            exlib::string errMsg = Runtime::errMessage();
-            if (errMsg.empty())
-                errMsg = "Request failed";
-            Variant err(errMsg);
-            m_req->_emit("error", err);
-        }
+            obj_ptr<HttpRequest> req = m_req;
+            req->holder()->sync([req, v, desc, payload]() -> int32_t {
+                JSFiber::EnterJsScope s;
+
+                Runtime::applyErrorDescription(desc, payload);
+
+                v8::Local<v8::Value> err = FillError(v);
+                bool retVal;
+                req->_emit("error", &err, 1, retVal);
+                return 0;
+            });
+        } else if (!payload.empty())
+            setErrorPayload(payload);
 
         return v;
     }
@@ -3118,19 +3174,20 @@ public:
     virtual int32_t error(int32_t v) override
     {
         // Per Fetch spec, network errors are TypeErrors; an abort however keeps
-        // its AbortError/TimeoutError DOMException. Note that errType()/errMessage()
-        // consume the pending error state, so it must be restored explicitly.
-        ErrorType et = (v == CALL_E_EXCEPTION) ? Runtime::errType() : kError;
+        // its AbortError/TimeoutError DOMException. Note that
+        // errTypeName()/errMessage() consume the pending error state, so it must
+        // be restored explicitly.
+        exlib::string type_name = (v == CALL_E_EXCEPTION) ? Runtime::errTypeName() : exlib::string();
         exlib::string msg = (v == CALL_E_EXCEPTION)
             ? Runtime::errMessage()
             : getResultMessage(v);
 
-        if (et == kAbortError || et == kTimeoutError) {
-            Runtime::setError(et, CALL_E_EXCEPTION, msg);
+        if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError) {
+            Runtime::setError(ErrorPayload(), type_name.c_str(), CALL_E_EXCEPTION, msg);
             return CALL_E_EXCEPTION;
         }
 
-        Runtime::setError(kTypeError, msg);
+        Runtime::setError(ErrorPayload::make(errtype::kTypeError).with_message(msg));
         return CALL_E_EXCEPTION;
     }
 

@@ -88,7 +88,21 @@ public:
     result_t Write(Buffer_base* data)
     {
         obj_ptr<Buffer> buf = Buffer::Cast(data);
-        return Write((const char*)buf->data(), (int32_t)buf->length());
+        int32_t len = (int32_t)buf->length();
+        result_t hr = Write((const char*)buf->data(), len);
+
+        // Only a real I/O failure carries a summary: internal codes (closed
+        // handle and friends) end the operation normally, and a successful
+        // write must never touch the payload (CALL_E_MAX is negative, so the
+        // upper bound alone would also match hr == 0).
+        if (hr < 0 && hr > CALL_E_MAX) {
+            ErrorPayload payload = takeErrorPayload();
+
+            payload.arg("buffer", data);
+            setErrorPayload(payload);
+        }
+
+        return hr;
     }
 
 protected:
@@ -157,23 +171,29 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
     if (fd < 0) {
+        result_t hr = LastError();
+
 #ifdef _WIN32
         // Node.js compatibility: opening a directory as a file reports EISDIR.
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        result_t hr = LastError();
-
         if (hr == -ERROR_ACCESS_DENIED) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
                 return UV_EISDIR;
         }
+#endif
+
+        if (hr > CALL_E_MAX) {
+            ErrorPayload payload = ErrorPayload::from_system(hr)
+                                       .with_syscall("open")
+                                       .with_path(fname)
+                                       .arg("flags", flags);
+            return setErrorPayload(hr, payload);
+        }
 
         return hr;
-#else
-        return LastError();
-#endif
     }
 
 #ifndef _WIN32
@@ -188,7 +208,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("fcntl", fname));
 #endif
     return 0;
 }
@@ -234,23 +254,29 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
     if (fd < 0) {
+        result_t hr = LastError();
+
 #ifdef _WIN32
         // Node.js compatibility: opening a directory as a file reports EISDIR.
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        result_t hr = LastError();
-
         if (hr == -ERROR_ACCESS_DENIED) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
                 return UV_EISDIR;
         }
+#endif
+
+        if (hr > CALL_E_MAX) {
+            ErrorPayload payload = ErrorPayload::from_system(hr)
+                                       .with_syscall("open")
+                                       .with_path(fname)
+                                       .arg("flags", flags);
+            return setErrorPayload(hr, payload);
+        }
 
         return hr;
-#else
-        return LastError();
-#endif
     }
 
 #ifndef _WIN32
@@ -265,7 +291,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("fcntl", fname));
 #endif
     return 0;
 }

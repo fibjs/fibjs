@@ -254,7 +254,6 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEv
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("lstat", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -273,7 +272,7 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     AutoReq req;
     int32_t ret = uv_fs_lstat(NULL, &req, safe_name.c_str(), NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "lstat", path);
 
     obj_ptr<Stat> pStat = new Stat();
 
@@ -307,7 +306,6 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
 
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("stat", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -326,7 +324,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
     AutoReq req;
     int32_t ret = uv_fs_stat(NULL, &req, safe_name.c_str(), NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "stat", path);
 
     obj_ptr<Stat> pStat = new Stat();
 

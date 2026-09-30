@@ -142,6 +142,34 @@ describe('fs', () => {
             assert.equal(code, "ENOENT");
         });
 
+        it('stat missing path keeps syscall/path', () => {
+            var missing = path.join(homedir, 'missing_stat_' + vmid + Date.now());
+
+            assert.throws(() => {
+                fs.stat(missing);
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'ENOENT');
+                assert.equal(err.syscall, 'stat');
+                assert.equal(err.path, missing);
+                return true;
+            });
+        });
+
+        it('lstat missing path keeps syscall/path', () => {
+            var missing = path.join(homedir, 'missing_lstat_' + vmid + Date.now());
+
+            assert.throws(() => {
+                fs.lstat(missing);
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'ENOENT');
+                assert.equal(err.syscall, 'lstat');
+                assert.equal(err.path, missing);
+                return true;
+            });
+        });
+
         it('stat with options', () => {
             // note: the `bigint` option is not implemented; only the option object itself is accepted
             var st = fs.stat('.', {});
@@ -213,7 +241,7 @@ describe('fs', () => {
         // Node.js compatibility: closing an already closed handle reports EBADF
         assert.throws(() => {
             fs.close(fd);
-        }, /bad file descriptor/);
+        }, { code: 'EBADF' });
 
         var fd1 = fs.open(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.open(path.join(__dirname, 'fs_test.js'));
@@ -259,7 +287,7 @@ describe('fs', () => {
         // Node.js compatibility: closing an already closed handle reports EBADF
         assert.throws(() => {
             fs.closeSync(fd);
-        }, /bad file descriptor/);
+        }, { code: 'EBADF' });
 
         var fd1 = fs.openSync(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.openSync(path.join(__dirname, 'fs_test.js'));
@@ -307,6 +335,33 @@ describe('fs', () => {
             var stm = fs.createReadStream(tmpFile);
             assert.equal(stm.readAll().toString(), testContent);
             stm.close();
+        });
+
+        it("missing file error carries the open summaries", (done) => {
+            // The open failure is built on the calling thread and the 'error'
+            // event is emitted on the JS thread: the payload (flags) and the
+            // description must both travel with the event.
+            var missing = path.join(homedir, '__no_such_fs_stream_' + vmid + '.txt');
+            var syncErr = null;
+
+            try {
+                fs.open(missing, 'r');
+            } catch (e) {
+                syncErr = e;
+            }
+
+            assert.equal(syncErr.code, 'ENOENT');
+
+            var stm = fs.createReadStream(missing);
+
+            stm.on('error', (err) => {
+                done(() => {
+                    assert.equal(err.code, syncErr.code);
+                    assert.equal(err.number, syncErr.number);
+                    assert.equal(err.path, missing);
+                    assert.deepEqual(err.args, syncErr.args);
+                });
+            });
         });
 
         it("with start and end (end is inclusive)", () => {
@@ -460,6 +515,20 @@ describe('fs', () => {
         // Should throw error for non-existent directory (following Node.js behavior)
         assert.throws(() => {
             fs.rmdir(non_existent_path, { recursive: true });
+        });
+    });
+
+    it("rmdir missing path keeps syscall/path", () => {
+        var missing = path.join(homedir, 'missing_rmdir_dir_' + vmid + Date.now());
+
+        assert.throws(() => {
+            fs.rmdir(missing);
+        }, (err) => {
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ENOENT');
+            assert.equal(err.syscall, 'rmdir');
+            assert.equal(err.path, missing);
+            return true;
         });
     });
 
@@ -708,7 +777,10 @@ describe('fs', () => {
             err = e;
         }
         assert.ok(err, 'should throw');
-        assert.equal(err.code, 'EISDIR');
+        // Node.js reports ERR_FS_EISDIR (a SystemError with syscall "rm")
+        assert.equal(err.code, 'ERR_FS_EISDIR');
+        assert.equal(err.name, 'SystemError');
+        assert.equal(err.syscall, 'rm');
 
         // Directory should still exist
         assert.equal(fs.exists(test_dir), true);
@@ -770,7 +842,7 @@ describe('fs', () => {
 
         assert.throws(() => {
             fs.rm(non_existent);
-        });
+        }, { code: 'ENOENT' });
     });
 
     it("rm recursive throws error for non-existent path", () => {
@@ -778,7 +850,7 @@ describe('fs', () => {
 
         assert.throws(() => {
             fs.rm(non_existent, { recursive: true });
-        });
+        }, { code: 'ENOENT' });
     });
 
     it("rm recursive with complex structure", () => {
@@ -822,7 +894,7 @@ describe('fs', () => {
         // rmdir should fail on a file (without recursive)
         assert.throws(() => {
             fs.rmdir(test_file);
-        });
+        }, { code: 'ENOTDIR' });
 
         // File should still exist
         assert.equal(fs.exists(test_file), true);
@@ -919,9 +991,18 @@ describe('fs', () => {
             var dest = path.join(cpBase, 'dest.txt');
             fs.writeFile(src, 'data');
             fs.writeFile(dest, 'existing');
+
+            // Node.js: SystemError + ERR_FS_CP_EEXIST, syscall "cp"
             assert.throws(() => {
                 fs.cp(src, dest, { force: false, errorOnExist: true });
-            }, /already exists/);
+            }, (err) => {
+                assert.equal(err.name, 'SystemError');
+                assert.equal(err.code, 'ERR_FS_CP_EEXIST');
+                assert.equal(err.syscall, 'cp');
+                assert.equal(err.path, dest);
+                assert.ok(err.message.indexOf('Target already exists: cp returned EEXIST') === 0);
+                return true;
+            });
             assert.equal(fs.readFile(dest).toString(), 'existing');
         });
 
@@ -930,8 +1011,29 @@ describe('fs', () => {
             var destDir = path.join(cpBase, 'destdir');
             fs.mkdir(srcDir);
             fs.writeFile(path.join(srcDir, 'a.txt'), 'aaa');
+
+            // Node.js: plain Error + ERR_FS_EISDIR, no errno/syscall
             assert.throws(() => {
                 fs.cp(srcDir, destDir);
+            }, (err) => {
+                assert.equal(err.name, 'Error');
+                assert.equal(err.code, 'ERR_FS_EISDIR');
+                assert.equal(err.message,
+                    'Recursive option not enabled, cannot copy a directory: ' + srcDir + '/');
+                return true;
+            });
+        });
+
+        it("copy onto itself is refused like Node.js", () => {
+            var src = path.join(cpBase, 'same.txt');
+            fs.writeFile(src, 'x');
+
+            assert.throws(() => {
+                fs.cp(src, src);
+            }, (err) => {
+                assert.equal(err.code, 'ERR_FS_CP_EINVAL');
+                assert.equal(err.message, 'src and dest cannot be the same ' + src);
+                return true;
             });
         });
 
@@ -1166,6 +1268,35 @@ describe('fs', () => {
         f.close();
     });
 
+    it("FileStream write on readonly handle keeps syscall/path", () => {
+        var target = path.join(__dirname, 'fs_test.js');
+        var f = fs.openFile(target, 'r');
+
+        try {
+            assert.throws(() => {
+                f.write('x');
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.syscall, 'write');
+                assert.equal(err.path, target);
+                assert.equal(err.args.length, '1');
+                return true;
+            });
+
+            assert.throws(() => {
+                f.write(new Buffer(4096));
+            }, (err) => {
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.args.length, '4096');
+                assert.equal(err.args.buffer, '<Buffer len=4096>');
+                return true;
+            });
+        } finally {
+            f.close();
+        }
+    });
+
     it("readTextFile", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
 
@@ -1345,17 +1476,17 @@ describe('fs', () => {
 
             it('offset error read', () => {
                 const buf = Buffer.alloc(1);
-                assert.throws(() => fs.read(fd, buf, 1, 1, 0));
-                assert.throws(() => fs.read(fd, buf, 2, 1, 0));
-                assert.throws(() => fs.read(fd, buf, -1, 1, 0));
+                assert.throws(() => fs.read(fd, buf, 1, 1, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.read(fd, buf, 2, 1, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.read(fd, buf, -1, 1, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
                 assert.doesNotThrow(() => fs.read(fd, buf, 0, 1, 0));
             });
 
             it('beyond buffer error read', () => {
                 const buf = Buffer.alloc(4);
-                assert.throws(() => fs.read(fd, buf, 2, 3, 0));
-                assert.throws(() => fs.read(fd, buf, 3, 2, 0));
-                assert.throws(() => fs.read(fd, buf, 0, -1, 0));
+                assert.throws(() => fs.read(fd, buf, 2, 3, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.read(fd, buf, 3, 2, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.read(fd, buf, 0, -1, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
                 assert.doesNotThrow(() => fs.read(fd, buf, 2, 2, 0));
             });
 
@@ -1419,9 +1550,9 @@ describe('fs', () => {
 
             it('offset error read', () => {
                 const buf = Buffer.alloc(1);
-                assert.throws(() => fs.readSync(fd, buf, 1, 15, 0));
-                assert.throws(() => fs.readSync(fd, buf, 2, 15, 0));
-                assert.throws(() => fs.readSync(fd, buf, -1, 1, 0));
+                assert.throws(() => fs.readSync(fd, buf, 1, 15, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.readSync(fd, buf, 2, 15, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.readSync(fd, buf, -1, 1, 0), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
                 assert.doesNotThrow(() => fs.readSync(fd, buf, 0, 1, 0));
             });
 
@@ -1667,6 +1798,20 @@ describe('fs', () => {
             assert.deepEqual(fl.sort(), ["dir1", "dir1/file3", "file1", "file2"]);
     });
 
+    it("readdir missing path keeps syscall/path", () => {
+        var missing = path.join(homedir, 'missing_readdir_' + vmid + Date.now());
+
+        assert.throws(() => {
+            fs.readdir(missing);
+        }, (err) => {
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ENOENT');
+            assert.equal(err.syscall, 'scandir');
+            assert.equal(err.path, missing);
+            return true;
+        });
+    });
+
     it("readdir with withFileTypes", () => {
         var entries = fs.readdir(path.join(__dirname, 'dir_test'), { withFileTypes: true });
         assert.equal(entries.length, 3);
@@ -1801,6 +1946,20 @@ describe('fs', () => {
         fs.unlink(fn);
     });
 
+    it("truncate missing path keeps syscall/path", () => {
+        var missing = path.join(homedir, 'missing_truncate_' + vmid + Date.now());
+
+        assert.throws(() => {
+            fs.truncate(missing, 1);
+        }, (err) => {
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ENOENT');
+            assert.equal(err.syscall, 'ftruncate');
+            assert.equal(err.path, missing);
+            return true;
+        });
+    });
+
     describe("symlink & lstat & readlink & realpath", () => {
         function proc() {
             var fn = path.join(__dirname, 'fs_test.js');
@@ -1867,7 +2026,7 @@ describe('fs', () => {
         });
         assert.throws(() => {
             fs.access(fn1, fs.constants.F_OK);
-        })
+        }, { code: 'ENOENT' })
     })
 
     it("promises", async () => {
@@ -1880,6 +2039,33 @@ describe('fs', () => {
         assert.isTrue(f.stat() instanceof Promise);
         assert.property(await f.stat(), 'size');
         await f.close();
+    });
+
+    it("promises missing file keeps syscall/path", async () => {
+        var missing = path.join(__dirname, '__missing_fs_promises_' + vmid);
+
+        await assert.rejects(() => fs.promises.open(missing, 'r'), (err) => {
+            assert.equal(err.code, 'ENOENT');
+            assert.equal(err.syscall, 'open');
+            assert.equal(err.path, missing);
+            return true;
+        });
+    });
+
+    it("callback missing file keeps syscall/path", (done) => {
+        var missing = path.join(__dirname, '__missing_fs_callback_' + vmid);
+
+        fs.open(missing, 'r', (err) => {
+            try {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'ENOENT');
+                assert.equal(err.syscall, 'open');
+                assert.equal(err.path, missing);
+                done();
+            } catch (e) {
+                done(e);
+            }
+        });
     });
 
     it("promises.constants", () => {
@@ -1946,6 +2132,14 @@ describe('fs', () => {
             assert.isString(str);
             assert.equal(str, 'readFile test content');
             await fh.close();
+
+            fh = await fs.promises.open(fn, 'a');
+            await assert.rejects(() => fh.readFile('utf8'), (err) => {
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.syscall, 'read');
+                return true;
+            });
+            await fh.close();
         } finally {
             fs.unlink(fn);
         }
@@ -1967,6 +2161,40 @@ describe('fs', () => {
             assert.equal(n, 11);
             await fh.close();
             assert.equal(fs.readFile(fn).toString(), 'string data');
+
+            fh = await fs.promises.open(fn, 'r');
+            await assert.rejects(() => fh.writeFile('x'), (err) => {
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.syscall, 'write');
+                return true;
+            });
+            await fh.close();
+        } finally {
+            fs.unlink(fn);
+        }
+    });
+
+    it("FileHandle.write keeps syscall on readonly handle", async () => {
+        var fn = path.join(__dirname, '_test_fh_write_error_' + vmid);
+        fs.writeFile(fn, 'hello world');
+        try {
+            var fh = await fs.promises.open(fn, 'r');
+            await assert.rejects(() => fh.write('x'), (err) => {
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.syscall, 'write');
+                assert.equal(err.args.buffer, '<Buffer len=1>');
+                assert.equal(err.args.length, '1');
+                assert.equal(err.args.position, '-1');
+                return true;
+            });
+
+            await assert.rejects(() => fh.write(new Buffer(2048)), (err) => {
+                assert.equal(err.code, 'EBADF');
+                assert.equal(err.args.buffer, '<Buffer len=2048>');
+                assert.equal(err.args.length, '2048');
+                return true;
+            });
+            await fh.close();
         } finally {
             fs.unlink(fn);
         }
@@ -2137,24 +2365,26 @@ describe('fs', () => {
             assert.equal(fs.exists(d), false);
         });
 
-        it("rmSync without recursive throws EISDIR on empty directory", () => {
+        it("rmSync without recursive throws ERR_FS_EISDIR on empty directory", () => {
             var base = rmBase();
             var d = path.join(base, 'emptydir');
             fs.mkdir(d);
             var err = catchError(() => fs.rmSync(d));
             assert.ok(err, 'should throw');
-            assert.equal(err.code, 'EISDIR');
+            assert.equal(err.code, 'ERR_FS_EISDIR');
+            assert.equal(err.name, 'SystemError');
             assert.equal(fs.exists(d), true);
         });
 
-        it("rmSync without recursive throws EISDIR on non-empty directory", () => {
+        it("rmSync without recursive throws ERR_FS_EISDIR on non-empty directory", () => {
             var base = rmBase();
             var d = path.join(base, 'nonemptydir');
             fs.mkdir(d);
             fs.writeFile(path.join(d, 'f.txt'), 'x');
             var err = catchError(() => fs.rmSync(d));
             assert.ok(err, 'should throw');
-            assert.equal(err.code, 'EISDIR');
+            assert.equal(err.code, 'ERR_FS_EISDIR');
+            assert.equal(err.name, 'SystemError');
             assert.equal(fs.exists(d), true);
         });
 
@@ -2255,8 +2485,8 @@ describe('fs', () => {
             });
 
             it("statSync throws by default, and when throwIfNoEntry is true", () => {
-                assert.throws(() => fs.statSync(missing), /no such file/);
-                assert.throws(() => fs.statSync(missing, { throwIfNoEntry: true }), /no such file/);
+                assert.throws(() => fs.statSync(missing), { code: 'ENOENT' });
+                assert.throws(() => fs.statSync(missing, { throwIfNoEntry: true }), { code: 'ENOENT' });
             });
 
             it("statSync on a dangling symlink follows throwIfNoEntry", () => {
@@ -2349,7 +2579,7 @@ describe('fs', () => {
             it("readFileSync honors flag (a write-only flag fails to read)", () => {
                 var f = optFile('readflag.txt');
                 fs.writeFileSync(f, 'x');
-                assert.throws(() => fs.readFileSync(f, { encoding: 'utf8', flag: 'a' }), /bad file descriptor/);
+                assert.throws(() => fs.readFileSync(f, { encoding: 'utf8', flag: 'a' }), { code: 'EBADF' });
             });
         });
 
@@ -2445,7 +2675,30 @@ describe('fs', () => {
             });
 
             it("rejects an unknown encoding", () => {
-                assert.throws(() => fs.readdirSync(encBase, { encoding: 'no-such-encoding' }));
+                // Node.js: TypeError + ERR_INVALID_ARG_VALUE
+                assert.throws(() => fs.readdirSync(encBase, { encoding: 'no-such-encoding' }),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.readFileSync(path.join(encBase, 'abc.txt'), { encoding: 'no-such-encoding' }),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.readFileSync(path.join(encBase, 'abc.txt'), 'no-such-encoding'),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.writeFileSync(path.join(encBase, 'tmp.txt'), 'x', { encoding: 'no-such-encoding' }),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.appendFileSync(path.join(encBase, 'tmp.txt'), 'x', { encoding: 'no-such-encoding' }),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+
+                // Buffer codecs stay valid (Node accepts them in fs as well)
+                assert.equal(fs.readFileSync(__filename, 'base64').substring(0, 1).length, 1);
+                assert.equal(fs.readFileSync(__filename, 'hex').length >= 0, true);
+            });
+
+            it("validates write modes like Node.js", () => {
+                var f = path.join(encBase, 'mode_probe.txt');
+
+                assert.throws(() => fs.writeFileSync(f, 'x', { mode: -1 }),
+                    { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.appendFileSync(f, 'x', { mode: -1 }),
+                    { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
             });
 
             it("recursive mode also honors encoding", () => {
@@ -2502,7 +2755,18 @@ describe('fs', () => {
             it("utimesSync rejects a non time value", () => {
                 var f = ofile('utimes3.txt');
                 fs.writeFileSync(f, 'x');
-                assert.throws(() => fs.utimesSync(f, true, 1));
+
+                // Node.js: the time argument must be a Date or a number of
+                // seconds; everything else is an ERR_INVALID_ARG_TYPE.
+                assert.throws(() => fs.utimesSync(f, true, 1),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_TYPE' });
+                assert.throws(() => fs.utimesSync(f, '2020-01-01', 1),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_TYPE' });
+                assert.throws(() => fs.utimesSync(f, [], 1),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_TYPE' });
+
+                // a numeric string is accepted by Node as well
+                assert.doesNotThrow(() => fs.utimesSync(f, '100', 200));
             });
 
             it("chmodSync accepts an octal string", () => {
@@ -2514,15 +2778,66 @@ describe('fs', () => {
                 assert.equal((fs.statSync(f).mode & 0o777).toString(8), '640');
             });
 
-            it("chmodSync accepts 0o prefixed strings and rejects invalid ones", () => {
+            it("chmodSync rejects invalid modes like Node.js", () => {
                 if (win)
                     return;
                 var f = ofile('chmod2.txt');
                 fs.writeFileSync(f, 'x');
-                fs.chmodSync(f, '0o600');
-                assert.equal((fs.statSync(f).mode & 0o777).toString(8), '600');
-                assert.throws(() => fs.chmodSync(f, 'rwx'));
-                assert.throws(() => fs.chmodSync(f, '9999'));
+
+                // Node.js: only /^[0-7]+$/ octal strings, no 0o prefix
+                assert.throws(() => fs.chmodSync(f, '0o600'),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.chmodSync(f, 'rwx'),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => fs.chmodSync(f, '9999'),
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE' });
+
+                // numeric modes are validated as unsigned 32-bit integers
+                assert.throws(() => fs.chmodSync(f, -1),
+                    { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.chmodSync(f, NaN),
+                    { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => fs.mkdirSync(ofile('mkdir_neg'), -1),
+                    { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
+            });
+
+            it("two-path operations report both paths like Node.js", () => {
+                if (win)
+                    return;
+
+                var src = ofile('two_path_src.txt');
+                var dst = ofile('two_path_dst.txt');
+                var link = ofile('two_path_link.txt');
+
+                // rename / copyfile: "<syscall> '<src>' -> '<dst>'"
+                assert.throws(() => fs.renameSync(src, dst), (err) => {
+                    assert.equal(err.code, 'ENOENT');
+                    assert.equal(err.syscall, 'rename');
+                    assert.equal(err.path, src);
+                    assert.equal(err.message,
+                        "ENOENT: no such file or directory, rename '" + src + "' -> '" + dst + "'");
+                    return true;
+                });
+
+                fs.writeFileSync(src, 'x');
+                assert.throws(() => fs.copyFileSync(src + '.missing', dst), (err) => {
+                    assert.equal(err.code, 'ENOENT');
+                    assert.equal(err.syscall, 'copyfile');
+                    assert.equal(err.message,
+                        "ENOENT: no such file or directory, copyfile '" + src + ".missing' -> '" + dst + "'");
+                    return true;
+                });
+
+                // symlink: the target comes first, exactly like Node.js
+                fs.symlinkSync(src, link);
+                assert.throws(() => fs.symlinkSync(src, link), (err) => {
+                    assert.equal(err.code, 'EEXIST');
+                    assert.equal(err.syscall, 'symlink');
+                    assert.equal(err.path, src);
+                    assert.equal(err.message,
+                        "EEXIST: file already exists, symlink '" + src + "' -> '" + link + "'");
+                    return true;
+                });
             });
 
             it("mkdirSync accepts an octal string", () => {
@@ -2640,7 +2955,7 @@ describe('fs', () => {
             });
 
             it("accessSync rejects an out of range mode", () => {
-                assert.throws(() => fs.accessSync(obase, 999));
+                assert.throws(() => fs.accessSync(obase, 999), { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
             });
 
             it("truncateSync treats a negative length as zero", () => {

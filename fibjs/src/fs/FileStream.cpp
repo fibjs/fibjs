@@ -46,14 +46,14 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (bytes < 0) {
         int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
         if (p < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("lseek", name));
 
         int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
         if (sz < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("lseek", name));
 
         if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("lseek", name));
 
         sz -= p;
 
@@ -71,7 +71,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(ReadError());
+                return CHECK_ERROR(ReadError("read", name));
             if (n == 0)
                 break;
 
@@ -100,14 +100,14 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     sz -= p;
 
@@ -124,7 +124,7 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     while (remaining > 0) {
         int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
         if (n < 0)
-            return CHECK_ERROR(ReadError());
+            return CHECK_ERROR(ReadError("read", name));
         if (n == 0)
             break;
 
@@ -148,14 +148,14 @@ result_t FileStream::readAllText(exlib::string& retVal)
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     sz -= p;
 
@@ -174,7 +174,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
     while (remaining > 0) {
         int32_t n = (int32_t)::_read(m_fd, buf, remaining > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : remaining);
         if (n < 0)
-            return CHECK_ERROR(ReadError());
+            return CHECK_ERROR(ReadError("read", name));
         if (n == 0)
             break;
 
@@ -195,8 +195,19 @@ result_t FileStream::Write(const char* p, int32_t sz)
 
     while (sz) {
         int32_t n = (int32_t)::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
-        if (n < 0)
-            return CHECK_ERROR(LastError());
+        if (n < 0) {
+            result_t hr = LastError();
+
+            if (hr > CALL_E_MAX) {
+                ErrorPayload payload = ErrorPayload::from_system(hr)
+                                           .with_syscall("write")
+                                           .with_path(name)
+                                           .arg("length", sz);
+                return CHECK_ERROR(setErrorPayload(hr, payload));
+            }
+
+            return CHECK_ERROR(hr);
+        }
 
         sz -= n;
         p += n;
@@ -260,14 +271,14 @@ result_t FileStream::size(int64_t& retVal)
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     retVal = sz;
     return 0;
@@ -280,14 +291,14 @@ result_t FileStream::eof(bool& retVal)
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
     if (sz < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     retVal = sz == p;
 
@@ -300,7 +311,7 @@ result_t FileStream::seek(int64_t offset, int32_t whence)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     if (_lseeki64(m_fd, offset, whence) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     return 0;
 }
@@ -312,7 +323,7 @@ result_t FileStream::tell(int64_t& retVal)
 
     retVal = _lseeki64(m_fd, 0, SEEK_CUR);
     if (retVal < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     return 0;
 }
@@ -323,7 +334,7 @@ result_t FileStream::rewind()
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("lseek", name));
 
     return 0;
 }
@@ -375,7 +386,7 @@ result_t FileStream::truncate(int64_t bytes, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (ftruncate64(m_fd, bytes) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("ftruncate", name));
 
     return 0;
 }
@@ -389,7 +400,7 @@ result_t FileStream::chmod(int32_t mode, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchmod(m_fd, mode))
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("fchmod", name));
 
     return 0;
 #endif

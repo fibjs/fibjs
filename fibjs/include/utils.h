@@ -177,18 +177,20 @@ typedef int32_t result_t;
 
 #define CALL_E_MIN (CALL_E_MAX - 100)
 
-enum ErrorType {
-    kError = 0,
-    kTypeError,
-    kRangeError,
-    kSyntaxError,
-    kReferenceError,
-    kURIError,
-    kEvalError,
-    // DOMException based types (WHATWG)
-    kAbortError,
-    kTimeoutError,
-};
+// Canonical error class names. The name is what JS sees as err.name and it is
+// the single error-type channel: it rides in ErrorPayload, so it survives
+// crossing a thread or fiber boundary (per-thread state does not).
+namespace errtype {
+constexpr const char* kError = "";
+constexpr const char* kTypeError = "TypeError";
+constexpr const char* kRangeError = "RangeError";
+constexpr const char* kSyntaxError = "SyntaxError";
+constexpr const char* kReferenceError = "ReferenceError";
+constexpr const char* kURIError = "URIError";
+constexpr const char* kEvalError = "EvalError";
+constexpr const char* kAbortError = "AbortError";
+constexpr const char* kTimeoutError = "TimeoutError";
+}
 
 #ifndef _WIN32
 #define CALL_E_FILE_NOT_FOUND (-ENOENT)
@@ -258,7 +260,7 @@ enum {
     result_t hr = CALL_E_BADPARAMCOUNT;                     \
     bool bStrict = true;                                    \
     int32_t argc1 = args.Length();                          \
-    clearErrorContext();                                    \
+    clearErrorPayload();                                    \
     do {                                                    \
         do {
 
@@ -269,7 +271,7 @@ enum {
     result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
-    clearErrorContext();                                                                                   \
+    clearErrorPayload();                                                                                   \
     v8::Local<v8::Object> cb;                                                                              \
     if (args.Data()->IsTrue())                                                                             \
         cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
@@ -1250,13 +1252,250 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
     return arr;
 }
 
-// Attach Node.js compatible errno/syscall/path fields to the next error built by FillError
-void setErrorContext(const char* syscall, const exlib::string& path = exlib::string());
-// Drop any pending error context (called on every method entry)
-void clearErrorContext();
+// Render a bounded, secret-free summary of a value for error diagnostics.
+// Both helpers never touch JS handles: they only read plain C++ state.
+exlib::string summarize_for_error(const Variant& value);
+exlib::string summarize_for_error(object_base* obj);
+
+// Parameter summary entry carried by ErrorPayload. Values are pre-rendered
+// summaries instead of raw objects: a payload travels across fibers/threads
+// and must never keep JS handles nor unbounded data alive.
+struct ErrorArg {
+    exlib::string name;
+    exlib::string value;
+};
+
+// Bounds for arg summaries. Longer names/values are truncated with a trailing
+// "..." marker so a single payload cannot grow without limit.
+const int32_t kErrorArgNameMaxLength = 64;
+const int32_t kErrorArgValueMaxLength = 128;
+
+// ---------------------------------------------------------------------------
+// Debug instrument (off by default): define FIBJS_ERR_PAYLOAD_TRACE to track
+// whether a built ErrorPayload is ever delivered to JavaScript. Every payload
+// whose last instance is destroyed without reaching BuildError / EventInfo is
+// reported on stderr together with its creation backtrace: such a payload was
+// built for nothing, or was silently dropped on the way to the caller. Enable
+// with -DFIBJS_ERR_PAYLOAD_TRACE (or by uncommenting the define below) while
+// hunting wasted builds - the "trace active" banner it prints would otherwise
+// disturb tests that compare child process stderr.
+// ---------------------------------------------------------------------------
+// #define FIBJS_ERR_PAYLOAD_TRACE
+
+#ifdef FIBJS_ERR_PAYLOAD_TRACE
+#include <memory>
+
+struct ErrorPayload;
+
+struct ErrorPayloadTrace {
+    uint64_t id = 0;
+    bool delivered = false;
+    int depth = 0;
+    void* frames[8] = {};
+};
+
+uint64_t error_payload_trace_next_id();
+void error_payload_trace_record(ErrorPayloadTrace& trace);
+void error_payload_trace_lost(const ErrorPayload& payload);
+#endif
+
+struct ErrorPayload {
+    exlib::string error_type_name;
+    exlib::string syscall;
+    exlib::string path;
+    // Second path of a two-path operation (rename / symlink / link / copyfile):
+    // Node reports "<syscall> '<path>' -> '<path2>'".
+    exlib::string path2;
+    exlib::string hostname;
+    exlib::string code;
+    exlib::string message;
+    result_t result_code = 0;
+    bool has_errno = false;
+    int32_t errno_value = 0;
+    std::vector<ErrorArg> args;
+
+    static ErrorPayload make(const char* error_type_name = nullptr, result_t result_code = 0)
+    {
+        ErrorPayload payload;
+
+        if (error_type_name)
+            payload.error_type_name = error_type_name;
+        payload.result_code = result_code;
+
+        return payload;
+    }
+
+    static ErrorPayload from_system(int32_t errno_value)
+    {
+        ErrorPayload payload;
+        payload.has_errno = true;
+        payload.errno_value = errno_value;
+        return payload;
+    }
+
+    static ErrorPayload from_uv(int32_t status)
+    {
+        return from_system(status);
+    }
+
+    ErrorPayload& with_type_name(const exlib::string& value)
+    {
+        error_type_name = value;
+        return *this;
+    }
+
+    ErrorPayload& with_syscall(const char* value)
+    {
+        syscall = value ? value : "";
+        return *this;
+    }
+
+    ErrorPayload& with_path(const exlib::string& value)
+    {
+        path = value;
+        return *this;
+    }
+
+    ErrorPayload& with_path2(const exlib::string& value)
+    {
+        path2 = value;
+        return *this;
+    }
+
+    ErrorPayload& with_hostname(const exlib::string& value)
+    {
+        hostname = value;
+        return *this;
+    }
+
+    ErrorPayload& with_code(const exlib::string& value)
+    {
+        code = value;
+        return *this;
+    }
+
+    ErrorPayload& with_message(const exlib::string& value)
+    {
+        message = value;
+        return *this;
+    }
+
+    ErrorPayload& with_errno(int32_t value)
+    {
+        has_errno = true;
+        errno_value = value;
+        return *this;
+    }
+
+    ErrorPayload& result(result_t code)
+    {
+        result_code = code;
+        return *this;
+    }
+
+    // printf-style formatted message, consistent with Runtime::setError(fmt, ...)
+    ErrorPayload& format(const char* fmt, ...);
+
+    ErrorPayload& arg(const char* name, const exlib::string& value);
+    ErrorPayload& arg(const char* name, const char* value)
+    {
+        return arg(name, value ? exlib::string(value) : exlib::string());
+    }
+    ErrorPayload& arg(const char* name, int32_t value);
+    ErrorPayload& arg(const char* name, uint32_t value);
+    ErrorPayload& arg(const char* name, int64_t value);
+    ErrorPayload& arg(const char* name, uint64_t value);
+    ErrorPayload& arg(const char* name, bool value);
+    ErrorPayload& arg(const char* name, double value);
+    ErrorPayload& arg(const char* name, const Variant& value)
+    {
+        return arg(name, summarize_for_error(value));
+    }
+    // Object arguments render through summarize_for_error: Buffer objects
+    // report their length, Stream objects announce the class family.
+    ErrorPayload& arg(const char* name, object_base* value)
+    {
+        return arg(name, summarize_for_error(value));
+    }
+
+    // Sensitive values never enter the payload, not even truncated.
+    ErrorPayload& arg_redacted(const char* name);
+    ErrorPayload& arg_object(const char* name, const char* class_name);
+    ErrorPayload& arg_buffer(const char* name, int64_t length);
+
+    bool has_args() const
+    {
+        return !args.empty();
+    }
+
+    bool empty() const
+    {
+        return error_type_name.empty() && syscall.empty() && path.empty() && path2.empty() && hostname.empty()
+            && code.empty() && message.empty() && result_code == 0 && !has_errno && args.empty();
+    }
+
+#ifdef FIBJS_ERR_PAYLOAD_TRACE
+    std::shared_ptr<ErrorPayloadTrace> m_trace;
+
+    // A payload that leaves without being delivered is reported by the last
+    // instance that goes away (the shared record makes copies of one payload
+    // count as a single build).
+    ~ErrorPayload()
+    {
+        if (m_trace && m_trace.use_count() == 1 && !m_trace->delivered)
+            error_payload_trace_lost(*this);
+    }
+
+    void trace_ensure()
+    {
+        if (!m_trace && !empty()) {
+            m_trace = std::make_shared<ErrorPayloadTrace>();
+            m_trace->id = error_payload_trace_next_id();
+            error_payload_trace_record(*m_trace);
+        }
+    }
+
+    void trace_delivered()
+    {
+        if (m_trace)
+            m_trace->delivered = true;
+    }
+#endif
+
+private:
+    void append_arg(const exlib::string& name, const exlib::string& value);
+};
+
+void setErrorPayload(const ErrorPayload& data);
+ErrorPayload takeErrorPayload();
+void clearErrorPayload();
+
+// Attach a payload and return the original result code, so call sites can read
+// as `return setErrorPayload(hr, payload);` (same shape as
+// setSystemErrorPayload(hr, syscall, ...)).
+inline result_t setErrorPayload(result_t hr, const ErrorPayload& data)
+{
+    setErrorPayload(data);
+    return hr;
+}
+
+// Delivery to JavaScript (BuildError / EventInfo) completes the lifecycle of a
+// tracked payload; without tracing this is a no-op.
+inline void error_payload_delivered(ErrorPayload& payload)
+{
+#ifdef FIBJS_ERR_PAYLOAD_TRACE
+    payload.trace_delivered();
+#else
+    (void)payload;
+#endif
+}
 
 v8::Local<v8::Value> FillError(result_t hr);v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
 v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack);
+
+// Build a DOMException in the current sandbox; falls back to a plain Error
+// carrying the same `name` when the constructor is unavailable.
+v8::Local<v8::Value> MakeDOMException(Isolate* isolate, const char* name, exlib::string msg);
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 {
@@ -1367,6 +1606,67 @@ inline result_t LastError()
 #endif
 }
 
+inline result_t setSystemErrorPayload(result_t hr, const char* syscall,
+    const exlib::string& path = exlib::string(), const exlib::string& hostname = exlib::string())
+{
+    if (hr < 0 && hr > CALL_E_MAX) {
+        // Augment instead of replace: an inner layer may already have attached
+        // a string code, message or parameter summaries to the same failure.
+        ErrorPayload payload = takeErrorPayload();
+
+        payload.has_errno = true;
+        payload.errno_value = hr;
+
+        if (syscall)
+            payload.with_syscall(syscall);
+        if (!path.empty())
+            payload.with_path(path);
+        if (!hostname.empty())
+            payload.with_hostname(hostname);
+
+        setErrorPayload(payload);
+    }
+
+    return hr;
+}
+
+// Two-path variant: Node.js reports "<syscall> '<path>' -> '<path2>'".
+inline result_t setSystemErrorPayload2(result_t hr, const char* syscall,
+    const exlib::string& path, const exlib::string& path2)
+{
+    result_t ret = setSystemErrorPayload(hr, syscall, path);
+
+    if (ret < 0 && ret > CALL_E_MAX) {
+        ErrorPayload payload = takeErrorPayload();
+
+        payload.with_path2(path2);
+        setErrorPayload(payload);
+    }
+
+    return ret;
+}
+
+inline void setErrorPayload(const char* syscall, const exlib::string& path = exlib::string(),
+    const exlib::string& hostname = exlib::string())
+{
+    ErrorPayload payload;
+
+    if (syscall)
+        payload.with_syscall(syscall);
+    if (!path.empty())
+        payload.with_path(path);
+    if (!hostname.empty())
+        payload.with_hostname(hostname);
+
+    setErrorPayload(payload);
+}
+
+inline result_t LastError(const char* syscall, const exlib::string& path = exlib::string(),
+    const exlib::string& hostname = exlib::string())
+{
+    return setSystemErrorPayload(LastError(), syscall, path, hostname);
+}
+
 // Error of a failed read(2). POSIX reports EBADF when the descriptor was opened
 // write-only, Windows fails the same read with ERROR_ACCESS_DENIED, so it is
 // translated here the way libuv does in its fs__read.
@@ -1384,6 +1684,12 @@ inline result_t ReadError()
 #endif
 }
 
+inline result_t ReadError(const char* syscall, const exlib::string& path = exlib::string(),
+    const exlib::string& hostname = exlib::string())
+{
+    return setSystemErrorPayload(ReadError(), syscall, path, hostname);
+}
+
 inline result_t SocketError()
 {
 #ifdef _WIN32
@@ -1391,6 +1697,12 @@ inline result_t SocketError()
 #else
     return -errno;
 #endif
+}
+
+inline result_t SocketError(const char* syscall, const exlib::string& path = exlib::string(),
+    const exlib::string& hostname = exlib::string())
+{
+    return setSystemErrorPayload(SocketError(), syscall, path, hostname);
 }
 
 exlib::string getResultMessage(result_t hr);

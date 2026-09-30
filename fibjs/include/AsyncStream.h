@@ -15,6 +15,7 @@
 #include "Isolate.h"
 #include "Fiber.h"
 #include "Event.h"
+#include "Runtime.h"
 #include <list>
 #include <memory>
 
@@ -59,12 +60,25 @@ public:
     Isolate* m_streamIsolate = nullptr;
     obj_ptr<ValueHolder> m_streamHolder;
 
+    void setPendingErrorPayload(const ErrorPayload& payload)
+    {
+        m_pendingErrorPayload = payload;
+    }
+
+    ErrorPayload takePendingErrorPayload()
+    {
+        ErrorPayload payload = std::move(m_pendingErrorPayload);
+        m_pendingErrorPayload = ErrorPayload();
+        return payload;
+    }
+
     // Write queue state (all protected by m_writeLock)
     exlib::spinlock m_writeLock;
     std::list<AsyncEvent*> m_writeQueue;
     size_t m_writeBytes = 0;
     size_t m_writeHighWaterMark = 16384;
     bool m_needDrain = false;
+    ErrorPayload m_pendingErrorPayload;
 
     static size_t roundUpPow2(size_t n)
     {
@@ -336,8 +350,14 @@ public:
         }
 
         obj_ptr<Stream_base> stream = m_this;
-        m_isolate->sync([stream, v]() -> int32_t {
+        // The payload and the error description belong to this thread; the emit
+        // runs on the JS thread, so both are carried across explicitly.
+        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
+        ErrorPayload payload = m_base->takePendingErrorPayload();
+        m_isolate->sync([stream, v, desc, payload]() -> int32_t {
             JSFiber::EnterJsScope s;
+
+            Runtime::applyErrorDescription(desc, payload);
 
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;

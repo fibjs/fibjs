@@ -134,6 +134,79 @@ bool encoding_conv::is_encoding(exlib::string charset)
     return false;
 }
 
+bool encoding_conv::resolve(const exlib::string& label, exlib::string& canonicalName)
+{
+    // First try the WHATWG / Buffer mapping
+    const char* whatwgName = normalizeEncoding(label);
+    if (whatwgName) {
+        canonicalName = whatwgName;
+        return true;
+    }
+
+    // Validate: the label must only contain printable ASCII
+    for (size_t i = 0; i < label.length(); i++) {
+        unsigned char c = (unsigned char)label[i];
+        if (c < 0x20 || c > 0x7E)
+            return false;
+    }
+
+    // Fallback: ICU directly, for the charsets that are not WHATWG labels
+    UErrorCode err = U_ZERO_ERROR;
+    UConverter* cnv = ucnv_open(label.c_str(), &err);
+    if (U_SUCCESS(err) && cnv) {
+        UErrorCode nameErr = U_ZERO_ERROR;
+        const char* icuName = ucnv_getName(cnv, &nameErr);
+        if (U_SUCCESS(nameErr) && icuName) {
+            exlib::string lower;
+            lower.reserve(strlen(icuName));
+            for (const char* p = icuName; *p; p++) {
+                char c = *p;
+                if (c >= 'A' && c <= 'Z')
+                    c = c - 'A' + 'a';
+                lower.append(1, c);
+            }
+            canonicalName = lower;
+        } else {
+            canonicalName = label;
+        }
+        ucnv_close(cnv);
+        return true;
+    }
+
+    if (cnv)
+        ucnv_close(cnv);
+    return false;
+}
+
+bool encoding_conv::is_buffer_codec(const exlib::string& codec)
+{
+    return (codec == "hex")
+        || (codec == "base32") || (codec == "base58")
+        || (codec == "base64") || (codec == "base64url")
+
+        || (codec == "utf8") || (codec == "utf-8")
+
+        || (codec == "ucs2") || (codec == "ucs-2")
+        || (codec == "utf16") || (codec == "utf-16")
+
+        || (codec == "ucs2le") || (codec == "ucs-2le")
+        || (codec == "utf16le") || (codec == "utf-16le")
+
+        || (codec == "ucs2be") || (codec == "ucs-2be")
+        || (codec == "utf16be") || (codec == "utf-16be")
+
+        || (codec == "ucs4") || (codec == "ucs-4")
+        || (codec == "utf32") || (codec == "utf-32")
+
+        || (codec == "ucs4le") || (codec == "ucs-4le")
+        || (codec == "utf32le") || (codec == "utf-32le")
+
+        || (codec == "ucs4be") || (codec == "ucs-4be")
+        || (codec == "utf32be") || (codec == "utf-32be")
+
+        || (codec == "binary") || (codec == "latin1");
+}
+
 // WHATWG encoding label to canonical name mapping
 // https://encoding.spec.whatwg.org/#names-and-labels
 const char* encoding_conv::normalizeEncoding(const exlib::string& label)

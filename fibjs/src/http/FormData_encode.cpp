@@ -452,8 +452,8 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
             } else {
                 obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
                 if (!file) {
-                    return Runtime::setError(kTypeError,
-                        "FormData encode: field '" + _pair.first + "' is not a valid file object");
+                    return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                        .with_message("FormData encode: field '" + _pair.first + "' is not a valid file object"));
                 }
 
                 part.is_file = true;

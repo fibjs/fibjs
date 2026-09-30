@@ -16,8 +16,6 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
-    setErrorContext("ftruncate", path);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -29,14 +27,14 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
     // reported instead of being created
     int32_t fd = _wopen(UTF8_W(path), _O_BINARY | _O_RDWR);
     if (fd < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("ftruncate", path));
 
     AutoReq req;
     result_t hr = uv_fs_ftruncate(NULL, &req, fd, len, NULL);
 
     ::_close(fd);
 
-    return hr;
+    return setSystemErrorPayload(hr, "ftruncate", path);
 }
 }
 

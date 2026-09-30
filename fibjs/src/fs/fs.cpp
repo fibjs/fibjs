@@ -33,6 +33,84 @@ DECLARE_MODULE(fs);
 // Node.js compatible argument helpers
 // ---------------------------------------------------------------------------
 
+// Node.js reports buffer offset/length violations as RangeError +
+// ERR_OUT_OF_RANGE; the message keeps fibjs' own (more explicit) wording.
+static result_t setRangeError(const char* msg)
+{
+    return Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_OUTRANGE)
+            .with_code("ERR_OUT_OF_RANGE")
+            .with_message(msg));
+}
+
+// Node prints NaN / Infinity by name, integers without a fractional part.
+static exlib::string node_number_text(double d)
+{
+    if (std::isnan(d))
+        return "NaN";
+    if (std::isinf(d))
+        return d < 0 ? "-Infinity" : "Infinity";
+    if (floor(d) == d && fabs(d) < 1e15)
+        return std::to_string((long long)d);
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%g", d);
+    return buf;
+}
+
+// Node's "Received ..." description for a rejected argument value.
+static exlib::string node_received_text(Variant& v)
+{
+    switch (v.type()) {
+    case Variant::VT_Undefined:
+        return "undefined";
+    case Variant::VT_Null:
+        return "null";
+    case Variant::VT_Boolean:
+        return exlib::string("type boolean (") + (v.boolVal() ? "true" : "false") + ")";
+    case Variant::VT_Integer:
+    case Variant::VT_Long:
+    case Variant::VT_Number:
+        return "type number (" + node_number_text(v.dblVal()) + ")";
+    case Variant::VT_String:
+        return "type string ('" + v.string() + "')";
+    case Variant::VT_Object:
+    case Variant::VT_JSValue: {
+        v8::Local<v8::Value> jsv = (v8::Local<v8::Value>)v;
+
+        if (!jsv.IsEmpty() && jsv->IsArray())
+            return "an instance of Array";
+        return "an instance of Object";
+    }
+    default:
+        return "an instance of Object";
+    }
+}
+
+// Node.js ERR_OUT_OF_RANGE: RangeError with the "must be <range>" wording.
+static result_t setOutOfRange(const char* name, const char* range, exlib::string received)
+{
+    return Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_OUTRANGE)
+            .with_code("ERR_OUT_OF_RANGE")
+            .format("The value of \"%s\" is out of range. It must be %s. Received %s",
+                name, range, received.c_str()));
+}
+
+// Node.js ERR_INVALID_ARG_VALUE: TypeError with the "must be ..." wording.
+static result_t setInvalidArgValue(const char* name, const char* must_be, exlib::string received)
+{
+    return Runtime::setError(ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .format("The argument '%s' %s. Received %s", name, must_be, received.c_str()));
+}
+
+// Node.js ERR_INVALID_ARG_TYPE: TypeError with the "Received type ..." wording.
+static result_t setInvalidArgType(const char* name, const char* must_be, exlib::string received)
+{
+    return Runtime::setError(ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
+            .with_code("ERR_INVALID_ARG_TYPE")
+            .format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str()));
+}
+
 // Node.js time argument: Date object | unix timestamp in seconds | date string
 static result_t to_unix_timestamp(Variant& v, double& retVal)
 {
@@ -41,33 +119,65 @@ static result_t to_unix_timestamp(Variant& v, double& retVal)
         double ms = v.dateValue();
 
         if (std::isnan(ms))
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return setInvalidArgType("time", "an instance of Date or an Time in seconds", "an invalid Date");
 
         retVal = ms / 1000;
         return 0;
     }
     case Variant::VT_String: {
-        date_t d;
-        d.parse(v.string());
+        // Node accepts a numeric string (seconds), nothing else.
+        exlib::string s = v.string();
+        char* end = NULL;
+        double d = strtod(s.c_str(), &end);
 
-        double ms = d.date();
-        if (std::isnan(ms))
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (end == s.c_str() || *end != '\0')
+            return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
 
-        retVal = ms / 1000;
+        retVal = d;
         return 0;
     }
-    case Variant::VT_Number:
+    case Variant::VT_Number: {
+        double d = v.dblVal();
+
+        if (std::isnan(d))
+            return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
+
+        retVal = d;
+        return 0;
+    }
     case Variant::VT_Integer:
     case Variant::VT_Long:
         retVal = v.dblVal();
         return 0;
     default:
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+        return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
     }
 }
 
-// Node.js mode argument: an integer, or an octal string ('755' / '0755' / '0o755')
+// Node.js validates an encoding before touching the file: an unknown label is
+// ERR_INVALID_ARG_VALUE. 'buffer' stays valid - it is a fibjs extension (the
+// API hands back raw Buffers instead of decoded strings).
+static result_t check_encoding(const exlib::string& encoding)
+{
+    if (encoding.empty() || encoding == "buffer"
+        || encoding_conv::is_buffer_codec(encoding) || encoding_conv::is_encoding(encoding))
+        return 0;
+
+    return setInvalidArgValue("encoding", "is invalid encoding", "'" + encoding + "'");
+}
+
+// fs-side wrapper around the shared encoder: validates the label first.
+static result_t fs_common_encode(exlib::string codec, exlib::string data, exlib::string& retVal)
+{
+    result_t hr = check_encoding(codec);
+    if (hr < 0)
+        return hr;
+
+    return commonEncode(codec, data, retVal);
+}
+
+// Node.js mode argument: an unsigned 32-bit integer, or an octal string
+// matching /^[0-7]+$/ (no 0o prefix).
 static result_t to_mode_value(Variant& v, int32_t& retVal)
 {
     switch (v.type()) {
@@ -76,43 +186,40 @@ static result_t to_mode_value(Variant& v, int32_t& retVal)
     case Variant::VT_Long: {
         double d = v.dblVal();
 
-        if (std::isnan(d) || d < 0 || d > 07777 || floor(d) != d)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (std::isnan(d) || floor(d) != d)
+            return setOutOfRange("mode", "an integer", node_number_text(d));
+
+        if (d < 0 || d > 4294967295.0)
+            return setOutOfRange("mode", ">= 0 && <= 4294967295", node_number_text(d));
 
         retVal = (int32_t)d;
         return 0;
     }
     case Variant::VT_String: {
         exlib::string s = v.string();
-        size_t pos = 0;
+        exlib::string quoted = "'" + s + "'";
+        double mode = 0;
 
-        while (pos < s.length() && (s[pos] == ' ' || s[pos] == '\t'))
-            pos++;
+        if (s.empty())
+            return setInvalidArgValue("mode", "must be a 32-bit unsigned integer or an octal string", quoted);
 
-        if (pos + 1 < s.length() && s[pos] == '0' && (s[pos + 1] == 'o' || s[pos + 1] == 'O'))
-            pos += 2;
-
-        if (pos >= s.length())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        int32_t mode = 0;
-        for (; pos < s.length(); pos++) {
+        for (size_t pos = 0; pos < s.length(); pos++) {
             char c = s[pos];
 
             if (c < '0' || c > '7')
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return setInvalidArgValue("mode", "must be a 32-bit unsigned integer or an octal string", quoted);
 
             mode = mode * 8 + (c - '0');
-
-            if (mode > 07777)
-                return CHECK_ERROR(CALL_E_INVALIDARG);
         }
 
-        retVal = mode;
+        if (mode > 4294967295.0)
+            return setOutOfRange("mode", ">= 0 && <= 4294967295", node_number_text(mode));
+
+        retVal = (int32_t)mode;
         return 0;
     }
     default:
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+        return setInvalidArgType("mode", "a 32-bit unsigned integer or an octal string", node_received_text(v));
     }
 }
 
@@ -143,20 +250,27 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    int32_t bufLength = Buffer::Cast(buffer)->length();
+
+    // Node.js validates the offset and length as integers first and then
+    // reports the length bound relative to the offset (fs.read); the arguments
+    // are checked before the handle state, so a bad range wins over a closed
+    // handle.
+    if (offset < 0)
+        return setOutOfRange("offset", ">= 0 && <= 9007199254740991", std::to_string(offset));
+
+    if (length < 0)
+        return setOutOfRange("length", ">= 0", std::to_string(length));
+
+    if (length > bufLength - offset)
+        return setOutOfRange("length", ("<= " + std::to_string(bufLength - offset)).c_str(), std::to_string(length));
+
     if (m_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int32_t bufLength = Buffer::Cast(buffer)->length();
-
-    if (offset < 0 || offset >= bufLength)
-        return Runtime::setError("fs: Offset is out of bounds");
-
-    if (length < 0 || (offset + length > bufLength))
-        return Runtime::setError("fs: Length extends beyond buffer");
-
     if (position > -1) {
         if (_lseeki64(m_fd, position, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("read"));
     }
 
     int32_t bytesRead = 0;
@@ -169,7 +283,7 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(ReadError());
+                return CHECK_ERROR(ReadError("read"));
             if (n == 0)
                 break;
 
@@ -230,8 +344,6 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
 
 result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("write");
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -252,8 +364,6 @@ result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, 
 
 result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("write");
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -263,7 +373,7 @@ result_t FileHandle::write(exlib::string string, int32_t position, exlib::string
     obj_ptr<Buffer_base> buf;
     {
         exlib::string strData = string;
-        result_t hr = commonEncode(encoding, strData, strData);
+        result_t hr = fs_common_encode(encoding, strData, strData);
         if (hr < 0)
             return hr;
 
@@ -281,9 +391,16 @@ result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEven
     if (m_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    // Node.js validates the encoding before reading.
+    {
+        result_t hr = check_encoding(encoding);
+        if (hr < 0)
+            return hr;
+    }
+
     // seek to beginning
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("read"));
 
     exlib::string strBuf;
     char tmp[STREAM_BUFF_SIZE];
@@ -291,7 +408,7 @@ result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEven
     while (true) {
         int32_t n = (int32_t)::_read(m_fd, tmp, STREAM_BUFF_SIZE);
         if (n < 0)
-            return CHECK_ERROR(ReadError());
+            return CHECK_ERROR(ReadError("read"));
         if (n == 0)
             break;
         strBuf.append(tmp, n);
@@ -323,15 +440,19 @@ result_t FileHandle::readFile(v8::Local<v8::Object> options, Variant& retVal, As
 
 result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
 {
+    // Node.js validates the encoding even when the data is a Buffer.
+    result_t _e = check_encoding(opt);
+    if (_e < 0)
+        return _e;
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     // seek to beginning and truncate
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("write"));
 
     exlib::string strBuf;
     Buffer::Cast(data)->toString(strBuf);
@@ -343,7 +464,7 @@ result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& re
     while (sz > 0) {
         int32_t n = (int32_t)::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
         if (n < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("write"));
         sz -= n;
         p += n;
     }
@@ -358,7 +479,7 @@ result_t FileHandle::writeFile(exlib::string data, exlib::string opt, int32_t& r
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr = commonEncode(opt, data, data);
+    result_t hr = fs_common_encode(opt, data, data);
     if (hr < 0)
         return hr;
 
@@ -432,7 +553,7 @@ result_t FileHandle::close(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return UV_EBADF;
+        return CHECK_ERROR(setSystemErrorPayload(UV_EBADF, "close"));
 
     int32_t fd = m_fd;
     m_fd = -1;
@@ -442,7 +563,7 @@ result_t FileHandle::close(AsyncEvent* ac)
     // instead of the thread error, which would report whatever the previous call
     // left behind.
     if (::_close(fd))
-        return UV_EBADF;
+        return CHECK_ERROR(setSystemErrorPayload(UV_EBADF, "close"));
 
     return 0;
 }
@@ -450,7 +571,6 @@ result_t FileHandle::close(AsyncEvent* ac)
 result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -462,7 +582,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
     if (hr < 0)
-        return hr;
+        return setSystemErrorPayload(hr, "open", fname);
 
     retVal = new FileHandle(_fd);
 
@@ -472,7 +592,6 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
     obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -484,7 +603,7 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
     if (hr < 0)
-        return hr;
+        return setSystemErrorPayload(hr, "open", fname);
 
     retVal = new FileHandle(_fd);
 
@@ -561,6 +680,13 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
 static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::string encoding,
     Variant& retVal, AsyncEvent* ac)
 {
+    // Node.js reports an unknown encoding before it opens the file.
+    {
+        result_t hr = check_encoding(encoding);
+        if (hr < 0)
+            return hr;
+    }
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -619,8 +745,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
 result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     Variant& retVal, AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
-    return read_file_ext(fname, "r", encoding, retVal, ac);
+    return setSystemErrorPayload(read_file_ext(fname, "r", encoding, retVal, ac), "open", fname);
 }
 
 result_t fs_base::readFile(exlib::string fname, v8::Local<v8::Object> options,
@@ -733,8 +858,12 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t&
 result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::string opt, int32_t& retVal,
     AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
-    return write_file_ext(fname, data, "w", 0666, retVal, ac);
+    // Node.js validates the encoding even when the data is a Buffer.
+    result_t _e = check_encoding(opt);
+    if (_e < 0)
+        return _e;
+
+    return setSystemErrorPayload(write_file_ext(fname, data, "w", 0666, retVal, ac), "open", fname);
 }
 
 result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal,
@@ -743,14 +872,21 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
 
+        // Node.js validates the encoding even when the data is a Buffer.
+        exlib::string encoding;
+        GetConfigValue(options, "encoding", encoding, true);
+        result_t _e = check_encoding(encoding);
+        if (_e < 0)
+            return _e;
+
         exlib::string flag = "w";
         GetConfigValue(options, "flag", flag);
         ac->m_ctx[0] = flag;
 
         int32_t mode = 0666;
         GetConfigValue(options, "mode", mode);
-        if (mode < 0 || mode > 07777)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (mode < 0)
+            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
         ac->m_ctx[1] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -761,15 +897,14 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8
 
 result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr = commonEncode(opt, data, data);
+    result_t hr = fs_common_encode(opt, data, data);
     if (hr < 0)
         return hr;
 
-    return write_text_file_ext(fname, data, "w", 0666, retVal, ac);
+    return setSystemErrorPayload(write_text_file_ext(fname, data, "w", 0666, retVal, ac), "open", fname);
 }
 
 result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal,
@@ -792,15 +927,15 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v
 
         int32_t mode = 0666;
         GetConfigValue(options, "mode", mode);
-        if (mode < 0 || mode > 07777)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (mode < 0)
+            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
         ac->m_ctx[2] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     exlib::string strData = data;
-    result_t hr = commonEncode(ac->m_ctx[0].string(), strData, strData);
+    result_t hr = fs_common_encode(ac->m_ctx[0].string(), strData, strData);
     if (hr < 0)
         return hr;
 
@@ -847,7 +982,7 @@ static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Varian
     while (true) {
         int32_t n = (int32_t)::_read(_fd, tmp, STREAM_BUFF_SIZE);
         if (n < 0)
-            return CHECK_ERROR(ReadError());
+            return CHECK_ERROR(ReadError("read"));
         if (n == 0)
             break;
         strBuf.append(tmp, n);
@@ -879,13 +1014,13 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
 
     // Node.js: writeFile(fd) replaces the content of the file
     if (_lseeki64(_fd, 0, SEEK_SET) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("write"));
 
     {
         AutoReq req;
         int32_t ret = uv_fs_ftruncate(NULL, &req, _fd, 0, NULL);
         if (ret < 0)
-            return ret;
+            return setSystemErrorPayload(ret, "write");
     }
 
     size_t pos = 0;
@@ -894,7 +1029,7 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
     while (pos < (size_t)n) {
         int32_t len = (int32_t)::_write(_fd, p + pos, (size_t)n - pos);
         if (len < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("write"));
         pos += len;
     }
 
@@ -925,6 +1060,11 @@ result_t fs_base::readFile(FileHandle_base* fd, v8::Local<v8::Object> options, V
 
 result_t fs_base::writeFile(FileHandle_base* fd, Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
 {
+    // Node.js validates the encoding even when the data is a Buffer.
+    result_t _e = check_encoding(opt);
+    if (_e < 0)
+        return _e;
+
     return write_file_fd(fd, data, retVal, ac);
 }
 
@@ -938,7 +1078,7 @@ result_t fs_base::writeFile(FileHandle_base* fd, exlib::string data, exlib::stri
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr = commonEncode(opt, data, data);
+    result_t hr = fs_common_encode(opt, data, data);
     if (hr < 0)
         return hr;
 
@@ -964,7 +1104,7 @@ result_t fs_base::writeFile(FileHandle_base* fd, exlib::string data, v8::Local<v
     }
 
     exlib::string strData = data;
-    result_t hr = commonEncode(ac->m_ctx[0].string(), strData, strData);
+    result_t hr = fs_common_encode(ac->m_ctx[0].string(), strData, strData);
     if (hr < 0)
         return hr;
 
@@ -975,8 +1115,7 @@ result_t fs_base::writeFile(FileHandle_base* fd, exlib::string data, v8::Local<v
 
 result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
-    setErrorContext("open", fname);
-    return append_file_ext(fname, "a", 0666, data, retVal, ac);
+    return setSystemErrorPayload(append_file_ext(fname, "a", 0666, data, retVal, ac), "open", fname);
 }
 
 result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
@@ -984,14 +1123,21 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, v8::Local<v
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
 
+        // Node.js validates the encoding even when the data is a Buffer.
+        exlib::string encoding;
+        GetConfigValue(options, "encoding", encoding, true);
+        result_t _e = check_encoding(encoding);
+        if (_e < 0)
+            return _e;
+
         exlib::string flag = "a";
         GetConfigValue(options, "flag", flag);
         ac->m_ctx[0] = flag;
 
         int32_t mode = 0666;
         GetConfigValue(options, "mode", mode);
-        if (mode < 0 || mode > 07777)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (mode < 0)
+            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
         ac->m_ctx[1] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -1002,6 +1148,11 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, v8::Local<v
 
 result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
+    // Node.js validates the encoding even when the data is a Buffer.
+    result_t _e = check_encoding(encoding);
+    if (_e < 0)
+        return _e;
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1029,7 +1180,7 @@ result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, int32_t& re
     while (pos < (size_t)n) {
         int32_t len = (int32_t)::_write(_fd, p + pos, (size_t)n - pos);
         if (len < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("write"));
         pos += len;
     }
 
@@ -1045,6 +1196,11 @@ result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, v8::Local<v
 
 result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
+    // Node.js validates the encoding even when the data is a Buffer.
+    result_t _e = check_encoding(encoding);
+    if (_e < 0)
+        return _e;
+
     return appendFile(fd, data, retVal, ac);
 }
 
@@ -1069,7 +1225,7 @@ result_t fs_base::appendFile(FileHandle_base* fd, exlib::string data, exlib::str
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strData = data;
-    result_t hr = commonEncode(encoding, strData, strData);
+    result_t hr = fs_common_encode(encoding, strData, strData);
     if (hr < 0)
         return hr;
 
@@ -1092,16 +1248,20 @@ result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset,
 
     int32_t bufLength = Buffer::Cast(buffer)->length();
 
-    if (offset < 0 || offset >= bufLength)
-        return Runtime::setError("fs: Offset is out of bounds");
+    // Node.js validates the offset and length as integers first and then
+    // reports the length bound relative to the offset (fs.read).
+    if (offset < 0)
+        return setOutOfRange("offset", ">= 0 && <= 9007199254740991", std::to_string(offset));
 
-    if (length < 0 || (offset + length > bufLength)) {
-        return Runtime::setError("fs: Length extends beyond buffer");
-    }
+    if (length < 0)
+        return setOutOfRange("length", ">= 0", std::to_string(length));
+
+    if (length > bufLength - offset)
+        return setOutOfRange("length", ("<= " + std::to_string(bufLength - offset)).c_str(), std::to_string(length));
 
     if (position > -1) {
         if (_lseeki64(_fd, position, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("read"));
     }
 
     exlib::string strBuf;
@@ -1113,7 +1273,7 @@ result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset,
         while (sz) {
             int32_t n = (int32_t)::_read(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
-                return CHECK_ERROR(ReadError());
+                return CHECK_ERROR(ReadError("read"));
             if (n == 0)
                 break;
 
@@ -1146,18 +1306,24 @@ result_t fs_base::write(FileHandle_base* fd, Buffer_base* buffer, int32_t offset
 
     int32_t bufLength = Buffer::Cast(buffer)->length();
 
-    if (offset < 0 || offset >= bufLength)
-        return Runtime::setError("fs: Offset is out of bounds");
+    // Node.js validates the offset first (an out of range offset is reported
+    // against the buffer length), then the length; a negative length means "to
+    // the end" here (the JS binding passes -1 for an omitted length).
+    if (offset < 0)
+        return setOutOfRange("offset", ">= 0 && <= 9007199254740991", std::to_string(offset));
 
-    if (offset + length > bufLength)
-        return Runtime::setError("fs: Length extends beyond buffer");
+    if (offset > bufLength)
+        return setOutOfRange("offset", ("<= " + std::to_string(bufLength)).c_str(), std::to_string(offset));
 
     if (length < 0)
         length = bufLength - offset;
 
+    if (length > bufLength - offset)
+        return setOutOfRange("length", ("<= " + std::to_string(bufLength - offset)).c_str(), std::to_string(length));
+
     if (position > -1) {
         if (_lseeki64(_fd, position, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("write"));
     }
 
     if (length > 0) {
@@ -1167,8 +1333,20 @@ result_t fs_base::write(FileHandle_base* fd, Buffer_base* buffer, int32_t offset
 
         while (sz) {
             int32_t n = (int32_t)::_write(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
-            if (n < 0)
-                return CHECK_ERROR(LastError());
+            if (n < 0) {
+                result_t hr = LastError();
+
+                if (hr > CALL_E_MAX) {
+                    ErrorPayload payload = ErrorPayload::from_system(hr)
+                                               .with_syscall("write")
+                                               .arg("buffer", buffer)
+                                               .arg("length", length)
+                                               .arg("position", position);
+                    return CHECK_ERROR(setErrorPayload(hr, payload));
+                }
+
+                return CHECK_ERROR(hr);
+            }
 
             sz -= n;
             p += n;
@@ -1203,7 +1381,6 @@ result_t fs_base::write(FileHandle_base* fd, exlib::string string, int32_t posit
 
 result_t fs_base::fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("fstat");
     int32_t _fd;
     fd->get_fd(_fd);
 
@@ -1216,7 +1393,7 @@ result_t fs_base::fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEv
     AutoReq req;
     int32_t ret = uv_fs_fstat(NULL, &req, _fd, NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "fstat");
 
     obj_ptr<Stat> pStat = new Stat();
 
@@ -1253,12 +1430,10 @@ result_t fs_base::exists(exlib::string path, v8::Local<v8::Object> options, bool
 
 result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    setErrorContext("access", path);
     if (ac->isSync()) {
         // Node.js compatibility: mode is a bitmask of F_OK/R_OK/W_OK/X_OK
         if (mode < 0 || mode > 7)
-            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG,
-                "mode is out of range: >= 0 && <= 7"));
+            return CHECK_ERROR(setRangeError("mode is out of range: >= 0 && <= 7"));
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -1268,12 +1443,11 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
         return hr;
 
     AutoReq req;
-    return uv_fs_access(NULL, &req, path.c_str(), mode, NULL);
+    return setSystemErrorPayload(uv_fs_access(NULL, &req, path.c_str(), mode, NULL), "access", path);
 }
 
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
 {
-    setErrorContext("link", oldPath);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1286,12 +1460,12 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
         return hr;
 
     AutoReq req;
-    return uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL);
+    return setSystemErrorPayload2(uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL),
+        "link", oldPath, newPath);
 }
 
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
-    setErrorContext("unlink", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1300,12 +1474,11 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
         return hr;
 
     AutoReq req;
-    return uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+    return setSystemErrorPayload(uv_fs_unlink(NULL, &req, path.c_str(), NULL), "unlink", path);
 }
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
 {
-    setErrorContext("symlink", linkpath);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1325,7 +1498,8 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
         _type = 2;
 
     AutoReq req;
-    return uv_fs_symlink(NULL, &req, target.c_str(), linkpath.c_str(), _type, NULL);
+    return setSystemErrorPayload2(uv_fs_symlink(NULL, &req, target.c_str(), linkpath.c_str(), _type, NULL),
+        "symlink", target, linkpath);
 }
 
 // Node.js: convert a raw path (utf8 bytes) to the requested encoding
@@ -1355,7 +1529,6 @@ static result_t path_to_variant(const exlib::string& path, const exlib::string& 
 
 result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncEvent* ac)
 {
-    setErrorContext("readlink", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1366,7 +1539,7 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncEvent* ac)
     AutoReq req;
     int32_t ret = uv_fs_readlink(NULL, &req, path.c_str(), NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "readlink", path);
 
     retVal = (const char*)req.ptr;
     return 0;
@@ -1402,7 +1575,6 @@ result_t fs_base::readlink(exlib::string path, exlib::string encoding, Variant& 
 
 result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
 {
-    setErrorContext("lstat", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1477,7 +1649,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
         obj_ptr<Stat_base> stat;
         hr = cc_lstat(testPath, stat, ac->isolate());
         if (hr < 0)
-            return hr;
+            return setSystemErrorPayload(hr, "lstat", testPath);
 
         bool isSymlink = false;
         stat->isSymbolicLink(isSymlink);
@@ -1490,7 +1662,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
             Variant linkValue;
             hr = cc_readlink(testPath, linkValue, ac->isolate());
             if (hr < 0)
-                return hr;
+                return setSystemErrorPayload(hr, "readlink", testPath);
 
             exlib::string linkTarget = linkValue.string();
 
@@ -1572,7 +1744,11 @@ result_t fs_base::realpath(exlib::string path, exlib::string encoding, Variant& 
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, Variant& retVal, AsyncEvent* ac)
 {
-    setErrorContext("mkdir", path);
+    // Node.js validates a numeric mode as an unsigned 32-bit integer; the IDL
+    // binding types it as int32_t, so only the lower bound can be violated.
+    if (mode < 0)
+        return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -1581,7 +1757,7 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, Variant& retVal, Async
         return hr;
 
     AutoReq req;
-    return uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL);
+    return setSystemErrorPayload(uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL), "mkdir", path);
 }
 
 result_t fs_base::mkdir(exlib::string path, Variant mode, Variant& retVal, AsyncEvent* ac)
@@ -1604,12 +1780,12 @@ result_t fs_base::mkdir(exlib::string path, Variant mode, Variant& retVal, Async
 
 result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac)
 {
-    setErrorContext("mkdir", path);
     class AsyncUVMKDir : public uv_fs_t {
     public:
         AsyncUVMKDir(exlib::string path, int32_t mode, Variant* retVal, AsyncEvent* ac)
             : m_ac(ac)
             , m_retVal(retVal)
+            , m_requestPath(path)
             , m_path(path)
             , m_mode(mode)
         {
@@ -1627,6 +1803,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
 
             int32_t ret = (int32_t)uv_fs_get_result(req);
             if (ret < 0 || !S_ISDIR(pThis->statbuf.st_mode)) {
+                setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
                 pThis->m_ac->apost(pThis->m_last_err);
                 delete pThis;
                 return;
@@ -1667,6 +1844,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
             case UV_EACCES:
             case UV_ENOTDIR:
             case UV_EPERM:
+                setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
                 return;
@@ -1679,6 +1857,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_stat(s_uv_loop, pThis, pThis->m_path.c_str(), cb_stat);
                 if (ret != 0) {
+                    setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
                     pThis->m_ac->apost(pThis->m_last_err);
                     delete pThis;
                 }
@@ -1688,6 +1867,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::cb_mkdir);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -1696,6 +1876,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
     private:
         AsyncEvent* m_ac;
         Variant* m_retVal;
+        exlib::string m_requestPath;
         exlib::string m_path;
         exlib::string m_first;
         bool m_existed = false;
@@ -1739,6 +1920,7 @@ class AsyncUVRM : public uv_fs_t {
 public:
     AsyncUVRM(exlib::string path, bool rmFile, bool force, AsyncEvent* ac)
         : m_ac(ac)
+        , m_requestPath(path)
         , m_path(path)
         , m_rmFile(rmFile)
         , m_force(force)
@@ -1762,6 +1944,7 @@ public:
                 // force: silently ignore nonexistent paths (Node.js behavior)
                 pThis->m_ac->apost(0);
             } else {
+                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
             }
             delete pThis;
@@ -1772,6 +1955,7 @@ public:
         if (S_ISREG(pThis->statbuf.st_mode)) {
             if (!pThis->m_rmFile) {
                 // rmdir does not delete files
+                setSystemErrorPayload(UV_ENOTDIR, "rmdir", pThis->m_requestPath);
                 pThis->m_ac->apost(UV_ENOTDIR);
                 delete pThis;
                 return;
@@ -1780,6 +1964,7 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -1789,6 +1974,7 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -1801,6 +1987,7 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -1814,6 +2001,7 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
+            setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -1835,6 +2023,7 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
+            setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -1869,6 +2058,7 @@ public:
             uv_fs_req_cleanup(this);
             int32_t ret = uv_fs_rmdir(s_uv_loop, this, m_path.c_str(), cb_rmdir);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", m_requestPath);
                 m_ac->apost(ret);
                 delete this;
             }
@@ -1888,6 +2078,7 @@ public:
             AsyncUVRM* subRemover = new AsyncUVRM(entry_path, m_rmFile, m_force, new SubDirEvent(this));
             int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", m_requestPath);
                 m_ac->apost(ret);
                 delete subRemover;
                 delete this;
@@ -1896,6 +2087,7 @@ public:
             // For files, unlink directly
             int32_t ret = uv_fs_unlink(s_uv_loop, this, entry_path.c_str(), cb_entry_removed);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "rmdir", m_requestPath);
                 m_ac->apost(ret);
                 delete this;
             }
@@ -1926,6 +2118,7 @@ public:
 
 private:
     AsyncEvent* m_ac;
+    exlib::string m_requestPath;
     exlib::string m_path;
     bool m_rmFile;
     bool m_force;
@@ -1950,7 +2143,6 @@ result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncEven
 
 result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
 {
-    setErrorContext("rmdir", path);
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
 
@@ -1965,7 +2157,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
 
     if (!recursive) {
         AutoReq req;
-        return uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
+        return setSystemErrorPayload(uv_fs_rmdir(NULL, &req, path.c_str(), NULL), "rmdir", path);
     }
 
     os_resolve(path);
@@ -2007,16 +2199,24 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* 
         if (ret < 0) {
             if (force && ret == UV_ENOENT)
                 return 0;
-            return ret;
+            return CHECK_ERROR(setSystemErrorPayload(ret, "lstat", path));
         }
 
         if (S_ISDIR(req.statbuf.st_mode)) {
             uv_fs_req_cleanup(&req);
-            return UV_EISDIR;
+            // Node.js: SystemError + ERR_FS_EISDIR, errno is the raw value
+            return setErrorPayload(UV_EISDIR,
+                ErrorPayload::make(errtype::kError)
+                    .with_type_name("SystemError")
+                    .with_code("ERR_FS_EISDIR")
+                    .with_errno(-UV_EISDIR)
+                    .with_syscall("rm")
+                    .with_path(path)
+                    .format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str()));
         }
 
         uv_fs_req_cleanup(&req);
-        return uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+        return CHECK_ERROR(setSystemErrorPayload(uv_fs_unlink(NULL, &req, path.c_str(), NULL), "unlink", path));
     }
 
     os_resolve(path);
@@ -2028,6 +2228,10 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* 
 
 result_t fs_base::fchmod(FileHandle_base* fd, int32_t mode, AsyncEvent* ac)
 {
+    // Node.js validates a numeric mode as an unsigned 32-bit integer.
+    if (mode < 0)
+        return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2035,7 +2239,7 @@ result_t fs_base::fchmod(FileHandle_base* fd, int32_t mode, AsyncEvent* ac)
     fd->get_fd(_fd);
 
     AutoReq req;
-    return uv_fs_fchmod(NULL, &req, _fd, mode, NULL);
+    return setSystemErrorPayload(uv_fs_fchmod(NULL, &req, _fd, mode, NULL), "fchmod");
 }
 
 result_t fs_base::fchown(FileHandle_base* fd, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -2047,7 +2251,7 @@ result_t fs_base::fchown(FileHandle_base* fd, int32_t uid, int32_t gid, AsyncEve
     fd->get_fd(_fd);
 
     AutoReq req;
-    return uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL);
+    return setSystemErrorPayload(uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL), "fchown");
 }
 
 result_t fs_base::fsync(FileHandle_base* fd, AsyncEvent* ac)
@@ -2059,13 +2263,11 @@ result_t fs_base::fsync(FileHandle_base* fd, AsyncEvent* ac)
     fd->get_fd(_fd);
 
     AutoReq req;
-    return uv_fs_fsync(NULL, &req, _fd, NULL);
+    return setSystemErrorPayload(uv_fs_fsync(NULL, &req, _fd, NULL), "fsync");
 }
 
 result_t fs_base::ftruncate(FileHandle_base* fd, int32_t len, AsyncEvent* ac)
 {
-    setErrorContext("ftruncate");
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2079,13 +2281,11 @@ result_t fs_base::ftruncate(FileHandle_base* fd, int32_t len, AsyncEvent* ac)
         len = 0;
 
     AutoReq req;
-    return uv_fs_ftruncate(NULL, &req, _fd, len, NULL);
+    return setSystemErrorPayload(uv_fs_ftruncate(NULL, &req, _fd, len, NULL), "ftruncate");
 }
 
 result_t fs_base::statfs(exlib::string path, obj_ptr<NObject>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("statfs", path);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2096,7 +2296,7 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<NObject>& retVal, AsyncEven
     AutoReq req;
     int32_t ret = uv_fs_statfs(NULL, &req, path.c_str(), NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "statfs", path);
 
     uv_statfs_t* st = (uv_statfs_t*)req.ptr;
 
@@ -2116,12 +2316,15 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<NObject>& retVal, AsyncEven
 
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    setErrorContext("chmod", path);
+    // Node.js validates a numeric mode as an unsigned 32-bit integer.
+    if (mode < 0)
+        return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
-    return uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL);
+    return setSystemErrorPayload(uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL), "chmod", path);
 }
 
 result_t fs_base::chmod(exlib::string path, Variant mode, AsyncEvent* ac)
@@ -2162,12 +2365,11 @@ result_t fs_base::lchmod(exlib::string path, Variant mode, AsyncEvent* ac)
 
 result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
 {
-    setErrorContext("chown", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
-    return uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL);
+    return setSystemErrorPayload(uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL), "chown", path);
 }
 
 result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -2176,12 +2378,11 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEven
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
-    return uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL);
+    return setSystemErrorPayload(uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL), "lchown", path);
 }
 
 result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, AsyncEvent* ac)
 {
-    setErrorContext("utime", path);
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
 
@@ -2201,12 +2402,11 @@ result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, Async
     }
 
     AutoReq req;
-    return uv_fs_utime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL);
+    return setSystemErrorPayload(uv_fs_utime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "utime", path);
 }
 
 result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, AsyncEvent* ac)
 {
-    setErrorContext("lutime", path);
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
 
@@ -2226,12 +2426,11 @@ result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, Asyn
     }
 
     AutoReq req;
-    return uv_fs_lutime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL);
+    return setSystemErrorPayload(uv_fs_lutime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "lutime", path);
 }
 
 result_t fs_base::futimes(FileHandle_base* fd, Variant atime, Variant mtime, AsyncEvent* ac)
 {
-    setErrorContext("futime");
     if (ac->isSync()) {
         ac->m_ctx.resize(2);
 
@@ -2256,12 +2455,11 @@ result_t fs_base::futimes(FileHandle_base* fd, Variant atime, Variant mtime, Asy
         return hr;
 
     AutoReq req;
-    return uv_fs_futime(NULL, &req, _fd, ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL);
+    return setSystemErrorPayload(uv_fs_futime(NULL, &req, _fd, ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "futime");
 }
 
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
-    setErrorContext("rename", from);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2274,7 +2472,8 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
         return hr;
 
     AutoReq req;
-    return uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL);
+    return setSystemErrorPayload2(uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL),
+        "rename", from, to);
 }
 
 result_t fs_base::fdatasync(FileHandle_base* fd, AsyncEvent* ac)
@@ -2286,12 +2485,11 @@ result_t fs_base::fdatasync(FileHandle_base* fd, AsyncEvent* ac)
     fd->get_fd(_fd);
 
     AutoReq req;
-    return uv_fs_fdatasync(NULL, &req, _fd, NULL);
+    return setSystemErrorPayload(uv_fs_fdatasync(NULL, &req, _fd, NULL), "fdatasync");
 }
 
 result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac)
 {
-    setErrorContext("copyfile", from);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2304,13 +2502,15 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
         return hr;
 
     AutoReq req;
-    return uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL);
+    return setSystemErrorPayload2(uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL),
+        "copyfile", from, to);
 }
 
 class AsyncUVCP : public uv_fs_t {
 public:
     AsyncUVCP(exlib::string src, exlib::string dest, bool recursive, bool force, bool errorOnExist, int32_t mode, AsyncEvent* ac)
         : m_ac(ac)
+        , m_requestPath(src)
         , m_src(src)
         , m_dest(dest)
         , m_recursive(recursive)
@@ -2332,6 +2532,7 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -2339,7 +2540,14 @@ public:
 
         if (S_ISDIR(pThis->statbuf.st_mode)) {
             if (!pThis->m_recursive) {
-                pThis->m_ac->apost(UV_EISDIR);
+                // Node.js: a plain Error with ERR_FS_EISDIR and no errno (it is
+                // not a system error): the description travels through the
+                // exception channel instead of the raw uv code.
+                Runtime::setError(ErrorPayload::make(errtype::kError)
+                        .with_code("ERR_FS_EISDIR")
+                        .format("Recursive option not enabled, cannot copy a directory: %s/",
+                            pThis->m_requestPath.c_str()));
+                pThis->m_ac->apost(CALL_E_EXCEPTION);
                 delete pThis;
                 return;
             }
@@ -2348,6 +2556,7 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_dest.c_str(), pThis->statbuf.st_mode & 0777, cb_mkdir);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -2357,6 +2566,7 @@ public:
             ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -2366,6 +2576,7 @@ public:
             ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
                 pThis->m_ac->apost(ret);
                 delete pThis;
             }
@@ -2378,6 +2589,7 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0 && ret != UV_EEXIST) {
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -2387,6 +2599,7 @@ public:
         uv_fs_req_cleanup(pThis);
         ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_src.c_str(), 0, cb_scandir);
         if (ret != 0) {
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
         }
@@ -2398,6 +2611,7 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -2421,6 +2635,20 @@ public:
         if (ret == UV_EEXIST && !pThis->m_force && !pThis->m_errorOnExist)
             ret = 0;
 
+        if (ret == UV_EEXIST && pThis->m_errorOnExist) {
+            // Node.js: SystemError + ERR_FS_CP_EEXIST
+            setErrorPayload(ret,
+                ErrorPayload::make(errtype::kError)
+                    .with_type_name("SystemError")
+                    .with_code("ERR_FS_CP_EEXIST")
+                    .with_errno(-UV_EEXIST)
+                    .with_syscall("cp")
+                    .with_path(pThis->m_dest)
+                    .format("Target already exists: cp returned EEXIST (%s already exists) %s",
+                        pThis->m_dest.c_str(), pThis->m_dest.c_str()));
+        } else if (ret < 0)
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
+
         pThis->m_ac->apost(ret);
         delete pThis;
     }
@@ -2438,6 +2666,7 @@ public:
         }
 
         if (ret < 0) {
+            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
             pThis->m_ac->apost(ret);
             delete pThis;
             return;
@@ -2468,6 +2697,7 @@ public:
             AsyncUVCP* subCopier = new AsyncUVCP(src_path, dest_path, m_recursive, m_force, m_errorOnExist, m_mode, new SubDirEvent(this));
             int32_t ret = uv_fs_stat(s_uv_loop, subCopier, src_path.c_str(), cb_stat);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "copyfile", m_requestPath);
                 m_ac->apost(ret);
                 delete subCopier;
                 delete this;
@@ -2477,6 +2707,7 @@ public:
             int32_t ret = uv_fs_copyfile(s_uv_loop, this, src_path.c_str(), dest_path.c_str(),
                 m_mode, cb_entry_copied);
             if (ret != 0) {
+                setSystemErrorPayload(ret, "copyfile", m_requestPath);
                 m_ac->apost(ret);
                 delete this;
             }
@@ -2507,6 +2738,7 @@ public:
 
 private:
     AsyncEvent* m_ac;
+    exlib::string m_requestPath;
     exlib::string m_src;
     exlib::string m_dest;
     bool m_recursive;
@@ -2518,9 +2750,14 @@ private:
 
 result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    setErrorContext("copyfile", src);
     if (ac->isSync()) {
         ac->m_ctx.resize(4);
+
+        // Node.js: copying onto itself is refused up front.
+        if (src == dest)
+            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kError)
+                    .with_code("ERR_FS_CP_EINVAL")
+                    .format("src and dest cannot be the same %s", src.c_str())));
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
@@ -2577,7 +2814,6 @@ result_t fs_base::opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncEv
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    setErrorContext("scandir", path);
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -2588,7 +2824,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
     AutoReq req;
     int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
     if (ret < 0)
-        return ret;
+        return setSystemErrorPayload(ret, "scandir", path);
 
     retVal = new NArray();
     uv_dirent_t dirent;
@@ -2602,6 +2838,13 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 // Node.js: readdir's `encoding` option controls how entry names are returned
 static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exlib::string& encoding)
 {
+    // Node.js validates the encoding up front, before adding any entry.
+    {
+        result_t hr = check_encoding(encoding);
+        if (hr < 0)
+            return hr;
+    }
+
     if (encoding.empty() || encoding == "utf8" || encoding == "utf-8") {
         list->append(name);
         return 0;
@@ -2744,9 +2987,16 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     obj_ptr<SeekableStream_base> stm = failed;
     Isolate* isolate = failed->holder();
 
-    async([stm, hr, isolate]() {
+    // The open failure (description and payload) belongs to the calling thread;
+    // the emit runs on the JS thread, so both are carried across.
+    Runtime::ErrorDescription desc = Runtime::captureErrorDescription(hr);
+    ErrorPayload payload = takeErrorPayload();
+
+    async([stm, hr, desc, payload, isolate]() {
         // the emit must run on the JS thread with a valid context
-        isolate->sync([stm, hr]() -> int {
+        isolate->sync([stm, hr, desc, payload]() -> int {
+            Runtime::applyErrorDescription(desc, payload);
+
             v8::Local<v8::Value> err = FillError(hr);
             bool retVal;
 

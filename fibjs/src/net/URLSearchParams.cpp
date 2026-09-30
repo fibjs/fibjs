@@ -84,8 +84,8 @@ result_t URLSearchParams_base::_new(Variant init, obj_ptr<URLSearchParams_base>&
                     if (entries->IsArray()) {
                         result_t hr = params->append(entries.As<v8::Array>());
                         if (hr == CALL_E_BADVARTYPE)
-                            return Runtime::setError(kTypeError,
-                                "Failed to construct 'URLSearchParams': sequence elements must be pairs.");
+                            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                                .with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs."));
                         return hr;
                     }
                 }
