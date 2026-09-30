@@ -434,8 +434,19 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     hr = conn->connect(u->hostname().c_str(), nPort, username.c_str(),
         password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "");
-    if (hr < 0)
-        return hr;
+    if (hr < 0) {
+        // Augment the driver error with the connection parameters. The password
+        // never reaches the payload, not even as a truncated summary.
+        ErrorPayload payload = takeErrorPayload();
+
+        payload.arg("host", u->hostname())
+            .arg("port", nPort)
+            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
+            .arg("user", username)
+            .arg_redacted("password");
+
+        return setErrorPayload(hr, payload);
+    }
 
     retVal = conn;
 

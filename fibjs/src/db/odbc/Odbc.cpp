@@ -107,12 +107,19 @@ result_t odbc_close(void*& conn, AsyncEvent* ac)
     return 0;
 }
 
-exlib::string odbc_error(int32_t handleType, void* handle)
+struct OdbcDiagInfo {
+    exlib::string message;
+    exlib::string sqlstate;
+    bool has_native = false;
+    int32_t native = 0;
+};
+
+static OdbcDiagInfo odbc_error_info(int32_t handleType, void* handle)
 {
     SQLRETURN hr;
     SQLSMALLINT len;
     SQLINTEGER statusRecCount;
-    exlib::string result;
+    OdbcDiagInfo info;
 
     SQLGetDiagFieldA(handleType, handle, 0, SQL_DIAG_NUMBER, &statusRecCount, SQL_IS_INTEGER, &len);
     for (int32_t i = 0; i < statusRecCount; i++) {
@@ -124,12 +131,38 @@ exlib::string odbc_error(int32_t handleType, void* handle)
         if (hr == SQL_NO_DATA || hr < 0)
             break;
 
+        if (info.sqlstate.empty() || (info.sqlstate == "S1000" && strcmp(errorSQLState, "S1000") != 0))
+            info.sqlstate = errorSQLState;
+
+        if (!info.has_native && native != 0) {
+            info.has_native = true;
+            info.native = native;
+        }
+
         if (i > 1)
-            result.append("\n    ", 5);
-        result.append(errorMessage);
+            info.message.append("\n    ", 5);
+        info.message.append(errorMessage);
     }
 
-    return result;
+    return info;
+}
+
+exlib::string odbc_error(int32_t handleType, void* handle)
+{
+    return odbc_error_info(handleType, handle).message;
+}
+
+static result_t odbc_set_error(int32_t handleType, void* handle)
+{
+    OdbcDiagInfo info = odbc_error_info(handleType, handle);
+    ErrorPayload payload;
+
+    if (!info.sqlstate.empty())
+        payload.with_code(info.sqlstate);
+    if (info.has_native)
+        payload.with_errno(info.native);
+
+    return Runtime::setError(payload, CALL_E_EXCEPTION, info.message);
 }
 
 result_t odbc_set_autocommit(void* conn, bool on)
@@ -137,7 +170,7 @@ result_t odbc_set_autocommit(void* conn, bool on)
     SQLRETURN hr = SQLSetConnectAttrW((SQLHDBC)conn, SQL_ATTR_AUTOCOMMIT,
         (SQLPOINTER)(SQLULEN)(on ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF), 0);
     if (hr < 0)
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+        return odbc_set_error(SQL_HANDLE_DBC, conn);
     return 0;
 }
 
@@ -270,12 +303,18 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
 
         if (hr < 0) {
             exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
+            OdbcDiagInfo info = odbc_error_info(SQL_HANDLE_DBC, conn);
             if (!first_err.empty() && err != first_err) {
                 err = first_err + "\n    " + err;
             }
             odbc_disconnect(conn);
             conn = NULL;
-            return CHECK_ERROR(Runtime::setError(err));
+            ErrorPayload payload;
+            if (!info.sqlstate.empty())
+                payload.with_code(info.sqlstate);
+            if (info.has_native)
+                payload.with_errno(info.native);
+            return Runtime::setError(payload, CALL_E_EXCEPTION, err);
         }
     }
 
@@ -317,9 +356,25 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     Url::decodeURI(u->username(), username);
     Url::decodeURI(u->password(), password);
 
-    return odbc_connect(driver, u->hostname().c_str(), port,
+    hr = odbc_connect(driver, u->hostname().c_str(), port,
         username.c_str(), password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
+    if (hr < 0) {
+        // Connection parameters for diagnostics - psql / mssql / dm / odbc all
+        // share this entry. The password never enters the payload, not even as
+        // a truncated summary.
+        ErrorPayload payload = takeErrorPayload();
+
+        payload.arg("host", u->hostname())
+            .arg("port", port)
+            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
+            .arg("user", username)
+            .arg_redacted("password");
+
+        return setErrorPayload(hr, payload);
+    }
+
+    return 0;
 }
 
 // Shared column value fetch (used by execute and Statement cursor;
@@ -343,7 +398,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
 
     hr = SQLAllocStmt(conn, &stmt);
     if (hr < 0)
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+        return odbc_set_error(SQL_HANDLE_DBC, conn);
 
     do {
         bool more = false;
@@ -439,7 +494,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
     } while (0);
 
     if (hr < 0)
-        hr = CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        hr = odbc_set_error(SQL_HANDLE_STMT, stmt);
     else
         hr = 0;
 
@@ -466,7 +521,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         int32_t value = 0;
         hr = SQLGetData(stmt, col, SQL_C_SLONG, &value, sizeof(value), &len);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         if (len == SQL_NULL_DATA)
             v.setNull();
         else
@@ -482,7 +537,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         double value;
         hr = SQLGetData(stmt, col, SQL_C_DOUBLE, &value, sizeof(value), &len);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         if (len == SQL_NULL_DATA)
             v.setNull();
         else
@@ -493,7 +548,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         char value;
         hr = SQLGetData(stmt, col, SQL_C_BIT, &value, sizeof(value), &len);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         if (len == SQL_NULL_DATA)
             v.setNull();
         else
@@ -505,7 +560,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         TIMESTAMP_STRUCT value;
         hr = SQLGetData(stmt, col, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         if (len == SQL_NULL_DATA)
             v.setNull();
         else {
@@ -523,14 +578,14 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         exlib::string value;
         hr = SQLGetData(stmt, col, SQL_C_BINARY, value.data(), 0, &len);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         if (len == SQL_NULL_DATA)
             v.setNull();
         else {
             value.resize(len);
             hr = SQLGetData(stmt, col, SQL_C_BINARY, value.data(), len, &len);
             if (hr < 0)
-                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+                return odbc_set_error(SQL_HANDLE_STMT, stmt);
             v = new Buffer(value.c_str(), value.length());
         }
         break;
@@ -547,7 +602,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
             hr = SQLGetData(stmt, col, SQL_C_WCHAR, chunk.data(),
                 (chunkChars + 1) * sizeof(SQLWCHAR), &len);
             if (hr < 0)
-                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+                return odbc_set_error(SQL_HANDLE_STMT, stmt);
             if (len == SQL_NULL_DATA) {
                 v.setNull();
                 break;
@@ -714,34 +769,34 @@ public:
 
         SQLRETURN sqlhr = SQLAllocStmt(m_conn, &m_stmt);
         if (sqlhr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, m_conn)));
+            return odbc_set_error(SQL_HANDLE_DBC, m_conn);
 
         exlib::wstring wsql(utf8to16String(full));
         sqlhr = SQLPrepareW(m_stmt, (SQLWCHAR*)wsql.c_str(),
             (SQLINTEGER)wsql.length());
         if (sqlhr < 0) {
-            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            result_t hr = odbc_set_error(SQL_HANDLE_STMT, m_stmt);
             SQLFreeStmt(m_stmt, SQL_DROP);
             m_stmt = NULL;
-            return CHECK_ERROR(Runtime::setError(err));
+            return hr;
         }
 
         sqlhr = SQLExecute(m_stmt);
         if (sqlhr < 0) {
-            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            result_t hr = odbc_set_error(SQL_HANDLE_STMT, m_stmt);
             SQLFreeStmt(m_stmt, SQL_DROP);
             m_stmt = NULL;
-            return CHECK_ERROR(Runtime::setError(err));
+            return hr;
         }
 
         // Column metadata (available after execution)
         SQLSMALLINT columns = 0;
         sqlhr = SQLNumResultCols(m_stmt, &columns);
         if (sqlhr < 0) {
-            exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+            result_t hr = odbc_set_error(SQL_HANDLE_STMT, m_stmt);
             SQLFreeStmt(m_stmt, SQL_DROP);
             m_stmt = NULL;
-            return CHECK_ERROR(Runtime::setError(err));
+            return hr;
         }
 
         m_columns = columns;
@@ -754,10 +809,10 @@ public:
             sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_NAME, buf,
                 SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
             if (sqlhr < 0) {
-                exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+                result_t hr = odbc_set_error(SQL_HANDLE_STMT, m_stmt);
                 SQLFreeStmt(m_stmt, SQL_DROP);
                 m_stmt = NULL;
-                return CHECK_ERROR(Runtime::setError(err));
+                return hr;
             }
 
             m_names[i] = normalize_identifier(
@@ -766,10 +821,10 @@ public:
             sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_TYPE, NULL, 0,
                 NULL, &m_types[i]);
             if (sqlhr < 0) {
-                exlib::string err = odbc_error(SQL_HANDLE_STMT, m_stmt);
+                result_t hr = odbc_set_error(SQL_HANDLE_STMT, m_stmt);
                 SQLFreeStmt(m_stmt, SQL_DROP);
                 m_stmt = NULL;
-                return CHECK_ERROR(Runtime::setError(err));
+                return hr;
             }
 
             if (m_types[i] == SQL_VARCHAR) {
@@ -799,7 +854,7 @@ public:
 
         SQLRETURN hr = SQLFetch(m_stmt);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, m_stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, m_stmt);
         if (hr == SQL_NO_DATA) {
             done = true;
             return 0;
@@ -894,13 +949,13 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
     hr = SQLAllocStmt(conn, &stmt);
     if (hr < 0)
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+        return odbc_set_error(SQL_HANDLE_DBC, conn);
 
     // Use ODBC SQLTables to get table list - more compatible across different databases
     hr = SQLTablesA(stmt, NULL, 0, NULL, 0, NULL, 0, (SQLCHAR*)"TABLE", SQL_NTS);
     if (hr < 0) {
         SQLFreeStmt(stmt, SQL_DROP);
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+        return odbc_set_error(SQL_HANDLE_STMT, stmt);
     }
 
     obj_ptr<DBResult> res = new DBResult(1);
@@ -912,7 +967,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
             break;
         if (hr < 0) {
             SQLFreeStmt(stmt, SQL_DROP);
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
         }
 
         SQLLEN len;
@@ -945,7 +1000,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
 
     hr = SQLAllocStmt(conn, &stmt);
     if (hr < 0)
-        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
+        return odbc_set_error(SQL_HANDLE_DBC, conn);
 
     obj_ptr<DBResult> res = new DBResult(5);
     res->setField(0, "column_name");
@@ -960,7 +1015,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         SQLFreeStmt(stmt, SQL_CLOSE);
         hr2 = SQLColumnsA(stmt, NULL, 0, NULL, 0, (SQLCHAR*)tn.c_str(), SQL_NTS, NULL, 0);
         if (hr2 < 0)
-            return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+            return odbc_set_error(SQL_HANDLE_STMT, stmt);
 
         while (true) {
             hr2 = SQLFetch(stmt);

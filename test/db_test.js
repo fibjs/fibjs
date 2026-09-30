@@ -77,6 +77,8 @@ describe("db", () => {
                     conn.execute(`SELECT 'CREATE DATABASE ${DBNAME}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DBNAME}')`)
                     break;
                 case 'mssql':
+                    conn.execute(`IF DB_ID(N'${DBNAME}') IS NULL CREATE DATABASE [${DBNAME}]`);
+                    break;
                 case 'mysql':
                 case 'mysql57':
                     conn.execute(`CREATE DATABASE IF NOT EXISTS \`${DBNAME}\``);
@@ -173,9 +175,10 @@ describe("db", () => {
         });
 
         it("create table", () => {
-            if (conn.type == 'mssql')
+            if (conn.type == 'mssql') {
                 conn.execute('create table test(t0 INT IDENTITY PRIMARY KEY, t1 int, t2 nvarchar(128), t3 VARBINARY(100), t4 datetime);');
-            else if (conn.type == 'dm') {
+                conn.execute('create table test_null(t1 int NULL, t2 nvarchar(128) NULL, t3 VARBINARY(100) NULL, t4 datetime NULL);');
+            } else if (conn.type == 'dm') {
                 // DM BLOB 不支持 = 比较（Oracle 兼容行为），t3 用 VARBINARY 以支持
                 // where t3 = ? 的 prepare/buffer 参数用例
                 conn.execute('create table test(t0 INT IDENTITY(1,1) PRIMARY KEY, t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
@@ -209,7 +212,10 @@ describe("db", () => {
             if (conn.type == 'mysql' || conn.type == 'SQLite')
                 assert.equal(rs.insertId, 1);
 
-            if (conn.type != 'mssql') {
+            if (conn.type == 'mssql') {
+                conn.execute("insert into test_null values(?,?,?,?);", null,
+                    undefined, null, undefined);
+            } else {
                 conn.execute("insert into test_null values(?,?,?,?);", null,
                     undefined, null, undefined);
             }
@@ -343,10 +349,8 @@ describe("db", () => {
 
         describe("transaction", () => {
             before(() => {
-                try {
-                    var b = Buffer.alloc(0);
-                    conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 101, 'test101', b, new Date());
-                } catch (e) { }
+                var b = conn.type == 'mssql' ? new Buffer('x') : Buffer.alloc(0);
+                conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 101, 'test101', b, new Date());
             });
 
             it("begin/commit", () => {
@@ -505,6 +509,26 @@ describe("db", () => {
             assert.equal(a, 1);
         });
 
+        if (type == 'mssql') {
+            it("MSSQL auth failure exposes sqlstate and errno", () => {
+                var bad_conn_str = conn_str.replace(/:\/\/([^:]+):([^@]*)@/, '://$1:wrong_password@');
+
+                assert.throws(() => {
+                    db.open(bad_conn_str);
+                }, (err) => {
+                    assert.ok(err instanceof Error);
+                    assert.equal(err.code, '37000');
+                    assert.equal(err.errno, 18456);
+                    assert.ok(/Login failed/i.test(err.message));
+                    assert.ok(err.args);
+                    assert.equal(err.args.port, String(1433));
+                    assert.equal(err.args.password, '<redacted>');
+                    assert.ok(!JSON.stringify(err.args).includes('wrong_password'));
+                    return true;
+                });
+            });
+        }
+
         describe("schema operations", () => {
             it("getTables", () => {
                 var tables = conn.getTables();
@@ -633,7 +657,7 @@ describe("db", () => {
                 var rr = conn.prepare("update test set t2 = 'stmt_run' where t1 = ?").run(1123);
                 assert.greaterThan(Number(rr.changes), 0);
                 // 还原
-                conn.execute("update test set t2 = '哈哈哈哈' where t1 = 1123");
+                conn.execute("update test set t2 = ? where t1 = 1123", '哈哈哈哈');
             });
 
             it("prepare iterate", () => {
@@ -878,6 +902,27 @@ describe("db", () => {
             case 'mysql':
             case 'mysql57':
                 // Test MySQL specific data types and return values
+                it("MySQL auth failure exposes errno", () => {
+                    var bad_conn_str = conn_str.replace(/:\/\/([^:]+):([^@]*)@/, '://$1:wrong_password@');
+
+                    assert.throws(() => {
+                        db.open(bad_conn_str);
+                    }, (err) => {
+                        assert.ok(err instanceof Error);
+                        assert.equal(err.errno, 1045);
+                        assert.ok(/Access denied/i.test(err.message));
+
+                        // Connection parameters are attached as bounded summaries and
+                        // the password is redacted instead of being copied.
+                        assert.ok(err.args);
+                        assert.ok(err.args.host.length > 0);
+                        assert.ok(err.args.user.length > 0);
+                        assert.equal(err.args.password, '<redacted>');
+                        assert.ok(!JSON.stringify(err.args).includes('wrong_password'));
+                        return true;
+                    });
+                });
+
                 it("MySQL data types", () => {
                     // Drop table if exists
                     try {
@@ -1107,6 +1152,26 @@ describe("db", () => {
                 break;
             case 'psql':
             case 'psql_kb':
+                it("PSQL auth failure exposes connection summaries", () => {
+                    var bad_conn_str = conn_str.replace(/:\/\/([^:]+):([^@]*)@/, '://$1:wrong_password@');
+
+                    assert.throws(() => {
+                        db.open(bad_conn_str);
+                    }, (err) => {
+                        assert.ok(err instanceof Error);
+
+                        // psql / mssql / dm / odbc share one connect path: the
+                        // connection parameters are summarised and the password
+                        // is redacted instead of being copied.
+                        assert.ok(err.args);
+                        assert.ok(err.args.host.length > 0);
+                        assert.ok(err.args.user.length > 0);
+                        assert.equal(err.args.password, '<redacted>');
+                        assert.ok(!JSON.stringify(err.args).includes('wrong_password'));
+                        return true;
+                    });
+                });
+
                 // Test PostgreSQL specific data types and return values
                 it("PostgreSQL data types", () => {
                     // Drop table if exists
@@ -2412,14 +2477,14 @@ describe("db", () => {
             ldb.close();
             assert.throws(() => {
                 levelDB_AF = ldb.begin();
-            })
+            }, { name: 'Error', number: 20009 })
 
             var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             levelDB_AF = ldb.begin();
             ldb.close();
             assert.throws(() => {
                 levelDB_AF.mget(['str']);
-            });
+            }, { name: 'Error', number: 20009 });
 
             ldb.close();
             clear_db();

@@ -114,8 +114,13 @@ private:
         int32_t errType;
 
         if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
-                &errType))
-            return Runtime::setError(errorMessage);
+                &errType)) {
+            ErrorPayload payload;
+            if (errCode > 0)
+                payload.with_errno(errCode);
+            return Runtime::setError(payload, CALL_E_EXCEPTION,
+                errorMessage ? exlib::string(errorMessage) : exlib::string());
+        }
         return Runtime::errNumber();
     }
 };
