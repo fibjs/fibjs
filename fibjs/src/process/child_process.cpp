@@ -626,8 +626,10 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             retVal->output->append(retVal->stdout);
             retVal->output->append(retVal->stderr);
 
-            retVal->error = v8::Exception::Error(
-                isolate->NewString(getResultMessage(hr)));
+            // Node.js compatible spawn error: code/errno/syscall/path plus the
+            // command and argv summaries attached by ChildProcess::spawn, not a
+            // message-only Error.
+            retVal->error = FillError(hr);
 
             return 0;
         }

@@ -329,13 +329,13 @@ describe('process', () => {
         it("throw on invalid signal name", () => {
             assert.throws(() => {
                 process.kill(process.pid, 'INVALID_SIGNAL');
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         it("throw on invalid pid", () => {
             assert.throws(() => {
                 process.kill(-99999, 0);
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         it("kill a child process with SIGTERM", () => {
@@ -352,7 +352,7 @@ describe('process', () => {
             // verify the child is gone
             assert.throws(() => {
                 process.kill(pid, 0);
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         it("kill a child process with integer signal", () => {
@@ -365,7 +365,7 @@ describe('process', () => {
 
             assert.throws(() => {
                 process.kill(pid, 0);
-            });
+            }, { name: 'Error', number: 20024 });
         });
     });
 

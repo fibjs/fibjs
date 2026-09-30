@@ -100,6 +100,80 @@ result_t TLSSocket::init(SecureContext_base* context)
     return 0;
 }
 
+// Node.js exposes the X509_V_ERR_* enumeration name (without the prefix) as
+// the error code for certificate verification failures.
+static const char* tls_verify_code(long vr)
+{
+    switch (vr) {
+    case X509_V_ERR_UNSPECIFIED: return "UNSPECIFIED";
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT: return "UNABLE_TO_GET_ISSUER_CERT";
+    case X509_V_ERR_UNABLE_TO_GET_CRL: return "UNABLE_TO_GET_CRL";
+    case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE: return "UNABLE_TO_DECRYPT_CERT_SIGNATURE";
+    case X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE: return "UNABLE_TO_DECRYPT_CRL_SIGNATURE";
+    case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY: return "UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY";
+    case X509_V_ERR_CERT_SIGNATURE_FAILURE: return "CERT_SIGNATURE_FAILURE";
+    case X509_V_ERR_CRL_SIGNATURE_FAILURE: return "CRL_SIGNATURE_FAILURE";
+    case X509_V_ERR_CERT_NOT_YET_VALID: return "CERT_NOT_YET_VALID";
+    case X509_V_ERR_CERT_HAS_EXPIRED: return "CERT_HAS_EXPIRED";
+    case X509_V_ERR_CRL_NOT_YET_VALID: return "CRL_NOT_YET_VALID";
+    case X509_V_ERR_CRL_HAS_EXPIRED: return "CRL_HAS_EXPIRED";
+    case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD: return "ERROR_IN_CERT_NOT_BEFORE_FIELD";
+    case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD: return "ERROR_IN_CERT_NOT_AFTER_FIELD";
+    case X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD: return "ERROR_IN_CRL_LAST_UPDATE_FIELD";
+    case X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD: return "ERROR_IN_CRL_NEXT_UPDATE_FIELD";
+    case X509_V_ERR_OUT_OF_MEM: return "OUT_OF_MEM";
+    case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT: return "DEPTH_ZERO_SELF_SIGNED_CERT";
+    case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN: return "SELF_SIGNED_CERT_IN_CHAIN";
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY: return "UNABLE_TO_GET_ISSUER_CERT_LOCALLY";
+    case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE: return "UNABLE_TO_VERIFY_LEAF_SIGNATURE";
+    case X509_V_ERR_CERT_CHAIN_TOO_LONG: return "CERT_CHAIN_TOO_LONG";
+    case X509_V_ERR_CERT_REVOKED: return "CERT_REVOKED";
+    case X509_V_ERR_INVALID_CA: return "INVALID_CA";
+    case X509_V_ERR_PATH_LENGTH_EXCEEDED: return "PATH_LENGTH_EXCEEDED";
+    case X509_V_ERR_INVALID_PURPOSE: return "INVALID_PURPOSE";
+    case X509_V_ERR_CERT_UNTRUSTED: return "CERT_UNTRUSTED";
+    case X509_V_ERR_CERT_REJECTED: return "CERT_REJECTED";
+    case X509_V_ERR_SUBJECT_ISSUER_MISMATCH: return "SUBJECT_ISSUER_MISMATCH";
+    case X509_V_ERR_AKID_SKID_MISMATCH: return "AKID_SKID_MISMATCH";
+    case X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH: return "AKID_ISSUER_SERIAL_MISMATCH";
+    case X509_V_ERR_KEYUSAGE_NO_CERTSIGN: return "KEYUSAGE_NO_CERTSIGN";
+#ifdef X509_V_ERR_HOSTNAME_MISMATCH
+    case X509_V_ERR_HOSTNAME_MISMATCH: return "HOSTNAME_MISMATCH";
+#endif
+    }
+    return nullptr;
+}
+
+static result_t tls_handshake_error(SSL* ssl)
+{
+    long vr = SSL_get_verify_result(ssl);
+    if (vr != X509_V_OK) {
+        const char* code = tls_verify_code(vr);
+        exlib::string reason = X509_verify_cert_error_string(vr);
+
+        if (code)
+            return Runtime::setError(ErrorPayload::make(errtype::kError)
+                    .with_code(code)
+                    .with_message(reason));
+
+        // Unknown verification result: fall back to the upper-snake form.
+        exlib::string c = reason;
+        for (size_t i = 0; i < c.length(); i++) {
+            char ch = c[i];
+            if (ch == ' ')
+                c[i] = '_';
+            else if (ch >= 'a' && ch <= 'z')
+                c[i] = (char)(ch - 'a' + 'A');
+        }
+
+        return Runtime::setError(ErrorPayload::make(errtype::kError)
+                .with_code(c)
+                .with_message(reason));
+    }
+
+    return openssl_error();
+}
+
 class AsyncHandshake : public AsyncState {
 public:
     AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, AsyncEvent* ac)
@@ -121,6 +195,7 @@ public:
 
     void init(Stream_base* socket, bool is_server, exlib::string server_name)
     {
+        m_server_name = server_name;
         m_sock->m_read_lock.lock(this);
         m_sock->m_write_lock.lock(this);
 
@@ -163,7 +238,7 @@ public:
         ERR_clear_error();
         m_state = SSL_get_error(m_sock->m_tls, SSL_do_handshake(m_sock->m_tls));
         if (m_state == SSL_ERROR_SSL)
-            return openssl_error();
+            return tls_handshake_error(m_sock->m_tls);
         if (m_sock->m_out)
             return m_sock->m_stream->writeBuffer(m_sock->m_out, next(read));
 
@@ -191,7 +266,7 @@ public:
         case SSL_ERROR_WANT_WRITE:
             return next(handshake);
         case SSL_ERROR_SSL:
-            return openssl_error();
+            return tls_handshake_error(m_sock->m_tls);
         }
 
         return Runtime::setError("handshake failed");
@@ -200,8 +275,32 @@ public:
     virtual int32_t error(int32_t v)
     {
         m_sock->on_connected(v);
-        if (m_isolate)
-            (new EventInfo(m_sock, "error", v))->emit();
+
+        // The SNI / verification host is the key context for a failed handshake.
+        // Keep the payload on this thread for the sync/callback path and pass a
+        // copy into the emit fiber, which may run on another thread. The error
+        // description travels the same way: a handshake failure is a
+        // CALL_E_EXCEPTION whose name/message live in per-thread state.
+        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
+        ErrorPayload payload = takeErrorPayload();
+
+        if (!m_server_name.empty())
+            payload.arg("servername", m_server_name);
+        setErrorPayload(payload);
+
+        if (m_isolate) {
+            obj_ptr<TLSSocket> sock = m_sock;
+            m_isolate->sync([sock, v, desc, payload]() -> int32_t {
+                JSFiber::EnterJsScope s;
+
+                Runtime::applyErrorDescription(desc, payload);
+
+                v8::Local<v8::Value> err = FillError(v);
+                bool retVal;
+                sock->_emit("error", &err, 1, retVal);
+                return 0;
+            });
+        }
         return v;
     }
 
@@ -220,6 +319,7 @@ public:
     Isolate* m_isolate;
     int32_t m_state;
     bool m_locked = true;
+    exlib::string m_server_name; // client SNI / verification host, for diagnostics
 };
 
 result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac)

@@ -468,10 +468,86 @@ describe('tls', () => {
                     ss = null;
                 });
 
+                it("handshake failure keeps servername summary", () => {
+                    // Plain TCP server answering with non-TLS garbage: the
+                    // handshake must fail after a successfully established
+                    // TCP connection, so only the TLS level can say why.
+                    var raw = net.createServer(function (s) {
+                        try {
+                            s.write('not a tls server');
+                            s.close();
+                        } catch (e) { }
+                    });
+                    raw.listen(0, '127.0.0.1');
+
+                    try {
+                        var port = raw.address().port;
+
+                        assert.throws(() => {
+                            tls.connect(port, '127.0.0.1');
+                        }, (err) => {
+                            assert.ok(err instanceof Error);
+                            assert.equal(err.args.servername, '127.0.0.1');
+                            return true;
+                        });
+                    } finally {
+                        raw.stop();
+                    }
+                });
+
+                it("async handshake failure reports the sync error shape", (done) => {
+                    // A handshake failure is a CALL_E_EXCEPTION whose description
+                    // (name/message) lives in per-thread state. The 'error'
+                    // event is emitted from the completing thread, so the
+                    // description must travel with the payload; otherwise the
+                    // event degenerates into "[0] Success".
+                    var raw = net.createServer(function (s) {
+                        // Reply after a short delay: the convenience API returns
+                        // the socket before the handshake fails, and an error
+                        // event emitted before the listener is attached is an
+                        // unhandled error (same as Node).
+                        coroutine.sleep(100);
+
+                        try {
+                            s.write('not a tls server');
+                            s.close();
+                        } catch (e) { }
+                    });
+                    raw.listen(0, '127.0.0.1');
+
+                    var port = raw.address().port;
+                    var syncErr = null;
+
+                    try {
+                        tls.connect(port, '127.0.0.1');
+                    } catch (e) {
+                        syncErr = e;
+                    }
+
+                    assert.ok(syncErr instanceof Error);
+                    assert.notEqual(syncErr.number, 0);
+                    assert.notEqual(syncErr.message, '[0] Success');
+
+                    var ss = tls.connect({ host: '127.0.0.1', port: port }, function () {
+                        raw.stop();
+                        done(new Error('should not connect'));
+                    });
+
+                    ss.on('error', function (err) {
+                        raw.stop();
+                        done(() => {
+                            assert.ok(err instanceof Error);
+                            assert.notEqual(err.number, 0);
+                            assert.equal(err.number, syncErr.number);
+                            assert.equal(err.message, syncErr.message);
+                            assert.equal(err.args.servername, '127.0.0.1');
+                        });
+                    });
+                });
+
                 it("async connect error when handshake fails", () => {
                     test_util.gc();
                     var tlsSocketCount = test_util.countObject('TLSSocket');
-
                     var errorEvent = new coroutine.Event();
                     var errorReceived = null;
 
@@ -499,6 +575,8 @@ describe('tls', () => {
 
                     errorEvent.wait();
                     assert.ok(errorReceived !== null);
+                    assert.ok(errorReceived instanceof Error);
+                    assert.isString(errorReceived.message);
 
                     // Close the underlying socket to trigger server side error
                     s1.close();
@@ -692,7 +770,7 @@ describe('tls', () => {
                     var ss = new tls.TLSSocket();
                     assert.throws(() => {
                         ss.connect(connect());
-                    });
+                    }, { code: 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' });
                 });
 
                 it('custom ca', () => {
@@ -713,7 +791,7 @@ describe('tls', () => {
                     });
                     assert.throws(() => {
                         ss.connect(connect(), "fibjs.org");
-                    });
+                    }, { code: 'HOSTNAME_MISMATCH' });
                 });
 
                 it('not request cert', () => {
@@ -773,7 +851,7 @@ describe('tls', () => {
                 it('default context', () => {
                     assert.throws(() => {
                         tls.connect(`ssl://localhost:${9080 + base_port}`);
-                    });
+                    }, { code: 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' });
                 });
 
                 it('with port, host, options', () => {
@@ -1073,7 +1151,7 @@ describe('tls', () => {
 
                 assert.throws(() => {
                     cs1.connect(s2, "no_cert");
-                });
+                }, { code: 'HOSTNAME_MISMATCH' });
 
                 cs1.close();
             });
@@ -1188,7 +1266,7 @@ describe('tls', () => {
                     svr = new tls.Server(ctx_svr, (s) => { s.close(); });
                     svr.listen(9094 + base_port);
                     test_util.push(svr.socket);
-                    assert.throws(() => { svr.listen(9095 + base_port); });
+                    assert.throws(() => { svr.listen(9095 + base_port); }, { code: 'ERR_SERVER_ALREADY_LISTEN' });
                 });
             });
 

@@ -349,21 +349,22 @@ describe("child_process", () => {
                 });
 
                 // Test invalid resize parameters
+                // invalid resize -> TypeError (CALL_E_INVALIDARG, 20004)
                 assert.throws(() => {
                     bs.resize(0, 24);
-                });
+                }, { name: 'TypeError', number: 20004 });
 
                 assert.throws(() => {
                     bs.resize(80, 0);
-                });
+                }, { name: 'TypeError', number: 20004 });
 
                 assert.throws(() => {
                     bs.resize(-10, 24);
-                });
+                }, { name: 'TypeError', number: 20004 });
 
                 assert.throws(() => {
                     bs.resize(80, -5);
-                });
+                }, { name: 'TypeError', number: 20004 });
 
                 // Valid resize should work
                 assert.doesNotThrow(() => {
@@ -379,9 +380,10 @@ describe("child_process", () => {
                 });
 
                 // Resize should fail on non-PTY process
+                // resize on a non-PTY process -> PTY-only error
                 assert.throws(() => {
                     bs.resize(80, 24);
-                });
+                }, { message: 'resize() only available in PTY mode' });
 
                 bs.join();
             });
@@ -411,13 +413,15 @@ describe("child_process", () => {
                 });
 
                 // cols and rows should throw error for non-PTY processes
+                // cols on a non-PTY process -> PTY-only error
                 assert.throws(() => {
                     var cols = bs.cols;
-                }, /cols property only available in PTY mode/);
+                }, { message: 'cols property only available in PTY mode' });
 
+                // rows on a non-PTY process -> PTY-only error
                 assert.throws(() => {
                     var rows = bs.rows;
-                }, /rows property only available in PTY mode/);
+                }, { message: 'rows property only available in PTY mode' });
 
                 bs.join();
             });
@@ -466,6 +470,46 @@ describe("child_process", () => {
 
         bs.stdin.write("hello, exec1" + os.EOL);
         assert.equal(stdout.readLine(), "hello, exec1");
+    });
+
+    it("spawn error carries node compatible fields", () => {
+        assert.throws(() => {
+            child_process.spawn('definitely-not-a-command-xyz', ['--flag']);
+        }, (err) => {
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ENOENT');
+            assert.equal(err.errno, -2);
+            assert.equal(err.syscall, 'spawn definitely-not-a-command-xyz');
+            assert.equal(err.path, 'definitely-not-a-command-xyz');
+            assert.equal(err.args.command, 'definitely-not-a-command-xyz');
+            assert.equal(err.args.argv, '["--flag"]');
+            return true;
+        });
+    });
+
+    it("spawnSync error carries node compatible fields", () => {
+        var r = child_process.spawnSync('definitely-not-a-command-xyz', ['--flag']);
+
+        assert.ok(r.error);
+        assert.equal(r.error.code, 'ENOENT');
+        assert.equal(r.error.errno, -2);
+        assert.equal(r.error.syscall, 'spawn definitely-not-a-command-xyz');
+        assert.equal(r.error.path, 'definitely-not-a-command-xyz');
+        assert.equal(r.error.args.argv, '["--flag"]');
+    });
+
+    it("execFile callback error carries node compatible fields", (done) => {
+        child_process.execFile('definitely-not-a-command-xyz', ['--flag'], (err) => {
+            try {
+                assert.ok(err instanceof Error);
+                assert.equal(err.code, 'ENOENT');
+                assert.equal(err.syscall, 'spawn definitely-not-a-command-xyz');
+                assert.equal(err.path, 'definitely-not-a-command-xyz');
+                done();
+            } catch (e) {
+                done(e);
+            }
+        });
     });
 
     describe("fork silent option", () => {
@@ -650,9 +694,10 @@ describe("child_process", () => {
             var ret = $`echo ${a}`;
             assert.equal(ret, '1 2 3');
 
+            // unknown command through the shell tag -> the shell's error surfaces (20024)
             assert.throws(() => {
                 $`echo1 100`;
-            });
+            }, { number: 20024 });
         });
 
         it("execSync with input", () => {
@@ -683,9 +728,12 @@ describe("child_process", () => {
             assert.equal(ret, "world" + os.EOL);
 
             // Test execSync error case
+            // execSync non-zero exit -> Node-style "Command failed" error object
             assert.throws(() => {
                 child_process.execSync("exit 1");
             }, (error) => {
+                assert.equal(error.name, 'Error');
+                assert.ok(String(error.message).indexOf('Command failed:') === 0, 'message: ' + error.message);
                 assert.equal(error.status, 1);
                 assert.equal(error.signal, null);
                 assert.ok(error.hasOwnProperty('stdout'));
@@ -700,6 +748,8 @@ describe("child_process", () => {
             assert.throws(() => {
                 child_process.execSync("nonexistent_command_12345");
             }, (error) => {
+                assert.equal(error.name, 'Error');
+                assert.ok(String(error.message).indexOf('Command failed:') === 0, 'message: ' + error.message);
                 if (isWin32) {
                     assert.equal(error.status, 1);
                 } else {
@@ -792,6 +842,8 @@ describe("child_process", () => {
                     path.join(__dirname, "process", "exec_file_sync_error.js")
                 ]);
             }, (error) => {
+                assert.equal(error.name, 'Error');
+                assert.ok(String(error.message).indexOf('Command failed:') === 0, 'message: ' + error.message);
                 assert.equal(error.status, 42);
                 assert.equal(error.signal, null);
                 assert.ok(Buffer.isBuffer(error.stdout));
@@ -820,6 +872,8 @@ describe("child_process", () => {
                     }
                 });
             }, (error) => {
+                assert.equal(error.name, 'Error');
+                assert.ok(String(error.message).indexOf('Command failed:') === 0, 'message: ' + error.message);
                 // iOS returns different exit status
                 if (!isIOS) {
                     assert.equal(error.status, 4);
@@ -866,15 +920,17 @@ describe("child_process", () => {
             });
 
             it("execSync with timeout throws", () => {
+                // timeout -> TODO(node-parity): Node reports spawnSync ETIMEDOUT; see plan
                 assert.throws(() => {
                     child_process.execSync("sleep 10", { timeout: 500 });
-                });
+                }, { message: 'Command failed: sleep 10' });
             });
 
             it("execFileSync with timeout throws", () => {
+                // timeout -> TODO(node-parity): Node reports spawnSync ETIMEDOUT; see plan
                 assert.throws(() => {
                     child_process.execFileSync("sleep", ["10"], { timeout: 500 });
-                });
+                }, { message: 'Command failed: sleep' });
             });
 
             it("custom killSignal", () => {
@@ -985,9 +1041,10 @@ describe("child_process", () => {
     });
 
     it("run throw error", () => {
+        // spawn ENOENT -> Node-shaped SystemError fields
         assert.throws(() => {
             child_process.run("not_exists_exec_file");
-        });
+        }, { code: 'ENOENT', errno: -2, syscall: 'spawn not_exists_exec_file' });
     });
 
     it("multi run", () => {
@@ -1957,11 +2014,12 @@ describe("child_process", () => {
         });
 
         it("can have only one IPC pipe", () => {
+            // two ipc pipes -> Node-aligned ERR_IPC_ONE_PIPE
             assert.throws(() => {
                 var n = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec1.js')], {
                     "stdio": ['ipc', 'ipc', 'inherit']
                 });
-            });
+            }, { code: 'ERR_IPC_ONE_PIPE' });
         });
 
         it("hold process on message", () => {

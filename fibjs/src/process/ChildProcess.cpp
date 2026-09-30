@@ -306,7 +306,9 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
                     return hr;
             } else if (s == "ipc") {
                 if (m_ipc >= 0)
-                    return CHECK_ERROR(Runtime::setError("ChildProcess: Child process can have only one IPC pipe."));
+                    return Runtime::setError(ErrorPayload::make(errtype::kError)
+                            .with_code("ERR_IPC_ONE_PIPE")
+                            .with_message("Child process can have only one IPC pipe"));
 
                 m_ipc = i;
                 hr = create_pipe(i);
@@ -428,6 +430,22 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     uv_options.env = _envs.data();
 
     return 0;
+}
+
+// Compact ["arg", ...] summary used for spawn diagnostics; ErrorPayload applies
+// the shared length bound and truncation marker.
+static exlib::string argv_summary(const std::vector<exlib::string>& args)
+{
+    exlib::string summary = "[";
+
+    for (size_t i = 0; i < args.size(); i++) {
+        if (i > 0)
+            summary.append(", ");
+        summary.append(1, '"').append(args[i]).append(1, '"');
+    }
+
+    summary.append(1, ']');
+    return summary;
 }
 
 result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
@@ -555,8 +573,19 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
         return err;
     });
-    if (hr < 0)
-        return hr;
+    if (hr < 0) {
+        // Node.js compatible shape (errno/code/syscall/path) plus the executed
+        // command and its argv as bounded summaries, so a missing executable is
+        // identifiable without parsing the message.
+        exlib::string syscall = "spawn " + m_command;
+        ErrorPayload payload = ErrorPayload::from_system(hr)
+                                   .with_syscall(syscall.c_str())
+                                   .with_path(m_command)
+                                   .arg("command", m_command)
+                                   .arg("argv", argv_summary(argStr));
+
+        return setErrorPayload(hr, payload);
+    }
 
     if (m_ipc >= 0) {
         if (m_ipc != 3) {

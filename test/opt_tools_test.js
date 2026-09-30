@@ -2598,7 +2598,10 @@ describe('opt_tools install lifecycle', function () {
             var res = runPrivate(targetDir);
 
             assert.notEqual(res.status, 0, 'a self signed certificate is not trusted by default' + diag(targetDir, res));
-            assert.ok(outputOf(res).indexOf('certificate verify failed') > -1, outputOf(res));
+            // Node-aligned: the OpenSSL reason is the message and the
+            // X509_V_ERR_* enumeration name is the code.
+            assert.ok(outputOf(res).indexOf('self-signed certificate') > -1, outputOf(res));
+            assert.ok(outputOf(res).indexOf('DEPTH_ZERO_SELF_SIGNED_CERT') > -1, outputOf(res));
         });
     });
 
