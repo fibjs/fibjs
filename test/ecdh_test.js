@@ -7,16 +7,12 @@ describe('ECDH', () => {
     describe('createECDH', () => {
         it('should throw when curve argument is undefined', () => {
             assert.throws(
-                () => crypto.createECDH(),
-                /Parameter not optional|argument must be of type string/
-            );
+                () => crypto.createECDH(), { name: 'TypeError', number: 20002 });
         });
 
         it('should throw for invalid curve name', () => {
             assert.throws(
-                () => crypto.createECDH('badcurve'),
-                /Invalid EC curve name/
-            );
+                () => crypto.createECDH('badcurve'), { name: 'Error', number: 20024 });
         });
 
         it('should create ECDH instance for valid curves', () => {
@@ -153,25 +149,21 @@ describe('ECDH', () => {
 
             assert.throws(() => {
                 ecdh.getPublicKey();
-            }, /^Error: Failed to get ECDH public key$/);
+            }, { name: 'Error', number: 20024 });
 
             assert.throws(() => {
                 ecdh.getPrivateKey();
-            }, /^Error: Failed to get ECDH private key$/);
+            }, { name: 'Error', number: 20024 });
         });
 
         it('should throw for invalid format parameter in generateKeys', () => {
             const ecdh = crypto.createECDH('prime256v1');
 
             assert.throws(
-                () => ecdh.generateKeys('buffer', 'invalid'),
-                /Invalid ECDH format/
-            );
+                () => ecdh.generateKeys('buffer', 'invalid'), { name: 'Error', number: 20024 });
 
             assert.throws(
-                () => ecdh.generateKeys('hex', 10),
-                /Invalid ECDH format/
-            );
+                () => ecdh.generateKeys('hex', 10), { name: 'Error', number: 20024 });
         });
     });
 
@@ -256,9 +248,7 @@ describe('ECDH', () => {
             ecdh.generateKeys();
 
             assert.throws(
-                () => ecdh.getPublicKey('buffer', 10),
-                /Invalid ECDH format/
-            );
+                () => ecdh.getPublicKey('buffer', 10), { name: 'Error', number: 20024 });
         });
 
         it('should validate private key for curve', () => {
@@ -471,7 +461,7 @@ describe('ECDH', () => {
             // This should fail because public key doesn't match private key
             assert.throws(() => {
                 ecdh.computeSecret(peerPubPtComp, 'hex', 'hex');
-            }, /Invalid key pair/);
+            }, { name: 'Error', number: 20024 });
         });
     });
 
@@ -481,9 +471,7 @@ describe('ECDH', () => {
             const ECDH = crypto.ECDH || crypto.createECDH('prime256v1').constructor;
 
             assert.throws(
-                () => ECDH.convertKey(),
-                /(Parameter not optional|argument must be of type)/
-            );
+                () => ECDH.convertKey(), { name: 'TypeError', number: 20002 });
         });
 
         it('should throw when curve argument is undefined', () => {
@@ -491,9 +479,7 @@ describe('ECDH', () => {
             const cafebabePubPtComp = '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
 
             assert.throws(
-                () => ECDH.convertKey(cafebabePubPtComp),
-                /(Parameter not optional|argument must be of type)/
-            );
+                () => ECDH.convertKey(cafebabePubPtComp), { name: 'TypeError', number: 20002 });
         });
 
         it('should throw for invalid curve name', () => {
@@ -501,9 +487,7 @@ describe('ECDH', () => {
             const cafebabePubPtComp = '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
 
             assert.throws(
-                () => ECDH.convertKey(cafebabePubPtComp, 'badcurve'),
-                /Invalid EC curve name/
-            );
+                () => ECDH.convertKey(cafebabePubPtComp, 'badcurve'), { name: 'Error', number: 20024 });
         });
 
         it('should convert key formats correctly', () => {
@@ -538,9 +522,7 @@ describe('ECDH', () => {
             const cafebabePubPtComp = '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
 
             assert.throws(
-                () => ECDH.convertKey(cafebabePubPtComp, 'secp256k1', 'hex', 'hex', 10),
-                /Invalid ECDH format.*10/
-            );
+                () => ECDH.convertKey(cafebabePubPtComp, 'secp256k1', 'hex', 'hex', 10), { name: 'Error', number: 20024 });
         });
     });
 
@@ -584,9 +566,7 @@ describe('ECDH', () => {
 
             // This should throw but not leave errors on OpenSSL error stack
             assert.throws(
-                () => ECDH.convertKey(badKey, 'secp521r1', 'hex', 'hex', 'compressed'),
-                /Failed to convert Buffer to EC_POINT/
-            );
+                () => ECDH.convertKey(badKey, 'secp521r1', 'hex', 'hex', 'compressed'), { name: 'Error', number: 20024 });
 
             // Subsequent crypto operations should work fine
             const ecdh = crypto.createECDH('secp521r1');

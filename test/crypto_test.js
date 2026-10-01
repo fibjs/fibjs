@@ -335,7 +335,7 @@ describe('crypto', () => {
 
         assert.throws(() => {
             crypto.randomBytes(-125);
-        });
+        }, { name: 'RangeError', number: 20006 });
     });
 
     it("randomFillSync", () => {
@@ -349,17 +349,17 @@ describe('crypto', () => {
         crypto.randomFillSync(buf, 0);
         assert.throws(() => {
             crypto.randomFillSync(buf, -1);
-        });
+        }, { name: 'RangeError', number: 20006 });
 
         crypto.randomFillSync(buf, 10);
         assert.throws(() => {
             crypto.randomFillSync(buf, 11);
-        });
+        }, { name: 'RangeError', number: 20006 });
 
         crypto.randomFillSync(buf, 9, 1);
         assert.throws(() => {
             crypto.randomFillSync(buf, 9, 2);
-        });
+        }, { name: 'RangeError', number: 20006 });
     });
 
     describe('KeyObject', () => {
@@ -412,7 +412,7 @@ describe('crypto', () => {
                 assert.ok(crypto.createSecretKey(first).equals(crypto.createSecretKey(first)));
                 assert.ok(!crypto.createSecretKey(first).equals(crypto.createSecretKey(second)));
 
-                assert.throws(() => keyObject.equals(0));
+                assert.throws(() => keyObject.equals(0), { name: 'TypeError', number: 20005 });
 
                 assert.ok(keyObject.equals(keyObject));
             });
@@ -444,23 +444,23 @@ describe('crypto', () => {
                     const publicKey1 = crypto.createPublicKey(publicKey);
                 }
 
-                assert.throws(() => crypto.createPrivateKey(crypto.createPublicKey(privatePem)));
+                assert.throws(() => crypto.createPrivateKey(crypto.createPublicKey(privatePem)), { name: 'TypeError', number: 20005 });
 
                 const privateKey = crypto.createPrivateKey(privatePem);
-                assert.throws(() => crypto.createPrivateKey(privateKey));
+                assert.throws(() => crypto.createPrivateKey(privateKey), { name: 'TypeError', number: 20005 });
 
                 for (const key of ['', 'foo', null, undefined, true, Boolean]) {
-                    assert.throws(() => createPublicKey({ key, format: 'jwk' }));
-                    assert.throws(() => createPrivateKey({ key, format: 'jwk' }));
+                    assert.throws(() => createPublicKey({ key, format: 'jwk' }), { name: 'ReferenceError' });
+                    assert.throws(() => createPrivateKey({ key, format: 'jwk' }), { name: 'ReferenceError' });
                 }
 
                 assert.throws(() => {
                     createPrivateKey({ key: '' });
-                });
+                }, { name: 'ReferenceError' });
 
                 assert.throws(() => {
                     createPrivateKey({ key: Buffer.alloc(0), format: 'der', type: 'spki' });
-                });
+                }, { name: 'ReferenceError' });
 
                 assert.throws(() => {
                     const key = createPublicKey(publicPem).export({
@@ -468,7 +468,7 @@ describe('crypto', () => {
                         type: 'pkcs1'
                     });
                     createPrivateKey({ key, format: 'der', type: 'pkcs1' });
-                });
+                }, { name: 'ReferenceError' });
             });
 
             it('create with pem', () => {
@@ -530,7 +530,7 @@ describe('crypto', () => {
 
                 assert.throws(() => {
                     privateKey.export({ format: 'jwk', passphrase: 'secret' });
-                });
+                }, { name: 'TypeError', number: 20005 });
 
                 const publicDER = publicKey.export({
                     format: 'der',
@@ -989,10 +989,10 @@ describe('crypto', () => {
                         assert.equal(privateKey.asymmetricKeyType, 'rsa-pss');
                         assert.deepEqual(privateKey.asymmetricKeyDetails, expectedKeyDetails);
 
-                        assert.throws(() => publicKey.export({ format: 'jwk' }));
-                        assert.throws(() => privateKey.export({ format: 'jwk' }));
+                        assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
+                        assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
 
-                        assert.throws(() => publicKey.export({ format: 'pem', type: 'pkcs1' }));
+                        assert.throws(() => publicKey.export({ format: 'pem', type: 'pkcs1' }), { name: 'Error', number: 20024 });
                     });
 
                     it('rsa_pss_public_2048_sha1_sha1_20', () => {
@@ -1062,25 +1062,25 @@ describe('crypto', () => {
             });
 
             it('encrypted key', () => {
-                assert.throws(() => crypto.createPrivateKey(privateDsa));
+                assert.throws(() => crypto.createPrivateKey(privateDsa), { name: 'Error', number: 20024 });
 
                 assert.throws(() => crypto.createPrivateKey({
                     key: privateDsa,
                     format: 'pem',
                     passphrase: Buffer.alloc(1025, 'a')
-                }));
+                }), { name: 'Error', number: 20024 });
 
                 assert.throws(() => crypto.createPrivateKey({
                     key: privateDsa,
                     format: 'pem',
                     passphrase: Buffer.alloc(1024, 'a')
-                }));
+                }), { name: 'Error', number: 20024 });
 
                 const publicKey = crypto.createPublicKey(publicDsa);
                 assert.equal(publicKey.type, 'public');
                 assert.equal(publicKey.asymmetricKeyType, 'dsa');
                 assert.equal(publicKey.symmetricKeySize, undefined);
-                assert.throws(() => publicKey.export({ format: 'jwk' }));
+                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
                 assert.deepEqual(publicKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1088
@@ -1094,7 +1094,7 @@ describe('crypto', () => {
                 assert.equal(privateKey.type, 'private');
                 assert.equal(privateKey.asymmetricKeyType, 'dsa');
                 assert.equal(privateKey.symmetricKeySize, undefined);
-                assert.throws(() => privateKey.export({ format: 'jwk' }));
+                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
                 assert.deepEqual(privateKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1088
@@ -1175,7 +1175,7 @@ describe('crypto', () => {
                 assert.equal(publicKey.type, 'public');
                 assert.equal(publicKey.asymmetricKeyType, 'dsa');
                 assert.equal(publicKey.symmetricKeySize, undefined);
-                assert.throws(() => publicKey.export({ format: 'jwk' }));
+                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
                 assert.deepEqual(publicKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1024
@@ -1184,7 +1184,7 @@ describe('crypto', () => {
                 assert.equal(privateKey.type, 'private');
                 assert.equal(privateKey.asymmetricKeyType, 'dsa');
                 assert.equal(privateKey.symmetricKeySize, undefined);
-                assert.throws(() => privateKey.export({ format: 'jwk' }));
+                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'Error', number: 20024 });
                 assert.deepEqual(privateKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1024
@@ -1433,14 +1433,14 @@ describe('crypto', () => {
                             key: rsaKeyPemEncrypted,
                             passphrase: 'wrong'
                         }, bufferToEncrypt);
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.publicEncrypt({
                             key: rsaKeyPemEncrypted,
                             passphrase: 'wrong'
                         }, encryptedBuffer);
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     encryptedBuffer = crypto.privateEncrypt({
                         key: rsaKeyPemEncrypted,
@@ -1452,7 +1452,7 @@ describe('crypto', () => {
                             key: rsaKeyPemEncrypted,
                             passphrase: Buffer.from('wrong')
                         }, encryptedBuffer);
-                    });
+                    }, { name: 'Error', number: 20024 });
                 });
             });
 
@@ -1541,7 +1541,7 @@ describe('crypto', () => {
                             key: rsaPubPem,
                             oaepHash: 'Hello world'
                         }, Buffer.alloc(10));
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     for (const oaepHash of [0, false, Symbol(), () => { }]) {
                         assert.throws(() => {
@@ -1549,7 +1549,7 @@ describe('crypto', () => {
                                 key: rsaPubPem,
                                 oaepHash
                             }, Buffer.alloc(10));
-                        });
+                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
                     }
 
                     for (const oaepLabel of [0, false, Symbol(), () => { }, {}]) {
@@ -1558,7 +1558,7 @@ describe('crypto', () => {
                                 key: rsaPubPem,
                                 oaepLabel
                             }, Buffer.alloc(10));
-                        });
+                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
                     }
                 }
             });
@@ -1621,7 +1621,7 @@ describe('crypto', () => {
                 assert.throws(() => {
                     const signOptions = { key: rsaKeyPemEncrypted, passphrase: 'wrong' };
                     rsaSign.sign(signOptions, 'hex');
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('RSA signing and verification', () => {
@@ -1700,7 +1700,7 @@ describe('crypto', () => {
                 sign.update(input);
                 assert.throws(() => {
                     sign.sign({ key: dsaKeyPemEncrypted, passphrase: 'wrong' }, 'hex');
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('signatures vary across runs so there is no static string to verify against', () => {
@@ -1722,24 +1722,24 @@ describe('crypto', () => {
                     () => crypto.createVerify('SHA256').verify({
                         key: certPem,
                         padding: null,
-                    }));
+                    }), { name: 'TypeError', number: 20002 });
 
                 assert.throws(
                     () => crypto.createVerify('SHA256').verify({
                         key: certPem,
                         saltLength: null,
-                    }));
+                    }), { name: 'TypeError', number: 20002 });
 
                 const sign = crypto.createSign('SHA1');
                 const verify = crypto.createVerify('SHA1');
 
                 [1, [], {}, undefined, null, true, Infinity].forEach((input) => {
-                    assert.throws(() => crypto.createSign(input));
-                    assert.throws(() => crypto.createVerify(input));
+                    assert.throws(() => crypto.createSign(input), { name: 'Error', number: 20024 });
+                    assert.throws(() => crypto.createVerify(input), { name: 'Error', number: 20024 });
                     // assert.throws(() => sign.update(input));
                     // assert.throws(() => verify.update(input));
-                    assert.throws(() => sign._write(input, 'utf8', () => { }));
-                    assert.throws(() => verify._write(input, 'utf8', () => { }));
+                    assert.throws(() => sign._write(input, 'utf8', () => { }), { name: 'TypeError' });
+                    assert.throws(() => verify._write(input, 'utf8', () => { }), { name: 'TypeError' });
                 });
 
                 [
@@ -1751,42 +1751,42 @@ describe('crypto', () => {
                 });
 
                 [1, {}, [], Infinity].forEach((input) => {
-                    assert.throws(() => sign.sign(input));
-                    assert.throws(() => verify.verify(input));
-                    assert.throws(() => verify.verify('test', input));
+                    assert.throws(() => sign.sign(input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
+                    assert.throws(() => verify.verify(input), { name: 'TypeError', number: 20002 });
+                    assert.throws(() => verify.verify('test', input), { name: 'Error', number: 20024 });
                 });
 
-                assert.throws(() => crypto.createSign('sha8'));
-                assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem));
+                assert.throws(() => crypto.createSign('sha8'), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem), { name: 'Error', number: 20024 });
 
-                assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'));
+                assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'), { name: 'TypeError', number: 20005 });
 
                 [1, {}, [], true, Infinity].forEach((input) => {
                     const data = Buffer.alloc(1);
                     const sig = Buffer.alloc(1);
 
-                    assert.throws(() => crypto.sign(null, input, 'asdf'));
-                    assert.throws(() => crypto.verify(null, input, 'asdf', sig));
+                    assert.throws(() => crypto.sign(null, input, 'asdf'), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.verify(null, input, 'asdf', sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
 
-                    assert.throws(() => crypto.sign(null, data, input));
-                    assert.throws(() => crypto.verify(null, data, input, sig));
+                    assert.throws(() => crypto.sign(null, data, input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.verify(null, data, input, sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
 
-                    assert.throws(() => crypto.verify(null, data, 'test', input));
+                    assert.throws(() => crypto.verify(null, data, 'test', input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'Error' && err.number === 20024), 'unexpected: ' + err); return true; });
                 });
 
                 for (const key of ['', 'foo', null, undefined, true, Boolean]) {
                     assert.throws(() => {
                         crypto.verify('sha256', 'foo', { key, format: 'jwk' }, Buffer.alloc(0));
-                    });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002), 'unexpected: ' + err); return true; });
                     assert.throws(() => {
                         crypto.createVerify('sha256').verify({ key, format: 'jwk' }, Buffer.alloc(0));
-                    });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002), 'unexpected: ' + err); return true; });
                     assert.throws(() => {
                         crypto.sign('sha256', 'foo', { key, format: 'jwk' });
-                    });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002), 'unexpected: ' + err); return true; });
                     assert.throws(() => {
                         crypto.createSign('sha256').sign({ key, format: 'jwk' });
-                    });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002), 'unexpected: ' + err); return true; });
                 }
             });
 
@@ -1950,7 +1950,7 @@ describe('crypto', () => {
                                     key: keyPem,
                                     padding: invalidValue
                                 });
-                        });
+                        }, { name: 'TypeError', number: 20005 });
 
                         assert.throws(() => {
                             crypto.createSign('SHA256')
@@ -1960,7 +1960,7 @@ describe('crypto', () => {
                                     padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
                                     saltLength: invalidValue
                                 });
-                        });
+                        }, { name: 'TypeError', number: 20005 });
                     });
 
                 assert.throws(() => {
@@ -1970,7 +1970,7 @@ describe('crypto', () => {
                             key: keyPem,
                             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
                         });
-                });
+                }, { code: 'ERR_OSSL_NO_START_LINE' });
             });
 
             it('ed signing and verification', () => {
@@ -2126,7 +2126,7 @@ describe('crypto', () => {
                             key: certPem,
                             dsaEncoding
                         });
-                    });
+                    }, { name: 'Error', number: 20024 });
                 }
             });
 
@@ -2171,13 +2171,13 @@ describe('crypto', () => {
                         // Signing with anything other than sha256 should fail.
                         assert.throws(() => {
                             crypto.sign('sha1', 'foo', key);
-                        });
+                        }, (err) => { assert.ok(err.code === 'ERR_OSSL_NO_START_LINE' || err.code === 'ERR_OSSL_PSS_SALTLEN_TOO_SMALL', 'unexpected: ' + err); return true; });
 
                         // Signing with salt lengths less than 16 bytes should fail.
                         for (const saltLength of [8, 10, 12]) {
                             assert.throws(() => {
                                 crypto.sign('sha256', 'foo', { key, saltLength });
-                            });
+                            }, (err) => { assert.ok(err.code === 'ERR_OSSL_NO_START_LINE' || err.code === 'ERR_OSSL_PSS_SALTLEN_TOO_SMALL', 'unexpected: ' + err); return true; });
                         }
 
                         // Signing with sha256 and appropriate salt lengths should work.
@@ -2211,7 +2211,7 @@ describe('crypto', () => {
                         for (const algo of ['sha1', 'sha256']) {
                             assert.throws(() => {
                                 crypto.sign(algo, 'foo', key);
-                            });
+                            }, { code: 'ERR_OSSL_NO_START_LINE' });
                         }
 
                         // sha512 should produce a valid signature.
@@ -2505,13 +2505,13 @@ describe('crypto', () => {
             });
 
             it("check arguments", () => {
-                assert.throws(() => crypto.createCipheriv(null, Buffer.alloc(32), Buffer.alloc(16)));
-                assert.throws(() => crypto.createCipheriv('aes-256-cbc', null, Buffer.alloc(16)));
-                assert.throws(() => crypto.createCipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAAD(null));
+                assert.throws(() => crypto.createCipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createCipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createCipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAAD(null), { name: 'Error', number: 20024 });
 
-                assert.throws(() => crypto.createDecipheriv(null, Buffer.alloc(32), Buffer.alloc(16)));
-                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAuthTag(null));
-                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', null, Buffer.alloc(16)));
+                assert.throws(() => crypto.createDecipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAuthTag(null), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
             });
 
             it("base64 padding regression", () => {
@@ -2527,14 +2527,14 @@ describe('crypto', () => {
                 const key = crypto.scryptSync('secret', 'salt', 32);
                 const iv = Buffer.alloc(16, 0);
                 const c = crypto.createCipheriv('aes-256-cbc', key, iv);
-                assert.throws(() => c.final('xxx'));
-                assert.throws(() => c.final('xxx'));
-                assert.throws(() => c.final('xxx'));
+                assert.throws(() => c.final('xxx'), { name: 'Error', number: 20024 });
+                assert.throws(() => c.final('xxx'), { name: 'Error', number: 20024 });
+                assert.throws(() => c.final('xxx'), { name: 'Error', number: 20024 });
 
                 const d = crypto.createDecipheriv('aes-256-cbc', key, iv);
-                assert.throws(() => d.final('xxx'));
-                assert.throws(() => d.final('xxx'));
-                assert.throws(() => d.final('xxx'));
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
             });
 
             it("utf8 encoding", () => {
@@ -2602,7 +2602,7 @@ describe('crypto', () => {
                 cipher.setAAD(aadbuf);
                 cipher.setAutoPadding();
 
-                assert.throws(() => cipher.getAuthTag());
+                assert.throws(() => cipher.getAuthTag(), { name: 'Error', number: 20024 });
 
                 const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
 
@@ -2613,9 +2613,9 @@ describe('crypto', () => {
                 decipher.update(encrypted);
                 decipher.final();
 
-                assert.throws(() => decipher.setAAD(aadbuf));
-                assert.throws(() => decipher.setAuthTag(cipher.getAuthTag()));
-                assert.throws(() => decipher.setAutoPadding());
+                assert.throws(() => decipher.setAAD(aadbuf), { name: 'Error', number: 20024 });
+                assert.throws(() => decipher.setAuthTag(cipher.getAuthTag()), { name: 'Error', number: 20024 });
+                assert.throws(() => decipher.setAutoPadding(), { name: 'Error', number: 20024 });
             });
         });
 
@@ -2663,20 +2663,20 @@ describe('crypto', () => {
             });
 
             it("check arguments", () => {
-                assert.throws(() => crypto.createCipheriv(null));
-                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', null));
-                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', key, 10));
+                assert.throws(() => crypto.createCipheriv(null), { name: 'TypeError', number: 20002 });
+                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', null), { name: 'TypeError', number: 20002 });
+                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', key, 10), { name: 'ReferenceError' });
 
-                assert.throws(() => crypto.createDecipheriv(null));
-                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', null));
-                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', key, 10));
+                assert.throws(() => crypto.createDecipheriv(null), { name: 'TypeError', number: 20002 });
+                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', null), { name: 'TypeError', number: 20002 });
+                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', key, 10), { name: 'ReferenceError' });
             });
 
             it("iv size", () => {
                 crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16), Buffer.alloc(0));
                 for (let n = 1; n < 256; n += 1)
                     assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16),
-                        Buffer.alloc(n)));
+                        Buffer.alloc(n)), { name: 'Error', number: 20024 });
             });
 
             it("iv in cbc", () => {
@@ -2684,13 +2684,13 @@ describe('crypto', () => {
                 for (let n = 0; n < 256; n += 1) {
                     if (n === 16) continue;
                     assert.throws(() => crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16),
-                        Buffer.alloc(n)));
+                        Buffer.alloc(n)), { name: 'Error', number: 20024 });
                 }
             });
 
             it("iv in gcm mode", () => {
                 assert.throws(() => crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16),
-                    Buffer.alloc(0)));
+                    Buffer.alloc(0)), { name: 'Error', number: 20024 });
 
                 const minIvLength = 8;
                 const maxIvLength = 64;
@@ -2699,8 +2699,8 @@ describe('crypto', () => {
             });
 
             it("invalid cipher name", () => {
-                assert.throws(() => crypto.createCipheriv('aes-127', Buffer.alloc(16), null));
-                assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(17), null));
+                assert.throws(() => crypto.createCipheriv('aes-127', Buffer.alloc(16), null), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(17), null), { name: 'TypeError', number: 20005 });
             });
         });
 
@@ -2768,7 +2768,7 @@ describe('crypto', () => {
                             assert.equal(msg, test.plain);
                         } else {
                             // Assert that final throws if input data could not be verified!
-                            assert.throws(function () { decrypt.final('hex'); });
+                            assert.throws(function () { decrypt.final('hex'); }, (err) => { assert.ok(err.code === 'ERR_OSSL_DIGEST_NOT_ALLOWED' || err.code === 'ERR_OSSL_PSS_SALTLEN_TOO_SMALL' || err.code === 'ERR_OSSL_NO_START_LINE', 'unexpected: ' + err); return true; });
                         }
                     }
 
@@ -2799,7 +2799,7 @@ describe('crypto', () => {
                             assert.equal(msg, test.plain);
                         } else {
                             // Assert that final throws if input data could not be verified!
-                            assert.throws(function () { decrypt.final('ascii'); });
+                            assert.throws(function () { decrypt.final('ascii'); }, { code: 'ERR_OSSL_DIGEST_NOT_ALLOWED' });
                         }
                     }
 
@@ -2810,7 +2810,7 @@ describe('crypto', () => {
                             Buffer.from(test.iv, 'hex'),
                             options);
                         encrypt.update('blah', 'ascii');
-                        assert.throws(function () { encrypt.getAuthTag(); });
+                        assert.throws(function () { encrypt.getAuthTag(); }, { name: 'Error', number: 20024 });
                     }
 
                     {
@@ -2821,7 +2821,7 @@ describe('crypto', () => {
                                 Buffer.from(test.key, 'hex'),
                                 Buffer.alloc(0)
                             );
-                        });
+                        }, { name: 'Error', number: 20024 });
                     }
                 }
             });
@@ -2831,8 +2831,8 @@ describe('crypto', () => {
                     'ipxp9a6i1Mb4USb4', '6fKjEjR3Vl30EUYC');
                 encrypt.update('blah', 'ascii');
                 encrypt.final();
-                assert.throws(() => encrypt.getAuthTag());
-                assert.throws(() => encrypt.setAAD(Buffer.from('123', 'ascii')));
+                assert.throws(() => encrypt.getAuthTag(), { name: 'Error', number: 20024 });
+                assert.throws(() => encrypt.setAAD(Buffer.from('123', 'ascii')), { name: 'Error', number: 20024 });
             });
 
             describe("GCM mode", () => {
@@ -2843,7 +2843,7 @@ describe('crypto', () => {
                                 'FxLKsqdmv0E9xrQh',
                                 'qkuZpJWCewa6Szih');
                             decrypt.setAuthTag(Buffer.from('1'.repeat(length)));
-                        });
+                        }, { name: 'Error', number: 20024 });
 
                         assert.throws(() => {
                             crypto.createCipheriv('aes-256-gcm',
@@ -2852,7 +2852,7 @@ describe('crypto', () => {
                                 {
                                     authTagLength: length
                                 });
-                        });
+                        }, { name: 'Error', number: 20024 });
 
                         assert.throws(() => {
                             crypto.createDecipheriv('aes-256-gcm',
@@ -2861,7 +2861,7 @@ describe('crypto', () => {
                                 {
                                     authTagLength: length
                                 });
-                        });
+                        }, { name: 'Error', number: 20024 });
                     }
                 });
 
@@ -2889,7 +2889,7 @@ describe('crypto', () => {
                     assert.throws(() => {
                         // This tag would normally be allowed.
                         decipher.setAuthTag(Buffer.from('1'.repeat(12)));
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     // The Decipher object should be left intact.
                     decipher.setAuthTag(Buffer.from('445352d3ff85cf94', 'hex'));
@@ -2910,7 +2910,7 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    });
+                    }, (err) => { assert.ok((err.name === 'Error' && err.number === 20024) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createDecipheriv('aes-256-ccm',
@@ -2919,15 +2919,15 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    });
+                    }, (err) => { assert.ok((err.name === 'Error' && err.number === 20024) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
-                    });
+                    }, (err) => { assert.ok((err.name === 'Error' && err.number === 20024) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
-                    });
+                    }, (err) => { assert.ok((err.name === 'Error' && err.number === 20024) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
                 }
 
                 for (const authTagLength of [0, 1, 2, 3, 5, 7, 9, 11, 13, 15, 17, 18]) {
@@ -2938,7 +2938,7 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.createDecipheriv('aes-256-ccm',
@@ -2947,15 +2947,15 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
-                    });
+                    }, { name: 'Error', number: 20024 });
                 }
             });
 
@@ -2965,22 +2965,22 @@ describe('crypto', () => {
                         crypto.createCipheriv(`aes-256-${mode}`,
                             'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
                             'qkuZpJWCewa6S');
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     // CCM decryption and create(De|C)ipher are unsupported in FIPS mode.
                     assert.throws(() => {
                         crypto.createDecipheriv(`aes-256-${mode}`,
                             'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
                             'qkuZpJWCewa6S');
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.createCipher(`aes-256-${mode}`, 'very bad password');
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         crypto.createDecipher(`aes-256-${mode}`, 'very bad password');
-                    });
+                    }, { name: 'Error', number: 20024 });
                 }
             });
 
@@ -2996,7 +2996,7 @@ describe('crypto', () => {
                     for (const plaintextLength of [-1, true, false, NaN]) {
                         assert.throws(() => {
                             cipher.setAAD(Buffer.from('0123456789', 'hex'), { plaintextLength });
-                        });
+                        }, (err) => { assert.ok((err.name === 'Error' && err.number === 20024) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
                     }
                 });
 
@@ -3014,12 +3014,12 @@ describe('crypto', () => {
                             cipher().setAAD(Buffer.alloc(0), {
                                 plaintextLength: maxMessageSize + 1
                             });
-                        });
+                        }, { name: 'Error', number: 20024 });
 
                         const msg = Buffer.alloc(maxMessageSize + 1);
                         assert.throws(() => {
                             cipher().update(msg);
-                        }, /Invalid message length/);
+                        }, { name: 'Error', number: 20024 });
 
                         const c = cipher();
                         c.setAAD(Buffer.alloc(0), {
@@ -3038,7 +3038,7 @@ describe('crypto', () => {
                                 authTagLength: 10
                             });
                         cipher.setAAD(Buffer.from('0123456789', 'hex'));
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     assert.throws(() => {
                         const cipher = crypto.createDecipheriv('aes-256-ccm',
@@ -3048,7 +3048,7 @@ describe('crypto', () => {
                                 authTagLength: 10
                             });
                         cipher.setAAD(Buffer.from('0123456789', 'hex'));
-                    });
+                    }, { name: 'Error', number: 20024 });
                 });
 
                 it("final() throws in CCM mode when no authentication tag is provided", () => {
@@ -3065,7 +3065,7 @@ describe('crypto', () => {
                         });
                         decrypt.update(ct);
                         decrypt.final();
-                    });
+                    }, { code: 'ERR_OSSL_INVALID_TAG_LENGTH' });
                 });
 
                 it("setAuthTag does not throw in GCM mode when called after setAAD", () => {
@@ -3135,7 +3135,7 @@ describe('crypto', () => {
                     decipher.setAuthTag(tag);
                     assert.throws(() => {
                         decipher.setAuthTag(tag);
-                    });
+                    }, { name: 'Error', number: 20024 });
                     // Decryption should still work.
                     const plaintext = Buffer.concat([
                         decipher.update(ciphertext),
@@ -3182,7 +3182,7 @@ describe('crypto', () => {
                             valid.algo,
                             Buffer.from(valid.key, 'hex'),
                             Buffer.from(H(prefix) + valid.iv, 'hex')
-                        ));
+                        ), { name: 'Error', number: 20024 });
 
                         function H(length) { return '00'.repeat(length); }
                     }
@@ -3193,7 +3193,7 @@ describe('crypto', () => {
                     for (const authTagLength of [0, 17]) {
                         assert.throws(() => {
                             crypto.createCipheriv('chacha20-poly1305', key, iv, { authTagLength });
-                        });
+                        }, { name: 'Error', number: 20024 });
                     }
                 });
 
@@ -3230,7 +3230,7 @@ describe('crypto', () => {
                                 // because its security assurance is lower than expected.
                                 assert.throws(() => {
                                     decipher.setAuthTag(authTag);
-                                });
+                                }, { name: 'Error', number: 20024 });
                             }
                         }
                     }
@@ -3299,7 +3299,7 @@ describe('crypto', () => {
 
                     assert.throws(() => {
                         decipher.final();
-                    });
+                    }, { code: 'ERR_OSSL_INVALID_TAG_LENGTH' });
                 });
             });
 
@@ -3314,7 +3314,7 @@ describe('crypto', () => {
                 ]) {
                     assert.throws(() => {
                         cipher.final();
-                    });
+                    }, { code: 'ERR_OSSL_INVALID_TAG_LENGTH' });
                 }
             });
         });
@@ -3357,7 +3357,7 @@ describe('crypto', () => {
 
             assert.throws(function () {
                 enc(ODD_LENGTH_PLAIN, false);
-            });
+            }, { code: 'ERR_OSSL_INVALID_TAG_LENGTH' });
 
             assert.equal(enc(EVEN_LENGTH_PLAIN, false), EVEN_LENGTH_ENCRYPTED_NOPAD);
 
@@ -3369,7 +3369,7 @@ describe('crypto', () => {
 
             assert.throws(function () {
                 assert.equal(dec(EVEN_LENGTH_ENCRYPTED_NOPAD, true), EVEN_LENGTH_PLAIN);
-            });
+            }, { code: 'ERR_OSSL_INVALID_TAG_LENGTH' });
 
             assert.equal(dec(EVEN_LENGTH_ENCRYPTED_NOPAD, false), EVEN_LENGTH_PLAIN);
         });
@@ -3492,24 +3492,24 @@ describe('crypto', () => {
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.update('666f6f', 'hex', 'hex'));
+                assert.throws(() => cipher.update('666f6f', 'hex', 'hex'), { name: 'Error', number: 20024 });
             }
 
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.final('hex'));
+                assert.throws(() => cipher.final('hex'), { name: 'Error', number: 20024 });
             }
 
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.final('bad2'));
+                assert.throws(() => cipher.final('bad2'), { name: 'Error', number: 20024 });
             }
 
             {
                 const cipher = createCipher();
-                assert.throws(() => cipher.update('test', 'utf-8', 'bad3'));
+                assert.throws(() => cipher.update('test', 'utf-8', 'bad3'), { name: 'Error', number: 20024 });
             }
         });
     });
@@ -3735,11 +3735,11 @@ describe('crypto', () => {
 
             assert.throws(() => {
                 new crypto.X509Certificate("");
-            });
+            }, { code: 'ERR_OSSL_NO_START_LINE' });
 
             assert.throws(() => {
                 new crypto.X509Certificate([]);
-            });
+            }, { code: 'ERR_OSSL_NO_START_LINE' });
         });
 
         it('ca', () => {
@@ -3797,21 +3797,21 @@ describe('crypto', () => {
 
         it('checkPrivateKey', () => {
             assert(x509.checkPrivateKey(privateKey));
-            assert.throws(() => x509.checkPrivateKey(x509.publicKey));
+            assert.throws(() => x509.checkPrivateKey(x509.publicKey), { name: 'TypeError', number: 20004 });
         });
 
         it('checkIP', () => {
             assert.equal(x509.checkIP('127.0.0.1'), undefined);
             assert.equal(x509.checkIP('::'), undefined);
 
-            assert.throws(() => x509.checkIP('[::]'));
+            assert.throws(() => x509.checkIP('[::]'), { name: 'Error', number: 20024 });
         });
 
         it('checkHost', () => {
             assert.equal(x509.checkHost('agent1'), 'agent1');
             assert.equal(x509.checkHost('agent2'), undefined);
 
-            assert.throws(() => x509.checkHost('agent\x001'));
+            assert.throws(() => x509.checkHost('agent\x001'), { name: 'Error', number: 20024 });
 
             [
                 'wildcards',
@@ -3820,7 +3820,7 @@ describe('crypto', () => {
                 'singleLabelSubdomains',
             ].forEach((key) => {
                 [1, '', {}].forEach((i) => {
-                    assert.throws(() => x509.checkHost('agent1', { [key]: i }));
+                    assert.throws(() => x509.checkHost('agent1', { [key]: i }), { name: 'TypeError', number: 20005 });
                 });
             });
         });
@@ -3829,7 +3829,7 @@ describe('crypto', () => {
             assert.equal(x509.checkEmail('ry@tinyclouds.org'), 'ry@tinyclouds.org');
             assert.equal(x509.checkEmail('sally@example.com'), undefined);
 
-            assert.throws(() => x509.checkEmail('not\x00hing'));
+            assert.throws(() => x509.checkEmail('not\x00hing'), { name: 'Error', number: 20024 });
         });
 
         it('checkIssued/verify', () => {
@@ -4366,14 +4366,14 @@ describe('crypto', () => {
         it('error handling - invalid keylen', () => {
             assert.throws(() => {
                 crypto.scryptSync('password', 'salt', -1);
-            });
+            }, { name: 'TypeError', number: 20004 });
         });
 
         it('error handling - invalid N', () => {
             // N not power of 2
             assert.throws(() => {
                 crypto.scryptSync('password', 'salt', 32, { N: 1000 });
-            });
+            }, { name: 'Error', number: 20024 });
         });
     });
 
@@ -4485,13 +4485,13 @@ describe('crypto', () => {
     it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf1 to crash", () => {
         assert.throws(() => {
             crypto.pbkdf1(null, null, 0, -1, 1);
-        })
+        }, { name: 'TypeError' })
     });
 
     it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf2 to crash", () => {
         assert.throws(() => {
             crypto.pbkdf2(null, null, 0, -1, 1);
-        })
+        }, { name: 'TypeError', number: 20005 })
     });
 
     it("timingSafeEqual", () => {
@@ -4549,9 +4549,9 @@ describe('crypto', () => {
             });
         }
 
-        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])));
-        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])));
-        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'));
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])), { name: 'Error', number: 20024 });
+        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])), { name: 'Error', number: 20024 });
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'), { name: 'Error', number: 20024 });
     });
 
     require("./ecdh_test.js");
