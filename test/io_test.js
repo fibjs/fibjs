@@ -151,19 +151,19 @@ describe('io', () => {
             it('NOT ALLOWED: infinite begin', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, Infinity, file.size());
-                })
+                }, { name: 'TypeError', number: 20001 })
             });
 
             it('NOT ALLOWED: infinite end', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, 0, Infinity);
-                })
+                }, { name: 'TypeError', number: 20001 })
             });
 
             it('NOT ALLOWED: over file size when use range string', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, `0-${fsize}`);
-                });
+                }, { number: 20024 });
 
                 assert_error_msg(() => {
                     new io.RangeStream(file, `0-${fsize}`);
@@ -419,7 +419,7 @@ describe('io', () => {
                 stm.seek(-sz * 2 + begin, fs.SEEK_END);
                 assert.throws(() => {
                     stm.seek(-sz * 2 + begin - 1, fs.SEEK_END);
-                })
+                }, { name: 'RangeError', number: 20006 })
             });
 
             it("::stat", () => {
@@ -600,15 +600,15 @@ describe('io', () => {
 
                 assert.throws(() => {
                     stm.seek(0, fs.SEEK_SET);
-                });
+                }, { number: 20009 });
 
                 assert.throws(() => {
                     stm.rewind();
-                });
+                }, { number: 20009 });
 
                 assert.throws(() => {
                     stm.stat();
-                });
+                }, { number: 20009 });
             });
 
             it("non-seekable stream: close then read fails", () => {

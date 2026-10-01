@@ -115,15 +115,16 @@ describe('util', () => {
         assert.strictEqual(e.constructor, E);
 
         // should throw with invalid arguments
+        // glue-level coercion error (Node: ERR_INVALID_ARG_TYPE; see plan)
         assert.throws(function () {
             inherits(A, {});
-        });
+        }, { name: 'TypeError', number: 20005 });
         assert.throws(function () {
             inherits(A, null);
-        });
+        }, { name: 'TypeError', number: 20005 });
         assert.throws(function () {
             inherits(null, A);
-        });
+        }, { name: 'TypeError', number: 20005 });
     });
 
     it('parseEnv', () => {
@@ -255,7 +256,7 @@ describe('util', () => {
 
         assert.throws(() => {
             o.b.push(400);
-        })
+        }, { name: 'TypeError' })
 
         assert.deepEqual(o, {
             a: {
@@ -266,7 +267,7 @@ describe('util', () => {
 
         assert.throws(() => {
             util.deepFreeze(new Buffer(10));
-        });
+        }, { name: 'TypeError' });
     });
 
     it('extend', () => {
@@ -675,11 +676,11 @@ describe('util', () => {
 
         assert.throws(() => {
             util.reduce([], () => { });
-        });
+        }, { name: 'TypeError', number: 20002 });
 
         assert.throws(() => {
             util.reduce(null, () => { });
-        });
+        }, { name: 'TypeError', number: 20002 });
     });
 
     describe('format', () => {
@@ -1641,6 +1642,7 @@ describe('util', () => {
                 return 100;
             }
 
+            // (xit) not exercised
             assert.throws(() => {
                 util.sync(async_test, true)(100, 200);
             });
@@ -1649,6 +1651,7 @@ describe('util', () => {
                 throw 100;
             }
 
+            // (xit) not exercised
             assert.throws(() => {
                 util.sync(async_test1, true)(100, 200);
             });
@@ -2089,7 +2092,7 @@ describe('util', () => {
 
         assert.throws(() => {
             var v = util.flatten(arr);
-        });
+        }, { number: 20024 });
     });
 
     it("FIX: util.format(process.env) will cause fibjs to crash", () => {

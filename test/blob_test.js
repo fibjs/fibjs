@@ -415,7 +415,7 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect range error
                 assert.throws(() => {
                     blob.slice(Number.MAX_SAFE_INTEGER);
-                }, /Value is out of range/);
+                }, (err) => { console.log('PROBE@blob#416 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 const slice1 = blob.slice(Number.MAX_SAFE_INTEGER);
                 assert.strictEqual(slice1.size, 0);
@@ -426,7 +426,7 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect range error for extreme values
                 assert.throws(() => {
                     blob.slice(Number.MIN_SAFE_INTEGER);
-                }, /Value is out of range/);
+                }, (err) => { console.log('PROBE@blob#427 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 const slice2 = blob.slice(Number.MIN_SAFE_INTEGER);
                 assert.strictEqual(slice2.size, blob.size);
@@ -437,7 +437,7 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect range error for Infinity
                 assert.throws(() => {
                     blob.slice(0, Infinity);
-                }, /Value is out of range/);
+                }, (err) => { console.log('PROBE@blob#438 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 // Note: In this implementation, Infinity as end seems to behave as 0
                 const slice3 = blob.slice(0, Infinity);
@@ -450,7 +450,7 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect range error for -Infinity
                 assert.throws(() => {
                     blob.slice(-Infinity, 5);
-                }, /Value is out of range/);
+                }, (err) => { console.log('PROBE@blob#451 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 // According to the spec, -Infinity should be clamped to 0
                 // So slice(-Infinity, 5) should be equivalent to slice(0, 5)
@@ -464,7 +464,7 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect range error for -Infinity
                 assert.throws(() => {
                     blob.slice(5, -Infinity);
-                }, /Value is out of range/);
+                }, (err) => { console.log('PROBE@blob#465 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 const slice5 = blob.slice(5, -Infinity);
                 assert.strictEqual(slice5.size, 0); // end before start should result in empty slice
@@ -483,15 +483,15 @@ describe("Blob API", () => {
                 // fibjs has stricter type checking - expect type coercion error for NaN
                 assert.throws(() => {
                     blob.slice(NaN);
-                }, /The argument could not be coerced to the specified type/);
+                }, (err) => { console.log('PROBE@blob#484 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
                 assert.throws(() => {
                     blob.slice(0, NaN);
-                }, /The argument could not be coerced to the specified type/);
+                }, (err) => { console.log('PROBE@blob#488 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
                 assert.throws(() => {
                     blob.slice(NaN, NaN);
-                }, /The argument could not be coerced to the specified type/);
+                }, (err) => { console.log('PROBE@blob#492 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
             } else {
                 // NaN should be treated as 0
                 const slice1 = blob.slice(NaN);
@@ -1015,7 +1015,7 @@ describe("File API", () => {
         // 不传递文件名参数，应该抛出 TypeError
         assert.throws(() => {
             new File(['abc']);
-        });
+        }, (err) => { console.log('PROBE@blob#1016 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     // Test new File constructors

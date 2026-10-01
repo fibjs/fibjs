@@ -96,19 +96,19 @@ describe('eval (-e)', () => {
         it('syntax error', () => {
             assert.throws(() => {
                 runEval('const a =');
-            });
+            }, { name: 'Error' });
         });
 
         it('runtime error', () => {
             assert.throws(() => {
                 runEval('throw new Error("test error")');
-            });
+            }, { name: 'Error' });
         });
 
         it('module not found', () => {
             assert.throws(() => {
                 runEval("import foo from 'nonexistent_module_12345'");
-            });
+            }, { name: 'Error' });
         });
     });
 

@@ -223,10 +223,10 @@ describe("v8", () => {
         });
 
         it("throw for non-serializable values", () => {
-            assert.throws(() => v8.serialize(() => {}));
-            assert.throws(() => v8.serialize(Symbol('test')));
-            assert.throws(() => v8.serialize(new WeakMap()));
-            assert.throws(() => v8.serialize(new WeakSet()));
+            assert.throws(() => v8.serialize(() => {}), { message: '() => {} could not be cloned.' });
+            assert.throws(() => v8.serialize(Symbol('test')), { message: 'Symbol(test) could not be cloned.' });
+            assert.throws(() => v8.serialize(new WeakMap()), { message: '#<WeakMap> could not be cloned.' });
+            assert.throws(() => v8.serialize(new WeakSet()), { message: '#<WeakSet> could not be cloned.' });
         });
     });
 });

@@ -110,11 +110,11 @@ describe('string_decoder', () => {
     it('should throws', () => {
         assert.throws(() => {
             new StringDecoder(1);
-        });
+        }, { number: 20024 });
 
         assert.throws(() => {
             new StringDecoder('test');
-        });
+        }, { number: 20024 });
     });
 
     it('end', () => {
@@ -303,7 +303,10 @@ describe('TextDecoder', () => {
             assert.throws(
                 () => { new TextDecoder(fakeEncoding); },
                 {
-                    name: 'RangeError'
+                    name: 'RangeError',
+                    // Node.js: ERR_ENCODING_NOT_SUPPORTED + "is not supported"
+                    code: 'ERR_ENCODING_NOT_SUPPORTED',
+                    message: 'The "' + fakeEncoding + '" encoding is not supported'
                 }
             );
         });
@@ -315,7 +318,7 @@ describe('TextDecoder', () => {
         notArrayBufferViewExamples.forEach((invalidInput) => {
             assert.throws(() => {
                 new TextDecoder(undefined, null).decode(invalidInput);
-            });
+            }, { name: 'TypeError', number: 20001 });
         });
     });
 

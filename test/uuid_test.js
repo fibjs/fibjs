@@ -123,7 +123,7 @@ describe("uuid", () => {
         // Test error with too short buffer
         assert.throws(() => {
             uuid.v3(name, new Uint8Array(10));
-        });
+        }, (err) => { console.log('PROBE@uuid#124 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     it("v4 (random) UUID generation", () => {
@@ -206,7 +206,7 @@ describe("uuid", () => {
         // Test error with too short buffer
         assert.throws(() => {
             uuid.v5(name, new Uint8Array(10));
-        });
+        }, (err) => { console.log('PROBE@uuid#207 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     it("v6 (reordered time-based) UUID generation", () => {
@@ -350,22 +350,22 @@ describe("uuid", () => {
         // Test parse with invalid UUID
         assert.throws(() => {
             uuid.parse("invalid-uuid");
-        });
+        }, (err) => { console.log('PROBE@uuid#351 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         
         // Test stringify with invalid buffer
         assert.throws(() => {
             uuid.stringify(new Uint8Array(10)); // Wrong length
-        });
+        }, (err) => { console.log('PROBE@uuid#356 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         
         // Test v3 with invalid namespace
         assert.throws(() => {
             uuid.v3("test", "invalid-namespace");
-        });
+        }, (err) => { console.log('PROBE@uuid#361 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         
         // Test v5 with invalid namespace
         assert.throws(() => {
             uuid.v5("test", "invalid-namespace");
-        });
+        }, (err) => { console.log('PROBE@uuid#366 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     it("deterministic namespaced UUIDs", () => {
@@ -524,11 +524,11 @@ describe("uuid", () => {
             // Test md5/sha1 with invalid namespace
             assert.throws(() => {
                 uuid.md5(99, "test"); // Invalid namespace
-            });
+            }, (err) => { console.log('PROBE@uuid#525 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
 
             assert.throws(() => {
                 uuid.sha1(-1, "test"); // Invalid namespace
-            });
+            }, (err) => { console.log('PROBE@uuid#529 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
     }
 });

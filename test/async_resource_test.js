@@ -25,7 +25,7 @@ describe('AsyncResource', () => {
         });
 
         it('should throw if type is not provided', () => {
-            assert.throws(() => new AsyncResource());
+            assert.throws(() => new AsyncResource(), { name: 'TypeError', number: 20002 });
         });
 
         // In Node.js, non-string type throws TypeError.

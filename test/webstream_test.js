@@ -9,7 +9,10 @@ const {
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
   WritableStream,
+  WritableStreamDefaultWriter,
+  WritableStreamDefaultController,
   TransformStream,
+  TransformStreamDefaultController,
   CountQueuingStrategy,
   ByteLengthQueuingStrategy
 } = globalThis;
@@ -1088,6 +1091,92 @@ describe('Brand Checking', () => {
     });
   });
 
+  it('should throw ERR_INVALID_THIS for WritableStream methods', async () => {
+    assert.throws(() => Reflect.get(WritableStream.prototype, 'locked', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(WritableStream.prototype.abort.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(WritableStream.prototype.close.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => WritableStream.prototype.getWriter.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+  });
+
+  it('should throw ERR_INVALID_THIS for WritableStreamDefaultWriter methods', async () => {
+    await assert.rejects(Reflect.get(WritableStreamDefaultWriter.prototype, 'closed', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => Reflect.get(WritableStreamDefaultWriter.prototype, 'desiredSize', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(Reflect.get(WritableStreamDefaultWriter.prototype, 'ready', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(WritableStreamDefaultWriter.prototype.abort.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(WritableStreamDefaultWriter.prototype.close.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => WritableStreamDefaultWriter.prototype.releaseLock.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    await assert.rejects(WritableStreamDefaultWriter.prototype.write.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+  });
+
+  it('should throw ERR_INVALID_THIS for WritableStreamDefaultController methods', () => {
+    assert.throws(() => Reflect.get(WritableStreamDefaultController.prototype, 'signal', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => WritableStreamDefaultController.prototype.error.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+  });
+
+  it('should throw ERR_INVALID_THIS for TransformStream methods', () => {
+    assert.throws(() => Reflect.get(TransformStream.prototype, 'readable', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => Reflect.get(TransformStream.prototype, 'writable', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+  });
+
+  it('should throw ERR_INVALID_THIS for TransformStreamDefaultController methods', () => {
+    assert.throws(() => Reflect.get(TransformStreamDefaultController.prototype, 'desiredSize', {}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => TransformStreamDefaultController.prototype.enqueue.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => TransformStreamDefaultController.prototype.error.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+
+    assert.throws(() => TransformStreamDefaultController.prototype.terminate.call({}), {
+      code: 'ERR_INVALID_THIS',
+    });
+  });
+
   it('should throw ERR_ILLEGAL_CONSTRUCTOR for direct construction', () => {
     assert.throws(() => new ReadableStreamBYOBRequest(), {
       code: 'ERR_ILLEGAL_CONSTRUCTOR',
@@ -1098,6 +1187,14 @@ describe('Brand Checking', () => {
     });
 
     assert.throws(() => new ReadableByteStreamController(), {
+      code: 'ERR_ILLEGAL_CONSTRUCTOR',
+    });
+
+    assert.throws(() => new WritableStreamDefaultController(), {
+      code: 'ERR_ILLEGAL_CONSTRUCTOR',
+    });
+
+    assert.throws(() => new TransformStreamDefaultController(), {
       code: 'ERR_ILLEGAL_CONSTRUCTOR',
     });
   });
@@ -1116,11 +1213,11 @@ describe('ReadableStream.from() edge cases', () => {
   });
 
   it('should throw for null', () => {
-    assert.throws(() => ReadableStream.from(null));
+    assert.throws(() => ReadableStream.from(null), { name: 'TypeError' });
   });
 
   it('should throw for undefined', () => {
-    assert.throws(() => ReadableStream.from(undefined));
+    assert.throws(() => ReadableStream.from(undefined), { name: 'TypeError' });
   });
 
 });

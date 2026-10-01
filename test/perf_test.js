@@ -370,7 +370,7 @@ describe('Performance API', () => {
                         duration: 100,
                         end: startTime + 200
                     });
-                });
+                }, { name: 'Error', number: 20024 });
 
                 // Case 2: duration + end mark
                 const markTime = Math.floor(performance.now());
@@ -381,7 +381,7 @@ describe('Performance API', () => {
                         duration: 100,
                         end: 'end-mark'
                     });
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('should throw on non-existent marks', () => {
@@ -389,13 +389,13 @@ describe('Performance API', () => {
                     performance.measure('invalid-mark', {
                         start: 'non-existent-mark'
                     });
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('measure with invalid marks should throw', () => {
                 assert.throws(() => {
                     performance.measure('invalid', 'non-existent-mark');
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('measure with error cases', async () => {
@@ -411,7 +411,7 @@ describe('Performance API', () => {
                         start: 'non-existent-mark',
                         end: performance.now()
                     });
-                });
+                }, { name: 'Error', number: 20024 });
 
                 // Test case 2: invalid end mark
                 assert.throws(() => {
@@ -419,7 +419,7 @@ describe('Performance API', () => {
                         start: performance.now(),
                         end: 'non-existent-mark'
                     });
-                });
+                }, { name: 'Error', number: 20024 });
 
                 // Test case 3: end time before start time
                 const startTime = performance.now() + 1000; // Future time
@@ -460,7 +460,7 @@ describe('Performance API', () => {
                         duration: 100,
                         end: startTime + 200
                     });
-                });
+                }, { name: 'Error', number: 20024 });
 
                 // Test case 2: duration + end mark (should throw)
                 const markTime = Math.floor(performance.now());
@@ -471,7 +471,7 @@ describe('Performance API', () => {
                         duration: 100,
                         end: 'end-point'
                     });
-                });
+                }, { name: 'Error', number: 20024 });
 
                 // Test case 3: only duration (valid)
                 const startTimeForDuration = Math.floor(performance.now());

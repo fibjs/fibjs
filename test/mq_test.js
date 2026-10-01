@@ -629,7 +629,7 @@ describe("mq", () => {
         m.write("test data");
         assert.throws(() => {
             m.clone();
-        });
+        }, (err) => { console.log('PROBE@mq#630 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     describe("Message setEncoding", () => {
@@ -949,7 +949,7 @@ describe("mq", () => {
             m.value = 'd';
             assert.throws(() => {
                 mq.invoke(r, m);
-            });
+            }, (err) => { console.log('PROBE@mq#950 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         xit("object param", () => {

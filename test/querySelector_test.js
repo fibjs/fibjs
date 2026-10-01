@@ -558,11 +558,11 @@ describe('querySelector', () => {
             selectorsThatShouldThrow.forEach(selector => {
                 assert.throws(() => {
                     rootElement.querySelector(selector);
-                }, /Failed to execute|invalid selector|Uncaught|SyntaxError/i, `querySelector should throw for: ${selector}`);
+                }, { name: 'Error', number: 20024 });
 
                 assert.throws(() => {
                     rootElement.querySelectorAll(selector);
-                }, /Failed to execute|invalid selector|Uncaught|SyntaxError/i, `querySelectorAll should throw for: ${selector}`);
+                }, { name: 'Error', number: 20024 });
             });
 
             // Test selectors that might throw or return null/empty depending on implementation
@@ -853,12 +853,12 @@ describe('querySelector', () => {
             // Test selector list with empty parts - should throw error according to CSS spec
             assert.throws(() => {
                 rootElement.querySelectorAll('header, , footer');
-            });
+            }, { name: 'Error', number: 20024 });
 
             // Test selector list with whitespace-only selector - should throw error
             assert.throws(() => {
                 rootElement.querySelectorAll('header,    , footer');
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         it("should handle escaped characters in CSS identifiers", () => {
@@ -951,7 +951,7 @@ describe('querySelector', () => {
             // Test empty selector - should always throw in all implementations
             assert.throws(() => {
                 rootElement.querySelector('');
-            });
+            }, { name: 'Error', number: 20024 });
 
             // Test potentially malformed selectors - different implementations may handle these differently
             // Some might throw errors, others might return null or handle gracefully
@@ -1134,16 +1134,16 @@ describe('querySelector', () => {
             // Test selector list with extra commas at start/end - should throw
             assert.throws(() => {
                 rootElement.querySelectorAll(',header, footer');
-            });
+            }, { name: 'Error', number: 20024 });
 
             assert.throws(() => {
                 rootElement.querySelectorAll('header, footer,');
-            });
+            }, { name: 'Error', number: 20024 });
 
             // Test selector list with multiple consecutive commas - should throw
             assert.throws(() => {
                 rootElement.querySelectorAll('header,, footer');
-            });
+            }, { name: 'Error', number: 20024 });
 
             // Test selector with complex spacing around commas
             const complexSpacing = rootElement.querySelectorAll('header    ,     footer    ,     main');

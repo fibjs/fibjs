@@ -99,7 +99,7 @@ describe("buffered stream", () => {
         assert.equal(r.readLine(10), '0123456789');
         assert.throws(() => {
             r.readLine(9);
-        });
+        }, { name: 'Error', number: 20024 });
 
         f.close();
     });

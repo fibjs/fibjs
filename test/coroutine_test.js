@@ -141,13 +141,13 @@ describe('coroutine', () => {
                 () => {
                     console.log(notExistsValue);
                 });
-        });
+        }, { name: 'Error', number: 20020 });
 
         assert.throws(() => {
             coroutine.parallel(() => {
                 console.log(notExistsValue);
             }, funs[0], funs[1], funs[2], funs[3], funs[4]);
-        });
+        }, { name: 'Error', number: 20020 });
 
         assert.deepEqual(coroutine.parallel([], (v) => {
             return 1;
@@ -248,7 +248,7 @@ describe('coroutine', () => {
 
             assert.throws(() => {
                 t();
-            });
+            }, { name: 'RangeError' });
         }
         coroutine.start(stack_size);
         coroutine.sleep();

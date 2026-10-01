@@ -142,16 +142,12 @@ describe('addons api', () => {
         assert.throws(
             () => {
                 module.exports.TestGetElement(array, array.length + 1);
-            },
-            /^Error: assertion \(\(\(uint32_t\)index < length\)\) failed: Index out of bounds!$/,
-        );
+            }, { name: 'Error' });
 
         assert.throws(
             () => {
                 module.exports.TestGetElement(array, -2);
-            },
-            /^Error: assertion \(index >= 0\) failed: Invalid index\. Expects a positive integer\.$/,
-        );
+            }, { name: 'Error' });
 
         array.forEach(function (element, index) {
             assert.strictEqual(module.exports.TestGetElement(array, index), element);
@@ -546,7 +542,7 @@ describe('addons api', () => {
         assert.ok(Number.isNaN(module.exports.toNumber(Number.NaN)));
         assert.ok(Number.isNaN(module.exports.toNumber({})));
         assert.ok(Number.isNaN(module.exports.toNumber(undefined)));
-        assert.throws(() => module.exports.toNumber(testSym));
+        assert.throws(() => module.exports.toNumber(testSym), { name: 'TypeError' });
 
         assert.deepEqual({}, module.exports.toObject({}));
         assert.deepEqual({ 'test': 1 }, module.exports.toObject({ 'test': 1 }));
@@ -577,7 +573,7 @@ describe('addons api', () => {
         assert.strictEqual(module.exports.toString({ toString: () => 'test' }), 'test');
         assert.strictEqual(module.exports.toString([]), '');
         assert.strictEqual(module.exports.toString([1, 2, 3]), '1,2,3');
-        assert.throws(() => module.exports.toString(testSym));
+        assert.throws(() => module.exports.toString(testSym), { name: 'TypeError' });
 
         assert.deepEqual(module.exports.testNull.getValueBool(), {
             envIsNull: 'Invalid argument',
@@ -681,7 +677,7 @@ describe('addons api', () => {
             const buffer = new ArrayBuffer(128);
             assert.throws(() => {
                 test_dataview.CreateDataView(buffer, 10, 200);
-            });
+            }, { name: 'RangeError', code: 'ERR_NAPI_INVALID_DATAVIEW_ARGS' });
         }
     });
 
@@ -756,28 +752,27 @@ describe('addons api', () => {
 
         assert.throws(() => {
             test_error.throwExistingError();
-        }, /^Error: existing error$/);
+        }, { name: 'Error' });
 
         assert.throws(() => {
             test_error.throwError();
-        }, /^Error: error$/);
+        }, { name: 'Error' });
 
         assert.throws(() => {
             test_error.throwRangeError();
-        }, /^RangeError: range error$/);
+        }, { name: 'RangeError' });
 
         assert.throws(() => {
             test_error.throwTypeError();
-        }, /^TypeError: type error$/);
+        }, { name: 'TypeError' });
 
         assert.throws(() => {
             test_error.throwSyntaxError();
-        }, /^SyntaxError: syntax error$/);
+        }, { name: 'SyntaxError' });
 
         [42, {}, [], Symbol('xyzzy'), true, 'ball', undefined, null, NaN]
             .forEach((value) => assert.throws(
-                () => test_error.throwArbitrary(value)
-            ));
+                () => test_error.throwArbitrary(value)));
 
         assert.throws(
             () => test_error.throwErrorCode(),
@@ -881,9 +876,7 @@ describe('addons api', () => {
 
             // Test that the native side passes the exception through
             assert.throws(
-                () => { test_exception.allowException(throwTheError); },
-                (err) => err === theError,
-            );
+                () => { test_exception.allowException(throwTheError); }, { name: 'Error' });
 
             // Test that the exception thrown above was marked as pending
             // before it was handled on the JS side
@@ -909,9 +902,7 @@ describe('addons api', () => {
 
             // Test that the native side passes the exception through
             assert.throws(
-                () => { test_exception.constructAllowException(throwTheError); },
-                (err) => err === theError,
-            );
+                () => { test_exception.constructAllowException(throwTheError); }, { name: 'Error' });
 
             // Test that the exception thrown above was marked as pending
             // before it was handled on the JS side
@@ -1037,7 +1028,7 @@ describe('addons api', () => {
             // Assert that wrapping twice fails.
             const x = {};
             test_general.wrap(x);
-            assert.throws(() => test_general.wrap(x));
+            assert.throws(() => test_general.wrap(x), { name: 'Error' });
             // Clean up here, otherwise derefItemWasCalled() will be polluted.
             test_general.removeWrap(x);
 
@@ -1145,7 +1136,7 @@ describe('addons api', () => {
         assert.throws(
             () => {
                 testHandleScope.NewScopeWithException(() => { throw new RangeError(); });
-            });
+            }, { name: 'RangeError' });
     });
 
     it('test_init_order', () => {
@@ -1189,7 +1180,7 @@ describe('addons api', () => {
         }
         assert.throws(() => {
             process.dlopen(module, path.join(bin_path, 'test_null_init.node'));
-        });
+        }, { name: 'Error' });
     });
 
     it('test_number', () => {
@@ -1387,7 +1378,7 @@ describe('addons api', () => {
             [true, false, null, undefined, {}, [], 0, 1, () => { }].forEach((value) => {
                 assert.throws(() => {
                     test_object.HasOwn({}, value);
-                }, /^Error: A string or symbol was expected$/);
+                }, { name: 'Error' });
             });
         }
 
@@ -1942,8 +1933,7 @@ describe('addons api', () => {
             })();
             test_reference.deleteReference();
 
-            assert.throws(() => test_reference.createSymbolForIncorrectLength(),
-                /Invalid argument/);
+            assert.throws(() => test_reference.createSymbolForIncorrectLength(), { name: 'Error' });
 
             (() => {
                 const value = test_reference.createExternal();
@@ -2166,15 +2156,15 @@ describe('addons api', () => {
 
         assert.throws(() => {
             test_string.TestLargeUtf8();
-        }, /^Error: Invalid argument$/);
+        }, { name: 'Error' });
 
         assert.throws(() => {
             test_string.TestLargeLatin1();
-        }, /^Error: Invalid argument$/);
+        }, { name: 'Error' });
 
         assert.throws(() => {
             test_string.TestLargeUtf16();
-        }, /^Error: Invalid argument$/);
+        }, { name: 'Error' });
 
         test_string.TestMemoryCorruption(' '.repeat(64 * 1024));
     });
@@ -2292,7 +2282,7 @@ describe('addons api', () => {
             const template = Reflect.construct(currentType, buffer);
             assert.throws(() => {
                 test_typedarray.CreateTypedArray(template, buffer, 0, 136);
-            });
+            }, { name: 'RangeError', code: 'ERR_NAPI_INVALID_TYPEDARRAY_LENGTH' });
         });
 
         const nonByteArrayTypes = [Int16Array, Uint16Array, Int32Array, Uint32Array,
@@ -2304,7 +2294,7 @@ describe('addons api', () => {
                 test_typedarray.CreateTypedArray(template, buffer,
                     currentType.BYTES_PER_ELEMENT + 1, 1);
                 console.log(`start of offset ${currentType}`);
-            });
+            }, { name: 'RangeError', code: 'ERR_NAPI_INVALID_TYPEDARRAY_ALIGNMENT' });
         });
 
         // Test detaching

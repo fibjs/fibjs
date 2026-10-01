@@ -392,25 +392,25 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isTrue(false);
-        }, "expected false to be true");
+        }, { message: "Expected the expression to strictly equal true" });
 
         assert.throws(() => {
             assert.isTrue(1);
-        }, "expected 1 to be true");
+        }, { message: "Expected the expression to strictly equal true" });
 
         assert.throws(() => {
             assert.isTrue('test');
-        }, "expected 'test' to be true");
+        }, { message: "Expected the expression to strictly equal true" });
     });
 
     it('fail', () => {
         assert.throws(() => {
             assert.fail();
-        }, "Failed");
+        }, { message: "Failed" });
 
         assert.throws(() => {
             assert.fail("custom message");
-        }, "custom message");
+        }, { message: "custom message" });
     });
 
     it('ok', () => {
@@ -420,15 +420,15 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.ok(false);
-        }, "expected false to be truthy");
+        }, { message: "Expected the expression to be truthy" });
 
         assert.throws(() => {
             assert.ok(0);
-        }, "expected 0 to be truthy");
+        }, { message: "Expected the expression to be truthy" });
 
         assert.throws(() => {
             assert.ok('');
-        }, "expected '' to be truthy");
+        }, { message: "Expected the expression to be truthy" });
     });
 
     it('notOk', () => {
@@ -438,15 +438,15 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.notOk(true);
-        }, "expected true to be falsy");
+        }, { message: "Expected the expression to be falsy" });
 
         assert.throws(() => {
             assert.notOk(1);
-        }, "expected 1 to be falsy");
+        }, { message: "Expected the expression to be falsy" });
 
         assert.throws(() => {
             assert.notOk('test');
-        }, "expected 'test' to be falsy");
+        }, { message: "Expected the expression to be falsy" });
     });
 
     it('isFalse', () => {
@@ -454,11 +454,11 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isFalse(true);
-        }, "expected true to be false");
+        }, { message: "Expected the expression to strictly equal false" });
 
         assert.throws(() => {
             assert.isFalse(0);
-        }, "expected 0 to be false");
+        }, { message: "Expected the expression to strictly equal false" });
     });
 
     it('equal', () => {
@@ -473,11 +473,11 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isObject(true);
-        }, "expected true to be an object");
+        }, { message: "Expected the value to be an object" });
 
         assert.throws(() => {
             assert.isObject('foo');
-        }, "expected 'foo' to be an object");
+        }, { message: "Expected the value to be an object" });
     });
 
     it('isNotObject', () => {
@@ -486,7 +486,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotObject({});
-        }, "expected {} not to be an object");
+        }, { message: "Expected the value not to be an object" });
     });
 
     it('notEqual', () => {
@@ -494,7 +494,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.notEqual(5, 5);
-        }, "expected 5 to not equal 5");
+        }, { message: "Expected 5 != 5" });
     });
 
     it("FIX: assert crash when valueOf throw error", () => {
@@ -506,7 +506,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.equal(obj, "abb");
-        });
+        }, { name: 'AssertionError' });
     });
 
     it('strictEqual', () => {
@@ -514,7 +514,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.strictEqual('5', 5);
-        }, "expected \'5\' to equal 5");
+        }, { message: "Expected values to be strictly equal:\n\n\"5\" !== 5\n" });
     });
 
     it('notStrictEqual', () => {
@@ -522,7 +522,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.notStrictEqual(5, 5);
-        }, "expected 5 to not equal 5");
+        }, { message: "Expected \"actual\" to be strictly unequal to: 5" });
     });
 
     it('deepEqual', () => {
@@ -538,7 +538,7 @@ describe('assert', () => {
             }, {
                 tea: 'black'
             });
-        }, "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+        }, { message: "Expected values to be loosely deep-equal:\n\n{\n  \"tea\": \"chai\"\n}\n\nshould loosely deep-equal\n\n{\n  \"tea\": \"black\"\n}" });
 
         var obja = Object.create({
             tea: 'chai'
@@ -558,7 +558,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.deepEqual(obj1, obj2);
-        }, "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
+        }, { message: "Expected values to be loosely deep-equal:\n\n{\n  \"tea\": \"chai\"\n}\n\nshould loosely deep-equal\n\n{\n  \"tea\": \"black\"\n}" });
 
         assert.throws(() => {
             assert.deepEqual({
@@ -663,7 +663,7 @@ describe('assert', () => {
             secondCircularObject.field2 = secondCircularObject;
             assert.deepEqual(circularObject,
                 secondCircularObject);
-        }, "expected { field: [Circular] } to deeply equal { Object (field, field2) }");
+        }, { message: "Expected values to be loosely deep-equal:\n\n{\n  \"field\": [Circular]\n}\n\nshould loosely deep-equal\n\n{\n  \"field\": [Circular],\n  \"field2\": [Circular]\n}" });
     });
 
     it('notDeepEqual', () => {
@@ -679,7 +679,7 @@ describe('assert', () => {
             }, {
                 tea: 'chai'
             });
-        }, "expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
+        }, { message: "Expected \"actual\" not to be loosely deep-equal to:\n\n{\n  \"tea\": \"chai\"\n}" });
     });
 
     it('notDeepEqual (circular)', () => {
@@ -697,7 +697,7 @@ describe('assert', () => {
             delete secondCircularObject.tea;
             assert.notDeepEqual(circularObject,
                 secondCircularObject);
-        }, "expected { field: [Circular] } to not deeply equal { field: [Circular] }");
+        }, { message: "Expected \"actual\" not to be loosely deep-equal to:\n\n{\n  \"field\": [Circular]\n}" });
     });
 
     it("match", () => {
@@ -705,7 +705,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.match('foobar', /^bar/);
-        }, "expected 'foobar' to match /^bar/");
+        }, { message: "Expected \"foobar\" to match /^bar/" });
     });
 
     it("doesNotMatch", () => {
@@ -713,7 +713,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.doesNotMatch('foobar', /^foo/);
-        }, "expected 'foobar' not to match /^foo/");
+        }, { message: "Expected \"foobar\" not to match /^foo/" });
     });
 
     it('isNull', () => {
@@ -721,7 +721,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNull(undefined);
-        }, "expected undefined to equal null");
+        }, { message: "Expected the value to be null" });
     });
 
     it('isNotNull', () => {
@@ -729,7 +729,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotNull(null);
-        }, "expected null to not equal null");
+        }, { message: "Expected the value not to be null" });
     });
 
     it('isUndefined', () => {
@@ -737,7 +737,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isUndefined(null);
-        }, "expected null to equal undefined");
+        }, { message: "Expected the value to be undefined" });
     });
 
     it('isDefined', () => {
@@ -745,7 +745,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isDefined(undefined);
-        }, "expected undefined to not equal undefined");
+        }, { message: "Expected the value not to be undefined" });
     });
 
     it('isFunction', () => {
@@ -754,7 +754,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isFunction({});
-        }, "expected {} to be a function");
+        }, { message: "Expected the value to be a function" });
     });
 
     it('isNotFunction', () => {
@@ -762,7 +762,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotFunction(() => { });
-        }, "expected [Function] not to be a function");
+        }, { message: "Expected the value not to be a function" });
     });
 
     it('isArray', () => {
@@ -771,7 +771,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isArray({});
-        }, "expected {} to be an array");
+        }, { message: "Expected the value to be an array" });
     });
 
     it('isNotArray', () => {
@@ -779,11 +779,11 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotArray([]);
-        }, "expected [] not to be an array");
+        }, { message: "Expected the value not to be an array" });
 
         assert.throws(() => {
             assert.isNotArray(new Array);
-        }, "expected [] not to be an array");
+        }, { message: "Expected the value not to be an array" });
     });
 
     it('isString', () => {
@@ -792,7 +792,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isString(1);
-        }, "expected 1 to be a string");
+        }, { message: "Expected the value to be a string" });
     });
 
     it('isNotString', () => {
@@ -801,7 +801,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotString('hello');
-        }, "expected 'hello' not to be a string");
+        }, { message: "Expected the value not to be a string" });
     });
 
     it('isNumber', () => {
@@ -810,7 +810,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNumber('1');
-        }, "expected \'1\' to be a number");
+        }, { message: "Expected the value to be a number" });
     });
 
     it('isNotNumber', () => {
@@ -819,7 +819,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotNumber(4);
-        }, "expected 4 not to be a number");
+        }, { message: "Expected the value not to be a number" });
     });
 
     it('isBoolean', () => {
@@ -828,7 +828,7 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isBoolean('1');
-        }, "expected \'1\' to be a boolean");
+        }, { message: "Expected the value to be a boolean" });
     });
 
     it('isNotBoolean', () => {
@@ -836,11 +836,11 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.isNotBoolean(true);
-        }, "expected true not to be a boolean");
+        }, { message: "Expected the value not to be a boolean" });
 
         assert.throws(() => {
             assert.isNotBoolean(false);
-        }, "expected false not to be a boolean");
+        }, { message: "Expected the value not to be a boolean" });
     });
 
     it('property', () => {
@@ -862,35 +862,35 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.property(obj, 'baz');
-        }, "expected { foo: { bar: 'baz' } } to have a property 'baz'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} to have property \"baz\"" });
 
         assert.throws(() => {
             assert.deepProperty(obj, 'foo.baz');
-        }, "expected { foo: { bar: 'baz' } } to have a deep property 'foo.baz'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} to have deep property \"foo.baz\"" });
 
         assert.throws(() => {
             assert.notProperty(obj, 'foo');
-        }, "expected { foo: { bar: 'baz' } } to not have property 'foo'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} not to have property \"foo\"" });
 
         assert.throws(() => {
             assert.notDeepProperty(obj, 'foo.bar');
-        }, "expected { foo: { bar: 'baz' } } to not have deep property 'foo.bar'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} not to have deep property \"foo.bar\"" });
 
         assert.throws(() => {
             assert.propertyVal(simpleObj, 'foo', 'ball');
-        }, "expected { foo: 'bar' } to have a property 'foo' of 'ball', but got 'bar'");
+        }, { message: "Expected {\n  \"foo\": \"bar\"\n} to have property with value \"ball\"" });
 
         assert.throws(() => {
             assert.deepPropertyVal(obj, 'foo.bar', 'ball');
-        }, "expected { foo: { bar: 'baz' } } to have a deep property 'foo.bar' of 'ball', but got 'baz'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} to have deep property with value \"ball\"" });
 
         assert.throws(() => {
             assert.propertyNotVal(simpleObj, 'foo', 'bar');
-        }, "expected { foo: 'bar' } to not have a property 'foo' of 'bar'");
+        }, { message: "Expected {\n  \"foo\": \"bar\"\n} not to have property with value \"bar\"" });
 
         assert.throws(() => {
             assert.deepPropertyNotVal(obj, 'foo.bar', 'baz');
-        }, "expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
+        }, { message: "Expected {\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n} not to have deep property with value \"baz\"" });
     });
 
     it('throws', () => {
@@ -899,14 +899,14 @@ describe('assert', () => {
         });
         assert.throws(() => {
             throw new Error('bar');
-        }, 'bar');
+        }, { message: 'bar' });
         assert.throws(() => {
             throw new Error('bar');
         }, /bar/);
 
         assert.throws(() => {
             assert.throws(() => { });
-        }, "expected [Function] to throw an error");
+        }, { message: "Missing expected exception" });
     });
 
     it("throws async", async () => {
@@ -924,8 +924,7 @@ describe('assert', () => {
             assert.doesNotThrow(() => {
                 throw new Error('foo');
             });
-        },
-            'expected [Function] to not throw an error but [Error: foo] was thrown');
+        }, { message: "Got unwanted exception" });
     });
 
     it('closeTo', () => {
@@ -935,18 +934,18 @@ describe('assert', () => {
 
         assert.throws(() => {
             assert.closeTo(2, 1.0, 0.5);
-        }, "expected 2 to be close to 1 +/- 0.5");
+        }, { message: "Expected 2 to be close to 1" });
 
         assert.throws(() => {
             assert.closeTo(-10, 20, 29);
-        }, "expected -10 to be close to 20 +/- 29");
+        }, { message: "Expected -10 to be close to 20" });
     });
 
     it('ifError', () => {
         assert.throws(() => assert.ifError(1));
         assert.throws(() => assert.ifError('a'));
         assert.throws(() => assert.ifError(new Error('error')));
-        assert.throws(function () { assert.ifError(new Error('test error')); });
+        assert.throws(function () { assert.ifError(new Error('test error')); }); // ifError throws the value itself
         assert.doesNotThrow(function () { assert.ifError(null); });
         assert.doesNotThrow(function () { assert.ifError(); });
 

@@ -37,7 +37,7 @@ describe('dgram', () => {
 
         assert.throws(() => {
             s.close();
-        });
+        }, { number: 20009 });
     });
 
     it('bind', () => {
@@ -45,9 +45,10 @@ describe('dgram', () => {
         s.bind(base_port + 1000);
 
         const s1 = dgram.createSocket('udp4');
+        // Node also sets syscall/address/port (gap recorded)
         assert.throws(() => {
             s1.bind(base_port + 1000);
-        });
+        }, { code: 'EADDRINUSE' });
 
         s.close();
         s1.close();
@@ -59,7 +60,7 @@ describe('dgram', () => {
 
         assert.throws(() => {
             s.bind(base_port + 1002);
-        });
+        }, { number: 20009 });
 
         s.close();
     });
@@ -189,9 +190,10 @@ describe('dgram', () => {
 
         const c = dgram.createSocket('udp4');
 
+        // Node also sets syscall/address/port (gap recorded)
         assert.throws(() => {
             c.send('123456', base_port + 1006, "255.255.255.255");
-        });
+        }, { code: 'EACCES' });
 
         try {
             c.setBroadcast(true);

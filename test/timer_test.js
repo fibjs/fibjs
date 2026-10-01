@@ -435,7 +435,7 @@ describe("timer", () => {
             var t1 = new Date();
             assert.throws(() => {
                 timers.call(test1, 30);
-            });
+            }, { number: 20021 });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
             assert.lessThan(t2 - t1, 1000);
@@ -450,7 +450,7 @@ describe("timer", () => {
             var t1 = new Date();
             assert.throws(() => {
                 timers.call(test2, 30);
-            });
+            }, { number: 20021 });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
             assert.lessThan(t2 - t1, 1000);
@@ -464,7 +464,7 @@ describe("timer", () => {
 
             assert.throws(() => {
                 timers.call(test2, 30);
-            });
+            }, { number: 20021 });
         });
 
         it("util.format", () => {
@@ -476,7 +476,7 @@ describe("timer", () => {
             var t1 = new Date();
             assert.throws(() => {
                 timers.call(test3, 30);
-            });
+            }, { number: 20021 });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
             assert.lessThan(t2 - t1, 1000);
@@ -489,7 +489,7 @@ describe("timer", () => {
 
             assert.throws(() => {
                 timers.call(test4, 30);
-            });
+            }, { message: '100' });
         });
 
         it("require", () => {
@@ -497,9 +497,10 @@ describe("timer", () => {
                 require('./module/tm1.js');
             }
 
+            // note: carries residual syscall=open context from module resolution
             assert.throws(() => {
                 timers.call(test5, 30);
-            });
+            }, { number: 20021 });
         });
 
         it("run", () => {
@@ -509,7 +510,7 @@ describe("timer", () => {
 
             assert.throws(() => {
                 timers.call(test6, 30);
-            });
+            }, { number: 20021 });
         });
     });
 
@@ -556,10 +557,10 @@ describe("timer", () => {
         it("should throw on non-function argument", () => {
             assert.throws(() => {
                 queueMicrotask(123);
-            });
+            }, { name: 'TypeError', number: 20005 });
             assert.throws(() => {
                 queueMicrotask('string');
-            });
+            }, { name: 'TypeError', number: 20005 });
         });
     });
 });

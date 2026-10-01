@@ -128,7 +128,7 @@ describe('Buffer', () => {
     it('concat type error', () => {
         assert.throws(() => {
             Buffer.concat(["aaa"]);
-        });
+        }, { name: 'TypeError', code: 'ERR_INVALID_ARG_TYPE' });
     });
 
     it('Buffer.from(String)', () => {
@@ -568,11 +568,11 @@ describe('Buffer', () => {
 
         assert.throws(() => {
             buf.set([1, 2, 3], -1);
-        });
+        }, { name: 'RangeError', message: 'offset is out of bounds' });
 
         assert.throws(() => {
             buf.set([1, 2, 3], 9);
-        });
+        }, { name: 'RangeError', message: 'offset is out of bounds' });
     });
 
     it("readNumber", () => {
@@ -585,11 +585,11 @@ describe('Buffer', () => {
 
         assert.throws(() => {
             buf.readUInt16BE(1);
-        });
+        }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
 
         assert.throws(() => {
             buf.readUInt16LE(1);
-        });
+        }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
 
         var buf = Buffer.from([0xb3, 0x42]);
 
@@ -671,11 +671,11 @@ describe('Buffer', () => {
 
         assert.throws(() => {
             buf.writeUInt16BE(0, 1);
-        });
+        }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
 
         assert.throws(() => {
             buf.writeUInt16LE(0, 1);
-        });
+        }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
 
         var buf = Buffer.alloc(4);
 
@@ -810,7 +810,7 @@ describe('Buffer', () => {
         // Node.js doesn't throw for this value, it wraps around
         // assert.throws(() => {
         //     buf.writeBigInt64LE(BigInt('0x8000000000000000'), 0);
-        // });
+        // assert.throws(() => {
 
         var buf = Buffer.alloc(4);
         assert.equal(buf.writeFloatLE(1, 0), 4);
@@ -933,7 +933,7 @@ describe('Buffer', () => {
                 if (i == 3)
                     throw new Error('test');
             });
-        });
+        }, { message: 'test' });
 
         assert.deepEqual(arr, [1, 2, 3, 4, 5, 1, 2, 3, 4]);
     });
@@ -1500,28 +1500,28 @@ describe('Buffer', () => {
                 var buf = Buffer.from([0x23, 0x42]);
                 assert.throws(() => {
                     buf.readUInt8(-1);
-                });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
             });
 
             it("FIX: fibjs will crash when the offset of Buffer.write is negative", () => {
                 var buf = Buffer.alloc(10);
                 assert.throws(() => {
                     buf.writeUInt8(0x23, -1);
-                });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
             });
 
             it("FIX: passing a large offset to Buffer.readUIntLE will cause fibjs to crash", () => {
                 var buf = Buffer.allocUnsafe(3);
                 assert.throws(() => {
                     buf.readUIntLE(0, 9);
-                });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE' });
             });
 
             it("FIX: passing a large offset to Buffer.writeUInt32BE will cause fibjs to crash", () => {
                 var buf = Buffer.allocUnsafe(3);
                 assert.throws(() => {
                     buf.writeUInt32BE(0, 1);
-                });
+                }, { name: 'RangeError', code: 'ERR_BUFFER_OUT_OF_BOUNDS' });
             });
         });
     }

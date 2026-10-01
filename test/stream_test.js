@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 var net = require('net');
 var io = require('io');
+var stream = require('stream');
 var test_util = require('./test_util');
 
 var vmid = coroutine.vmid;
@@ -1278,6 +1279,114 @@ describe('stream', () => {
             done.wait();
 
             assert.strictEqual(totalBytes, 8192 * 16);
+        });
+
+        it("legacy stream errors carry code and type", async () => {
+            const nextError = (emitter, trigger) => new Promise((resolve) => {
+                emitter.once('error', resolve);
+                trigger();
+            });
+
+            var writable = new stream.Writable({
+                write(chunk, encoding, cb) {
+                    cb();
+                }
+            });
+
+            var err = await nextError(writable, () => writable.pipe());
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ERR_STREAM_CANNOT_PIPE');
+
+            var writeAfterEnd = new stream.Writable({
+                write(chunk, encoding, cb) {
+                    cb();
+                }
+            });
+            writeAfterEnd.end();
+            var writeAfterEndEvent = nextError(writeAfterEnd, () => {
+                writeAfterEnd.write('x', (cbErr) => {
+                    assert.ok(cbErr instanceof Error);
+                    assert.equal(cbErr.code, 'ERR_STREAM_WRITE_AFTER_END');
+                });
+            });
+            err = await writeAfterEndEvent;
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ERR_STREAM_WRITE_AFTER_END');
+
+            var nullChunk = new stream.Writable({
+                write(chunk, encoding, cb) {
+                    cb();
+                }
+            });
+            err = await nextError(nullChunk, () => {
+                nullChunk.write(null, (cbErr) => {
+                    assert.ok(cbErr instanceof TypeError);
+                    assert.equal(cbErr.code, 'ERR_STREAM_NULL_VALUES');
+                });
+            });
+            assert.ok(err instanceof TypeError);
+            assert.equal(err.code, 'ERR_STREAM_NULL_VALUES');
+
+            var invalidChunk = new stream.Writable({
+                write(chunk, encoding, cb) {
+                    cb();
+                }
+            });
+            err = await nextError(invalidChunk, () => {
+                invalidChunk.write({}, (cbErr) => {
+                    assert.ok(cbErr instanceof TypeError);
+                    assert.equal(cbErr.code, 'ERR_INVALID_ARG_TYPE');
+                });
+            });
+            assert.ok(err instanceof TypeError);
+            assert.equal(err.code, 'ERR_INVALID_ARG_TYPE');
+
+            assert.throws(() => writable.setDefaultEncoding('bogus'), (e) => {
+                assert.ok(e instanceof TypeError);
+                assert.equal(e.code, 'ERR_UNKNOWN_ENCODING');
+                return true;
+            });
+
+            var readable = new stream.Readable({
+                read() {}
+            });
+            err = await nextError(readable, () => readable.push({}));
+            assert.ok(err instanceof TypeError);
+            assert.equal(err.code, 'ERR_INVALID_ARG_TYPE');
+
+            var endedReadable = new stream.Readable({
+                read() {}
+            });
+            endedReadable.push(null);
+            err = await nextError(endedReadable, () => endedReadable.push('x'));
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ERR_STREAM_PUSH_AFTER_EOF');
+        });
+
+        it("legacy transform stream errors carry code and type", async () => {
+            assert.throws(() => {
+                new stream.Transform()._transform(Buffer.from('a'), 'buffer', function () {});
+            }, (e) => {
+                assert.ok(e instanceof Error);
+                assert.equal(e.code, 'ERR_METHOD_NOT_IMPLEMENTED');
+                return true;
+            });
+
+            var err = await new Promise((resolve) => {
+                var tr = new stream.Transform({
+                    transform(chunk, encoding, cb) {
+                        cb(null, chunk);
+                        cb(null, chunk);
+                    }
+                });
+
+                tr.once('error', resolve);
+                tr.resume();
+                tr.write(Buffer.from('x'));
+            });
+
+            assert.ok(err instanceof Error);
+            assert.equal(err.code, 'ERR_MULTIPLE_CALLBACK');
         });
     });
 });

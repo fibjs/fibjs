@@ -141,7 +141,7 @@ describe("vec", () => {
 
         assert.throws(() => {
             conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 1)`);
-        });
+        }, { name: 'Error', number: 20024 });
 
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 2)`);
         var res = conn.execute(`select name, data from vec_index where tbl="vindex" order by name desc`);
@@ -384,7 +384,7 @@ describe("vec", () => {
             conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 3)`);
             assert.throws(() => {
                 conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 3)`);
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         var res = conn.execute(`select name, data from vec_index where tbl="vindex" order by name desc`);
@@ -487,7 +487,7 @@ describe("vec", () => {
 
         assert.throws(() => {
             conn.execute(`insert into vindex(title, description, rowid) values("[1,2,2]", "[3,4,1]", 3)`);
-        });
+        }, { name: 'Error', number: 20024 });
 
         conn.execute(`update vindex set title="[1,2,4]" where rowid = 3`);
 
@@ -867,11 +867,11 @@ describe("vec", () => {
 
             assert.throws(() => {
                 conn2.execute(`select rowid from vindex order by rowid`);
-            }, /no such table: vindex/);
+            }, { name: 'Error', number: 20024 });
 
             assert.throws(() => {
                 conn2.execute(`insert into vindex(title, rowid) values("[0,1,0]", 2)`);
-            }, /no such table: vindex/);
+            }, { name: 'Error', number: 20024 });
         } finally {
             if (conn2)
                 conn2.close();

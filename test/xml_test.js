@@ -77,7 +77,7 @@ function test_CharacterData(fn) {
             assert.equal(e.substringData(8, 10), '');
             assert.throws(() => {
                 e.substringData(10, 0);
-            });
+            }, { name: 'RangeError', number: 20012 });
         });
 
         it("insertData", () => {
@@ -92,7 +92,7 @@ function test_CharacterData(fn) {
 
             assert.throws(() => {
                 e.insertData(17, "ddd");
-            });
+            }, { name: 'RangeError', number: 20012 });
         });
 
         it("deleteData", () => {
@@ -107,7 +107,7 @@ function test_CharacterData(fn) {
 
             assert.throws(() => {
                 e.deleteData(4, 1);
-            });
+            }, { name: 'RangeError', number: 20012 });
         });
 
         it("replaceData", () => {
@@ -122,7 +122,7 @@ function test_CharacterData(fn) {
 
             assert.throws(() => {
                 e.replaceData(7, 1);
-            });
+            }, { name: 'TypeError', number: 20002 });
         });
     });
 }
@@ -137,7 +137,7 @@ function test_Child(xdoc, e, s) {
         } else {
             assert.throws(() => {
                 e.appendChild(e1)
-            });
+            }, { name: 'TypeError', number: 20004 });
         }
     }
 
@@ -181,12 +181,12 @@ describe('xml', () => {
                 xdoc.appendChild(c);
                 assert.throws(() => {
                     xdoc.appendChild(e1);
-                });
+                }, { name: 'Error', number: 20024 });
 
                 xdoc.replaceChild(e1, e);
                 assert.throws(() => {
                     xdoc.replaceChild(e, c);
-                });
+                }, { name: 'Error', number: 20024 });
 
                 xdoc.removeChild(e1);
                 xdoc.appendChild(e);
@@ -847,7 +847,7 @@ describe('xml', () => {
 
                 assert.throws(() => {
                     e3.appendChild(e);
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it("removeChild", () => {
@@ -1219,7 +1219,7 @@ describe('xml', () => {
                 // Test invalid insertBefore
                 assert.throws(() => {
                     elem.insertBefore(xdoc, null);
-                });
+                }, { name: 'TypeError', number: 20005 });
 
                 // Test appendChild with wrong document
                 var otherDoc = newDoc();
@@ -1438,7 +1438,7 @@ describe('xml', () => {
                 // Modern browsers throw error when trying to move owned attribute
                 assert.throws(() => {
                     e2.setAttributeNode(attr);
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it("setAttributeNode with cloned attribute", () => {
@@ -1577,7 +1577,7 @@ describe('xml', () => {
 
                 assert.throws(() => {
                     elem.removeAttributeNode(attrNode);
-                }, /owned by another/);
+                }, { name: 'Error', number: 20024 });
             });
 
             it("getAttributeNodeNS", () => {
@@ -1775,7 +1775,7 @@ describe('xml', () => {
                 var e = hdoc.createElement("aaa");
                 assert.throws(() => {
                     hdoc.appendChild(e);
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it("clear after removeChild", () => {
@@ -1867,7 +1867,7 @@ describe('xml', () => {
                     // Adding second root element should throw error
                     assert.throws(() => {
                         xdoc.appendChild(root2);
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     // Document should still have only one root
                     assert.equal(xdoc.childNodes.length, 1);
@@ -2156,7 +2156,7 @@ describe('xml', () => {
                     // Text nodes at document level should throw error (DOM standard)
                     assert.throws(() => {
                         xdoc.appendChild(textNode);
-                    });
+                    }, { name: 'TypeError', number: 20004 });
 
                     // Should still be able to add root element
                     xdoc.appendChild(root);
@@ -2825,7 +2825,7 @@ describe('xml', () => {
                     // Should throw error when trying to append element to document
                     assert.throws(() => {
                         hdoc.appendChild(extraElement);
-                    });
+                    }, { name: 'Error', number: 20024 });
 
                     // Document may have DOCTYPE and HTML elements in browser
                     var initialChildCount = hdoc.childNodes.length;
@@ -3111,7 +3111,7 @@ describe('xml', () => {
             var e = hdoc.createElement("aaa");
             assert.throws(() => {
                 hdoc.appendChild(e);
-            });
+            }, { name: 'Error', number: 20024 });
         });
 
         it("clear after removeChild", () => {
@@ -3175,13 +3175,13 @@ describe('xml', () => {
             var hdoc = parseHtml("<html><body></body></html>");
             assert.throws(() => {
                 hdoc.documentElement.outerHTML = "<p>new root</p>";
-            });
+            }, { name: 'Error', number: 20024 });
 
             // Same for XML documents: the root element's parent is the document.
             var xdoc = parse("<root/>");
             assert.throws(() => {
                 xdoc.documentElement.outerHTML = "<other/>";
-            });
+            }, { name: 'Error', number: 20009 });
         });
 
         it("textContent", () => {
@@ -3421,7 +3421,7 @@ describe('xml', () => {
                     var el = xdoc.documentElement;
                     assert.throws(() => {
                         el.style;
-                    });
+                    }, { name: 'Error', number: 20009 });
                 });
 
                 it("duplicate declarations follow cascade semantics", () => {
@@ -3686,7 +3686,7 @@ describe('xml', () => {
                     // read-only (v8 has no indexed deleter); writes throw.
                     assert.throws(() => {
                         div.dataset["123"] = "x";
-                    });
+                    }, { name: 'TypeError' });
                     assert.equal(div.getAttribute("data-123"), null);
                 });
             });
@@ -3805,7 +3805,7 @@ describe('xml', () => {
                 // Test invalid XML parsing
                 assert.throws(() => {
                     parse("<invalid><unclosed>");
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             // Attribute toString method (fibjs specific)
@@ -4121,7 +4121,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.importNode(doc1);
-                    });
+                    }, { name: 'Error', number: 20024 });
                 });
 
                 it("adoptNode basic", () => {
@@ -4181,7 +4181,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.adoptNode(doc1);
-                    });
+                    }, { name: 'Error', number: 20024 });
                 });
 
                 it("adoptNode on detached node", () => {
@@ -4406,7 +4406,7 @@ describe('xml', () => {
                     // In XML mode, classList should throw or return undefined
                     assert.throws(() => {
                         var cl = e.classList;
-                    });
+                    }, { name: 'Error', number: 20009 });
                 });
 
                 it("classList reflects className changes", () => {
@@ -4936,14 +4936,14 @@ describe('xml', () => {
                 const parser = new DOMParser();
                 assert.throws(() => {
                     parser.parseFromString('<root/>', 'invalid/type');
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('should throw on unsupported mimeType', () => {
                 const parser = new DOMParser();
                 assert.throws(() => {
                     parser.parseFromString('<root/>', 'text/plain');
-                });
+                }, { name: 'Error', number: 20024 });
             });
 
             it('should serialize void elements correctly in HTML mode', () => {
@@ -5397,7 +5397,7 @@ describe('xml', () => {
             const depth = 5000;
             const text = '<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>';
 
-            assert.throws(() => parse(text), /maxElementDepth/);
+            assert.throws(() => parse(text), { name: 'Error', number: 20024 });
 
             // 0 and negative values disable the limit, a larger one allows the
             // document through
@@ -5410,35 +5410,35 @@ describe('xml', () => {
         it('should reject a document with more nodes than maxNodeCount', { skip: isBrowser }, () => {
             const text = '<root>' + '<i/>'.repeat(5000) + '</root>';
 
-            assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), /maxNodeCount/);
+            assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
             // attributes count as nodes
-            assert.throws(() => xml.parse('<root>' + '<i a="1" b="2" c="3"/>'.repeat(100) + '</root>', 'text/xml', { maxNodeCount: 150 }), /maxNodeCount/);
+            assert.throws(() => xml.parse('<root>' + '<i a="1" b="2" c="3"/>'.repeat(100) + '</root>', 'text/xml', { maxNodeCount: 150 }), { name: 'Error', number: 20024 });
             assert.equal(xml.parse(text, 'text/xml', { maxNodeCount: 0 }).getElementsByTagName('*').length, 5001);
             assert.equal(xml.parse(text, 'text/xml', {}).getElementsByTagName('*').length, 5001);
         });
 
         it('should reject a non numeric limit', { skip: isBrowser }, () => {
-            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxElementDepth: 'deep' }), /maxElementDepth/);
-            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxNodeCount: 'many' }), /maxNodeCount/);
+            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxElementDepth: 'deep' }), { name: 'TypeError', number: 20004 });
+            assert.throws(() => xml.parse('<a/>', 'text/xml', { maxNodeCount: 'many' }), { name: 'TypeError', number: 20004 });
         });
 
         it('should apply the limits to the html parser and to load()', { skip: isBrowser }, () => {
             const html = '<div>'.repeat(2000) + '</div>'.repeat(2000);
-            assert.throws(() => xml.parse(html, 'text/html'), /maxElementDepth/);
-            assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), /maxElementDepth/);
+            assert.throws(() => xml.parse(html, 'text/html'), { name: 'Error', number: 20024 });
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), { name: 'Error', number: 20024 });
 
             // a rejected XML load leaves the partial tree behind (expat feeds
             // the document as it goes, and that partial tree then owns the
             // document element), so the accepted load needs its own document
             const rejected = newDoc();
-            assert.throws(() => rejected.load(html), /maxElementDepth/);
+            assert.throws(() => rejected.load(html), { name: 'Error', number: 20024 });
 
             const doc = newDoc();
             doc.load(html, { maxElementDepth: 3000 });
             assert.equal(doc.getElementsByTagName('div').length, 2000);
 
             const htmlDoc = newHtmlDoc();
-            assert.throws(() => htmlDoc.load(html), /maxElementDepth/);
+            assert.throws(() => htmlDoc.load(html), { name: 'Error', number: 20024 });
             htmlDoc.load(html, { maxElementDepth: 3000 });
             assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });
@@ -5446,11 +5446,11 @@ describe('xml', () => {
         it('should apply maxNodeCount to the html parser too', { skip: isBrowser }, () => {
             const html = '<div data-x="1"></div>'.repeat(2000);
 
-            assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), /maxNodeCount/);
-            assert.throws(() => new DOMParser().parseFromString(html, 'text/html', { maxNodeCount: 1000 }), /maxNodeCount/);
+            assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
 
             const htmlDoc = newHtmlDoc();
-            assert.throws(() => htmlDoc.load(html, { maxNodeCount: 1000 }), /maxNodeCount/);
+            assert.throws(() => htmlDoc.load(html, { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
             htmlDoc.load(html, { maxNodeCount: 10000 });
             assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });
