@@ -1,0 +1,45 @@
+/*! @brief Fiber semaphore object
+
+ The semaphore object manages an internal counter; the counter is decremented by calls to acquire or wait, and incremented by calls to release or post.
+ The counter never decreases below zero, because acquire and wait sleep the current fiber when they find the value is 0, until another fiber increments the counter through release or post.
+
+ Semaphores are commonly used to limit concurrent use of resources and in producer/consumer pattern applications.
+
+ Taking database requests as an example, limiting concurrent use of resources looks like this:
+ ```JavaScript
+ var maxconnections = 5;
+ var l = new coroutine.Semaphore(maxconnections);
+
+ ......
+
+ l.acquire();
+ var conn = connectdb()
+ .....
+ conn.close();
+ l.release();
+ ```
+
+ The producer/consumer pattern usually uses a semaphore together with a queue. The producer adds data to the queue and posts a signal, while the consumer waits for the signal first and then queries the queue for data after acquiring the signal.
+
+ */
+interface Semaphore : Lock
+{
+    /*! @brief Semaphore constructor
+     @param value the initial value of the counter
+     */
+    Semaphore(Integer value = 1);
+
+    /*! @brief Waits for a semaphore
+     @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     @return returns true if acquired successfully, or false on timeout
+    */
+    Boolean wait(Integer timeout = -1) async;
+
+    /*! @brief Releases a semaphore, equivalent to release() */
+    post();
+
+    /*! @brief Tries to acquire a signal; if it cannot be acquired, returns immediately with false, equivalent to acquire(false)
+     @return returns true if acquired successfully, or false on timeout
+     */
+    Boolean trywait();
+};

@@ -1,0 +1,34 @@
+/*! @brief ZlibCodec is the base class of zlib compression and decompression codecs, providing the constructors of zlib-like codecs
+
+ ZlibCodec inherits from EventEmitter and can be used by npm packages such as minizlib. Subclasses include Gzip, Gunzip, Deflate, Inflate, DeflateRaw, InflateRaw and Unzip.
+
+ ```JavaScript
+ const zlib = require('zlib');
+ const gzip = new zlib.Gzip({});
+ const result = gzip._processChunk(Buffer.from('hello'), zlib.constants.Z_FINISH);
+ ```
+ */
+interface ZlibCodec : EventEmitter
+{
+    /*! @brief Processes a chunk of data synchronously
+     @param chunk the data to process
+     @param flushFlag flush flag, see zlib.constants.Z_NO_FLUSH and others
+     @return returns the processed data
+     */
+    Buffer _processChunk(Buffer chunk, Integer flushFlag);
+
+    /*! @brief Closes the codec and releases resources */
+    close();
+
+    /*! @brief Resets the codec state */
+    reset();
+
+    /*! @brief The underlying handle object, used for internal compatibility */
+    Value _handle;
+
+    /*! @brief Dynamically updates compression parameters
+     @param level compression level
+     @param strategy compression strategy
+     */
+    params(Integer level, Integer strategy);
+};

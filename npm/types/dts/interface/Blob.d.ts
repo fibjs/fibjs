@@ -2,17 +2,17 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Blob 对象用于表示不可变的原始数据块，兼容 Web 标准 Blob API。
+ * @description The Blob object represents an immutable raw data block, compatible with the Web standard Blob API.
  *
- * Blob 可用于存储二进制数据、文本、图片等，常用于文件上传、数据处理等场景。Blob 支持多种数据类型的拼接、切片和读取，广泛应用于 Web、HTTP、文件系统等模块。
+ * Blob can be used to store binary data, text, images, etc., and is commonly used for file upload, data processing and similar scenarios. Blob supports concatenation, slicing and reading of multiple data types and is widely used in modules such as Web, HTTP and the file system.
  *
- * 主要特性：
- * 1. 支持通过数组和选项对象灵活构造，数据类型可为字符串、ArrayBuffer、TypedArray、Blob 等。
- * 2. 支持 type、size 等只读属性，便于获取数据类型和大小。
- * 3. 支持 slice 方法高效切片，支持类型转换。
- * 4. 支持异步读取为文本或二进制。
+ * Key features:
+ * 1. Supports flexible construction via arrays and options objects; data types can be strings, ArrayBuffers, TypedArrays, Blobs, etc.
+ * 2. Supports read-only properties such as type and size, making it easy to get the data type and size.
+ * 3. Supports the slice method for efficient slicing and supports type conversion.
+ * 4. Supports asynchronous reading as text or binary.
  *
- * 常见用法示例：
+ * Common usage examples:
  * ```JavaScript
  * // Create empty Blob
  * const blob = new Blob();
@@ -33,100 +33,100 @@
  */
 declare class Class_Blob extends Class_object {
     /**
-     * @description Blob 对象构造函数
+     * @description Blob object constructor
      *
-     *      创建一个新的 Blob 实例，可指定数据内容和类型。
-     *      @param blobParts 初始化数据数组，可以包含字符串、ArrayBuffer、TypedArray、Blob 等
-     *      @param options 选项对象，包含 type（MIME 类型）和 endings（换行符处理方式）属性
+     *      Creates a new Blob instance with the specified data content and type.
+     *      @param blobParts the initial data array, may contain strings, ArrayBuffers, TypedArrays, Blobs, etc.
+     *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
     constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
 
     /**
-     * @description Blob 对象构造函数
+     * @description Blob object constructor
      *
-     *      创建一个新的 Blob 实例，可指定数据内容和类型。
-     *      @param blobData 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型
-     *      @param options 选项对象，包含 type（MIME 类型）和 endings（换行符处理方式）属性
+     *      Creates a new Blob instance with the specified data content and type.
+     *      @param blobData the initial binary data, can be a Buffer or another binary data type
+     *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
     constructor(blobData: Class_Buffer, options?: FIBJS.GeneralObject);
 
     /**
-     * @description Blob 对象类型，返回 Blob 的 MIME 类型（如 "text/plain"、"image/png" 等），只读属性。
+     * @description The type of the Blob object, returns the MIME type of the Blob (e.g. "text/plain", "image/png", etc.), read-only property.
      *
      */
     readonly type: string;
 
     /**
-     * @description Blob 对象的大小，返回 Blob 数据的字节数，只读属性。
+     * @description The size of the Blob object, returns the number of bytes of the Blob data, read-only property.
      *
      */
     readonly size: number;
 
     /**
-     * @description 返回指定范围的 Blob 切片
+     * @description Returns a Blob slice of the specified range
      *
-     *      创建一个新的 Blob，包含原始数据的指定区间内容。
+     *      Creates a new Blob containing the specified range of the original data.
      *
-     *      @param start 起始位置（字节，默认为 0）
-     *      @param end 结束位置（字节，默认为 -1，表示到末尾）
-     *      @param contentType 新 Blob 的 MIME 类型（可选）
-     *      @return 返回新的 Blob 对象
+     *      @param start the start position (in bytes, default 0)
+     *      @param end the end position (in bytes, default -1, meaning to the end)
+     *      @param contentType the MIME type of the new Blob (optional)
+     *      @return returns the new Blob object
      *
      */
     slice(start?: number, end?: number, contentType?: string): Class_Blob;
 
     /**
-     * @description 以文本形式读取 Blob 内容
+     * @description Reads the Blob content as text
      *
-     *      异步读取 Blob 数据为字符串，返回 Promise。
-     *      @return 返回包含文本内容的 Promise
+     *      Asynchronously reads the Blob data as a string, returns a Promise.
+     *      @return returns a Promise containing the text content
      *
      */
     text(): Promise<string>;
 
     /**
-     * @description 以文本形式读取 Blob 内容
+     * @description Reads the Blob content as text
      *
-     *      异步读取 Blob 数据为字符串，返回 Promise。
-     *      @return 返回包含文本内容的 Promise
+     *      Asynchronously reads the Blob data as a string, returns a Promise.
+     *      @return returns a Promise containing the text content
      *
      */
     textSync(): string;
 
     /**
-     * @description 以文本形式读取 Blob 内容
+     * @description Reads the Blob content as text
      *
-     *      异步读取 Blob 数据为字符串，返回 Promise。
-     *      @return 返回包含文本内容的 Promise
+     *      Asynchronously reads the Blob data as a string, returns a Promise.
+     *      @return returns a Promise containing the text content
      *
      */
     textAsync(): Promise<string>;
 
     /**
-     * @description 以 ArrayBuffer 形式读取 Blob 内容
+     * @description Reads the Blob content as an ArrayBuffer
      *
-     *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
-     *      @return 返回包含二进制数据的 Promise
+     *      Asynchronously reads the Blob data as an ArrayBuffer, returns a Promise.
+     *      @return returns a Promise containing the binary data
      *
      */
     arrayBuffer(): Promise<ArrayBuffer>;
 
     /**
-     * @description 以 ArrayBuffer 形式读取 Blob 内容
+     * @description Reads the Blob content as an ArrayBuffer
      *
-     *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
-     *      @return 返回包含二进制数据的 Promise
+     *      Asynchronously reads the Blob data as an ArrayBuffer, returns a Promise.
+     *      @return returns a Promise containing the binary data
      *
      */
     arrayBufferSync(): ArrayBuffer;
 
     /**
-     * @description 以 ArrayBuffer 形式读取 Blob 内容
+     * @description Reads the Blob content as an ArrayBuffer
      *
-     *      异步读取 Blob 数据为 ArrayBuffer，返回 Promise。
-     *      @return 返回包含二进制数据的 Promise
+     *      Asynchronously reads the Blob data as an ArrayBuffer, returns a Promise.
+     *      @return returns a Promise containing the binary data
      *
      */
     arrayBufferAsync(): Promise<ArrayBuffer>;

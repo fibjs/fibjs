@@ -1,0 +1,289 @@
+/*! @brief Redis database client object
+
+ Used to create and manage a Redis database. To create one:
+ ```JavaScript
+ var db = require("db");
+ var test = new db.openRedis("redis-server");
+ ```
+ */
+interface Redis : object
+{
+    /*! @brief Basic redis command method
+     @param cmd the command to send
+     @param args the parameters to send
+     @return returns the result returned by the server */
+    Value command(String cmd, ...args);
+
+    /*! @brief Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
+     @param key the key to associate
+     @param value the data to associate
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
+    set(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
+     @param key the key to associate
+     @param value the data to associate
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
+    setNX(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Sets the key to value only when the key already exists.
+     @param key the key to associate
+     @param value the data to associate
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
+    setXX(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
+     @param kvs the key/value object to set*/
+    mset(Object kvs);
+
+    /*! @brief Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
+     @param kvs the key/value list to set*/
+    mset(...kvs);
+
+    /*! @brief Sets one or more key-value pairs at the same time only when all the given keys do not exist
+     @param kvs the key/value object to set*/
+    msetNX(Object kvs);
+
+    /*! @brief Sets one or more key-value pairs at the same time only when all the given keys do not exist
+     @param kvs the key/value list to set*/
+    msetNX(...kvs);
+
+    /*! @brief If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
+     @param key the key to append to
+     @param value the data to append
+     @return the length of the string in key after appending value */
+    Integer append(Buffer key, Buffer value);
+
+    /*! @brief Overwrites the string value stored at key with the value parameter, starting from the offset
+     @param key the key to modify
+     @param offset the byte offset to modify
+     @param value the data to overwrite
+     @return the length of the string after the modification */
+    Integer setRange(Buffer key, Integer offset, Buffer value);
+
+    /*! @brief Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
+     @param key the key to query
+     @param start the start byte offset of the query
+     @param end the end byte offset of the query
+     @return the extracted substring */
+    Buffer getRange(Buffer key, Integer start, Integer end);
+
+    /*! @brief Returns the length of the string value stored at key. An error is returned when key does not hold a string value
+     @param key the key to count
+     @return the length of the string value, or 0 when key does not exist */
+    Integer strlen(Buffer key);
+
+    /*! @brief Counts the number of bits set to 1 in the given string
+     @param key the key to count
+     @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
+     @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
+     @return the number of bits set to 1 */
+    Integer bitcount(Buffer key, Integer start = 0, Integer end = -1);
+
+    /*! @brief Returns the string value associated with key; if key does not exist, the special value Null is returned
+     @param key the key to associate
+     @return returns Null when key does not exist, otherwise returns the value of key */
+    Buffer get(Buffer key);
+
+    /*! @brief Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
+     @param keys the array of keys to query
+     @return a list containing the values of all the given keys */
+    NArray mget(Array keys);
+
+    /*! @brief Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
+     @param keys the list of keys to query
+     @return a list containing the values of all the given keys */
+    NArray mget(...keys);
+
+    /*! @brief Sets the given key to value and returns the old value of key
+     @param key the key to query and modify
+     @param value the value to set
+     @return returns the old value of the given key */
+    Buffer getset(Buffer key, Buffer value);
+
+    /*! @brief Subtracts the decrement from the value stored at key
+     @param key the key to modify
+     @param num the number to subtract
+     @return the value of key after subtracting num */
+    Long decr(Buffer key, Long num = 1);
+
+    /*! @brief Adds the increment to the value stored at key
+     @param key the key to modify
+     @param num the number to add
+     @return the value of key after adding num */
+    Long incr(Buffer key, Long num = 1);
+
+    /*! @brief Sets or clears the bit at the given offset in the string value stored at key
+     @param key the key to modify
+     @param offset the bit offset to modify
+     @param value the value to set or clear, either 0 or 1
+     @return the bit originally stored at the offset */
+    Integer setBit(Buffer key, Integer offset, Integer value);
+
+    /*! @brief Gets the bit at the given offset in the string value stored at key
+     @param key the key to query
+     @param offset the bit offset to query
+     @return the bit at the given offset of the string value */
+    Integer getBit(Buffer key, Integer offset);
+
+    /*! @brief Checks whether the given key exists
+     @param key the key to associate
+     @return returns True if key exists, otherwise returns False */
+    Boolean exists(Buffer key);
+
+    /*! @brief Returns the type of the value stored at key
+     @param key the key to query
+     @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash */
+    String type(Buffer key);
+
+    /*! @brief Finds all keys matching the given pattern
+     @param pattern the pattern to query
+     @return the list of keys matching the given pattern */
+    NArray keys(String pattern);
+
+    /*! @brief Deletes one or more given keys; non-existing keys are ignored
+     @param keys the array of keys to delete
+     @return the number of keys deleted */
+    Integer del(Array keys);
+
+    /*! @brief Deletes one or more given keys; non-existing keys are ignored
+     @param keys the list of keys to delete
+     @return the number of keys deleted */
+    Integer del(...keys);
+
+    /*! @brief Sets a time to live for the given key; when the key expires it is automatically deleted
+     @param key the key to set
+     @param ttl the time to live for key in milliseconds
+     @return returns True if key exists, otherwise returns False */
+    Boolean expire(Buffer key, Long ttl);
+
+    /*! @brief Returns the remaining time to live of the given key
+     @param key the key to query
+     @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set */
+    Long ttl(Buffer key);
+
+    /*! @brief Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
+     @param key the key to set
+     @return returns True if key exists, otherwise returns False */
+    Boolean persist(Buffer key);
+
+    /*! @brief Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
+     @param key the key to rename
+     @param newkey the destination key to rename to */
+    rename(Buffer key, Buffer newkey);
+
+    /*! @brief Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
+     @param key the key to rename
+     @param newkey the destination key to rename to
+     @return returns True when the rename succeeds, and False if newkey already exists */
+    Boolean renameNX(Buffer key, Buffer newkey);
+
+    /*! @brief Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
+     @param channel the name of the channel to subscribe to
+     @param func the callback function
+     */
+    sub(Buffer channel, Function func);
+
+    /*! @brief Subscribes to the given set of channels; the corresponding callback function is called automatically when a message arrives; the same function is called back only once for the same channel
+     @param map the channel mapping; object property names are used as channel names and property values as callback functions
+     */
+    sub(Object map);
+
+    /*! @brief Unsubscribes all callbacks of the given channel
+     @param channel the name of the channel to unsubscribe from
+    */
+    unsub(Buffer channel);
+
+    /*! @brief Unsubscribes the given callback function of the given channel
+     @param channel the name of the channel to unsubscribe from
+     @param func the callback function to unsubscribe
+    */
+    unsub(Buffer channel, Function func);
+
+    /*! @brief Unsubscribes all callbacks of the given set of channels
+     @param channels the array of channels to unsubscribe from
+    */
+    unsub(Array channels);
+
+    /*! @brief Unsubscribes the given callback function of the given set of channels
+     @param map the channel mapping; object property names are used as channel names and property values as callback functions
+     */
+    unsub(Object map);
+
+    /*! @brief Subscribes to a set of channels by pattern; func is called automatically when a message arrives; func takes three parameters, channel, message and pattern; the same function is called back only once for the same pattern
+     @param pattern the channel pattern to subscribe to
+     @param func the callback function
+     */
+    psub(String pattern, Function func);
+
+    /*! @brief Subscribes to the given set of channel patterns; the corresponding func is called automatically when a message arrives; the same function is called back only once for the same channel
+     @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
+     */
+    psub(Object map);
+
+    /*! @brief Unsubscribes all callbacks of the given pattern
+     @param pattern the channel pattern to unsubscribe from
+    */
+    unpsub(String pattern);
+
+    /*! @brief Unsubscribes the given callback function of the given pattern
+     @param pattern the channel pattern to unsubscribe from
+     @param func the callback function to unsubscribe
+    */
+    unpsub(String pattern, Function func);
+
+    /*! @brief Unsubscribes all callbacks of the given set of patterns
+     @param patterns the array of channel patterns to publish
+    */
+    unpsub(Array patterns);
+
+    /*! @brief Unsubscribes the given callback function of the given set of patterns
+     @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
+     */
+    unpsub(Object map);
+
+    /*! @brief Queries and sets the error handling function; it is called back when sub encounters an error or the network is interrupted; after the callback occurs, all subs of this object are aborted
+     */
+    event suberror();
+
+    /*! @brief Sends the message to the given channel
+     @param channel the channel to publish to
+     @param message the message to publish
+     @return the number of clients that received this message
+    */
+    Integer pub(Buffer channel, Buffer message);
+
+    /*! @brief Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     @param key the key to get
+     @return returns the Hash object bound to the given key */
+    RedisHash getHash(Buffer key);
+
+    /*! @brief Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     @param key the key to get
+     @return returns the List object bound to the given key */
+    RedisList getList(Buffer key);
+
+    /*! @brief Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     @param key the key to get
+     @return returns the Set object bound to the given key */
+    RedisSet getSet(Buffer key);
+
+    /*! @brief Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     @param key the key to get
+     @return returns the SortedSet object bound to the given key */
+    RedisSortedSet getSortedSet(Buffer key);
+
+    /*! @brief Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command
+     @param key the key to serialize
+     @return returns the serialized value, or null if key does not exist */
+    Buffer dump(Buffer key);
+
+    /*! @brief Deserializes the given serialized value and associates it with the given key
+     @param key the key to deserialize to
+     @param data the data to deserialize
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set*/
+    restore(Buffer key, Buffer data, Long ttl = 0);
+
+    /*! @brief Closes the current database connection or transaction */
+    close();
+};

@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description multibase 是在 Base1x 编码的基础上，引入了多种编码前缀的编码方式
+ * @description multibase is an encoding method that introduces multiple encoding prefixes on top of Base1x encoding
  *
- * multibase 可以将相同的数据使用不同的编码方式编码，并添加一个前缀表示编码方式。multibase 支持的编码方式共有 15 种，分别是 base1、base2、base8、base10、base16、base32、base32hex、base32z、base36、base40、base56、base58flickr、base58btc、base64、base64url。其中，base16、base32 和 base64 是比较常用的。
+ * multibase can encode the same data with different encodings and add a prefix indicating the encoding. multibase supports 15 encodings in total: base1, base2, base8, base10, base16, base32, base32hex, base32z, base36, base40, base56, base58flickr, base58btc, base64 and base64url. Among them, base16, base32 and base64 are the more commonly used.
  *
- * multibase 可以用于在不改变二进制数据的情况下，改变其展示形式。例如，将一个随机生成的二进制数据编码为 base32 形式的字符串：
+ * multibase can be used to change the presentation of binary data without changing the data itself. For example, encoding randomly generated binary data as a base32 string:
  * ```JavaScript
  * const {
  *     encode
@@ -16,7 +16,7 @@
  * const encodedStr = encode(data, 'base32'); // encode data to base32 string
  * console.log(encodedStr); // ==> "bpgwnvztqmlbo5fy"
  * ```
- * 将上述字符串解码为原始的二进制数据：
+ * Decoding the above string back to the original binary data:
  * ```JavaScript
  * const {
  *     decode
@@ -25,23 +25,23 @@
  * const data = decode('bpgwnvztqmlbo5fy', 'base32'); // decode base32 string to data
  * console.log(data); // ==> <Buffer a7 55 3d 33 ca 97 ac 0d aa 40>
  * ```
- * 可以看到，通过 multibase，我们将原始的二进制数据编码为了 base32 形式的字符串，并且可以将这个字符串解码为原始的二进制数据。
+ * As can be seen, with multibase we encoded the original binary data as a base32 string, and we can decode this string back to the original binary data.
  *
  */
 declare module 'multibase' {
     /**
-     * @description 以 multibase 方式编码数据
-     * 	 @param data 要编码的数据
-     * 	 @param codec 指定编码方式
-     * 	 @return 返回编码的字符串
+     * @description Encodes data in multibase format
+     * 	 @param data the data to encode
+     * 	 @param codec the encoding to use
+     * 	 @return returns the encoded string
      *
      */
     function encode(data: Class_Buffer, codec: string): string;
 
     /**
-     * @description 以 multibase 方式解码字符串为二进制数据
-     * 	 @param data 要解码的字符串
-     * 	 @return 返回解码的二进制数据
+     * @description Decodes a string into binary data in multibase format
+     * 	 @param data the string to decode
+     * 	 @return returns the decoded binary data
      *
      */
     function decode(data: string): Class_Buffer;

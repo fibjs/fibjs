@@ -1,0 +1,64 @@
+/*! @brief The zip module is used for file compression and decompression. It provides operations such as compressing, decompressing, searching and enumerating the file list in a zip file
+
+With the zip module, we can pack multiple files into a zip file, and also decompress a zip file to restore the original files.
+
+The following are some examples:
+
+1. Compress files:
+
+```JavaScript
+var zip = require('zip');
+var zipfile = zip.open('/path/to/dest.zip', 'w');
+
+zipfile.write('/path/to/src1', 'src1');
+zipfile.write('/path/to/src2', 'src2');
+zipfile.close();
+```
+
+2. Decompress files:
+
+```JavaScript
+var zip = require('zip');
+var zipfile = zip.open('/path/to/src.zip', 'r');
+
+var filenames = zipfile.namelist();
+for (var i = 0; i < filenames.length; ++i) {
+  var filename = filenames[i];
+  var data = zipfile.read(filename);
+  console.log(filename + ': ' + data.length + ' bytes');
+}
+zipfile.close();
+```
+ */
+module zip
+{
+    /*! @brief  Determines whether a file is in zip format
+	 @param filename file name
+	 @return returns true if the file is a zip file
+	 */
+    static Boolean isZipFile(String filename) async;
+
+    /*! @brief Opens a zip file
+	 @param path file path
+	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+	 @param codec sets the encoding of the zip file, default "utf8"
+	 @return returns the zip file object
+	 */
+    static ZipFile open(String path, String mod = "r", String codec = "utf8") async;
+
+    /*! @brief Opens a zip file
+	 @param data zip file data
+	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+	 @param codec sets the encoding of the zip file, default "utf8"
+	 @return returns the zip file object
+	 */
+    static ZipFile open(Buffer data, String mod = "r", String codec = "utf8") async;
+
+    /*! @brief Opens a zip file
+	 @param strm zip file stream
+	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+	 @param codec sets the encoding of the zip file, default "utf8"
+	 @return returns the zip file object
+	 */
+    static ZipFile open(SeekableStream strm, String mod = "r", String codec = "utf8") async;
+};

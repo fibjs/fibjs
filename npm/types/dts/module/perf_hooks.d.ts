@@ -2,9 +2,9 @@
 /// <reference path="../interface/PerformanceObserver.d.ts" />
 /// <reference path="../module/performance.d.ts" />
 /**
- * @description perf_hooks 基础模块
+ * @description perf_hooks basic module
  *
- *  引用方法：
+ *  Reference method:
  *  ```JavaScript
  *  var perf_hooks = require('perf_hooks');
  *  ```
@@ -12,12 +12,12 @@
  */
 declare module 'perf_hooks' {
     /**
-     * @description PerformanceEntry 接口用于表示性能记录的接口
+     * @description The PerformanceEntry interface is an interface representing performance entries
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
 
     /**
-     * @description performance 基础性能监控模块
+     * @description performance basic performance monitoring module
      */
     const performance: typeof import ('performance');
 

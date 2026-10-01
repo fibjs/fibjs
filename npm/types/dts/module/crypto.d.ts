@@ -12,278 +12,278 @@
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../module/subtle.d.ts" />
 /**
- * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块
+ * @description The `crypto` module is fibjs' built-in cryptographic algorithm module. It provides symmetric encryption, asymmetric encryption, digest algorithms, cryptographic random number generators and other features. It must be loaded via `require('crypto')` before use
  *
- *  模块的主要能力：
+ *  Main capabilities:
  *
- *  - **摘要**：`createHash`、`createHmac`、`hash` 计算消息摘要与 HMAC；
- *  - **对称加密**：`createCipher`/`createCipheriv`、`createDecipher`/`createDecipheriv`；
- *  - **非对称加密**：`createSign`/`sign`、`createVerify`/`verify`、`privateEncrypt`/`publicDecrypt` 等公私钥加解密；
- *  - **密钥管理**：`createPrivateKey`、`createPublicKey`、`createSecretKey`、`generateKeyPair` 生成与导入密钥；
- *  - **密钥交换**：`createECDH`、`diffieHellman`、`hkdf`、`pbkdf2`、`scrypt` 派生与交换密钥；
- *  - **随机数**：`randomBytes`、`randomFill`、`getRandomValues`、`randomUUID`；
- *  - **证书**：`X509Certificate`、`createCertificateRequest`；
- *  - **其他**：`getHashes`/`getCiphers`/`getCurves` 查询支持列表，`timingSafeEqual` 常量时间比较，BBS 签名（`bbsSign`/`bbsVerify`/`proofGen`/`proofVerify`）。
+ *  - **Digest**: `createHash`, `createHmac`, `hash` compute message digests and HMAC;
+ *  - **Symmetric encryption**: `createCipher`/`createCipheriv`, `createDecipher`/`createDecipheriv`;
+ *  - **Asymmetric encryption**: `createSign`/`sign`, `createVerify`/`verify`, `privateEncrypt`/`publicDecrypt` and other public/private key encryption and decryption;
+ *  - **Key management**: `createPrivateKey`, `createPublicKey`, `createSecretKey`, `generateKeyPair` generate and import keys;
+ *  - **Key exchange**: `createECDH`, `diffieHellman`, `hkdf`, `pbkdf2`, `scrypt` derive and exchange keys;
+ *  - **Random numbers**: `randomBytes`, `randomFill`, `getRandomValues`, `randomUUID`;
+ *  - **Certificates**: `X509Certificate`, `createCertificateRequest`;
+ *  - **Others**: `getHashes`/`getCiphers`/`getCurves` query the supported lists, `timingSafeEqual` constant-time comparison, BBS signatures (`bbsSign`/`bbsVerify`/`proofGen`/`proofVerify`).
  *
  */
 declare module 'crypto' {
     /**
-     * ! crypto 模块的常量对象，参见 crypto_constants
+     * ! The crypto module's constants object, see crypto_constants
      */
     const constants: typeof import ('crypto_constants');
 
     /**
-     * @description KeyObject 对象，参见 KeyObject
+     * @description The KeyObject object, see KeyObject
      */
     const KeyObject: typeof Class_KeyObject;
 
     /**
-     * @description X509Certificate 构造函数，参见 X509Certificate
+     * @description The X509Certificate constructor, see X509Certificate
      */
     const X509Certificate: typeof Class_X509Certificate;
 
     /**
-     * @description 获取 crypto 模块支持的的 hash(摘要) 算法
-     *      @return 返回支持的 hash 算法数组
+     * @description Gets the hash (digest) algorithms supported by the crypto module
+     *      @return returns the array of supported hash algorithms
      *
      */
     function getHashes(): any[];
 
     /**
-     * @description 根据给定的 ECC 曲线名称创建一个 ECDH 对象
-     *      @param curve 指定 ECC 曲线名称
-     *      @return 返回 ECDH 对象
+     * @description Creates an ECDH object for the given ECC curve name
+     *      @param curve the ECC curve name to use
+     *      @return returns the ECDH object
      *
      */
     function createECDH(curve: string): Class_ECDH;
 
     /**
-     * @description 根据给定的算法名称创建一个信息摘要对象
-     *      @param algo 指定信息摘要对象的算法
-     *      @return 返回信息摘要对象
+     * @description Creates a message digest object for the given algorithm name
+     *      @param algo the algorithm of the message digest object to use
+     *      @return returns the message digest object
      *
      */
     function createHash(algo: string): Class_Digest;
 
     /**
-     * @description 根据给定的算法名称创建一个 hmac 信息摘要对象
-     *      @param algo 指定信息摘要对象的算法
-     *      @param key 二进制签名密钥
-     *      @return 返回信息摘要对象
+     * @description Creates an hmac message digest object for the given algorithm name
+     *      @param algo the algorithm of the message digest object to use
+     *      @param key the binary signing key
+     *      @return returns the message digest object
      *
      */
     function createHmac(algo: string, key: Class_Buffer): Class_Digest;
 
     /**
-     * @description 根据给定的算法名称创建一个 hmac 信息摘要对象
-     *      @param algo 指定信息摘要对象的算法
-     *      @param key 签名密钥，KeyObject 类型
-     *      @return 返回信息摘要对象
+     * @description Creates an hmac message digest object for the given algorithm name
+     *      @param algo the algorithm of the message digest object to use
+     *      @param key the signing key, a KeyObject
+     *      @return returns the message digest object
      *
      */
     function createHmac(algo: string, key: Class_KeyObject): Class_Digest;
 
     /**
-     * @description 获取 crypto 模块支持的的对称加密算法
-     *      @return 返回支持的对称加密算法数组
+     * @description Gets the symmetric encryption algorithms supported by the crypto module
+     *      @return returns the array of supported symmetric encryption algorithms
      *
      */
     function getCiphers(): any[];
 
     /**
-     * @description 根据加密算法名称获取算法信息
-     *      @param name 指定要查询的算法名称
-     *      @param options 可选参数，可指定 keyLength 和 ivLength 用于进一步过滤
-     *      @return 返回包含算法信息的对象，如果算法不存在或选项不匹配则返回 undefined。返回对象包含以下属性：name, nid, blockSize, ivLength, keyLength, mode
+     * @description Gets algorithm information by cipher algorithm name
+     *      @param name the name of the algorithm to query
+     *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
+     *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
      */
     function getCipherInfo(name: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 根据加密算法 NID 获取算法信息
-     *      @param nid 指定要查询的算法 NID
-     *      @param options 可选参数，可指定 keyLength 和 ivLength 用于进一步过滤
-     *      @return 返回包含算法信息的对象，如果算法不存在或选项不匹配则返回 undefined。返回对象包含以下属性：name, nid, blockSize, ivLength, keyLength, mode
+     * @description Gets algorithm information by cipher algorithm NID
+     *      @param nid the NID of the algorithm to query
+     *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
+     *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
      */
     function getCipherInfo(nid: number, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 创建一个对称加密的加密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的加密对象
+     * @description Creates a symmetric encryption cipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric encryption cipher object
      *
      */
     function createCipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 创建一个对称加密的加密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param iv 指定初始向量
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的加密对象
+     * @description Creates a symmetric encryption cipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric encryption cipher object
      *
      */
     function createCipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 创建一个对称加密的加密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param iv 指定初始向量
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的加密对象
+     * @description Creates a symmetric encryption cipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric encryption cipher object
      *
      */
     function createCipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 创建一个对称加密的解密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的解密对象
+     * @description Creates a symmetric decryption decipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric decryption decipher object
      *
      */
     function createDecipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 创建一个对称加密的解密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param iv 指定初始向量
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的解密对象
+     * @description Creates a symmetric decryption decipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric decryption decipher object
      *
      */
     function createDecipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 创建一个对称加密的解密对象
-     *      @param algorithm 指定加密算法
-     *      @param key 指定加密解密密码
-     *      @param iv 指定初始向量
-     *      @param options 指定加密选项
-     *      @return 返回对称加密的解密对象
+     * @description Creates a symmetric decryption decipher object
+     *      @param algorithm the encryption algorithm to use
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
+     *      @param options the encryption options to use
+     *      @return returns the symmetric decryption decipher object
      *
      */
     function createDecipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 获取 crypto 模块支持的的 ecc 曲线
-     *      @return 返回支持的 ecc 曲线
+     * @description Gets the ecc curves supported by the crypto module
+     *      @return returns the supported ecc curves
      *
      */
     function getCurves(): any[];
 
     /**
-     * @description 创建一个新的密钥对象，其中包含非对称加密的私钥
-     *      @param key 指定 pem 格式的私钥
-     *      @return 返回私钥的密钥对象
+     * @description Creates a new key object containing an asymmetric private key
+     *      @param key the private key in pem format to use
+     *      @return returns the key object of the private key
      *
      */
     function createPrivateKey(key: Class_Buffer): Class_KeyObject;
 
     /**
-     * @description 创建一个新的密钥对象，其中包含非对称加密的私钥
+     * @description Creates a new key object containing an asymmetric private key
      *
-     *     参数 key 用于指定创建私钥的配置属性，支持的属性包括:
-     *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
-     *     - format: 必须是 'pem', 'der', 'jwk' 或 'raw'。默认值: 'pem'。Bls12381G1/Bls12381G2 仅支持 'raw'
-     *     - type: 必须是 'pkcs1', 'pkcs8' 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
-     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，或者 SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-     *     - passphrase: 用于解密的密码字符串
-     *     - encoding: 当 key 是字符串时使用的字符串编码
+     *     The key parameter specifies the configuration properties for creating the private key. Supported properties include:
+     *     - key: a PEM string, DER binary or JWK format object
+     *     - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'. Bls12381G1/Bls12381G2 only support 'raw'
+     *     - type: must be 'pkcs1', 'pkcs8' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
+     *     - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
+     *     - passphrase: the password string used for decryption
+     *     - encoding: the string encoding used when key is a string
      *
-     *      @param key 创建私钥的配置属性
-     *      @return 返回私钥的密钥对象
+     *      @param key the configuration properties for creating the private key
+     *      @return returns the key object of the private key
      *
      */
     function createPrivateKey(key: FIBJS.GeneralObject): Class_KeyObject;
 
     /**
-     * @description 创建一个新的密钥对象，其中包含非对称加密的公钥
-     *      @param key 指定 pem 格式的公钥
-     *      @return 返回公钥的密钥对象
+     * @description Creates a new key object containing an asymmetric public key
+     *      @param key the public key in pem format to use
+     *      @return returns the key object of the public key
      *
      */
     function createPublicKey(key: Class_Buffer): Class_KeyObject;
 
     /**
-     * @description 基于给定的私钥创建一个新的密钥对象，其中包含给定私钥对应的公钥
-     *      @param key 指定一个非对称加密的私钥
-     *      @return 返回公钥的密钥对象
+     * @description Creates a new key object containing the public key corresponding to the given private key
+     *      @param key the asymmetric private key to use
+     *      @return returns the key object of the public key
      *
      */
     function createPublicKey(key: Class_KeyObject): Class_KeyObject;
 
     /**
-     * @description 创建一个新的密钥对象，其中包含非对称加密的公钥
+     * @description Creates a new key object containing an asymmetric public key
      *
-     *     参数 key 用于指定创建公钥的配置属性，支持的属性包括:
-     *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
-     *     - format: 必须是 'pem', 'der', 'jwk' 或 'raw'。默认值: 'pem'
-     *     - type: 必须是 'pkcs1', 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
-     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，或者 SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-     *     - encoding: 当 key 是字符串时使用的字符串编码
+     *     The key parameter specifies the configuration properties for creating the public key. Supported properties include:
+     *     - key: a PEM string, DER binary or JWK format object
+     *     - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'
+     *     - type: must be 'pkcs1' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
+     *     - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
+     *     - encoding: the string encoding used when key is a string
      *
-     *      @param key 创建公钥的配置属性
-     *      @return 返回公钥的密钥对象
+     *      @param key the configuration properties for creating the public key
+     *      @return returns the key object of the public key
      *
      */
     function createPublicKey(key: FIBJS.GeneralObject): Class_KeyObject;
 
     /**
-     * @description 基于 algorithm 指定的算法创建一个新的签名对象
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param options 指定签名选项，未使用
-     *      @return 返回签名对象
+     * @description Creates a new signing object based on the algorithm specified by algorithm
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param options the signing options to use, unused
+     *      @return returns the signing object
      *
      */
     function createSign(algorithm: string, options?: FIBJS.GeneralObject): Class_Sign;
 
     /**
-     * @description 基于 algorithm 指定的算法创建一个新的验签对象
-     *      @param algorithm 指定验签算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param options 指定验签选项，未使用
-     *      @return 返回验签对象
+     * @description Creates a new verification object based on the algorithm specified by algorithm
+     *      @param algorithm the verification algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param options the verification options to use, unused
+     *      @return returns the verification object
      *
      */
     function createVerify(algorithm: string, options?: FIBJS.GeneralObject): Class_Verify;
 
     /**
-     * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
-     *      @param key 指定加密解密密码
-     *      @param encoding 指定密码的编码，缺省为 "buffer"
-     *      @return 返回对称加密的解密对象
+     * @description Creates a new key object containing a symmetric encryption or Hmac key
+     *      @param key the encryption/decryption key to use
+     *      @param encoding the encoding of the key, default "buffer"
+     *      @return returns the symmetric decryption decipher object
      *
      */
     function createSecretKey(key: Class_Buffer, encoding?: string): Class_KeyObject;
 
     /**
-     * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
-     *      @param key 指定加密解密密码
-     *      @param encoding 指定密码的编码，缺省为 "buffer"
-     *      @return 返回对称加密的解密对象
+     * @description Creates a new key object containing a symmetric encryption or Hmac key
+     *      @param key the encryption/decryption key to use
+     *      @param encoding the encoding of the key, default "buffer"
+     *      @return returns the symmetric decryption decipher object
      *
      */
     function createSecretKey(key: string, encoding: string): Class_KeyObject;
 
     /**
-     * @description 创建一个新的证书请求对象
-     *      @param csr 指定 PEM 格式的证书请求的数据
-     *      @return 返回证书请求对象
+     * @description Creates a new certificate request object
+     *      @param csr the data of the certificate request in PEM format to use
+     *      @return returns the certificate request object
      *
      */
     function createCertificateRequest(csr: Class_Buffer): Class_X509CertificateRequest;
 
     /**
-     * @description 创建一个新的证书请求对象
+     * @description Creates a new certificate request object
      *
-     *      options 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持指定 subject 和 hashAlgorithm。示例如下：
+     *      The parameters in options are used to call crypto.createPrivateKey to create the private key object; subject and hashAlgorithm can also be specified. Example:
      *
      *      ```JavaScript
      *         var pk = crypto.createPrivateKey(rsa4096_pem);
@@ -298,49 +298,49 @@ declare module 'crypto' {
      *         });
      *      ```
      *
-     *      @param options 指定创建证书请求的选项
-     *      @return 返回证书请求对象
+     *      @param options the options for creating the certificate request
+     *      @return returns the certificate request object
      *
      */
     function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
 
     /**
-     * @description 基于 privateKey 和 publicKey 计算 Diffie-Hellman 密钥
+     * @description Computes a Diffie-Hellman key from privateKey and publicKey
      *
-     *      options 支持以下属性:
-     *       - privateKey: 用于计算的私钥
-     *       - publicKey: 用于计算的公钥
+     *      options supports the following properties:
+     *       - privateKey: the private key used for the computation
+     *       - publicKey: the public key used for the computation
      *
-     *      @param options 指定 Diffie-Hellman 密钥计算的选项
-     *      @return 返回 Diffie-Hellman 密钥
+     *      @param options the options for the Diffie-Hellman key computation
+     *      @return returns the Diffie-Hellman key
      *
      */
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 用于创建数据的一次性哈希摘要的实用程序。当散列少量可用的数据（<= 5MB）时，它比基于对象的 crypto.createHash() 更快。如果数据很大或者是流式传输，仍然建议使用 crypto.createHash()
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param outputEncoding 指定输出编码，缺省为 "hex"
-     *      @return 返回散列后的数据
+     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param outputEncoding the output encoding, default "hex"
+     *      @return returns the hashed data
      *
      */
     function hash(algorithm: string, data: Class_Buffer, outputEncoding?: string): any;
 
     /**
-     * @description 生成指定尺寸的随机数，使用 havege 生成器
-     *      @param size 指定生成的随机数尺寸
-     *      @return 返回生成的随机数
+     * @description Generates a random number of the specified size using the havege generator
+     *      @param size the size of the random number to generate
+     *      @return returns the generated random number
      *
      */
     function randomBytes(size?: number): Class_Buffer;
 
     /**
-     * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
-     *      @param buffer 指定生成的 Buffer
-     *      @param offset 指定起始偏移，缺省为 0
-     *      @param size 指定生成的随机数尺寸，缺省为 buffer.length - offset
-     *      @return 返回生成的随机数
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *      @param buffer the Buffer to fill
+     *      @param offset the starting offset, default 0
+     *      @param size the size of the random numbers to generate, default buffer.length - offset
+     *      @return returns the generated random number
      *
      */
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
@@ -348,63 +348,63 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
-     *      @param buffer 指定生成的 Buffer
-     *      @param offset 指定起始偏移，缺省为 0
-     *      @param size 指定生成的随机数尺寸，缺省为 buffer.length - offset
-     *      @return 返回生成的随机数
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *      @param buffer the Buffer to fill
+     *      @param offset the starting offset, default 0
+     *      @param size the size of the random numbers to generate, default buffer.length - offset
+     *      @return returns the generated random number
      *
      */
     function randomFillSync(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
 
     /**
-     * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
-     *      @param buffer 指定生成的 Buffer
-     *      @param offset 指定起始偏移，缺省为 0
-     *      @param size 指定生成的随机数尺寸，缺省为 buffer.length - offset
-     *      @return 返回生成的随机数
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *      @param buffer the Buffer to fill
+     *      @param offset the starting offset, default 0
+     *      @param size the size of the random numbers to generate, default buffer.length - offset
+     *      @return returns the generated random number
      *
      */
     function randomFillAsync(buffer: Class_Buffer, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 使用强随机数填充指定的 TypedArray
-     *      @param data 指定要填充的 TypedArray
-     *      @return 返回填充后的 TypedArray
+     * @description Fills the specified TypedArray with strong random numbers
+     *      @param data the TypedArray to fill
+     *      @return returns the filled TypedArray
      *
      */
     function getRandomValues(data: TypedArray): TypedArray;
 
     /**
-     * @description 生成一个随机的 RFC 4122 版本 4 的 UUID
-     *      @param options 可选参数，可指定 disableEntropyCache 禁用熵缓存（该选项被忽略，仅为兼容性保留）
-     *      @return 返回一个 UUID v4 字符串
+     * @description Generates a random RFC 4122 version 4 UUID
+     *      @param options optional parameters; disableEntropyCache may be specified to disable the entropy cache (the option is ignored and kept only for compatibility)
+     *      @return returns a UUID v4 string
      *
      */
     function randomUUID(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2
+     * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
      *
-     *     options 支持以下属性:
-     *     - modulusLength: 密钥大小（以位为单位）（RSA、DSA）。
-     *     - publicExponent: 公共指数 (RSA)。默认值: 0x10001。
-     *     - hashAlgorithm: 消息摘要的名称 (RSA-PSS)。
-     *     - mgf1HashAlgorithm: MGF1 (RSA-PSS) 使用的消息摘要的名称。
-     *     - saltLength: 最小盐长度（以字节为单位）（RSA-PSS）。
-     *     - divisorLength: q 的大小（以位 (DSA) 为单位）。
-     *     - namedCurve: 要使用的曲线名称 (EC)。
-     *     - prime: 主要参数 (DH)。
-     *     - primeLength: 质数长度（以位 (DH) 为单位）。
-     *     - generator: 自定义生成器 (DH)。默认值: 2。
-     *     - groupName: <字符串> Diffie-Hellman 组名称 (DH)。请参阅 crypto.getDiffieHellman。
-     *     - paramEncoding: 必须是 'named' 或 'explicit'(EC)。默认值: 'named'。
-     *     - publicKeyEncoding: 请参阅 keyObject.export。
-     *     - privateKeyEncoding: 请参阅 keyObject.export。
+     *     options supports the following properties:
+     *     - modulusLength: key size in bits (RSA, DSA).
+     *     - publicExponent: public exponent (RSA). Default: 0x10001.
+     *     - hashAlgorithm: name of the message digest (RSA-PSS).
+     *     - mgf1HashAlgorithm: name of the message digest used by MGF1 (RSA-PSS).
+     *     - saltLength: minimum salt length in bytes (RSA-PSS).
+     *     - divisorLength: size of q in bits (DSA).
+     *     - namedCurve: name of the curve to use (EC).
+     *     - prime: the prime parameter (DH).
+     *     - primeLength: prime length in bits (DH).
+     *     - generator: custom generator (DH). Default: 2.
+     *     - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
+     *     - paramEncoding: must be 'named' or 'explicit' (EC). Default: 'named'.
+     *     - publicKeyEncoding: see keyObject.export.
+     *     - privateKeyEncoding: see keyObject.export.
      *
-     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448'、'sm2'、'Bls12381G1'、'Bls12381G2'
-     *     @param options 指定生成密钥的选项
-     *     @return 返回包含生成密钥对的对象
+     *     @param type the key type to generate; must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
+     *     @param options the options for generating the key
+     *     @return returns an object containing the generated key pair
      *
      */
     function generateKeyPair(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
@@ -412,65 +412,65 @@ declare module 'crypto' {
     function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any])=>any): void;
 
     /**
-     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2
+     * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
      *
-     *     options 支持以下属性:
-     *     - modulusLength: 密钥大小（以位为单位）（RSA、DSA）。
-     *     - publicExponent: 公共指数 (RSA)。默认值: 0x10001。
-     *     - hashAlgorithm: 消息摘要的名称 (RSA-PSS)。
-     *     - mgf1HashAlgorithm: MGF1 (RSA-PSS) 使用的消息摘要的名称。
-     *     - saltLength: 最小盐长度（以字节为单位）（RSA-PSS）。
-     *     - divisorLength: q 的大小（以位 (DSA) 为单位）。
-     *     - namedCurve: 要使用的曲线名称 (EC)。
-     *     - prime: 主要参数 (DH)。
-     *     - primeLength: 质数长度（以位 (DH) 为单位）。
-     *     - generator: 自定义生成器 (DH)。默认值: 2。
-     *     - groupName: <字符串> Diffie-Hellman 组名称 (DH)。请参阅 crypto.getDiffieHellman。
-     *     - paramEncoding: 必须是 'named' 或 'explicit'(EC)。默认值: 'named'。
-     *     - publicKeyEncoding: 请参阅 keyObject.export。
-     *     - privateKeyEncoding: 请参阅 keyObject.export。
+     *     options supports the following properties:
+     *     - modulusLength: key size in bits (RSA, DSA).
+     *     - publicExponent: public exponent (RSA). Default: 0x10001.
+     *     - hashAlgorithm: name of the message digest (RSA-PSS).
+     *     - mgf1HashAlgorithm: name of the message digest used by MGF1 (RSA-PSS).
+     *     - saltLength: minimum salt length in bytes (RSA-PSS).
+     *     - divisorLength: size of q in bits (DSA).
+     *     - namedCurve: name of the curve to use (EC).
+     *     - prime: the prime parameter (DH).
+     *     - primeLength: prime length in bits (DH).
+     *     - generator: custom generator (DH). Default: 2.
+     *     - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
+     *     - paramEncoding: must be 'named' or 'explicit' (EC). Default: 'named'.
+     *     - publicKeyEncoding: see keyObject.export.
+     *     - privateKeyEncoding: see keyObject.export.
      *
-     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448'、'sm2'、'Bls12381G1'、'Bls12381G2'
-     *     @param options 指定生成密钥的选项
-     *     @return 返回包含生成密钥对的对象
+     *     @param type the key type to generate; must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
+     *     @param options the options for generating the key
+     *     @return returns an object containing the generated key pair
      *
      */
     function generateKeyPairSync(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
 
     /**
-     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2
+     * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
      *
-     *     options 支持以下属性:
-     *     - modulusLength: 密钥大小（以位为单位）（RSA、DSA）。
-     *     - publicExponent: 公共指数 (RSA)。默认值: 0x10001。
-     *     - hashAlgorithm: 消息摘要的名称 (RSA-PSS)。
-     *     - mgf1HashAlgorithm: MGF1 (RSA-PSS) 使用的消息摘要的名称。
-     *     - saltLength: 最小盐长度（以字节为单位）（RSA-PSS）。
-     *     - divisorLength: q 的大小（以位 (DSA) 为单位）。
-     *     - namedCurve: 要使用的曲线名称 (EC)。
-     *     - prime: 主要参数 (DH)。
-     *     - primeLength: 质数长度（以位 (DH) 为单位）。
-     *     - generator: 自定义生成器 (DH)。默认值: 2。
-     *     - groupName: <字符串> Diffie-Hellman 组名称 (DH)。请参阅 crypto.getDiffieHellman。
-     *     - paramEncoding: 必须是 'named' 或 'explicit'(EC)。默认值: 'named'。
-     *     - publicKeyEncoding: 请参阅 keyObject.export。
-     *     - privateKeyEncoding: 请参阅 keyObject.export。
+     *     options supports the following properties:
+     *     - modulusLength: key size in bits (RSA, DSA).
+     *     - publicExponent: public exponent (RSA). Default: 0x10001.
+     *     - hashAlgorithm: name of the message digest (RSA-PSS).
+     *     - mgf1HashAlgorithm: name of the message digest used by MGF1 (RSA-PSS).
+     *     - saltLength: minimum salt length in bytes (RSA-PSS).
+     *     - divisorLength: size of q in bits (DSA).
+     *     - namedCurve: name of the curve to use (EC).
+     *     - prime: the prime parameter (DH).
+     *     - primeLength: prime length in bits (DH).
+     *     - generator: custom generator (DH). Default: 2.
+     *     - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
+     *     - paramEncoding: must be 'named' or 'explicit' (EC). Default: 'named'.
+     *     - publicKeyEncoding: see keyObject.export.
+     *     - privateKeyEncoding: see keyObject.export.
      *
-     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448'、'sm2'、'Bls12381G1'、'Bls12381G2'
-     *     @param options 指定生成密钥的选项
-     *     @return 返回包含生成密钥对的对象
+     *     @param type the key type to generate; must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
+     *     @param options the options for generating the key
+     *     @return returns an object containing the generated key pair
      *
      */
     function generateKeyPairAsync(type: string, options?: FIBJS.GeneralObject): Promise<[publicKey: any, privateKey: any]>;
 
     /**
-     * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @param password 指定使用的密码
-     *      @param salt 指定 khdf 使用的 salt
-     *      @param info 指定 khdf 使用的 info
-     *      @param size 指定钥匙尺寸
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param password the password to use
+     *      @param salt the salt used by khdf
+     *      @param info the info used by khdf
+     *      @param size the key size to use
+     *      @return returns the generated binary key
      *
      */
     function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Class_Buffer;
@@ -478,37 +478,37 @@ declare module 'crypto' {
     function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @param password 指定使用的密码
-     *      @param salt 指定 khdf 使用的 salt
-     *      @param info 指定 khdf 使用的 info
-     *      @param size 指定钥匙尺寸
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param password the password to use
+     *      @param salt the salt used by khdf
+     *      @param info the info used by khdf
+     *      @param size the key size to use
+     *      @return returns the generated binary key
      *
      */
     function hkdfSync(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Class_Buffer;
 
     /**
-     * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @param password 指定使用的密码
-     *      @param salt 指定 khdf 使用的 salt
-     *      @param info 指定 khdf 使用的 info
-     *      @param size 指定钥匙尺寸
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param password the password to use
+     *      @param salt the salt used by khdf
+     *      @param info the info used by khdf
+     *      @param size the key size to use
+     *      @return returns the generated binary key
      *
      */
     function hkdfAsync(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 pbkdf2 算法根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
+     *      @param iterations the number of iterations to use
+     *      @param size the key size to use
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @return returns the generated binary key
      *
      */
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
@@ -516,36 +516,36 @@ declare module 'crypto' {
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 pbkdf2 算法根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
+     *      @param iterations the number of iterations to use
+     *      @param size the key size to use
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @return returns the generated binary key
      *
      */
     function pbkdf2Sync(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
-     * @description 使用 pbkdf2 算法根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
+     *      @param iterations the number of iterations to use
+     *      @param size the key size to use
+     *      @param algoName the hash algorithm to use, see the hash module
+     *      @return returns the generated binary key
      *
      */
     function pbkdf2Async(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 scrypt 算法生成密钥
-     *      @param password 指定使用的密码
-     *      @param salt 指定使用的 salt
-     *      @param keylen 指定要生成的密钥长度
-     *      @param options 指定可选参数，支持 N, r, p, maxmem
-     *      @return 返回生成的二进制钥匙
+     * @description Generates a key using the scrypt algorithm
+     *      @param password the password to use
+     *      @param salt the salt to use
+     *      @param keylen the length of the key to generate
+     *      @param options optional parameters; supports N, r, p, maxmem
+     *      @return returns the generated binary key
      *
      */
     function scrypt(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
@@ -553,141 +553,141 @@ declare module 'crypto' {
     function scrypt(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 scrypt 算法生成密钥
-     *      @param password 指定使用的密码
-     *      @param salt 指定使用的 salt
-     *      @param keylen 指定要生成的密钥长度
-     *      @param options 指定可选参数，支持 N, r, p, maxmem
-     *      @return 返回生成的二进制钥匙
+     * @description Generates a key using the scrypt algorithm
+     *      @param password the password to use
+     *      @param salt the salt to use
+     *      @param keylen the length of the key to generate
+     *      @param options optional parameters; supports N, r, p, maxmem
+     *      @return returns the generated binary key
      *
      */
     function scryptSync(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 scrypt 算法生成密钥
-     *      @param password 指定使用的密码
-     *      @param salt 指定使用的 salt
-     *      @param keylen 指定要生成的密钥长度
-     *      @param options 指定可选参数，支持 N, r, p, maxmem
-     *      @return 返回生成的二进制钥匙
+     * @description Generates a key using the scrypt algorithm
+     *      @param password the password to use
+     *      @param salt the salt to use
+     *      @param keylen the length of the key to generate
+     *      @param options optional parameters; supports N, r, p, maxmem
+     *      @return returns the generated binary key
      *
      */
     function scryptAsync(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
-     *      @param privateKey 指定私钥
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
+     *      @param privateKey the private key to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function privateDecrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
-     *      @param privateKey 指定私钥
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
+     *      @param privateKey the private key to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function privateDecrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 key 指定的私钥和配置解密 buffer。buffer 之前已使用相应的公钥进行加密
-     *      @param key 指定私钥和配置
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with the private key and configuration specified by key. buffer was previously encrypted with the corresponding public key
+     *      @param key the private key and configuration to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function privateDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
     /**
-     * @description 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
-     *      @param privateKey 指定私钥
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
+     *      @param privateKey the private key to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function privateEncrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
-     *      @param privateKey 指定私钥
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
+     *      @param privateKey the private key to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function privateEncrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的公钥进行解密
-     *      @param key 指定私钥和配置
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding public key
+     *      @param key the private key and configuration to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function privateEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
     /**
-     * @description 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
-     *      @param publicKey 指定公钥
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
+     *      @param publicKey the public key to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function publicDecrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
-     *      @param publicKey 指定公钥
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
+     *      @param publicKey the public key to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function publicDecrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 key 指定的公钥和配置解密 buffer。buffer 之前已使用相应的私钥加密
-     *      @param key 指定公钥和配置
-     *      @param buffer 指定要解密的数据
-     *      @return 返回解密后的数据
+     * @description Decrypts buffer with the public key and configuration specified by key. buffer was previously encrypted with the corresponding private key
+     *      @param key the public key and configuration to use
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
      *
      */
     function publicDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
     /**
-     * @description 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
-     *      @param publicKey 指定私钥
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
+     *      @param publicKey the private key to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function publicEncrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
-     *      @param publicKey 指定私钥
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
+     *      @param publicKey the private key to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function publicEncrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的私钥进行解密
-     *      @param key 指定私钥和配置
-     *      @param buffer 指定要加密的数据
-     *      @return 返回加密后的数据
+     * @description Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding private key
+     *      @param key the private key and configuration to use
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
      *
      */
     function publicEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
@@ -695,31 +695,31 @@ declare module 'crypto' {
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function signSync(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function signAsync(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Promise<Class_Buffer>;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
@@ -727,41 +727,41 @@ declare module 'crypto' {
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function signSync(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param privateKey 指定私钥
-     *      @return 返回签名后的数据
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param privateKey the private key to use
+     *      @return returns the signed data
      *
      */
     function signAsync(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param key 指定私钥和签名参数
-     *      @return 返回签名后的数据
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param key the private key and signing parameters to use
+     *      @return returns the signed data
      *
      */
     function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
@@ -769,52 +769,52 @@ declare module 'crypto' {
     function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param key 指定私钥和签名参数
-     *      @return 返回签名后的数据
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param key the private key and signing parameters to use
+     *      @return returns the signed data
      *
      */
     function signSync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要签名的数据
-     *      @param key 指定私钥和签名参数
-     *      @return 返回签名后的数据
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to sign
+     *      @param key the private key and signing parameters to use
+     *      @return returns the signed data
      *
      */
     function signAsync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
@@ -822,34 +822,34 @@ declare module 'crypto' {
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifySync(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifyAsync(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
@@ -857,44 +857,44 @@ declare module 'crypto' {
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifySync(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param publicKey 指定公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param publicKey the public key to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifyAsync(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param key 指定私钥和签名参数
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param key the private key and signing parameters to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
@@ -902,61 +902,61 @@ declare module 'crypto' {
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param key 指定私钥和签名参数
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param key the private key and signing parameters to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifySync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建私钥对象，此外还支持以下签名参数：
-     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一:
-     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s)
-     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
-     *      - padding RSA 的可选填充值，以下之一:
-     *       - RSA_PKCS1_PADDING（默认）
-     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
-     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
+     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
+     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
+     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     *      - padding optional RSA padding value, one of the following:
+     *       - RSA_PKCS1_PADDING (default)
+     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
-     *      @param data 指定要验证的数据
-     *      @param key 指定私钥和签名参数
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
+     *      @param data the data to verify
+     *      @param key the private key and signing parameters to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function verifyAsync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 比较给定的两个数据是否相等，使用时间常量比较，防止时间侧信道攻击
-     *      @param a 指定要比较的数据
-     *      @param b 指定要比较的数据
-     *      @return 返回比较结果
+     * @description Compares whether the two given pieces of data are equal, using constant-time comparison to prevent timing side-channel attacks
+     *      @param a the data to compare
+     *      @param b the data to compare
+     *      @return returns the comparison result
      *
      */
     function timingSafeEqual(a: Class_Buffer, b: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSign(messages: Class_Buffer[], privateKey: Class_Buffer): Class_Buffer;
@@ -964,28 +964,28 @@ declare module 'crypto' {
     function bbsSign(messages: Class_Buffer[], privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSignSync(messages: Class_Buffer[], privateKey: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSignAsync(messages: Class_Buffer[], privateKey: Class_Buffer): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSign(messages: Class_Buffer[], privateKey: Class_KeyObject): Class_Buffer;
@@ -993,33 +993,33 @@ declare module 'crypto' {
     function bbsSign(messages: Class_Buffer[], privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSignSync(messages: Class_Buffer[], privateKey: Class_KeyObject): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
-     *      @param messages 指定要签名的一组消息
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
-     *      @return 返回签名后的数据
+     * @description Function for BBS signing with Bls12381G2
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key to use; must be a Bls12381G2 private key
+     *      @return returns the signed data
      *
      */
     function bbsSignAsync(messages: Class_Buffer[], privateKey: Class_KeyObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     * @description Function for BBS signing with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要签名的一组消息
-     *      @param key 指定私钥和选项
-     *      @return 返回签名后的数据
+     *      @param messages the group of messages to sign
+     *      @param key the private key and options to use
+     *      @return returns the signed data
      *
      */
     function bbsSign(messages: Class_Buffer[], key: FIBJS.GeneralObject): Class_Buffer;
@@ -1027,39 +1027,39 @@ declare module 'crypto' {
     function bbsSign(messages: Class_Buffer[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     * @description Function for BBS signing with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要签名的一组消息
-     *      @param key 指定私钥和选项
-     *      @return 返回签名后的数据
+     *      @param messages the group of messages to sign
+     *      @param key the private key and options to use
+     *      @return returns the signed data
      *
      */
     function bbsSignSync(messages: Class_Buffer[], key: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     * @description Function for BBS signing with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要签名的一组消息
-     *      @param key 指定私钥和选项
-     *      @return 返回签名后的数据
+     *      @param messages the group of messages to sign
+     *      @param key the private key and options to use
+     *      @return returns the signed data
      *
      */
     function bbsSignAsync(messages: Class_Buffer[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerify(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): boolean;
@@ -1067,31 +1067,31 @@ declare module 'crypto' {
     function bbsVerify(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifySync(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifyAsync(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerify(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
@@ -1099,36 +1099,36 @@ declare module 'crypto' {
     function bbsVerify(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifySync(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     * @description Function for BBS verification with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifyAsync(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     * @description Function for BBS verification with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param key 指定公钥和选项
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param key the public key and options to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerify(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
@@ -1136,42 +1136,42 @@ declare module 'crypto' {
     function bbsVerify(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     * @description Function for BBS verification with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param key 指定公钥和选项
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param key the public key and options to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifySync(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     * @description Function for BBS verification with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param key 指定公钥和选项
-     *      @param signature 指定签名数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param key the public key and options to use
+     *      @param signature the signature data to use
+     *      @return returns the verification result
      *
      */
     function bbsVerifyAsync(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Class_Buffer;
@@ -1179,34 +1179,34 @@ declare module 'crypto' {
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Class_Buffer;
@@ -1214,40 +1214,40 @@ declare module 'crypto' {
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @return 返回证明数据
+     * @description Function for generating a BBS selective proof with Bls12381G2
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @return returns the proof data
      *
      */
     function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @return 返回证明数据
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @return returns the proof data
      *
      */
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Class_Buffer;
@@ -1255,46 +1255,46 @@ declare module 'crypto' {
     function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @return 返回证明数据
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @return returns the proof data
      *
      */
     function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param signature 指定 BBS 签名
-     *      @param messages 指定要签名的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @return 返回证明数据
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @return returns the proof data
      *
      */
     function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): boolean;
@@ -1302,34 +1302,34 @@ declare module 'crypto' {
     function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifySync(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifyAsync(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): boolean;
@@ -1337,40 +1337,40 @@ declare module 'crypto' {
     function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifySync(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     * @description Function for verifying a BBS selective proof with Bls12381G2
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param publicKey the public key to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifyAsync(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerify(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
@@ -1378,46 +1378,46 @@ declare module 'crypto' {
     function proofVerify(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifySync(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
 
     /**
-     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
-     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
-     *       - header: 用于签名的附加数据
-     *       - proof_header: 用于证明的附加数据
+     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
+     *       - header: additional data used for signing
+     *       - proof_header: additional data used for the proof
      *
-     *      @param messages 指定要验证的一组消息
-     *      @param index 指定要选择的证明的索引
-     *      @param key 指定公钥和选项
-     *      @param proof 指定证明数据
-     *      @return 返回验证结果
+     *      @param messages the group of messages to verify
+     *      @param index the indices of the proof to select
+     *      @param key the public key and options to use
+     *      @param proof the proof data to use
+     *      @return returns the verification result
      *
      */
     function proofVerifyAsync(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description WebCrypto API 模块
+     * @description WebCrypto API module
      */
     const webcrypto: typeof import ('webcrypto');
 
     /**
-     * @description 提供对 SubtleCrypto API 的访问
+     * @description Provides access to the SubtleCrypto API
      */
     const subtle: typeof import ('subtle');
 

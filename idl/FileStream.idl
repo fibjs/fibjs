@@ -1,0 +1,17 @@
+/*! @brief File operation object, used for binary file read/write
+
+ The file operation object is used to operate on binary files; the fs module can be used to open and create files:
+ ```JavaScript
+ var f = fs.openFile('test.txt');
+ ```
+ */
+interface FileStream : SeekableStream
+{
+    /*! @brief Queries the current file name */
+    readonly String name;
+
+    /*! @brief Queries the access permission of the current file; not supported on Windows
+     @param mode the access permission to set
+     */
+    chmod(Integer mode) async;
+};

@@ -2,51 +2,51 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Menu.d.ts" />
 /**
- * @description 菜单项接口，继承自 EventEmitter。
+ * @description Menu item interface, inherits from EventEmitter.
  */
 declare class Class_MenuItem extends Class_EventEmitter {
     /**
-     * @description 菜单项的唯一标识符。
+     * @description Unique identifier of the menu item.
      */
     id: string;
 
     /**
-     * @description 菜单项的类型。
+     * @description Type of the menu item.
      */
     readonly type: string;
 
     /**
-     * @description 菜单项的图标。
+     * @description Icon of the menu item.
      */
     icon: string;
 
     /**
-     * @description 菜单项的标签。
+     * @description Label of the menu item.
      */
     label: string;
 
     /**
-     * @description 菜单项的提示信息。
+     * @description Tooltip of the menu item.
      */
     tooltip: string;
 
     /**
-     * @description 菜单项是否启用。
+     * @description Whether the menu item is enabled.
      */
     enabled: boolean;
 
     /**
-     * @description 菜单项是否被选中。
+     * @description Whether the menu item is checked.
      */
     checked: boolean;
 
     /**
-     * @description 子菜单。
+     * @description Submenu.
      */
     readonly submenu: Class_Menu;
 
     /**
-     * @description 菜单项的点击事件处理函数。
+     * @description Click event handler of the menu item.
      */
     on(event: "click", listener: ()=>void): this;
 

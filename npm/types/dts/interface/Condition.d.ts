@@ -1,17 +1,17 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
- * @description 条件变量对象
+ * @description Condition variable object
  *
- *  条件变量是利用纤程间共享的全局变量来进行同步的一种机制，主要包括两个动作：
- *  1）一个线程等待某个条件成立，而将自己挂起；
- *  2）另一个线程使条件成立，并通知等待的纤程向下执行。
+ *  A condition variable is a mechanism for synchronization using global variables shared between fibers; it mainly involves two actions:
+ *  1) one thread waits for a condition to become true and suspends itself;
+ *  2) another thread makes the condition true and notifies the waiting fibers to continue execution.
  *
- *  为了防止竞争，每个条件变量都需要一个Lock的配合（Lock可自行显式创建并传递进来，也可交由fibjs为您创建）
+ *  To prevent races, each condition variable needs to work with a Lock (the Lock can be created explicitly and passed in, or fibjs can create it for you)
  *
- *  通过使用条件变量，可以利用一个条件变量控制一批纤程的开关；
+ *  By using a condition variable, one condition variable can control the switching of a batch of fibers;
  *
- *  以下是两个纤程调度的实例：
+ *  The following is an example of scheduling two fibers:
  *  ```JavaScript
  *  var coroutine = require("coroutine");
  *  var cond = new coroutine.Condition();
@@ -44,21 +44,21 @@
  */
 declare class Class_Condition extends Class_Lock {
     /**
-     * @description 条件变量构造函数（条件变量所需的锁由fibjs内部构造）
+     * @description Condition variable constructor (the lock needed by the condition variable is constructed internally by fibjs)
      */
     constructor();
 
     /**
-     * @description 条件变量构造函数
-     *      @param lock 使用自行构造的锁
+     * @description Condition variable constructor
+     *      @param lock use a self-constructed lock
      *
      */
     constructor(lock: Class_Lock);
 
     /**
-     * @description 等待一个条件变量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     wait(timeout?: number): boolean;
@@ -66,28 +66,28 @@ declare class Class_Condition extends Class_Lock {
     wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 等待一个条件变量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     waitSync(timeout?: number): boolean;
 
     /**
-     * @description 等待一个条件变量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     waitAsync(timeout?: number): Promise<boolean>;
 
     /**
-     * @description 通知一个被阻塞的纤程（最后加入纤程池的）向下继续执行
+     * @description Notifies one blocked fiber (the last one added to the fiber pool) to continue execution
      */
     notify(): void;
 
     /**
-     * @description 通知所有被阻塞的纤程向下继续执行
+     * @description Notifies all blocked fibers to continue execution
      */
     notifyAll(): void;
 

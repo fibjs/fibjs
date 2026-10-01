@@ -1,0 +1,21 @@
+/*! @brief The PerformanceObserverEntryList object contains the detailed information of the performance entries observed by the PerformanceObserver */
+interface PerformanceObserverEntryList : object
+{
+    /*! @brief Queries the detailed information of all performance entries.
+     @return an array of PerformanceEntry objects
+    */
+    NArray getEntries();
+
+    /*! @brief Queries the detailed information of performance entries by name
+     @param name a string, representing the name of the performance entry.
+     @param entryType a string, representing the type of the performance entry.
+     @return an array of PerformanceEntry objects
+    */
+    NArray getEntriesByName(String name, String entryType = "");
+
+    /*! @brief Queries the detailed information of performance entries by type
+     @param entryType a string, representing the type of the performance entry.
+     @return an array of PerformanceEntry objects
+    */
+    NArray getEntriesByType(String entryType);
+};

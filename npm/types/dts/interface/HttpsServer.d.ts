@@ -3,9 +3,9 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description HttpsServer 是用于创建 https 服务器的对象，HttpsServer 对象可以使用 HttpServer 所有的接口函数和属性。HttpsServer 对象可以通过在创建时传入之前使用 openssl 生成的证书对象 (X509Cert 类型) 和密钥对象 (PKey 类型)，从而为客户端提供 tls/ssl 加密保护的服务
+ * @description HttpsServer is the object used to create an https server; an HttpsServer object can use all the interface functions and properties of HttpServer. An HttpsServer object can be provided with a certificate object (X509Cert type) and a key object (PKey type) generated earlier with openssl when it is created, thereby providing tls/ssl encrypted services for clients
  *
- *  https 服务器对象是将 TLSServer 和 HttpHandler 组合封装的对象，方便快速搭建服务器，逻辑上相当于：
+ *  The https server object combines and encapsulates TLSServer and HttpHandler to make it easy to build a server quickly; logically, it is equivalent to:
  *  ```JavaScript
  *  var svr = new tls.Server({
  *         crt,
@@ -15,7 +15,7 @@
  *  }));
  *  ```
  *
- * 下面是一个使用 HttpsServer 的示例代码：
+ * The following is a sample code using HttpsServer:
  * ```JavaScript
  * const http = require("http");
  *
@@ -29,67 +29,67 @@
  * server.start();
  * ```
  *
- * 在上面的例子中，我们加载了一个名为 "server.crt" 和 "server.key" 的证书和私钥文件，然后使用 HttpsServer 对象创建了一个服务，并开启了监听 8443 端口的服务，当客户端通过"https://localhost:8443/" 访问服务时，就可以受到 ssl 加密保护。
+ * In the example above, we load a certificate file named "server.crt" and a private key file named "server.key", then create a service using the HttpsServer object and start listening on port 8443; when a client accesses the service via "https://localhost:8443/", it is protected by ssl encryption.
  *
- * 需要注意的是，如果是需要让外部访问的话，需要确保证书是公信机构颁发的，否则客户端无法验证，降低了性能和安全，并可能触发安全警告。
+ * Note that if external access is required, the certificate must be issued by a trusted authority; otherwise clients cannot verify it, which reduces performance and security and may trigger security warnings.
  *
  */
 declare class Class_HttpsServer extends Class_HttpServer {
     /**
-     * @description HttpsServer 构造函数，在所有本机地址侦听
-     *     @param context SecureContext 安全上下文
-     *     @param port 指定 http 服务器侦听端口
-     *     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+     * @description HttpsServer constructor, listens on all local addresses
+     *     @param context the SecureContext secure context
+     *     @param port specifies the port on which the http server listens
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
     constructor(context: Class_SecureContext, port: number, hdlr: Class_Handler);
 
     /**
-     * @description HttpsServer 构造函数
-     *      @param context SecureContext 安全上下文
-     *      @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
-     *      @param port 指定 http 服务器侦听端口
-     *      @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+     * @description HttpsServer constructor
+     *      @param context the SecureContext secure context
+     *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+     *      @param port specifies the port on which the http server listens
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
     constructor(context: Class_SecureContext, addr: string, port: number, hdlr: Class_Handler);
 
     /**
-     * @description HttpsServer 构造函数，在所有本机地址侦听
+     * @description HttpsServer constructor, listens on all local addresses
      *
-     *      options 除用于创建 SecureContext 的属性之外，还可提供以下属性：
-     *      - address: 指定监听的地址，可选，默认在所有地址监听
-     *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
+     *      In addition to the properties used to create a SecureContext, options can also provide the following properties:
+     *      - address: specifies the listening address, optional, by default listens on all addresses
+     *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
      *
-     *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
-     *      @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
     constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler);
 
     /**
-     * @description HttpsServer 构造函数，不绑定端口，需调用 listen() 启动
-     *      @param context SecureContext 安全上下文
-     *      @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象
+     * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *      @param context the SecureContext secure context
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
     constructor(context: Class_SecureContext, hdlr: Class_Handler);
 
     /**
-     * @description 查询当前 HttpsServer 使用的 SecureContext
+     * @description queries the SecureContext used by the current HttpsServer
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description 设置当前 HttpsServer 使用的 SecureContext
-     *     @param context 指定新的 SecureContext
+     * @description sets the SecureContext used by the current HttpsServer
+     *     @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext): void;
 
     /**
-     * @description 设置当前 HttpsServer 使用的 SecureContext
-     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     * @description sets the SecureContext used by the current HttpsServer
+     *     @param options the options needed to create a secure context with tls.createSecureContext
      *
      */
     setSecureContext(options: FIBJS.GeneralObject): void;

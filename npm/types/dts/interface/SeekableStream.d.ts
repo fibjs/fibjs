@@ -2,39 +2,39 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
 /**
- * @description 可移动当前指针的流对象接口
+ * @description Stream object interface with a movable current pointer
  */
 declare class Class_SeekableStream extends Class_Stream {
     /**
-     * @description 移动文件当前操作位置
-     *       @param offset 指定新的位置
-     *       @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
+     * @description Moves the current file operation position
+     *       @param offset the new position
+     *       @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
      *
      */
     seek(offset: number, whence: number): void;
 
     /**
-     * @description 查询流当前位置
-     *      @return 返回流当前位置
+     * @description Queries the current stream position
+     *      @return returns the current stream position
      *
      */
     tell(): number;
 
     /**
-     * @description 移动当前位置到流开头
+     * @description Moves the current position to the beginning of the stream
      */
     rewind(): void;
 
     /**
-     * @description 查询流尺寸
-     *      @return 返回流尺寸
+     * @description Queries the stream size
+     *      @return returns the stream size
      *
      */
     size(): number;
 
     /**
-     * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-     *       @param bytes 新的文件尺寸
+     * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
+     *       @param bytes the new file size
      *
      */
     truncate(bytes: number): void;
@@ -42,29 +42,29 @@ declare class Class_SeekableStream extends Class_Stream {
     truncate(bytes: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-     *       @param bytes 新的文件尺寸
+     * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
+     *       @param bytes the new file size
      *
      */
     truncateSync(bytes: number): void;
 
     /**
-     * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-     *       @param bytes 新的文件尺寸
+     * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
+     *       @param bytes the new file size
      *
      */
     truncateAsync(bytes: number): Promise<void>;
 
     /**
-     * @description 查询文件是否到结尾
-     *      @return 返回 True 表示结尾
+     * @description Queries whether the file is at the end
+     *      @return returns True if at the end
      *
      */
     eof(): boolean;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回 Stat 对象描述文件信息
+     * @description Queries the basic information of the current file
+     *      @return returns the Stat object describing the file information
      *
      */
     stat(): Class_Stat;
@@ -72,15 +72,15 @@ declare class Class_SeekableStream extends Class_Stream {
     stat(callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回 Stat 对象描述文件信息
+     * @description Queries the basic information of the current file
+     *      @return returns the Stat object describing the file information
      *
      */
     statSync(): Class_Stat;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回 Stat 对象描述文件信息
+     * @description Queries the basic information of the current file
+     *      @return returns the Stat object describing the file information
      *
      */
     statAsync(): Promise<Class_Stat>;

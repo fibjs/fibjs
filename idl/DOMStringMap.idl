@@ -1,0 +1,26 @@
+/*! @brief The DOMStringMap object represents the key-value mapping of the data-* attributes of an element, commonly used for the dataset property
+
+ Reads and writes are synchronized to the data-* attributes of the element in real time: reads convert data-xxx-yyy to a camelCase key,
+ and writes convert the camelCase key back to the data-* attribute name.
+
+ Example:
+ ```JavaScript
+ var doc = new DOMParser().parseFromString('<div id="a" data-user-id="1"></div>', 'text/html');
+ var el = doc.getElementById('a');
+
+ console.log(el.dataset.userId); // "1"
+ el.dataset.sourceHash = 'abc';
+ console.log(el.getAttribute('data-source-hash')); // "abc"
+ delete el.dataset.sourceHash;
+ ```
+ */
+interface DOMStringMap : object
+{
+    /*! @brief Accesses data-* attributes with camelCase keys, e.g. dataset.userId corresponds to data-user-id
+    */
+    Variant operator[String];
+
+    /*! @brief Accesses data-* attributes with numeric keys, e.g. dataset[123] corresponds to data-123
+    */
+    readonly Variant operator[];
+};

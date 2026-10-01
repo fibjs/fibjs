@@ -1,0 +1,21 @@
+/*! @brief Basic module management */
+module module
+{
+    /*!@brief Creates a module require function
+     @param base the base path of the module
+     @return returns a module require function
+    */
+    static Function createRequire(String base);
+
+    /*!@brief Built-in module name list
+     The built-in module name list. Contains all fibjs built-in module names, and the versions with the node: prefix.
+    */
+    static readonly Array builtinModules;
+
+    /*!@brief Enables module compile cache
+     In fibjs it is a no-op; used to cache V8 compiled bytecode to disk to speed up subsequent startup.
+     @param cacheDir the cache directory path, optional
+     @return an object containing status and message; status 2 means not supported
+    */
+    static Object enableCompileCache(String cacheDir = "");
+};

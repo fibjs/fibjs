@@ -1,0 +1,189 @@
+/*! @brief Commonly used constants of the fs module
+
+ Usage:
+ ```JavaScript
+ var constants = require('fs').constants
+ ```
+ */
+module fs_constants
+{
+    /*! @brief Seek method constant, moves to an absolute position */
+    const SEEK_SET = 0;
+
+    /*! @brief Seek method constant, moves relative to the current position */
+    const SEEK_CUR = 1;
+
+    /*! @brief Seek method constant, moves relative to the end of the file */
+    const SEEK_END = 2;
+
+    /*! @brief Symbolic link to a directory */
+    const UV_FS_SYMLINK_DIR = 1;
+
+    /*! @brief Symbolic link to a junction */
+    const UV_FS_SYMLINK_JUNCTION = 2;
+
+    /*! @brief Open for reading only */
+    const O_RDONLY = 0;
+
+    /*! @brief Open for writing only */
+    const O_WRONLY = 1;
+
+    /*! @brief Open for reading and writing */
+    const O_RDWR = 2;
+
+    /*! @brief Unknown directory entry type */
+    const UV_DIRENT_UNKNOWN = 0;
+
+    /*! @brief File directory entry type */
+    const UV_DIRENT_FILE = 1;
+
+    /*! @brief Directory entry type */
+    const UV_DIRENT_DIR = 2;
+
+    /*! @brief Symbolic link directory entry type */
+    const UV_DIRENT_LINK = 3;
+
+    /*! @brief FIFO directory entry type */
+    const UV_DIRENT_FIFO = 4;
+
+    /*! @brief Socket directory entry type */
+    const UV_DIRENT_SOCKET = 5;
+
+    /*! @brief Character device directory entry type */
+    const UV_DIRENT_CHAR = 6;
+
+    /*! @brief Block device directory entry type */
+    const UV_DIRENT_BLOCK = 7;
+
+    /*! @brief Bit mask for the file type bit field */
+    const S_IFMT = 61440;
+
+    /*! @brief Regular file */
+    const S_IFREG = 32768;
+
+    /*! @brief Directory */
+    const S_IFDIR = 16384;
+
+    /*! @brief Character device */
+    const S_IFCHR = 8192;
+
+    /*! @brief Block device */
+    const S_IFBLK = 24576;
+
+    /*! @brief FIFO */
+    const S_IFIFO = 4096;
+
+    /*! @brief Symbolic link */
+    const S_IFLNK = 40960;
+
+    /*! @brief Socket */
+    const S_IFSOCK = 49152;
+
+    /*! @brief Create the file when it does not exist */
+    const O_CREAT = 512;
+
+    /*! @brief Ensure exclusive creation of the file */
+    const O_EXCL = 2048;
+
+    /*! @brief File mapping flag */
+    const UV_FS_O_FILEMAP = 0;
+
+    /*! @brief Do not assign a controlling terminal */
+    const O_NOCTTY = 131072;
+
+    /*! @brief Truncate the file to zero length */
+    const O_TRUNC = 1024;
+
+    /*! @brief Append to the end of the file */
+    const O_APPEND = 8;
+
+    /*! @brief Open a directory */
+    const O_DIRECTORY = 1048576;
+
+    /*! @brief Do not follow symbolic links */
+    const O_NOFOLLOW = 256;
+
+    /*! @brief Synchronous I/O */
+    const O_SYNC = 128;
+
+    /*! @brief Synchronous I/O data integrity completion */
+    const O_DSYNC = 4194304;
+
+    /*! @brief Allow opening a symbolic link */
+    const O_SYMLINK = 2097152;
+
+    /*! @brief Non-blocking mode */
+    const O_NONBLOCK = 4;
+
+    /*! @brief Owner read, write and execute permission */
+    const S_IRWXU = 448;
+
+    /*! @brief Owner read permission */
+    const S_IRUSR = 256;
+
+    /*! @brief Owner write permission */
+    const S_IWUSR = 128;
+
+    /*! @brief Owner execute permission */
+    const S_IXUSR = 64;
+
+    /*! @brief Group read, write and execute permission */
+    const S_IRWXG = 56;
+
+    /*! @brief Group read permission */
+    const S_IRGRP = 32;
+
+    /*! @brief Group write permission */
+    const S_IWGRP = 16;
+
+    /*! @brief Group execute permission */
+    const S_IXGRP = 8;
+
+    /*! @brief Others read, write and execute permission */
+    const S_IRWXO = 7;
+
+    /*! @brief Others read permission */
+    const S_IROTH = 4;
+
+    /*! @brief Others write permission */
+    const S_IWOTH = 2;
+
+    /*! @brief Others execute permission */
+    const S_IXOTH = 1;
+
+    /*! @brief Test whether the file exists */
+    const F_OK = 0;
+
+    /*! @brief Test read permission */
+    const R_OK = 4;
+
+    /*! @brief Test write permission */
+    const W_OK = 2;
+
+    /*! @brief Test execute permission */
+    const X_OK = 1;
+
+    /*! @brief Exclusive file copy flag */
+    const UV_FS_COPYFILE_EXCL = 1;
+
+    /*! @brief Exclusive file copy flag */
+    const COPYFILE_EXCL = 1;
+
+    /*! @brief File clone copy flag */
+    const UV_FS_COPYFILE_FICLONE = 2;
+
+    /*! @brief File clone copy flag */
+    const COPYFILE_FICLONE = 2;
+
+    /*! @brief Forced file clone copy flag */
+    const UV_FS_COPYFILE_FICLONE_FORCE = 4;
+
+    /*! @brief Forced file clone copy flag */
+    const COPYFILE_FICLONE_FORCE = 4;
+
+    /*! @brief Treat extensionless modules as javascript, consistent with Node.js */
+    const EXTENSIONLESS_FORMAT_JAVASCRIPT = 0;
+
+    /*! @brief Treat extensionless modules as wasm, consistent with Node.js */
+    const EXTENSIONLESS_FORMAT_WASM = 1;
+};

@@ -1,0 +1,55 @@
+/*! @brief Smtp object
+
+ */
+interface Smtp : object
+{
+    /*! @brief Smtp object constructor */
+    Smtp();
+
+    /*! @brief Establishes a connection to the specified server
+     @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
+     */
+    connect(String url) async;
+
+    /*! @brief Sends the specified command and returns the response; throws an error if the server reports an error
+     @param cmd command name
+     @param arg parameter
+     @return returns the server response on success
+     */
+    String command(String cmd, String arg) async;
+
+    /*! @brief Sends the HELO command; throws an error if the server reports an error
+     @param hostname host name, default is "localhost"
+     */
+    hello(String hostname = "localhost") async;
+
+    /*! @brief Logs in to the server with the specified user and password; throws an error if the server reports an error
+     @param username user name
+     @param password password
+     */
+    login(String username, String password) async;
+
+    /*! @brief Specifies the sender mailbox; throws an error if the server reports an error
+     @param address sender mailbox
+     */
+    from(String address) async;
+
+    /*! @brief Specifies the recipient mailbox; throws an error if the server reports an error
+     @param address recipient mailbox
+     */
+    to(String address) async;
+
+    /*! @brief Sends text to the recipient; throws an error if the server reports an error
+     @param txt the text to send
+     */
+    data(String txt) async;
+
+    /*! @brief Quits and closes the connection; throws an error if the server reports an error */
+    quit() async;
+
+    /*! @brief Queries and sets the timeout in milliseconds*/
+    Integer timeout;
+
+    /*! @brief Queries the Socket currently connected to the Smtp object */
+    readonly Stream socket;
+};

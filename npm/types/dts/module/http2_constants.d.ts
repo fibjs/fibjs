@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description http2 模块常用常量定义模块
+ * @description module defining commonly used constants of the http2 module
  *
- *  引用方法：
+ *  Reference:
  *  ```JavaScript
  *  var constants = require('http2').constants
  *  ```
@@ -10,1202 +10,1202 @@
  */
 declare module 'http2_constants' {
     /**
-     * @description 默认是否启用 CONNECT 协议扩展
+     * @description whether the CONNECT protocol extension is enabled by default
      */
     export const DEFAULT_SETTINGS_ENABLE_CONNECT_PROTOCOL: 0;
 
     /**
-     * @description 默认是否启用服务端推送
+     * @description whether server push is enabled by default
      */
     export const DEFAULT_SETTINGS_ENABLE_PUSH: 1;
 
     /**
-     * @description 默认头部表大小（字节）
+     * @description default header table size (bytes)
      */
     export const DEFAULT_SETTINGS_HEADER_TABLE_SIZE: 4096;
 
     /**
-     * @description 默认初始流窗口大小（字节）
+     * @description default initial stream window size (bytes)
      */
     export const DEFAULT_SETTINGS_INITIAL_WINDOW_SIZE: 65535;
 
     /**
-     * @description 默认最大并发流数（无限制）
+     * @description default maximum number of concurrent streams (unlimited)
      */
     export const DEFAULT_SETTINGS_MAX_CONCURRENT_STREAMS: 4294967295;
 
     /**
-     * @description 默认最大帧大小（字节）
+     * @description default maximum frame size (bytes)
      */
     export const DEFAULT_SETTINGS_MAX_FRAME_SIZE: 16384;
 
     /**
-     * @description 默认最大头部列表大小（字节）
+     * @description default maximum header list size (bytes)
      */
     export const DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE: 65535;
 
     /**
-     * @description HTTP 状态码：Continue
+     * @description HTTP status code: Continue
      */
     export const HTTP_STATUS_CONTINUE: 100;
 
     /**
-     * @description HTTP 状态码：Switching Protocols
+     * @description HTTP status code: Switching Protocols
      */
     export const HTTP_STATUS_SWITCHING_PROTOCOLS: 101;
 
     /**
-     * @description HTTP 状态码：Processing
+     * @description HTTP status code: Processing
      */
     export const HTTP_STATUS_PROCESSING: 102;
 
     /**
-     * @description HTTP 状态码：Early Hints
+     * @description HTTP status code: Early Hints
      */
     export const HTTP_STATUS_EARLY_HINTS: 103;
 
     /**
-     * @description HTTP 状态码：OK
+     * @description HTTP status code: OK
      */
     export const HTTP_STATUS_OK: 200;
 
     /**
-     * @description HTTP 状态码：Created
+     * @description HTTP status code: Created
      */
     export const HTTP_STATUS_CREATED: 201;
 
     /**
-     * @description HTTP 状态码：Accepted
+     * @description HTTP status code: Accepted
      */
     export const HTTP_STATUS_ACCEPTED: 202;
 
     /**
-     * @description HTTP 状态码：Non-Authoritative Information
+     * @description HTTP status code: Non-Authoritative Information
      */
     export const HTTP_STATUS_NON_AUTHORITATIVE_INFORMATION: 203;
 
     /**
-     * @description HTTP 状态码：No Content
+     * @description HTTP status code: No Content
      */
     export const HTTP_STATUS_NO_CONTENT: 204;
 
     /**
-     * @description HTTP 状态码：Reset Content
+     * @description HTTP status code: Reset Content
      */
     export const HTTP_STATUS_RESET_CONTENT: 205;
 
     /**
-     * @description HTTP 状态码：Partial Content
+     * @description HTTP status code: Partial Content
      */
     export const HTTP_STATUS_PARTIAL_CONTENT: 206;
 
     /**
-     * @description HTTP 状态码：Multi-Status
+     * @description HTTP status code: Multi-Status
      */
     export const HTTP_STATUS_MULTI_STATUS: 207;
 
     /**
-     * @description HTTP 状态码：Already Reported
+     * @description HTTP status code: Already Reported
      */
     export const HTTP_STATUS_ALREADY_REPORTED: 208;
 
     /**
-     * @description HTTP 状态码：IM Used
+     * @description HTTP status code: IM Used
      */
     export const HTTP_STATUS_IM_USED: 226;
 
     /**
-     * @description HTTP 状态码：Multiple Choices
+     * @description HTTP status code: Multiple Choices
      */
     export const HTTP_STATUS_MULTIPLE_CHOICES: 300;
 
     /**
-     * @description HTTP 状态码：Moved Permanently
+     * @description HTTP status code: Moved Permanently
      */
     export const HTTP_STATUS_MOVED_PERMANENTLY: 301;
 
     /**
-     * @description HTTP 状态码：Found
+     * @description HTTP status code: Found
      */
     export const HTTP_STATUS_FOUND: 302;
 
     /**
-     * @description HTTP 状态码：See Other
+     * @description HTTP status code: See Other
      */
     export const HTTP_STATUS_SEE_OTHER: 303;
 
     /**
-     * @description HTTP 状态码：Not Modified
+     * @description HTTP status code: Not Modified
      */
     export const HTTP_STATUS_NOT_MODIFIED: 304;
 
     /**
-     * @description HTTP 状态码：Use Proxy
+     * @description HTTP status code: Use Proxy
      */
     export const HTTP_STATUS_USE_PROXY: 305;
 
     /**
-     * @description HTTP 状态码：Temporary Redirect
+     * @description HTTP status code: Temporary Redirect
      */
     export const HTTP_STATUS_TEMPORARY_REDIRECT: 307;
 
     /**
-     * @description HTTP 状态码：Permanent Redirect
+     * @description HTTP status code: Permanent Redirect
      */
     export const HTTP_STATUS_PERMANENT_REDIRECT: 308;
 
     /**
-     * @description HTTP 状态码：Bad Request
+     * @description HTTP status code: Bad Request
      */
     export const HTTP_STATUS_BAD_REQUEST: 400;
 
     /**
-     * @description HTTP 状态码：Unauthorized
+     * @description HTTP status code: Unauthorized
      */
     export const HTTP_STATUS_UNAUTHORIZED: 401;
 
     /**
-     * @description HTTP 状态码：Payment Required
+     * @description HTTP status code: Payment Required
      */
     export const HTTP_STATUS_PAYMENT_REQUIRED: 402;
 
     /**
-     * @description HTTP 状态码：Forbidden
+     * @description HTTP status code: Forbidden
      */
     export const HTTP_STATUS_FORBIDDEN: 403;
 
     /**
-     * @description HTTP 状态码：Not Found
+     * @description HTTP status code: Not Found
      */
     export const HTTP_STATUS_NOT_FOUND: 404;
 
     /**
-     * @description HTTP 状态码：Method Not Allowed
+     * @description HTTP status code: Method Not Allowed
      */
     export const HTTP_STATUS_METHOD_NOT_ALLOWED: 405;
 
     /**
-     * @description HTTP 状态码：Not Acceptable
+     * @description HTTP status code: Not Acceptable
      */
     export const HTTP_STATUS_NOT_ACCEPTABLE: 406;
 
     /**
-     * @description HTTP 状态码：Proxy Authentication Required
+     * @description HTTP status code: Proxy Authentication Required
      */
     export const HTTP_STATUS_PROXY_AUTHENTICATION_REQUIRED: 407;
 
     /**
-     * @description HTTP 状态码：Request Timeout
+     * @description HTTP status code: Request Timeout
      */
     export const HTTP_STATUS_REQUEST_TIMEOUT: 408;
 
     /**
-     * @description HTTP 状态码：Conflict
+     * @description HTTP status code: Conflict
      */
     export const HTTP_STATUS_CONFLICT: 409;
 
     /**
-     * @description HTTP 状态码：Gone
+     * @description HTTP status code: Gone
      */
     export const HTTP_STATUS_GONE: 410;
 
     /**
-     * @description HTTP 状态码：Length Required
+     * @description HTTP status code: Length Required
      */
     export const HTTP_STATUS_LENGTH_REQUIRED: 411;
 
     /**
-     * @description HTTP 状态码：Precondition Failed
+     * @description HTTP status code: Precondition Failed
      */
     export const HTTP_STATUS_PRECONDITION_FAILED: 412;
 
     /**
-     * @description HTTP 状态码：Payload Too Large
+     * @description HTTP status code: Payload Too Large
      */
     export const HTTP_STATUS_PAYLOAD_TOO_LARGE: 413;
 
     /**
-     * @description HTTP 状态码：URI Too Long
+     * @description HTTP status code: URI Too Long
      */
     export const HTTP_STATUS_URI_TOO_LONG: 414;
 
     /**
-     * @description HTTP 状态码：Unsupported Media Type
+     * @description HTTP status code: Unsupported Media Type
      */
     export const HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE: 415;
 
     /**
-     * @description HTTP 状态码：Range Not Satisfiable
+     * @description HTTP status code: Range Not Satisfiable
      */
     export const HTTP_STATUS_RANGE_NOT_SATISFIABLE: 416;
 
     /**
-     * @description HTTP 状态码：Expectation Failed
+     * @description HTTP status code: Expectation Failed
      */
     export const HTTP_STATUS_EXPECTATION_FAILED: 417;
 
     /**
-     * @description HTTP 状态码：I'm a Teapot
+     * @description HTTP status code: I'm a Teapot
      */
     export const HTTP_STATUS_TEAPOT: 418;
 
     /**
-     * @description HTTP 状态码：Misdirected Request
+     * @description HTTP status code: Misdirected Request
      */
     export const HTTP_STATUS_MISDIRECTED_REQUEST: 421;
 
     /**
-     * @description HTTP 状态码：Unprocessable Entity
+     * @description HTTP status code: Unprocessable Entity
      */
     export const HTTP_STATUS_UNPROCESSABLE_ENTITY: 422;
 
     /**
-     * @description HTTP 状态码：Locked
+     * @description HTTP status code: Locked
      */
     export const HTTP_STATUS_LOCKED: 423;
 
     /**
-     * @description HTTP 状态码：Failed Dependency
+     * @description HTTP status code: Failed Dependency
      */
     export const HTTP_STATUS_FAILED_DEPENDENCY: 424;
 
     /**
-     * @description HTTP 状态码：Too Early
+     * @description HTTP status code: Too Early
      */
     export const HTTP_STATUS_TOO_EARLY: 425;
 
     /**
-     * @description HTTP 状态码：Upgrade Required
+     * @description HTTP status code: Upgrade Required
      */
     export const HTTP_STATUS_UPGRADE_REQUIRED: 426;
 
     /**
-     * @description HTTP 状态码：Precondition Required
+     * @description HTTP status code: Precondition Required
      */
     export const HTTP_STATUS_PRECONDITION_REQUIRED: 428;
 
     /**
-     * @description HTTP 状态码：Too Many Requests
+     * @description HTTP status code: Too Many Requests
      */
     export const HTTP_STATUS_TOO_MANY_REQUESTS: 429;
 
     /**
-     * @description HTTP 状态码：Request Header Fields Too Large
+     * @description HTTP status code: Request Header Fields Too Large
      */
     export const HTTP_STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE: 431;
 
     /**
-     * @description HTTP 状态码：Unavailable For Legal Reasons
+     * @description HTTP status code: Unavailable For Legal Reasons
      */
     export const HTTP_STATUS_UNAVAILABLE_FOR_LEGAL_REASONS: 451;
 
     /**
-     * @description HTTP 状态码：Internal Server Error
+     * @description HTTP status code: Internal Server Error
      */
     export const HTTP_STATUS_INTERNAL_SERVER_ERROR: 500;
 
     /**
-     * @description HTTP 状态码：Not Implemented
+     * @description HTTP status code: Not Implemented
      */
     export const HTTP_STATUS_NOT_IMPLEMENTED: 501;
 
     /**
-     * @description HTTP 状态码：Bad Gateway
+     * @description HTTP status code: Bad Gateway
      */
     export const HTTP_STATUS_BAD_GATEWAY: 502;
 
     /**
-     * @description HTTP 状态码：Service Unavailable
+     * @description HTTP status code: Service Unavailable
      */
     export const HTTP_STATUS_SERVICE_UNAVAILABLE: 503;
 
     /**
-     * @description HTTP 状态码：Gateway Timeout
+     * @description HTTP status code: Gateway Timeout
      */
     export const HTTP_STATUS_GATEWAY_TIMEOUT: 504;
 
     /**
-     * @description HTTP 状态码：HTTP Version Not Supported
+     * @description HTTP status code: HTTP Version Not Supported
      */
     export const HTTP_STATUS_HTTP_VERSION_NOT_SUPPORTED: 505;
 
     /**
-     * @description HTTP 状态码：Variant Also Negotiates
+     * @description HTTP status code: Variant Also Negotiates
      */
     export const HTTP_STATUS_VARIANT_ALSO_NEGOTIATES: 506;
 
     /**
-     * @description HTTP 状态码：Insufficient Storage
+     * @description HTTP status code: Insufficient Storage
      */
     export const HTTP_STATUS_INSUFFICIENT_STORAGE: 507;
 
     /**
-     * @description HTTP 状态码：Loop Detected
+     * @description HTTP status code: Loop Detected
      */
     export const HTTP_STATUS_LOOP_DETECTED: 508;
 
     /**
-     * @description HTTP 状态码：Bandwidth Limit Exceeded
+     * @description HTTP status code: Bandwidth Limit Exceeded
      */
     export const HTTP_STATUS_BANDWIDTH_LIMIT_EXCEEDED: 509;
 
     /**
-     * @description HTTP 状态码：Not Extended
+     * @description HTTP status code: Not Extended
      */
     export const HTTP_STATUS_NOT_EXTENDED: 510;
 
     /**
-     * @description HTTP 状态码：Network Authentication Required
+     * @description HTTP status code: Network Authentication Required
      */
     export const HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED: 511;
 
     /**
-     * @description HTTP/2 伪头部：:authority
+     * @description HTTP/2 pseudo-header: :authority
      */
     export const HTTP2_HEADER_AUTHORITY: ":authority";
 
     /**
-     * @description HTTP/2 头部：accept
+     * @description HTTP/2 header: accept
      */
     export const HTTP2_HEADER_ACCEPT: "accept";
 
     /**
-     * @description HTTP/2 头部：accept-charset
+     * @description HTTP/2 header: accept-charset
      */
     export const HTTP2_HEADER_ACCEPT_CHARSET: "accept-charset";
 
     /**
-     * @description HTTP/2 头部：accept-encoding
+     * @description HTTP/2 header: accept-encoding
      */
     export const HTTP2_HEADER_ACCEPT_ENCODING: "accept-encoding";
 
     /**
-     * @description HTTP/2 头部：accept-language
+     * @description HTTP/2 header: accept-language
      */
     export const HTTP2_HEADER_ACCEPT_LANGUAGE: "accept-language";
 
     /**
-     * @description HTTP/2 头部：accept-ranges
+     * @description HTTP/2 header: accept-ranges
      */
     export const HTTP2_HEADER_ACCEPT_RANGES: "accept-ranges";
 
     /**
-     * @description HTTP/2 头部：access-control-allow-credentials
+     * @description HTTP/2 header: access-control-allow-credentials
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS: "access-control-allow-credentials";
 
     /**
-     * @description HTTP/2 头部：access-control-allow-headers
+     * @description HTTP/2 header: access-control-allow-headers
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_HEADERS: "access-control-allow-headers";
 
     /**
-     * @description HTTP/2 头部：access-control-allow-methods
+     * @description HTTP/2 header: access-control-allow-methods
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_METHODS: "access-control-allow-methods";
 
     /**
-     * @description HTTP/2 头部：access-control-allow-origin
+     * @description HTTP/2 header: access-control-allow-origin
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN: "access-control-allow-origin";
 
     /**
-     * @description HTTP/2 头部：access-control-expose-headers
+     * @description HTTP/2 header: access-control-expose-headers
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_EXPOSE_HEADERS: "access-control-expose-headers";
 
     /**
-     * @description HTTP/2 头部：access-control-max-age
+     * @description HTTP/2 header: access-control-max-age
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE: "access-control-max-age";
 
     /**
-     * @description HTTP/2 头部：access-control-request-headers
+     * @description HTTP/2 header: access-control-request-headers
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS: "access-control-request-headers";
 
     /**
-     * @description HTTP/2 头部：access-control-request-method
+     * @description HTTP/2 header: access-control-request-method
      */
     export const HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD: "access-control-request-method";
 
     /**
-     * @description HTTP/2 头部：age
+     * @description HTTP/2 header: age
      */
     export const HTTP2_HEADER_AGE: "age";
 
     /**
-     * @description HTTP/2 头部：allow
+     * @description HTTP/2 header: allow
      */
     export const HTTP2_HEADER_ALLOW: "allow";
 
     /**
-     * @description HTTP/2 头部：alt-svc
+     * @description HTTP/2 header: alt-svc
      */
     export const HTTP2_HEADER_ALT_SVC: "alt-svc";
 
     /**
-     * @description HTTP/2 头部：authorization
+     * @description HTTP/2 header: authorization
      */
     export const HTTP2_HEADER_AUTHORIZATION: "authorization";
 
     /**
-     * @description HTTP/2 头部：cache-control
+     * @description HTTP/2 header: cache-control
      */
     export const HTTP2_HEADER_CACHE_CONTROL: "cache-control";
 
     /**
-     * @description HTTP/2 头部：connection
+     * @description HTTP/2 header: connection
      */
     export const HTTP2_HEADER_CONNECTION: "connection";
 
     /**
-     * @description HTTP/2 头部：content-disposition
+     * @description HTTP/2 header: content-disposition
      */
     export const HTTP2_HEADER_CONTENT_DISPOSITION: "content-disposition";
 
     /**
-     * @description HTTP/2 头部：content-encoding
+     * @description HTTP/2 header: content-encoding
      */
     export const HTTP2_HEADER_CONTENT_ENCODING: "content-encoding";
 
     /**
-     * @description HTTP/2 头部：content-language
+     * @description HTTP/2 header: content-language
      */
     export const HTTP2_HEADER_CONTENT_LANGUAGE: "content-language";
 
     /**
-     * @description HTTP/2 头部：content-length
+     * @description HTTP/2 header: content-length
      */
     export const HTTP2_HEADER_CONTENT_LENGTH: "content-length";
 
     /**
-     * @description HTTP/2 头部：content-location
+     * @description HTTP/2 header: content-location
      */
     export const HTTP2_HEADER_CONTENT_LOCATION: "content-location";
 
     /**
-     * @description HTTP/2 头部：content-md5
+     * @description HTTP/2 header: content-md5
      */
     export const HTTP2_HEADER_CONTENT_MD5: "content-md5";
 
     /**
-     * @description HTTP/2 头部：content-range
+     * @description HTTP/2 header: content-range
      */
     export const HTTP2_HEADER_CONTENT_RANGE: "content-range";
 
     /**
-     * @description HTTP/2 头部：content-security-policy
+     * @description HTTP/2 header: content-security-policy
      */
     export const HTTP2_HEADER_CONTENT_SECURITY_POLICY: "content-security-policy";
 
     /**
-     * @description HTTP/2 头部：content-type
+     * @description HTTP/2 header: content-type
      */
     export const HTTP2_HEADER_CONTENT_TYPE: "content-type";
 
     /**
-     * @description HTTP/2 头部：cookie
+     * @description HTTP/2 header: cookie
      */
     export const HTTP2_HEADER_COOKIE: "cookie";
 
     /**
-     * @description HTTP/2 头部：date
+     * @description HTTP/2 header: date
      */
     export const HTTP2_HEADER_DATE: "date";
 
     /**
-     * @description HTTP/2 头部：dnt
+     * @description HTTP/2 header: dnt
      */
     export const HTTP2_HEADER_DNT: "dnt";
 
     /**
-     * @description HTTP/2 头部：early-data
+     * @description HTTP/2 header: early-data
      */
     export const HTTP2_HEADER_EARLY_DATA: "early-data";
 
     /**
-     * @description HTTP/2 头部：etag
+     * @description HTTP/2 header: etag
      */
     export const HTTP2_HEADER_ETAG: "etag";
 
     /**
-     * @description HTTP/2 伪头部：:method
+     * @description HTTP/2 pseudo-header: :method
      */
     export const HTTP2_HEADER_METHOD: ":method";
 
     /**
-     * @description HTTP/2 头部：expect
+     * @description HTTP/2 header: expect
      */
     export const HTTP2_HEADER_EXPECT: "expect";
 
     /**
-     * @description HTTP/2 头部：expect-ct
+     * @description HTTP/2 header: expect-ct
      */
     export const HTTP2_HEADER_EXPECT_CT: "expect-ct";
 
     /**
-     * @description HTTP/2 头部：expires
+     * @description HTTP/2 header: expires
      */
     export const HTTP2_HEADER_EXPIRES: "expires";
 
     /**
-     * @description HTTP/2 头部：forwarded
+     * @description HTTP/2 header: forwarded
      */
     export const HTTP2_HEADER_FORWARDED: "forwarded";
 
     /**
-     * @description HTTP/2 头部：from
+     * @description HTTP/2 header: from
      */
     export const HTTP2_HEADER_FROM: "from";
 
     /**
-     * @description HTTP/2 头部：host
+     * @description HTTP/2 header: host
      */
     export const HTTP2_HEADER_HOST: "host";
 
     /**
-     * @description HTTP/2 头部：http2-settings
+     * @description HTTP/2 header: http2-settings
      */
     export const HTTP2_HEADER_HTTP2_SETTINGS: "http2-settings";
 
     /**
-     * @description HTTP/2 头部：if-match
+     * @description HTTP/2 header: if-match
      */
     export const HTTP2_HEADER_IF_MATCH: "if-match";
 
     /**
-     * @description HTTP/2 头部：if-modified-since
+     * @description HTTP/2 header: if-modified-since
      */
     export const HTTP2_HEADER_IF_MODIFIED_SINCE: "if-modified-since";
 
     /**
-     * @description HTTP/2 头部：if-none-match
+     * @description HTTP/2 header: if-none-match
      */
     export const HTTP2_HEADER_IF_NONE_MATCH: "if-none-match";
 
     /**
-     * @description HTTP/2 头部：if-range
+     * @description HTTP/2 header: if-range
      */
     export const HTTP2_HEADER_IF_RANGE: "if-range";
 
     /**
-     * @description HTTP/2 头部：if-unmodified-since
+     * @description HTTP/2 header: if-unmodified-since
      */
     export const HTTP2_HEADER_IF_UNMODIFIED_SINCE: "if-unmodified-since";
 
     /**
-     * @description HTTP/2 头部：keep-alive
+     * @description HTTP/2 header: keep-alive
      */
     export const HTTP2_HEADER_KEEP_ALIVE: "keep-alive";
 
     /**
-     * @description HTTP/2 头部：last-modified
+     * @description HTTP/2 header: last-modified
      */
     export const HTTP2_HEADER_LAST_MODIFIED: "last-modified";
 
     /**
-     * @description HTTP/2 头部：link
+     * @description HTTP/2 header: link
      */
     export const HTTP2_HEADER_LINK: "link";
 
     /**
-     * @description HTTP/2 头部：location
+     * @description HTTP/2 header: location
      */
     export const HTTP2_HEADER_LOCATION: "location";
 
     /**
-     * @description HTTP/2 头部：max-forwards
+     * @description HTTP/2 header: max-forwards
      */
     export const HTTP2_HEADER_MAX_FORWARDS: "max-forwards";
 
     /**
-     * @description HTTP/2 头部：origin
+     * @description HTTP/2 header: origin
      */
     export const HTTP2_HEADER_ORIGIN: "origin";
 
     /**
-     * @description HTTP/2 伪头部：:path
+     * @description HTTP/2 pseudo-header: :path
      */
     export const HTTP2_HEADER_PATH: ":path";
 
     /**
-     * @description HTTP/2 头部：prefer
+     * @description HTTP/2 header: prefer
      */
     export const HTTP2_HEADER_PREFER: "prefer";
 
     /**
-     * @description HTTP/2 头部：priority
+     * @description HTTP/2 header: priority
      */
     export const HTTP2_HEADER_PRIORITY: "priority";
 
     /**
-     * @description HTTP/2 伪头部：:protocol
+     * @description HTTP/2 pseudo-header: :protocol
      */
     export const HTTP2_HEADER_PROTOCOL: ":protocol";
 
     /**
-     * @description HTTP/2 头部：proxy-authenticate
+     * @description HTTP/2 header: proxy-authenticate
      */
     export const HTTP2_HEADER_PROXY_AUTHENTICATE: "proxy-authenticate";
 
     /**
-     * @description HTTP/2 头部：proxy-authorization
+     * @description HTTP/2 header: proxy-authorization
      */
     export const HTTP2_HEADER_PROXY_AUTHORIZATION: "proxy-authorization";
 
     /**
-     * @description HTTP/2 头部：proxy-connection
+     * @description HTTP/2 header: proxy-connection
      */
     export const HTTP2_HEADER_PROXY_CONNECTION: "proxy-connection";
 
     /**
-     * @description HTTP/2 头部：purpose
+     * @description HTTP/2 header: purpose
      */
     export const HTTP2_HEADER_PURPOSE: "purpose";
 
     /**
-     * @description HTTP/2 头部：range
+     * @description HTTP/2 header: range
      */
     export const HTTP2_HEADER_RANGE: "range";
 
     /**
-     * @description HTTP/2 头部：referer
+     * @description HTTP/2 header: referer
      */
     export const HTTP2_HEADER_REFERER: "referer";
 
     /**
-     * @description HTTP/2 头部：refresh
+     * @description HTTP/2 header: refresh
      */
     export const HTTP2_HEADER_REFRESH: "refresh";
 
     /**
-     * @description HTTP/2 头部：retry-after
+     * @description HTTP/2 header: retry-after
      */
     export const HTTP2_HEADER_RETRY_AFTER: "retry-after";
 
     /**
-     * @description HTTP/2 伪头部：:scheme
+     * @description HTTP/2 pseudo-header: :scheme
      */
     export const HTTP2_HEADER_SCHEME: ":scheme";
 
     /**
-     * @description HTTP/2 头部：server
+     * @description HTTP/2 header: server
      */
     export const HTTP2_HEADER_SERVER: "server";
 
     /**
-     * @description HTTP/2 头部：set-cookie
+     * @description HTTP/2 header: set-cookie
      */
     export const HTTP2_HEADER_SET_COOKIE: "set-cookie";
 
     /**
-     * @description HTTP/2 伪头部：:status
+     * @description HTTP/2 pseudo-header: :status
      */
     export const HTTP2_HEADER_STATUS: ":status";
 
     /**
-     * @description HTTP/2 头部：strict-transport-security
+     * @description HTTP/2 header: strict-transport-security
      */
     export const HTTP2_HEADER_STRICT_TRANSPORT_SECURITY: "strict-transport-security";
 
     /**
-     * @description HTTP/2 头部：te
+     * @description HTTP/2 header: te
      */
     export const HTTP2_HEADER_TE: "te";
 
     /**
-     * @description HTTP/2 头部：timing-allow-origin
+     * @description HTTP/2 header: timing-allow-origin
      */
     export const HTTP2_HEADER_TIMING_ALLOW_ORIGIN: "timing-allow-origin";
 
     /**
-     * @description HTTP/2 头部：tk
+     * @description HTTP/2 header: tk
      */
     export const HTTP2_HEADER_TK: "tk";
 
     /**
-     * @description HTTP/2 头部：trailer
+     * @description HTTP/2 header: trailer
      */
     export const HTTP2_HEADER_TRAILER: "trailer";
 
     /**
-     * @description HTTP/2 头部：transfer-encoding
+     * @description HTTP/2 header: transfer-encoding
      */
     export const HTTP2_HEADER_TRANSFER_ENCODING: "transfer-encoding";
 
     /**
-     * @description HTTP/2 头部：upgrade
+     * @description HTTP/2 header: upgrade
      */
     export const HTTP2_HEADER_UPGRADE: "upgrade";
 
     /**
-     * @description HTTP/2 头部：upgrade-insecure-requests
+     * @description HTTP/2 header: upgrade-insecure-requests
      */
     export const HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS: "upgrade-insecure-requests";
 
     /**
-     * @description HTTP/2 头部：user-agent
+     * @description HTTP/2 header: user-agent
      */
     export const HTTP2_HEADER_USER_AGENT: "user-agent";
 
     /**
-     * @description HTTP/2 头部：vary
+     * @description HTTP/2 header: vary
      */
     export const HTTP2_HEADER_VARY: "vary";
 
     /**
-     * @description HTTP/2 头部：via
+     * @description HTTP/2 header: via
      */
     export const HTTP2_HEADER_VIA: "via";
 
     /**
-     * @description HTTP/2 头部：warning
+     * @description HTTP/2 header: warning
      */
     export const HTTP2_HEADER_WARNING: "warning";
 
     /**
-     * @description HTTP/2 头部：www-authenticate
+     * @description HTTP/2 header: www-authenticate
      */
     export const HTTP2_HEADER_WWW_AUTHENTICATE: "www-authenticate";
 
     /**
-     * @description HTTP/2 头部：x-content-type-options
+     * @description HTTP/2 header: x-content-type-options
      */
     export const HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS: "x-content-type-options";
 
     /**
-     * @description HTTP/2 头部：x-forwarded-for
+     * @description HTTP/2 header: x-forwarded-for
      */
     export const HTTP2_HEADER_X_FORWARDED_FOR: "x-forwarded-for";
 
     /**
-     * @description HTTP/2 头部：x-frame-options
+     * @description HTTP/2 header: x-frame-options
      */
     export const HTTP2_HEADER_X_FRAME_OPTIONS: "x-frame-options";
 
     /**
-     * @description HTTP/2 头部：x-xss-protection
+     * @description HTTP/2 header: x-xss-protection
      */
     export const HTTP2_HEADER_X_XSS_PROTECTION: "x-xss-protection";
 
     /**
-     * @description HTTP/2 方法：ACL
+     * @description HTTP/2 method: ACL
      */
     export const HTTP2_METHOD_ACL: "ACL";
 
     /**
-     * @description HTTP/2 方法：BASELINE-CONTROL
+     * @description HTTP/2 method: BASELINE-CONTROL
      */
     export const HTTP2_METHOD_BASELINE_CONTROL: "BASELINE-CONTROL";
 
     /**
-     * @description HTTP/2 方法：BIND
+     * @description HTTP/2 method: BIND
      */
     export const HTTP2_METHOD_BIND: "BIND";
 
     /**
-     * @description HTTP/2 方法：CHECKIN
+     * @description HTTP/2 method: CHECKIN
      */
     export const HTTP2_METHOD_CHECKIN: "CHECKIN";
 
     /**
-     * @description HTTP/2 方法：CHECKOUT
+     * @description HTTP/2 method: CHECKOUT
      */
     export const HTTP2_METHOD_CHECKOUT: "CHECKOUT";
 
     /**
-     * @description HTTP/2 方法：CONNECT
+     * @description HTTP/2 method: CONNECT
      */
     export const HTTP2_METHOD_CONNECT: "CONNECT";
 
     /**
-     * @description HTTP/2 方法：COPY
+     * @description HTTP/2 method: COPY
      */
     export const HTTP2_METHOD_COPY: "COPY";
 
     /**
-     * @description HTTP/2 方法：DELETE
+     * @description HTTP/2 method: DELETE
      */
     export const HTTP2_METHOD_DELETE: "DELETE";
 
     /**
-     * @description HTTP/2 方法：GET
+     * @description HTTP/2 method: GET
      */
     export const HTTP2_METHOD_GET: "GET";
 
     /**
-     * @description HTTP/2 方法：HEAD
+     * @description HTTP/2 method: HEAD
      */
     export const HTTP2_METHOD_HEAD: "HEAD";
 
     /**
-     * @description HTTP/2 方法：LABEL
+     * @description HTTP/2 method: LABEL
      */
     export const HTTP2_METHOD_LABEL: "LABEL";
 
     /**
-     * @description HTTP/2 方法：LINK
+     * @description HTTP/2 method: LINK
      */
     export const HTTP2_METHOD_LINK: "LINK";
 
     /**
-     * @description HTTP/2 方法：LOCK
+     * @description HTTP/2 method: LOCK
      */
     export const HTTP2_METHOD_LOCK: "LOCK";
 
     /**
-     * @description HTTP/2 方法：MERGE
+     * @description HTTP/2 method: MERGE
      */
     export const HTTP2_METHOD_MERGE: "MERGE";
 
     /**
-     * @description HTTP/2 方法：MKACTIVITY
+     * @description HTTP/2 method: MKACTIVITY
      */
     export const HTTP2_METHOD_MKACTIVITY: "MKACTIVITY";
 
     /**
-     * @description HTTP/2 方法：MKCALENDAR
+     * @description HTTP/2 method: MKCALENDAR
      */
     export const HTTP2_METHOD_MKCALENDAR: "MKCALENDAR";
 
     /**
-     * @description HTTP/2 方法：MKCOL
+     * @description HTTP/2 method: MKCOL
      */
     export const HTTP2_METHOD_MKCOL: "MKCOL";
 
     /**
-     * @description HTTP/2 方法：MKREDIRECTREF
+     * @description HTTP/2 method: MKREDIRECTREF
      */
     export const HTTP2_METHOD_MKREDIRECTREF: "MKREDIRECTREF";
 
     /**
-     * @description HTTP/2 方法：MKWORKSPACE
+     * @description HTTP/2 method: MKWORKSPACE
      */
     export const HTTP2_METHOD_MKWORKSPACE: "MKWORKSPACE";
 
     /**
-     * @description HTTP/2 方法：MOVE
+     * @description HTTP/2 method: MOVE
      */
     export const HTTP2_METHOD_MOVE: "MOVE";
 
     /**
-     * @description HTTP/2 方法：OPTIONS
+     * @description HTTP/2 method: OPTIONS
      */
     export const HTTP2_METHOD_OPTIONS: "OPTIONS";
 
     /**
-     * @description HTTP/2 方法：ORDERPATCH
+     * @description HTTP/2 method: ORDERPATCH
      */
     export const HTTP2_METHOD_ORDERPATCH: "ORDERPATCH";
 
     /**
-     * @description HTTP/2 方法：PATCH
+     * @description HTTP/2 method: PATCH
      */
     export const HTTP2_METHOD_PATCH: "PATCH";
 
     /**
-     * @description HTTP/2 方法：POST
+     * @description HTTP/2 method: POST
      */
     export const HTTP2_METHOD_POST: "POST";
 
     /**
-     * @description HTTP/2 方法：PRI
+     * @description HTTP/2 method: PRI
      */
     export const HTTP2_METHOD_PRI: "PRI";
 
     /**
-     * @description HTTP/2 方法：PROPFIND
+     * @description HTTP/2 method: PROPFIND
      */
     export const HTTP2_METHOD_PROPFIND: "PROPFIND";
 
     /**
-     * @description HTTP/2 方法：PROPPATCH
+     * @description HTTP/2 method: PROPPATCH
      */
     export const HTTP2_METHOD_PROPPATCH: "PROPPATCH";
 
     /**
-     * @description HTTP/2 方法：PUT
+     * @description HTTP/2 method: PUT
      */
     export const HTTP2_METHOD_PUT: "PUT";
 
     /**
-     * @description HTTP/2 方法：REBIND
+     * @description HTTP/2 method: REBIND
      */
     export const HTTP2_METHOD_REBIND: "REBIND";
 
     /**
-     * @description HTTP/2 方法：REPORT
+     * @description HTTP/2 method: REPORT
      */
     export const HTTP2_METHOD_REPORT: "REPORT";
 
     /**
-     * @description HTTP/2 方法：SEARCH
+     * @description HTTP/2 method: SEARCH
      */
     export const HTTP2_METHOD_SEARCH: "SEARCH";
 
     /**
-     * @description HTTP/2 方法：TRACE
+     * @description HTTP/2 method: TRACE
      */
     export const HTTP2_METHOD_TRACE: "TRACE";
 
     /**
-     * @description HTTP/2 方法：UNBIND
+     * @description HTTP/2 method: UNBIND
      */
     export const HTTP2_METHOD_UNBIND: "UNBIND";
 
     /**
-     * @description HTTP/2 方法：UNCHECKOUT
+     * @description HTTP/2 method: UNCHECKOUT
      */
     export const HTTP2_METHOD_UNCHECKOUT: "UNCHECKOUT";
 
     /**
-     * @description HTTP/2 方法：UNLINK
+     * @description HTTP/2 method: UNLINK
      */
     export const HTTP2_METHOD_UNLINK: "UNLINK";
 
     /**
-     * @description HTTP/2 方法：UNLOCK
+     * @description HTTP/2 method: UNLOCK
      */
     export const HTTP2_METHOD_UNLOCK: "UNLOCK";
 
     /**
-     * @description HTTP/2 方法：UPDATE
+     * @description HTTP/2 method: UPDATE
      */
     export const HTTP2_METHOD_UPDATE: "UPDATE";
 
     /**
-     * @description HTTP/2 方法：UPDATEREDIRECTREF
+     * @description HTTP/2 method: UPDATEREDIRECTREF
      */
     export const HTTP2_METHOD_UPDATEREDIRECTREF: "UPDATEREDIRECTREF";
 
     /**
-     * @description HTTP/2 方法：VERSION-CONTROL
+     * @description HTTP/2 method: VERSION-CONTROL
      */
     export const HTTP2_METHOD_VERSION_CONTROL: "VERSION-CONTROL";
 
     /**
-     * @description 初始窗口大小最大值
+     * @description maximum value of the initial window size
      */
     export const MAX_INITIAL_WINDOW_SIZE: 2147483647;
 
     /**
-     * @description 帧大小最大值
+     * @description maximum frame size value
      */
     export const MAX_MAX_FRAME_SIZE: 16777215;
 
     /**
-     * @description 帧大小最小值
+     * @description minimum frame size value
      */
     export const MIN_MAX_FRAME_SIZE: 16384;
 
     /**
-     * @description NGHTTP2 错误：无错误
+     * @description NGHTTP2 error: no error
      */
     export const NGHTTP2_NO_ERROR: 0;
 
     /**
-     * @description NGHTTP2 错误：协议错误
+     * @description NGHTTP2 error: protocol error
      */
     export const NGHTTP2_PROTOCOL_ERROR: 1;
 
     /**
-     * @description NGHTTP2 错误：内部错误
+     * @description NGHTTP2 error: internal error
      */
     export const NGHTTP2_INTERNAL_ERROR: 2;
 
     /**
-     * @description NGHTTP2 错误：流量控制错误
+     * @description NGHTTP2 error: flow control error
      */
     export const NGHTTP2_FLOW_CONTROL_ERROR: 3;
 
     /**
-     * @description NGHTTP2 错误：流已关闭
+     * @description NGHTTP2 error: stream closed
      */
     export const NGHTTP2_STREAM_CLOSED: 5;
 
     /**
-     * @description NGHTTP2 错误：帧大小错误
+     * @description NGHTTP2 error: frame size error
      */
     export const NGHTTP2_FRAME_SIZE_ERROR: 6;
 
     /**
-     * @description NGHTTP2 错误：流被拒绝
+     * @description NGHTTP2 error: stream refused
      */
     export const NGHTTP2_REFUSED_STREAM: 7;
 
     /**
-     * @description NGHTTP2 错误：取消
+     * @description NGHTTP2 error: cancel
      */
     export const NGHTTP2_CANCEL: 8;
 
     /**
-     * @description NGHTTP2 错误：压缩错误
+     * @description NGHTTP2 error: compression error
      */
     export const NGHTTP2_COMPRESSION_ERROR: 9;
 
     /**
-     * @description NGHTTP2 错误：连接错误
+     * @description NGHTTP2 error: connect error
      */
     export const NGHTTP2_CONNECT_ERROR: 10;
 
     /**
-     * @description NGHTTP2 错误：请降速
+     * @description NGHTTP2 error: enhance your calm
      */
     export const NGHTTP2_ENHANCE_YOUR_CALM: 11;
 
     /**
-     * @description NGHTTP2 错误：安全性不足
+     * @description NGHTTP2 error: inadequate security
      */
     export const NGHTTP2_INADEQUATE_SECURITY: 12;
 
     /**
-     * @description NGHTTP2 错误：需要 HTTP/1.1
+     * @description NGHTTP2 error: HTTP/1.1 required
      */
     export const NGHTTP2_HTTP_1_1_REQUIRED: 13;
 
     /**
-     * @description NGHTTP2 内部错误：帧大小错误
+     * @description NGHTTP2 internal error: frame size error
      */
     export const NGHTTP2_ERR_FRAME_SIZE_ERROR: -522;
 
     /**
-     * @description NGHTTP2 Flag：无标志
+     * @description NGHTTP2 Flag: no flag
      */
     export const NGHTTP2_FLAG_NONE: 0;
 
     /**
-     * @description NGHTTP2 Flag：ACK
+     * @description NGHTTP2 Flag: ACK
      */
     export const NGHTTP2_FLAG_ACK: 1;
 
     /**
-     * @description NGHTTP2 Flag：END_STREAM
+     * @description NGHTTP2 Flag: END_STREAM
      */
     export const NGHTTP2_FLAG_END_STREAM: 1;
 
     /**
-     * @description NGHTTP2 Flag：END_HEADERS
+     * @description NGHTTP2 Flag: END_HEADERS
      */
     export const NGHTTP2_FLAG_END_HEADERS: 4;
 
     /**
-     * @description NGHTTP2 Flag：PADDED
+     * @description NGHTTP2 Flag: PADDED
      */
     export const NGHTTP2_FLAG_PADDED: 8;
 
     /**
-     * @description NGHTTP2 Flag：PRIORITY
+     * @description NGHTTP2 Flag: PRIORITY
      */
     export const NGHTTP2_FLAG_PRIORITY: 32;
 
     /**
-     * @description NGHTTP2 默认权重
+     * @description NGHTTP2 default weight
      */
     export const NGHTTP2_DEFAULT_WEIGHT: 16;
 
     /**
-     * @description NGHTTP2 会话类型：服务端
+     * @description NGHTTP2 session type: server
      */
     export const NGHTTP2_SESSION_SERVER: 0;
 
     /**
-     * @description NGHTTP2 会话类型：客户端
+     * @description NGHTTP2 session type: client
      */
     export const NGHTTP2_SESSION_CLIENT: 1;
 
     /**
-     * @description NGHTTP2 设置：头部表大小
+     * @description NGHTTP2 setting: header table size
      */
     export const NGHTTP2_SETTINGS_HEADER_TABLE_SIZE: 1;
 
     /**
-     * @description NGHTTP2 设置：是否启用推送
+     * @description NGHTTP2 setting: whether push is enabled
      */
     export const NGHTTP2_SETTINGS_ENABLE_PUSH: 2;
 
     /**
-     * @description NGHTTP2 设置：最大并发流
+     * @description NGHTTP2 setting: maximum concurrent streams
      */
     export const NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS: 3;
 
     /**
-     * @description NGHTTP2 设置：初始窗口大小
+     * @description NGHTTP2 setting: initial window size
      */
     export const NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE: 4;
 
     /**
-     * @description NGHTTP2 设置：超时
+     * @description NGHTTP2 setting: timeout
      */
     export const NGHTTP2_SETTINGS_TIMEOUT: 4;
 
     /**
-     * @description NGHTTP2 设置：最大帧大小
+     * @description NGHTTP2 setting: maximum frame size
      */
     export const NGHTTP2_SETTINGS_MAX_FRAME_SIZE: 5;
 
     /**
-     * @description NGHTTP2 设置：最大头部列表大小
+     * @description NGHTTP2 setting: maximum header list size
      */
     export const NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE: 6;
 
     /**
-     * @description NGHTTP2 设置：启用 CONNECT 协议扩展
+     * @description NGHTTP2 setting: enable CONNECT protocol extension
      */
     export const NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL: 8;
 
     /**
-     * @description NGHTTP2 流状态：idle
+     * @description NGHTTP2 stream state: idle
      */
     export const NGHTTP2_STREAM_STATE_IDLE: 1;
 
     /**
-     * @description NGHTTP2 流状态：open
+     * @description NGHTTP2 stream state: open
      */
     export const NGHTTP2_STREAM_STATE_OPEN: 2;
 
     /**
-     * @description NGHTTP2 流状态：reserved local
+     * @description NGHTTP2 stream state: reserved local
      */
     export const NGHTTP2_STREAM_STATE_RESERVED_LOCAL: 3;
 
     /**
-     * @description NGHTTP2 流状态：reserved remote
+     * @description NGHTTP2 stream state: reserved remote
      */
     export const NGHTTP2_STREAM_STATE_RESERVED_REMOTE: 4;
 
     /**
-     * @description NGHTTP2 流状态：half closed local
+     * @description NGHTTP2 stream state: half closed local
      */
     export const NGHTTP2_STREAM_STATE_HALF_CLOSED_LOCAL: 5;
 
     /**
-     * @description NGHTTP2 流状态：half closed remote
+     * @description NGHTTP2 stream state: half closed remote
      */
     export const NGHTTP2_STREAM_STATE_HALF_CLOSED_REMOTE: 6;
 
     /**
-     * @description NGHTTP2 流状态：closed
+     * @description NGHTTP2 stream state: closed
      */
     export const NGHTTP2_STREAM_STATE_CLOSED: 7;
 
     /**
-     * @description 填充策略：不填充
+     * @description Padding strategy: none
      */
     export const PADDING_STRATEGY_NONE: 0;
 
     /**
-     * @description 填充策略：对齐
+     * @description Padding strategy: aligned
      */
     export const PADDING_STRATEGY_ALIGNED: 1;
 
     /**
-     * @description 填充策略：回调（等同于 ALIGNED）
+     * @description Padding strategy: callback (same as ALIGNED)
      */
     export const PADDING_STRATEGY_CALLBACK: 1;
 
     /**
-     * @description 填充策略：最大填充
+     * @description Padding strategy: maximum padding
      */
     export const PADDING_STRATEGY_MAX: 2;
 

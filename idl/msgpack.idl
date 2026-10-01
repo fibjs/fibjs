@@ -1,0 +1,54 @@
+/*! @brief msgpack is a lighter-weight data interchange format than JSON; it can serialize JSON objects into binary data for faster and more efficient data exchange
+
+ The msgpack encode and decode module can be required as follows
+ ```JavaScript
+ var encoding = require('encoding');
+ var msgpack = encoding.msgpack;
+ ```
+ or
+ ```JavaScript
+ var msgpack = require('msgpack');
+ ```
+ 
+ The msgpack module provides two main methods for message processing: encode and decode.
+
+- `encode`: writes the given data with msgpack encoding `Value Message.encode(Value data)`. Example code:
+
+  ```
+  var msgpack = require('msgpack');
+  
+  var data = {
+      foo: 'bar'
+  };
+  var buffer = msgpack.encode(data);
+  ```
+
+  The method first takes the data to write, then saves it as binary data in msgpack format and returns it; the encoding process is very fast.
+
+- `decode`: parses the data in a message with msgpack encoding `Value Message.decode()`. Example code:
+
+  ```
+  var msgpack = require('msgpack');
+  var data = msgpack.encode({foo: 'bar'});
+
+  var unpackedData = msgpack.decode(data);
+  ```
+
+  The parsed data is then a json object `{foo: 'bar'}` that can be used directly.
+
+The msgpack module is a fairly efficient way to serialize and deserialize message data; it can send message data to the peer in binary form and avoids the efficiency problems of character composition and restoration in text data transmission; the module is very suitable for scenarios that need to process large amounts of message data.
+ */
+module msgpack
+{
+    /*! @brief Encodes a variable in msgpack format
+	 @param data the variable to encode
+	 @return returns the encoded binary data
+	 */
+    static Buffer encode(Value data);
+
+    /*! @brief Decodes a string into a variable using msgpack
+	 @param data the binary data to decode
+	 @return returns the decoded variable
+	 */
+    static Value decode(Buffer data);
+};

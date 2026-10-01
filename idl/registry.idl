@@ -1,0 +1,193 @@
+/*! @brief The `registry` module is a module for operating the Windows Registry. It provides methods and constants for accessing the registry, supporting read, modify, delete, add and other operations. The ways of operating provided by the `registry` module are similar to those used by Windows applications, but they are provided as capabilities in FibJS. The constants include common Root and data type constants, as well as some constants used as return values for different operations
+
+The `registry` module is a module for operating the Windows Registry. The registry is a hierarchical database used to store configuration information of the system and applications. The Windows operating system and many applications rely on the registry to store and retrieve configuration information.
+
+The Windows Registry contains multiple root keys (Root Key), and each root key contains multiple sub keys (Sub Key) and values (Value). Common root keys include:
+
+- `HKEY_CLASSES_ROOT`: stores information about file types and their associated applications.
+- `HKEY_CURRENT_USER`: stores configuration information of the current user.
+- `HKEY_LOCAL_MACHINE`: stores configuration information of all users on the computer.
+- `HKEY_USERS`: stores configuration information of all users.
+- `HKEY_CURRENT_CONFIG`: stores information about the current hardware configuration.
+
+Data types in the registry include string (SZ), expanded string (EXPAND_SZ), 32-bit value (DWORD), 64-bit value (QWORD), etc.
+
+The `registry` module provides a series of functions for reading, modifying, deleting and adding registry entries. Common functions include:
+
+- `get(root, key[, flags])`: gets the value of the specified registry entry.
+- `set(root, key, value[, type])`: sets the value of the specified registry entry.
+- `del(root, key)`: deletes the specified registry entry.
+
+The following is example code using the `registry` module, showing how to verify whether a registry entry exists, write the entry if it does not exist, and read its value:
+
+```JavaScript
+var registry = require('registry');
+
+// Specify key name
+var key = "Software\\Fibjs\\Test\\KeyName";
+
+// Check if registry key exists
+if (!registry.get(registry.CLASSES_ROOT, key)) {
+    // If not exists, write to registry
+    registry.set(registry.CLASSES_ROOT, key, "test_value");
+}
+
+// Read registry key value
+var value = registry.get(registry.CLASSES_ROOT, key);
+console.log(value);
+```
+
+The program first checks whether the registry entry `Software\Fibjs\Test\KeyName` exists; if it does not exist, it sets its value to `test_value`. Finally, it reads the value of the registry entry and outputs it to the console.
+
+The `registry` module provides a convenient interface for operating the Windows Registry in FibJS. Through this module, information in the registry can be easily read, modified, added and deleted, so as to manage the configuration of the system and applications.
+ */
+module registry
+{
+    /*! @brief Registry root; stores a detailed list of file types recognized by Windows and their associated programs */
+    const CLASSES_ROOT = 0;
+
+    /*! @brief Registry root; stores information about the current user settings */
+    const CURRENT_USER = 1;
+
+    /*! @brief Registry root; contains information about the hardware and software installed on the computer */
+    const LOCAL_MACHINE = 2;
+
+    /*! @brief Registry root; contains information about the users using the computer */
+    const USERS = 3;
+
+    /*! @brief Registry root; this branch contains the current hardware configuration information of the computer */
+    const CURRENT_CONFIG = 5;
+
+    /*! @brief Registry data type, string */
+    const SZ = 1;
+
+    /*! @brief Registry data type, expanded string */
+    const EXPAND_SZ = 2;
+
+    /*! @brief Registry data type, 32-bit value */
+    const DWORD = 4;
+
+    /*! @brief Registry data type, 64-bit value */
+    const QWORD = 11;
+
+    /*! @brief Returns all sub keys under the specified key
+     @param root the registry root to use
+     @param key the key to use
+     @return returns all sub keys under the key
+     */
+    static NArray listSubKey(Integer root, String key);
+
+    /*! @brief Returns the keys of all data under the specified key
+     @param root the registry root to use
+     @param key the key to use
+     @return returns the keys of all data under the key
+     */
+    static NArray listValue(Integer root, String key);
+
+    /*! @brief Queries the value of the specified key
+     @param root the registry root to use
+     @param key the key to use
+     @return returns the value of the specified key
+     */
+    static Value get(Integer root, String key);
+
+    /*! @brief Queries the value of the specified key
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @return returns the value of the specified key
+     */
+    static Value get(Integer root, String key, String name);
+
+    /*! @brief Sets the specified key to a number
+     @param root the registry root to use
+     @param key the key to use
+     @param value the number to set
+     @param type the type to use; allowed types are DWORD and QWORD, default DWORD
+     */
+    static set(Integer root, String key, Number value, Integer type = DWORD);
+
+    /*! @brief Sets the specified key to a string
+     @param root the registry root to use
+     @param key the key to use
+     @param value the string to set
+     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     */
+    static set(Integer root, String key, String value, Integer type = SZ);
+
+    /*! @brief Sets the specified key to a multi-string
+     @param root the registry root to use
+     @param key the key to use
+     @param values the multi-string array to set
+     */
+    static set(Integer root, String key, String values[]);
+
+    /*! @brief Sets the specified key to binary
+     @param root the registry root to use
+     @param key the key to use
+     @param value the binary data to set
+     */
+    static set(Integer root, String key, Buffer value);
+
+    /*! @brief Sets the specified key to a number
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @param value the number to set
+     @param type the type to use; allowed types are DWORD and QWORD, default DWORD
+     */
+    static set(Integer root, String key, String name, Number value, Integer type = DWORD);
+
+    /*! @brief Sets the specified key to a string
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @param value the string to set
+     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     */
+    static set(Integer root, String key, String name, String value, Integer type = SZ);
+
+    /*! @brief Sets the specified key to a multi-string
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @param values the multi-string array to set
+     */
+    static set(Integer root, String key, String name, String values[]);
+
+    /*! @brief Sets the specified key to binary
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @param value the binary data to set
+     */
+    static set(Integer root, String key, String name, Buffer value);
+
+    /*! @brief Checks whether the specified key exists
+     @param root the registry root to use
+     @param key the key to use
+     @return returns whether the key exists
+     */
+    static Boolean has(Integer root, String key);
+
+    /*! @brief Checks whether the specified key exists
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @return returns whether the key exists
+     */
+    static Boolean has(Integer root, String key, String name);
+
+    /*! @brief Deletes the value of the specified key
+     @param root the registry root to use
+     @param key the key to use
+     */
+    static del(Integer root, String key);
+
+    /*! @brief Deletes the value of the specified key
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     */
+    static del(Integer root, String key, String name);
+};

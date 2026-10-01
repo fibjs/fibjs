@@ -1,0 +1,17 @@
+/*! @brief MIME parsing module */
+module mime
+{
+    /*! @brief parses the corresponding MIME type according to the provided file name
+
+     @param fname specifies the file name to parse
+     @return returns the parsed MIME type
+     */
+    static String getType(String fname);
+
+    /*! @brief adds a MIME type
+
+     @param ext the specified extension
+     @param type the specified MIME type
+     */
+    static addType(String ext, String type);
+};

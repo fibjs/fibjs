@@ -3,13 +3,13 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description zip 模块是一个用于文件压缩和解压缩的模块。它提供了压缩、解压缩、查找和枚举 zip 文件中的文件列表等操作
+ * @description The zip module is used for file compression and decompression. It provides operations such as compressing, decompressing, searching and enumerating the file list in a zip file
  *
- * 通过 zip 模块，我们可以将多个文件打包成一个 zip 文件，也可以对 zip 文件进行解压缩以恢复原始文件。
+ * With the zip module, we can pack multiple files into a zip file, and also decompress a zip file to restore the original files.
  *
- * 下面是一些示例：
+ * The following are some examples:
  *
- * 1.压缩文件：
+ * 1. Compress files:
  *
  * ```JavaScript
  * var zip = require('zip');
@@ -20,7 +20,7 @@
  * zipfile.close();
  * ```
  *
- * 2.解压缩文件：
+ * 2. Decompress files:
  *
  * ```JavaScript
  * var zip = require('zip');
@@ -38,9 +38,9 @@
  */
 declare module 'zip' {
     /**
-     * @description  判断文件是否是zip格式
-     * 	 @param filename 文件名
-     * 	 @return 返回true代表文件是zip文件
+     * @description  Determines whether a file is in zip format
+     * 	 @param filename file name
+     * 	 @return returns true if the file is a zip file
      *
      */
     function isZipFile(filename: string): boolean;
@@ -48,27 +48,27 @@ declare module 'zip' {
     function isZipFile(filename: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description  判断文件是否是zip格式
-     * 	 @param filename 文件名
-     * 	 @return 返回true代表文件是zip文件
+     * @description  Determines whether a file is in zip format
+     * 	 @param filename file name
+     * 	 @return returns true if the file is a zip file
      *
      */
     function isZipFileSync(filename: string): boolean;
 
     /**
-     * @description  判断文件是否是zip格式
-     * 	 @param filename 文件名
-     * 	 @return 返回true代表文件是zip文件
+     * @description  Determines whether a file is in zip format
+     * 	 @param filename file name
+     * 	 @return returns true if the file is a zip file
      *
      */
     function isZipFileAsync(filename: string): Promise<boolean>;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param path 文件路径
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param path file path
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function open(path: string, mod?: string, codec?: string): Class_ZipFile;
@@ -76,31 +76,31 @@ declare module 'zip' {
     function open(path: string, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param path 文件路径
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param path file path
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openSync(path: string, mod?: string, codec?: string): Class_ZipFile;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param path 文件路径
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param path file path
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openAsync(path: string, mod?: string, codec?: string): Promise<Class_ZipFile>;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param data zip文件数据
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param data zip file data
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function open(data: Class_Buffer, mod?: string, codec?: string): Class_ZipFile;
@@ -108,31 +108,31 @@ declare module 'zip' {
     function open(data: Class_Buffer, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param data zip文件数据
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param data zip file data
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openSync(data: Class_Buffer, mod?: string, codec?: string): Class_ZipFile;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param data zip文件数据
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param data zip file data
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openAsync(data: Class_Buffer, mod?: string, codec?: string): Promise<Class_ZipFile>;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param strm zip文件流
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param strm zip file stream
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function open(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
@@ -140,21 +140,21 @@ declare module 'zip' {
     function open(strm: Class_SeekableStream, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param strm zip文件流
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param strm zip file stream
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openSync(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
 
     /**
-     * @description 打开一个zip文件
-     * 	 @param strm zip文件流
-     * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
-     * 	 @return 返回zip文件对象
+     * @description Opens a zip file
+     * 	 @param strm zip file stream
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
      *
      */
     function openAsync(strm: Class_SeekableStream, mod?: string, codec?: string): Promise<Class_ZipFile>;

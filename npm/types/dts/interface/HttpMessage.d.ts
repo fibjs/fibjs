@@ -4,184 +4,184 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/FormData.d.ts" />
 /**
- * @description http 基础消息对象
+ * @description http base message object
  */
 declare class Class_HttpMessage extends Class_Message {
     /**
-     * @description 协议版本信息，允许的格式为：HTTP/#.#
+     * @description protocol version information, the allowed format is: HTTP/#.#
      */
     protocol: string;
 
     /**
-     * @description 包含消息中 http 消息头的容器，只读属性
+     * @description container holding the http headers of the message, read-only property
      */
     readonly headers: Class_Headers;
 
     /**
-     * @description 查询和设定是否保持连接
+     * @description queries and sets whether to keep the connection alive
      */
     keepAlive: boolean;
 
     /**
-     * @description 查询和设定是否是升级协议
+     * @description queries and sets whether the protocol is upgraded
      */
     upgrade: boolean;
 
     /**
-     * @description 查询和设置最大请求头个数，缺省为 128
+     * @description queries and sets the maximum number of request headers, default is 128
      */
     maxHeadersCount: number;
 
     /**
-     * @description 查询和设置最大请求头长度，缺省为 8192
+     * @description queries and sets the maximum request header length, default is 8192
      */
     maxHeaderSize: number;
 
     /**
-     * @description 查询和设置 chunk 最大尺寸，以 MB 为单位，缺省为 2
+     * @description queries and sets the maximum chunk size in MB, default is 2
      */
     maxChunkSize: number;
 
     /**
-     * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64
+     * @description queries and sets the maximum body size in MB, default is 64
      */
     maxBodySize: number;
 
     /**
-     * @description 查询当前对象的来源 socket
+     * @description queries the source socket of the current object
      */
     readonly socket: Class_Stream;
 
     /**
-     * @description 检查是否存在指定键值的消息头
-     *      @param name 指定要检查的键值
-     *      @return 返回键值是否存在
+     * @description checks whether a header of the specified key exists
+     *      @param name specifies the key to check
+     *      @return returns whether the key exists
      *
      */
     hasHeader(name: string): boolean;
 
     /**
-     * @description 查询指定键值的第一个消息头
-     *      @param name 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 undefined
+     * @description queries the first header of the specified key
+     *      @param name specifies the key to query
+     *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
      */
     firstHeader(name: string): string;
 
     /**
-     * @description 查询指定键值的全部消息头
-     *      @param name 指定要查询的键值，传递空字符串返回全部键值的结果
-     *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
+     * @description queries all headers of the specified key
+     *      @param name specifies the key to query; passing an empty string returns the result of all keys
+     *      @return returns an array of all values corresponding to the key, or null if the data does not exist
      *
      */
     allHeader(name?: string): FIBJS.GeneralObject;
 
     /**
-     * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
-     *      @param map 指定要添加的键值数据字典
+     * @description appends a header; appending data does not modify the headers of an existing key
+     *      @param map specifies the key-value data dictionary to append
      *
      */
     appendHeader(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 添加消息头，添加数据并不修改已存在的键值的消息头
-     *      @param headers 指定要添加的 Headers 对象
+     * @description appends headers; appending data does not modify the headers of an existing key
+     *      @param headers specifies the Headers object to append
      *
      */
     appendHeader(headers: Class_Headers): void;
 
     /**
-     * @description 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
-     *      @param name 指定要添加的键值
-     *      @param values 指定要添加的一组数据
+     * @description appends a group of headers with the specified name; appending data does not modify the headers of an existing key
+     *      @param name specifies the key to append
+     *      @param values specifies the group of data to append
      *
      */
     appendHeader(name: string, values: any[]): void;
 
     /**
-     * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
-     *      @param name 指定要添加的键值
-     *      @param value 指定要添加的数据
+     * @description appends a header; appending data does not modify the headers of an existing key
+     *      @param name specifies the key to append
+     *      @param value specifies the data to append
      *
      */
     appendHeader(name: string, value: string): void;
 
     /**
-     * @description 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
-     *      @param map 指定要设定的键值数据字典
+     * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
+     *      @param map specifies the key-value data dictionary to set
      *
      */
     setHeader(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 设定消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
-     *      @param headers 指定要设定的 Headers 对象
+     * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
+     *      @param headers specifies the Headers object to set
      *
      */
     setHeader(headers: Class_Headers): void;
 
     /**
-     * @description 设定指定名称的一组消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
-     *      @param name 指定要设定的键值
-     *      @param values 指定要设定的一组数据
+     * @description sets a group of headers with the specified name; setting data modifies the value of the key and clears the remaining headers with the same key
+     *      @param name specifies the key to set
+     *      @param values specifies the group of data to set
      *
      */
     setHeader(name: string, values: any[]): void;
 
     /**
-     * @description 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
-     *      @param name 指定要设定的键值
-     *      @param value 指定要设定的数据
+     * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
+     *      @param name specifies the key to set
+     *      @param value specifies the data to set
      *
      */
     setHeader(name: string, value: string): void;
 
     /**
-     * @description 删除指定键值的全部消息头
-     *      @param name 指定要删除的键值
+     * @description deletes all headers of the specified key
+     *      @param name specifies the key to delete
      *
      */
     removeHeader(name: string): void;
 
     /**
-     * @description 查询指定键值的第一个消息头
-     *      @param name 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 undefined
+     * @description queries the first header of the specified key
+     *      @param name specifies the key to query
+     *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
      */
     getHeader(name: string): any;
 
     /**
-     * @description 查询全部消息头
-     *      @return 返回全部消息头的键值对
+     * @description queries all headers
+     *      @return returns the key-value pairs of all headers
      *
      */
     getHeaders(): FIBJS.GeneralObject;
 
     /**
-     * @description 查询消息头是否已发送
+     * @description queries whether the headers have been sent
      */
     readonly headersSent: boolean;
 
     /**
-     * @description 包含消息中 http 尾部消息头的容器，只读属性
+     * @description container holding the http trailer headers of the message, read-only property
      */
     readonly trailers: Class_Headers;
 
     /**
-     * @description 添加尾部消息头，尾部消息头将在 body 之后发送
-     *      @param headers 指定要添加的尾部消息头
+     * @description adds trailer headers, which will be sent after the body
+     *      @param headers specifies the trailer headers to add
      *
      */
     addTrailers(headers: FIBJS.GeneralObject): void;
 
     /**
-     * @description 依据 Content-Type 将消息体解析为 FormData
+     * @description parses the message body into FormData according to Content-Type
      *
-     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
-     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     *      Only multipart/form-data (with a boundary parameter in Content-Type) and
+     *      application/x-www-form-urlencoded are supported; other types throw a TypeError.
      *
-     *      @return 返回解析后的 FormData 对象
+     *      @return returns the parsed FormData object
      *
      */
     formData(): Class_FormData;
@@ -189,23 +189,23 @@ declare class Class_HttpMessage extends Class_Message {
     formData(callback: (err: Error | undefined | null, retVal: Class_FormData)=>any): void;
 
     /**
-     * @description 依据 Content-Type 将消息体解析为 FormData
+     * @description parses the message body into FormData according to Content-Type
      *
-     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
-     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     *      Only multipart/form-data (with a boundary parameter in Content-Type) and
+     *      application/x-www-form-urlencoded are supported; other types throw a TypeError.
      *
-     *      @return 返回解析后的 FormData 对象
+     *      @return returns the parsed FormData object
      *
      */
     formDataSync(): Class_FormData;
 
     /**
-     * @description 依据 Content-Type 将消息体解析为 FormData
+     * @description parses the message body into FormData according to Content-Type
      *
-     *      仅支持 multipart/form-data（需要在 Content-Type 中携带 boundary 参数）与
-     *      application/x-www-form-urlencoded，其他类型将抛出 TypeError。
+     *      Only multipart/form-data (with a boundary parameter in Content-Type) and
+     *      application/x-www-form-urlencoded are supported; other types throw a TypeError.
      *
-     *      @return 返回解析后的 FormData 对象
+     *      @return returns the parsed FormData object
      *
      */
     formDataAsync(): Promise<Class_FormData>;

@@ -6,23 +6,23 @@
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
 /**
- * @description 数据库访问模块
+ * @description Database access module
  *
- *  基础模块。可用于创建和操作数据库资源，引用方式：
+ *  Basic module. Can be used to create and operate on database resources. To require it:
  *  ```JavaScript
  *  var db = require('db');
  *  var conn = db.open('rng://user:pass@host:port/dbname');
  *  ```
- *  通过指定数据库引擎，可以建立不同的数据库链接。fibjs 内置两个 sql 引擎：sqlite 和 mysql，同时还支持通过 ODBC/unixODBC 连接更多数据库，基于 ODBC/unixODBC，fibjs 构建了与 mssql 和 PostgreSQL 的驱动。
- *  为了使用 ODBC/unixODBC，需要安装对应的驱动，在 posix 下使用 mssql 需要安装 freetds，使用 PostgreSQL 需要安装 psqlodbc。
- *  正常情况下驱动安装成功即可直接使用，无需进一步配置。
+ *  Different database connections can be established by specifying a database engine. fibjs has two built-in sql engines: sqlite and mysql, and also supports connecting to more databases through ODBC/unixODBC; based on ODBC/unixODBC, fibjs provides drivers for mssql and PostgreSQL.
+ *  To use ODBC/unixODBC, the corresponding drivers must be installed; on posix, using mssql requires installing freetds, and using PostgreSQL requires installing psqlodbc.
+ *  Normally, once the drivers are installed successfully they can be used directly without further configuration.
  *
  */
 declare module 'db' {
     /**
-     * @description 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function open(connString: string): Class_object;
@@ -30,25 +30,25 @@ declare module 'db' {
     function open(connString: string, callback: (err: Error | undefined | null, retVal: Class_object)=>any): void;
 
     /**
-     * @description 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openSync(connString: string): Class_object;
 
     /**
-     * @description 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openAsync(connString: string): Promise<Class_object>;
 
     /**
-     * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a mysql database
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMySQL(connString: string): Class_MySQL;
@@ -56,25 +56,25 @@ declare module 'db' {
     function openMySQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_MySQL)=>any): void;
 
     /**
-     * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a mysql database
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMySQLSync(connString: string): Class_MySQL;
 
     /**
-     * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mysql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     * @description Opens a mysql database
+     *      @param connString the database description, such as: mysql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMySQLAsync(connString: string): Promise<Class_MySQL>;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: sqlite:test.db or test.db
+     *      @return returns the database connection object
      *
      */
     function openSQLite(connString: string): Class_SQLite;
@@ -82,25 +82,25 @@ declare module 'db' {
     function openSQLite(connString: string, callback: (err: Error | undefined | null, retVal: Class_SQLite)=>any): void;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: sqlite:test.db or test.db
+     *      @return returns the database connection object
      *
      */
     function openSQLiteSync(connString: string): Class_SQLite;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: sqlite:test.db or test.db
+     *      @return returns the database connection object
      *
      */
     function openSQLiteAsync(connString: string): Promise<Class_SQLite>;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     *      @return returns the database connection object
      *
      */
     function openOdbc(connString: string): Class_DbConnection;
@@ -108,27 +108,27 @@ declare module 'db' {
     function openOdbc(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     *      @return returns the database connection object
      *
      */
     function openOdbcSync(connString: string): Class_DbConnection;
 
     /**
-     * @description 打开一个 sqlite 数据库
-     *      @param connString 数据库描述，如：odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
-     *      @return 返回数据库连接对象
+     * @description Opens a sqlite database
+     *      @param connString the database description, such as: odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     *      @return returns the database connection object
      *
      */
     function openOdbcAsync(connString: string): Promise<Class_DbConnection>;
 
     /**
-     * @description 打开一个 mssql 数据库
+     * @description Opens an mssql database
      *
-     *      为了建立与 mssql 的连接，在 posix 下必须安装 freetds 的 odbc 驱动，也可以通过指定驱动来使用微软的 mssql 驱动，指定驱动的方式，是在 url 后增加 ?driver=msodbcsql17[.so/.dylib] 的选项。
-     *      @param connString 数据库描述，如：mssql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to mssql, the freetds odbc driver must be installed on posix; the Microsoft mssql driver can also be used by specifying it; to specify a driver, append the ?driver=msodbcsql17[.so/.dylib] option to the url.
+     *      @param connString the database description, such as: mssql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMSSQL(connString: string): Class_DbConnection;
@@ -136,32 +136,32 @@ declare module 'db' {
     function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
-     * @description 打开一个 mssql 数据库
+     * @description Opens an mssql database
      *
-     *      为了建立与 mssql 的连接，在 posix 下必须安装 freetds 的 odbc 驱动，也可以通过指定驱动来使用微软的 mssql 驱动，指定驱动的方式，是在 url 后增加 ?driver=msodbcsql17[.so/.dylib] 的选项。
-     *      @param connString 数据库描述，如：mssql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to mssql, the freetds odbc driver must be installed on posix; the Microsoft mssql driver can also be used by specifying it; to specify a driver, append the ?driver=msodbcsql17[.so/.dylib] option to the url.
+     *      @param connString the database description, such as: mssql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMSSQLSync(connString: string): Class_DbConnection;
 
     /**
-     * @description 打开一个 mssql 数据库
+     * @description Opens an mssql database
      *
-     *      为了建立与 mssql 的连接，在 posix 下必须安装 freetds 的 odbc 驱动，也可以通过指定驱动来使用微软的 mssql 驱动，指定驱动的方式，是在 url 后增加 ?driver=msodbcsql17[.so/.dylib] 的选项。
-     *      @param connString 数据库描述，如：mssql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to mssql, the freetds odbc driver must be installed on posix; the Microsoft mssql driver can also be used by specifying it; to specify a driver, append the ?driver=msodbcsql17[.so/.dylib] option to the url.
+     *      @param connString the database description, such as: mssql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openMSSQLAsync(connString: string): Promise<Class_DbConnection>;
 
     /**
-     * @description 打开一个达梦数据库
+     * @description Opens a DaMeng database
      *
-     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
-     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
-     *      @param connString 数据库描述，如：dm://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to a DaMeng database, the odbc driver of DaMeng must be installed.
+     *      On Linux, obtain the ODBC driver file from the DaMeng installation directory, copy it into the system library path and configure unixODBC.
+     *      @param connString the database description, such as: dm://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openDM(connString: string): Class_DbConnection;
@@ -169,51 +169,51 @@ declare module 'db' {
     function openDM(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
-     * @description 打开一个达梦数据库
+     * @description Opens a DaMeng database
      *
-     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
-     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
-     *      @param connString 数据库描述，如：dm://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to a DaMeng database, the odbc driver of DaMeng must be installed.
+     *      On Linux, obtain the ODBC driver file from the DaMeng installation directory, copy it into the system library path and configure unixODBC.
+     *      @param connString the database description, such as: dm://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openDMSync(connString: string): Class_DbConnection;
 
     /**
-     * @description 打开一个达梦数据库
+     * @description Opens a DaMeng database
      *
-     *      为了建立与达梦数据库的连接，必须安装达梦数据库的 odbc 驱动。
-     *      在 Linux 下，从达梦数据库安装目录中获取 ODBC 驱动文件，将其拷贝到系统库路径下，并配置 unixODBC。
-     *      @param connString 数据库描述，如：dm://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      To connect to a DaMeng database, the odbc driver of DaMeng must be installed.
+     *      On Linux, obtain the ODBC driver file from the DaMeng installation directory, copy it into the system library path and configure unixODBC.
+     *      @param connString the database description, such as: dm://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openDMAsync(connString: string): Promise<Class_DbConnection>;
 
     /**
-     * @description 打开一个 PostgresSQL 数据库
+     * @description Opens a PostgresSQL database
      *
-     *      为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。
-     *      在 ubuntu 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      To connect to PostgresSQL, the odbc driver of PostgresSQL must be installed.
+     *      On ubuntu, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      apt install unixodbc unixodbc-dev odbc-postgresql
      *      ```
-     *      在 mac 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      On mac, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      brew install unixodbc psqlodbc
      *      ```
-     *      同时，你需要将 brew 安装的 odbc 驱动的路径添加到环境变量中。通常是 /usr/local/lib 或者 /opt/homebrew/lib。你可以使用 find 来查找 libodbc.dylib 所在的路径：
+     *      You also need to add the path of the brew-installed odbc driver to the environment variables; it is usually /usr/local/lib or /opt/homebrew/lib. You can use find to locate the path of libodbc.dylib:
      *     ```bash
      *     find /usr/local/ -name libodbc.dylib
      *     find /opt/homebrew/ -name libodbc.dylib
      *     ```
-     *      编辑 ~/.zshrc，添加以下内容：
+     *      Edit ~/.zshrc and add the following content:
      *      ```bash
      *      export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
      *      ```
      *
-     *      @param connString 数据库描述，如：psql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      @param connString the database description, such as: psql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openPSQL(connString: string): Class_DbConnection;
@@ -221,65 +221,65 @@ declare module 'db' {
     function openPSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
-     * @description 打开一个 PostgresSQL 数据库
+     * @description Opens a PostgresSQL database
      *
-     *      为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。
-     *      在 ubuntu 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      To connect to PostgresSQL, the odbc driver of PostgresSQL must be installed.
+     *      On ubuntu, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      apt install unixodbc unixodbc-dev odbc-postgresql
      *      ```
-     *      在 mac 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      On mac, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      brew install unixodbc psqlodbc
      *      ```
-     *      同时，你需要将 brew 安装的 odbc 驱动的路径添加到环境变量中。通常是 /usr/local/lib 或者 /opt/homebrew/lib。你可以使用 find 来查找 libodbc.dylib 所在的路径：
+     *      You also need to add the path of the brew-installed odbc driver to the environment variables; it is usually /usr/local/lib or /opt/homebrew/lib. You can use find to locate the path of libodbc.dylib:
      *     ```bash
      *     find /usr/local/ -name libodbc.dylib
      *     find /opt/homebrew/ -name libodbc.dylib
      *     ```
-     *      编辑 ~/.zshrc，添加以下内容：
+     *      Edit ~/.zshrc and add the following content:
      *      ```bash
      *      export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
      *      ```
      *
-     *      @param connString 数据库描述，如：psql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      @param connString the database description, such as: psql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openPSQLSync(connString: string): Class_DbConnection;
 
     /**
-     * @description 打开一个 PostgresSQL 数据库
+     * @description Opens a PostgresSQL database
      *
-     *      为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。
-     *      在 ubuntu 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      To connect to PostgresSQL, the odbc driver of PostgresSQL must be installed.
+     *      On ubuntu, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      apt install unixodbc unixodbc-dev odbc-postgresql
      *      ```
-     *      在 mac 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     *      On mac, install the PostgresSQL odbc driver with the following command:
      *      ```bash
      *      brew install unixodbc psqlodbc
      *      ```
-     *      同时，你需要将 brew 安装的 odbc 驱动的路径添加到环境变量中。通常是 /usr/local/lib 或者 /opt/homebrew/lib。你可以使用 find 来查找 libodbc.dylib 所在的路径：
+     *      You also need to add the path of the brew-installed odbc driver to the environment variables; it is usually /usr/local/lib or /opt/homebrew/lib. You can use find to locate the path of libodbc.dylib:
      *     ```bash
      *     find /usr/local/ -name libodbc.dylib
      *     find /opt/homebrew/ -name libodbc.dylib
      *     ```
-     *      编辑 ~/.zshrc，添加以下内容：
+     *      Edit ~/.zshrc and add the following content:
      *      ```bash
      *      export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
      *      ```
      *
-     *      @param connString 数据库描述，如：psql://user:pass@host/db
-     *      @return 返回数据库连接对象
+     *      @param connString the database description, such as: psql://user:pass@host/db
+     *      @return returns the database connection object
      *
      */
     function openPSQLAsync(connString: string): Promise<Class_DbConnection>;
 
     /**
-     * @description 打开一个 leveldb 数据库
-     *      @param connString 数据库描述，如：level:test.db 或者 test.db
-     *      @return 返回数据库对象
+     * @description Opens a leveldb database
+     *      @param connString the database description, such as: level:test.db or test.db
+     *      @return returns the database object
      *
      */
     function openLevelDB(connString: string): Class_LevelDB;
@@ -287,25 +287,25 @@ declare module 'db' {
     function openLevelDB(connString: string, callback: (err: Error | undefined | null, retVal: Class_LevelDB)=>any): void;
 
     /**
-     * @description 打开一个 leveldb 数据库
-     *      @param connString 数据库描述，如：level:test.db 或者 test.db
-     *      @return 返回数据库对象
+     * @description Opens a leveldb database
+     *      @param connString the database description, such as: level:test.db or test.db
+     *      @return returns the database object
      *
      */
     function openLevelDBSync(connString: string): Class_LevelDB;
 
     /**
-     * @description 打开一个 leveldb 数据库
-     *      @param connString 数据库描述，如：level:test.db 或者 test.db
-     *      @return 返回数据库对象
+     * @description Opens a leveldb database
+     *      @param connString the database description, such as: level:test.db or test.db
+     *      @return returns the database object
      *
      */
     function openLevelDBAsync(connString: string): Promise<Class_LevelDB>;
 
     /**
-     * @description 打开一个 Redis 数据库
-     *      @param connString 数据库描述，如：redis://server:port 或者 "server"
-     *      @return 返回数据库连接对象
+     * @description Opens a Redis database
+     *      @param connString the database description, such as: redis://server:port or "server"
+     *      @return returns the database connection object
      *
      */
     function openRedis(connString: string): Class_Redis;
@@ -313,17 +313,17 @@ declare module 'db' {
     function openRedis(connString: string, callback: (err: Error | undefined | null, retVal: Class_Redis)=>any): void;
 
     /**
-     * @description 打开一个 Redis 数据库
-     *      @param connString 数据库描述，如：redis://server:port 或者 "server"
-     *      @return 返回数据库连接对象
+     * @description Opens a Redis database
+     *      @param connString the database description, such as: redis://server:port or "server"
+     *      @return returns the database connection object
      *
      */
     function openRedisSync(connString: string): Class_Redis;
 
     /**
-     * @description 打开一个 Redis 数据库
-     *      @param connString 数据库描述，如：redis://server:port 或者 "server"
-     *      @return 返回数据库连接对象
+     * @description Opens a Redis database
+     *      @param connString the database description, such as: redis://server:port or "server"
+     *      @return returns the database connection object
      *
      */
     function openRedisAsync(connString: string): Promise<Class_Redis>;

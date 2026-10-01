@@ -3,16 +3,16 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
- * @description FormData 是用于管理 HTTP 表单数据（multipart/form-data）的容器类，继承自 HttpCollection。
+ * @description FormData is a container class for managing HTTP form data (multipart/form-data), inheriting from HttpCollection.
  *
- * FormData 提供了标准的 Web FormData API，支持多种方式初始化和操作表单字段，适用于 HTTP 文件上传、表单数据构建等场景。
+ * FormData provides the standard Web FormData API and supports initializing and operating form fields in multiple ways; it is suitable for scenarios such as HTTP file uploads and form data construction.
  *
- * 主要特性：
- * 1. 支持通过空构造、对象、已有 FormData 实例进行初始化。
- * 2. 支持 append、set 等方法添加和修改字段，支持文件（Blob）和文件名参数。
- * 3. 兼容 Web 标准 FormData 行为，允许同名字段多值、文件上传等。
+ * Main features:
+ * 1. Supports initialization via an empty constructor, an object, or an existing FormData instance.
+ * 2. Supports append, set and other methods to add and modify fields, with support for File (Blob) and filename parameters.
+ * 3. Compatible with Web standard FormData behavior, allowing multiple values for the same field name and file uploads.
  *
- * 常见用法示例：
+ * Common usage example:
  * ```JavaScript
  * // Create empty form data
  * const form = new FormData();
@@ -32,123 +32,123 @@
  */
 declare class Class_FormData extends Class_HttpCollection {
     /**
-     * @description FormData 构造函数，创建一个新的空 HTTP 表单数据容器
-     *         创建一个空的 FormData 实例，用于后续动态添加表单字段。
+     * @description FormData constructor, creates a new empty HTTP form data container
+     *         Creates an empty FormData instance for dynamically adding form fields later.
      *
      */
     constructor();
 
     /**
-     * @description FormData 构造函数，使用给定的 form 数据字符串初始化表单数据容器
-     *      @param init 初始化用的 form 数据字符串，如 "name=value&key=val"
+     * @description FormData constructor, initializes the form data container with the given form data string
+     *      @param init the form data string used for initialization, such as "name=value&key=val"
      *
      */
     constructor(init: string);
 
     /**
-     * @description FormData 构造函数，通过传入一个 Buffer，初始化表单数据。适用于从已有的 multipart/form-data 数据中创建 FormData 实例
-     *      @param init 初始化用的 multipart/form-data 二进制数据
-     *      @param boundary 指定 multipart/form-data 的边界字符串，用于解析数据，格式为：multipart/form-data; boundary=${boundary}
+     * @description FormData constructor, initializes form data from a Buffer. Suitable for creating a FormData instance from existing multipart/form-data data
+     *      @param init the multipart/form-data binary data used for initialization
+     *      @param boundary specifies the boundary string of the multipart/form-data, used to parse the data, in the format: multipart/form-data; boundary=${boundary}
      *
      */
     constructor(init: Class_Buffer, boundary: string);
 
     /**
-     * @description FormData 构造函数，通过传入一个 Blob，初始化表单数据。适用于从 FormData.encode() 结果或其他 multipart/form-data Blob 中创建 FormData 实例
-     *      @param init 初始化用的 Blob 对象，通常来自 FormData.encode() 的结果
-     *      @param boundary 可选的边界字符串，如果不指定则从 Blob 的 type 属性中自动解析（如 "multipart/form-data; boundary=xxx"）
+     * @description FormData constructor, initializes form data from a Blob. Suitable for creating a FormData instance from the result of FormData.encode() or other multipart/form-data Blob data
+     *      @param init the Blob object used for initialization, usually the result of FormData.encode()
+     *      @param boundary optional boundary string; if not specified, it is automatically parsed from the type property of the Blob (e.g. "multipart/form-data; boundary=xxx")
      *
      */
     constructor(init: Class_Blob, boundary?: string);
 
     /**
-     * @description FormData 构造函数，使用给定的对象初始化 HTTP 表单数据容器
+     * @description FormData constructor, initializes the HTTP form data container with the given object
      *
-     *      通过传入一个对象，批量初始化表单字段。对象的键为字段名，值为字段值（可为字符串、Blob 或数组）。
+     *      Initializes form fields in bulk by passing an object. The keys of the object are field names and the values are field values (which can be strings, Blobs or arrays).
      *
-     *      @param init 初始化用的字段对象，键为字段名，值为字段值（字符串、Blob 或数组）
+     *      @param init the field object used for initialization, whose keys are field names and values are field values (strings, Blobs or arrays)
      *
      */
     constructor(init: FIBJS.GeneralObject);
 
     /**
-     * @description FormData 构造函数，使用给定的 HTTP 表单数据容器初始化 HTTP 表单数据容器
+     * @description FormData constructor, initializes the HTTP form data container with the given HTTP form data container
      *
-     *      通过传入另一个 FormData 实例，复制其所有字段。
+     *      Copies all fields by passing another FormData instance.
      *
-     *      @param init 初始化用的 HTTP 表单数据容器
+     *      @param init the HTTP form data container used for initialization
      *
      */
     constructor(init: Class_FormData);
 
     /**
-     * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
+     * @description appends a key-value entry; appending data does not modify the data of an existing key
      *
-     *      向表单中追加一个字段。如果同名字段已存在，则不会覆盖，允许同名多值。
+     *      Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
      *
-     *      @param name 指定要添加的字段名
-     *      @param value 指定要添加的 Blob
+     *      @param name specifies the field name to append
+     *      @param value specifies the Blob to append
      *
      */
     append(name: string, value: Class_Blob): void;
 
     /**
-     * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
+     * @description appends a key-value entry; appending data does not modify the data of an existing key
      *
-     *      向表单中追加一个字段。如果同名字段已存在，则不会覆盖，允许同名多值。
+     *      Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
      *
-     *      @param name 指定要添加的字段名
-     *      @param value 指定要添加的 Blob/File，传入其他类型将抛出 TypeError
-     *      @param filename 指定要添加的文件名
+     *      @param name specifies the field name to append
+     *      @param value specifies the Blob/File to append; passing other types throws a TypeError
+     *      @param filename specifies the file name to append
      *
      */
     append(name: string, value: any, filename: string): void;
 
     /**
-     * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
+     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
      *
-     *      设置表单字段。如果同名字段已存在，则只保留第一个并覆盖，移除其余同名字段。
+     *      Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
      *
-     *      @param name 指定要设定的字段名
-     *      @param value 指定要设定的 Blob
+     *      @param name specifies the field name to set
+     *      @param value specifies the Blob to set
      *
      */
     set(name: string, value: Class_Blob): void;
 
     /**
-     * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
+     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
      *
-     *      设置表单字段。如果同名字段已存在，则只保留第一个并覆盖，移除其余同名字段。
+     *      Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
      *
-     *      @param name 指定要设定的字段名
-     *      @param value 指定要设定的 Blob/File，传入其他类型将抛出 TypeError
-     *      @param filename 指定要设定的文件名
+     *      @param name specifies the field name to set
+     *      @param value specifies the Blob/File to set; passing other types throws a TypeError
+     *      @param filename specifies the file name to set
      *
      */
     set(name: string, value: any, filename: string): void;
 
     /**
-     * @description 将当前表单数据编码为 Buffer 对象
+     * @description encodes the current form data into a Buffer object
      *
-     *      根据指定的 content-type 对表单数据进行编码，支持多种编码格式：
+     *      Encodes the form data according to the specified content-type, supporting multiple encoding formats:
      *
-     *      编码规则：
-     *      1. 当 type 为 "multipart/form-data" 且指定 boundary 时：
-     *         使用指定的 boundary 进行 multipart/form-data 格式编码
+     *      Encoding rules:
+     *      1. When type is "multipart/form-data" and a boundary is specified:
+     *         encode in multipart/form-data format using the specified boundary
      *
-     *      2. 当 type 为 "multipart/form-data" 且未指定 boundary 时：
-     *         自动生成一个随机 boundary 进行 multipart/form-data 格式编码
+     *      2. When type is "multipart/form-data" and no boundary is specified:
+     *         automatically generate a random boundary and encode in multipart/form-data format
      *
-     *      3. 当 type 为 "application/x-www-form-urlencoded" 时：
-     *         使用 URL 编码格式对表单数据进行编码（name=value&name2=value2）
-     *         支持的别名："urlencoded"、"form-urlencoded"、"www-form-urlencoded"
-     *         注意：如果表单包含 File/Blob 对象，将抛出错误并指明具体字段名
+     *      3. When type is "application/x-www-form-urlencoded":
+     *         encode the form data in URL encoding format (name=value&name2=value2)
+     *         supported aliases: "urlencoded", "form-urlencoded", "www-form-urlencoded"
+     *         Notes: if the form contains File/Blob objects, an error is thrown indicating the specific field name
      *
-     *      4. 其他值或不支持的格式：
-     *         抛出错误异常
+     *      4. Other values or unsupported formats:
+     *         throw an error
      *
-     *      @param type 指定编码的 content-type，支持 "multipart/form-data" 和 "application/x-www-form-urlencoded"（及其别名），默认为 "application/x-www-form-urlencoded"
-     *      @return 返回编码后的 Blob 对象，包含正确的 content-type
+     *      @param type specifies the content-type to encode with, supporting "multipart/form-data" and "application/x-www-form-urlencoded" (and their aliases), default is "application/x-www-form-urlencoded"
+     *      @return returns the encoded Blob object, containing the correct content-type
      *
      */
     encode(type?: string): Class_Blob;

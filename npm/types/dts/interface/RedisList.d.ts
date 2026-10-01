@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Redis 数据库客户端 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
+ * @description Redis database client List object; this object is a client bound to the given key and only calling its methods operates on the database
  *
- *  用以操作 Redis 的 List 对象，创建方法：
+ *  Used to operate on a Redis List object. To create one:
  *  ```JavaScript
  *  var db = require("db");
  *  var rdb = new db.openRedis("redis-server");
@@ -14,101 +14,101 @@
  */
 declare class Class_RedisList extends Class_object {
     /**
-     * @description 将一个或多个值 value 插入到列表的表头
-     *      @param values 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts one or more values at the head of the list
+     *      @param values the values to insert
+     *      @return the length of the list after insertion
      */
     push(values: any[]): number;
 
     /**
-     * @description 将一个或多个值 value 插入到列表的表头
-     *      @param values 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts one or more values at the head of the list
+     *      @param values the values to insert
+     *      @return the length of the list after insertion
      */
     push(...values: any[]): number;
 
     /**
-     * @description 移除并返回列表 key 的头元素
-     *      @return 列表的头元素，如果列表为空则返回 null
+     * @description Removes and returns the head element of the list key
+     *      @return the head element of the list, or null if the list is empty
      */
     pop(): Class_Buffer;
 
     /**
-     * @description 将一个或多个值 value 插入到列表的表尾(最右边)
-     *      @param values 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts one or more values at the tail (rightmost end) of the list
+     *      @param values the values to insert
+     *      @return the length of the list after insertion
      */
     rpush(values: any[]): number;
 
     /**
-     * @description 将一个或多个值 value 插入到列表的表尾(最右边)
-     *      @param values 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts one or more values at the tail (rightmost end) of the list
+     *      @param values the values to insert
+     *      @return the length of the list after insertion
      */
     rpush(...values: any[]): number;
 
     /**
-     * @description 移除并返回列表 key 的表尾(最右边)元素
-     *      @return 列表的头元素，如果列表为空则返回 null
+     * @description Removes and returns the tail (rightmost) element of the list key
+     *      @return the head element of the list, or null if the list is empty
      */
     rpop(): Class_Buffer;
 
     /**
-     * @description 将列表下标为 index 的元素的值设置为 value
-     *      @param index 指定要修改的下标
-     *      @param value 指定要修改的数据
+     * @description Sets the element at the given index of the list to value
+     *      @param index the index to modify
+     *      @param value the value to modify
      */
     set(index: number, value: Class_Buffer): void;
 
     /**
-     * @description 返回列表中，下标为 index 的元素
-     *      @param index 指定要查询的下标
-     *      @return 列表中下标为 index 的元素
+     * @description Returns the element at the given index of the list
+     *      @param index the index to query
+     *      @return the element at the given index of the list
      */
     get(index: number): Class_Buffer;
 
     /**
-     * @description 将值 value 插入到列表当中，位于值 pivot 之前
-     *      @param pivot 指定插入时查找的数据
-     *      @param value 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts value into the list before the pivot value
+     *      @param pivot the value to search for on insertion
+     *      @param value the value to insert
+     *      @return the length of the list after insertion
      */
     insertBefore(pivot: Class_Buffer, value: Class_Buffer): number;
 
     /**
-     * @description 将值 value 插入到列表当中，位于值 pivot 之后
-     *      @param pivot 指定插入时查找的数据
-     *      @param value 指定要插入的数据
-     *      @return 插入后，列表的长度
+     * @description Inserts value into the list after the pivot value
+     *      @param pivot the value to search for on insertion
+     *      @param value the value to insert
+     *      @return the length of the list after insertion
      */
     insertAfter(pivot: Class_Buffer, value: Class_Buffer): number;
 
     /**
-     * @description 根据参数 count 的值，移除列表中与参数 value 相等的元素
-     *      @param count 指定删除的元素数量
-     *      @param value 指定要删除的数值
-     *      @return 被移除元素的数量
+     * @description Removes elements equal to the value parameter from the list according to the count parameter
+     *      @param count the number of elements to remove
+     *      @param value the value to remove
+     *      @return the number of elements removed
      */
     remove(count: number, value: Class_Buffer): number;
 
     /**
-     * @description 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除
-     *      @param start 指定修剪的起始下标，0 表示第一个元素，-1 表示最后一个元素
-     *      @param stop 指定修剪的结束下标，0 表示第一个元素，-1 表示最后一个元素
+     * @description Trims a list so that it keeps only the elements in the given range; elements outside the range are removed
+     *      @param start the start index to trim; 0 means the first element and -1 means the last element
+     *      @param stop the stop index to trim; 0 means the first element and -1 means the last element
      */
     trim(start: number, stop: number): void;
 
     /**
-     * @description 返回列表的长度
-     *      @return 返回列表的长度
+     * @description Returns the length of the list
+     *      @return returns the length of the list
      */
     len(): number;
 
     /**
-     * @description 返回列表中指定区间内的元素，区间以偏移量 start 和 stop 指定，包含 start 和 stop 的元素
-     *      @param start 指定查询的起始下标，0 表示第一个元素，-1 表示最后一个元素
-     *      @param stop 指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素
-     *      @return 包含指定区间内的元素的数组
+     * @description Returns the elements in the given range of the list; the range is specified by the start and stop offsets and includes the elements at start and stop
+     *      @param start the start index to query; 0 means the first element and -1 means the last element
+     *      @param stop the stop index to query; 0 means the first element and -1 means the last element
+     *      @return an array containing the elements in the given range
      */
     range(start: number, stop: number): any[];
 

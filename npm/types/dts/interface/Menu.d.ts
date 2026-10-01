@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MenuItem.d.ts" />
 /**
- * @description 菜单管理对象，用于窗口显示菜单
+ * @description Menu management object, used to display a menu in a window
  *
- *   Menu 可以使用以下方式创建：
+ *   A Menu can be created in the following ways:
  *   ```JavaScript
  *     var menu = gui.createMenu([
  *         { label: 'File', submenu: [
@@ -28,7 +28,7 @@
  *     ]);
  *    ```
  *
- *   或者在创建窗口时内置创建：
+ *   Or created inline when creating a window:
  *   ```JavaScript
  *     var win = gui.open({
  *         url: 'http://fibjs.org',
@@ -58,36 +58,36 @@
  */
 declare class Class_Menu extends Class_object {
     /**
-     * @description 添加菜单项，将一个菜单项添加到菜单中。
-     *      @param item 菜单项对象
+     * @description Appends a menu item, adding a menu item to the menu.
+     *      @param item menu item object
      *
      */
     append(item: FIBJS.GeneralObject): void;
 
     /**
-     * @description 插入菜单项，在指定位置插入一个菜单项。
-     *      @param pos 插入位置的索引
-     *      @param item 菜单项对象
+     * @description Inserts a menu item, inserting a menu item at the specified position.
+     *      @param pos the index of the insertion position
+     *      @param item menu item object
      *
      */
     insert(pos: number, item: FIBJS.GeneralObject): void;
 
     /**
-     * ! @rief 移除菜单项，从菜单中移除指定位置的菜单项。
-     *      @param pos 要移除的菜单项的索引
+     * @description Removes a menu item, removing the menu item at the specified position from the menu.
+     *      @param pos the index of the menu item to remove
      *
      */
     remove(pos: number): void;
 
     /**
-     * @description 获取菜单项数量
+     * @description Gets the number of menu items
      */
     readonly length: number;
 
     /**
-     * @description 获取菜单项，通过 id 获取菜单中的菜单项。
-     *      @param id 菜单项的 id
-     *      @return 菜单项对象，如果没有找到返回 null
+     * @description Gets a menu item, retrieving the menu item with the specified id from the menu.
+     *      @param id the id of the menu item
+     *      @return menu item object, or null if not found
      *
      */
     getMenuItemById(id: string): Class_MenuItem;

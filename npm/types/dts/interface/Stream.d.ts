@@ -3,51 +3,51 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/StreamReader.d.ts" />
 /**
- * @description 流操作对象，用于二进制数据流读写
+ * @description Stream operation object, used for binary data stream read/write
  *
- * Stream 为基础对象，用于为流处理定义标准接口，不能独立创建。FileStream、MemoryStream、Socket 等具体流对象均继承自 Stream。
+ * Stream is a base object that defines the standard interface for stream processing and cannot be created independently. Concrete stream objects such as FileStream, MemoryStream and Socket all inherit from Stream.
  *
- * 流对象提供以下能力：
+ * Stream objects provide the following capabilities:
  *
- *  - **读取**：`read`、`readBuffer` 读取指定大小数据，`readAll` 读取剩余全部数据；可通过 `setEncoding` 设置编码使 `read` 返回字符串；
- *  - **写入**：`write`、`writeBuffer` 写入数据，`copyTo` 复制数据到目标流；
- *  - **事件**：`data`、`close`、`error` 事件（继承自 EventEmitter）；
- *  - **生命周期**：`flush` 刷新数据、`end` 结束写入、`close` 关闭流、`destroy` 销毁流；
- *  - **进程控制**：`ref`/`unref` 控制流对象是否阻止 fibjs 进程退出；
- *  - **兼容接口**：`resume`、`pause`、`pipe`、`unpipe`、`getReader`（WHATWG ReadableStreamDefaultReader 兼容）。
+ *  - **Reading**: `read`, `readBuffer` read data of the specified size, `readAll` reads all remaining data; `setEncoding` sets the encoding so that `read` returns strings;
+ *  - **Writing**: `write`, `writeBuffer` write data, `copyTo` copies data to the destination stream;
+ *  - **Events**: `data`, `close`, `error` events (inherited from EventEmitter);
+ *  - **Lifecycle**: `flush` flushes data, `end` ends writing, `close` closes the stream, `destroy` destroys the stream;
+ *  - **Process control**: `ref`/`unref` control whether the stream object prevents the fibjs process from exiting;
+ *  - **Compatible interfaces**: `resume`, `pause`, `pipe`, `unpipe`, `getReader` (WHATWG ReadableStreamDefaultReader compatible).
  *
- * 读取方法在无数据可读或连接中断时返回 null。
+ * Read methods return null when there is no data to read or the connection is interrupted.
  */
 declare class Class_Stream extends Class_EventEmitter {
     /**
-     * @description 查询 Stream 对应的文件描述符值, 由子类实现
+     * @description Queries the file descriptor value of the Stream, implemented by subclasses
      */
     readonly fd: number;
 
     /**
-     * @description 查询流是否可写
+     * @description Queries whether the stream is writable
      */
     readonly writable: boolean;
 
     /**
-     * @description 查询流是否可读
+     * @description Queries whether the stream is readable
      */
     readonly readable: boolean;
 
     /**
-     * @description 查询流的可读状态对象
+     * @description Queries the readable state object of the stream
      */
     readonly _readableState: FIBJS.GeneralObject;
 
     /**
-     * @description 查询流的可写状态对象
+     * @description Queries the writable state object of the stream
      */
     readonly _writableState: FIBJS.GeneralObject;
 
     /**
-     * @description 从流内读取指定大小的数据
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
      *
      */
     read(bytes?: number): any;
@@ -55,25 +55,25 @@ declare class Class_Stream extends Class_EventEmitter {
     read(bytes?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 从流内读取指定大小的数据
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
      *
      */
     readSync(bytes?: number): any;
 
     /**
-     * @description 从流内读取指定大小的数据
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据。若设置了编码则返回字符串，否则返回 Buffer。若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
      *
      */
     readAsync(bytes?: number): Promise<any>;
 
     /**
-     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream, returned as a Buffer
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readBuffer(bytes?: number): Class_Buffer;
@@ -81,24 +81,24 @@ declare class Class_Stream extends Class_EventEmitter {
     readBuffer(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream, returned as a Buffer
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readBufferSync(bytes?: number): Class_Buffer;
 
     /**
-     * @description 从流内读取指定大小的数据，以 Buffer 形式返回
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的 Buffer 数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads data of the specified size from the stream, returned as a Buffer
+     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readBufferAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream
+     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readAll(): Class_Buffer;
@@ -106,30 +106,30 @@ declare class Class_Stream extends Class_EventEmitter {
     readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream
+     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readAllSync(): Class_Buffer;
 
     /**
-     * @description 从流内读取剩余的全部数据
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream
+     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readAllAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description 设置流的编码方式。设置后 read() 将返回字符串而非 Buffer 对象
-     *      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
-     *      @return 返回当前流对象
+     * @description Sets the encoding of the stream. After setting, read() returns strings instead of Buffer objects
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     *      @return returns the current stream object
      *
      */
     setEncoding(encoding: string): Class_Stream;
 
     /**
-     * @description 将给定的二进制数据写入流
-     *      @param data 给定要写入的 Buffer 数据
+     * @description Writes the given binary data to the stream
+     *      @param data the Buffer data to write
      *
      */
     writeBuffer(data: Class_Buffer): void;
@@ -137,23 +137,23 @@ declare class Class_Stream extends Class_EventEmitter {
     writeBuffer(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 将给定的二进制数据写入流
-     *      @param data 给定要写入的 Buffer 数据
+     * @description Writes the given binary data to the stream
+     *      @param data the Buffer data to write
      *
      */
     writeBufferSync(data: Class_Buffer): void;
 
     /**
-     * @description 将给定的二进制数据写入流
-     *      @param data 给定要写入的 Buffer 数据
+     * @description Writes the given binary data to the stream
+     *      @param data the Buffer data to write
      *
      */
     writeBufferAsync(data: Class_Buffer): Promise<void>;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     write(data: Class_Buffer): boolean;
@@ -161,26 +161,26 @@ declare class Class_Stream extends Class_EventEmitter {
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeSync(data: Class_Buffer): boolean;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeAsync(data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     write(data: Class_Buffer, encoding: string): boolean;
@@ -188,28 +188,28 @@ declare class Class_Stream extends Class_EventEmitter {
     write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeSync(data: Class_Buffer, encoding: string): boolean;
 
     /**
-     * @description 将给定的数据写入流
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given data to the stream
+     *      @param data the data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
 
     /**
-     * @description 将给定的字符串写入流
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given string to the stream
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     write(data: string, encoding?: string): boolean;
@@ -217,56 +217,56 @@ declare class Class_Stream extends Class_EventEmitter {
     write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 将给定的字符串写入流
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given string to the stream
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeSync(data: string, encoding?: string): boolean;
 
     /**
-     * @description 将给定的字符串写入流
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 如果流希望调用代码在继续写入其他数据之前等待 'drain' 事件，则返回 true；否则返回 false
+     * @description Writes the given string to the stream
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
      *
      */
     writeAsync(data: string, encoding?: string): Promise<boolean>;
 
     /**
-     * @description 将流切换到流动读取模式。在 fibjs 下，切换到流动读取模式是不可逆的，不能再切换回非流动读取模式。
-     *      @return 返回当前流对象
+     * @description Switches the stream to flowing read mode. In fibjs, switching to flowing read mode is irreversible and cannot be switched back to non-flowing read mode.
+     *      @return returns the current stream object
      *
      */
     resume(): Class_Stream;
 
     /**
-     * @description 暂停流的自动读取模式。此方法仅为兼容，目前调用此方法不会有任何效果
-     *      @return 返回当前流对象
+     * @description Pauses the automatic read mode of the stream. This method is for compatibility only; it currently has no effect
+     *      @return returns the current stream object
      *
      */
     pause(): Class_Stream;
 
     /**
-     * @description 将流数据管道传输到目标流。数据通过事件驱动方式从源流传输到目标流，支持背压控制
-     *      @param destination 目标流对象
-     *      @param options 管道选项，可选
-     *      @return 返回目标流对象，支持链式调用
+     * @description Pipes stream data to the destination stream. Data is transferred from the source stream to the destination stream in an event-driven way, with backpressure control
+     *      @param destination the destination stream object
+     *      @param options pipe options, optional
+     *      @return returns the destination stream object, supporting chained calls
      *
      */
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 移除所有管道目标，或仅移除指定的目标。此方法仅为兼容，目前调用此方法不会有任何效果
-     *      @param destination 要取消管道的特定可写目标
+     * @description Removes all pipe destinations, or only the specified destination. This method is for compatibility only; it currently has no effect
+     *      @param destination the specific writable destination to unpipe
      *
      */
     unpipe(destination?: Class_Stream): void;
 
     /**
-     * @description 结束流操作，可选择性地写入最后的数据
-     *      @return 返回一个异步对象
+     * @description Ends the stream operation, optionally writing the final data
+     *      @return returns an asynchronous object
      *
      */
     end(): number;
@@ -274,23 +274,23 @@ declare class Class_Stream extends Class_EventEmitter {
     end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 结束流操作，可选择性地写入最后的数据
-     *      @return 返回一个异步对象
+     * @description Ends the stream operation, optionally writing the final data
+     *      @return returns an asynchronous object
      *
      */
     endSync(): number;
 
     /**
-     * @description 结束流操作，可选择性地写入最后的数据
-     *      @return 返回一个异步对象
+     * @description Ends the stream operation, optionally writing the final data
+     *      @return returns an asynchronous object
      *
      */
     endAsync(): Promise<number>;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @return returns an asynchronous object
      *
      */
     end(data: Class_Buffer): number;
@@ -298,26 +298,26 @@ declare class Class_Stream extends Class_EventEmitter {
     end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @return returns an asynchronous object
      *
      */
     endSync(data: Class_Buffer): number;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @return returns an asynchronous object
      *
      */
     endAsync(data: Class_Buffer): Promise<number>;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return returns an asynchronous object
      *
      */
     end(data: Class_Buffer, encoding: string): number;
@@ -325,28 +325,28 @@ declare class Class_Stream extends Class_EventEmitter {
     end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return returns an asynchronous object
      *
      */
     endSync(data: Class_Buffer, encoding: string): number;
 
     /**
-     * @description 将给定的文件缓冲区写入流并结束流操作
-     *      @param data 给定要写入的文件缓冲区数据
-     *      @param encoding 指定的编码方式，因为 data 为 Buffer 类型，此参数将被忽略
-     *      @return 返回一个异步对象
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *      @param data the file buffer data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return returns an asynchronous object
      *
      */
     endAsync(data: Class_Buffer, encoding: string): Promise<number>;
 
     /**
-     * @description 将给定的字符串写入流并结束流操作
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回一个异步对象
+     * @description Writes the given string to the stream and ends the stream operation
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns an asynchronous object
      *
      */
     end(data: string, encoding?: string): number;
@@ -354,62 +354,62 @@ declare class Class_Stream extends Class_EventEmitter {
     end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将给定的字符串写入流并结束流操作
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回一个异步对象
+     * @description Writes the given string to the stream and ends the stream operation
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns an asynchronous object
      *
      */
     endSync(data: string, encoding?: string): number;
 
     /**
-     * @description 将给定的字符串写入流并结束流操作
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，缺省为 "utf8"
-     *      @return 返回一个异步对象
+     * @description Writes the given string to the stream and ends the stream operation
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns an asynchronous object
      *
      */
     endAsync(data: string, encoding?: string): Promise<number>;
 
     /**
-     * @description 将文件缓冲区内容写入物理设备
+     * @description Writes the file buffer content to the physical device
      */
     flush(): void;
 
     flush(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 将文件缓冲区内容写入物理设备
+     * @description Writes the file buffer content to the physical device
      */
     flushSync(): void;
 
     /**
-     * @description 将文件缓冲区内容写入物理设备
+     * @description Writes the file buffer content to the physical device
      */
     flushAsync(): Promise<void>;
 
     /**
-     * @description 关闭当前流对象
+     * @description Closes the current stream object
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前流对象
+     * @description Closes the current stream object
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前流对象
+     * @description Closes the current stream object
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 复制流数据到目标流中
-     *      @param stm 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     * @description Copies stream data to the destination stream
+     *      @param stm the destination stream object
+     *      @param bytes the number of bytes to copy
+     *      @return returns the number of bytes copied
      *
      */
     copyTo(stm: Class_Stream, bytes?: number): number;
@@ -417,68 +417,68 @@ declare class Class_Stream extends Class_EventEmitter {
     copyTo(stm: Class_Stream, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 复制流数据到目标流中
-     *      @param stm 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     * @description Copies stream data to the destination stream
+     *      @param stm the destination stream object
+     *      @param bytes the number of bytes to copy
+     *      @return returns the number of bytes copied
      *
      */
     copyToSync(stm: Class_Stream, bytes?: number): number;
 
     /**
-     * @description 复制流数据到目标流中
-     *      @param stm 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     * @description Copies stream data to the destination stream
+     *      @param stm the destination stream object
+     *      @param bytes the number of bytes to copy
+     *      @return returns the number of bytes copied
      *
      */
     copyToAsync(stm: Class_Stream, bytes?: number): Promise<number>;
 
     /**
-     * @description 查询和绑定流数据事件，相当于 on("data", func);
-     *      @param data 读取到的数据
+     * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *      @param data the data read
      *
      */
     on(event: "data", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定流关闭事件，相当于 on("close", func);
+     * @description Queries and binds the stream close event, equivalent to on("close", func);
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定流错误事件，相当于 on("error", func);
-     *      @param code 错误码
+     * @description Queries and binds the stream error event, equivalent to on("error", func);
+     *      @param code the error code
      *
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 获取流的读取器，兼容 WHATWG ReadableStreamDefaultReader 接口
-     *      @return 返回 StreamReader 对象
+     * @description Gets a reader for the stream, compatible with the WHATWG ReadableStreamDefaultReader interface
+     *      @return returns a StreamReader object
      *
      */
     getReader(): Class_StreamReader;
 
     /**
-     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Keeps the fibjs process alive, preventing it from exiting while the object is bound
+     *      @return returns the current object
      *
      */
     ref(): Class_Stream;
 
     /**
-     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Allows the fibjs process to exit; allows the fibjs process to exit while the object is bound
+     *      @return returns the current object
      *
      */
     unref(): Class_Stream;
 
     /**
-     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
-     *      调用后，流将不再可用。
-     *      @param err 可选的错误对象，将作为 'error' 事件触发
-     *      @return 返回当前对象
+     * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
+     *      After calling, the stream can no longer be used.
+     *      @param err optional error object, emitted as the 'error' event
+     *      @return returns the current object
      *
      */
     destroy(err?: any): Class_Stream;
@@ -486,19 +486,19 @@ declare class Class_Stream extends Class_EventEmitter {
     destroy(err?: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
-     *      调用后，流将不再可用。
-     *      @param err 可选的错误对象，将作为 'error' 事件触发
-     *      @return 返回当前对象
+     * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
+     *      After calling, the stream can no longer be used.
+     *      @param err optional error object, emitted as the 'error' event
+     *      @return returns the current object
      *
      */
     destroySync(err?: any): Class_Stream;
 
     /**
-     * @description 销毁流。可选地触发 'error' 事件，并触发 'close' 事件。
-     *      调用后，流将不再可用。
-     *      @param err 可选的错误对象，将作为 'error' 事件触发
-     *      @return 返回当前对象
+     * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
+     *      After calling, the stream can no longer be used.
+     *      @param err optional error object, emitted as the 'error' event
+     *      @return returns the current object
      *
      */
     destroyAsync(err?: any): Promise<Class_Stream>;

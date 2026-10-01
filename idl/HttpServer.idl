@@ -1,0 +1,68 @@
+/*! @brief HttpServer is one of the built-in objects; it is the object used to create an HTTP server. An HttpServer object contains two required parameters: a port and an event handling interface object. In the event handling interface object, the concrete implementation can be a simple callback function, or complex routing, a chained handling array, etc.
+
+ The http server object combines and encapsulates TcpServer and HttpHandler to make it easy to build a server quickly; logically, it is equivalent to:
+ ```JavaScript
+ var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
+    ...
+ }));
+ ```
+
+The following is a minimal HttpServer application example; it simply returns the string hello world for all requests.
+```JavaScript
+const http = require('http');
+var svr = new http.Server(8080, (req) => {
+    req.response.write('hello, world');
+});
+svr.start();
+```
+
+As can be seen from the code, first we import the built-in http module. Then we create a new HttpServer object and pass two necessary parameters: a port number and a concrete event handling interface object. In this example, we use a simple callback function as the event handling interface to respond to data from HTTP requests. `req.response.write('hello, world')` is used to respond with our string hello world to the client.
+
+After creating the HttpServer object, use `svr.start()` to start the server, so that we can receive HTTP requests from the Internet through this server.
+ */
+interface HttpServer : TcpServer
+{
+    /*! @brief HttpServer constructor, listens on all local addresses
+    @param port specifies the port on which the http server listens
+    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+   */
+    HttpServer(Integer port, Handler hdlr);
+
+    /*! @brief HttpServer constructor
+    @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+    @param port specifies the port on which the http server listens
+    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+   */
+    HttpServer(String addr, Integer port, Handler hdlr);
+
+    /*! @brief HttpServer constructor
+    @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+   */
+    HttpServer(String addr, Handler hdlr);
+
+    /*! @brief HttpServer constructor, does not bind a port; listen() must be called to start
+    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+   */
+    HttpServer(Handler hdlr);
+
+    /*! @brief enables cross-origin requests
+     @param allowHeaders specifies the accepted http header fields
+     */
+    enableCrossOrigin(String allowHeaders = "Content-Type");
+
+    /*! @brief queries and sets the maximum number of request headers, default is 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief queries and sets the maximum request header length, default is 8192 */
+    Integer maxHeaderSize;
+
+    /*! @brief queries and sets the maximum body size in MB, default is 64 */
+    Integer maxBodySize;
+
+    /*! @brief switch for the automatic decompression feature, disabled by default */
+    Boolean enableEncoding;
+
+    /*! @brief queries and sets the server name, default is: fibjs/0.x.0 */
+    String serverName;
+};

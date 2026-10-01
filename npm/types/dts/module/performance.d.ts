@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description performance 基础性能监控模块
+ * @description performance basic performance monitoring module
  *
- *  引用方法：
+ *  Reference method:
  *  ```JavaScript
  *  var performance = require('perf_hooks').performance;
  *  ```
@@ -10,93 +10,93 @@
  */
 declare module 'performance' {
     /**
-     * @description 清除所有性能标记
-     *      @param name 标记名称，如果为空则清除所有标记
+     * @description Clears all performance marks
+     *      @param name the mark name; if empty, clears all marks
      *
      */
     function clearMarks(name?: string): void;
 
     /**
-     * @description 清除所有性能测量
-     *      @param name 测量名称，如果为空则清除所有测量
+     * @description Clears all performance measures
+     *      @param name the measure name; if empty, clears all measures
      *
      */
     function clearMeasures(name?: string): void;
 
     /**
-     * @description 创建一个性能标记
+     * @description Creates a performance mark
      *
-     *      options 为一个对象，包含以下属性：
-     *       - detail: 附加信息
-     *       - startTime: 开始时间，如果为空则使用当前时间
+     *      options is an object containing the following properties:
+     *       - detail: additional information
+     *       - startTime: start time; if empty, uses the current time
      *
-     *      @param name 标记名称
-     *      @param options 附加选项
+     *      @param name the mark name
+     *      @param options the additional options
      *
      */
     function mark(name: string, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 创建一个性能测量
-     *      @param name 测量名称
-     *      @param startMark 开始标记名称，如果为空则使用进程起始时间
-     *      @param endMark 结束标记名称，如果为空则使用当前时间
+     * @description Creates a performance measure
+     *      @param name the measure name
+     *      @param startMark the start mark name; if empty, uses the process start time
+     *      @param endMark the end mark name; if empty, uses the current time
      *
      */
     function measure(name: string, startMark?: string, endMark?: string): void;
 
     /**
-     * @description 创建一个性能测量
+     * @description Creates a performance measure
      *
-     *      options 为一个对象，包含以下属性：
-     *       - detail: 附加信息
-     *       - duration: 持续时间
-     *       - end: 如果为 Number 类型，则表示结束时间，如果是 String 类型，则表示结束标记名称
-     *       - start: 如果为 Number 类型，则表示开始时间，如果是 String 类型，则表示开始标记名称
+     *      options is an object containing the following properties:
+     *       - detail: additional information
+     *       - duration: the duration
+     *       - end: if of Number type, represents the end time; if of String type, represents the end mark name
+     *       - start: if of Number type, represents the start time; if of String type, represents the start mark name
      *
-     *      @param name 测量名称
-     *      @param options 附加选项
+     *      @param name the measure name
+     *      @param options the additional options
      *
      */
     function measure(name: string, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 获取所有性能记录
-     *      @return 返回所有性能记录
+     * @description Gets all performance entries
+     *      @return returns all performance entries
      */
     function getEntries(): any[];
 
     /**
-     * @description 获取所有性能记录
-     *      @param type 记录类型
-     *      @return 返回所有性能记录
+     * @description Gets all performance entries
+     *      @param type the entry type
+     *      @return returns all performance entries
      */
     function getEntriesByType(type: string): any[];
 
     /**
-     * @description 获取所有性能记录
-     *      @param name 记录名称
-     *      @param type 记录类型
-     *      @return 返回所有性能记录
+     * @description Gets all performance entries
+     *      @param name the entry name
+     *      @param type the entry type
+     *      @return returns all performance entries
      */
     function getEntriesByName(name: string, type?: string): any[];
 
     /**
-     * @description 标记资源时间（兼容性空实现）
-     *      @param timingInfo 时间信息对象
-     *      @param requestedUrl 请求的 URL
-     *      @param initiatorType 发起者类型
-     *      @param global 全局对象
-     *      @param cacheState 缓存状态
-     *      @param bodyInfo 请求体信息
-     *      @param responseStatus 响应状态码
+     * @description Marks resource timing (compatibility no-op)
+     *      @param timingInfo the timing information object
+     *      @param requestedUrl the requested URL
+     *      @param initiatorType the initiator type
+     *      @param global the global object
+     *      @param cacheState the cache state
+     *      @param bodyInfo the request body information
+     *      @param responseStatus the response status code
      *
      */
     function markResourceTiming(timingInfo: any, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: any, responseStatus: number): void;
 
     /**
-     * @description 查询当前进程时间
-     *      @return 返回当前进程时间
+     * @description Queries the current process time
+     *      @return returns the current process time
      */
     function now(): number;
 

@@ -1,0 +1,69 @@
+/*! @brief File system watcher object
+
+ When `fs.watch(target)` is called successfully, an object of this type is returned
+ ```JavaScript
+ var fs = require("fs");
+ var watcher = fs.watch((eventType, filename) => {
+    if (filename) {
+      console.log(filename);
+      // Prints: <Buffer ...>
+    }
+ });
+
+ watcher.close();
+
+ // calling fs.watch with callback and options
+ fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
+  if (filename) {
+    console.log(filename);
+    // Prints: <Buffer ...>
+  }
+});
+ ```
+*/
+interface FSWatcher : EventEmitter
+{
+    /*! @brief Queries and binds the "file change" event, equivalent to on("change", func);
+     
+     Triggered when any change to the file occurs (content modification or rename).
+     Callback signature: (eventType: 'change' | 'rename', filename: string | Buffer) => void
+     */
+    event change();
+
+    /*! @brief Queries and binds the "content change only" event, equivalent to on("changeonly", func);
+     
+     Triggered only when the file content is modified (excluding renames).
+     Callback signature: (eventType: 'change', filename: string | Buffer) => void
+     */
+    event changeonly();
+
+    /*! @brief Queries and binds the "rename only" event, equivalent to on("renameonly", func);
+     
+     Triggered only when the file is renamed (excluding content modifications).
+     Callback signature: (eventType: 'rename', filename: string | Buffer) => void
+     */
+    event renameonly();
+
+    /*! @brief Queries and binds the "watcher closed" event, equivalent to on("close", func); */
+    event close();
+
+    /*! @brief Queries and binds the "error occurred" event, equivalent to on("error", func); */
+    event error();
+
+    /*! @brief Closes the Watcher; no longer receives the corresponding file change events */
+    close();
+
+    /*! @brief Increments the reference count, telling fibjs not to exit the process while the watcher is still in use.
+     
+     When fs.watch() is called with the persistent option set to true (the default), the FSWatcher automatically refs.
+     
+     @return returns the FSWatcher itself
+     */
+    FSWatcher ref();
+
+    /*! @brief Decrements the reference count; allows the process to exit while the watcher is still active.
+     
+     @return returns the FSWatcher itself
+     */
+    FSWatcher unref();
+};

@@ -1,0 +1,70 @@
+/*! @brief tty write stream object, used to handle tty output
+
+ There is no way to create this class separately; globally there is only the `process.stdout` instance
+
+ ```JavaScript
+ // clear line
+ process.stdout.clearLine(1)
+ ```
+ */
+interface TTYOutputStream : Stream
+{
+    /*! @brief Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor
+     @param fd the underlying file descriptor, which must be a tty device
+     @param opts options object passed to the Stream constructor
+     */
+    TTYOutputStream(Integer fd, Object opts = {});
+
+    /*! @brief Creates a new TTYOutputStream object; the fd parameter specifies the underlying file object
+     @param fd the underlying file object, which must be a tty device
+     @param opts options object passed to the Stream constructor
+     */
+    TTYOutputStream(FileHandle fd, Object opts = {});
+
+    /*! @brief Always true
+    */
+    readonly Boolean isTTY;
+
+    /*! @brief Returns the number of columns of the terminal corresponding to this TTYOutputStream
+    */
+    readonly Integer columns;
+
+    /*! @brief Returns the number of rows of the terminal corresponding to this TTYOutputStream
+    */
+    readonly Integer rows;
+
+    /*! @brief Clears the line according to the direction indicated by dir
+
+     Directions of dir:
+     - -1: clear from the cursor to the beginning of the line
+     - 0: clear the entire line
+     - 1: clear from the cursor to the end of the line
+
+     @param dir clearing direction
+     */
+    clearLine(Integer dir = 0);
+
+    /*! @brief Clears the characters from the cursor to the end of the screen
+     */
+    clearScreenDown();
+
+    /*! @brief Moves the cursor to the specified position
+     @param x the column number
+     @param y the row number, default -1, meaning the row number is not changed
+     */
+    cursorTo(Integer x, Integer y = -1) async;
+
+    /*! @brief Moves the cursor by the specified offset
+     @param dx the column offset
+     @param dy the row offset
+     */
+    moveCursor(Integer dx, Integer dy) async;
+
+    /*! @brief Returns the size of the terminal corresponding to this TTYOutputStream
+     @return returns the array [numColumns, numRows], where numColumns and numRows are the number of columns and rows in the corresponding terminal
+     */
+    NArray getWindowSize();
+
+    /*! @brief Emitted when the terminal size changes */
+    event resize();
+};

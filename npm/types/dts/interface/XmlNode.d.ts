@@ -4,14 +4,14 @@
 /// <reference path="../interface/XmlElement.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
 /**
- * @description XmlNode 对象是整个 DOM 的基础数据类型
+ * @description The XmlNode object is the basic data type of the whole DOM
  *
  */
 declare class Class_XmlNode extends Class_object {
     /**
-     * @description 返回节点的节点类型
+     * @description Returns the node type of the node
      *
-     *      不同对象的 nodeType 会返回不同的值：
+     *      Different objects return different values of nodeType:
      *      - XmlElement: ELEMENT_NODE(1)
      *      - XmlAttr: ATTRIBUTE_NODE(2)
      *      - XmlText: TEXT_NODE(3)
@@ -25,31 +25,31 @@ declare class Class_XmlNode extends Class_object {
     readonly nodeType: number;
 
     /**
-     * @description 返回节点的名称，根据其类型
+     * @description Returns the name of the node, according to its type
      *
-     *      不同对象的 nodeName 会返回不同的值：
+     *      Different objects return different values of nodeName:
      *      - XmlElement: element name
-     *      - XmlAttr: 属性名称
+     *      - XmlAttr: attribute name
      *      - XmlText: \#text
      *      - XmlCDATASection: \#cdata-section
-     *      - XmlProcessingInstruction: 返回指定目标 target
+     *      - XmlProcessingInstruction: returns the specified target
      *      - XmlComment: \#comment
      *      - XmlDocument: \#document
-     *      - XmlDocumentType: doctype 名称
+     *      - XmlDocumentType: doctype name
      *
      */
     readonly nodeName: string;
 
     /**
-     * @description 返回节点的名称，根据其类型
+     * @description Returns the name of the node, according to its type
      *
-     *      不同对象的 nodeName 会返回不同的值：
+     *      Different objects return different values of nodeName:
      *      - XmlElement: null
-     *      - XmlAttr: 属性的值
-     *      - XmlText: 节点的内容
-     *      - XmlCDATASection: 节点的内容
-     *      - XmlProcessingInstruction: 返回指定内容 data
-     *      - XmlComment: 注释文本
+     *      - XmlAttr: the value of the attribute
+     *      - XmlText: the content of the node
+     *      - XmlCDATASection: the content of the node
+     *      - XmlProcessingInstruction: returns the specified content data
+     *      - XmlComment: the comment text
      *      - XmlDocument: null
      *      - XmlDocumentType: null
      *
@@ -57,271 +57,271 @@ declare class Class_XmlNode extends Class_object {
     nodeValue: string;
 
     /**
-     * @description 返回节点的根元素（XmlDocument 对象）
+     * @description Returns the root element of the node (an XmlDocument object)
      *
      */
     readonly ownerDocument: Class_XmlDocument;
 
     /**
-     * @description 可返回某节点的父节点
+     * @description Returns the parent node of a node
      *
      */
     readonly parentNode: Class_XmlNode;
 
     /**
-     * @description 可返回某节点的父元素，如果父节点不是元素节点则返回 null
+     * @description Returns the parent element of a node; returns null if the parent node is not an element node
      *
      */
     readonly parentElement: Class_XmlElement;
 
     /**
-     * @description 查询是否存在子节点
-     *      @return 存在任何子节点时返回 true，否则返回 false
+     * @description Queries whether child nodes exist
+     *      @return returns true if any child node exists, otherwise returns false
      *
      */
     hasChildNodes(): boolean;
 
     /**
-     * @description 返回指定节点的子节点的节点列表
+     * @description Returns the node list of the child nodes of the specified node
      *
      */
     readonly childNodes: Class_XmlNodeList;
 
     /**
-     * @description 返回指定节点的子元素节点的节点列表
+     * @description Returns the node list of the child element nodes of the specified node
      *
      */
     readonly children: Class_XmlNodeList;
 
     /**
-     * @description 返回节点的首个子节点
+     * @description Returns the first child node of the node
      *
      */
     readonly firstChild: Class_XmlNode;
 
     /**
-     * @description 返回节点的最后一个子节点
+     * @description Returns the last child node of the node
      *
      */
     readonly lastChild: Class_XmlNode;
 
     /**
-     * @description 返回某节点之前紧跟的节点（处于同一树层级），如果没有此节点，那么该属性返回 null
+     * @description Returns the node immediately preceding a node (at the same tree level); if there is no such node, the property returns null
      *
      */
     readonly previousSibling: Class_XmlNode;
 
     /**
-     * @description 返回某个元素之后紧跟的节点（处于同一树层级中），如果无此节点，则属性返回 null
+     * @description Returns the node immediately following a node (at the same tree level); if there is no such node, the property returns null
      *
      */
     readonly nextSibling: Class_XmlNode;
 
     /**
-     * @description 返回节点的首个子元素节点
+     * @description Returns the first child element node of the node
      *
      */
     readonly firstElementChild: Class_XmlNode;
 
     /**
-     * @description 返回节点的最后一个子元素节点
+     * @description Returns the last child element node of the node
      *
      */
     readonly lastElementChild: Class_XmlNode;
 
     /**
-     * @description 返回某节点之前紧跟的元素节点（处于同一树层级），如果没有此节点，那么该属性返回 null
+     * @description Returns the element node immediately preceding a node (at the same tree level); if there is no such node, the property returns null
      *
      */
     readonly previousElementSibling: Class_XmlNode;
 
     /**
-     * @description 返回某个元素之后紧跟的元素节点（处于同一树层级中），如果无此节点，则属性返回 null
+     * @description Returns the element node immediately following a node (at the same tree level); if there is no such node, the property returns null
      *
      */
     readonly nextElementSibling: Class_XmlNode;
 
     /**
-     * ! 查询和设置选定元素的文本。查询时，返回元素节点内所有文本节点的值；设置时，删除所有子节点，并用单个文本节点来替换它们。
+     * ! Queries and sets the text of the selected element. When queried, returns the values of all text nodes inside the element node; when set, deletes all child nodes and replaces them with a single text node.
      *
      */
     textContent: string;
 
     /**
-     * @description 合并相邻的 Text 节点并删除空的 Text 节点
+     * @description Merges adjacent Text nodes and removes empty Text nodes
      *
-     *     这个方法将遍历当前节点的所有子孙节点，通过删除空的 Text 节点，已经合并所有相邻的 Text 节点来规范化文档。该方法在进行节点的插入或删除操作后，对于简化文档树的结构很有用。
+     *      This method traverses all descendant nodes of the current node and normalizes the document by removing empty Text nodes and merging all adjacent Text nodes. This method is useful for simplifying the document tree structure after node insertion or deletion operations.
      *
      */
     normalize(): void;
 
     /**
-     * @description 创建指定的节点的精确拷贝
+     * @description Creates an exact copy of the specified node
      *
-     *      该方法将复制并返回调用它的节点的副本。如果传递给它的参数是 true，它还将递归复制当前节点的所有子孙节点。 否则，它只复制当前节点。返回的节点不属于文档树，它的 parentNode 属性为 null。当复制的是 Element 节点时，它的所有属性都将被复制。
-     *      @param deep 是否深度拷贝，为 true 时，被克隆的节点会克隆原节点的所有子节点
-     *      @return 返回所复制的节点
+     *      This method copies and returns a copy of the node on which it is called. If the parameter passed to it is true, it also recursively copies all descendant nodes of the current node; otherwise, it copies only the current node. The returned node does not belong to the document tree and its parentNode property is null. When an Element node is copied, all of its attributes are copied as well.
+     *      @param deep whether to make a deep copy; when true, the cloned node clones all child nodes of the original node
+     *      @return returns the copied node
      *
      */
     cloneNode(deep?: boolean): Class_XmlNode;
 
     /**
-     * @description 返回在当前节点上匹配指定的命名空间 URI 的前缀
-     *      @param namespaceURI 指定匹配的命名空间 URI
-     *      @return 返回匹配的前缀，未匹配到返回 null
+     * @description Returns the prefix matching the specified namespace URI on the current node
+     *      @param namespaceURI the namespace URI to match
+     *      @return returns the matched prefix, or null if no match is found
      *
      */
     lookupPrefix(namespaceURI: string): string;
 
     /**
-     * @description 返回在当前节点上匹配指定的前缀的命名空间 URI
-     *      @param prefix 指定匹配的前缀
-     *      @return 返回匹配的命名空间 URI，未匹配到返回 null
+     * @description Returns the namespace URI matching the specified prefix on the current node
+     *      @param prefix the prefix to match
+     *      @return returns the matched namespace URI, or null if no match is found
      *
      */
     lookupNamespaceURI(prefix: string): string;
 
     /**
-     * @description 在已有的子节点前插入一个新的子节点
+     * @description Inserts a new child node before an existing child node
      *
-     *      如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。
-     *      @param newChild 插入新的节点
-     *      @param refChild 在此节点前插入新节点
-     *      @return 返回新的子节点
+     *      If newChild already exists in the document tree, it is removed from the document tree and then reinserted at its new position. A node from one document (or a node created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     *      @param newChild the new node to insert
+     *      @param refChild inserts the new node before this node
+     *      @return returns the new child node
      *
      */
     insertBefore(newChild: Class_XmlNode, refChild: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 在已有的子节点后插入一个新的子节点
+     * @description Inserts a new child node after an existing child node
      *
-     *      如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。
-     *      @param newChild 插入新的节点
-     *      @param refChild 在此节点后插入新节点
-     *      @return 返回新的子节点
+     *      If newChild already exists in the document tree, it is removed from the document tree and then reinserted at its new position. A node from one document (or a node created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     *      @param newChild the new node to insert
+     *      @param refChild inserts the new node after this node
+     *      @return returns the new child node
      *
      */
     insertAfter(newChild: Class_XmlNode, refChild: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 向节点的子节点列表的末尾添加新的子节点
+     * @description Adds a new child node to the end of the node's child node list
      *
-     *      如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。
-     *      @param newChild 指定添加的节点
-     *      @return 返回这个新的子节点
+     *      If newChild already exists in the document tree, it is removed from the document tree and then reinserted at its new position. A node from one document (or a node created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     *      @param newChild the node to add
+     *      @return returns this new child node
      *
      */
     appendChild(newChild: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 将某个子节点替换为另一个
+     * @description Replaces a child node with another one
      *
-     *      如果文档树中已经存在了 newChild，它将从文档树中删除，然后重新插入它的新位置。来自一个文档的节点（或由一个文档创建的节点）不能插入另一个文档。也就是说，newChild 的 ownerDocument 属性必须与当前节点的 ownerDocument 属性相同。
-     *      @param newChild 指定新的节点
-     *      @param oldChild 指定被替换的节点
-     *      @return 如替换成功，此方法可返回被替换的节点，如替换失败，则返回 null
+     *      If newChild already exists in the document tree, it is removed from the document tree and then reinserted at its new position. A node from one document (or a node created by one document) cannot be inserted into another document. That is, the ownerDocument property of newChild must be the same as the ownerDocument property of the current node.
+     *      @param newChild the new node
+     *      @param oldChild the node to be replaced
+     *      @return if the replacement succeeds, this method returns the replaced node; if it fails, returns null
      *
      */
     replaceChild(newChild: Class_XmlNode, oldChild: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 从子节点列表中删除某个节点
-     *      @param oldChild 指定被删除的节点
-     *      @return 如删除成功，此方法可返回被删除的节点，如失败，则返回 null
+     * @description Removes a node from the child node list
+     *      @param oldChild the node to remove
+     *      @return if the removal succeeds, this method returns the removed node; if it fails, returns null
      *
      */
     removeChild(oldChild: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 从当前节点中删除自身
+     * @description Removes itself from the current node
      *
-     *      该方法将从当前节点的父节点中删除当前节点，并返回当前节点。注意：如果当前节点没有父节点，则此方法无效。
-     *      @return 返回被删除的节点
+     *      This method removes the current node from its parent node and returns the current node. Notes: if the current node has no parent node, this method has no effect.
+     *      @return returns the removed node
      *
      */
     remove(): Class_XmlNode;
 
     /**
-     * @description 用一个或多个节点替换当前节点
+     * @description Replaces the current node with one or more nodes
      *
-     *      该方法将当前节点从其父节点中移除，并在原位置插入指定的新节点。如果当前节点没有父节点，则此方法无效。
-     *      @param nodes 要替换当前节点的一个或多个节点
+     *      This method removes the current node from its parent node and inserts the specified new node at the original position. If the current node has no parent node, this method has no effect.
+     *      @param nodes one or more nodes that replace the current node
      *
      */
     replaceWith(...nodes: any[]): void;
 
     /**
-     * @description 在当前节点之前插入一个或多个节点
+     * @description Inserts one or more nodes before the current node
      *
-     *      该方法将指定的节点插入到当前节点之前，与当前节点处于同一父节点下。如果当前节点没有父节点，则此方法无效。
-     *      @param nodes 要插入的一个或多个节点，可以是节点对象或字符串
+     *      This method inserts the specified nodes before the current node, under the same parent node as the current node. If the current node has no parent node, this method has no effect.
+     *      @param nodes one or more nodes to insert; can be node objects or strings
      *
      */
     before(...nodes: any[]): void;
 
     /**
-     * @description 在当前节点之后插入一个或多个节点
+     * @description Inserts one or more nodes after the current node
      *
-     *      该方法将指定的节点插入到当前节点之后，与当前节点处于同一父节点下。如果当前节点没有父节点，则此方法无效。
-     *      @param nodes 要插入的一个或多个节点，可以是节点对象或字符串
+     *      This method inserts the specified nodes after the current node, under the same parent node as the current node. If the current node has no parent node, this method has no effect.
+     *      @param nodes one or more nodes to insert; can be node objects or strings
      *
      */
     after(...nodes: any[]): void;
 
     /**
-     * @description 检查当前节点是否包含指定的节点
-     *      @param node 要检查的节点
-     *      @return 如果当前节点包含指定节点则返回 true，否则返回 false
+     * @description Checks whether the current node contains the specified node
+     *      @param node the node to check
+     *      @return returns true if the current node contains the specified node, otherwise returns false
      *
      */
     contains(node: Class_XmlNode): boolean;
 
     /**
-     * @description 返回当前节点的根节点
-     *      @return 返回根节点
+     * @description Returns the root node of the current node
+     *      @return returns the root node
      *
      */
     getRootNode(): Class_XmlNode;
 
     /**
-     * @description 返回当前节点是否连接到文档中
+     * @description Returns whether the current node is connected to the document
      *
      */
     readonly isConnected: boolean;
 
     /**
-     * @description 比较两个节点在文档中的位置关系
+     * @description Compares the position relationship of two nodes in the document
      *
-     *      返回一个位掩码，表示两个节点的位置关系：
-     *      - DOCUMENT_POSITION_DISCONNECTED (1): 两个节点不在同一文档中
-     *      - DOCUMENT_POSITION_PRECEDING (2): 参数节点在当前节点之前
-     *      - DOCUMENT_POSITION_FOLLOWING (4): 参数节点在当前节点之后
-     *      - DOCUMENT_POSITION_CONTAINS (8): 参数节点包含当前节点
-     *      - DOCUMENT_POSITION_CONTAINED_BY (16): 当前节点包含参数节点
-     *      - DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC (32): 位置关系由实现决定
+     *      Returns a bitmask representing the position relationship of the two nodes:
+     *      - DOCUMENT_POSITION_DISCONNECTED (1): the two nodes are not in the same document
+     *      - DOCUMENT_POSITION_PRECEDING (2): the parameter node precedes the current node
+     *      - DOCUMENT_POSITION_FOLLOWING (4): the parameter node follows the current node
+     *      - DOCUMENT_POSITION_CONTAINS (8): the parameter node contains the current node
+     *      - DOCUMENT_POSITION_CONTAINED_BY (16): the current node contains the parameter node
+     *      - DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC (32): the position relationship is implementation-specific
      *
-     *      @param other 要比较的节点
-     *      @return 返回位掩码表示的位置关系
+     *      @param other the node to compare
+     *      @return returns the position relationship represented by the bitmask
      *
      */
     compareDocumentPosition(other: Class_XmlNode): number;
 
     /**
-     * @description 检查两个节点是否结构相等
+     * @description Checks whether two nodes are structurally equal
      *
-     *      两个节点结构相等意味着它们具有相同的类型、相同的属性值、相同的子节点结构等。
-     *      @param other 要比较的节点
-     *      @return 如果两个节点结构相等则返回 true，否则返回 false
+     *      Two nodes are structurally equal when they have the same type, the same attribute values, the same child node structure and so on.
+     *      @param other the node to compare
+     *      @return returns true if the two nodes are structurally equal, otherwise returns false
      *
      */
     isEqualNode(other: Class_XmlNode): boolean;
 
     /**
-     * @description 检查两个节点是否是同一个节点
+     * @description Checks whether two nodes are the same node
      *
-     *      与 === 运算符作用相同，检查两个引用是否指向同一对象。
-     *      @param other 要比较的节点
-     *      @return 如果是同一节点则返回 true，否则返回 false
+     *      Same as the === operator: checks whether two references point to the same object.
+     *      @param other the node to compare
+     *      @return returns true if they are the same node, otherwise returns false
      *
      */
     isSameNode(other: Class_XmlNode): boolean;

@@ -1,54 +1,54 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description XmlAttr 对象表示 XmlElement 对象的属性
+ * @description The XmlAttr object represents an attribute of an XmlElement object
  */
 declare class Class_XmlAttr extends Class_object {
     /**
-     * @description 查询元素的本地名称。如果选定的节点无命名空间，则该属性等同于 nodeName
+     * @description Queries the local name of the element. If the selected node has no namespace, this property is equivalent to nodeName
      *
      */
     readonly localName: string;
 
     /**
-     * @description 属性的值
+     * @description The value of the attribute
      *
      */
     value: string;
 
     /**
-     * @description 属性的名称
+     * @description The name of the attribute
      *
      */
     readonly name: string;
 
     /**
-     * @description 查询元素的命名空间的 URI。如果选定的节点无命名空间，则该属性返回 NULL
+     * @description Queries the namespace URI of the element. If the selected node has no namespace, this property returns NULL
      *
      */
     readonly namespaceURI: string;
 
     /**
-     * @description 查询和设置元素的命名空间前缀。如果选定的节点无命名空间，则该属性返回 NULL
+     * @description Queries and sets the namespace prefix of the element. If the selected node has no namespace, this property returns NULL
      *
      */
     prefix: string;
 
     /**
-     * @description 属性的名称，为兼容的目的
+     * @description The name of the attribute, for compatibility purposes
      *
      */
     readonly nodeName: string;
 
     /**
-     * @description 属性的值，为兼容的目的
+     * @description The value of the attribute, for compatibility purposes
      *
      */
     nodeValue: string;
 
     /**
-     * @description 复制 XmlAttr 对象
-     *     @return 返回 XmlAttr 对象的副本
+     * @description Clones the XmlAttr object
+     *     @return returns a copy of the XmlAttr object
      *
      */
     cloneNode(): Class_XmlAttr;

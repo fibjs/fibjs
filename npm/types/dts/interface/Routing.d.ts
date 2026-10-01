@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description 消息处理器路由对象
+ * @description Message handler routing object
  *
- *  路由对象是 http 消息处理的核心对象，服务器根据路由的设定，匹配 url 和 method，并将 http 消息转发到相应的处理器，以完成不同的事务。
+ *  The routing object is the core object of http message handling. According to the routing settings, the server matches url and method and forwards the http message to the corresponding handler, so as to complete different transactions.
  *
- *  一个简单的路由，可以直接以 JSON 对象的形式提供，比如：
+ *  A simple routing can be specified directly as a JSON object, for example:
  *  ```JavaScript
  *  var http = require('http');
  *
@@ -16,7 +16,7 @@
  *
  *  svr.start();
  *  ```
- *  如果需要更复杂的路由定制，可以自行创建 Routing 对象并根据需要处理路由策略：
+ *  If more complex routing customization is needed, you can create a Routing object yourself and implement the routing strategy as needed:
  *  ```JavaScript
  *  var http = require('http');
  *  var mq = require('mq');
@@ -41,229 +41,229 @@
  *  var svr = new http.Server(8080, app);
  *  svr.start();
  *  ```
- *  路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
+ *  The routing object matches messages according to the configured rules and passes the message to the first handler that matches the rules. Routing rules added later are matched with higher priority. Creation method:
  *  ```JavaScript
  *  var routing = new mq.Routing({
  *    "^/func1(/.*)$": func1,
  *    "^/func2(/.*)$": func2
  *  });
  *  ```
- *  正则表达式匹配的项目修改消息的 value 属性，子项目存入消息的 params 属性。例如：
+ *  For items matched by a regular expression, the value property of the message is modified and sub-items are stored in the params property of the message. For example:
  *  ```JavaScript
  *  var routing = new mq.Routing({
  *    "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
  *  });
  *  ```
- *  匹配消息 "/func1/123/456.html" 后，value == "/123/456.html"，params == ["123", "456"];
+ *  After matching the message "/func1/123/456.html", value == "/123/456.html", params == ["123", "456"];
  *
- *  如果匹配的结果没有子项，则 value 为空，params 为空。例如：
+ *  If the match result has no sub-items, value is empty and params is empty. For example:
  *  ```JavaScript
  *  var routing = new mq.Routing({
  *    "^/func1/[0-9]+/[0-9]+\.html$": func1,
  *  });
  *  ```
- *  匹配消息 "/func1/123/456.html" 后，value == ""，params == [];
+ *  After matching the message "/func1/123/456.html", value == "", params == [];
  *
- *  如果匹配的结果第一级有多个子项，则 value 为空，params 为第一级子项。例如：
+ *  If the match result has multiple first-level sub-items, value is empty and params contains the first-level sub-items. For example:
  *  ```JavaScript
  *  var routing = new mq.Routing({
  *    "^/func1/([0-9]+)/([0-9]+)\.html$": func1,
  *  });
  *  ```
- *  匹配消息 "/func1/123/456.html" 后，value == ""，params == ["123", "456"];
+ *  After matching the message "/func1/123/456.html", value == "", params == ["123", "456"];
  *
- *  如果匹配的结果只有一个子项，并且无下级子项，则 value 和 params 均为此子项。例如：
+ *  If the match result has only one sub-item and no lower-level sub-items, both value and params are that sub-item. For example:
  *  ```JavaScript
  *  var routing = new mq.Routing({
  *    "^/func1/([0-9]+)/[0-9]+\.html$": func1,
  *  });
  *  ```
- *  匹配消息 "/func1/123/456.html" 后，value == "123"，params == ["123"];
+ *  After matching the message "/func1/123/456.html", value == "123", params == ["123"];
  *
  */
 declare class Class_Routing extends Class_Handler {
     /**
-     * @description 创建一个消息处理器路由对象
-     *    @param map 初始化路由参数
+     * @description Creates a message handler routing object
+     *    @param map initialization routing parameters
      *
      */
     constructor(map?: FIBJS.GeneralObject);
 
     /**
-     * @description 创建一个消息处理器路由对象
-     *    @param method 指定 http 请求方法，"*" 接受所有方法
-     *    @param map 初始化路由参数
+     * @description Creates a message handler routing object
+     *    @param method the http request method to accept, "*" accepts all methods
+     *    @param map initialization routing parameters
      *
      */
     constructor(method: string, map: FIBJS.GeneralObject);
 
     /**
-     * @description 从已有路由对象中添加规则，添加后原路由将被清空
-     *    @param route 已经初始化的路由对象
-     *    @return 返回路由对象本身
+     * @description Adds rules from an existing routing object; the source routing is cleared after adding
+     *    @param route an initialized routing object
+     *    @return returns the routing object itself
      *
      */
     append(route: Class_Routing): Class_Routing;
 
     /**
-     * @description 添加一组路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of routing rules
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     append(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     append(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一条路由规则
-     *    @param method 指定 http 请求方法，"*" 接受所有方法，"host" 指定虚拟域名
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule
+     *    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     append(method: string, pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组 http 域名的路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of routing rules for http host names
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     host(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http 域名的路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts http host names
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     host(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组接受所有 http 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of routing rules that accept all http methods
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     all(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受所有 http 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts all http methods
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     all(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组 GET 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of GET method routing rules
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     get(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http GET 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http GET method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     get(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组接受 http POST 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of routing rules that accept the http POST method
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     post(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http POST 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http POST method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     post(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组接受 http DELETE 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of routing rules that accept the http DELETE method
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     del(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http DELETE 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http DELETE method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     del(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组 PUT 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of PUT method routing rules
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     put(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http PUT 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http PUT method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     put(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组 PATCH 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of PATCH method routing rules
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     patch(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http PATCH 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http PATCH method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     patch(pattern: string, hdlr: Class_Handler): Class_Routing;
 
     /**
-     * @description 添加一组 FIND 方法路由规则
-     *    @param map 路由参数
-     *    @return 返回路由对象本身
+     * @description Adds a group of FIND method routing rules
+     *    @param map routing parameters
+     *    @return returns the routing object itself
      *
      */
     find(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
-     * @description 添加一条接受 http FIND 方法路由规则
-     *    @param pattern 消息匹配格式
-     *    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     *    @return 返回路由对象本身
+     * @description Adds a routing rule that accepts the http FIND method
+     *    @param pattern message match pattern
+     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @return returns the routing object itself
      *
      */
     find(pattern: string, hdlr: Class_Handler): Class_Routing;

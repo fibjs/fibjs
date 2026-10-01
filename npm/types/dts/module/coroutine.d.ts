@@ -5,22 +5,22 @@
 /// <reference path="../interface/Event.d.ts" />
 /// <reference path="../interface/Fiber.d.ts" />
 /**
- * @description 并发控制模块，提供纤程（fiber）的创建、调度、并发执行与同步原语
+ * @description Concurrency control module, providing fiber creation, scheduling, concurrent execution and synchronization primitives
  *
- *  `coroutine` 模块基于协作式多任务模型：纤程按需主动让出 CPU（如调用 `sleep` 或等待 I/O），而非由系统抢占调度。模块提供以下能力：
+ *  The `coroutine` module is based on a cooperative multitasking model: fibers voluntarily yield the CPU when needed (for example, by calling `sleep` or waiting for I/O), rather than being preemptively scheduled by the system. The module provides the following capabilities:
  *
- *  - **纤程管理**：`start` 启动纤程，`current` 获取当前纤程，`fibers` 查询运行中的纤程；
- *  - **并发执行**：`parallel` 并行执行一组函数或处理一组数据，可限制并发数量；
- *  - **调度控制**：`sleep` 暂停当前纤程，让出 CPU 供其他纤程运行；
- *  - **同步原语**：`Lock` 锁、`Semaphore` 信号量、`Condition` 条件变量、`Event` 事件对象。
+ *  - **Fiber management**: `start` starts a fiber, `current` gets the current fiber, `fibers` queries the running fibers;
+ *  - **Concurrent execution**: `parallel` runs a set of functions in parallel or processes a set of data, with an optional concurrency limit;
+ *  - **Scheduling control**: `sleep` pauses the current fiber and yields the CPU so that other fibers can run;
+ *  - **Synchronization primitives**: `Lock` lock, `Semaphore` semaphore, `Condition` condition variable, `Event` event object.
  *
- *  引用方式：
+ *  Usage:
  *
  *  ```JavaScript
  *  const coroutine = require('coroutine');
  *  ```
  *
- *  以下是一个简单的示例代码，演示了如何使用 `coroutine` 模块：
+ *  The following is a simple example demonstrating how to use the `coroutine` module:
  *
  *  ```JavaScript
  *  const coroutine = require('coroutine');
@@ -41,98 +41,98 @@
  *  coroutine.start(bar);
  *  ```
  *
- *  在上面的代码中，我们定义了两个函数 `foo` 和 `bar`，然后使用 `coroutine.start` 函数启动两个纤程。在每个纤程中，我们使用 `coroutine.sleep` 函数来让出 CPU，让其他纤程运行。
+ *  In the code above, we define two functions `foo` and `bar`, then use `coroutine.start` to start two fibers. In each fiber, we use `coroutine.sleep` to yield the CPU so that other fibers can run.
  *
  */
 declare module 'coroutine' {
     /**
-     * @description 锁对象，参见 Lock
+     * @description Lock object, see Lock
      */
     const Lock: typeof Class_Lock;
 
     /**
-     * @description 信号量对象，参见 Semaphore
+     * @description Semaphore object, see Semaphore
      */
     const Semaphore: typeof Class_Semaphore;
 
     /**
-     * @description 条件变量对象，参见 Condition
+     * @description Condition variable object, see Condition
      */
     const Condition: typeof Class_Condition;
 
     /**
-     * @description 事件对象，参见 Event
+     * @description Event object, see Event
      */
     const Event: typeof Class_Event;
 
     /**
-     * @description 启动一个纤程并返回纤程对象
+     * @description Starts a fiber and returns the fiber object
      *
-     *      args 中的参数将在纤程内传递给函数。新纤程与当前纤程并发运行。
-     *      @param func 制定纤程执行的函数
-     *      @param args 可变参数序列，此序列会在纤程内传递给函数
-     *      @return 返回纤程对象
+     *      The parameters in args are passed to the function inside the fiber. The new fiber runs concurrently with the current fiber.
+     *      @param func specifies the function executed by the fiber
+     *      @param args variable argument sequence, passed to the function inside the fiber
+     *      @return returns the fiber object
      *
      */
     function start(func: (...args: any[])=>any, ...args: any[]): Class_Fiber;
 
     /**
-     * @description 并行执行一组函数，并等待返回
+     * @description Runs a set of functions in parallel and waits for the results
      *
-     *      所有函数执行完毕后返回，返回数组与 funcs 顺序对应。fibers 指定并发纤程数量，缺省为 -1，启用与 funcs 数量相同的纤程。
-     *      @param funcs 并行执行的函数数组
-     *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
-     *      @return 返回函数执行结果的数组
+     *      Returns after all functions have finished; the returned array corresponds to the order of funcs. fibers specifies the number of concurrent fibers; the default is -1, which uses as many fibers as there are funcs.
+     *      @param funcs array of functions to run in parallel
+     *      @param fibers limits the number of concurrent fibers; the default is -1, which uses as many fibers as there are funcs
+     *      @return returns an array of function results
      *
      */
     function parallel(funcs: any[], fibers?: number): any[];
 
     /**
-     * @description 并行执行一个函数处理一组数据，并等待返回
+     * @description Runs a function in parallel over a set of data and waits for the results
      *
-     *      datas 中的每个元素作为参数调用 func，全部完成后返回结果数组。fibers 指定并发纤程数量，缺省为 -1，启用与 datas 数量相同的纤程。
-     *      @param datas 并行执行的数据数组
-     *      @param func 并行执行的函数
-     *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 datas 数量相同 fiber
-     *      @return 返回函数执行结果的数组
+     *      Each element in datas is passed as a parameter to func; after all complete, an array of results is returned. fibers specifies the number of concurrent fibers; the default is -1, which uses as many fibers as there are datas.
+     *      @param datas array of data to process in parallel
+     *      @param func the function to run in parallel
+     *      @param fibers limits the number of concurrent fibers; the default is -1, which uses as many fibers as there are datas
+     *      @return returns an array of function results
      *
      */
     function parallel(datas: any[], func: (...args: any[])=>any, fibers?: number): any[];
 
     /**
-     * @description 并行执行一个函数多次，并等待返回
+     * @description Runs a function in parallel multiple times and waits for the results
      *
-     *      函数被执行 num 次，返回 num 个执行结果的数组。fibers 指定并发纤程数量，缺省为 -1，启用与任务数量相同的纤程。
-     *      @param func 并行执行的函数数
-     *      @param num 重复任务数量
-     *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
-     *      @return 返回函数执行结果的数组
+     *      The function is executed num times, and an array of num results is returned. fibers specifies the number of concurrent fibers; the default is -1, which uses as many fibers as there are tasks.
+     *      @param func the function to run in parallel
+     *      @param num number of repeated tasks
+     *      @param fibers limits the number of concurrent fibers; the default is -1, which uses as many fibers as there are functions
+     *      @return returns an array of function results
      *
      */
     function parallel(func: (...args: any[])=>any, num: number, fibers?: number): any[];
 
     /**
-     * @description 并行执行一组函数，并等待返回
+     * @description Runs a set of functions in parallel and waits for the results
      *
-     *      每个参数视为一个待执行函数，全部执行完毕后返回结果数组。
-     *      @param funcs 一组并行执行的函数
-     *      @return 返回函数执行结果的数组
+     *      Each parameter is treated as a function to execute; after all have finished, an array of results is returned.
+     *      @param funcs a set of functions to run in parallel
+     *      @return returns an array of function results
      *
      */
     function parallel(...funcs: any[]): any[];
 
     /**
-     * @description 返回当前纤程
-     *      @return 当前纤程对象
+     * @description Returns the current fiber
+     *      @return the current fiber object
      *
      */
     function current(): Class_Fiber;
 
     /**
-     * @description 暂停当前纤程指定的时间
+     * @description Pauses the current fiber for the specified time
      *
-     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
-     *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+     *      During the pause, the CPU is yielded so that other fibers can run. ms defaults to 0, which means resume as soon as the CPU is free.
+     *      @param ms specifies the pause time in milliseconds; the default is 0, which means resume as soon as the CPU is free
      *
      */
     function sleep(ms?: number): void;
@@ -140,35 +140,35 @@ declare module 'coroutine' {
     function sleep(ms?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 暂停当前纤程指定的时间
+     * @description Pauses the current fiber for the specified time
      *
-     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
-     *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+     *      During the pause, the CPU is yielded so that other fibers can run. ms defaults to 0, which means resume as soon as the CPU is free.
+     *      @param ms specifies the pause time in milliseconds; the default is 0, which means resume as soon as the CPU is free
      *
      */
     function sleepSync(ms?: number): void;
 
     /**
-     * @description 暂停当前纤程指定的时间
+     * @description Pauses the current fiber for the specified time
      *
-     *      暂停期间让出 CPU，其他纤程得以运行。ms 缺省为 0，表示有空闲立即恢复运行。
-     *      @param ms 指定要暂停的时间，以毫秒为单位，缺省为 0，即有空闲立即回恢复运行
+     *      During the pause, the CPU is yielded so that other fibers can run. ms defaults to 0, which means resume as soon as the CPU is free.
+     *      @param ms specifies the pause time in milliseconds; the default is 0, which means resume as soon as the CPU is free
      *
      */
     function sleepAsync(ms?: number): Promise<void>;
 
     /**
-     * @description 返回当前正在运行的全部 fiber 数组
+     * @description Returns the array of all currently running fibers
      */
     const fibers: any[];
 
     /**
-     * @description 查询和设置空闲 Fiber 数量，服务器抖动较大时可适度增加空闲 Fiber 数量。缺省为 256
+     * @description Queries and sets the number of spare fibers; you can moderately increase the number of spare fibers when server jitter is large. The default is 256
      */
     var spareFibers: number;
 
     /**
-     * @description 查询当前 vm 编号
+     * @description Queries the current vm id
      */
     const vmid: number;
 

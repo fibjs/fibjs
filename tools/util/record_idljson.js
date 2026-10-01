@@ -4,7 +4,7 @@ var path = require('path');
 /**
  * @description record idljson to output directory
  * 
- * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs
+ * @param {Record<string, import('./ir').IIDLDefinition>} defs
  */
 module.exports = function (defs) {
     const entries = Object.entries(defs);

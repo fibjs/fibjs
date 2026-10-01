@@ -1,0 +1,33 @@
+/*! @brief Module defining commonly used constants of the crypto module
+
+ Reference method:
+ ```JavaScript
+ var constants = require('crypto').constants
+ ```
+ */
+module crypto_constants
+{
+    /*! @brief PKCS#1 padding, the most commonly used RSA padding */
+    const RSA_PKCS1_PADDING = 1;
+
+    /*! @brief No padding, raw RSA encryption */
+    const RSA_NO_PADDING = 3;
+
+    /*! @brief PKCS#1 OAEP padding, providing more secure encryption */
+    const RSA_PKCS1_OAEP_PADDING = 4;
+
+    /*! @brief X9.31 padding */
+    const RSA_X931_PADDING = 5;
+
+    /*! @brief PKCS#1 PSS padding, used for digital signatures */
+    const RSA_PKCS1_PSS_PADDING = 6;
+
+    /*! @brief PSS padding uses the digest length as the salt length */
+    const RSA_PSS_SALTLEN_DIGEST = -1;
+
+    /*! @brief PSS padding uses the maximum possible length as the salt length */
+    const RSA_PSS_SALTLEN_MAX_SIGN = -2;
+
+    /*! @brief PSS padding determines the salt length automatically */
+    const RSA_PSS_SALTLEN_AUTO = -2;
+};

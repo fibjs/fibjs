@@ -1,0 +1,127 @@
+/*! @brief HttpResponse is an HTTP response object; use the HttpRequest.response object to complete the Http server-side data response, or use http.request to request and return the server's response data
+
+The following example shows how to use it in http.Server; the sample code is as follows:
+```
+const http = require('http');
+
+const server = new http.Server(8080, (request) => {
+  // retreive the response object
+  const response = request.response;
+  // set the status code
+  response.statusCode = 200;
+  // set the content type to text/plain
+  response.setHeader('Content-Type', 'text/plain');
+  // write the response body
+  response.write('ok');
+});
+
+server.start();
+```
+*/
+interface HttpResponse : HttpMessage
+{
+    /*! @brief HttpResponse constructor, creates a new HttpResponse object */
+    HttpResponse();
+
+    /*! @brief HttpResponse constructor, creates a new HttpResponse object (Web API compatible)
+     
+     Supports the Web standard Response construction style, for example:
+     ```JavaScript
+     const response = new http.Response("Hello World", {
+         status: 200,
+         statusText: "OK",
+         headers: { "Content-Type": "text/plain" }
+     });
+     ```
+     @param body the response body content, which can be a string, Buffer or null
+     @param options the options object, supporting the status, statusText and headers properties
+    */
+    HttpResponse(Value body, Object options = {});
+
+    /*! @brief queries and sets the return status of the response message */
+    Integer statusCode;
+
+    /*! @brief queries and sets the return message of the response message */
+    String statusMessage;
+
+    /*! @brief queries and sets the return message of the response message, same as statusMessage (Web API compatible) */
+    String statusText;
+
+    /*! @brief queries and sets the return status of the response message, same as statusCode */
+    Integer status;
+
+    /*! @brief queries whether the current response is ok */
+    readonly Boolean ok;
+
+    /*! @brief sets the return status and return message of the response message, and adds response headers
+     @param statusCode specifies the return status of the response message
+     @param statusMessage specifies the return message of the response message
+     @param headers specifies the response headers to add to the response message
+     */
+    writeHead(Integer statusCode, String statusMessage, Object headers = {});
+
+    /*! @brief sets the return status of the response message and adds response headers
+     @param statusCode specifies the return status of the response message
+     @param headers specifies the response headers to add to the response message
+     */
+    writeHead(Integer statusCode, Object headers = {});
+
+    /*! @brief returns the list of HttpCookie objects of the current message */
+    readonly NArray cookies;
+
+    /*! @brief adds an HttpCookie object to cookies
+     @param cookie specifies the HttpCookie object to add
+     */
+    addCookie(HttpCookie cookie);
+
+    /*! @brief sends a redirect to the client
+     @param url the redirect address
+     */
+    redirect(String url);
+
+    /*! @brief sends a redirect to the client
+     @param statusCode specifies the return status of the response message; the accepted statuses are: 301, 302, 307
+     @param url the redirect address
+     */
+    redirect(Integer statusCode, String url);
+
+    /*! @brief the final URL of the Fetch API response (the address after redirections)*/
+    readonly String url;
+
+    /*! @brief whether it has been redirected */
+    readonly Boolean redirected;
+
+    /*! @brief response type ("basic", "cors", "error", etc.), overrides Message.type */
+    readonly String type;
+
+    /*! @brief writes the given data encoded as JSON, and can set the response status and headers at the same time
+     @param data the data to serialize to JSON
+     @param options the options object, supporting status, statusText and headers
+     @return this method does not return data
+     */
+    Variant json(Value data, Object options = {}) async;
+
+    /*! @brief parses the data in the message as JSON
+     @return returns the parsing result
+     */
+    Variant json() async;
+
+    /*! @brief creates a JSON response (static factory)
+     @param data the data to serialize to JSON
+     @param options the options object, supporting status, statusText and headers
+     @return returns a new HttpResponse object
+     */
+    static HttpResponse json(Value data, Object options = {});
+
+    /*! @brief creates a redirect response (static factory)
+     @param url the redirect target URL
+     @param status the redirect status code, default is 302
+     @return returns a new HttpResponse object
+     */
+    static HttpResponse redirect(String url, Integer status = 302);
+
+    /*! @brief creates an error response (static factory)
+     @return returns a new HttpResponse object with type="error"
+     */
+    static HttpResponse error();
+};

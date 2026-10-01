@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XmlDocumentFragment 对象表示一个轻量级的文档对象，能够容纳文档的某个部分
+ * @description The XmlDocumentFragment object represents a lightweight document object that can hold some part of a document
  *
- * XmlDocumentFragment 节点不属于文档树，它的 parentNode 始终为 null。但它可以有子节点，子节点可以是 XmlElement、XmlText 或其他类型的节点。
+ * An XmlDocumentFragment node does not belong to the document tree and its parentNode is always null. It can have child nodes, which may be XmlElement, XmlText or other types of nodes.
  *
- * 当把一个 DocumentFragment 节点插入文档树时，插入的不是 DocumentFragment 本身，而是它的所有子孙节点。这使得 DocumentFragment 成了一个非常有用的占位符，暂时存放那些一次插入文档的节点。
+ * When a DocumentFragment node is inserted into the document tree, it is not the DocumentFragment itself that is inserted but all of its descendant nodes. This makes DocumentFragment a very useful placeholder for temporarily holding nodes that are inserted into the document at once.
  *
- * 可以通过 XmlDocument 的 createDocumentFragment() 方法创建 XmlDocumentFragment 对象。
+ * An XmlDocumentFragment object can be created with the createDocumentFragment() method of XmlDocument.
  *
  */
 declare class Class_XmlDocumentFragment extends Class_XmlNode {

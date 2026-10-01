@@ -1,0 +1,121 @@
+/*! @brief the dgram.Socket object is an EventEmitter encapsulating datagram functionality.
+
+DgramSocket instances are created by dgram.createSocket(). Creating a dgram.Socket instance does not require the new keyword.
+
+Creation:
+```JavaScript
+var dgram = require('dgram');
+var sock = dgram.createSocket('udp4');
+```
+ */
+interface DgramSocket : EventEmitter
+{
+    /*! @brief this method makes dgram.Socket listen for datagrams on the specified `port` and `addr`. A `listening` event is emitted when binding completes.
+     @param port specifies the binding port; if `port` is not specified or is 0, the operating system will try to bind a random port
+     @param addr specifies the binding address; if address is not specified, the operating system will try to listen on all addresses.
+    */
+    bind(Integer port = 0, String addr = "") async;
+
+    /*! @brief this method makes dgram.Socket listen for datagrams on the `port` and `address` specified by `opts`. A `listening` event is emitted when binding completes.
+     @param opts specifies the binding parameters
+    */
+    bind(Object opts) async;
+
+    /*! @brief sends a datagram on the socket
+     @param msg specifies the data to send
+     @param port specifies the destination port to send to
+     @param address specifies the destination address to send to
+     @return returns the number of bytes sent
+    */
+    Integer send(Buffer msg, Integer port, String address = "") async;
+
+    /*! @brief sends a datagram on the socket
+     @param msg specifies the data to send
+     @param offset starts sending from the specified offset
+     @param length sends the specified length
+     @param port specifies the destination port to send to
+     @param address specifies the destination address to send to
+     @return returns the number of bytes sent
+    */
+    Integer send(Buffer msg, Integer offset, Integer length, Integer port, String address = "") async;
+
+    /*! @brief returns an object containing the socket address information. For UDP sockets, the object will contain the address, family and port properties. 
+     @return returns the object bound address
+    */
+    NObject address();
+
+    /*! @brief closes the current socket */
+    close();
+
+    /*! @brief closes the current socket
+     @param callback the callback function after closing completes, which is equivalent to adding a listener for the `close` event
+    */
+    close(Function callback);
+
+    /*! @brief queries the socket receive buffer size 
+     @return returns the query result
+    */
+    Integer getRecvBufferSize();
+
+    /*! @brief queries the socket send buffer size
+     @return returns the query result
+    */
+    Integer getSendBufferSize();
+
+    /*! @brief joins the multicast group at the given multicastAddress and multicastInterface using the IP_ADD_MEMBERSHIP socket option. If the multicastInterface parameter is not specified, the operating system will choose an interface and add membership to it. To add membership to every available interface, call addMembership multiple times, once per interface.
+     @param multicastAddress specifies the multicast group address to join
+     @param multicastInterface specifies the multicast group interface to join
+     */
+    addMembership(String multicastAddress, String multicastInterface = "");
+
+    /*! @brief leaves the multicast group at multicastAddress using the IP_DROP_MEMBERSHIP socket option. The kernel calls this method automatically when the socket is closed or the process terminates, so most applications never need to call it.
+     @param multicastAddress specifies the multicast group address to drop
+     @param multicastInterface specifies the multicast group interface to drop
+     */
+    dropMembership(String multicastAddress, String multicastInterface = "");
+
+    /*! @brief sets the IP_MULTICAST_TTL socket option
+     @param ttl specifies the ttl to set; the ttl parameter can be between 0 and 255. The default value on most systems is 1.
+     */
+    setMulticastTTL(Integer ttl);
+
+    /*! @brief sets the socket receive buffer size 
+     @param size specifies the size to set
+    */
+    setRecvBufferSize(Integer size);
+
+    /*! @brief sets the socket send buffer size
+     @param size specifies the size to set
+    */
+    setSendBufferSize(Integer size);
+
+    /*! @brief sets or clears the SO_BROADCAST socket option
+     @param flag when set to true, UDP packets will be sent to the broadcast address of a local interface
+    */
+    setBroadcast(Boolean flag);
+
+    /*! @brief the `close` event is emitted after a `socket` is closed with `close()`. Once this event is emitted, no new `message` events will be emitted on this `socket` */
+    event close();
+
+    /*! @brief the `error` event is emitted when any error occurs */
+    event error();
+
+    /*! @brief the `listening` event is emitted when a `socket` starts listening for datagrams. This event is emitted immediately after the UDP socket is created */
+    event listening();
+
+    /*! @brief the `message` event is emitted when a new datagram is received by the `socket`. `msg` and `rinfo` are passed as parameters to the handler of this event.
+     @param msg the received datagram
+     @param rinfo an object containing the remote information of the received datagram. The object contains `address`, `port` and `family` properties, representing the remote address, port and protocol family respectively.
+    */
+    event message(Buffer msg, NObject rinfo);
+
+    /*! @brief keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
+     @return returns the current object
+    */
+    DgramSocket ref();
+
+    /*! @brief allows the fibjs process to exit, allowing the fibjs process to exit while the object is bound
+     @return returns the current object
+    */
+    DgramSocket unref();
+};

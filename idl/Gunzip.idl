@@ -1,0 +1,8 @@
+/*! @brief Gunzip decompression codec, decompresses gzip-compressed data */
+interface Gunzip : ZlibCodec
+{
+    /*! @brief Gunzip constructor
+     @param opts decompression options
+     */
+    Gunzip(Object opts = {});
+};

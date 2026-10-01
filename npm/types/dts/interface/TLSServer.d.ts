@@ -3,16 +3,16 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description tls 服务器对象，可方便创建一个标准多纤程 tls/ssl 服务器
+ * @description tls server object, makes it easy to create a standard multi-fiber tls/ssl server
  *
- * TLSServer 对象是将 TcpServer 和 TLSHandler 组合封装的对象，方便快速搭建服务器，逻辑上相当于：
+ * TLSServer is an object that combines and wraps TcpServer and TLSHandler, making it easy to quickly build servers, logically equivalent to:
  *  ```JavaScript
  *  var svr = new net.TLSServer(addr, port, new tls.Handler(ctx, function(conn){
  *     ...
  *  }));
  *  ```
  *
- *  创建方法：
+ *  Creation:
  *  ```JavaScript
  *  var tls = require("tls");
  *  var svr = new tls.Server(ctx, function(conn){
@@ -23,60 +23,60 @@
  */
 declare class Class_TLSServer extends Class_TcpServer {
     /**
-     * @description 创建一个新的 TLSServer 对象
-     *      @param context 指定创建 TLSServer 使用的安全上下文
-     *      @param port 指定监听的端口
-     *      @param listener 事件处理接口对象
+     * @description creates a new TLSServer object
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param port specifies the listening port
+     *      @param listener the event handling interface object
      *
      */
     constructor(context: Class_SecureContext, port: number, listener: Class_Handler);
 
     /**
-     * @description 创建一个新的 TLSServer 对象
-     *      @param context 指定创建 TLSServer 使用的安全上下文
-     *      @param addr 指定监听的地址
-     *      @param port 指定监听的端口
-     *      @param listener 事件处理接口对象
+     * @description creates a new TLSServer object
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param addr specifies the listening address
+     *      @param port specifies the listening port
+     *      @param listener the event handling interface object
      *
      */
     constructor(context: Class_SecureContext, addr: string, port: number, listener: Class_Handler);
 
     /**
-     * @description 创建一个新的 TLSServer 对象
+     * @description creates a new TLSServer object
      *
-     *      options 除用于创建 SecureContext 的属性之外，还可提供以下属性：
-     *      - address: 指定监听的地址，可选，默认在所有地址监听
-     *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
+     *      In addition to the properties used to create the SecureContext, options also supports the following properties:
+     *      - address: specifies the listening address, optional, defaults to listening on all addresses
+     *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
-     *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
-     *      @param listener 事件处理接口对象
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param listener the event handling interface object
      *
      */
     constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
 
     /**
-     * @description 创建一个新的 TLSServer 对象，不绑定端口，需调用 listen() 启动
-     *      @param context 指定创建 TLSServer 使用的安全上下文
-     *      @param listener 事件处理接口对象
+     * @description creates a new TLSServer object without binding a port; listen() must be called to start
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param listener the event handling interface object
      *
      */
     constructor(context: Class_SecureContext, listener: Class_Handler);
 
     /**
-     * @description 查询当前 TLSServer 使用的 SecureContext
+     * @description queries the SecureContext used by the current TLSServer
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description 设置当前 TLSServer 使用的 SecureContext
-     *     @param context 指定新的 SecureContext
+     * @description sets the SecureContext used by the current TLSServer
+     *     @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext): void;
 
     /**
-     * @description 设置当前 TLSServer 使用的 SecureContext
-     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     * @description sets the SecureContext used by the current TLSServer
+     *     @param options the options needed to create a secure context with tls.createSecureContext
      *
      */
     setSecureContext(options: FIBJS.GeneralObject): void;

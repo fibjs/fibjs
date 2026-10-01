@@ -1,0 +1,206 @@
+/*! @brief Basic message object
+
+ The Message object is compatible with all mq modules and can be used to build a custom message processing system. It is created as follows:
+ ```JavaScript
+ var mq = require("mq");
+ var m = new mq.Message();
+ ```
+*/
+interface Message : EventEmitter
+{
+    /*! @brief Message type 1, representing a text type */
+    const TEXT = 1;
+
+    /*! @brief Message type 2, representing a binary type */
+    const BINARY = 2;
+
+    /*! @brief Message object constructor */
+    Message();
+
+    /*! @brief Whether the current message has been sent */
+    readonly Boolean sent;
+
+    /*! @brief The basic content of the message */
+    String value;
+
+    /*! @brief The basic parameters of the message */
+    readonly NArray params;
+
+    /*! @brief Message type */
+    Integer type;
+
+    /*! @brief The stream object containing the data part of the message */
+    Stream body;
+
+    /*! @brief Queries whether the body of the message has been consumed */
+    readonly Boolean bodyUsed;
+
+    /*! @brief Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
+     @return returns the data read from the stream, or null if no data is available or the connection is interrupted
+     */
+    Buffer read(Integer bytes = -1) async;
+
+    /*! @brief Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     @return returns the data read from the stream, or null if no data is available or the connection is interrupted
+     */
+    Buffer readAll() async;
+
+    /*! @brief Sets the encoding of the message body; this method is an alias of the corresponding body method
+
+     After setting, the `data` event and `read()` return strings instead of Buffer objects,
+     consistent with the behavior of Node's IncomingMessage.setEncoding
+     @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     @return returns the current message object
+     */
+    Message setEncoding(String encoding);
+
+    /*! @brief Writes the given data; this method is an alias of the corresponding body method
+     @param data the data to write
+     @return returns the number of bytes actually written
+     */
+    Integer write(Buffer data) async;
+
+    /*! @brief Writes the given text data
+     @param data the data to write
+     @return this method does not return data
+     */
+    String text(String data) async;
+
+    /*! @brief Parses the data in the message as text encoding
+     @return returns the parsing result
+     */
+    String text() async;
+
+    /*! @brief Returns the data part of the message in binary form
+     @return returns an ArrayBuffer object containing the data part of the message
+     */
+    ArrayBuffer arrayBuffer() async;
+
+    /*! @brief Returns the data part of the message as a Blob
+     @param type the MIME type of the Blob, default is an empty string
+     @return returns a Blob object containing the data part of the message
+     */
+    Blob blob(String type = "") async;
+
+    /*! @brief Returns the data part of the message as a Buffer
+     @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
+     */
+    Buffer bytes() async;
+
+    /*! @brief Writes the given data with JSON encoding
+     @param data the data to write
+     @return this method does not return data
+     */
+    Variant json(Value data) async;
+
+    /*! @brief Parses the data in the message as JSON
+     @return returns the parsing result
+     */
+    Variant json() async;
+
+    /*! @brief Writes the given data with msgpack encoding
+     @param data the data to write
+     @return this method does not return data
+     */
+    Variant pack(Value data) async;
+
+    /*! @brief Parses the data in the message as msgpack
+     @return returns the parsing result
+     */
+    Variant pack() async;
+
+    /*! @brief The length of the data part of the message */
+    readonly Long length;
+
+    /*! @brief Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     @return returns 0 on success
+     */
+    Integer end() async;
+
+    /*! @brief Writes the given data and sets the end of current message processing
+     @param data the data to write
+     @return returns 0 on success
+     */
+    Integer end(Buffer data) async;
+
+    /*! @brief Writes the given data and sets the end of current message processing
+     @param data the data to write
+     @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     @return returns 0 on success
+     */
+    Integer end(Buffer data, String encoding) async;
+
+    /*! @brief Writes the given string data and sets the end of current message processing
+     @param data the string data to write
+     @param encoding the encoding of the string, default is "utf8"
+     @return returns 0 on success
+     */
+    Integer end(String data, String encoding = "utf8") async;
+
+    /*! @brief Queries whether the current message has ended
+     @return returns true if ended
+    */
+    Boolean isEnded();
+
+    /*! @brief Clears the content of the message */
+    clear();
+
+    /*! @brief Sends a formatted message to the given stream object
+     @param stm the stream object that receives the formatted message
+     @param options the sending options
+     */
+    sendTo(Stream stm, Object options = {}) async;
+
+    /*! @brief Reads a formatted message from the given cached stream object and parses and fills the object
+     @param stm the stream object from which the formatted message is read
+     @param options the reading options
+     */
+    readFrom(Stream stm, Object options = {}) async;
+
+    /*! @brief Queries the stream object used when the message was read from */
+    readonly Stream stream;
+
+    /*! @brief Queries and sets the last error of message processing */
+    String lastError;
+
+    /*! @brief Copies the current message object
+     @return returns the copied message object
+    */
+    Message clone();
+
+    /*! @brief Switches the message body stream to flowing read mode
+     @return returns the message object
+     */
+    Message resume();
+
+    /*! @brief Pauses the automatic reading mode of the message body stream. This method is for compatibility only and has no actual effect when called
+     @return returns the message object
+     */
+    Message pause();
+
+    /*! @brief Pipes the message body stream data to a destination stream
+     @param destination the destination stream object
+     @param options pipe options, optional
+     @return returns the destination stream object
+     */
+    Value pipe(Value destination, Object options = {});
+
+    /*! @brief Removes all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect when called
+     @param destination a specific writable destination to unpipe
+     */
+    unpipe(Stream destination = null);
+
+    /*! @brief Queries and binds the stream data event, equivalent to on("data", func);
+     @param data the data read
+     */
+    event data(Buffer data);
+
+    /*! @brief Queries and binds the stream close event, equivalent to on("close", func); */
+    event close();
+
+    /*! @brief Queries and binds the stream error event, equivalent to on("error", func);
+     @param code error code
+     */
+    event error(Integer code);
+};

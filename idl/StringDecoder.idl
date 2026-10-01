@@ -1,0 +1,51 @@
+/*! @brief Stream decoding object
+ */
+interface StringDecoder : object
+{
+    /*! @brief Decoder constructor
+     @param encoding the decoding encoding. Default 'utf8'.
+     */
+    StringDecoder(String encoding = "utf8");
+
+    /*! @brief Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
+     @return the decoded string.
+     */
+    String end();
+
+    /*! @brief Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
+     @param buf the Buffer to decode. Before end is executed, write is called first to write the buffer.
+     @return the decoded string.
+     */
+    String end(Buffer buf);
+
+    /*! @brief Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call.
+     @param  buf the Buffer to decode.
+     @return the decoded string.
+     */
+    String write(Buffer buf);
+
+    /*! @brief Internal use.
+     @param buf the Buffer to decode.
+     @param offset the decoding offset
+     @return the decoded string.
+     */
+    String text(Buffer buf, Integer offset);
+
+    /*! @brief Internal use.
+     @param buf the Buffer containing the bytes to decode.
+     @return the decoded string.
+     */
+    String fillLast(Buffer buf);
+
+    /*! @brief Internal use. */
+    Integer lastNeed;
+
+    /*! @brief Internal use. */
+    Integer lastTotal;
+
+    /*! @brief Internal use. */
+    Buffer lastChar;
+
+    /*! @brief Decoding encoding. Internal use. */
+    String encoding;
+};

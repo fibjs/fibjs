@@ -2,64 +2,64 @@
 /// <reference path="../interface/EventSource.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description Server-Sent Events (SSE) 模块，实现基于 HTTP 的服务器推送功能
+ * @description Server-Sent Events (SSE) module, implementing HTTP-based server push functionality
  *
- *   SSE 模块提供了标准的 EventSource 接口实现，支持服务器向客户端实时推送数据流。
- *   该模块遵循 W3C Server-Sent Events 规范，提供了完整的客户端和服务器端实现：
+ *   The SSE module provides a standard EventSource interface implementation, supporting real-time data stream push from server to client.
+ *   This module follows the W3C Server-Sent Events specification and provides complete client and server implementations:
  *
- *   客户端功能：
- *   - EventSource 接口：创建与服务器的持久连接，接收实时事件流
- *   - 事件解析：支持 data、event、id、retry 等标准字段
+ *   Client features:
+ *   - EventSource interface: creates a persistent connection to the server and receives real-time event streams
+ *   - Event parsing: supports standard fields such as data, event, id, retry
  *
- *   服务器端功能：
- *   - 协议升级处理：将 HTTP 请求升级为 SSE 连接
- *   - 事件发送：向客户端推送格式化的事件数据
- *   - 连接管理：维护多个客户端连接的生命周期
+ *   Server features:
+ *   - Protocol upgrade handling: upgrades HTTP requests to SSE connections
+ *   - Event sending: pushes formatted event data to clients
+ *   - Connection management: maintains the lifecycle of multiple client connections
  *
- *   连接状态：
- *   - CONNECTING (0)：正在建立连接
- *   - OPEN (1)：连接已建立，可以收发数据
- *   - CLOSED (2)：连接已关闭
- *   - SENDER (3)：发送模式，用于服务器端推送
+ *   Connection states:
+ *   - CONNECTING (0): the connection is being established
+ *   - OPEN (1): the connection is established and data can be sent and received
+ *   - CLOSED (2): the connection is closed
+ *   - SENDER (3): sending mode, used for server-side push
  *
- *   事件类型：
- *   - open：连接建立成功
- *   - message：接收到服务器消息
- *   - error：连接错误或数据解析错误
- *   - close：连接关闭
+ *   Event types:
+ *   - open: connection established successfully
+ *   - message: server message received
+ *   - error: connection error or data parsing error
+ *   - close: connection closed
  *
  */
 declare module 'sse' {
     /**
-     * @description 事件源状态：连接中
+     * @description event source state: connecting
      */
     export const CONNECTING: 0;
 
     /**
-     * @description 事件源状态：已连接
+     * @description event source state: connected
      */
     export const OPEN: 1;
 
     /**
-     * @description 事件源状态：已关闭
+     * @description event source state: closed
      */
     export const CLOSED: 2;
 
     /**
-     * @description 事件源状态：发送模式
+     * @description event source state: sending mode
      */
     export const SENDER: 3;
 
     /**
-     * @description 创建一个事件源接口，用于服务器推送事件，参见 EventSource
+     * @description creates an event source interface for server-sent events, see EventSource
      */
     const EventSource: typeof Class_EventSource;
 
     /**
-     * @description 创建一个 sse 协议处理器，从 http 接收 upgrade 请求并握手，生成 EventSource 对象
+     * @description creates an sse protocol handler that receives upgrade requests from http and performs the handshake, generating an EventSource object
      *      ```
-     *      @param accept 连接成功处理函数，回调将传递两个参数，第一个参数为接收到的 EventSource 对象，第二个参数为握手时的 HttpRequest 对象
-     *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等对接
+     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received EventSource object and the second is the HttpRequest object of the handshake
+     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
     function upgrade(accept: (...args: any[])=>any): Class_Handler;

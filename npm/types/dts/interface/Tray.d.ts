@@ -2,30 +2,30 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Menu.d.ts" />
 /**
- * @description 系统状态图标，用于在系统托盘中显示一个图标
+ * @description System tray icon, used to display an icon in the system tray
  */
 declare class Class_Tray extends Class_object {
     /**
-     * @description 查询状态图标的菜单
-     *      @return 返回状态图标的菜单
+     * @description Queries the menu of the tray icon
+     *      @return returns the menu of the tray icon
      *
      */
     getMenu(): Class_Menu;
 
     /**
-     * @description 关闭状态图标
+     * @description Closes the tray icon
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭状态图标
+     * @description Closes the tray icon
      */
     closeSync(): void;
 
     /**
-     * @description 关闭状态图标
+     * @description Closes the tray icon
      */
     closeAsync(): Promise<void>;
 

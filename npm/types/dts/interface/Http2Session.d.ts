@@ -3,62 +3,62 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
 /**
- * @description Http2Session 表示活动的 HTTP/2 会话，管理连接和所有流
+ * @description Http2Session represents an active HTTP/2 session, managing the connection and all streams
  *
- * Http2Session 实例不应由用户直接构造。服务端在接收到新的 HTTP/2 连接时创建。客户端使用 http2.connect() 创建会话。
+ * Http2Session instances should not be constructed directly by users. The server creates one when receiving a new HTTP/2 connection. Clients use http2.connect() to create a session.
  *
  */
 declare class Class_Http2Session extends Class_EventEmitter {
     /**
-     * @description 查询此会话的远端设置
+     * @description queries the remote settings of this session
      */
     readonly remoteSettings: FIBJS.GeneralObject;
 
     /**
-     * @description 查询此会话的本地设置
+     * @description queries the local settings of this session
      */
     readonly localSettings: FIBJS.GeneralObject;
 
     /**
-     * @description 查询会话是否已销毁
+     * @description queries whether the session is destroyed
      */
     readonly destroyed: boolean;
 
     /**
-     * @description 查询会话是否已关闭
+     * @description queries whether the session is closed
      */
     readonly closed: boolean;
 
     /**
-     * @description 查询此会话协商的 ALPN 协议
+     * @description queries the ALPN protocol negotiated by this session
      */
     readonly alpnProtocol: string;
 
     /**
-     * @description 查询此会话的底层 TLSSocket
+     * @description queries the underlying TLSSocket of this session
      */
     readonly socket: Class_Stream;
 
     /**
-     * @description 发起新的 HTTP/2 流以发送请求（仅客户端）
-     *      @param headers 包含请求头的对象，必须包含 :method 和 :path 伪头部
-     *      @param options 可选的流创建选项
-     *      @return 返回新请求的 Http2Stream 对象
+     * @description initiates a new HTTP/2 stream to send a request (client only)
+     *      @param headers an object containing request headers; must contain the :method and :path pseudo-headers
+     *      @param options optional stream creation options
+     *      @return returns the Http2Stream object of the new request
      *
      */
     request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
-     * @description 向远端发送 GOAWAY 帧并优雅关闭会话
-     *      @param code HTTP/2 错误码，默认为 NGHTTP2_NO_ERROR (0)
-     *      @param lastStreamId 本地处理的最后一个流 ID，默认为 0
+     * @description sends a GOAWAY frame to the remote end and gracefully closes the session
+     *      @param code HTTP/2 error code, default is NGHTTP2_NO_ERROR (0)
+     *      @param lastStreamId the last locally processed stream ID, default is 0
      *
      */
     goaway(code?: number, lastStreamId?: number): void;
 
     /**
-     * @description 向远端发送 PING 帧
-     *      @return 返回往返时间（毫秒）
+     * @description sends a PING frame to the remote end
+     *      @return returns the round-trip time (milliseconds)
      *
      */
     ping(): number;
@@ -66,64 +66,64 @@ declare class Class_Http2Session extends Class_EventEmitter {
     ping(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 向远端发送 PING 帧
-     *      @return 返回往返时间（毫秒）
+     * @description sends a PING frame to the remote end
+     *      @return returns the round-trip time (milliseconds)
      *
      */
     pingSync(): number;
 
     /**
-     * @description 向远端发送 PING 帧
-     *      @return 返回往返时间（毫秒）
+     * @description sends a PING frame to the remote end
+     *      @return returns the round-trip time (milliseconds)
      *
      */
     pingAsync(): Promise<number>;
 
     /**
-     * @description 更新此会话的本地设置
-     *      @param settings 包含要更新的设置的对象
+     * @description updates the local settings of this session
+     *      @param settings an object containing the settings to update
      *
      */
     settings(settings: FIBJS.GeneralObject): void;
 
     /**
-     * @description 优雅关闭会话，允许现有流完成
+     * @description gracefully closes the session, allowing existing streams to complete
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 优雅关闭会话，允许现有流完成
+     * @description gracefully closes the session, allowing existing streams to complete
      */
     closeSync(): void;
 
     /**
-     * @description 优雅关闭会话，允许现有流完成
+     * @description gracefully closes the session, allowing existing streams to complete
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 立即销毁会话，中止所有流
+     * @description immediately destroys the session, aborting all streams
      */
     destroy(): void;
 
     /**
-     * @description 当创建新流时触发（服务端）
-     *      @param stream 新创建的 Http2Stream
-     *      @param headers 请求头对象
+     * @description emitted when a new stream is created (server)
+     *      @param stream the newly created Http2Stream
+     *      @param headers request headers object
      *
      */
     on(event: "stream", listener: ()=>void): this;
 
     /**
-     * @description 当会话收到 GOAWAY 帧时触发
+     * @description emitted when the session receives a GOAWAY frame
      */
     on(event: "goaway", listener: ()=>void): this;
 
     /**
-     * @description 当会话发生错误时触发
-     *      @param err 错误对象
+     * @description emitted when an error occurs on the session
+     *      @param err error object
      *
      */
     on(event: "error", listener: ()=>void): this;

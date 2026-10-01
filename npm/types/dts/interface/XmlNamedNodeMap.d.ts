@@ -2,28 +2,28 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlAttr.d.ts" />
 /**
- * @description XmlNamedNodeMap 对象表示一个无顺序的属性列表
+ * @description The XmlNamedNodeMap object represents an unordered list of attributes
  *
  */
 declare class Class_XmlNamedNodeMap extends Class_object {
     /**
-     * @description 返回属性列表中的属性数目
+     * @description Returns the number of attributes in the attribute list
      *
      */
     readonly length: number;
 
     /**
-     * @description 返回属性列表中处于指定的索引号的属性
-     *      @param index 指定要查询的索引
-     *      @return 指定索引号的属性
+     * @description Returns the attribute at the given index in the attribute list
+     *      @param index the index to query
+     *      @return the attribute at the given index
      *
      */
     item(index: number): Class_XmlAttr;
 
     /**
-     * @description 查询指定名称的属性
-     *      @param name 指定要查询的名称
-     *      @return 返回查询出的属性
+     * @description Queries the attribute with the given name
+     *      @param name the name to query
+     *      @return returns the queried attribute
      *
      */
     getNamedItem(name: string): Class_XmlAttr;

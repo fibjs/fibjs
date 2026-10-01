@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description os_constants errno 子模块，包含 POSIX 错误码常量
+ * @description os_constants errno submodule, containing POSIX error code constants
  *
- *  引用方法：
+ *  Usage:
  *  ```JavaScript
  *  var errno = require('os').constants.errno
  *  ```
@@ -10,397 +10,397 @@
  */
 declare module 'os_constants_errno' {
     /**
-     * @description 参数列表过长
+     * @description Argument list too long
      */
     export const E2BIG: 7;
 
     /**
-     * @description 权限不足
+     * @description Permission denied
      */
     export const EACCES: 13;
 
     /**
-     * @description 地址已被占用
+     * @description Address already in use
      */
     export const EADDRINUSE: 98;
 
     /**
-     * @description 地址不可用
+     * @description Address not available
      */
     export const EADDRNOTAVAIL: 99;
 
     /**
-     * @description 地址族不受支持
+     * @description Address family not supported
      */
     export const EAFNOSUPPORT: 97;
 
     /**
-     * @description 资源暂时不可用，可重试
+     * @description Resource temporarily unavailable, try again
      */
     export const EAGAIN: 11;
 
     /**
-     * @description 操作已在执行中
+     * @description Operation already in progress
      */
     export const EALREADY: 114;
 
     /**
-     * @description 无效的文件描述符
+     * @description Bad file descriptor
      */
     export const EBADF: 9;
 
     /**
-     * @description 无效的消息
+     * @description Bad message
      */
     export const EBADMSG: 74;
 
     /**
-     * @description 设备或资源忙
+     * @description Device or resource busy
      */
     export const EBUSY: 16;
 
     /**
-     * @description 操作已取消
+     * @description Operation canceled
      */
     export const ECANCELED: 125;
 
     /**
-     * @description 没有子进程
+     * @description No child processes
      */
     export const ECHILD: 10;
 
     /**
-     * @description 连接被中止
+     * @description Connection aborted
      */
     export const ECONNABORTED: 103;
 
     /**
-     * @description 连接被拒绝
+     * @description Connection refused
      */
     export const ECONNREFUSED: 111;
 
     /**
-     * @description 连接被重置
+     * @description Connection reset
      */
     export const ECONNRESET: 104;
 
     /**
-     * @description 资源死锁
+     * @description Resource deadlock avoided
      */
     export const EDEADLK: 35;
 
     /**
-     * @description 需要目标地址
+     * @description Destination address required
      */
     export const EDESTADDRREQ: 89;
 
     /**
-     * @description 数学参数超出函数定义域
+     * @description Mathematics argument out of domain of function
      */
     export const EDOM: 33;
 
     /**
-     * @description 磁盘配额超限
+     * @description Disk quota exceeded
      */
     export const EDQUOT: 122;
 
     /**
-     * @description 文件已存在
+     * @description File exists
      */
     export const EEXIST: 17;
 
     /**
-     * @description 无效的内存地址
+     * @description Bad address
      */
     export const EFAULT: 14;
 
     /**
-     * @description 文件过大
+     * @description File too large
      */
     export const EFBIG: 27;
 
     /**
-     * @description 主机不可达
+     * @description Host is unreachable
      */
     export const EHOSTUNREACH: 113;
 
     /**
-     * @description 标识符已删除
+     * @description Identifier removed
      */
     export const EIDRM: 43;
 
     /**
-     * @description 非法字节序列
+     * @description Illegal byte sequence
      */
     export const EILSEQ: 84;
 
     /**
-     * @description 操作正在进行中
+     * @description Operation in progress
      */
     export const EINPROGRESS: 115;
 
     /**
-     * @description 被信号中断
+     * @description Interrupted system call
      */
     export const EINTR: 4;
 
     /**
-     * @description 无效的参数
+     * @description Invalid argument
      */
     export const EINVAL: 22;
 
     /**
-     * @description I/O 错误
+     * @description I/O error
      */
     export const EIO: 5;
 
     /**
-     * @description 套接字已连接
+     * @description Socket is connected
      */
     export const EISCONN: 106;
 
     /**
-     * @description 路径是目录
+     * @description Is a directory
      */
     export const EISDIR: 21;
 
     /**
-     * @description 符号链接层数过多
+     * @description Too many levels of symbolic links
      */
     export const ELOOP: 40;
 
     /**
-     * @description 打开的文件过多
+     * @description Too many open files
      */
     export const EMFILE: 24;
 
     /**
-     * @description 链接数过多
+     * @description Too many links
      */
     export const EMLINK: 31;
 
     /**
-     * @description 消息过长
+     * @description Message too long
      */
     export const EMSGSIZE: 90;
 
     /**
-     * @description 多跳尝试
+     * @description Multihop attempted
      */
     export const EMULTIHOP: 72;
 
     /**
-     * @description 文件名过长
+     * @description File name too long
      */
     export const ENAMETOOLONG: 36;
 
     /**
-     * @description 网络已关闭
+     * @description Network is down
      */
     export const ENETDOWN: 100;
 
     /**
-     * @description 连接被网络重置
+     * @description Network dropped connection on reset
      */
     export const ENETRESET: 102;
 
     /**
-     * @description 网络不可达
+     * @description Network is unreachable
      */
     export const ENETUNREACH: 101;
 
     /**
-     * @description 系统文件表溢出
+     * @description Too many open files in system
      */
     export const ENFILE: 23;
 
     /**
-     * @description 无可用缓冲区
+     * @description No buffer space available
      */
     export const ENOBUFS: 105;
 
     /**
-     * @description 无可用数据
+     * @description No data available
      */
     export const ENODATA: 61;
 
     /**
-     * @description 无此设备
+     * @description No such device
      */
     export const ENODEV: 19;
 
     /**
-     * @description 文件或目录不存在
+     * @description No such file or directory
      */
     export const ENOENT: 2;
 
     /**
-     * @description 可执行文件格式错误
+     * @description Exec format error
      */
     export const ENOEXEC: 8;
 
     /**
-     * @description 无可用锁
+     * @description No locks available
      */
     export const ENOLCK: 37;
 
     /**
-     * @description 链接已断开
+     * @description Link has been severed
      */
     export const ENOLINK: 67;
 
     /**
-     * @description 内存不足
+     * @description Out of memory
      */
     export const ENOMEM: 12;
 
     /**
-     * @description 没有指定类型的消息
+     * @description No message of desired type
      */
     export const ENOMSG: 42;
 
     /**
-     * @description 协议不可用
+     * @description Protocol not available
      */
     export const ENOPROTOOPT: 92;
 
     /**
-     * @description 设备上没有剩余空间
+     * @description No space left on device
      */
     export const ENOSPC: 28;
 
     /**
-     * @description 没有可用的流资源
+     * @description No STREAM resources
      */
     export const ENOSR: 63;
 
     /**
-     * @description 不是流设备
+     * @description Not a STREAM
      */
     export const ENOSTR: 60;
 
     /**
-     * @description 功能未实现
+     * @description Function not implemented
      */
     export const ENOSYS: 38;
 
     /**
-     * @description 套接字未连接
+     * @description Socket is not connected
      */
     export const ENOTCONN: 107;
 
     /**
-     * @description 路径不是目录
+     * @description Not a directory
      */
     export const ENOTDIR: 20;
 
     /**
-     * @description 目录非空
+     * @description Directory not empty
      */
     export const ENOTEMPTY: 39;
 
     /**
-     * @description 不是套接字
+     * @description Not a socket
      */
     export const ENOTSOCK: 88;
 
     /**
-     * @description 不支持的操作
+     * @description Operation not supported
      */
     export const ENOTSUP: 95;
 
     /**
-     * @description 不适当的 ioctl 操作
+     * @description Inappropriate ioctl for device
      */
     export const ENOTTY: 25;
 
     /**
-     * @description 无此设备或地址
+     * @description No such device or address
      */
     export const ENXIO: 6;
 
     /**
-     * @description 套接字不支持的操作
+     * @description Operation not supported on socket
      */
     export const EOPNOTSUPP: 95;
 
     /**
-     * @description 数值过大
+     * @description Value too large to be stored in data type
      */
     export const EOVERFLOW: 75;
 
     /**
-     * @description 操作不允许
+     * @description Operation not permitted
      */
     export const EPERM: 1;
 
     /**
-     * @description 管道破裂
+     * @description Broken pipe
      */
     export const EPIPE: 32;
 
     /**
-     * @description 协议错误
+     * @description Protocol error
      */
     export const EPROTO: 71;
 
     /**
-     * @description 协议不受支持
+     * @description Protocol not supported
      */
     export const EPROTONOSUPPORT: 93;
 
     /**
-     * @description 套接字协议类型错误
+     * @description Protocol wrong type for socket
      */
     export const EPROTOTYPE: 91;
 
     /**
-     * @description 结果超出范围
+     * @description Numerical result out of range
      */
     export const ERANGE: 34;
 
     /**
-     * @description 只读文件系统
+     * @description Read-only file system
      */
     export const EROFS: 30;
 
     /**
-     * @description 无效的 seek 操作
+     * @description Invalid seek
      */
     export const ESPIPE: 29;
 
     /**
-     * @description 没有此进程
+     * @description No such process
      */
     export const ESRCH: 3;
 
     /**
-     * @description 过期的文件句柄
+     * @description Stale file handle
      */
     export const ESTALE: 116;
 
     /**
-     * @description 定时器过期
+     * @description Timer expired
      */
     export const ETIME: 62;
 
     /**
-     * @description 操作超时
+     * @description Connection timed out
      */
     export const ETIMEDOUT: 110;
 
     /**
-     * @description 文本文件忙
+     * @description Text file busy
      */
     export const ETXTBSY: 26;
 
     /**
-     * @description 操作会阻塞
+     * @description Operation would block
      */
     export const EWOULDBLOCK: 11;
 
     /**
-     * @description 跨设备链接
+     * @description Cross-device link
      */
     export const EXDEV: 18;
 

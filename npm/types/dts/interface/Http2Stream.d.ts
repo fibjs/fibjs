@@ -1,72 +1,72 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description Http2Stream 是表示 Http2Session 中单个 HTTP/2 流的对象
+ * @description Http2Stream is the object representing a single HTTP/2 stream in an Http2Session
  *
- * 每个 Http2Stream 实例是一个双工流。写入流的数据作为 DATA 帧发送，接收到的数据作为来自远端的 DATA 帧提供。
+ * Each Http2Stream instance is a duplex stream. Data written to the stream is sent as DATA frames, and received data is provided as DATA frames from the remote end.
  *
- * Http2Stream 实例由 Http2Session 创建，不应直接构造。
+ * Http2Stream instances are created by Http2Session and should not be constructed directly.
  *
  */
 declare class Class_Http2Stream extends Class_Stream {
     /**
-     * @description 查询此 Http2Stream 实例的数字流标识符
+     * @description queries the numeric stream identifier of this Http2Stream instance
      */
     readonly id: number;
 
     /**
-     * @description 查询此 Http2Stream 实例是否已关闭
+     * @description queries whether this Http2Stream instance is closed
      */
     readonly closed: boolean;
 
     /**
-     * @description 查询此 Http2Stream 实例是否已销毁
+     * @description queries whether this Http2Stream instance is destroyed
      */
     readonly destroyed: boolean;
 
     /**
-     * @description 查询此流接收到的头部对象
+     * @description queries the headers object received by this stream
      */
     readonly headers: FIBJS.GeneralObject;
 
     /**
-     * @description 向远端发送响应头
-     *      @param headers 包含头部名值对的对象
+     * @description sends response headers to the remote end
+     *      @param headers an object containing header name-value pairs
      *
      */
     respond(headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 向远端发送额外的信息性 (1xx) 头部
-     *      @param headers 包含头部名值对的对象
+     * @description sends additional informational (1xx) headers to the remote end
+     *      @param headers an object containing header name-value pairs
      *
      */
     additionalHeaders(headers: FIBJS.GeneralObject): void;
 
     /**
-     * @description 向远端发送尾部头，标志流的结束
-     *      @param headers 包含尾部头名值对的对象
+     * @description sends trailing headers to the remote end, marking the end of the stream
+     *      @param headers an object containing trailing header name-value pairs
      *
      */
     sendTrailers(headers: FIBJS.GeneralObject): void;
 
     /**
-     * @description 向远端发送 RST_STREAM 帧，关闭流
-     *      @param code RST_STREAM 错误码，默认为 NGHTTP2_NO_ERROR (0)
+     * @description sends an RST_STREAM frame to the remote end, closing the stream
+     *      @param code RST_STREAM error code, default is NGHTTP2_NO_ERROR (0)
      *
      */
     rstStream(code?: number): void;
 
     /**
-     * @description 当接收到响应头时触发（客户端）
-     *      @param headers 响应头对象
+     * @description emitted when response headers are received (client)
+     *      @param headers response headers object
      *
      */
     on(event: "headers", listener: ()=>void): this;
 
     /**
-     * @description 当接收到尾部头时触发
-     *      @param headers 尾部头对象
+     * @description emitted when trailing headers are received
+     *      @param headers trailing headers object
      *
      */
     on(event: "trailers", listener: ()=>void): this;

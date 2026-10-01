@@ -1,0 +1,34 @@
+/*! @brief WebRTC ICE candidate parameter object */
+interface RTCIceCandidate : object
+{
+    /*! @brief constructor
+
+     description is the initialization parameter, supporting the following fields:
+        - candidate: candidate string
+        - sdpMid: media stream identification
+
+      @param description initialization parameter
+    */
+    RTCIceCandidate(Object description = {});
+
+    /*! @brief returns the candidate string */
+    readonly String candidate;
+
+    /*! @brief returns the media stream identification */
+    readonly String sdpMid;
+
+    /*! @brief returns the priority */
+    readonly Integer priority;
+
+    /*! @brief returns the transport protocol */
+    readonly String transport;
+
+    /*! @brief returns the address */
+    readonly String address;
+
+    /*! @brief returns the port */
+    readonly Integer port;
+
+    /*! @brief returns the type */
+    readonly String type;
+};

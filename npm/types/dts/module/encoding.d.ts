@@ -8,21 +8,21 @@
 /// <reference path="../module/json.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />
 /**
- * @description `encoding` 模块是 FibJS 内置的一个模块，用于实现各种数据编码格式与二进制之间的转换。这些数据编码格式包括了 `base64`、`base32`、`hex`、`json`、`msgpack`、`multibase`、`base58` 等等一些常用的数据编码格式。
+ * @description The `encoding` module is a built-in FibJS module used to convert between various data encoding formats and binary. These data encoding formats include some commonly used ones such as `base64`, `base32`, `hex`, `json`, `msgpack`, `multibase` and `base58`.
  *
- * 下面是 `encoding` 模块提供的各个子模块的简要介绍：
+ * Below is a brief introduction to each submodule provided by the `encoding` module:
  *
- * - `base64`：提供了一些对 Base64 编解码的支持，可以将字符串编码为 Base64 格式，也可以将 Base64 格式解码为字符串。
- * - `base32`：提供了对 Base32 编解码的支持，可以将给定的数据进行 Base32 编码并返回编码后的字符串。也可以将 Base32 编码的字符串解码为原始的数据。
- * - `hex`：提供了对十六进制编解码的支持，可以将给定的数据进行十六进制编码，并返回编码后的字符串。也可以将十六进制编码的字符串解码为原始的数据。
- * - `json`：提供了对 JSON 编解码的支持，可以将 JavaScript 对象序列化为 JSON 字符串，也可以将 JSON 字符串反序列化为 JavaScript 对象。
- * - `multibase`：提供了对 Multibase 编码的支持，Multibase 是在 Base1x 编码的基础上引入了多种编码前缀的编码方式。
- * - `msgpack`：提供了对 Msgpack 编解码的支持，Msgpack 是一种比 JSON 更轻量的数据交换格式，它可以将 JSON 对象序列化为二进制数据，以达到更快、更高效的数据交换效果。
- * - `base58`：提供了对 Base58 编解码的支持，Base58 是一种数字与字母的组合表示方法，它不包含数字 0、字母 O、字母 I、字母 L 等易混淆字符，具有不易出错的特点。
+ * - `base64`: provides Base64 encoding and decoding support; it can encode a string as Base64 and decode a Base64-encoded string back to a string.
+ * - `base32`: provides Base32 encoding and decoding support; it can encode the given data as Base32 and return the encoded string, and can decode a Base32-encoded string back to the original data.
+ * - `hex`: provides hexadecimal encoding and decoding support; it can encode the given data as hexadecimal and return the encoded string, and can decode a hexadecimal-encoded string back to the original data.
+ * - `json`: provides JSON encoding and decoding support; it can serialize JavaScript objects into JSON strings and deserialize JSON strings back into JavaScript objects.
+ * - `multibase`: provides Multibase encoding support. Multibase is an encoding scheme that introduces multiple encoding prefixes on top of Base1x encodings.
+ * - `msgpack`: provides Msgpack encoding and decoding support. Msgpack is a lighter-weight data interchange format than JSON; it can serialize JSON objects into binary data for faster and more efficient data interchange.
+ * - `base58`: provides Base58 encoding and decoding support. Base58 is a representation combining digits and letters that excludes easily confused characters such as the digit 0 and the letters O, I and L, making it less error-prone.
  *
- * `encoding` 模块中的大部分子模块都包含了编码与解码两个函数，使用这些函数可以将特定格式的数据进行编码或解码。使用这些编解码模块时，需要根据模块的类型等特点来选择最适合的模块，才能保证编码和解码的正确性。
+ * Most submodules of the `encoding` module contain two functions, one for encoding and one for decoding; these functions can encode or decode data in a specific format. When using these encoding/decoding modules, choose the most suitable module according to its type and characteristics to ensure correct encoding and decoding.
  *
- *  `encoding` 模块的引用方式：
+ *  How to reference the `encoding` module:
  *  ```JavaScript
  *  var encoding = require('encoding');
  *  ```
@@ -33,96 +33,96 @@
  */
 declare module 'encoding' {
     /**
-     * @description base32 编码与解码模块
+     * @description base32 encoding and decoding module
      */
     const base32: typeof import ('base32');
 
     /**
-     * @description base64 编码与解码模块
+     * @description base64 encoding and decoding module
      */
     const base64: typeof import ('base64');
 
     /**
-     * @description base58 编码与解码模块
+     * @description base58 encoding and decoding module
      */
     const base58: typeof import ('base58');
 
     /**
-     * @description hex 编码与解码模块
+     * @description hex encoding and decoding module
      */
     const hex: typeof import ('hex');
 
     /**
-     * @description multibase 编码与解码模块
+     * @description multibase encoding and decoding module
      */
     const multibase: typeof import ('multibase');
 
     /**
-     * @description 判断指定的编码是否支持
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集
-     *      @return 返回编码是否支持
+     * @description Determines whether the specified encoding is supported
+     *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU
+     *      @return returns whether the encoding is supported
      *
      */
     function isEncoding(codec: string): boolean;
 
     /**
-     * @description 将 Buffer 编码为字符串
-     *      @param data 初始化字符串，字符串将以 utf-8 格式写入
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集，缺省为 "utf8"
-     *      @return 返回编码的字符串
+     * @description Encodes the Buffer as a string
+     *      @param data the initial string, written in utf-8 format
+     *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+     *      @return returns the encoded string
      *
      */
     function encode(data: Class_Buffer, codec?: string): string;
 
     /**
-     * @description 将字符串解码为 Buffer
-     *      @param str 初始化字符串，字符串将以 utf-8 格式写入
-     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 ICU 支持的字符集，缺省为 "utf8"
-     *      @return 返回解码的 Buffer
+     * @description Decodes the string as a Buffer
+     *      @param str the initial string, written in utf-8 format
+     *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+     *      @return returns the decoded Buffer
      *
      */
     function decode(str: string, codec?: string): Class_Buffer;
 
     /**
-     * @description json 编码与解码模块
+     * @description json encoding and decoding module
      */
     const json: typeof import ('json');
 
     /**
-     * @description msgpack 编码与解码模块
+     * @description msgpack encoding and decoding module
      */
     const msgpack: typeof import ('msgpack');
 
     /**
-     * @description 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
-     *      @param str 要编码的字符串
-     *      @param json 是否生成json兼容字符串
-     *      @return 返回编码的字符串
+     * @description Encodes a string as a javascript escaped string, for embedding text in javascript code
+     *      @param str the string to encode
+     *      @param json whether to generate a json-compatible string
+     *      @return returns the encoded string
      *
      */
     function jsstr(str: string, json?: boolean): string;
 
     /**
-     * @description url 字符串安全编码
-     *      @param url 要编码的 url
-     *      @return 返回编码的字符串
+     * @description url string safe encoding
+     *      @param url the url to encode
+     *      @return returns the encoded string
      *
      */
     function encodeURI(url: string): string;
 
     /**
-     * @description url 部件字符串安全编码
-     *      @param url 要编码的 url
-     *      @param formEncoded 是否使用application/x-www-form-urlencoded格式编码（空格编码为+），缺省为false
-     *      @return 返回编码的字符串
+     * @description url component string safe encoding
+     *      @param url the url to encode
+     *      @param formEncoded whether to encode in application/x-www-form-urlencoded format (spaces are encoded as +), default is false
+     *      @return returns the encoded string
      *
      */
     function encodeURIComponent(url: string, formEncoded?: boolean): string;
 
     /**
-     * @description url 安全字符串解码
-     *      @param url 要解码的 url
-     *      @return 返回解码的字符串
+     * @description url safe string decoding
+     *      @param url the url to decode
+     *      @return returns the decoded string
      *
      */
     function decodeURI(url: string): string;

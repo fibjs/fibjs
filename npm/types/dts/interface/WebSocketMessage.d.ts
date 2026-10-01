@@ -1,16 +1,16 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
 /**
- * @description `WebSocketMessage` 是 WebSocket 协议中的一种消息类型，它封装了 WebSocket 传输协议中各类消息的数据格式和处理方式，可用于 WebSocket 客户端和服务端双方通信。
+ * @description `WebSocketMessage` is a message type in the WebSocket protocol; it encapsulates the data formats and handling methods of various messages in the WebSocket transport protocol, and can be used for communication between WebSocket clients and servers.
  *
- * 类的构造函数 `WebSocketMessage` 支持指定的消息类型参数 `type`，该参数有三个可选值：
+ * The constructor `WebSocketMessage` supports the specified message type parameter `type`, which has three optional values:
  *
- * - `WebSocket.TEXT`：代表文本类型的消息，内容为字符串。
- * - `WebSocket.BINARY`：代表二进制类型的消息，内容为二进制数据。
+ * - `WebSocket.TEXT`: represents a text type message, the content is a string.
+ * - `WebSocket.BINARY`: represents a binary type message, the content is binary data.
  *
- * 另外，还可以通过修改 `WebSocketMessage.masked` 属性指定是否需要应用掩码，通过 `WebSocketMessage.compress` 属性指定是否需要压缩。
+ * In addition, the `WebSocketMessage.masked` property can be modified to specify whether a mask should be applied, and the `WebSocketMessage.compress` property specifies whether compression is needed.
  *
- * 以下代码是一个 websocket 服务器的示例，当有客户端连接进来之后，服务器会把收到的消息 echo 回去给客户端：
+ * The following code is an example of a websocket server; after a client connects, the server echoes the received messages back to the client:
  * ```JavaScript
  * var http = require('http');
  *
@@ -19,51 +19,51 @@
  *         // emit message event
  *         conn.onmessage = e => {
  *             if (e.data.type == WebSocket.TEXT) {
- *                 console.log(`接收到客户端发来的消息 ${e.data}`);
+ *                 console.log(`received message from client ${e.data}`);
  *                 conn.send(e.data);
  *             } else {
- *                 console.error(`收到未知类型消息 ${e.data.type}`);
+ *                 console.error(`received unknown type message ${e.data.type}`);
  *             }
  *         }
- *         conn.onclose = e => console.log('离开了一个客户端');
+ *         conn.onclose = e => console.log('a client left');
  *     })
  * });
  * svr.start();
  * ```
- * 在这个程序中，首先加载了内置的 http 模块，然后创建了 http 服务对象，并指定了要处理的请求路径，调用了 WebSocket.upgrade 函数将对应路径的请求升级成 websocket 连接。
- * 创建 websocket 连接之后，服务器会自动为每个连接创建一个 WebSocket 对象，并提供了 onopen、onmessage、onclose 等 API，用来处理当有客户端连接、收到消息以及关闭事件。
- * 在收到消息时，服务器会判断消息的类型，如果是文本类型，就会将收到的消息 echo 回去。
- * 以上是一个简单的 websocket 服务器的处理流程，适当根据实际需求进行修改即可。
+ * In this program, the built-in http module is loaded first, then an http server object is created with the request path to handle specified, and the WebSocket.upgrade function is called to upgrade requests on the corresponding path into websocket connections.
+ * After the websocket connection is created, the server automatically creates a WebSocket object for each connection and provides APIs such as onopen, onmessage and onclose to handle client connection, message reception and close events.
+ * When a message is received, the server checks the message type; if it is a text type, the received message is echoed back.
+ * The above is a simple websocket server processing flow; modify it appropriately according to actual needs.
  *
  */
 declare class Class_WebSocketMessage extends Class_Message {
     /**
-     * @description 包处理消息对象构造函数
-     * 	@param type websocket 消息类型，缺省为 websocket.BINARY
-     * 	@param masked websocket 消息掩码，缺省为 true
-     *     @param compress 标记消息是否压缩，缺省为 false
-     * 	@param maxSize 最大包尺寸，以 MB 为单位，缺省为 67108864(64M)
+     * @description package handling message object constructor
+     * 	@param type websocket message type, default is websocket.BINARY
+     * 	@param masked websocket message mask, default is true
+     *     @param compress marks whether the message is compressed, default is false
+     * 	@param maxSize maximum package size in MB, default is 67108864(64M)
      *
      */
     constructor(type: number, masked?: boolean, compress?: boolean, maxSize?: number);
 
     /**
-     * @description 查询和读取 websocket 掩码标记，缺省为 true
+     * @description queries and reads the websocket mask flag, default is true
      */
     masked: boolean;
 
     /**
-     * @description 查询和读取 websocket 压缩状态，缺省为 false
+     * @description queries and reads the websocket compression state, default is false
      */
     compress: boolean;
 
     /**
-     * @description 查询和设置最大包尺寸，以字节为单位，缺省为 67108864(64M)
+     * @description queries and sets the maximum package size in bytes, default is 67108864(64M)
      */
     maxSize: number;
 
     /**
-     * @description 查询消息的数据。文本消息返回 String，二进制消息返回 Buffer。这是 Web API 标准属性。
+     * @description queries the message data. Returns a String for text messages and a Buffer for binary messages. This is a standard Web API property.
      */
     readonly data: any;
 

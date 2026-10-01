@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Unzip 解压缩编解码器，自动检测 gzip 或 deflate 格式并解压
+ * @description Unzip decompression codec, automatically detects the gzip or deflate format and decompresses it
  */
 declare class Class_Unzip extends Class_ZlibCodec {
     /**
-     * @description Unzip 构造函数
-     *      @param opts 解压缩选项
+     * @description Unzip constructor
+     *      @param opts decompression options
      *
      */
     constructor(opts?: FIBJS.GeneralObject);

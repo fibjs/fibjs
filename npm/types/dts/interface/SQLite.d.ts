@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DbConnection.d.ts" />
 /**
- * @description SQLite 对象是内置模块 db 的一个成员，主要负责 SQLite 数据库的连接和操作，可用于 SQLite 数据库的创建、查询、插入、更新等操作。同时，SQLite 对象也提供了一些类似备份、格式化 SQL 等高级操作。SQLite 连接对象还支持事务操作
+ * @description The SQLite object is a member of the built-in db module and is mainly responsible for connecting to and operating on SQLite databases; it can be used to create, query, insert into and update SQLite databases. The SQLite object also provides some advanced operations such as backup and SQL formatting. SQLite connection objects also support transactions
  *
- * 在实际应用中，我们通常根据业务需求创建 SQLite 类型的数据表，然后进行数据的增删改查等操作，例如：
+ * In practice, we usually create SQLite tables according to business needs and then perform data operations such as insert, delete, update and query, for example:
  *
  * ```JavaScript
  * var db = require('db')
@@ -30,9 +30,9 @@
  * sqlite.execute('DELETE FROM test WHERE id=?', 2)
  * ```
  *
- * SQLite 还内置了 vec_index 模块，我们可以在 SQLite 数据库上创建对向量字段的索引，基于向量字段进行检索，得到与目标向量最近似的向量集合。支持使用数值类型的数组表示向量，如：[1, 2, 3]，同时支持向量维度。此外，vec_index 支持在事务内批量操作。
+ * SQLite also has a built-in vec_index module: indexes on vector fields can be created in a SQLite database and searches can be performed based on vector fields to obtain the set of vectors closest to the target vector. Vectors can be represented by numeric arrays, such as: [1, 2, 3], and vector dimensions are supported. In addition, vec_index supports batch operations inside transactions.
  *
- * 下面是一个简单的示例：
+ * Here is a simple example:
  *
  * ``` JavaScript
  * var db = require('db');
@@ -45,7 +45,7 @@
  * conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 3)`);
  * ```
  *
- * 可以使用 vec_search 函数执行向量检索，例如：
+ * The vec_search function can be used to perform vector search, for example:
  *
  * ``` JavaScript
  * var key = [1, 2, 5.1234];
@@ -54,7 +54,7 @@
  * var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}")`);
  * ```
  *
- * vec_search 返回一个最接近的向量集合和距离数组，其中距离按照从小到大顺序排列。如果需要返回多个最接近的向量集合，可以使用 :limit 参数，例如：
+ * vec_search returns the closest vector set and a distance array, where distances are ordered from smallest to largest. To return multiple closest vector sets, use the :limit parameter, for example:
  *
  * ``` JavaScript
  * var key = [1, 2, 5.1234];
@@ -66,32 +66,32 @@
  */
 declare class Class_SQLite extends Class_DbConnection {
     /**
-     * @description 当前数据库文件名
+     * @description The file name of the current database
      */
     readonly fileName: string;
 
     /**
-     * @description 查询和设置数据库超时时间，以毫秒为单位
+     * @description Queries and sets the database timeout in milliseconds
      */
     timeout: number;
 
     /**
-     * @description 备份当前数据库到新文件
-     * 	 @param fileName 指定备份的数据库文件名
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
      */
     backup(fileName: string): void;
 
     backup(fileName: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 备份当前数据库到新文件
-     * 	 @param fileName 指定备份的数据库文件名
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
      */
     backupSync(fileName: string): void;
 
     /**
-     * @description 备份当前数据库到新文件
-     * 	 @param fileName 指定备份的数据库文件名
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
      */
     backupAsync(fileName: string): Promise<void>;
 

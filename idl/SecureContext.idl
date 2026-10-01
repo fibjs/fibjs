@@ -1,0 +1,74 @@
+/*! @brief tls secure context object, used to share basic configuration among multiple tls connections
+
+  The SecureContext object is a secure context object used to share basic configuration among multiple tls connections. A SecureContext object can be created with the tls.createSecureContext method.
+  ```JavaScript
+    const tls = require('tls');
+    const fs = require('fs');
+
+    const options = {
+      key: fs.readFileSync('server-key.pem'),
+      cert: fs.readFileSync('server-cert.pem')
+    };
+
+    const context = tls.createSecureContext(options);
+  ```
+ */
+interface SecureContext : object
+{
+    /*! @brief Queries the trusted CA certificate of the secure context */
+    readonly X509Certificate ca;
+
+    /*! @brief Queries the private key of the secure context connection */
+    readonly KeyObject key;
+
+    /*! @brief Queries the certificate of the secure context connection */
+    readonly X509Certificate cert;
+
+    /*! @brief Queries the maximum TLS version allowed by the secure context */
+    readonly String maxVersion;
+
+    /*! @brief Queries the minimum TLS version allowed by the secure context */
+    readonly String minVersion;
+
+    /*! @brief Queries the TLS protocol version used by the secure context*/
+    readonly String secureProtocol;
+
+    /*! @brief Queries whether the secure context requires a client certificate */
+    readonly Boolean requestCert;
+
+    /*! @brief Queries whether the secure context rejects any connection whose certificate fails CA list verification */
+    readonly Boolean rejectUnverified;
+
+    /*! @brief Queries whether the secure context rejects any connection that does not provide a certificate authorized by the CA list */
+    readonly Boolean rejectUnauthorized;
+
+    /*! @brief Queries the secure context session timeout */
+    readonly Integer sessionTimeout;
+
+    /*! @brief Sets the SNI context
+    @param servername the server name
+    @param context the secure context
+    */
+    setSNIContext(String servername, SecureContext context);
+
+    /*! @brief Sets the SNI context
+    @param servername the server name
+    @param options options needed to create a secure context with tls.createSecureContext
+    */
+    setSNIContext(String servername, Object options);
+
+    /*! @brief Queries the SNI context
+    @param servername the server name
+    @param auto_resolve whether to create the context automatically
+    @return returns the specified secure context
+    */
+    SecureContext getSNIContext(String servername, Boolean auto_resolve = false) async;
+
+    /*! @brief Removes the SNI context
+    @param servername the server name
+    */
+    removeSNIContext(String servername);
+
+    /*! @brief Clears all SNI contexts */
+    clearSNIContexts();
+};

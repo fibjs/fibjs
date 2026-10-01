@@ -2,9 +2,9 @@
 /// <reference path="../interface/HttpMessage.d.ts" />
 /// <reference path="../interface/HttpCookie.d.ts" />
 /**
- * @description HttpResponse 是一个 HTTP 响应对象，使用 HttpRequest.response 对象完成 Http 服务端数据响应，或 http.request 请求返回服务器的响应数据
+ * @description HttpResponse is an HTTP response object; use the HttpRequest.response object to complete the Http server-side data response, or use http.request to request and return the server's response data
  *
- * 以下的例子展示如何在 http.Server 中使用，示例代码如下：
+ * The following example shows how to use it in http.Server; the sample code is as follows:
  * ```
  * const http = require('http');
  *
@@ -25,14 +25,14 @@
  */
 declare class Class_HttpResponse extends Class_HttpMessage {
     /**
-     * @description HttpResponse 构造函数，创建一个新的 HttpResponse 对象
+     * @description HttpResponse constructor, creates a new HttpResponse object
      */
     constructor();
 
     /**
-     * @description HttpResponse 构造函数，创建一个新的 HttpResponse 对象（Web API 兼容）
+     * @description HttpResponse constructor, creates a new HttpResponse object (Web API compatible)
      *
-     *      支持 Web 标准 Response 构造方式，例如：
+     *      Supports the Web standard Response construction style, for example:
      *      ```JavaScript
      *      const response = new http.Response("Hello World", {
      *          status: 200,
@@ -40,101 +40,101 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *          headers: { "Content-Type": "text/plain" }
      *      });
      *      ```
-     *      @param body 响应体内容，可以是字符串、Buffer 或 null
-     *      @param options 选项对象，支持 status、statusText、headers 属性
+     *      @param body the response body content, which can be a string, Buffer or null
+     *      @param options the options object, supporting the status, statusText and headers properties
      *
      */
     constructor(body: any, options?: FIBJS.GeneralObject);
 
     /**
-     * @description 查询和设置响应消息的返回状态
+     * @description queries and sets the return status of the response message
      */
     statusCode: number;
 
     /**
-     * @description 查询和设置响应消息的返回消息
+     * @description queries and sets the return message of the response message
      */
     statusMessage: string;
 
     /**
-     * @description 查询和设置响应消息的返回消息，等同于 statusMessage（Web API 兼容）
+     * @description queries and sets the return message of the response message, same as statusMessage (Web API compatible)
      */
     statusText: string;
 
     /**
-     * @description 查询和设置响应消息的返回状态，等同于 statusCode
+     * @description queries and sets the return status of the response message, same as statusCode
      */
     status: number;
 
     /**
-     * @description 查询当前响应是否正常
+     * @description queries whether the current response is ok
      */
     readonly ok: boolean;
 
     /**
-     * @description 设置响应消息的返回状态，返回消息，并添加响应头
-     *      @param statusCode 指定响应消息的返回状态
-     *      @param statusMessage 指定响应消息的返回消息
-     *      @param headers 指定响应消息添加的响应头
+     * @description sets the return status and return message of the response message, and adds response headers
+     *      @param statusCode specifies the return status of the response message
+     *      @param statusMessage specifies the return message of the response message
+     *      @param headers specifies the response headers to add to the response message
      *
      */
     writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 设置响应消息的返回状态，返回消息，并添加响应头
-     *      @param statusCode 指定响应消息的返回状态
-     *      @param headers 指定响应消息添加的响应头
+     * @description sets the return status of the response message and adds response headers
+     *      @param statusCode specifies the return status of the response message
+     *      @param headers specifies the response headers to add to the response message
      *
      */
     writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 返回当前消息的 HttpCookie 对象列表
+     * @description returns the list of HttpCookie objects of the current message
      */
     readonly cookies: any[];
 
     /**
-     * @description 向 cookies 添加一个 HttpCookie 对象
-     *      @param cookie 指定要添加的 HttpCookie 对象
+     * @description adds an HttpCookie object to cookies
+     *      @param cookie specifies the HttpCookie object to add
      *
      */
     addCookie(cookie: Class_HttpCookie): void;
 
     /**
-     * @description 发送重定向到客户端
-     *      @param url 重定向的地址
+     * @description sends a redirect to the client
+     *      @param url the redirect address
      *
      */
     redirect(url: string): void;
 
     /**
-     * @description 发送重定向到客户端
-     *      @param statusCode 指定响应消息的返回状态，接受的状态为：301, 302, 307
-     *      @param url 重定向的地址
+     * @description sends a redirect to the client
+     *      @param statusCode specifies the return status of the response message; the accepted statuses are: 301, 302, 307
+     *      @param url the redirect address
      *
      */
     redirect(statusCode: number, url: string): void;
 
     /**
-     * @description Fetch API 响应的最终 URL（经过重定向后的地址）
+     * @description the final URL of the Fetch API response (the address after redirections)
      */
     readonly url: string;
 
     /**
-     * @description 是否经过重定向
+     * @description whether it has been redirected
      */
     readonly redirected: boolean;
 
     /**
-     * @description 响应类型（"basic"、"cors"、"error" 等），覆盖 Message.type
+     * @description response type ("basic", "cors", "error", etc.), overrides Message.type
      */
     readonly type: string;
 
     /**
-     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
-     *      @param data 要序列化为 JSON 的数据
-     *      @param options 选项对象，支持 status、statusText、headers
-     *      @return 此方法不会返回数据
+     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     *      @param data the data to serialize to JSON
+     *      @param options the options object, supporting status, statusText and headers
+     *      @return this method does not return data
      *
      */
     json(data: any, options?: FIBJS.GeneralObject): any;
@@ -142,26 +142,26 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
-     *      @param data 要序列化为 JSON 的数据
-     *      @param options 选项对象，支持 status、statusText、headers
-     *      @return 此方法不会返回数据
+     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     *      @param data the data to serialize to JSON
+     *      @param options the options object, supporting status, statusText and headers
+     *      @return this method does not return data
      *
      */
     jsonSync(data: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 以 JSON 编码写入给定的数据，并可同时设置响应状态与响应头
-     *      @param data 要序列化为 JSON 的数据
-     *      @param options 选项对象，支持 status、statusText、headers
-     *      @return 此方法不会返回数据
+     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     *      @param data the data to serialize to JSON
+     *      @param options the options object, supporting status, statusText and headers
+     *      @return this method does not return data
      *
      */
     jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     json(): any;
@@ -169,40 +169,40 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     jsonSync(): any;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     jsonAsync(): Promise<any>;
 
     /**
-     * @description 创建一个 JSON 响应（静态工厂）
-     *      @param data 要序列化为 JSON 的数据
-     *      @param options 选项对象，支持 status、statusText、headers
-     *      @return 返回新的 HttpResponse 对象
+     * @description creates a JSON response (static factory)
+     *      @param data the data to serialize to JSON
+     *      @param options the options object, supporting status, statusText and headers
+     *      @return returns a new HttpResponse object
      *
      */
     static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description 创建一个重定向响应（静态工厂）
-     *      @param url 重定向目标 URL
-     *      @param status 重定向状态码，默认 302
-     *      @return 返回新的 HttpResponse 对象
+     * @description creates a redirect response (static factory)
+     *      @param url the redirect target URL
+     *      @param status the redirect status code, default is 302
+     *      @return returns a new HttpResponse object
      *
      */
     static redirect(url: string, status?: number): Class_HttpResponse;
 
     /**
-     * @description 创建一个错误响应（静态工厂）
-     *      @return 返回 type="error" 的新的 HttpResponse 对象
+     * @description creates an error response (static factory)
+     *      @return returns a new HttpResponse object with type="error"
      *
      */
     static error(): Class_HttpResponse;

@@ -2,11 +2,11 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
 /**
- * @description DBConnection 是数据库连接的基类，用于建立和维护一个数据库连接会话。其实现了连接的基本操作，并作为派生类的基础。同时支持开始事务、提交事务、回滚事务等操作。
+ * @description DBConnection is the base class of database connections, used to establish and maintain a database connection session. It implements the basic connection operations and serves as the base for derived classes. It also supports starting, committing and rolling back transactions.
  *
- * DBConnection 的子类包括：Odbc、MySQL、SQLite，通过实例化每个子类，我们可以很方便地访问不同种类的数据库。
+ * Subclasses of DBConnection include Odbc, MySQL and SQLite; by instantiating each subclass we can conveniently access different kinds of databases.
  *
- * DBConnection 不能直接创建，只能通过 db.open 等方法创建，例如：
+ * DBConnection cannot be created directly; it can only be created with methods such as db.open, for example:
  *
  * ```js
  * var db = require("db");
@@ -16,30 +16,30 @@
  */
 declare class Class_DbConnection extends Class_object {
     /**
-     * @description 查询当前连接数据库类型
+     * @description Queries the type of the current database connection
      */
     readonly type: string;
 
     /**
-     * @description 关闭当前数据库连接
+     * @description Closes the current database connection
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前数据库连接
+     * @description Closes the current database connection
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前数据库连接
+     * @description Closes the current database connection
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 选择当前数据库连接的缺省数据库
-     * 	 @param dbName 指定数据库名
+     * @description Selects the default database of the current database connection
+     * 	 @param dbName the database name
      *
      */
     use(dbName: string): void;
@@ -47,23 +47,23 @@ declare class Class_DbConnection extends Class_object {
     use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 选择当前数据库连接的缺省数据库
-     * 	 @param dbName 指定数据库名
+     * @description Selects the default database of the current database connection
+     * 	 @param dbName the database name
      *
      */
     useSync(dbName: string): void;
 
     /**
-     * @description 选择当前数据库连接的缺省数据库
-     * 	 @param dbName 指定数据库名
+     * @description Selects the default database of the current database connection
+     * 	 @param dbName the database name
      *
      */
     useAsync(dbName: string): Promise<void>;
 
     /**
-     * @description 获取当前数据库中所有表的信息
+     * @description Gets information about all tables in the current database
      *
-     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      @return returns an array containing table information; each element contains the table name and related properties
      *
      */
     getTables(): any[];
@@ -71,26 +71,26 @@ declare class Class_DbConnection extends Class_object {
     getTables(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 获取当前数据库中所有表的信息
+     * @description Gets information about all tables in the current database
      *
-     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      @return returns an array containing table information; each element contains the table name and related properties
      *
      */
     getTablesSync(): any[];
 
     /**
-     * @description 获取当前数据库中所有表的信息
+     * @description Gets information about all tables in the current database
      *
-     *      @return 返回包含表信息的数组，每个元素包含表名和相关属性
+     *      @return returns an array containing table information; each element contains the table name and related properties
      *
      */
     getTablesAsync(): Promise<any[]>;
 
     /**
-     * @description 获取指定表的详细信息
+     * @description Gets detailed information about the given table
      *
-     *      @param tableName 指定要查询的表名
-     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      @param tableName the table name to query
+     *      @return returns an array containing detailed table information; each element contains the field name, type, length, whether NULL is allowed and other properties
      *
      */
     getTableInfo(tableName: string): any[];
@@ -98,27 +98,27 @@ declare class Class_DbConnection extends Class_object {
     getTableInfo(tableName: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 获取指定表的详细信息
+     * @description Gets detailed information about the given table
      *
-     *      @param tableName 指定要查询的表名
-     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      @param tableName the table name to query
+     *      @return returns an array containing detailed table information; each element contains the field name, type, length, whether NULL is allowed and other properties
      *
      */
     getTableInfoSync(tableName: string): any[];
 
     /**
-     * @description 获取指定表的详细信息
+     * @description Gets detailed information about the given table
      *
-     *      @param tableName 指定要查询的表名
-     *      @return 返回包含表详细信息的数组，每个元素包含字段名、类型、长度、是否允许 NULL 等属性
+     *      @param tableName the table name to query
+     *      @return returns an array containing detailed table information; each element contains the field name, type, length, whether NULL is allowed and other properties
      *
      */
     getTableInfoAsync(tableName: string): Promise<any[]>;
 
     /**
-     * @description 在当前数据库连接上启动一个事务
+     * @description Starts a transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     begin(point?: string): void;
@@ -126,25 +126,25 @@ declare class Class_DbConnection extends Class_object {
     begin(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 在当前数据库连接上启动一个事务
+     * @description Starts a transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     beginSync(point?: string): void;
 
     /**
-     * @description 在当前数据库连接上启动一个事务
+     * @description Starts a transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     beginAsync(point?: string): Promise<void>;
 
     /**
-     * @description 提交当前数据库连接上的事务
+     * @description Commits the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     commit(point?: string): void;
@@ -152,25 +152,25 @@ declare class Class_DbConnection extends Class_object {
     commit(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 提交当前数据库连接上的事务
+     * @description Commits the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     commitSync(point?: string): void;
 
     /**
-     * @description 提交当前数据库连接上的事务
+     * @description Commits the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     commitAsync(point?: string): Promise<void>;
 
     /**
-     * @description 回滚当前数据库连接上的事务
+     * @description Rolls back the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     rollback(point?: string): void;
@@ -178,53 +178,53 @@ declare class Class_DbConnection extends Class_object {
     rollback(point?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 回滚当前数据库连接上的事务
+     * @description Rolls back the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     rollbackSync(point?: string): void;
 
     /**
-     * @description 回滚当前数据库连接上的事务
+     * @description Rolls back the transaction on the current database connection
      *
-     *      @param point 指定事务的名称，缺省不指定
+     *      @param point the transaction name, not specified by default
      *
      */
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚
-     *      func 执行有三种结果：
-     *      * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
-     *      * 函数返回 false，此时事务将回滚
-     *      * 函数运行错误，事务自动回滚
+     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     *      The execution of func has three outcomes:
+     *      * the function returns normally, including finishing or an explicit return; the transaction is committed automatically
+     *      * the function returns false; the transaction is rolled back
+     *      * the function throws an error; the transaction is rolled back automatically
      *
-     *      @param func 以事务方式执行的函数
-     *      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
+     *      @param func the function to execute in a transaction
+     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
     trans(func: (...args: any[])=>any): boolean;
 
     /**
-     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚
-     *      func 执行有三种结果：
-     *      * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
-     *      * 函数返回 false，此时事务将回滚
-     *      * 函数运行错误，事务自动回滚
+     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     *      The execution of func has three outcomes:
+     *      * the function returns normally, including finishing or an explicit return; the transaction is committed automatically
+     *      * the function returns false; the transaction is rolled back
+     *      * the function throws an error; the transaction is rolled back automatically
      *
-     *      @param point 指定事务的名称
-     *      @param func 以事务方式执行的函数
-     *      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
+     *      @param point the transaction name
+     *      @param func the function to execute in a transaction
+     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
     trans(point: string, func: (...args: any[])=>any): boolean;
 
     /**
-     * @description 执行一个 sql 命令，并返回执行结果
+     * @description Executes an sql command and returns the execution result
      *
-     *      @param sql 字符串
-     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      @param sql the sql string
+     *      @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
      *
      */
     execute(sql: string): any[];
@@ -232,48 +232,48 @@ declare class Class_DbConnection extends Class_object {
     execute(sql: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 执行一个 sql 命令，并返回执行结果
+     * @description Executes an sql command and returns the execution result
      *
-     *      @param sql 字符串
-     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      @param sql the sql string
+     *      @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
      *
      */
     executeSync(sql: string): any[];
 
     /**
-     * @description 执行一个 sql 命令，并返回执行结果
+     * @description Executes an sql command and returns the execution result
      *
-     *      @param sql 字符串
-     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      @param sql the sql string
+     *      @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
      *
      */
     executeAsync(sql: string): Promise<any[]>;
 
     /**
-     * @description 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
+     * @description Executes an sql command and returns the execution result; the string can be formatted with the given parameters
      *
-     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
-     *      @param args 可选参数列表
-     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      @param sql the format string; optional parameters are specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     *      @param args the optional parameter list
+     *      @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
      *
      */
     execute(sql: string, ...args: any[]): any[];
 
     /**
-     * @description 格式化一个 sql 命令，并返回格式化结果
+     * @description Formats an sql command and returns the formatted result
      *
-     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
-     *      @param args 可选参数列表
-     *      @return 返回格式化之后的 sql 命令
+     *      @param sql the format string; optional parameters are specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     *      @param args the optional parameter list
+     *      @return returns the formatted sql command
      *
      */
     format(sql: string, ...args: any[]): string;
 
     /**
-     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
-     *      @param sql 指定查询语句
-     *      @return 返回预编译语句对象
+     *      @param sql the query statement to prepare
+     *      @return returns the prepared statement object
      *
      */
     prepare(sql: string): Class_Statement;
@@ -281,41 +281,41 @@ declare class Class_DbConnection extends Class_object {
     prepare(sql: string, callback: (err: Error | undefined | null, retVal: Class_Statement)=>any): void;
 
     /**
-     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
-     *      @param sql 指定查询语句
-     *      @return 返回预编译语句对象
+     *      @param sql the query statement to prepare
+     *      @return returns the prepared statement object
      *
      */
     prepareSync(sql: string): Class_Statement;
 
     /**
-     * @description 编译一条 SQL 为预编译语句（单语句），支持按条读取
+     * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
-     *      @param sql 指定查询语句
-     *      @return 返回预编译语句对象
+     *      @param sql the query statement to prepare
+     *      @return returns the prepared statement object
      *
      */
     prepareAsync(sql: string): Promise<Class_Statement>;
 
     /**
-     * @description 执行并按条返回迭代器（等价 stmt.iterate(...args)）
+     * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
      *
-     *      推荐使用 for...of 遍历（break/异常自动释放游标）：
+     *      Traversing with for...of is recommended (break/exception releases the cursor automatically):
      *
      *      ```js
      *      for (var row of conn.iterate('SELECT * FROM log WHERE ts > ?', ts)) {
-     *          process(row);    // 同一时刻只驻留一行
+     *          process(row);    // only one row resides in memory at a time
      *      }
-     *      // break/异常/跑完均自动释放游标，连接立即可复用
+     *      // break/exception/normal completion all release the cursor automatically; the connection is immediately reusable
      *      ```
      *
-     *      手动调用 next()/return() 是危险操作，必须自行保证异常与提前结束时调用
-     *      return() 释放游标，否则游标泄漏会占用连接。
+     *      Calling next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *      return() releases the cursor; otherwise the leaked cursor occupies the connection.
      *
-     *      @param sql 指定查询语句
-     *      @param args 绑定参数
-     *      @return 返回行迭代器，逐行产生行对象，内存有界
+     *      @param sql the query statement to prepare
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
     iterate(sql: string, ...args: any[]): Iterator<any>;

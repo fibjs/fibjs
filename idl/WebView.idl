@@ -1,0 +1,255 @@
+/*! @brief WebView object, an embedded browser window component.
+
+ WebView is a window component with an embedded browser. Since the JavaScript code inside a WebView does not run in the same engine as fibjs, they communicate through messages.
+
+ Inside a WebView, you can communicate with fibjs through window; the postMessage method and the message event are supported.
+
+ The following is a simple communication example:
+ ```JavaScript 
+ // index.js
+ var gui = require('gui');
+ var webview = gui.open('https://fibjs.org/index.html');
+
+ webview.addEventListener("message", function (msg) { console.log(msg); });
+ 
+ webview.postMessage("hello from fibjs");
+ ```
+
+ The content of index.html is as follows:
+ ```html
+ <script>
+     window.addEventListener("message", function (msg) { 
+         window.postMessage("send back: " + msg);
+     });
+ </script>
+ ```
+
+ WebView also supports a more convenient app API interface. The object used for API calls inside a WebView is window.app; you can specify the API interface through the app parameter when creating the WebView, and its methods can be called inside the WebView with await window.app.<method>.
+
+ The following is a simple call example:
+ ```JavaScript 
+ const gui = require('gui');
+ const coroutine = require('coroutine');
+
+ const win = gui.open({
+     devtools: true,
+     app: {
+         test: async function (a, b, c, d) {
+             console.log('test', a, b, c, d);
+             await coroutine.sleepAsync(1000);
+             return a + b + c + d + 1000;
+         },
+         test1: {
+             test2: function (a, b, c, d) {
+                 console.log('test2', a, b, c, d);
+                 coroutine.sleep(1000);
+                 return a + b + c + d + 2000;
+             }
+         }
+     }
+ });
+
+ win.eval(`
+ (async function test() {
+     console.log("test(1,2,3,4): " + await window.app.test(1,2,3,4));
+     console.log("test1.test2(1,2,3,4): " + await window.app.test1.test2(1,2,3,4));
+     console.log('test');
+ })();`);
+ ```
+ 
+ If you need to close the window from inside the WebView, call window.close. Note that a fullscreen window on macOS is prevented from closing by the macOS mechanism.
+ ```html
+ <script lang="JavaScript">
+    document.getElementById('close').addEventListener('click', function () {
+        window.close();
+    });
+ </script>
+ ```
+ In some applications, you may need to implement window dragging inside the WebView; this can be done with the following code:
+ ```html
+ <script>
+    document.getElementById('dragRegion').addEventListener('mousedown', function (event) {
+        if (event.button === 0) { // Check if left button is pressed
+            window.drag();
+        }
+    });
+ </script>
+ ```
+*/
+interface WebView : EventEmitter
+{
+    /*! @brief Loads the page at the specified url
+	 @param url the url to load
+	 */
+    loadUrl(String url) async;
+
+    /*! @brief Loads the page of the specified file
+     @param file the file to load
+     */
+    loadFile(String file) async;
+
+    /*! @brief Queries the url of the current page
+	 @return returns the url of the current page
+	 */
+    String getUrl() async;
+
+    /*! @brief Sets the page html of the webview
+	 @param html the html to set
+	 */
+    setHtml(String html) async;
+
+    /*! @brief Gets the page html of the webview
+     @return returns the page html of the webview
+    */
+    String getHtml() async;
+
+    /*! @brief Queries whether the current page has finished loading
+     @return returns whether the current page has finished loading
+    */
+    Boolean isReady() async;
+
+    /*! @brief Waits for the current page to finish loading
+     @param url the url to wait for; empty means waiting for the current page
+    */
+    waitFor(String url = "") async;
+
+    /*! @brief Refreshes the current page */
+    reload() async;
+
+    /*! @brief Goes back to the previous page */
+    goBack() async;
+
+    /*! @brief Goes forward to the next page */
+    goForward() async;
+
+    /*! @brief Runs a piece of JavaScript code in the current window
+	 @param code the JavaScript code to execute
+     @return returns the execution result
+	 */
+    Variant eval(String code) async;
+
+    /*! @brief Sets the title of the window
+     @param title the title of the window
+    */
+    setTitle(String title) async;
+
+    /*! @brief Queries the title of the window
+     @return returns the title of the window
+    */
+    String getTitle() async;
+
+    /*! @brief Sets whether the window is visible
+     @return returns whether the window is visible
+    */
+    Boolean isVisible() async;
+
+    /*! @brief Shows the window */
+    show() async;
+
+    /*! @brief Hides the window */
+    hide() async;
+
+    /*! @brief Sets the size of the window
+     @param width the width of the window
+     @param height the height of the window
+    */
+    setSize(Integer width, Integer height) async;
+
+    /*! @brief Queries the size of the window
+     @return returns the size of the window as an array whose first element is the width and second element is the height
+    */
+    NArray getSize() async;
+
+    /*! @brief Sets the position of the window
+     @param left the x coordinate of the top-left corner of the window
+     @param top the y coordinate of the top-left corner of the window
+    */
+    setPosition(Integer left, Integer top) async;
+
+    /*! @brief Queries the position of the window
+     @return returns the position of the window as an array whose first element is the x coordinate and second element is the y coordinate
+    */
+    NArray getPosition() async;
+
+    /*! @brief Queries whether the window is the active window
+     @return returns whether the window is the active window
+    */
+    Boolean isActived() async;
+
+    /*! @brief Activates the window */
+    active() async;
+
+    /*! @brief Queries the menu of the window
+     @return returns the menu of the window
+    */
+    Menu getMenu();
+
+    /*! @brief Captures an image of the current window
+
+     Page capture works for most pages, but for lazily loaded pages the full content may not be captured. It is recommended to test on the page to be captured, and to actively adjust the window size when necessary to trigger page loading.
+     @param fullPage whether to capture the whole page; the default is false, which captures only the visible area
+     @return returns the captured image
+    */
+    Buffer takeScreenshot(Boolean fullPage = false) async;
+
+    /*! @brief Closes the current window */
+    close() async;
+
+    /*! @brief Sends a message into the webview
+     postMessage must be sent after the window has finished loading; messages sent before that are lost. Therefore it is recommended to call this method only after the onload event fires.
+	 @param msg the message to send
+	*/
+    postMessage(String msg) async;
+
+    /*! @brief Queries and binds the window load start event, equivalent to on("loading", func); */
+    event loading();
+
+    /*! @brief Queries and binds the window load completed event, equivalent to on("load", func); */
+    event load();
+
+    /*! @brief Queries and binds the window move event, equivalent to on("move", func); 
+
+	 The following example outputs the top-left corner coordinates of the window when it moves:
+	 ```JavaScript 
+	 var gui = require('gui');
+	 var webview = gui.open('fs://index.html');
+
+	 webview.onmove = evt => console.log(evt.left, evt.top);
+	 ```
+	*/
+    event move();
+
+    /*! @brief Queries and binds the window size change event, equivalent to on("size", func);
+
+     The following example outputs the size of the window when it is resized:
+     ```JavaScript
+     var gui = require('gui');
+     var webview = gui.open('fs://index.html');
+
+     webview.onresize = evt => console.log(evt.width, evt.height);
+     ```
+	*/
+    event resize();
+
+    /*! @brief Queries and binds the window focus event, equivalent to on("focus", func); */
+    event focus();
+
+    /*! @brief Queries and binds the window blur event, equivalent to on("blur", func); */
+    event blur();
+
+    /*! @brief Queries and binds the window close event, which fires after the WebView is closed, equivalent to on("closed", func); */
+    event close();
+
+    /*! @brief Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func); */
+    event message();
+
+    /*! @brief Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
+     @return returns the current object
+    */
+    WebView ref();
+
+    /*! @brief Allows the fibjs process to exit; permits the fibjs process to exit while the object is bound
+     @return returns the current object
+    */
+    WebView unref();
+};

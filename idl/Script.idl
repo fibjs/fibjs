@@ -1,0 +1,40 @@
+/*! @brief Script compilation and execution object
+
+ Creation method
+ ```JavaScript
+ var Script = new vm.Script('console.log(100)');
+ ```
+ */
+interface Script : object
+{
+    /*! @brief Script object constructor
+     @param code the script code to compile and run
+     @param opts compile and run options
+    */
+    Script(String code, Object opts = {});
+
+    /*! @brief Runs the compiled code contained in the vm.Script object within the given contextifiedObject and returns the result
+     @param contextifiedObject the context object to run in
+     @param opts run options
+     @return returns the run result
+    */
+    Value runInContext(Object contextifiedObject, Object opts = {});
+
+    /*! @brief Creates a context using the given contextObject, runs the compiled code contained in the vm.Script object in it, and returns the result
+     @param contextObject the object to be contextified
+     @param opts run options
+     @return returns the run result
+    */
+    Value runInNewContext(Object contextObject = {}, Object opts = {});
+
+    /*! @brief Runs the compiled code contained in the vm.Script object in the current context and returns the result
+     @param opts run options
+     @return returns the run result
+    */
+    Value runInThisContext(Object opts = {});
+
+    /*! @brief Creates code cache from the current Script object
+     @return returns the code cache data
+    */
+    Buffer createCachedData();
+};

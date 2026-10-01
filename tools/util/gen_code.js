@@ -5,7 +5,7 @@ var path = require('path');
 /**
  * @description generate cpp code from idl definitions
  * 
- * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
+ * @param {Record<string, import('./ir').IIDLDefinition>} defs 
  * @param {string} baseFolder 
  */
 module.exports = function (defs, baseFolder) {
@@ -61,8 +61,8 @@ module.exports = function (defs, baseFolder) {
 
 /**
  * Process union_method for a single class definition
- * @param {import('../../idl/ir').IIDLDefinition} def 
- * @param {Record<string, import('../../idl/ir').IIDLDefinition>} allDefs 
+ * @param {import('./ir').IIDLDefinition} def 
+ * @param {Record<string, import('./ir').IIDLDefinition>} allDefs 
  */
 function union_method_for_class(def, allDefs) {
     var method_defs = {};
@@ -139,7 +139,7 @@ function record_exist() {
 /**
  * 
  * @param {string} cls key of def, name of fibjs's module/interface
- * @param {import('../../idl/ir').IIDLDefinition} def 
+ * @param {import('./ir').IIDLDefinition} def 
  * @param {string} baseFolder 
  * @param {object} allDefs all definitions for cross-reference
  */

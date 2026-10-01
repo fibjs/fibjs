@@ -1,0 +1,25 @@
+/*! @brief json encoding and decoding module
+ To require it:
+ ```JavaScript
+ var encoding = require('encoding');
+ var json = encoding.json;
+ ```
+ or
+ ```JavaScript
+ var json = require('json');
+ ```
+ */
+module json
+{
+    /*! @brief Encodes a variable in json format
+	 @param data the variable to encode
+	 @return returns the encoded string
+	 */
+    static String encode(Value data);
+
+    /*! @brief Decodes a string into a variable using json
+	 @param data the string to decode
+	 @return returns the decoded variable
+	 */
+    static Value decode(String data);
+};

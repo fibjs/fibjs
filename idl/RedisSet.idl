@@ -1,0 +1,57 @@
+/*! @brief Redis database client Set object; this object is a client bound to the given key and only calling its methods operates on the database
+
+ Used to operate on a Redis Set object. To create one:
+ ```JavaScript
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var set = rdb.getSet("test");
+ ```
+ */
+interface RedisSet : object
+{
+    /*! @brief Adds one or more member elements to the set key; member elements already in the set are ignored
+     @param members the array of elements to add
+     @return the number of new elements added to the set, excluding ignored elements */
+    Integer add(Array members);
+
+    /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
+     @param members the list of elements to add
+     @return the number of new elements added to the set, excluding ignored elements  */
+    Integer add(...members);
+
+    /*! @brief Removes one or more member elements from the set
+     @param members the array of elements to remove
+     @return the number of elements successfully removed, excluding ignored elements */
+    Integer remove(Array members);
+
+    /*! @brief Removes one or more member elements from the set
+     @param members the list of elements to remove
+     @return the number of elements successfully removed, excluding ignored elements  */
+    Integer remove(...members);
+
+    /*! @brief Returns the number of elements in the set
+     @return returns the length of the set */
+    Integer len();
+
+    /*! @brief Checks whether member is a member of the set
+     @param member the member to check
+     @return returns true if member is a member of the set */
+    Boolean exists(Buffer member);
+
+    /*! @brief Returns all members of the set
+     @return the list of all members of the set */
+    NArray members();
+
+    /*! @brief Removes and returns a random element from the set
+     @return the removed random element. Returns null when the set is empty */
+    Buffer pop();
+
+    /*! @brief Gets one random element from the set
+     @return returns an element; returns null if the set is empty */
+    Value randMember();
+
+    /*! @brief Gets several random elements from the set
+     @param count the number of elements to return. A positive count returns an array containing count elements; a negative count returns an array whose elements may repeat multiple times and whose length is the absolute value of count
+     @return returns a list; returns an empty list if the set is empty */
+    Value randMember(Integer count);
+};

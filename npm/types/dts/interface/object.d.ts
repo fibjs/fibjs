@@ -1,19 +1,19 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description 基础对象，所有对象均继承于此
+ * @description Basic object; all objects inherit from it
  */
 declare class Class_object {
     /**
-     * @description 返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现
-     *      @return 返回对象的字符串表示
+     * @description Returns the string representation of the object, which is generally "[Native Object]"; objects can reimplement this according to their own characteristics
+     *      @return returns the string representation of the object
      *
      */
     toString(): string;
 
     /**
-     * @description 返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合
-     *      @param key 未使用
-     *      @return 返回包含可 JSON 序列化的值
+     * @description Returns the JSON representation of the object, which is generally the set of readable properties defined by the object
+     *      @param key unused
+     *      @return returns the JSON-serializable value
      *
      */
     toJSON(key?: string): any;

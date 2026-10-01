@@ -1,0 +1,27 @@
+/*! @brief tty module
+
+ Usage:
+ ```JavaScript
+ const tty = require('tty');
+ ```
+ */
+module tty
+{
+    /*! @brief TTY input stream object, see TTYInputStream */
+    static ReadStream = TTYInputStream;
+
+    /*! @brief TTY output stream object, see TTYOutputStream */
+    static WriteStream = TTYOutputStream;
+
+    /*! @brief Queries whether it is a command interactive window
+    @param fd file descriptor
+     @return returns true if the file descriptor is associated with a terminal window, otherwise returns false
+    */
+    static Boolean isatty(Integer fd);
+
+    /*! @brief Queries whether it is a command interactive window
+    @param fd file handle object
+     @return returns true if the file handle is associated with a terminal window, otherwise returns false
+    */
+    static Boolean isatty(FileHandle fd);
+};

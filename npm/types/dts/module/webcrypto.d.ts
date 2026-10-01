@@ -2,36 +2,36 @@
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../module/subtle.d.ts" />
 /**
- * @description WebCrypto API 模块
+ * @description WebCrypto API module
  *
- * WebCrypto API 模块提供了一组用于加密和解密的函数。可以通过 global 对象的 webcrypto 属性或者 require("crypto").webcrypto 来获取。
+ * The WebCrypto API module provides a set of functions for encryption and decryption. It can be obtained through the webcrypto property of the global object or require("crypto").webcrypto.
  *
  */
 declare module 'webcrypto' {
     /**
-     * @description 生成随机数
+     * @description Generates random numbers
      *
-     *     @param data 一个 TypedArray 对象，用于存放生成的随机数。
-     *     @return 返回 data 对象。
+     *     @param data a TypedArray object used to hold the generated random numbers.
+     *     @return returns the data object.
      *
      */
     function getRandomValues(data: TypedArray): TypedArray;
 
     /**
-     * @description 生成一个 UUID
+     * @description Generates a UUID
      *
-     *     @return 返回生成的 UUID 字符串。
+     *     @return returns the generated UUID string.
      *
      */
     function randomUUID(): string;
 
     /**
-     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能
+     * @description The CryptoKey class represents symmetric or asymmetric keys, each exposing different features
      */
     const CryptoKey: typeof Class_CryptoKey;
 
     /**
-     * @description 提供对 SubtleCrypto API 的访问
+     * @description Provides access to the SubtleCrypto API
      */
     const subtle: typeof import ('subtle');
 

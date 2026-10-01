@@ -2,72 +2,72 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description RTCDataChannel接口定义了一个双向的数据通道
+ * @description the RTCDataChannel interface defines a bidirectional data channel
  */
 declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
-     * @description 发送二进制数据，该方法用于发送数据到远程端
+     * @description sends binary data; this method is used to send data to the remote end
      *
-     *      @param data 要发送的二进制数据
+     *      @param data the binary data to send
      *
      */
     send(data: Class_Buffer): void;
 
     /**
-     * @description 发送文本数据，该方法用于发送数据到远程端
+     * @description sends text data; this method is used to send data to the remote end
      *
-     *      @param data 要发送的文本数据
+     *      @param data the text data to send
      *
      */
     send(data: string): void;
 
     /**
-     * @description 关闭通道，该方法用于关闭通道
+     * @description closes the channel; this method is used to close the channel
      */
     close(): void;
 
     /**
-     * @description 返回唯一标识 RTCDataChannel 的 ID 号
+     * @description returns the ID number that uniquely identifies the RTCDataChannel
      */
     readonly id: number;
 
     /**
-     * @description 返回一个字符串，其中包含描述数据通道的名称
+     * @description returns a string containing the name describing the data channel
      */
     readonly label: string;
 
     /**
-     * @description 返回包含正在使用的子协议名称的字符串
+     * @description returns a string containing the name of the sub-protocol in use
      */
     readonly protocol: string;
 
     /**
-     * @description 返回当前排队通过数据通道发送的数据的字节数
+     * @description returns the number of bytes of data currently queued to be sent over the data channel
      */
     readonly bufferedAmount: number;
 
     /**
-     * @description 通道打开事件，当通道打开时触发
+     * @description channel open event, emitted when the channel is opened
      */
     on(event: "open", listener: ()=>void): this;
 
     /**
-     * @description 通道消息事件，当接收到消息时触发
+     * @description channel message event, emitted when a message is received
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 通道关闭事件，当通道关闭时触发
+     * @description channel close event, emitted when the channel is closed
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 通道错误事件，当通道发生错误时触发
+     * @description channel error event, emitted when an error occurs on the channel
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 通道缓冲区低事件，当通道缓冲区低时触发
+     * @description channel buffered amount low event, emitted when the channel buffered amount is low
      */
     on(event: "bufferedamountlow", listener: ()=>void): this;
 

@@ -1,0 +1,135 @@
+/*! @brief Basic file information object
+
+  The Stat object is queried through fs.stat, FileStream.stat, fs.readdir and cannot be created independently
+ */
+interface Stat : object
+{
+    /*! @brief File name */
+    readonly String name;
+
+    /*! @brief Device ID containing the file */
+    readonly Integer dev;
+
+    /*! @brief Number of Inodes in the file */
+    readonly Integer ino;
+
+    /*! @brief File permission; not supported on Windows */
+    readonly Integer mode;
+
+    /*! @brief Number of hard links associated with this file */
+    readonly Integer nlink;
+
+    /*! @brief Owner id of the file */
+    readonly Integer uid;
+
+    /*! @brief Group id of the file */
+    readonly Integer gid;
+
+    /*! @brief For special file types, the device ID containing the file */
+    readonly Integer rdev;
+
+    /*! @brief File size */
+    readonly Number size;
+
+    /*! @brief File system block size for I/O operations */
+    readonly Integer blksize;
+
+    /*! @brief Number of blocks allocated to the file */
+    readonly Integer blocks;
+
+    /*! @brief Last modification time of the file */
+    readonly Date mtime;
+
+    /*! @brief Last modification time of the file (ms) */
+    readonly Number mtimeMs;
+
+    /*! @brief Last modification time of the file (ns), valid only when bigint is true */
+    readonly Long mtimeNs;
+
+    /*! @brief Last access time of the file */
+    readonly Date atime;
+
+    /*! @brief Last access time of the file (ms) */
+    readonly Number atimeMs;
+
+    /*! @brief Last access time of the file (ns), valid only when bigint is true */
+    readonly Long atimeNs;
+
+    /*! @brief File status change time */
+    readonly Date ctime;
+
+    /*! @brief File status change time (ms) */
+    readonly Number ctimeMs;
+
+    /*! @brief File status change time (ns), valid only when bigint is true */
+    readonly Long ctimeNs;
+
+    /*! @brief File creation time */
+    readonly Date birthtime;
+
+    /*! @brief File creation time (ms) */
+    readonly Number birthtimeMs;
+
+    /*! @brief File creation time (ns), valid only when bigint is true */
+    readonly Long birthtimeNs;
+
+    /*! @brief Queries whether the file is writable
+     @return true if it is writable
+     */
+    Boolean isWritable();
+
+    /*! @brief Queries whether the file is readable
+     @return true if it is readable
+     */
+    Boolean isReadable();
+
+    /*! @brief Queries whether the file is executable
+     @return true if it is executable
+     */
+    Boolean isExecutable();
+
+    /*! @brief Queries whether the file is hidden
+     @return true if it is hidden
+     */
+    Boolean isHidden();
+
+    /*! @brief Queries whether the Stat describes a block device
+     @return true if it describes a block device
+     */
+    Boolean isBlockDevice();
+
+    /*! @brief Queries whether the Stat describes a character device
+     @return true if it describes a character device
+     */
+    Boolean isCharacterDevice();
+
+    /*! @brief Queries whether the file is a directory
+     @return true if it is a directory
+     */
+    Boolean isDirectory();
+
+    /*! @brief Queries whether the Stat describes a FIFO pipe
+     @return true if it describes a FIFO pipe
+     */
+    Boolean isFIFO();
+
+    /*! @brief Queries whether the file is a file
+     @return true if it is a file
+     */
+    Boolean isFile();
+
+    /*! @brief Queries whether the file is a symbolic link
+     @return true if it is a symbolic link
+     */
+    Boolean isSymbolicLink();
+
+    /*! @brief Queries whether the file is a memory file
+     @return true if it is a memory file
+     */
+    Boolean isMemory();
+
+    /*! @brief Queries whether the file is a Socket
+     @return true if it is a Socket
+     */
+    Boolean isSocket();
+};

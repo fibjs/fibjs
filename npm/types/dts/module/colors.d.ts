@@ -1,108 +1,108 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description 颜色模块
+ * @description Color module
  *
- *     颜色模块提供了一组颜色常量，用于设置控制台输出颜色。
+ *     The color module provides a set of color constants for setting console output colors.
  *
  */
 declare module 'colors' {
     /**
-     * @description 是否支持颜色输出
+     * @description Whether color output is supported
      */
     const hasColors: boolean;
 
     /**
-     * @description 清除颜色
+     * @description Clears the color
      */
     const clear: string;
 
     /**
-     * @description 默认颜色
+     * @description Default color
      */
     const normal: string;
 
     /**
-     * @description 黑色
+     * @description Black
      */
     const black: string;
 
     /**
-     * @description 灰色
+     * @description Gray
      */
     const gray: string;
 
     /**
-     * @description 红色
+     * @description Red
      */
     const red: string;
 
     /**
-     * @description 绿色
+     * @description Green
      */
     const green: string;
 
     /**
-     * @description 黄色
+     * @description Yellow
      */
     const yellow: string;
 
     /**
-     * @description 蓝色
+     * @description Blue
      */
     const blue: string;
 
     /**
-     * @description 洋红
+     * @description Magenta
      */
     const magenta: string;
 
     /**
-     * @description 青色
+     * @description Cyan
      */
     const cyan: string;
 
     /**
-     * @description 白色
+     * @description White
      */
     const white: string;
 
     /**
-     * @description 亮黑色
+     * @description Light black
      */
     const lightred: string;
 
     /**
-     * @description 亮绿色
+     * @description Light green
      */
     const lightgreen: string;
 
     /**
-     * @description 亮黄色
+     * @description Light yellow
      */
     const lightyellow: string;
 
     /**
-     * @description 亮蓝色
+     * @description Light blue
      */
     const lightblue: string;
 
     /**
-     * @description 亮洋红
+     * @description Light magenta
      */
     const lightmagenta: string;
 
     /**
-     * @description 亮青色
+     * @description Light cyan
      */
     const lightcyan: string;
 
     /**
-     * @description 亮白色
+     * @description Light white
      */
     const lightwhite: string;
 
     /**
-     * @description 粗体
+     * @description Bold
      */
     const bold: string;
 

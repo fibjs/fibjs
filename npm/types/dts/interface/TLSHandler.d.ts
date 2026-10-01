@@ -2,9 +2,9 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
 /**
- * @description tls/ssl 协议转换处理器
+ * @description tls/ssl protocol conversion handler
  *
- *  用以将数据流转换为 tls/ssl 流协议。TLSHandler 是对 TLSSocket 的封装，用于构建服务器，逻辑上相当于：
+ *  Used to convert data streams into the tls/ssl stream protocol. TLSHandler is a wrapper around TLSSocket, used to build servers, logically equivalent to:
  *  ```JavaScript
  *
  *  function(s){
@@ -18,42 +18,42 @@
  */
 declare class Class_TLSHandler extends Class_Handler {
     /**
-     * @description 创建一个新的 TLSHandler 对象
-     *     @param context 指定创建 TLSHandler 使用的安全上下文
-     *     @param handler 事件处理接口对象
+     * @description creates a new TLSHandler object
+     *     @param context specifies the secure context used to create TLSHandler
+     *     @param handler the event handling interface object
      *
      */
     constructor(context: Class_SecureContext, handler: Class_Handler);
 
     /**
-     * @description 创建一个新的 TLSHandler 对象
-     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
-     *     @param handler 事件处理接口对象
+     * @description creates a new TLSHandler object
+     *     @param options the options needed to create a secure context with tls.createSecureContext
+     *     @param handler the event handling interface object
      *
      */
     constructor(options: FIBJS.GeneralObject, handler: Class_Handler);
 
     /**
-     * @description 查询当前 TLSHandler 使用的 SecureContext
+     * @description queries the SecureContext used by the current TLSHandler
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description 设置当前 TLSHandler 使用的 SecureContext
-     *     @param context 指定新的 SecureContext
+     * @description sets the SecureContext used by the current TLSHandler
+     *     @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext): void;
 
     /**
-     * @description 设置当前 TLSHandler 使用的 SecureContext
-     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     * @description sets the SecureContext used by the current TLSHandler
+     *     @param options the options needed to create a secure context with tls.createSecureContext
      *
      */
     setSecureContext(options: FIBJS.GeneralObject): void;
 
     /**
-     * @description ssl 协议转换处理器当前事件处理接口对象
+     * @description the current event handling interface object of the ssl protocol conversion handler
      */
     handler: Class_Handler;
 

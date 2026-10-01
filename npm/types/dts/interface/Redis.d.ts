@@ -6,9 +6,9 @@
 /// <reference path="../interface/RedisSet.d.ts" />
 /// <reference path="../interface/RedisSortedSet.d.ts" />
 /**
- * @description Redis 数据库客户端对象
+ * @description Redis database client object
  *
- *  用以创建和管理 Redis 数据库，创建方法：
+ *  Used to create and manage a Redis database. To create one:
  *  ```JavaScript
  *  var db = require("db");
  *  var test = new db.openRedis("redis-server");
@@ -17,385 +17,385 @@
  */
 declare class Class_Redis extends Class_object {
     /**
-     * @description redis 基础命令方法
-     *      @param cmd 指定发送的命令
-     *      @param args 指定发送的参数
-     *      @return 返回服务器返回的结果
+     * @description Basic redis command method
+     *      @param cmd the command to send
+     *      @param args the parameters to send
+     *      @return returns the result returned by the server
      */
     command(cmd: string, ...args: any[]): any;
 
     /**
-     * @description 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
-     *      @param key 指定要关联的 key
-     *      @param value 指定要关联的数据
-     *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
+     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
+     *      @param key the key to associate
+     *      @param value the data to associate
+     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      */
     set(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
-     * @description 将 key 的值设为 value ，当且仅当 key 不存在。若给定的 key 已经存在，则 SETNX 不做任何动作。
-     *      @param key 指定要关联的 key
-     *      @param value 指定要关联的数据
-     *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
+     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
+     *      @param key the key to associate
+     *      @param value the data to associate
+     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      */
     setNX(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
-     * @description 将 key 的值设为 value，只在键已经存在时，才对键进行设置操作。
-     *      @param key 指定要关联的 key
-     *      @param value 指定要关联的数据
-     *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
+     * @description Sets the key to value only when the key already exists.
+     *      @param key the key to associate
+     *      @param value the data to associate
+     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      */
     setXX(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
-     * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
-     *      @param kvs 指定要设置的 key/value 对象
+     * @description Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
+     *      @param kvs the key/value object to set
      */
     mset(kvs: FIBJS.GeneralObject): void;
 
     /**
-     * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
-     *      @param kvs 指定要设置的 key/value 列表
+     * @description Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
+     *      @param kvs the key/value list to set
      */
     mset(...kvs: any[]): void;
 
     /**
-     * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
-     *      @param kvs 指定要设置的 key/value 对象
+     * @description Sets one or more key-value pairs at the same time only when all the given keys do not exist
+     *      @param kvs the key/value object to set
      */
     msetNX(kvs: FIBJS.GeneralObject): void;
 
     /**
-     * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
-     *      @param kvs 指定要设置的 key/value 列表
+     * @description Sets one or more key-value pairs at the same time only when all the given keys do not exist
+     *      @param kvs the key/value list to set
      */
     msetNX(...kvs: any[]): void;
 
     /**
-     * @description 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
-     *      @param key 指定要追加的 key
-     *      @param value 指定要追加的数据
-     *      @return 追加 value 之后， key 中字符串的长度
+     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
+     *      @param key the key to append to
+     *      @param value the data to append
+     *      @return the length of the string in key after appending value
      */
     append(key: Class_Buffer, value: Class_Buffer): number;
 
     /**
-     * @description 用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始
-     *      @param key 指定要修改的 key
-     *      @param offset 指定修改的字节偏移
-     *      @param value 指定要覆盖的数据
-     *      @return 被修改之后，字符串的长度
+     * @description Overwrites the string value stored at key with the value parameter, starting from the offset
+     *      @param key the key to modify
+     *      @param offset the byte offset to modify
+     *      @param value the data to overwrite
+     *      @return the length of the string after the modification
      */
     setRange(key: Class_Buffer, offset: number, value: Class_Buffer): number;
 
     /**
-     * @description 返回 key 中字符串值的子字符串，字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内)
-     *      @param key 指定要查询的 key
-     *      @param start 指定查询的起始字节偏移
-     *      @param end 指定查询的结束字节偏移
-     *      @return 截取得出的子字符串
+     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
+     *      @param key the key to query
+     *      @param start the start byte offset of the query
+     *      @param end the end byte offset of the query
+     *      @return the extracted substring
      */
     getRange(key: Class_Buffer, start: number, end: number): Class_Buffer;
 
     /**
-     * @description 返回 key 所储存的字符串值的长度。当 key 储存的不是字符串值时，返回一个错误
-     *      @param key 指定要计算的 key
-     *      @return 字符串值的长度。当 key 不存在时，返回 0
+     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value
+     *      @param key the key to count
+     *      @return the length of the string value, or 0 when key does not exist
      */
     strlen(key: Class_Buffer): number;
 
     /**
-     * @description 计算给定字符串中，被设置为 1 的比特位的数量
-     *      @param key 指定要计算的 key
-     *      @param start 指定要计算的起始字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
-     *      @param end 指定要计算的结束字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
-     *      @return 被设置为 1 的位的数量
+     * @description Counts the number of bits set to 1 in the given string
+     *      @param key the key to count
+     *      @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
+     *      @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
+     *      @return the number of bits set to 1
      */
     bitcount(key: Class_Buffer, start?: number, end?: number): number;
 
     /**
-     * @description 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
-     *      @param key 指定要关联的 key
-     *      @return 当 key 不存在时，返回 Null ，否则，返回 key 的值
+     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned
+     *      @param key the key to associate
+     *      @return returns Null when key does not exist, otherwise returns the value of key
      */
     get(key: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
-     *      @param keys 指定要查询的 key 数组
-     *      @return 一个包含所有给定 key 的值的列表
+     * @description Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
+     *      @param keys the array of keys to query
+     *      @return a list containing the values of all the given keys
      */
     mget(keys: any[]): any[];
 
     /**
-     * @description 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
-     *      @param keys 指定要查询的 key 列表
-     *      @return 一个包含所有给定 key 的值的列表
+     * @description Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
+     *      @param keys the list of keys to query
+     *      @return a list containing the values of all the given keys
      */
     mget(...keys: any[]): any[];
 
     /**
-     * @description 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
-     *      @param key 指定要查询修改的 key
-     *      @param value 指定修改的数值
-     *      @return 返回给定 key 的旧值
+     * @description Sets the given key to value and returns the old value of key
+     *      @param key the key to query and modify
+     *      @param value the value to set
+     *      @return returns the old value of the given key
      */
     getset(key: Class_Buffer, value: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 将 key 所储存的值减去减量
-     *      @param key 指定要修改的 key
-     *      @param num 指定要减去的数值
-     *      @return 减去 num 之后，key 的值
+     * @description Subtracts the decrement from the value stored at key
+     *      @param key the key to modify
+     *      @param num the number to subtract
+     *      @return the value of key after subtracting num
      */
     decr(key: Class_Buffer, num?: number): number;
 
     /**
-     * @description 将 key 所储存的值加上增量
-     *      @param key 指定要修改的 key
-     *      @param num 指定要加上的数值
-     *      @return 加上 num 之后，key 的值
+     * @description Adds the increment to the value stored at key
+     *      @param key the key to modify
+     *      @param num the number to add
+     *      @return the value of key after adding num
      */
     incr(key: Class_Buffer, num?: number): number;
 
     /**
-     * @description 对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)
-     *      @param key 指定要修改的 key
-     *      @param offset 指定修改的位偏移
-     *      @param value 指定设置或清除的参数，可以是 0 也可以是 1
-     *      @return 指定偏移量原来储存的位
+     * @description Sets or clears the bit at the given offset in the string value stored at key
+     *      @param key the key to modify
+     *      @param offset the bit offset to modify
+     *      @param value the value to set or clear, either 0 or 1
+     *      @return the bit originally stored at the offset
      */
     setBit(key: Class_Buffer, offset: number, value: number): number;
 
     /**
-     * @description 对 key 所储存的字符串值，获取指定偏移量上的位(bit)
-     *      @param key 指定要查询的 key
-     *      @param offset 指定查询的位偏移
-     *      @return 字符串值指定偏移量上的位(bit)
+     * @description Gets the bit at the given offset in the string value stored at key
+     *      @param key the key to query
+     *      @param offset the bit offset to query
+     *      @return the bit at the given offset of the string value
      */
     getBit(key: Class_Buffer, offset: number): number;
 
     /**
-     * @description 检查给定 key 是否存在
-     *      @param key 指定要关联的 key
-     *      @return 若 key 存在，返回 True，否则返回 False
+     * @description Checks whether the given key exists
+     *      @param key the key to associate
+     *      @return returns True if key exists, otherwise returns False
      */
     exists(key: Class_Buffer): boolean;
 
     /**
-     * @description 返回 key 所储存的值的类型
-     *      @param key 指定要查询的 key
-     *      @return 返回 key 所储存的值的类型，可能的值为 none(key不存在) string(字符串) list(列表) set(集合) zset(有序集) hash(哈希表)
+     * @description Returns the type of the value stored at key
+     *      @param key the key to query
+     *      @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash
      */
     type(key: Class_Buffer): string;
 
     /**
-     * @description 查找所有符合给定模式 pattern 的 key
-     *      @param pattern 指定查询模式
-     *      @return 符合给定模式的 key 列表
+     * @description Finds all keys matching the given pattern
+     *      @param pattern the pattern to query
+     *      @return the list of keys matching the given pattern
      */
     keys(pattern: string): any[];
 
     /**
-     * @description 删除给定的一个或多个 key，不存在的 key 会被忽略
-     *      @param keys 指定要删除的 key 数组
-     *      @return 被删除 key 的数量
+     * @description Deletes one or more given keys; non-existing keys are ignored
+     *      @param keys the array of keys to delete
+     *      @return the number of keys deleted
      */
     del(keys: any[]): number;
 
     /**
-     * @description 删除给定的一个或多个 key，不存在的 key 会被忽略
-     *      @param keys 指定要删除的 key 列表
-     *      @return 被删除 key 的数量
+     * @description Deletes one or more given keys; non-existing keys are ignored
+     *      @param keys the list of keys to delete
+     *      @return the number of keys deleted
      */
     del(...keys: any[]): number;
 
     /**
-     * @description 为给定 key 设置生存时间，当 key 过期时，它会被自动删除
-     *      @param key 指定要设定的 key
-     *      @param ttl 以毫秒为单位为 key 设置生存时间
-     *      @return 若 key 存在，返回 True，否则返回 False
+     * @description Sets a time to live for the given key; when the key expires it is automatically deleted
+     *      @param key the key to set
+     *      @param ttl the time to live for key in milliseconds
+     *      @return returns True if key exists, otherwise returns False
      */
     expire(key: Class_Buffer, ttl: number): boolean;
 
     /**
-     * @description 返回给定 key 的剩余生存时间
-     *      @param key 指定要查询的 key
-     *      @return 以毫秒为单位，返回 key 的剩余生存时间，当 key 不存在时，返回 -2，当 key 存在但没有设置剩余生存时间时，返回 -1
+     * @description Returns the remaining time to live of the given key
+     *      @param key the key to query
+     *      @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set
      */
     ttl(key: Class_Buffer): number;
 
     /**
-     * @description 移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key)
-     *      @param key 指定要设定的 key
-     *      @return 若 key 存在，返回 True，否则返回 False
+     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
+     *      @param key the key to set
+     *      @return returns True if key exists, otherwise returns False
      */
     persist(key: Class_Buffer): boolean;
 
     /**
-     * @description 将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误
-     *      @param key 指定要改名的 key
-     *      @param newkey 指定要改名的目的 key
+     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
      */
     rename(key: Class_Buffer, newkey: Class_Buffer): void;
 
     /**
-     * @description 当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误
-     *      @param key 指定要改名的 key
-     *      @param newkey 指定要改名的目的 key
-     *      @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False
+     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
+     *      @return returns True when the rename succeeds, and False if newkey already exists
      */
     renameNX(key: Class_Buffer, newkey: Class_Buffer): boolean;
 
     /**
-     * @description 订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message，同一频道同一函数只会回调一次
-     *      @param channel 指定订阅的频道名称
-     *      @param func 指定回调函数
+     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
+     *      @param channel the name of the channel to subscribe to
+     *      @param func the callback function
      *
      */
     sub(channel: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
-     * @description 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次
-     *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     * @description Subscribes to the given set of channels; the corresponding callback function is called automatically when a message arrives; the same function is called back only once for the same channel
+     *      @param map the channel mapping; object property names are used as channel names and property values as callback functions
      *
      */
     sub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 退订给定的频道的全部回调
-     *      @param channel 指定退订的频道名称
+     * @description Unsubscribes all callbacks of the given channel
+     *      @param channel the name of the channel to unsubscribe from
      *
      */
     unsub(channel: Class_Buffer): void;
 
     /**
-     * @description 退订给定的频道的指定回调函数
-     *      @param channel 指定退订的频道名称
-     *      @param func 指定退订的回调函数
+     * @description Unsubscribes the given callback function of the given channel
+     *      @param channel the name of the channel to unsubscribe from
+     *      @param func the callback function to unsubscribe
      *
      */
     unsub(channel: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
-     * @description 退订一组给定的频道的全部回调
-     *      @param channels 指定退订的频道数组
+     * @description Unsubscribes all callbacks of the given set of channels
+     *      @param channels the array of channels to unsubscribe from
      *
      */
     unsub(channels: any[]): void;
 
     /**
-     * @description 退订给定的一组频道的指定回调函数
-     *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     * @description Unsubscribes the given callback function of the given set of channels
+     *      @param map the channel mapping; object property names are used as channel names and property values as callback functions
      *
      */
     unsub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次
-     *      @param pattern 指定订阅的频道模板
-     *      @param func 指定回调函数
+     * @description Subscribes to a set of channels by pattern; func is called automatically when a message arrives; func takes three parameters, channel, message and pattern; the same function is called back only once for the same pattern
+     *      @param pattern the channel pattern to subscribe to
+     *      @param func the callback function
      *
      */
     psub(pattern: string, func: (...args: any[])=>any): void;
 
     /**
-     * @description 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次
-     *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     * @description Subscribes to the given set of channel patterns; the corresponding func is called automatically when a message arrives; the same function is called back only once for the same channel
+     *      @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
      *
      */
     psub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 退订给定模板的频道的全部回调
-     *      @param pattern 指定退订的频道模板
+     * @description Unsubscribes all callbacks of the given pattern
+     *      @param pattern the channel pattern to unsubscribe from
      *
      */
     unpsub(pattern: string): void;
 
     /**
-     * @description 退订给定模板的频道的指定回调函数
-     *      @param pattern 指定退订的频道模板
-     *      @param func 指定退订的回调函数
+     * @description Unsubscribes the given callback function of the given pattern
+     *      @param pattern the channel pattern to unsubscribe from
+     *      @param func the callback function to unsubscribe
      *
      */
     unpsub(pattern: string, func: (...args: any[])=>any): void;
 
     /**
-     * @description 退订一组给定模板的频道的全部回调
-     *      @param patterns 指定发布的频道模板数组
+     * @description Unsubscribes all callbacks of the given set of patterns
+     *      @param patterns the array of channel patterns to publish
      *
      */
     unpsub(patterns: any[]): void;
 
     /**
-     * @description 退订一组模板的频道的指定回调函数
-     *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     * @description Unsubscribes the given callback function of the given set of patterns
+     *      @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
      *
      */
     unpsub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
+     * @description Queries and sets the error handling function; it is called back when sub encounters an error or the network is interrupted; after the callback occurs, all subs of this object are aborted
      *
      */
     on(event: "suberror", listener: ()=>void): this;
 
     /**
-     * @description 将信息 message 发送到指定的频道 channel
-     *      @param channel 指定发布的频道
-     *      @param message 指定发布的消息
-     *      @return 接收此消息的客户端数量
+     * @description Sends the message to the given channel
+     *      @param channel the channel to publish to
+     *      @param message the message to publish
+     *      @return the number of clients that received this message
      *
      */
     pub(channel: Class_Buffer, message: Class_Buffer): number;
 
     /**
-     * @description 获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
-     *      @param key 指定要获取的 key
-     *      @return 返回包含指定 key 的 Hash 对象
+     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *      @param key the key to get
+     *      @return returns the Hash object bound to the given key
      */
     getHash(key: Class_Buffer): Class_RedisHash;
 
     /**
-     * @description 获取指定 key 的 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
-     *      @param key 指定要获取的 key
-     *      @return 返回包含指定 key 的 List 对象
+     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *      @param key the key to get
+     *      @return returns the List object bound to the given key
      */
     getList(key: Class_Buffer): Class_RedisList;
 
     /**
-     * @description 获取指定 key 的 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
-     *      @param key 指定要获取的 key
-     *      @return 返回包含指定 key 的 Set 对象
+     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *      @param key the key to get
+     *      @return returns the Set object bound to the given key
      */
     getSet(key: Class_Buffer): Class_RedisSet;
 
     /**
-     * @description 获取指定 key 的 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
-     *      @param key 指定要获取的 key
-     *      @return 返回包含指定 key 的 SortedSet 对象
+     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *      @param key the key to get
+     *      @return returns the SortedSet object bound to the given key
      */
     getSortedSet(key: Class_Buffer): Class_RedisSortedSet;
 
     /**
-     * @description 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
-     *      @param key 指定要序列化的 key
-     *      @return 返回序列化之后的值，如果 key 不存在，那么返回 null
+     * @description Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command
+     *      @param key the key to serialize
+     *      @return returns the serialized value, or null if key does not exist
      */
     dump(key: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 反序列化给定的序列化值，并将它和给定的 key 关联
-     *      @param key 指定要反序列化的 key
-     *      @param data 指定要反序列化的数据
-     *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
+     * @description Deserializes the given serialized value and associates it with the given key
+     *      @param key the key to deserialize to
+     *      @param data the data to deserialize
+     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      */
     restore(key: Class_Buffer, data: Class_Buffer, ttl?: number): void;
 
     /**
-     * @description 关闭当前数据库连接或事务
+     * @description Closes the current database connection or transaction
      */
     close(): void;
 

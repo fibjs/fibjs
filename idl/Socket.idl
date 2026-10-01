@@ -1,0 +1,186 @@
+/*! @brief network socket object
+
+ Socket belongs to the net module and provides connection, listening and data transfer capabilities for TCP, unix socket and Windows pipe. It can be created with:
+ ```JavaScript
+ var s = new net.Socket();
+ ```
+
+ Socket inherits from Stream and provides streaming read/write capabilities, plus the following network features:
+
+ - **Connection**: `connect` establishes connections in multiple forms; after connecting, `send`/`recv` can be used to transfer data;
+ - **Server**: `bind` binds an address and port, `listen` starts listening, `accept` accepts connections;
+ - **Tuning**: `setKeepAlive` keeps the connection alive, `setNoDelay` disables the Nagle algorithm, `setTimeout`/`timeout` control timeouts;
+ - **Status**: `remoteAddress`/`remotePort`/`localAddress`/`localPort` query connection address information, `isAlive` checks connection availability.
+ */
+interface Socket : Stream
+{
+    /*! @brief Socket constructor, creates a new Socket object
+     @param family specifies the address family, default is AF_INET, ipv4
+     */
+    Socket(Integer family = net.AF_INET);
+
+    /*! @brief queries the address family of the current Socket object */
+    readonly Integer family;
+
+    /*! @brief queries the remote address of the current connection */
+    readonly String remoteAddress;
+
+    /*! @brief queries the remote port of the current connection */
+    readonly Integer remotePort;
+
+    /*! @brief queries the local address of the current connection */
+    readonly String localAddress;
+
+    /*! @brief queries the local port of the current connection */
+    readonly Integer localPort;
+
+    /*! @brief queries and sets the timeout in milliseconds */
+    Integer timeout;
+
+    /*! @brief establishes a tcp connection
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
+
+    /*! @brief establishes a unix socket or Windows pipe connection
+     @param path specifies the unix socket or Windows pipe path
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Socket object
+     */
+    Stream connect(String path, Integer timeout = 0) async;
+
+    /*! @brief establishes a connection
+
+     The options parameter can contain the following properties:
+      - port: specifies the remote port
+      - host: specifies the remote address or host name
+      - timeout: specifies the timeout in milliseconds, default is 0
+
+     @param options specifies the connection options object
+     @return returns the connected Socket object
+    */
+    Stream connect(Object options) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, String host, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, String host, Integer timeout, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param path specifies the unix socket or Windows pipe path
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(String path, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param path specifies the unix socket or Windows pipe path
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(String path, Integer timeout, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param options specifies the connection options object, which can contain the following properties:
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Object options, Function connectListener) async;
+
+    /*! @brief binds the current Socket to the specified port on all local addresses
+     @param port specifies the port to bind
+     @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
+     */
+    bind(Integer port, Boolean allowIPv4 = true);
+
+    /*! @brief binds the current Socket to the specified port on the specified address
+     @param addr specifies the address to bind, which can also refer to a unix socket or Windows pipe path
+     @param port specifies the port to bind; this parameter is ignored when binding a unix socket or Windows pipe
+     @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
+     */
+    bind(String addr, Integer port = 0, Boolean allowIPv4 = true);
+
+    /*! @brief starts listening for connection requests
+     @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
+     */
+    listen(Integer backlog = 120);
+
+    /*! @brief waits for and accepts a connection
+     @return returns the accepted connection object
+     */
+    Socket accept() async;
+
+    /*! @brief enables or disables the TCP keep-alive mechanism
+     @param enable specifies whether to enable the keep-alive mechanism, default is false
+     @param initialDelay specifies the initial delay in seconds, default is 0
+     */
+    setKeepAlive(Boolean enable = false, Integer initialDelay = 0);
+
+    /*! @brief enables or disables the Nagle algorithm
+     @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     */
+    setNoDelay(Boolean noDelay = true);
+
+    /*! @brief checks whether the socket currently appears to be still usable
+
+     This method performs a best-effort non-blocking check and does not consume any received data.
+     Returning false means the socket is definitely unusable; returning true only means no closed state has been detected so far.
+     @return returns whether the socket currently appears to be still usable
+     */
+    Boolean isAlive();
+
+    /*! @brief reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     @param bytes specifies the amount of data to read; by default any size of data is read
+     @return returns the data read from the connection
+     */
+    Buffer recv(Integer bytes = -1) async;
+
+    /*! @brief writes the given data to the connection, equivalent to the write method
+     @param data the data to write
+     @return returns the number of bytes actually written
+     */
+    Integer send(Buffer data) async;
+
+    /*! @brief aborts all ongoing operations on the current socket
+     
+     This method cancels all pending asynchronous operations (connect, recv, send, etc.),
+     and the canceled operations return an error. The socket itself is not closed and can continue to be used.
+     */
+    abort();
+
+    /*! @brief sets the socket timeout
+     @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
+     @return returns the current Socket object
+    */
+    Socket setTimeout(Integer timeout);
+
+    /*! @brief sets the socket timeout and registers a one-time 'timeout' event listener
+     @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
+     @param callback the callback function, called once when the socket times out
+     @return returns the current Socket object
+    */
+    Socket setTimeout(Integer timeout, Function callback);
+};

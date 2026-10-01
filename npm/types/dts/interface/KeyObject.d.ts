@@ -1,15 +1,15 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description KeyObject 类来表示对称或非对称密钥，每种密钥公开不同的功能
+ * @description The KeyObject class represents symmetric or asymmetric keys, each exposing different features
  *
- * crypto.createSecretKey 、 crypto.createPublicKey 和 crypto.createPrivateKey 方法用于创建 KeyObject 实例。 KeyObject 对象不能直接使用 new 关键字创建。
+ * The crypto.createSecretKey , crypto.createPublicKey and crypto.createPrivateKey methods are used to create KeyObject instances. KeyObject objects cannot be created directly with the new keyword.
  *
  */
 declare class Class_KeyObject extends Class_object {
     /**
-     * @description 有关非对称密钥的信息
-     *     返回结果的内容如下：
+     * @description Information about an asymmetric key
+     *     The returned result contains the following:
      *     ```JavaScript
      *     {
      *         modulusLength: 2048, // Key size in bits (RSA, DSA).
@@ -26,64 +26,64 @@ declare class Class_KeyObject extends Class_object {
     readonly asymmetricKeyDetails: FIBJS.GeneralObject;
 
     /**
-     * @description 密钥的类型
+     * @description The type of the key
      *
-     *     对于非对称密钥，此属性表示密钥的类型。支持的密钥类型有：
-     *     - 'rsa' （OID 1.2.840.113549.1.1.1）
-     *     - 'rsa-pss' （OID 1.2.840.113549.1.1.10）
-     *     - 'dsa' （OID 1.2.840.10040.4.1）
-     *     - 'ec' （OID 1.2.840.10045.2.1）
-     *     - 'x25519' （OID 1.3.101.110）
-     *     - 'x448' （OID 1.3.101.111）
-     *     - 'ed25519' （OID 1.3.101.112）
-     *     - 'ed448' （OID 1.3.101.113）
-     *     - 'dh' （OID 1.2.840.113549.1.3.1）
+     *     For asymmetric keys, this property indicates the type of the key. Supported key types are:
+     *     - 'rsa' (OID 1.2.840.113549.1.1.1)
+     *     - 'rsa-pss' (OID 1.2.840.113549.1.1.10)
+     *     - 'dsa' (OID 1.2.840.10040.4.1)
+     *     - 'ec' (OID 1.2.840.10045.2.1)
+     *     - 'x25519' (OID 1.3.101.110)
+     *     - 'x448' (OID 1.3.101.111)
+     *     - 'ed25519' (OID 1.3.101.112)
+     *     - 'ed448' (OID 1.3.101.113)
+     *     - 'dh' (OID 1.2.840.113549.1.3.1)
      *
-     *     对于无法识别的 KeyObject 类型和对称密钥，此属性为 undefined 。
+     *     For unrecognized KeyObject types and symmetric keys, this property is undefined .
      *
      */
     readonly asymmetricKeyType: string;
 
     /**
-     * @description 对于秘密密钥，此属性表示密钥的大小（以字节为单位）。对于非对称密钥，此属性为 undefined
+     * @description For secret keys, this property indicates the key size in bytes. For asymmetric keys, this property is undefined
      */
     readonly symmetricKeySize: number;
 
     /**
-     * @description 密钥的类型，对于秘密（对称）密钥，此属性为 'secret'，对于公共（非对称）密钥，此属性为 'public' 或 'private'
+     * @description The type of the key; for secret (symmetric) keys this property is 'secret', for public (asymmetric) keys it is 'public' or 'private'
      */
     readonly type: string;
 
     /**
-     * @description 根据给定的选项导出密钥的信息
+     * @description Exports the key's information according to the given options
      *
-     *     对于对称密钥，可以使用以下编码选项：
-     *     - format: 必须是 'buffer' （默认）或 'jwk'
+     *     For symmetric keys, the following encoding options can be used:
+     *     - format: must be 'buffer' (default) or 'jwk'
      *
-     *     对于公钥，可以使用以下编码选项：
-     *     - format: 必须是 'pem'、'der' 或 'jwk'、'raw'（仅限 EC/SM2/Ed25519/Ed448/X25519/X448）
-     *     - type: format 为 'pem'、'der' 时，type 必须是 'pkcs1' （仅限 RSA）或 'spki' 之一，format 为 'raw' 时，type 必须是 'uncompressed'、'compressed' 或 'hybrid' 之一
+     *     For public keys, the following encoding options can be used:
+     *     - format: must be 'pem', 'der' or 'jwk', 'raw' (only EC/SM2/Ed25519/Ed448/X25519/X448)
+     *     - type: when format is 'pem' or 'der', type must be one of 'pkcs1' (only RSA) or 'spki'; when format is 'raw', type must be one of 'uncompressed', 'compressed' or 'hybrid'
      *
-     *     对于私钥，可以使用以下编码选项：
-     *     - format: 必须是 'pem'、'der' 或 'jwk'、'raw'（仅限 EC/SM2/Ed25519/Ed448/X25519/X448）
-     *     - type: 必须是 'pkcs1' （仅限 RSA）、'pkcs8' 或 'sec1' （仅限 EC）之一
-     *     - cipher: 如果指定，则将使用基于 PKCS#5 v2.0 密码的加密，使用给定的 cipher 和 passphrase 对私钥进行加密
-     *     - passphrase: <字符串> | 用于加密的密码，请参阅 cipher
+     *     For private keys, the following encoding options can be used:
+     *     - format: must be 'pem', 'der' or 'jwk', 'raw' (only EC/SM2/Ed25519/Ed448/X25519/X448)
+     *     - type: must be one of 'pkcs1' (only RSA), 'pkcs8' or 'sec1' (only EC)
+     *     - cipher: if specified, PKCS#5 v2.0 password-based encryption is used, encrypting the private key with the given cipher and passphrase
+     *     - passphrase: <string> | the password used for encryption, see cipher
      *
-     *     当选择 JWK 编码格式时，所有其他编码选项都将被忽略。
+     *     When the JWK encoding format is selected, all other encoding options are ignored.
      *
-     *     可以使用 cipher 和 format 选项的组合来加密 PKCS#1、SEC1 和 PKCS#8 类型密钥。 PKCS#8 type 可以与任何 format 一起使用，通过指定 cipher 来加密任何密钥算法（RSA、EC 或 DH）。当使用 PEM format 时，只能通过指定 cipher 来加密 PKCS#1 和 SEC1。为了获得最大兼容性，请使用 PKCS#8 作为加密私钥。由于 PKCS#8 定义了自己的加密机制，因此在加密 PKCS#8 密钥时不支持 PEM 级加密。有关 PKCS#8 加密的信息，请参阅 RFC 5208；有关 PKCS#1 和 SEC1 加密的信息，请参阅 RFC 1421。
+     *     Combinations of the cipher and format options can be used to encrypt PKCS#1, SEC1 and PKCS#8 type keys. PKCS#8 type can be used with any format to encrypt any key algorithm (RSA, EC or DH) by specifying a cipher. When PEM format is used, only PKCS#1 and SEC1 can be encrypted by specifying a cipher. For maximum compatibility, use PKCS#8 for encrypted private keys. Because PKCS#8 defines its own encryption mechanism, PEM-level encryption is not supported when encrypting PKCS#8 keys. For information about PKCS#8 encryption, see RFC 5208; for information about PKCS#1 and SEC1 encryption, see RFC 1421.
      *
-     *     @param options 导出密钥的选项
-     *     @return 返回密钥的信息
+     *     @param options the options for exporting the key
+     *     @return returns the key's information
      *
      */
     export(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 比较两个 KeyObject 对象是否相等
-     *     @param otherKey 要比较的 KeyObject 对象
-     *     @return 如果两个 KeyObject 对象相等，则返回 true，否则返回 false
+     * @description Compares whether two KeyObject objects are equal
+     *     @param otherKey the KeyObject to compare
+     *     @return returns true if the two KeyObject objects are equal, false otherwise
      *
      */
     equals(otherKey: Class_KeyObject): boolean;

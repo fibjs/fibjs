@@ -2,65 +2,65 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 网络套接口对象
+ * @description network socket object
  *
- *  Socket 属于 net 模块，提供 TCP、unix socket 与 Windows pipe 的连接、监听与收发能力，创建方法：
+ *  Socket belongs to the net module and provides connection, listening and data transfer capabilities for TCP, unix socket and Windows pipe. It can be created with:
  *  ```JavaScript
  *  var s = new net.Socket();
  *  ```
  *
- *  Socket 继承自 Stream，具备流式读写能力，并提供以下网络特性：
+ *  Socket inherits from Stream and provides streaming read/write capabilities, plus the following network features:
  *
- *  - **连接**：`connect` 以多种形式建立连接，连接成功后可用 `send`/`recv` 收发数据；
- *  - **服务端**：`bind` 绑定地址与端口，`listen` 开始监听，`accept` 接受连接；
- *  - **调优**：`setKeepAlive` 保持活动机制、`setNoDelay` 禁用 Nagle 算法、`setTimeout`/`timeout` 超时控制；
- *  - **状态**：`remoteAddress`/`remotePort`/`localAddress`/`localPort` 查询连接地址信息，`isAlive` 检查连接可用性。
+ *  - **Connection**: `connect` establishes connections in multiple forms; after connecting, `send`/`recv` can be used to transfer data;
+ *  - **Server**: `bind` binds an address and port, `listen` starts listening, `accept` accepts connections;
+ *  - **Tuning**: `setKeepAlive` keeps the connection alive, `setNoDelay` disables the Nagle algorithm, `setTimeout`/`timeout` control timeouts;
+ *  - **Status**: `remoteAddress`/`remotePort`/`localAddress`/`localPort` query connection address information, `isAlive` checks connection availability.
  *
  */
 declare class Class_Socket extends Class_Stream {
     /**
-     * @description Socket 构造函数，创建一个新的 Socket 对象
-     *      @param family 指定地址集，缺省为 AF_INET，ipv4
+     * @description Socket constructor, creates a new Socket object
+     *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
     constructor(family: number);
 
     /**
-     * @description 查询当前 Socket 对象的地址集
+     * @description queries the address family of the current Socket object
      */
     readonly family: number;
 
     /**
-     * @description 查询当前连接的对方地址
+     * @description queries the remote address of the current connection
      */
     readonly remoteAddress: string;
 
     /**
-     * @description 查询当前连接的对方端口
+     * @description queries the remote port of the current connection
      */
     readonly remotePort: number;
 
     /**
-     * @description 查询当前连接的本地地址
+     * @description queries the local address of the current connection
      */
     readonly localAddress: string;
 
     /**
-     * @description 查询当前连接的本地端口
+     * @description queries the local port of the current connection
      */
     readonly localPort: number;
 
     /**
-     * @description 查询和设置超时时间 单位毫秒
+     * @description queries and sets the timeout in milliseconds
      */
     timeout: number;
 
     /**
-     * @description 建立一个 tcp 连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a tcp connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connect(port: number, host?: string, timeout?: number): Class_Stream;
@@ -68,30 +68,30 @@ declare class Class_Socket extends Class_Stream {
     connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 建立一个 tcp 连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a tcp connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connectSync(port: number, host?: string, timeout?: number): Class_Stream;
 
     /**
-     * @description 建立一个 tcp 连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a tcp connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connectAsync(port: number, host?: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 建立一个 unix socket 或 Windows pipe 连接
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a unix socket or Windows pipe connection
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connect(path: string, timeout?: number): Class_Stream;
@@ -99,33 +99,33 @@ declare class Class_Socket extends Class_Stream {
     connect(path: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 建立一个 unix socket 或 Windows pipe 连接
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a unix socket or Windows pipe connection
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connectSync(path: string, timeout?: number): Class_Stream;
 
     /**
-     * @description 建立一个 unix socket 或 Windows pipe 连接
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a unix socket or Windows pipe connection
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     connectAsync(path: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 建立一个连接
+     * @description establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     connect(options: FIBJS.GeneralObject): Class_Stream;
@@ -133,118 +133,118 @@ declare class Class_Socket extends Class_Stream {
     connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 建立一个连接
+     * @description establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description 建立一个连接
+     * @description establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接选项对象，可以包含以下属性：
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 将当前 Socket 绑定至本地所有地址的指定端口
-     *      @param port 指定绑定的端口
-     *      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+     * @description binds the current Socket to the specified port on all local addresses
+     *      @param port specifies the port to bind
+     *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
      *
      */
     bind(port: number, allowIPv4?: boolean): void;
 
     /**
-     * @description 将当前 Socket 绑定至指定地址的指定端口
-     *      @param addr 指定绑定的地址，也可以指向 unix socket 和 Windows pipe 路径
-     *      @param port 指定绑定的端口，绑定 unix socket 和 Windows pipe 时，忽略此参数
-     *      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+     * @description binds the current Socket to the specified port on the specified address
+     *      @param addr specifies the address to bind, which can also refer to a unix socket or Windows pipe path
+     *      @param port specifies the port to bind; this parameter is ignored when binding a unix socket or Windows pipe
+     *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
      *
      */
     bind(addr: string, port?: number, allowIPv4?: boolean): void;
 
     /**
-     * @description 开始监听连接请求
-     *      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
+     * @description starts listening for connection requests
+     *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
     listen(backlog?: number): void;
 
     /**
-     * @description 等待并接受一个连接
-     *      @return 返回接收到得连接对象
+     * @description waits for and accepts a connection
+     *      @return returns the accepted connection object
      *
      */
     accept(): Class_Socket;
@@ -252,48 +252,48 @@ declare class Class_Socket extends Class_Stream {
     accept(callback: (err: Error | undefined | null, retVal: Class_Socket)=>any): void;
 
     /**
-     * @description 等待并接受一个连接
-     *      @return 返回接收到得连接对象
+     * @description waits for and accepts a connection
+     *      @return returns the accepted connection object
      *
      */
     acceptSync(): Class_Socket;
 
     /**
-     * @description 等待并接受一个连接
-     *      @return 返回接收到得连接对象
+     * @description waits for and accepts a connection
+     *      @return returns the accepted connection object
      *
      */
     acceptAsync(): Promise<Class_Socket>;
 
     /**
-     * @description 启用或禁用 TCP 保持活动机制
-     *      @param enable 指定是否启用保持活动机制，缺省为 false
-     *      @param initialDelay 指定初始延迟时间，单位为秒，缺省为 0
+     * @description enables or disables the TCP keep-alive mechanism
+     *      @param enable specifies whether to enable the keep-alive mechanism, default is false
+     *      @param initialDelay specifies the initial delay in seconds, default is 0
      *
      */
     setKeepAlive(enable?: boolean, initialDelay?: number): void;
 
     /**
-     * @description 启用或禁用 Nagle 算法
-     *      @param noDelay 指定是否禁用 Nagle 算法，缺省为 true
+     * @description enables or disables the Nagle algorithm
+     *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
     setNoDelay(noDelay?: boolean): void;
 
     /**
-     * @description 检查 socket 当前看起来是否仍然可用
+     * @description checks whether the socket currently appears to be still usable
      *
-     *      此方法执行一次尽力而为的非阻塞检测，不会消耗已收到的数据。
-     *      返回 false 表示 socket 已明确不可用，返回 true 只表示当前没有检测到关闭状态。
-     *      @return 返回 socket 当前看起来是否仍然可用
+     *      This method performs a best-effort non-blocking check and does not consume any received data.
+     *      Returning false means the socket is definitely unusable; returning true only means no closed state has been detected so far.
+     *      @return returns whether the socket currently appears to be still usable
      *
      */
     isAlive(): boolean;
 
     /**
-     * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
-     *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
-     *      @return 返回从连接读取的数据
+     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *      @param bytes specifies the amount of data to read; by default any size of data is read
+     *      @return returns the data read from the connection
      *
      */
     recv(bytes?: number): Class_Buffer;
@@ -301,25 +301,25 @@ declare class Class_Socket extends Class_Stream {
     recv(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
-     *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
-     *      @return 返回从连接读取的数据
+     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *      @param bytes specifies the amount of data to read; by default any size of data is read
+     *      @return returns the data read from the connection
      *
      */
     recvSync(bytes?: number): Class_Buffer;
 
     /**
-     * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
-     *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
-     *      @return 返回从连接读取的数据
+     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *      @param bytes specifies the amount of data to read; by default any size of data is read
+     *      @return returns the data read from the connection
      *
      */
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 将给定的数据写入连接，此方法等效于 write 方法
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description writes the given data to the connection, equivalent to the write method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     send(data: Class_Buffer): number;
@@ -327,43 +327,43 @@ declare class Class_Socket extends Class_Stream {
     send(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将给定的数据写入连接，此方法等效于 write 方法
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description writes the given data to the connection, equivalent to the write method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     sendSync(data: Class_Buffer): number;
 
     /**
-     * @description 将给定的数据写入连接，此方法等效于 write 方法
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description writes the given data to the connection, equivalent to the write method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     sendAsync(data: Class_Buffer): Promise<number>;
 
     /**
-     * @description 中止当前 socket 上所有正在进行的操作
+     * @description aborts all ongoing operations on the current socket
      *
-     *      此方法会取消所有正在等待的异步操作（connect, recv, send 等），
-     *      被取消的操作会返回错误。socket 本身不会被关闭，可以继续使用。
+     *      This method cancels all pending asynchronous operations (connect, recv, send, etc.),
+     *      and the canceled operations return an error. The socket itself is not closed and can continue to be used.
      *
      */
     abort(): void;
 
     /**
-     * @description 设置 socket 超时时间
-     *      @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
-     *      @return 返回当前 Socket 对象
+     * @description sets the socket timeout
+     *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
+     *      @return returns the current Socket object
      *
      */
     setTimeout(timeout: number): Class_Socket;
 
     /**
-     * @description 设置 socket 超时时间，并注册一次性 'timeout' 事件监听器
-     *      @param timeout 超时时间（毫秒）。设置为 0 则禁用超时。
-     *      @param callback 回调函数，当 socket 超时时被调用一次
-     *      @return 返回当前 Socket 对象
+     * @description sets the socket timeout and registers a one-time 'timeout' event listener
+     *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
+     *      @param callback the callback function, called once when the socket times out
+     *      @return returns the current Socket object
      *
      */
     setTimeout(timeout: number, callback: (...args: any[])=>any): Class_Socket;

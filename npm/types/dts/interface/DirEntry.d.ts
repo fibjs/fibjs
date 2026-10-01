@@ -1,67 +1,67 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 表示目录项的信息
+ * @description Information representing a directory entry
  *
- *  DirEntry 对象通过 fs.glob, fs.readdir 查询，不可独立创建
+ *  The DirEntry object is queried through fs.glob, fs.readdir and cannot be created independently
  *
  */
 declare class Class_DirEntry extends Class_object {
     /**
-     * @description 文件名称
+     * @description File name
      */
     readonly name: string;
 
     /**
-     * @description 文件的父路径
+     * @description Parent path of the file
      */
     readonly parentPath: string;
 
     /**
-     * @description 查询 Stat 是否描述了一个 block device
-     *      @return 为 true 表示描述了一个 block device
+     * @description Queries whether the Stat describes a block device
+     *      @return true if it describes a block device
      *
      */
     isBlockDevice(): boolean;
 
     /**
-     * @description 查询 Stat 是否描述了一个 character device
-     *      @return 为 true 表示描述了一个 character device
+     * @description Queries whether the Stat describes a character device
+     *      @return true if it describes a character device
      *
      */
     isCharacterDevice(): boolean;
 
     /**
-     * @description 查询文件是否是目录
-     *      @return 为 true 则是目录
+     * @description Queries whether the file is a directory
+     *      @return true if it is a directory
      *
      */
     isDirectory(): boolean;
 
     /**
-     * @description 查询 Stat 是否描述了一个 FIFO 管道
-     *      @return 为 true 表示描述了一个 FIFO 管道
+     * @description Queries whether the Stat describes a FIFO pipe
+     *      @return true if it describes a FIFO pipe
      *
      */
     isFIFO(): boolean;
 
     /**
-     * @description 查询文件是否是文件
-     *      @return 为 true 则是文件
+     * @description Queries whether the file is a file
+     *      @return true if it is a file
      *
      */
     isFile(): boolean;
 
     /**
-     * @description 查询文件是否是符号链接
-     *      @return 为 true 则是符号链接
+     * @description Queries whether the file is a symbolic link
+     *      @return true if it is a symbolic link
      *
      */
     isSymbolicLink(): boolean;
 
     /**
-     * @description 查询文件是否是 Socket
-     *      @return 为 true 则是 Socket
+     * @description Queries whether the file is a Socket
+     *      @return true if it is a Socket
      *
      */
     isSocket(): boolean;

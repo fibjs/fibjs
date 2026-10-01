@@ -1,18 +1,18 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/assert_strict.d.ts" />
 /**
- * @description 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
+ * @description Assertion test module; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
  *
- *  引用方法：
+ *  Reference method:
  *  ```JavaScript
  *  var assert = require('assert');
  *  ```
- *  或者通过 test 模块引用：
+ *  Or reference it through the test module:
  *  ```JavaScript
  *  var test = require('test');
  *  var assert = test.assert;
  *  ```
- *  或者通过 test.setup 配置：
+ *  Or configure it through test.setup:
  *  ```JavaScript
  *  require("test").setup();
  *  ```
@@ -20,463 +20,463 @@
  */
 declare module 'assert' {
     /**
-     * @description 断言错误对象
+     * @description Assertion error object
      */
     const AssertionError: (...args: any[])=>any;
 
     /**
-     * @description 测试数值为真，为假则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is truthy; the assertion fails if it is false
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function Function(actual?: any, msg?: string): void;
 
     /**
-     * ! 测试数值为真，为假则断言失败，是 assert 模块的别名
+     * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
      */
     const ok: typeof import ('assert');
 
     /**
-     * ! 严格测试模块，参见 assert_strict 模块
+     * ! Strict testing module, see the assert_strict module
      */
     const strict: typeof import ('assert_strict');
 
     /**
-     * @description 断言失败，直接抛出错误
-     *      @param msg 断言失败时的提示信息
+     * @description The assertion fails, throws an error directly
+     *      @param msg the message when the assertion fails
      *
      */
     function fail(msg?: string): void;
 
     /**
-     * @description 测试数值为假，为真则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is falsy; the assertion fails if it is true
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function notOk(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值等于预期值，不相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value equals the expected value; the assertion fails if they are not equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function equal(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不等于预期值，相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值严格等于预期值，不相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function strictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不严格等于预期值，相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notStrictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值深度等于预期值，不相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function deepEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不深度等于预期值，相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notDeepEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值严格深度等于预期值，不相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function deepStrictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不严格深度等于预期值，相等则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notDeepStrictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试字符串包含预期字符串，否则断言失败
-     *      @param actual 要测试的字符串
-     *      @param expected 预期的正则表达式
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the string contains the expected string, otherwise the assertion fails
+     *      @param actual the string to test
+     *      @param expected the expected regular expression
+     *      @param msg the message when the assertion fails
      *
      */
     function match(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
 
     /**
-     * @description 测试字符串不包含预期字符串，否则断言失败
-     *      @param actual 要测试的字符串
-     *      @param expected 预期的正则表达式
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the string does not contain the expected string, otherwise the assertion fails
+     *      @param actual the string to test
+     *      @param expected the expected regular expression
+     *      @param msg the message when the assertion fails
      *
      */
     function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
 
     /**
-     * @description 测试数值近似等于预期值，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param delta 近似的小数精度
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param delta the decimal precision of the approximation
+     *      @param msg the message when the assertion fails
      *
      */
     function closeTo(actual: any, expected: any, delta: any, msg?: string): void;
 
     /**
-     * @description 测试数值不近似等于预期值，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param delta 近似的小数精度
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param delta the decimal precision of the approximation
+     *      @param msg the message when the assertion fails
      *
      */
     function notCloseTo(actual: any, expected: any, delta: any, msg?: string): void;
 
     /**
-     * @description 测试数值小于预期值，大于或等于则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function lessThan(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不小于预期值，小于则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not less than the expected value; the assertion fails if it is less
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notLessThan(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值大于预期值，小于或等于则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function greaterThan(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试数值不大于预期值，大于则断言失败
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @param msg the message when the assertion fails
      *
      */
     function notGreaterThan(actual: any, expected: any, msg?: string): void;
 
     /**
-     * @description 测试变量存在，为假则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the variable exists; the assertion fails if it is false
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function exist(actual: any, msg?: string): void;
 
     /**
-     * @description 测试变量不存在，为真则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the variable does not exist; the assertion fails if it is true
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function notExist(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为布尔值真，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is boolean true, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isTrue(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为布尔值真，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not boolean true, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotTrue(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为布尔值假，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is boolean false, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isFalse(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为布尔值假，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not boolean false, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotFalse(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为 Null，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is Null, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNull(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为 Null，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not Null, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotNull(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为 undefined，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is undefined, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isUndefined(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为 undefined，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not undefined, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isDefined(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为函数，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is a function, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isFunction(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为函数，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not a function, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotFunction(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为对象，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is an object, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isObject(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为对象，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not an object, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotObject(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为数组，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is an array, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isArray(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为数组，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not an array, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotArray(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为字符串，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is a string, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isString(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为字符串，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not a string, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotString(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为数字，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is a number, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNumber(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为数字，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not a number, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotNumber(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为布尔，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is a boolean, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isBoolean(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值不为布尔，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not a boolean, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param msg the message when the assertion fails
      *
      */
     function isNotBoolean(actual: any, msg?: string): void;
 
     /**
-     * @description 测试数值为给定类型，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param type 指定的类型
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is of the given type, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param type the specified type
+     *      @param msg the message when the assertion fails
      *
      */
     function typeOf(actual: any, type: string, msg?: string): void;
 
     /**
-     * @description 测试数值不为给定类型，否则断言失败
-     *      @param actual 要测试的数值
-     *      @param type 指定的类型
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the value is not of the given type, otherwise the assertion fails
+     *      @param actual the value to test
+     *      @param type the specified type
+     *      @param msg the message when the assertion fails
      *
      */
     function notTypeOf(actual: any, type: string, msg?: string): void;
 
     /**
-     * @description 测试对象中包含指定属性，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the object contains the specified property, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test
+     *      @param msg the message when the assertion fails
      *
      */
     function property(object: any, prop: any, msg?: string): void;
 
     /**
-     * @description 测试对象中不包含指定属性，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the object does not contain the specified property, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test
+     *      @param msg the message when the assertion fails
      *
      */
     function notProperty(object: any, prop: any, msg?: string): void;
 
     /**
-     * @description 深度测试对象中包含指定属性，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性，以“.”分割
-     *      @param msg 断言失败时的提示信息
+     * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test, separated by "."
+     *      @param msg the message when the assertion fails
      *
      */
     function deepProperty(object: any, prop: any, msg?: string): void;
 
     /**
-     * @description 深度测试对象中不包含指定属性，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性，以“.”分割
-     *      @param msg 断言失败时的提示信息
+     * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test, separated by "."
+     *      @param msg the message when the assertion fails
      *
      */
     function notDeepProperty(object: any, prop: any, msg?: string): void;
 
     /**
-     * @description 测试对象中指定属性的值为给定值，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性
-     *      @param value 给定的值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test
+     *      @param value the given value
+     *      @param msg the message when the assertion fails
      *
      */
     function propertyVal(object: any, prop: any, value: any, msg?: string): void;
 
     /**
-     * @description 测试对象中指定属性的值不为给定值，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性
-     *      @param value 给定的值
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test
+     *      @param value the given value
+     *      @param msg the message when the assertion fails
      *
      */
     function propertyNotVal(object: any, prop: any, value: any, msg?: string): void;
 
     /**
-     * @description 深度测试对象中指定属性的值为给定值，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性，以“.”分割
-     *      @param value 给定的值
-     *      @param msg 断言失败时的提示信息
+     * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test, separated by "."
+     *      @param value the given value
+     *      @param msg the message when the assertion fails
      *
      */
     function deepPropertyVal(object: any, prop: any, value: any, msg?: string): void;
 
     /**
-     * @description 深度测试对象中指定属性的值不为给定值，否则断言失败
-     *      @param object 要测试的对象
-     *      @param prop 要测试的属性，以“.”分割
-     *      @param value 给定的值
-     *      @param msg 断言失败时的提示信息
+     * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
+     *      @param object the object to test
+     *      @param prop the property to test, separated by "."
+     *      @param value the given value
+     *      @param msg the message when the assertion fails
      *
      */
     function deepPropertyNotVal(object: any, prop: any, value: any, msg?: string): void;
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param block 指定测试的代码，以函数形式给出
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param block the code to test, given as a function
+     *      @param msg the message when the assertion fails
      *
      */
     /* Illegal function name 'throws' can't be used here
@@ -484,10 +484,10 @@ declare module 'assert' {
     */
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param block 指定测试的代码，以函数形式给出
-     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param block the code to test, given as a function
+     *      @param error the specified error, which can be a RegExp/Function/Object/Error
+     *      @param msg the message when the assertion fails
      *
      */
     /* Illegal function name 'throws' can't be used here
@@ -495,54 +495,54 @@ declare module 'assert' {
     */
 
     /**
-     * @description 测试给定的代码不会抛出错误，抛出则断言失败
-     *      @param block 指定测试的代码，以函数形式给出
-     *      @param msg 断言失败时的提示信息
+     * @description Tests that the given code does not throw an error; the assertion fails if it throws
+     *      @param block the code to test, given as a function
+     *      @param msg the message when the assertion fails
      *
      */
     function doesNotThrow(block: (...args: any[])=>any, msg?: string): void;
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param block 指定测试的代码，以函数形式给出
-     *      @param msg 断言失败时的提示信息
-     *      @return 返回一个 Promise
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param block the code to test, given as a function
+     *      @param msg the message when the assertion fails
+     *      @return returns a Promise
      *
      */
     function rejects(block: (...args: any[])=>any, msg?: string): Promise;
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param block 指定测试的代码，以函数形式给出
-     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
-     *      @param msg 断言失败时的提示信息
-     *      @return 返回一个 Promise
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param block the code to test, given as a function
+     *      @param error the specified error, which can be a RegExp/Function/Object/Error
+     *      @param msg the message when the assertion fails
+     *      @return returns a Promise
      *
      */
     function rejects(block: (...args: any[])=>any, error: any, msg?: string): Promise;
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param result 指定测试的代码，以Promise形式给出
-     *      @param msg 断言失败时的提示信息
-     *      @return 返回一个 Promise
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param result the code to test, given as a Promise
+     *      @param msg the message when the assertion fails
+     *      @return returns a Promise
      *
      */
     function rejects(result: Promise, msg?: string): Promise;
 
     /**
-     * @description 测试给定的代码会抛出错误，未抛出则断言失败
-     *      @param result 指定测试的代码，以Promise形式给出
-     *      @param error 指定的错误，可以是 RegExp/Function/Object/Error
-     *      @param msg 断言失败时的提示信息
-     *      @return 返回一个 Promise
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param result the code to test, given as a Promise
+     *      @param error the specified error, which can be a RegExp/Function/Object/Error
+     *      @param msg the message when the assertion fails
+     *      @return returns a Promise
      *
      */
     function rejects(result: Promise, error: any, msg?: string): Promise;
 
     /**
-     * @description 如果参数为真，则抛出
-     *      @param object 参数
+     * @description Throws if the argument is true
+     *      @param object the argument
      *
      */
     function ifError(object?: any): void;

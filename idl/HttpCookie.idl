@@ -1,0 +1,115 @@
+/*! @brief HttpCookie is a cookie object encapsulated by the HTTP protocol. It provides access to the various properties of a cookie and also supports organizing and handling multiple cookies; it is an important property supported by both the http.Request and http.Response objects
+
+On the server side, HttpRequest.cookies can be used to get all cookies in an HTTP request. Each cookie here is an HttpCookie object, and its properties or methods can be used to get or set the related cookie information.
+For example, we can read the corresponding properties from a cookie sent by the client with the following code:
+```JavaScript
+const http = require('http');
+const server = new http.Server(8080, function(request) {
+    const cookies = request.cookies;
+    const name = cookies.get('name');
+    request.response.write(`Hello ${name}!`);
+});
+server.start();
+```
+Here we use the HttpRequest.cookies property to get all cookies in the request, and then use the cookies.get method, passing the cookie name, to get the value of that cookie.
+
+To send a cookie to the client, a new cookie can be created through the HttpCookie object and added to the HttpReponse.cookies collection. The following is an example:
+```JavaScript
+const http = require('http');
+const server = new http.Server(8080, function(request) {
+    const cookies = request.cookies;
+    let name = cookies.get('name');
+
+    if (name) {
+        request.response.write(`Hello ${name} again!`);
+    } 
+    else {
+        name = 'User';
+        request.response.cookies.add(new http.Cookie('name', name, { expires: new Date(Date.now() + 900000) }));
+        request.response.write(`Welcome ${name}!`);
+    }
+});
+
+server.start();
+```
+In the example above, we first get HttpServletRequest.cookies and then try to read the value of the cookie named name from it. If the cookie exists, we send a response to the request and use the cookie value to greet the client. If the cookie does not exist, we create a new cookie object and add it to the HttpServletResponse.cookies collection. The first parameter with name and value is used to specify the cookie name and its corresponding value. The expires property is used to specify the expiration time of the cookie; here the expiration time is set to the current time plus 15 minutes. Finally, we append a welcome message to the returned content.
+ */
+interface HttpCookie : object
+{
+    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+
+     The options that can be set in opts are as follows:
+     ```JavaScript
+     {
+         "name": "", // specify the name of the cookie
+         "value": "", // specify the value of the cookie
+         "expires": Date, // specify the expires time of the cookie
+         "domain": "", // specify the domain of the cookie
+         "path": "", // specify the path of the cookie
+         "secure": false, // specify the secure of the cookie
+         "httpOnly": false, // specify the httpOnly of the cookie
+     }
+     ```
+     @param opts specifies the properties of the cookie to create
+    */
+    HttpCookie(Object opts = {});
+
+    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+
+     The options that can be set in opts are as follows:
+     ```JavaScript
+     {
+         "expires": Date, // specify the expires time of the cookie
+         "domain": "", // specify the domain of the cookie
+         "path": "", // specify the path of the cookie
+         "secure": false, // specify the secure of the cookie
+         "httpOnly": false, // specify the httpOnly of the cookie
+     }
+     ```
+     @param name specifies the name of the cookie to create
+     @param value specifies the value of the cookie to create
+     @param opts specifies the other properties of the cookie to create
+    */
+    HttpCookie(String name, String value, Object opts = {});
+
+    /*! @brief parses the given string and fills the cookie object
+     @param header specifies the header string to parse
+    */
+    parse(String header);
+
+    /*! @brief parses the given string and fills the cookie object, without URL-decoding name and value
+
+     According to RFC 6265, cookie values are opaque strings, and %XX in the Set-Cookie header should be preserved as is.
+     Use this method when parsing the raw Set-Cookie header sent by the server;
+     the parse method performs URL decoding and round-trips with toString.
+     @param header specifies the header string to parse
+    */
+    parseRaw(String header);
+
+    /*! @brief checks whether the given url matches the current settings
+     @param url specifies the url to test
+     @return returns true on a successful match
+    */
+    Boolean match(String url);
+
+    /*! @brief queries and sets the cookie name */
+    String name;
+
+    /*! @brief queries and sets the cookie value */
+    String value;
+
+    /*! @brief queries and sets the domain scope of the cookie */
+    String domain;
+
+    /*! @brief queries and sets the path scope of the cookie */
+    String path;
+
+    /*! @brief queries and sets the expiration time of the cookie */
+    Date expires;
+
+    /*! @brief queries and sets whether the cookie is only allowed for http requests, default false */
+    Boolean httpOnly;
+
+    /*! @brief queries and sets whether the cookie is only transmitted over https, default false */
+    Boolean secure;
+};

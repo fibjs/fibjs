@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description zlib 模块常用常量定义模块
+ * @description Module that defines the commonly used constants of the zlib module
  *
- *  引用方法：
+ *  How to require it:
  *  ```JavaScript
  *  var constants = require('zlib').constants
  *  ```
@@ -10,232 +10,232 @@
  */
 declare module 'zlib_constants' {
     /**
-     * @description 不执行刷新操作
+     * @description Performs no flush operation
      */
     export const Z_NO_FLUSH: 0;
 
     /**
-     * @description 执行部分刷新操作
+     * @description Performs a partial flush operation
      */
     export const Z_PARTIAL_FLUSH: 1;
 
     /**
-     * @description 同步刷新，等待所有待处理的输出被刷新
+     * @description Synchronous flush, waits for all pending output to be flushed
      */
     export const Z_SYNC_FLUSH: 2;
 
     /**
-     * @description 完全刷新，等待所有输出被刷新并重置内部状态
+     * @description Full flush, waits for all output to be flushed and resets the internal state
      */
     export const Z_FULL_FLUSH: 3;
 
     /**
-     * @description 完成压缩或解压缩操作
+     * @description Finishes the compression or decompression operation
      */
     export const Z_FINISH: 4;
 
     /**
-     * @description 在当前块结束时停止压缩
+     * @description Stops compression at the end of the current block
      */
     export const Z_BLOCK: 5;
 
     /**
-     * @description 操作成功完成
+     * @description The operation completed successfully
      */
     export const Z_OK: 0;
 
     /**
-     * @description 压缩或解压缩流结束
+     * @description End of the compression or decompression stream
      */
     export const Z_STREAM_END: 1;
 
     /**
-     * @description 需要字典才能继续操作
+     * @description A dictionary is required to continue the operation
      */
     export const Z_NEED_DICT: 2;
 
     /**
-     * @description 发生系统错误
+     * @description A system error occurred
      */
     export const Z_ERRNO: -1;
 
     /**
-     * @description 流状态不一致或参数无效
+     * @description Inconsistent stream state or invalid parameter
      */
     export const Z_STREAM_ERROR: -2;
 
     /**
-     * @description 输入数据损坏
+     * @description The input data is corrupted
      */
     export const Z_DATA_ERROR: -3;
 
     /**
-     * @description 内存分配失败
+     * @description Memory allocation failed
      */
     export const Z_MEM_ERROR: -4;
 
     /**
-     * @description 缓冲区错误
+     * @description Buffer error
      */
     export const Z_BUF_ERROR: -5;
 
     /**
-     * @description 版本不匹配
+     * @description Version mismatch
      */
     export const Z_VERSION_ERROR: -6;
 
     /**
-     * @description 不压缩
+     * @description No compression
      */
     export const Z_NO_COMPRESSION: 0;
 
     /**
-     * @description 最快速度压缩
+     * @description Fastest compression speed
      */
     export const Z_BEST_SPEED: 1;
 
     /**
-     * @description 最高压缩率
+     * @description Best compression ratio
      */
     export const Z_BEST_COMPRESSION: 9;
 
     /**
-     * @description 默认压缩级别
+     * @description Default compression level
      */
     export const Z_DEFAULT_COMPRESSION: -1;
 
     /**
-     * @description 过滤器压缩策略
+     * @description Filtered compression strategy
      */
     export const Z_FILTERED: 1;
 
     /**
-     * @description 仅使用Huffman编码
+     * @description Huffman coding only
      */
     export const Z_HUFFMAN_ONLY: 2;
 
     /**
-     * @description 运行长度编码
+     * @description Run-length encoding
      */
     export const Z_RLE: 3;
 
     /**
-     * @description 固定哈夫曼编码
+     * @description Fixed Huffman coding
      */
     export const Z_FIXED: 4;
 
     /**
-     * @description 默认压缩策略
+     * @description Default compression strategy
      */
     export const Z_DEFAULT_STRATEGY: 0;
 
     /**
-     * @description zlib 版本号
+     * @description zlib version number
      */
     export const ZLIB_VERNUM: 4800;
 
     /**
-     * @description deflate 压缩
+     * @description deflate compression
      */
     export const DEFLATE: 1;
 
     /**
-     * @description inflate 解压缩
+     * @description inflate decompression
      */
     export const INFLATE: 2;
 
     /**
-     * @description gzip 压缩
+     * @description gzip compression
      */
     export const GZIP: 3;
 
     /**
-     * @description gunzip 解压缩
+     * @description gunzip decompression
      */
     export const GUNZIP: 4;
 
     /**
-     * @description deflateRaw 压缩
+     * @description deflateRaw compression
      */
     export const DEFLATERAW: 5;
 
     /**
-     * @description inflateRaw 解压缩
+     * @description inflateRaw decompression
      */
     export const INFLATERAW: 6;
 
     /**
-     * @description unzip 解压缩
+     * @description unzip decompression
      */
     export const UNZIP: 7;
 
     /**
-     * @description Brotli 解码
+     * @description Brotli decoding
      */
     export const BROTLI_DECODE: 8;
 
     /**
-     * @description Brotli 编码
+     * @description Brotli encoding
      */
     export const BROTLI_ENCODE: 9;
 
     /**
-     * @description 最小窗口大小
+     * @description Minimum window size
      */
     export const Z_MIN_WINDOWBITS: 8;
 
     /**
-     * @description 最大窗口大小
+     * @description Maximum window size
      */
     export const Z_MAX_WINDOWBITS: 15;
 
     /**
-     * @description 默认窗口大小
+     * @description Default window size
      */
     export const Z_DEFAULT_WINDOWBITS: 15;
 
     /**
-     * @description 最小块大小
+     * @description Minimum chunk size
      */
     export const Z_MIN_CHUNK: 64;
 
     /**
-     * @description 最大块大小
+     * @description Maximum chunk size
      */
     export const Z_MAX_CHUNK: -1;
 
     /**
-     * @description 默认块大小
+     * @description Default chunk size
      */
     export const Z_DEFAULT_CHUNK: 16384;
 
     /**
-     * @description 最小内存级别
+     * @description Minimum memory level
      */
     export const Z_MIN_MEMLEVEL: 1;
 
     /**
-     * @description 最大内存级别
+     * @description Maximum memory level
      */
     export const Z_MAX_MEMLEVEL: 9;
 
     /**
-     * @description 默认内存级别
+     * @description Default memory level
      */
     export const Z_DEFAULT_MEMLEVEL: 8;
 
     /**
-     * @description 最低压缩级别
+     * @description Minimum compression level
      */
     export const Z_MIN_LEVEL: -1;
 
     /**
-     * @description 最高压缩级别
+     * @description Maximum compression level
      */
     export const Z_MAX_LEVEL: 9;
 
     /**
-     * @description 默认压缩级别
+     * @description Default compression level
      */
     export const Z_DEFAULT_LEVEL: -1;
 

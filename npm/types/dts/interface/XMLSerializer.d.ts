@@ -2,30 +2,30 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XMLSerializer 接口提供将 DOM 树序列化为 XML 字符串的能力
+ * @description The XMLSerializer interface provides the ability to serialize a DOM tree into an XML string
  *
- *  XMLSerializer 可以将 DOM 节点序列化为 XML 字符串：
+ *  XMLSerializer can serialize DOM nodes into XML strings:
  *  ```JavaScript
  *  const serializer = new XMLSerializer();
  *
- *  // 序列化 XML 文档
+ *  // serializes an XML document
  *  const parser = new DOMParser();
  *  const doc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
  *  const xmlStr = serializer.serializeToString(doc);
- *  console.log(xmlStr); // 输出: <root><item>data</item></root>
+ *  console.log(xmlStr); // output: <root><item>data</item></root>
  *  ```
  *
  */
 declare class Class_XMLSerializer extends Class_object {
     /**
-     * @description 构造一个 XMLSerializer 对象
+     * @description Constructs an XMLSerializer object
      */
     constructor();
 
     /**
-     * @description 将 DOM 节点序列化为 XML 字符串
-     *      @param node 要序列化的 DOM 节点
-     *      @return 返回序列化后的 XML 字符串
+     * @description Serializes a DOM node into an XML string
+     *      @param node the DOM node to serialize
+     *      @return returns the serialized XML string
      *
      */
     serializeToString(node: Class_XmlNode): string;

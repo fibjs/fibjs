@@ -1,0 +1,25 @@
+/*! @brief WebCrypto API module
+
+The WebCrypto API module provides a set of functions for encryption and decryption. It can be obtained through the webcrypto property of the global object or require("crypto").webcrypto.
+*/
+module webcrypto
+{
+    /*! @brief Generates random numbers
+
+    @param data a TypedArray object used to hold the generated random numbers.
+    @return returns the data object.
+    */
+    static TypedArray getRandomValues(TypedArray data);
+
+    /*! @brief Generates a UUID
+
+    @return returns the generated UUID string.
+    */
+    static String randomUUID();
+
+    /*! @brief The CryptoKey class represents symmetric or asymmetric keys, each exposing different features */
+    static CryptoKey;
+
+    /*! @brief Provides access to the SubtleCrypto API */
+    static subtle;
+};

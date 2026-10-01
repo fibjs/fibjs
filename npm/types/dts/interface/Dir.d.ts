@@ -2,52 +2,52 @@
 /// <reference path="../interface/Iterator.d.ts" />
 /// <reference path="../interface/DirEntry.d.ts" />
 /**
- * @description 目录迭代对象，由 fs.opendir 创建，用于逐个读取目录项
+ * @description Directory iterator object, created by fs.opendir, used to read directory entries one by one
  */
 declare class Class_Dir extends Class_Iterator {
     /**
-     * @description Dir 构造函数，从路径创建目录迭代对象
-     *      @param path 指定要迭代的目录
+     * @description Dir constructor, creates a directory iterator object from a path
+     *      @param path the directory to iterate
      *
      */
     constructor(path: string);
 
     /**
-     * @description 查询当前迭代的目录路径
+     * @description Queries the directory path of the current iteration
      */
     readonly path: string;
 
     /**
-     * @description 读取下一个目录项，迭代结束时返回 null
+     * @description Reads the next directory entry, returns null when iteration ends
      */
     read(): Class_DirEntry;
 
     read(callback: (err: Error | undefined | null, retVal: Class_DirEntry)=>any): void;
 
     /**
-     * @description 读取下一个目录项，迭代结束时返回 null
+     * @description Reads the next directory entry, returns null when iteration ends
      */
     readSync(): Class_DirEntry;
 
     /**
-     * @description 读取下一个目录项，迭代结束时返回 null
+     * @description Reads the next directory entry, returns null when iteration ends
      */
     readAsync(): Promise<Class_DirEntry>;
 
     /**
-     * @description 关闭目录迭代对象，释放迭代状态，可安全重复调用
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭目录迭代对象，释放迭代状态，可安全重复调用
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
      */
     closeSync(): void;
 
     /**
-     * @description 关闭目录迭代对象，释放迭代状态，可安全重复调用
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
      */
     closeAsync(): Promise<void>;
 

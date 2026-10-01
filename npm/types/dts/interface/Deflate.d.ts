@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Deflate 压缩编解码器，使用 deflate 算法压缩数据(zlib格式)
+ * @description Deflate compression codec, compresses data with the deflate algorithm (zlib format)
  */
 declare class Class_Deflate extends Class_ZlibCodec {
     /**
-     * @description Deflate 构造函数
-     *      @param opts 压缩选项
+     * @description Deflate constructor
+     *      @param opts compression options
      *
      */
     constructor(opts?: FIBJS.GeneralObject);

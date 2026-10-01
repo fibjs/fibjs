@@ -1,40 +1,40 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description PerformanceObserver 接口用于观察性能记录的接口
+ * @description The PerformanceObserver interface is an interface for observing performance entries
  *
- *  PerformanceObserver 接口用于观察性能记录的接口。它允许你注册一个回调函数，当一个新的性能记录被添加到浏览器的性能缓冲区时，这个回调函数会被调用。你可以使用 PerformanceObserver 接口来观察特定类型的性能记录，比如资源加载时间、用户输入延迟等。
+ *  The PerformanceObserver interface is an interface for observing performance entries. It allows you to register a callback function, which is called when a new performance entry is added to the performance buffer of the browser. You can use the PerformanceObserver interface to observe specific types of performance entries, such as resource load time, user input delay, etc.
  *
  */
 declare class Class_PerformanceObserver extends Class_object {
     /**
-     * @description 构造函数
+     * @description Constructor
      *
-     *      @param callback 当一个新的性能记录被添加到浏览器的性能缓冲区时，这个回调函数会被调用
+     *      @param callback the callback function called when a new performance entry is added to the performance buffer of the browser
      *
      */
     constructor(callback: (...args: any[])=>any);
 
     /**
-     * @description 注册观察的资源类型
+     * @description Registers the observed resource types
      *
-     *      options 为一个对象，包含以下属性：
-     *        - type: 观察的资源类型
-     *        - entryTypes: 观察的资源类型列表
+     *      options is an object containing the following properties:
+     *        - type: the observed resource type
+     *        - entryTypes: the list of observed resource types
      *
-     *      @param options 观察的资源类型
+     *      @param options the observed resource types
      *
      */
     observe(options: FIBJS.GeneralObject): void;
 
     /**
-     * @description 取消观察的资源类型
+     * @description Unregisters the observed resource types
      */
     disconnect(): void;
 
     /**
-     * @description 获取观察的资源类型的记录
-     *      @return 返回观察的资源类型的记录
+     * @description Gets the entries of the observed resource types
+     *      @return returns the entries of the observed resource types
      *
      */
     takeRecords(): any[];

@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /**
- * @description 文件系统观察对象
+ * @description File system watcher object
  *
- *  当调用 `fs.watch(target)` 成功时, 返回该类型对象
+ *  When `fs.watch(target)` is called successfully, an object of this type is returned
  *  ```JavaScript
  *  var fs = require("fs");
  *  var watcher = fs.watch((eventType, filename) => {
@@ -27,61 +27,61 @@
  */
 declare class Class_FSWatcher extends Class_EventEmitter {
     /**
-     * @description 查询和绑定"文件改变"事件，相当于 on("change", func);
+     * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
-     *      当文件发生任何变化（内容修改或重命名）时触发。
-     *      回调函数签名: (eventType: 'change' | 'rename', filename: string | Buffer) => void
+     *      Triggered when any change to the file occurs (content modification or rename).
+     *      Callback signature: (eventType: 'change' | 'rename', filename: string | Buffer) => void
      *
      */
     on(event: "change", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定"仅内容改变"事件，相当于 on("changeonly", func);
+     * @description Queries and binds the "content change only" event, equivalent to on("changeonly", func);
      *
-     *      仅当文件内容修改时触发（不包括重命名）。
-     *      回调函数签名: (eventType: 'change', filename: string | Buffer) => void
+     *      Triggered only when the file content is modified (excluding renames).
+     *      Callback signature: (eventType: 'change', filename: string | Buffer) => void
      *
      */
     on(event: "changeonly", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定"仅重命名"事件，相当于 on("renameonly", func);
+     * @description Queries and binds the "rename only" event, equivalent to on("renameonly", func);
      *
-     *      仅当文件重命名时触发（不包括内容修改）。
-     *      回调函数签名: (eventType: 'rename', filename: string | Buffer) => void
+     *      Triggered only when the file is renamed (excluding content modifications).
+     *      Callback signature: (eventType: 'rename', filename: string | Buffer) => void
      *
      */
     on(event: "renameonly", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定"watcher 关闭"的事件，相当于 on("close", func);
+     * @description Queries and binds the "watcher closed" event, equivalent to on("close", func);
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定"错误发生"的事件，相当于 on("error", func);
+     * @description Queries and binds the "error occurred" event, equivalent to on("error", func);
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 关闭该 Watcher, 不再接收对应的文件变化处理事件
+     * @description Closes the Watcher; no longer receives the corresponding file change events
      */
     close(): void;
 
     /**
-     * @description 增加引用计数, 告知 fibjs 只要该 watcher 还在使用就不要退出进程。
+     * @description Increments the reference count, telling fibjs not to exit the process while the watcher is still in use.
      *
-     *      当调用 fs.watch() 且 persistent 选项为 true（默认）时，FSWatcher 会自动 ref。
+     *      When fs.watch() is called with the persistent option set to true (the default), the FSWatcher automatically refs.
      *
-     *      @return 返回 FSWatcher 本身
+     *      @return returns the FSWatcher itself
      *
      */
     ref(): Class_FSWatcher;
 
     /**
-     * @description 减少引用计数，允许进程在该 watcher 仍然活跃时退出。
+     * @description Decrements the reference count; allows the process to exit while the watcher is still active.
      *
-     *      @return 返回 FSWatcher 本身
+     *      @return returns the FSWatcher itself
      *
      */
     unref(): Class_FSWatcher;

@@ -1,0 +1,24 @@
+/*! @brief os_constants dlopen submodule, containing dynamic library load flag constants
+
+ Usage:
+ ```JavaScript
+ var dlopen = require('os').constants.dlopen
+ ```
+ */
+module os_constants_dlopen
+{
+    /*! @brief Lazy binding, symbols are resolved when used */
+    const RTLD_LAZY = 1;
+
+    /*! @brief Immediate binding, all symbols are resolved at load time */
+    const RTLD_NOW = 2;
+
+    /*! @brief Symbols are globally visible to subsequently loaded libraries */
+    const RTLD_GLOBAL = 256;
+
+    /*! @brief Symbols are visible only to the current library */
+    const RTLD_LOCAL = 0;
+
+    /*! @brief Prefer the library's own symbols */
+    const RTLD_DEEPBIND = 8;
+};

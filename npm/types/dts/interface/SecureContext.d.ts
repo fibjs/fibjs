@@ -3,9 +3,9 @@
 /// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /**
- * @description tls 安全上下文对象，用于多个 tls 连接共享基础配置
+ * @description tls secure context object, used to share basic configuration among multiple tls connections
  *
- *   SecureContext 对象是一个安全上下文对象，用于多个 tls 连接共享基础配置。SecureContext 对象可以通过 tls.createSecureContext 方法创建。
+ *   The SecureContext object is a secure context object used to share basic configuration among multiple tls connections. A SecureContext object can be created with the tls.createSecureContext method.
  *   ```JavaScript
  *     const tls = require('tls');
  *     const fs = require('fs');
@@ -21,76 +21,76 @@
  */
 declare class Class_SecureContext extends Class_object {
     /**
-     * @description 查询安全上下文的受信任的 CA 证书
+     * @description Queries the trusted CA certificate of the secure context
      */
     readonly ca: Class_X509Certificate;
 
     /**
-     * @description 查询安全上下文连接的私钥
+     * @description Queries the private key of the secure context connection
      */
     readonly key: Class_KeyObject;
 
     /**
-     * @description 查询安全上下文连接的证书
+     * @description Queries the certificate of the secure context connection
      */
     readonly cert: Class_X509Certificate;
 
     /**
-     * @description 查询安全上下文允许的最大 TLS 版本
+     * @description Queries the maximum TLS version allowed by the secure context
      */
     readonly maxVersion: string;
 
     /**
-     * @description 查询安全上下文允许的最小 TLS 版本
+     * @description Queries the minimum TLS version allowed by the secure context
      */
     readonly minVersion: string;
 
     /**
-     * @description 查询安全上下文使用的 TLS 协议版本
+     * @description Queries the TLS protocol version used by the secure context
      */
     readonly secureProtocol: string;
 
     /**
-     * @description 查询安全上下文是否需要客户端证书
+     * @description Queries whether the secure context requires a client certificate
      */
     readonly requestCert: boolean;
 
     /**
-     * @description 查询安全上下文是否拒绝任何未通过 CA 列表验证证书的连接
+     * @description Queries whether the secure context rejects any connection whose certificate fails CA list verification
      */
     readonly rejectUnverified: boolean;
 
     /**
-     * @description 查询安全上下文是否拒绝任何未提供 CA 列表授权证书的连接
+     * @description Queries whether the secure context rejects any connection that does not provide a certificate authorized by the CA list
      */
     readonly rejectUnauthorized: boolean;
 
     /**
-     * @description 查询安全上下文回话超时
+     * @description Queries the secure context session timeout
      */
     readonly sessionTimeout: number;
 
     /**
-     * @description 设置 SNI 上下文
-     *     @param servername 指定的服务器名
-     *     @param context 指定的安全上下文
+     * @description Sets the SNI context
+     *     @param servername the server name
+     *     @param context the secure context
      *
      */
     setSNIContext(servername: string, context: Class_SecureContext): void;
 
     /**
-     * @description 设置 SNI 上下文
-     *     @param servername 指定的服务器名
-     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     * @description Sets the SNI context
+     *     @param servername the server name
+     *     @param options options needed to create a secure context with tls.createSecureContext
      *
      */
     setSNIContext(servername: string, options: FIBJS.GeneralObject): void;
 
     /**
-     * @description 查询 SNI 上下文
-     *     @param servername 指定的服务器名
-     *     @param auto_resolve 是否自动创建上下文
-     *     @return 返回指定的安全上下文
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
      *
      */
     getSNIContext(servername: string, auto_resolve?: boolean): Class_SecureContext;
@@ -98,32 +98,32 @@ declare class Class_SecureContext extends Class_object {
     getSNIContext(servername: string, auto_resolve?: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
 
     /**
-     * @description 查询 SNI 上下文
-     *     @param servername 指定的服务器名
-     *     @param auto_resolve 是否自动创建上下文
-     *     @return 返回指定的安全上下文
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
      *
      */
     getSNIContextSync(servername: string, auto_resolve?: boolean): Class_SecureContext;
 
     /**
-     * @description 查询 SNI 上下文
-     *     @param servername 指定的服务器名
-     *     @param auto_resolve 是否自动创建上下文
-     *     @return 返回指定的安全上下文
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
      *
      */
     getSNIContextAsync(servername: string, auto_resolve?: boolean): Promise<Class_SecureContext>;
 
     /**
-     * @description 删除 SNI 上下文
-     *     @param servername 指定的服务器名
+     * @description Removes the SNI context
+     *     @param servername the server name
      *
      */
     removeSNIContext(servername: string): void;
 
     /**
-     * @description 清除所有 SNI 上下文
+     * @description Clears all SNI contexts
      */
     clearSNIContexts(): void;
 

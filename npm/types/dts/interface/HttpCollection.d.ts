@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description HttpCollection 是一个通用容器，用于处理 http 消息中的 headers, query, form, cookie 数据
+ * @description HttpCollection is a general-purpose container for handling headers, query, form and cookie data in http messages
  *
- * 我们以 headers 为例，说明 HttpCollection 的使用方法。
+ * We use headers as an example to explain how to use HttpCollection.
  *
- * HttpCollection 支持三种形式添加数据：
+ * HttpCollection supports three forms of adding data:
  *
- * 1. 添加一个键值数据，添加数据并不修改已存在的键值的数据。`add`
+ * 1. Add a key-value entry; adding data does not modify the data of an existing key. `add`
  *
  * ```JavaScript
  * headers.add({
@@ -16,7 +16,7 @@
  * });
  * ```
  *
- * 2. 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据。`add`
+ * 2. Add a group of data for a key; adding data does not modify the data of an existing key. `add`
  *
  * ```JavaScript
  * headers.add('Set-Cookie', [
@@ -25,186 +25,186 @@
  * ]);
  * ```
  *
- * 3. 添加一个键值数据，添加数据并不修改已存在的键值的数据。`add`
+ * 3. Add a key-value entry; adding data does not modify the data of an existing key. `add`
  *
  * ```JavaScript
  * headers.add('Accept-Encoding', 'gzip');
  * ```
  *
- * HttpCollection 设置数据的形式与添加相同，使用的方法是 `set`。
+ * Setting data in HttpCollection works the same way as adding, using the `set` method.
  *
- * 我们可以使用 `has` 检查容器内是否存在指定键值的数据
+ * We can use `has` to check whether data of the specified key exists in the container
  *
  * ```JavaScript
  * const contentTypeExists = headers.has('Content-Type');
  * ```
  *
- * 使用 `first` 获取容器内某个键对应的第一个值：
+ * Use `first` to get the first value corresponding to a key in the container:
  *
  * ```JavaScript
  * const contentType = headers.first('Content-Type');
  * ```
  *
- * 使用 `all` 查询指定键值的全部值，返回一个数组。如果传递一个空字符串的参数，则返回全部值
+ * Use `all` to query all values of the specified key, returning an array. If an empty string parameter is passed, all values are returned
  *
  * ```JavaScript
  * const cookieArray = headers.all('Set-Cookie');
  * const alls = headers.all();
  * ```
  *
- * 使用 `delete` 方法删除指定键值的所有数据，返回 `true` 表示
+ * Use the `delete` method to delete all data of the specified key; returning `true` indicates
  */
 declare class Class_HttpCollection extends Class_object {
     /**
-     * @description 清除容器数据
+     * @description clears the container data
      */
     clear(): void;
 
     /**
-     * @description 检查容器内是否存在指定键值的数据
-     *      @param name 指定要检查的键值
-     *      @return 返回键值是否存在
+     * @description checks whether data of the specified key exists in the container
+     *      @param name specifies the key to check
+     *      @return returns whether the key exists
      *
      */
     has(name: string): boolean;
 
     /**
-     * @description 查询指定键值的第一个值
-     *      @param name 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 undefined
+     * @description queries the first value of the specified key
+     *      @param name specifies the key to query
+     *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
      */
     first(name: string): any;
 
     /**
-     * @description 查询指定键值的第一个值，等同于 first
-     *      @param name 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 undefined
+     * @description queries the first value of the specified key, same as first
+     *      @param name specifies the key to query
+     *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
      */
     get(name: string): any;
 
     /**
-     * @description 查询指定键值的全部值
-     *      @param name 指定要查询的键值，传递空字符串返回全部键值的结果
-     *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
+     * @description queries all values of the specified key
+     *      @param name specifies the key to query; passing an empty string returns the result of all keys
+     *      @return returns an array of all values corresponding to the key, or null if the data does not exist
      *
      */
     all(name?: string): FIBJS.GeneralObject;
 
     /**
-     * @description 查询指定键值的全部值
-     *      @param name 指定要查询的键值
-     *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
+     * @description queries all values of the specified key
+     *      @param name specifies the key to query
+     *      @return returns an array of all values corresponding to the key, or null if the data does not exist
      *
      */
     getAll(name: string): any[];
 
     /**
-     * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
-     *      @param map 指定要添加的键值数据字典
+     * @description appends a key-value entry; appending data does not modify the data of an existing key
+     *      @param map specifies the key-value data dictionary to append
      *
      */
     append(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据
-     *      @param name 指定要添加的键值
-     *      @param values 指定要添加的一组数据
+     * @description appends a group of data for a key; appending data does not modify the data of an existing key
+     *      @param name specifies the key to append
+     *      @param values specifies the group of data to append
      *
      */
     append(name: string, values: any[]): void;
 
     /**
-     * @description 添加一组数据，添加数据并不修改已存在的键值的数据
-     *      @param entries 指定要添加的一组数据，格式为 [[<key>, <value>]]
+     * @description appends a group of data; appending data does not modify the data of an existing key
+     *      @param entries specifies the group of data to append, in the format [[<key>, <value>]]
      *
      */
     append(entries: any[]): void;
 
     /**
-     * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
-     *      @param name 指定要添加的键值
-     *      @param value 指定要添加的数据
+     * @description appends a key-value entry; appending data does not modify the data of an existing key
+     *      @param name specifies the key to append
+     *      @param value specifies the data to append
      *
      */
     append(name: string, value: any): void;
 
     /**
-     * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
-     *      @param map 指定要设定的键值数据字典
+     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     *      @param map specifies the key-value data dictionary to set
      *
      */
     set(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 设定一个键值的一组数据，设定数据将修改键值所对应的数值，并清除相同键值的其余数据
-     *      @param name 指定要设定的键值
-     *      @param values 指定要设定的一组数据
+     * @description sets a group of data for a key; setting data modifies the value of the key and clears the remaining data with the same key
+     *      @param name specifies the key to set
+     *      @param values specifies the group of data to set
      *
      */
     set(name: string, values: any[]): void;
 
     /**
-     * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
-     *      @param name 指定要设定的键值
-     *      @param value 指定要设定的数据
+     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     *      @param name specifies the key to set
+     *      @param value specifies the data to set
      *
      */
     set(name: string, value: any): void;
 
     /**
-     * @description 删除指定键值的全部值
-     *      @param name 指定要删除的键值
+     * @description deletes all values of the specified key
+     *      @param name specifies the key to delete
      *
      */
     remove(name: string): void;
 
     /**
-     * @description 删除指定键值的全部值
-     *      @param name 指定要删除的键值
+     * @description deletes all values of the specified key
+     *      @param name specifies the key to delete
      *
      */
     delete(name: string): void;
 
     /**
-     * @description 按照键值排序容器内的内容
+     * @description sorts the contents of the container by key
      *
      */
     sort(): void;
 
     /**
-     * @description 遍历容器内的内容
-     *      @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
+     * @description iterates over the contents of the container
+     *      @param callback specifies the function called during iteration, whose parameters are (value, key, object)
      *
      */
     forEach(callback: (...args: any[])=>any): void;
 
     /**
-     * @description 遍历容器内的内容
-     *      @param callback 指定遍历时调用的函数，函数参数为 (value, key, object)
-     *      @param thisArg 指定回调函数的 this 对象
+     * @description iterates over the contents of the container
+     *      @param callback specifies the function called during iteration, whose parameters are (value, key, object)
+     *      @param thisArg specifies the this object of the callback function
      *
      */
     forEach(callback: (...args: any[])=>any, thisArg: any): void;
 
     /**
-     * @description 查询容器内的键值
-     *      @return 返回包含所有键值的迭代器
+     * @description queries the keys in the container
+     *      @return returns an iterator containing all keys
      *
      */
     keys(): Iterator<any>;
 
     /**
-     * @description 查询容器内的数值
-     *      @return 返回包含所有数值的迭代器
+     * @description queries the values in the container
+     *      @return returns an iterator containing all values
      *
      */
     values(): Iterator<any>;
 
     /**
-     * @description 查询容器内的键值和数值
-     *      @return 返回包含所有键值和数值的迭代器
+     * @description queries the keys and values in the container
+     *      @return returns an iterator containing all keys and values
      *
      */
     entries(): Iterator<any>;

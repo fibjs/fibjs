@@ -2,9 +2,9 @@
 /// <reference path="../interface/SeekableStream.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description Range 查询流读取对象
+ * @description Range query stream reading object
  *
- *  RangeStream 对象用于对 SeekableStream 对象数据进行截取。创建方法：
+ *  The RangeStream object is used to cut data from a SeekableStream object. Creation method:
  *  ```JavaScript
  *  var stm = new io.RangeStream(stream, '0-10');
  *  stm.end // 11
@@ -13,48 +13,48 @@
  *  stm.end // 10
  *  ```
  *
- *  也可以对普通 Stream 对象进行长度限制读取，此时 begin 固定为 0，仅限制读取的字节数：
+ *  A plain Stream object can also be read with a length limit; in this case begin is fixed to 0 and only the number of bytes read is limited:
  *  ```JavaScript
  *  var stm = new io.RangeStream(stream, 1024);
  *  stm.begin // 0
  *  stm.end   // 1024
  *  ```
- *  如果传入的 stm 是 SeekableStream，则等同于 RangeStream(stm, 0, end)。
+ *  If the passed stm is a SeekableStream, it is equivalent to RangeStream(stm, 0, end).
  *
  */
 declare class Class_RangeStream extends Class_SeekableStream {
     /**
-     * @description RangeStream 构造函数
-     *       @param stm RangeStream 的二进制基础流对象, 必须是 SeekableStream
-     *       @param range 描述 range 的字符串, 格式为 'begin-[end]', '[begin]-end'
+     * @description RangeStream constructor
+     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *       @param range the string describing the range, in the format 'begin-[end]' or '[begin]-end'
      *
      */
     constructor(stm: Class_SeekableStream, range: string);
 
     /**
-     * @description RangeStream 构造函数
-     *       @param stm RangeStream 的二进制基础流对象, 必须是 SeekableStream
-     *       @param begin 从 stm 读取内容的起始位置
-     *       @param end 从 stm 读取内容的结束位置
+     * @description RangeStream constructor
+     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *       @param begin the start position of the content read from stm
+     *       @param end the end position of the content read from stm
      *
      */
     constructor(stm: Class_SeekableStream, begin: number, end: number);
 
     /**
-     * @description RangeStream 构造函数, 用于对普通 Stream 进行长度限制读取
-     *       @param stm 基础流对象, 如果是 SeekableStream 则等同于 RangeStream(stm, 0, end)
-     *       @param end 从 stm 读取内容的最大字节数
+     * @description RangeStream constructor, used for length-limited reading of a plain Stream
+     *       @param stm the underlying stream object; if it is a SeekableStream, this is equivalent to RangeStream(stm, 0, end)
+     *       @param end the maximum number of bytes read from stm
      *
      */
     constructor(stm: Class_Stream, end: number);
 
     /**
-     * @description 查询 range 开始值
+     * @description Queries the range begin value
      */
     readonly begin: number;
 
     /**
-     * @description 查询 range 结束值
+     * @description Queries the range end value
      */
     readonly end: number;
 

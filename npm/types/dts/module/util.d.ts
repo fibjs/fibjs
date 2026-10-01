@@ -6,31 +6,31 @@
 /// <reference path="../interface/ConsoleObject.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description util 模块提供了对数据类型的判断、对象属性的复制、模版字符串的解析、事件处理等实用的工具函数
+ * @description The util module provides practical utility functions such as data type checking, object property copying, template string parsing and event handling
  *
- * 下面是具体的介绍和示例：
+ * The following is a detailed introduction with examples:
  *
- * 1. 判断数据类型 - `util.is[type]`
- * 该模块内提供了诸如 `isDate`、`isRegExp`、`isError` 等判断传入参数数据类型的方法，例如：
+ * 1. Checking data types - `util.is[type]`
+ * This module provides methods such as `isDate`, `isRegExp` and `isError` to check the data type of the passed parameter, for example:
  *
  * ```JavaScript
  * var util = require('util');
  * console.log(util.isDate(new Date()));
  * console.log(util.isRegExp(/some regexp/));
  * ```
- * 2. 对象属性复制 - `util.inherits()`
- * 该方法可以选择将一个构造函数继承自另一个，从而实现原型继承。
+ * 2. Copying object properties - `util.inherits()`
+ * This method can make one constructor inherit from another, thus implementing prototype inheritance.
  *
  * ```JavaScript
  * var util = require('util');
  * function Animal() {
  *   this.name = 'Animal';
  *   this.sleep = function () {
- *     console.log(this.name + '正在睡觉！');
+ *     console.log(this.name + ' is sleeping!');
  *   }
  * }
  * Animal.prototype.eat = function (food) {
- *   console.log(this.name + '正在吃：' + food);
+ *   console.log(this.name + ' is eating: ' + food);
  * };
  * function Cat() {
  *   this.name = 'cat';
@@ -38,7 +38,7 @@
  * util.inherits(Cat, Animal);
  * ```
  *
- * 使用 `Cat` 这个构造函数继承了 `Animal` 的实例属性和原型属性，打印 `Cat` 的实例的属性和方法
+ * Using the `Cat` constructor to inherit the instance properties and prototype properties of `Animal`, print the properties and methods of a `Cat` instance
  *
  * ```JavaScript
  * var cat = new Cat();
@@ -47,7 +47,7 @@
  * console.log(cat.sleep());
  * ```
  *
- * 3. util.format() 格式化输出模版
+ * 3. util.format() formatted output template
  * ```JavaScript
  * const util = require('util');
  * const str1 = util.format('%s:%s', 'foo');
@@ -56,82 +56,82 @@
  * console.log(str2) // => 'foo:bar baz'
  * ```
  *
- * 以上是 `util` 模块的一些常用方法，常常可以用于简化实际开发过程。
+ * The above are some commonly used methods of the `util` module, which can often be used to simplify the actual development process.
  *
  */
 declare module 'util' {
     /**
-     * @description TextDecoder 解码对象，参见 TextDecoder 对象。
+     * @description The TextDecoder decoding object, see the TextDecoder object.
      */
     const TextDecoder: typeof Class_TextDecoder;
 
     /**
-     * @description TextEncoder 编码对象，参见 TextEncoder 对象。
+     * @description The TextEncoder encoding object, see the TextEncoder object.
      */
     const TextEncoder: typeof Class_TextEncoder;
 
     /**
-     * @description types 模块提供了对数据类型判断的工具函数。
+     * @description The types module provides utility functions for data type checking.
      */
     const types: typeof import ('types');
 
     /**
-     * @description colors 模块提供了一组颜色常量，用于设置控制台输出颜色。
+     * @description The colors module provides a set of color constants for setting console output colors.
      */
     const colors: typeof import ('colors');
 
     /**
-     * @description 按照指定的格式格式化变量
+     * @description Formats variables according to the specified format
      *
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
-     *      @return 返回格式化后的字符串
+     *      @param fmt format string
+     *      @param args optional parameter list
+     *      @return returns the formatted string
      *
      */
     function format(fmt: string, ...args: any[]): string;
 
     /**
-     * @description 格式格式化变量
+     * @description Formats variables
      *
-     *      @param args 可选参数列表
-     *      @return 返回格式化后的字符串
+     *      @param args optional parameter list
+     *      @return returns the formatted string
      *
      */
     function format(...args: any[]): string;
 
     /**
-     * @description 按照指定格式和 inspect 选项格式化变量
+     * @description Formats variables according to the specified format and inspect options
      *
-     *      @param options 非字符串值使用的 inspect 选项
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
-     *      @return 返回格式化后的字符串
+     *      @param options inspect options used for non-string values
+     *      @param fmt format string
+     *      @param args optional parameter list
+     *      @return returns the formatted string
      *
      */
     function formatWithOptions(options: FIBJS.GeneralObject, fmt: string, ...args: any[]): string;
 
     /**
-     * @description 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
+     * @description Inherits prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
      *
-     *      @param constructor 初始的构造函数
-     *      @param superConstructor 被继承的超类
+     *      @param constructor the initial constructor
+     *      @param superConstructor the inherited superclass
      *
      */
     function inherits(constructor: any, superConstructor: any): void;
 
     /**
-     * @description 解析 dotenv 文件原始文本并返回键值对象
+     * @description Parses the raw text of a dotenv file and returns a key-value object
      *
-     *      @param content dotenv 文件的原始内容
-     *      @return 返回解析后的键值对象
+     *      @param content raw content of the dotenv file
+     *      @return returns the parsed key-value object
      *
      */
     function parseEnv(content: string): FIBJS.GeneralObject;
 
     /**
-     * @description 函数返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
+     * @description Returns a string representation of obj, mainly for debugging. The additional options can be used to change certain aspects of the formatted string.
      *
-     *      支持以下参数:
+     *      The following parameters are supported:
      *      ```JavaScript
      *      {
      *          "colors": false, // specify if output should be colorized, defaults to false
@@ -143,693 +143,693 @@ declare module 'util' {
      *          "fields": [], // specify the fields to be displayed, defaults to all
      *      }
      *      ```
-     *      @param obj 指定需要处理的对象
-     *      @param options 指定格式控制选项
-     *      @return 返回格式化后的字符串
+     *      @param obj the object to process
+     *      @param options the format control options to use
+     *      @return returns the formatted string
      *
      */
     function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 为文本应用 ANSI 颜色/样式格式化
+     * @description Applies ANSI color/style formatting to text
      *
-     *      当不支持颜色输出时（如非 TTY 环境、设置了 NO_COLOR），原样返回文本。
+     *      When color output is not supported (such as a non-TTY environment or when NO_COLOR is set), the text is returned as-is.
      *
-     *      支持的格式：bold、italic、underline、strikethrough、hidden、
-     *      black、red、green、yellow、blue、magenta、cyan、white、
-     *      bgBlack、bgRed、bgGreen、bgYellow、bgBlue、bgMagenta、bgCyan、bgWhite、
-     *      gray/grey、blackBright、redBright、greenBright、yellowBright、blueBright、
-     *      magentaBright、cyanBright、whiteBright
+     *      Supported formats: bold, italic, underline, strikethrough, hidden,
+     *      black, red, green, yellow, blue, magenta, cyan, white,
+     *      bgBlack, bgRed, bgGreen, bgYellow, bgBlue, bgMagenta, bgCyan, bgWhite,
+     *      gray/grey, blackBright, redBright, greenBright, yellowBright, blueBright,
+     *      magentaBright, cyanBright, whiteBright
      *
-     *      @param format 格式名称数组
-     *      @param text 要格式化的文本
-     *      @return 返回格式化后的字符串
+     *      @param format array of format names
+     *      @param text the text to format
+     *      @return returns the formatted string
      *
      */
     function styleText(format: string[], text: string): string;
 
     /**
-     * @description 为文本应用 ANSI 颜色/样式格式化
+     * @description Applies ANSI color/style formatting to text
      *
-     *      @param format 格式名称
-     *      @param text 要格式化的文本
-     *      @return 返回格式化后的字符串
+     *      @param format format name
+     *      @param text the text to format
+     *      @return returns the formatted string
      *
      */
     function styleText(format: string, text: string): string;
 
     /**
-     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable
      *
-     *      @param section 指定的调试区域
-     *      @return 返回一个 ConsoleObject 对象
+     *      @param section the debug section to use
+     *      @return returns a ConsoleObject object
      *
      */
     function debuglog(section: string): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable
      *
-     *      @param section 指定的调试区域
-     *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
-     *      @return 返回一个 ConsoleObject 对象
+     *      @param section the debug section to use
+     *      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
+     *      @return returns a ConsoleObject object
      *
      */
     function debuglog(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
      *
-     *      @param section 指定的调试区域
-     *      @return 返回一个 ConsoleObject 对象
+     *      @param section the debug section to use
+     *      @return returns a ConsoleObject object
      *
      */
     function debug(section: string): Class_ConsoleObject;
 
     /**
-     * @description 创建一个 ConsoleObject 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
      *
-     *      @param section 指定的调试区域
-     *      @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
-     *      @return 返回一个 ConsoleObject 对象
+     *      @param section the debug section to use
+     *      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
+     *      @return returns a ConsoleObject object
      *
      */
     function debug(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
 
     /**
-     * @description 封装给定的函数，本函数仅为兼容，并不输出警告
+     * @description Wraps the given function. This function is for compatibility only and does not output a warning
      *
-     *      @param fn 给定需要封装的函数
-     *      @param msg 给定警告消息
-     *      @param code 给定警告编号
-     *      @return 如果封装结果
+     *      @param fn the function to wrap
+     *      @param msg the warning message
+     *      @param code the warning code
+     *      @return returns the wrapped result
      *
      */
     function deprecate(fn: (...args: any[])=>any, msg: string, code?: string): (...args: any[])=>any;
 
     /**
-     * @description 检测给定的变量是否不包含任何值(没有可枚举的属性)
+     * @description Checks whether the given variable contains no value (no enumerable properties)
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果为空则返回 True
+     *      @param v the variable to check
+     *      @return returns True if empty
      *
      */
     function isEmpty(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是数组
+     * @description Checks whether the given variable is an array
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数组则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an array
      *
      */
     function isArray(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Boolean
+     * @description Checks whether the given variable is a Boolean
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Boolean 则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Boolean
      *
      */
     function isBoolean(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Null
+     * @description Checks whether the given variable is Null
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Null 则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is Null
      *
      */
     function isNull(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Null 或者 Undefined
+     * @description Checks whether the given variable is Null or Undefined
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Null 或者 Undefined 则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is Null or Undefined
      *
      */
     function isNullOrUndefined(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是数字
+     * @description Checks whether the given variable is a number
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数字则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a number
      *
      */
     function isNumber(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 BigInt
+     * @description Checks whether the given variable is a BigInt
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数字则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a number
      *
      */
     function isBigInt(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是字符串
+     * @description Checks whether the given variable is a string
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是字符串则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a string
      *
      */
     function isString(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Undefined
+     * @description Checks whether the given variable is Undefined
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Undefined 则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is Undefined
      *
      */
     function isUndefined(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是正则对象
+     * @description Checks whether the given variable is a regular expression object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是正则对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a regular expression object
      *
      */
     function isRegExp(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是对象
+     * @description Checks whether the given variable is an object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an object
      *
      */
     function isObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是日期对象
+     * @description Checks whether the given variable is a date object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是日期对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a date object
      *
      */
     function isDate(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是错误对象
+     * @description Checks whether the given variable is an error object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是错误对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an error object
      *
      */
     function isNativeError(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是原始类型
+     * @description Checks whether the given variable is a primitive type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是原始类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a primitive type
      *
      */
     function isPrimitive(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是Symbol类型
+     * @description Checks whether the given variable is a Symbol type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是Symbol类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Symbol type
      *
      */
     function isSymbol(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 DataView 类型
+     * @description Checks whether the given variable is a DataView type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 DataView 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a DataView type
      *
      */
     function isDataView(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 External 类型
+     * @description Checks whether the given variable is an External type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 External 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an External type
      *
      */
     function isExternal(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Map 类型
+     * @description Checks whether the given variable is a Map type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Map 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Map type
      *
      */
     function isMap(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 MapIterator 类型
+     * @description Checks whether the given variable is a MapIterator type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 MapIterator 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a MapIterator type
      *
      */
     function isMapIterator(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Promise 类型
+     * @description Checks whether the given variable is a Promise type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Promise 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Promise type
      *
      */
     function isPromise(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 AsyncFunction 类型
+     * @description Checks whether the given variable is an AsyncFunction type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 AsyncFunction 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an AsyncFunction type
      *
      */
     function isAsyncFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Set 类型
+     * @description Checks whether the given variable is a Set type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Set 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Set type
      *
      */
     function isSet(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 SetIterator 类型
+     * @description Checks whether the given variable is a SetIterator type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 SetIterator 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a SetIterator type
      *
      */
     function isSetIterator(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 TypedArray 类型
+     * @description Checks whether the given variable is a TypedArray type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 TypedArray 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a TypedArray type
      *
      */
     function isTypedArray(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Uint8Array 类型
+     * @description Checks whether the given variable is a Uint8Array type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Uint8Array 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Uint8Array type
      *
      */
     function isUint8Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是函数对象
+     * @description Checks whether the given variable is a function object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是函数对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a function object
      *
      */
     function isFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是函数 Buffer 对象
+     * @description Checks whether the given variable is a Buffer object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是函数 Buffer 对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Buffer object
      *
      */
     function isBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Float16Array 类型
+     * @description Checks whether the given variable is a Float16Array type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Float16Array 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Float16Array type
      *
      */
     function isFloat16Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 ArrayBuffer 或 SharedArrayBuffer 类型
+     * @description Checks whether the given variable is an ArrayBuffer or SharedArrayBuffer type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 ArrayBuffer 或 SharedArrayBuffer 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an ArrayBuffer or SharedArrayBuffer type
      *
      */
     function isAnyArrayBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 SharedArrayBuffer 类型
+     * @description Checks whether the given variable is a SharedArrayBuffer type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 SharedArrayBuffer 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a SharedArrayBuffer type
      *
      */
     function isSharedArrayBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 arguments 对象
+     * @description Checks whether the given variable is an arguments object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 arguments 对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is an arguments object
      *
      */
     function isArgumentsObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是装箱的原始类型对象（如 new Boolean()、new String() 等）
+     * @description Checks whether the given variable is a boxed primitive object (such as new Boolean(), new String(), etc.)
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是装箱的原始类型对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a boxed primitive object
      *
      */
     function isBoxedPrimitive(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 GeneratorFunction 类型
+     * @description Checks whether the given variable is a GeneratorFunction type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 GeneratorFunction 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a GeneratorFunction type
      *
      */
     function isGeneratorFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Generator 对象
+     * @description Checks whether the given variable is a Generator object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Generator 对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Generator object
      *
      */
     function isGeneratorObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Proxy 实例
+     * @description Checks whether the given variable is a Proxy instance
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Proxy 实例则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Proxy instance
      *
      */
     function isProxy(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Module Namespace 对象
+     * @description Checks whether the given variable is a Module Namespace object
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Module Namespace 对象则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a Module Namespace object
      *
      */
     function isModuleNamespaceObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 CryptoKey 类型
+     * @description Checks whether the given variable is a CryptoKey type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 CryptoKey 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a CryptoKey type
      *
      */
     function isCryptoKey(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 KeyObject 类型
+     * @description Checks whether the given variable is a KeyObject type
      *
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 KeyObject 类型则返回 True
+     *      @param v the variable to check
+     *      @return returns True if it is a KeyObject type
      *
      */
     function isKeyObject(v: any): boolean;
 
     /**
-     * @description 测试数值深度等于预期值
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @return 如果深度相等则返回 True
+     * @description Tests whether a value is deeply equal to the expected value
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @return returns True if deeply equal
      *
      */
     function isDeepEqual(actual: any, expected: any): boolean;
 
     /**
-     * @description 测试数值严格深度等于预期值
-     *      @param actual 要测试的数值
-     *      @param expected 预期的数值
-     *      @return 如果严格深度相等则返回 True
+     * @description Tests whether a value is strictly deeply equal to the expected value
+     *      @param actual the value to test
+     *      @param expected the expected value
+     *      @return returns True if strictly deeply equal
      *
      */
     function isDeepStrictEqual(actual: any, expected: any): boolean;
 
     /**
-     * @description 查询指定对象是否包含给定的键
+     * @description Queries whether the specified object contains the given key
      *
-     *      @param v 给定需要查询的对象
-     *      @param key 指定需要查询的键
-     *      @return 返回对象的全部键数组
+     *      @param v the object to query
+     *      @param key the key to query
+     *      @return returns the array of all keys of the object
      *
      */
     function has(v: any, key: string): boolean;
 
     /**
-     * @description 查询指定对象的全部键数组
+     * @description Queries the array of all keys of the specified object
      *
-     *      @param v 给定需要查询的对象
-     *      @return 返回对象的全部键数组
+     *      @param v the object to query
+     *      @return returns the array of all keys of the object
      *
      */
     function keys(v: any): any[];
 
     /**
-     * @description 查询指定对象的全部值数组
+     * @description Queries the array of all values of the specified object
      *
-     *      @param v 给定需要查询的对象
-     *      @return 返回对象的全部值数组
+     *      @param v the object to query
+     *      @return returns the array of all values of the object
      *
      */
     function values(v: any): any[];
 
     /**
-     * @description 克隆给定变量，如果是对象或数组，则复制内容到新对象
+     * @description Clones the given variable; if it is an object or array, copies the content to a new object
      *
-     *      @param v 给定要克隆的变量
-     *      @return 返回克隆结果
+     *      @param v the variable to clone
+     *      @return returns the clone result
      *
      */
     function clone(v: any): any;
 
     /**
-     * @description 深度冻结一个对象，被冻结后的对象及其包含的对象都将不允许修改
+     * @description Deeply freezes an object; the frozen object and the objects it contains can no longer be modified
      *
-     *      @param v 指定要冻结的对象
+     *      @param v the object to freeze
      *
      */
     function deepFreeze(v: any): void;
 
     /**
-     * @description 将一个或者多个对象的键值扩展到指定对象
+     * @description Extends the specified object with the key-values of one or more objects
      *
-     *      @param v 指定要扩展的对象
-     *      @param objs 指定一个或者多个用于扩展的对象
-     *      @return 返回扩展的结果
+     *      @param v the object to extend
+     *      @param objs one or more objects used for extension
+     *      @return returns the extension result
      *
      */
     function extend(v: any, ...objs: any[]): any;
 
     /**
-     * @description 将一个或者多个对象的键值扩展到指定对象，是 extend 的别名
+     * @description Extends the specified object with the key-values of one or more objects. Alias of extend
      *
-     *      @param v 指定要扩展的对象
-     *      @param objs 指定一个或者多个用于扩展的对象
-     *      @return 返回扩展的结果
+     *      @param v the object to extend
+     *      @param objs one or more objects used for extension
+     *      @return returns the extension result
      *
      */
     function _extend(v: any, ...objs: any[]): any;
 
     /**
-     * @description 返回一个object副本，只过滤出指定键的属性值
+     * @description Returns a copy of an object containing only the property values of the specified keys
      *
-     *      @param v 指定要过滤的对象
-     *      @param objs 指定一个或者多个用于选择的键
-     *      @return 返回过滤的结果
+     *      @param v the object to filter
+     *      @param objs one or more keys to select
+     *      @return returns the filter result
      *
      */
     function pick(v: any, ...objs: any[]): FIBJS.GeneralObject;
 
     /**
-     * @description 返回一个object副本，只过排除指定键的属性值
+     * @description Returns a copy of an object excluding the property values of the specified keys
      *
-     *      @param v 指定要过滤的对象
-     *      @param keys 指定一个或者多个用于排除的键
-     *      @return 返回排除的结果
+     *      @param v the object to filter
+     *      @param keys one or more keys to exclude
+     *      @return returns the filtered result
      *
      */
     function omit(v: any, ...keys: any[]): FIBJS.GeneralObject;
 
     /**
-     * @description 获取数组的第一个元素
+     * @description Gets the first element of an array
      *
-     *      @param v 给定要获取的数组
-     *      @return 返回获取的元素
+     *      @param v the array to get from
+     *      @return returns the element
      *
      */
     function first(v: any): any;
 
     /**
-     * @description 获取数组的开始多个元素
+     * @description Gets several elements from the beginning of an array
      *
-     *      @param v 给定要获取的数组
-     *      @param n 指定要获取的元素个数
-     *      @return 返回获取的元素数组
+     *      @param v the array to get from
+     *      @param n the number of elements to get
+     *      @return returns the array of elements
      *
      */
     function first(v: any, n: number): any;
 
     /**
-     * @description 获取数组的第后一个元素
+     * @description Gets the last element of an array
      *
-     *      @param v 给定要获取的数组
-     *      @return 返回获取的元素
+     *      @param v the array to get from
+     *      @return returns the element
      *
      */
     function last(v: any): any;
 
     /**
-     * @description 获取数组的结尾多个元素
+     * @description Gets several elements from the end of an array
      *
-     *      @param v 给定要获取的数组
-     *      @param n 指定要获取的元素个数
-     *      @return 返回获取的元素数组
+     *      @param v the array to get from
+     *      @param n the number of elements to get
+     *      @return returns the array of elements
      *
      */
     function last(v: any, n: number): any;
 
     /**
-     * @description 获取数组的元素去重后的副本
+     * @description Gets a copy of an array with duplicate elements removed
      *
-     *      @param v 给定要去重的数组
-     *      @param sorted 指定数组是否排序，如果指定数组排序，将使用快速算法
-     *      @return 返回去重元素后的数组
+     *      @param v the array to deduplicate
+     *      @param sorted whether the array is sorted; if the array is sorted, a faster algorithm is used
+     *      @return returns the array with duplicate elements removed
      *
      */
     function unique(v: any, sorted?: boolean): any[];
 
     /**
-     * @description 将一个或者多个数组的值合并成一个值唯一的数组
+     * @description Merges the values of one or more arrays into an array of unique values
      *
-     *      @param arrs 指定一个或者多个用于合并的数组
-     *      @return 返回合并的结果
+     *      @param arrs one or more arrays to merge
+     *      @return returns the merge result
      *
      */
     function union(...arrs: any[]): any[];
 
     /**
-     * @description 返回一个包含 arr 数组中排除一个或者多个数组元素的交集
+     * @description Returns the intersection of the arrays with the elements of one or more arrays excluded
      *
-     *      @param arrs 指定一个或者多个用于计算交集的数组
-     *      @return 返回计算交集的结果
+     *      @param arrs one or more arrays used to compute the intersection
+     *      @return returns the computed intersection
      *
      */
     function intersection(...arrs: any[]): any[];
 
     /**
-     * @description 将一个嵌套多层的数组(嵌套可以是任何层数)转换为只有一层的数组。 如果你传递 shallow 参数，数组将只减少一维的嵌套。
+     * @description Flattens a multi-level nested array (nesting can be at any depth) into a single-level array. If the shallow parameter is passed, the array is flattened by only one level.
      *
-     *      @param arr 指定需要转换的数组
-     *      @param shallow 指定是否只减少一维的嵌套，缺省为 false
-     *      @return 返回转换的结果
+     *      @param arr the array to convert
+     *      @param shallow whether to flatten only one level, default is false
+     *      @return returns the conversion result
      *
      */
     function flatten(arr: any, shallow?: boolean): any[];
 
     /**
-     * @description 返回一个包含 arr 数组中排除一个或者多个元素后的数组
+     * @description Returns a copy of the array with one or more elements excluded
      *
-     *      @param arr 指定需要排除的数组
-     *      @param els 指定一个或者多个用于排除的元素
-     *      @return 返回排除的结果
+     *      @param arr the array to exclude from
+     *      @param els one or more elements to exclude
+     *      @return returns the exclusion result
      *
      */
     function without(arr: any, ...els: any[]): any[];
 
     /**
-     * @description 返回一个包含 arr 数组中排除 without 数组元素之后的数组
+     * @description Returns a copy of the array with the elements of the without arrays excluded
      *
-     *      @param list 指定需要排除的数组
-     *      @param arrs 指定用于排除的一个或者多个数组
-     *      @return 返回排除的结果
+     *      @param list the array to exclude from
+     *      @param arrs one or more arrays to exclude
+     *      @return returns the exclusion result
      *
      */
     function difference(list: any[], ...arrs: any[]): any[];
 
     /**
-     * @description 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
+     * @description Iterates over all elements in list, outputting each element in order. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
      *
-     *      @param list 指定需要遍历的列表或对象
-     *      @param iterator 指定用于遍历的回调函数
-     *      @param context 指定调用 iterator 时绑定的 context 对象
-     *      @return 返回 list 本身
+     *      @param list the list or object to iterate
+     *      @param iterator the callback function used for iteration
+     *      @param context the context object to bind when calling iterator
+     *      @return returns list itself
      *
      */
     function each(list: any, iterator: (...args: any[])=>any, context?: any): any;
 
     /**
-     * @description 通过变换函数（iterator迭代器）把 list 中的每个值映射到一个新的数组中。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
+     * @description Maps each value in list to a new array through the transform function (iterator). If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
      *
-     *      @param list 指定需要变换的列表或对象
-     *      @param iterator 指定用于变换的回调函数
-     *      @param context 指定调用 iterator 时绑定的 context 对象
-     *      @return 返回变换的结果
+     *      @param list the list or object to transform
+     *      @param iterator the callback function used for transformation
+     *      @param context the context object to bind when calling iterator
+     *      @return returns the transformation result
      *
      */
     function map(list: any, iterator: (...args: any[])=>any, context?: any): any[];
 
     /**
-     * @description 把 list中 元素归结为一个单独的数值。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(memo, element, index, list)
+     * @description Reduces the elements in list to a single value. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (memo, element, index, list)
      *
-     *      @param list 指定需要归结的列表或对象
-     *      @param iterator 指定用于归结的回调函数
-     *      @param memo 指定归结的初始值
-     *      @param context 指定调用 iterator 时绑定的 context 对象
-     *      @return 返回归结的结果
+     *      @param list the list or object to reduce
+     *      @param iterator the callback function used for reduction
+     *      @param memo the initial value of the reduction
+     *      @param context the context object to bind when calling iterator
+     *      @return returns the reduction result
      *
      */
     function reduce(list: any, iterator: (...args: any[])=>any, memo: any, context?: any): any;
 
     /**
-     * @description 解析命令行字符串返回参数列表
-     *      @param command 指定要解析的命令行字符串
-     *      @return 返回解析出的参数列表
+     * @description Parses a command line string and returns the parameter list
+     *      @param command the command line string to parse
+     *      @return returns the parsed parameter list
      *
      */
     function parseArgs(command: string): any[];
 
     /**
-     * @description 编译脚本为二进制代码
-     *      util.compile 可以将脚本编译为 v8 内部运行数据块(非机器执行代码)。编译以后的代码，保存为 *.jsc 后，可以由 run 和 require 直接加载执行。
+     * @description Compiles a script into binary code
+     *      util.compile can compile a script into a v8 internal data block (not machine-executable code). After compilation, the code can be saved as *.jsc and then directly loaded and executed by run and require.
      *
-     *      由于编译之后，目标代码将不能逆向获取源代码，依赖于 Function.toString 的程序将不能正常运行。
+     *      Since the target code cannot be reverse-engineered to obtain the source code after compilation, programs that depend on Function.toString will not work properly.
      *
-     *      @param srcname 指定要添加的脚本名称
-     *      @param script 指定要编译的脚本代码
-     *      @param mode 编译模式，0: module, 1: script, 2: worker，缺省为 0
-     *      @return 返回编译出的二进制代码
+     *      @param srcname the name of the script to add
+     *      @param script the script code to compile
+     *      @param mode compilation mode, 0: module, 1: script, 2: worker, default is 0
+     *      @return returns the compiled binary code
      *
      */
     function compile(srcname: string, script: string, mode?: number): Class_Buffer;
 
     /**
-     * @description 包裹 callback 或 async 函数为同步调用
+     * @description Wraps a callback or async function for synchronous invocation
      *
-     *      util.sync 将 callback 函数或者 async 函数处理为 sync 函数，以方便调用。
+     *      util.sync converts a callback function or async function into a sync function for convenient invocation.
      *
-     *      callback 示例如下：
+     *      Example of callback:
      *      ```JavaScript
      *      // callback
      *      var util = require('util');
@@ -843,7 +843,7 @@ declare module 'util' {
      *      var fn_sync = util.sync(cb_test);
      *      console.log(fn_sync(100, 200));
      *      ```
-     *      async 示例如下：
+     *      Example of async:
      *      ```JavaScript
      *      // async/await
      *      var util = require('util');
@@ -855,7 +855,7 @@ declare module 'util' {
      *      var fn_sync = util.sync(async_test);
      *      console.log(fn_sync(100, 200));
      *      ```
-     *      对于未标记为 async 的返回 promise 的函数，可以手动指定 sync 模式：
+     *      For functions that return a promise but are not marked as async, the sync mode can be specified manually:
      *      ```JavaScript
      *      // async/await
      *      var util = require('util');
@@ -870,19 +870,19 @@ declare module 'util' {
      *      console.log(fn_sync(100, 200));
      *      ```
      *
-     *      @param func 给定需要包裹的函数
-     *      @param async_func 指定以 async 函数方式处理 func，为 false 则自动判断
-     *      @return 返回同步运行的函数
+     *      @param func the function to wrap
+     *      @param async_func whether to process func as an async function; if false, it is determined automatically
+     *      @return returns a function that runs synchronously
      *
      */
     function sync(func: (...args: any[])=>any, async_func?: boolean): (...args: any[])=>any;
 
     /**
-     * @description 包裹 callback 函数为 async 调用
+     * @description Wraps a callback function for async invocation
      *
-     *      util.promisify 将 callback 函数处理为 async 函数，以方便调用。
+     *      util.promisify converts a callback function into an async function for convenient invocation.
      *
-     *      callback 示例如下：
+     *      Example of callback:
      *      ```JavaScript
      *      // callback
      *      var util = require('util');
@@ -897,18 +897,18 @@ declare module 'util' {
      *      console.log(async fn_sync(100, 200));
      *      ```
      *
-     *      @param func 给定需要包裹的函数
-     *      @return 返回 async 函数
+     *      @param func the function to wrap
+     *      @return returns an async function
      *
      */
     function promisify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 包裹 async 函数为 callback 调用
+     * @description Wraps an async function for callback invocation
      *
-     *      util.callbackify 将 async 函数处理为 callback 函数，以方便调用。
+     *      util.callbackify converts an async function into a callback function for convenient invocation.
      *
-     *      async 示例如下：
+     *      Example of async:
      *      ```JavaScript
      *      // async
      *      var util = require('util');
@@ -924,14 +924,14 @@ declare module 'util' {
      *      });
      *      ```
      *
-     *      @param func 给定需要包裹的函数
-     *      @return 返回 callback 函数
+     *      @param func the function to wrap
+     *      @return returns a callback function
      *
      */
     function callbackify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 查询当前引擎及各组件版本信息
+     * @description Queries the version information of the current engine and each component
      *
      *      ```JavaScript
      *       {
@@ -959,27 +959,27 @@ declare module 'util' {
      *         }
      *       }
      *      ```
-     *      @return 返回组件版本对象
+     *      @return returns the component version object
      *
      */
     function buildInfo(): FIBJS.GeneralObject;
 
     /**
-     * @description 将 TypeScript 代码转换为 JavaScript，移除所有类型注解
+     * @description Converts TypeScript code to JavaScript, removing all type annotations
      *
-     *      该方法使用 strip-only 模式，将 TypeScript 的类型语法替换为空格，保持源代码的行列位置不变。
-     *      这对于需要调试或生成 source map 的场景非常有用。
+     *      This method uses strip-only mode, replacing TypeScript type syntax with spaces while keeping the line and column positions of the source code unchanged.
+     *      This is useful for scenarios that require debugging or generating source maps.
      *
-     *      注意：strip-only 模式不支持以下语法：
-     *      - enum（需要转换为 IIFE）
-     *      - const enum（需要内联展开）
-     *      - namespace（需要转换为 IIFE）
-     *      - 构造函数参数属性（如 constructor(public x: string)）
-     *      - import = require() 语法
-     *      - export = 语法
-     *      - 尖括号类型断言（如 <T>expr，请使用 as 语法）
+     *      Notes: strip-only mode does not support the following syntax:
+     *      - enum (must be converted to an IIFE)
+     *      - const enum (must be inlined)
+     *      - namespace (must be converted to an IIFE)
+     *      - constructor parameter properties (such as constructor(public x: string))
+     *      - import = require() syntax
+     *      - export = syntax
+     *      - angle bracket type assertions (such as <T>expr, use the as syntax instead)
      *
-     *      示例：
+     *      Example:
      *      ```JavaScript
      *      var util = require('util');
      *      var ts = 'const x: string = "hello";';
@@ -987,28 +987,28 @@ declare module 'util' {
      *      console.log(js); // 'const x         = "hello";'
      *      ```
      *
-     *      @param code TypeScript 源代码
-     *      @return 返回转换后的 JavaScript 代码
+     *      @param code TypeScript source code
+     *      @return returns the converted JavaScript code
      *
      */
     function stripTypeScript(code: string): string;
 
     /**
-     * @description 获取字符串的可视宽度，考虑全角字符、emoji 和 ANSI 转义序列
-     *      东亚宽度属性为 Fullwidth (F) 或 Wide (W) 的字符计为 2，大多数其他字符计为 1。
-     *      控制字符和组合标记计为 0。ANSI 转义序列将被跳过。
+     * @description Gets the visual width of a string, taking full-width characters, emoji and ANSI escape sequences into account
+     *      Characters with East Asian Width property Fullwidth (F) or Wide (W) count as 2, and most other characters count as 1.
+     *      Control characters and combining marks count as 0. ANSI escape sequences are skipped.
      *
-     *      @param str 要计算宽度的字符串
-     *      @return 返回字符串的可视宽度
+     *      @param str the string whose width is to be calculated
+     *      @return returns the visual width of the string
      *
      */
     function getStringWidth(str: string): number;
 
     /**
-     * @description 从字符串中移除 ANSI 转义序列（VT 控制字符）
+     * @description Removes ANSI escape sequences (VT control characters) from a string
      *
-     *      @param str 要处理的字符串
-     *      @return 返回移除 ANSI 转义序列后的字符串
+     *      @param str the string to process
+     *      @return returns the string with ANSI escape sequences removed
      *
      */
     function stripVTControlCharacters(str: string): string;

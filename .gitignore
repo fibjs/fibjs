@@ -9,8 +9,6 @@
 .vs
 *.vcxproj.user
 
-idl/__snapshots__
-
 /.vscode/launch.json
 
 tools/node_modules

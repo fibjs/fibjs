@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description URLSearchParams 是一个专门用于处理 URL 查询参数的容器类，继承自 HttpCollection
+ * @description URLSearchParams is a container class dedicated to handling URL query parameters, inheriting from HttpCollection
  *
- * URLSearchParams 实现了标准的 URLSearchParams API，用于解析和操作 URL 查询字符串。它提供了完整的查询参数管理功能，支持标准的查询参数操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除参数。
+ * URLSearchParams implements the standard URLSearchParams API, used to parse and manipulate URL query strings. It provides complete query parameter management functionality, supports standard query parameter operations, and inherits all the functionality of HttpCollection, including adding, setting, querying and deleting parameters.
  *
- * URLSearchParams 支持以下几种使用方式：
+ * URLSearchParams supports the following ways of use:
  *
- * 1. 作为全局 URLSearchParams API 使用（Web 标准）：
+ * 1. Use as the global URLSearchParams API (Web standard):
  *
  * ```JavaScript
  * // Create empty URLSearchParams object
@@ -34,7 +34,7 @@
  * const copy = new URLSearchParams(params);
  * ```
  *
- * URLSearchParams API 标准方法示例：
+ * Example of standard URLSearchParams API methods:
  *
  * ```JavaScript
  * // Standard URLSearchParams API methods
@@ -75,7 +75,7 @@
  * params.sort();
  * ```
  *
- * fibjs 扩展方法示例（继承自 HttpCollection）：
+ * Example of fibjs extension methods (inherited from HttpCollection):
  *
  * ```JavaScript
  * // Add multiple values (without overwriting existing)
@@ -91,73 +91,73 @@
  * params.set('colors', ['red', 'green', 'blue']);
  * ```
  *
- * URLSearchParams 自动处理 URL 编码和解码，完全遵循 Web 标准 URLSearchParams API 规范。
+ * URLSearchParams automatically handles URL encoding and decoding, fully following the Web standard URLSearchParams API specification.
  *
  */
 declare class Class_URLSearchParams extends Class_HttpCollection {
     /**
-     * @description URLSearchParams 构造函数，创建一个新的空查询参数容器
+     * @description URLSearchParams constructor, creates a new empty query parameter container
      */
     constructor();
 
     /**
-     * @description URLSearchParams 构造函数，使用给定的查询字符串初始化参数容器
-     *      @param init 初始化用的查询字符串，如 "name=value&key=val"
+     * @description URLSearchParams constructor, initializes the parameter container with the given query string
+     *      @param init the query string used for initialization, such as "name=value&key=val"
      *
      */
     constructor(init: string);
 
     /**
-     * @description URLSearchParams 构造函数，使用给定的对象初始化参数容器
-     *      @param init 初始化用的参数对象，键为参数名，值为参数值
+     * @description URLSearchParams constructor, initializes the parameter container with the given object
+     *      @param init the parameter object used for initialization, whose keys are parameter names and values are parameter values
      *
      */
     constructor(init: FIBJS.GeneralObject);
 
     /**
-     * @description URLSearchParams 构造函数，使用给定的数组初始化参数容器
-     *      @param init 初始化用的参数数组，每个元素为一个包含参数名和参数值的数组
+     * @description URLSearchParams constructor, initializes the parameter container with the given array
+     *      @param init the parameter array used for initialization; each element is an array containing a parameter name and a parameter value
      *
      */
     constructor(init: any[]);
 
     /**
-     * @description URLSearchParams 构造函数，使用给定的 URLSearchParams 对象初始化参数容器
-     *      @param init 初始化用的 URLSearchParams 对象
+     * @description URLSearchParams constructor, initializes the parameter container with the given URLSearchParams object
+     *      @param init the URLSearchParams object used for initialization
      *
      */
     constructor(init: Class_URLSearchParams);
 
     /**
-     * @description URLSearchParams 构造函数，使用给定的可迭代对象初始化参数容器
+     * @description URLSearchParams constructor, initializes the parameter container with the given iterable object
      *
-     *      任何实现了迭代器协议的对象（如 Map、Set、FormData、URLSearchParams）都会被展开为
-     *      [name, value] 序列后写入，与 Web 标准的 URLSearchParams 构造函数一致；
-     *      元素不是键值对时抛出 TypeError。
+     *      Any object implementing the iterator protocol (such as Map, Set, FormData, URLSearchParams) is expanded into
+     *      a sequence of [name, value] pairs and then written, consistent with the Web standard URLSearchParams constructor;
+     *      a TypeError is thrown if an element is not a key-value pair.
      *
-     *      @param init 初始化用的可迭代对象，每个元素为一个包含参数名和参数值的数组
+     *      @param init the iterable object used for initialization; each element is an array containing a parameter name and a parameter value
      *
      */
     constructor(init: any);
 
     /**
-     * @description 查询参数对的数量（同名多值会分别计数，与 Web 标准一致）
+     * @description the number of parameter pairs (multiple values with the same name are counted separately, consistent with the Web standard)
      */
     readonly size: number;
 
     /**
-     * @description 检查容器内是否存在指定参数名和参数值的组合
-     *      @param name 指定要检查的参数名
-     *      @param value 指定要检查的参数值，当传入 undefined 时行为与 has(name) 相同
-     *      @return 返回指定参数名和参数值组合是否存在
+     * @description checks whether a combination of the specified parameter name and parameter value exists in the container
+     *      @param name specifies the parameter name to check
+     *      @param value specifies the parameter value to check; when undefined is passed, the behavior is the same as has(name)
+     *      @return returns whether the specified parameter name and parameter value combination exists
      *
      */
     has(name: string, value: any): boolean;
 
     /**
-     * @description 删除指定参数名和参数值的组合
-     *      @param name 指定要删除的参数名
-     *      @param value 指定要删除的参数值，当传入 undefined 时行为与 delete(name) 相同
+     * @description deletes the combination of the specified parameter name and parameter value
+     *      @param name specifies the parameter name to delete
+     *      @param value specifies the parameter value to delete; when undefined is passed, the behavior is the same as delete(name)
      *
      */
     delete(name: string, value: any): void;

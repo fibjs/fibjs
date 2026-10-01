@@ -2,10 +2,10 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description StreamReader 对象，兼容 WHATWG ReadableStreamDefaultReader 接口的轻量级读取器
+ * @description StreamReader object, a lightweight reader compatible with the WHATWG ReadableStreamDefaultReader interface
  *
- * StreamReader 将 fibjs 的 Stream 封装为兼容 Web Streams API 的 read() 方法。
- * 可以通过 Stream.getReader() 获取。
+ * StreamReader wraps the fibjs Stream with a read() method compatible with the Web Streams API.
+ * It can be obtained via Stream.getReader().
  *
  * ```JavaScript
  * const response = await fetch('http://example.com');
@@ -20,57 +20,57 @@
  */
 declare class Class_StreamReader extends Class_object {
     /**
-     * @description 从流中读取下一个数据块
-     *      @return 返回一个包含 `done`（布尔值）和 `value`（Buffer 数据或 undefined）属性的对象
+     * @description Reads the next chunk of data from the stream
+     *      @return returns an object containing the `done` (boolean) and `value` (Buffer data or undefined) properties
      *
      */
     read(): Promise<[done: boolean, value: Buffer]>;
 
     /**
-     * @description 从流中读取下一个数据块
-     *      @return 返回一个包含 `done`（布尔值）和 `value`（Buffer 数据或 undefined）属性的对象
+     * @description Reads the next chunk of data from the stream
+     *      @return returns an object containing the `done` (boolean) and `value` (Buffer data or undefined) properties
      *
      */
     readSync(): [done: boolean, value: Buffer];
 
     /**
-     * @description 从流中读取下一个数据块
-     *      @return 返回一个包含 `done`（布尔值）和 `value`（Buffer 数据或 undefined）属性的对象
+     * @description Reads the next chunk of data from the stream
+     *      @return returns an object containing the `done` (boolean) and `value` (Buffer data or undefined) properties
      *
      */
     readAsync(): Promise<[done: boolean, value: Buffer]>;
 
     /**
-     * @description 释放对流的锁定
+     * @description Releases the lock on the stream
      */
     releaseLock(): void;
 
     /**
-     * @description 取消流并释放锁定
-     *      @param reason 可选的取消原因
-     *      @return 返回一个 Promise，在取消完成时解析
+     * @description Cancels the stream and releases the lock
+     *      @param reason optional cancellation reason
+     *      @return returns a Promise that resolves when cancellation completes
      *
      */
     cancel(reason?: string): Promise<void>;
 
     /**
-     * @description 取消流并释放锁定
-     *      @param reason 可选的取消原因
-     *      @return 返回一个 Promise，在取消完成时解析
+     * @description Cancels the stream and releases the lock
+     *      @param reason optional cancellation reason
+     *      @return returns a Promise that resolves when cancellation completes
      *
      */
     cancelSync(reason?: string): void;
 
     /**
-     * @description 取消流并释放锁定
-     *      @param reason 可选的取消原因
-     *      @return 返回一个 Promise，在取消完成时解析
+     * @description Cancels the stream and releases the lock
+     *      @param reason optional cancellation reason
+     *      @return returns a Promise that resolves when cancellation completes
      *
      */
     cancelAsync(reason?: string): Promise<void>;
 
     /**
-     * @description 流关闭时解析的 Promise
+     * @description A Promise that resolves when the stream closes
      */
     readonly closed: Promise;
 

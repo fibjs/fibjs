@@ -1,0 +1,79 @@
+/*! @brief The Blob object represents an immutable raw data block, compatible with the Web standard Blob API.
+
+Blob can be used to store binary data, text, images, etc., and is commonly used for file upload, data processing and similar scenarios. Blob supports concatenation, slicing and reading of multiple data types and is widely used in modules such as Web, HTTP and the file system.
+
+Key features:
+1. Supports flexible construction via arrays and options objects; data types can be strings, ArrayBuffers, TypedArrays, Blobs, etc.
+2. Supports read-only properties such as type and size, making it easy to get the data type and size.
+3. Supports the slice method for efficient slicing and supports type conversion.
+4. Supports asynchronous reading as text or binary.
+
+Common usage examples:
+```JavaScript
+// Create empty Blob
+const blob = new Blob();
+
+// Create Blob containing string and binary
+const blob = new Blob(["hello", new Uint8Array([1,2,3])], { type: "text/plain" });
+
+// Slice
+const part = blob.slice(0, 5);
+
+// Read text content
+blob.text().then(txt => console.log(txt));
+
+// Read binary content
+blob.arrayBuffer().then(buf => ...);
+```
+ */
+interface Blob : object
+{
+    /*! @brief Blob object constructor
+        
+     Creates a new Blob instance with the specified data content and type.
+     @param blobParts the initial data array, may contain strings, ArrayBuffers, TypedArrays, Blobs, etc.
+     @param options the options object, containing the type (MIME type) and endings (newline handling) properties
+    */
+    Blob(Array blobParts = [], Object options = {});
+
+    /*! @brief Blob object constructor
+        
+     Creates a new Blob instance with the specified data content and type.
+     @param blobData the initial binary data, can be a Buffer or another binary data type
+     @param options the options object, containing the type (MIME type) and endings (newline handling) properties
+    */
+    Blob(Buffer blobData, Object options = {});
+
+    /*! @brief The type of the Blob object, returns the MIME type of the Blob (e.g. "text/plain", "image/png", etc.), read-only property.
+    */
+    readonly String type;
+
+    /*! @brief The size of the Blob object, returns the number of bytes of the Blob data, read-only property.
+    */
+    readonly Integer size;
+
+    /*! @brief Returns a Blob slice of the specified range
+        
+     Creates a new Blob containing the specified range of the original data.
+
+     @param start the start position (in bytes, default 0)
+     @param end the end position (in bytes, default -1, meaning to the end)
+     @param contentType the MIME type of the new Blob (optional)
+     @return returns the new Blob object
+    */
+    Blob slice(Integer start = 0, Integer end = -1, String contentType = "");
+
+    /*! @brief Reads the Blob content as text
+        
+     Asynchronously reads the Blob data as a string, returns a Promise.
+     @return returns a Promise containing the text content
+    */
+    String text() promise;
+
+    /*! @brief Reads the Blob content as an ArrayBuffer
+        
+     Asynchronously reads the Blob data as an ArrayBuffer, returns a Promise.
+     @return returns a Promise containing the binary data
+    */
+    ArrayBuffer arrayBuffer() promise;
+};

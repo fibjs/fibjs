@@ -4,11 +4,11 @@
 /// <reference path="../interface/RTCSessionDescription.d.ts" />
 /// <reference path="../interface/RTCIceCandidate.d.ts" />
 /**
- * @description RTCPeerConnection 定义 WebRTC 连接的方法和属性
+ * @description RTCPeerConnection defines the methods and properties of a WebRTC connection
  *
- * RTCPeerConnection 是 WebRTC 连接的核心对象，用于创建 WebRTC 连接，管理连接状态，发送和接收媒体数据等。
+ * RTCPeerConnection is the core object of WebRTC connections, used to create WebRTC connections, manage connection states, and send and receive media data, etc.
  *
- * RTCPeerConnection 对象的创建方式如下：
+ * The RTCPeerConnection object is created as follows:
  * ```JavaScript
  * const rtc = require('rtc');
  * var pc = new rtc.RTCPeerConnection();
@@ -17,335 +17,335 @@
  */
 declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
-     * @description 构造一个新的 WebRTC 连接对象，并初始化基础参数
+     * @description constructs a new WebRTC connection object and initializes the basic parameters
      *
-     *      options 参数是一个对象，包含以下属性：
-     *         - certificateType: 证书类型，可选值为 'rsa'、'ecdsa'，默认为 'ecdsa'
-     *         - iceTransportPolicy: ICE 传输策略，可选值为 'all'、'relay'，默认为 'all'
-     *         - iceServers: ICE 服务器列表，用于 NAT 穿透，格式为 [{urls: 'stun:stun.l.google.com:19302'}]
-     *         - maxMessageSize: 最大消息大小，用于指定数据通道的最大消息大小
-     *         - enableIceUdpMux: 是否启用 ICE UDP 多路复用
-     *         - disableFingerprintVerification: 是否禁用指纹验证
-     *         - bindAddress: 绑定地址，用于指定本地 IP 地址
-     *         - port: 本地端口号，用于指定本地端口
-     *         - iceUfrag: ICE 用户名
-     *         - icePwd: ICE 密码
-     *         - certPem: 证书 PEM 格式
-     *         - keyPem: 私钥 PEM 格式
-     *         - keyPass: 私钥密码
+     *      The options parameter is an object containing the following properties:
+     *         - certificateType: certificate type, optional values are 'rsa', 'ecdsa', default is 'ecdsa'
+     *         - iceTransportPolicy: ICE transport policy, optional values are 'all', 'relay', default is 'all'
+     *         - iceServers: list of ICE servers used for NAT traversal, in the format [{urls: 'stun:stun.l.google.com:19302'}]
+     *         - maxMessageSize: maximum message size, used to specify the maximum message size of the data channel
+     *         - enableIceUdpMux: whether to enable ICE UDP multiplexing
+     *         - disableFingerprintVerification: whether to disable fingerprint verification
+     *         - bindAddress: binding address, used to specify the local IP address
+     *         - port: local port number, used to specify the local port
+     *         - iceUfrag: ICE username
+     *         - icePwd: ICE password
+     *         - certPem: certificate in PEM format
+     *         - keyPem: private key in PEM format
+     *         - keyPass: private key passphrase
      *
-     *      @param options 初始化参数
+     *      @param options initialization parameters
      *
      */
     constructor(options?: FIBJS.GeneralObject);
 
     /**
-     * @description 创建一个与远程对等点链接的新通道
+     * @description creates a new channel linked to a remote peer
      *
-     *      创建一个与远程对等点链接的新通道，可以通过该通道传输任何类型的数据。这对于反向通道内容非常有用，例如图像、文件传输、文本聊天、游戏更新数据包等。
+     *      Creates a new channel linked to a remote peer through which any type of data can be transmitted. This is useful for reverse channel content such as images, file transfers, text chat, game update packets, etc.
      *
-     *      options 参数是一个对象，包含以下属性：
-     *         - ordered: 是否保证数据包的顺序，默认为 true
-     *         - maxPacketLifeTime: 数据包的最大生命周期，默认为 0
-     *         - maxRetransmits: 数据包的最大重传次数，默认为 0
-     *         - protocol: 通道协议，默认为 ''
-     *         - negotiated: 是否为协商通道，默认为 false
-     *         - id: 通道 ID，默认为 0
+     *      The options parameter is an object containing the following properties:
+     *         - ordered: whether the order of packets is guaranteed, default is true
+     *         - maxPacketLifeTime: maximum packet lifetime, default is 0
+     *         - maxRetransmits: maximum number of packet retransmits, default is 0
+     *         - protocol: channel protocol, default is ''
+     *         - negotiated: whether it is a negotiated channel, default is false
+     *         - id: channel ID, default is 0
      *
-     *      @param label 通道名称
-     *      @param options 通道参数
-     *      @return 返回创建的通道对象
+     *      @param label channel name
+     *      @param options channel parameters
+     *      @return returns the created channel object
      *
      */
     createDataChannel(label: string, options?: FIBJS.GeneralObject): Class_RTCDataChannel;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
      */
     setLocalDescription(): Promise<void>;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
      */
     setLocalDescriptionSync(): void;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
      */
     setLocalDescriptionAsync(): Promise<void>;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
 
     /**
-     * @description 更改与连接关联的本地描述
+     * @description changes the local description associated with the connection
      *
-     *      此方法指定连接本地端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
-     * @description 更改与连接关联的远程描述
+     * @description changes the remote description associated with the connection
      *
-     *      此方法指定连接远程端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
-     * @description 更改与连接关联的远程描述
+     * @description changes the remote description associated with the connection
      *
-     *      此方法指定连接远程端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
 
     /**
-     * @description 更改与连接关联的远程描述
+     * @description changes the remote description associated with the connection
      *
-     *      此方法指定连接远程端的属性，包括媒体格式。该方法采用单个参数（会话描述），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description 会话描述
+     *      @param description session description
      *
      */
     setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
 
     /**
-     * @description 添加 ICE 候选项
+     * @description adds an ICE candidate
      *
-     *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
+     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE 候选项
+     *      @param candidate ICE candidate
      *
      */
     addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
 
     /**
-     * @description 添加 ICE 候选项
+     * @description adds an ICE candidate
      *
-     *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
+     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE 候选项
+     *      @param candidate ICE candidate
      *
      */
     addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
 
     /**
-     * @description 添加 ICE 候选项
+     * @description adds an ICE candidate
      *
-     *      此方法将 ICE 候选项添加到连接的远程端。该方法采用单个参数（ICE 候选项），并返回一个 Promise ，一旦候选项发生异步更改，该值就会得到满足。
+     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE 候选项
+     *      @param candidate ICE candidate
      *
      */
     addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
 
     /**
-     * @description 创建一个 Offer 描述
+     * @description creates an Offer description
      *
-     *      此方法创建一个 Offer 描述，用于发起连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createOffer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 创建一个 Offer 描述
+     * @description creates an Offer description
      *
-     *      此方法创建一个 Offer 描述，用于发起连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createOfferSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 创建一个 Offer 描述
+     * @description creates an Offer description
      *
-     *      此方法创建一个 Offer 描述，用于发起连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createOfferAsync(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 创建一个 Answer 描述
+     * @description creates an Answer description
      *
-     *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createAnswer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 创建一个 Answer 描述
+     * @description creates an Answer description
      *
-     *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createAnswerSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 创建一个 Answer 描述
+     * @description creates an Answer description
      *
-     *      此方法创建一个 Answer 描述，用于应答连接。该方法采用一个可选参数（选项对象），并返回一个 Promise ，一旦描述发生异步更改，该值就会得到满足。
+     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param options 选项对象，目前暂未支持，仅用于兼容
-     *      @return 返回描述对象
+     *      @param options options object, not yet supported, only for compatibility
+     *      @return returns the description object
      *
      */
     createAnswerAsync(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 获取连接的统计信息
+     * @description gets the statistics of the connection
      *
-     *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
+     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
      *
-     *      @return 返回统计信息
+     *      @return returns the statistics
      *
      */
     getStats(): Promise<FIBJS.GeneralObject>;
 
     /**
-     * @description 获取连接的统计信息
+     * @description gets the statistics of the connection
      *
-     *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
+     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
      *
-     *      @return 返回统计信息
+     *      @return returns the statistics
      *
      */
     getStatsSync(): FIBJS.GeneralObject;
 
     /**
-     * @description 获取连接的统计信息
+     * @description gets the statistics of the connection
      *
-     *      此方法获取连接的统计信息，返回一个 Promise ，一旦统计信息准备好，该值就会得到满足。
+     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
      *
-     *      @return 返回统计信息
+     *      @return returns the statistics
      *
      */
     getStatsAsync(): Promise<FIBJS.GeneralObject>;
 
     /**
-     * @description 关闭连接，此方法关闭连接，释放所有资源
+     * @description closes the connection; this method closes the connection and releases all resources
      */
     close(): void;
 
     /**
-     * @description 获取连接状态，返回连接状态字符串，可能的值有：'new'、'connecting'、'connected'、'disconnected'、'failed'、'closed'
+     * @description gets the connection state, returns a connection state string, possible values are: 'new', 'connecting', 'connected', 'disconnected', 'failed', 'closed'
      */
     readonly connectionState: string;
 
     /**
-     * @description 获取 ICE 连接状态，返回 ICE 连接状态字符串，可能的值有：'new'、'checking'、'connected'、'completed'、'failed'、'disconnected'、'closed'
+     * @description gets the ICE connection state, returns an ICE connection state string, possible values are: 'new', 'checking', 'connected', 'completed', 'failed', 'disconnected', 'closed'
      */
     readonly iceConnectionState: string;
 
     /**
-     * @description 获取 ICE 收集状态，返回 ICE 收集状态字符串，可能的值有：'new'、'gathering'、'complete'
+     * @description gets the ICE gathering state, returns an ICE gathering state string, possible values are: 'new', 'gathering', 'complete'
      */
     readonly iceGatheringState: string;
 
     /**
-     * @description 获取本地描述，返回本地描述对象
+     * @description gets the local description, returns the local description object
      */
     readonly localDescription: FIBJS.GeneralObject;
 
     /**
-     * @description 获取远程描述，返回远程描述对象
+     * @description gets the remote description, returns the remote description object
      */
     readonly remoteDescription: FIBJS.GeneralObject;
 
     /**
-     * @description 获取远程指纹，返回远程指纹对象
+     * @description gets the remote fingerprint, returns the remote fingerprint object
      */
     readonly remoteFingerprint: FIBJS.GeneralObject;
 
     /**
-     * @description 获取信令状态，返回信令状态字符串，可能的值有：'stable'、'have-local-offer'、'have-remote-offer'、'have-local-pranswer'、'have-remote-pranswer'、'closed'
+     * @description gets the signaling state, returns a signaling state string, possible values are: 'stable', 'have-local-offer', 'have-remote-offer', 'have-local-pranswer', 'have-remote-pranswer', 'closed'
      */
     readonly signalingState: string;
 
     /**
-     * @description 连接状态变更事件
+     * @description connection state change event
      */
     on(event: "connectionstatechange", listener: ()=>void): this;
 
     /**
-     * @description 数据通道事件
+     * @description data channel event
      */
     on(event: "datachannel", listener: ()=>void): this;
 
     /**
-     * @description ICE 候选项事件
+     * @description ICE candidate event
      */
     on(event: "icecandidate", listener: ()=>void): this;
 
     /**
-     * @description ICE 连接状态变更事件
+     * @description ICE connection state change event
      */
     on(event: "iceconnectionstatechange", listener: ()=>void): this;
 
     /**
-     * @description ICE 收集状态变更事件
+     * @description ICE gathering state change event
      */
     on(event: "icegatheringstatechange", listener: ()=>void): this;
 
     /**
-     * @description 本地描述变更事件
+     * @description local description change event
      */
     on(event: "localdescription", listener: ()=>void): this;
 
     /**
-     * @description 信令状态变更事件
+     * @description signaling state change event
      */
     on(event: "signalingstatechange", listener: ()=>void): this;
 
     /**
-     * @description 媒体轨道事件
+     * @description media track event
      */
     on(event: "track", listener: ()=>void): this;
 

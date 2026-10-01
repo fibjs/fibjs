@@ -2,461 +2,461 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/CryptoKey.d.ts" />
 /**
- * @description 提供对 SubtleCrypto API 的访问
+ * @description Provides access to the SubtleCrypto API
  *
- * SubtleCrypto API 模块提供了一组用于加密和解密的函数。可以通过 global.webcrypto.subtle 属性或者 require("crypto").webcrypto.subtle 来获取。
+ * The SubtleCrypto API module provides a set of functions for encryption and decryption. It can be obtained through the global.webcrypto.subtle property or require("crypto").webcrypto.subtle.
  *
  */
 declare module 'subtle' {
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     algorithm 的 name 属性指定哈希算法，例如：
+     *     The name property of algorithm specifies the hash algorithm, for example:
      *     ```
      *     {
      *         name: "SHA-256"
      *     }
      *     ```
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digest(algorithm: FIBJS.GeneralObject, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     algorithm 的 name 属性指定哈希算法，例如：
+     *     The name property of algorithm specifies the hash algorithm, for example:
      *     ```
      *     {
      *         name: "SHA-256"
      *     }
      *     ```
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digestSync(algorithm: FIBJS.GeneralObject, data: Class_Buffer): ArrayBuffer;
 
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     algorithm 的 name 属性指定哈希算法，例如：
+     *     The name property of algorithm specifies the hash algorithm, for example:
      *     ```
      *     {
      *         name: "SHA-256"
      *     }
      *     ```
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digestAsync(algorithm: FIBJS.GeneralObject, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digest(algorithm: string, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digestSync(algorithm: string, data: Class_Buffer): ArrayBuffer;
 
     /**
-     * @description 计算给定数据的哈希值
+     * @description Computes the hash value of the given data
      *
-     *     @param algorithm 指定哈希算法
-     *     @param data 指定要计算哈希值的数据
-     *     @return 返回计算得到的哈希值
+     *     @param algorithm the hash algorithm to use
+     *     @param data the data to compute the hash value of
+     *     @return returns the computed hash value
      *
      */
     function digestAsync(algorithm: string, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 导出 key 的信息，如果 key 不可导出，则返回一个错误
+     * @description Exports the key's information; returns an error if the key is not exportable
      *
-     *     @param format 导出的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param key 要导出的 key
-     *     @return 返回导出的 key 信息
+     *     @param format the export format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param key the key to export
+     *     @return returns the exported key information
      *
      */
     function exportKey(format: string, key: Class_CryptoKey): Promise<any>;
 
     /**
-     * @description 导出 key 的信息，如果 key 不可导出，则返回一个错误
+     * @description Exports the key's information; returns an error if the key is not exportable
      *
-     *     @param format 导出的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param key 要导出的 key
-     *     @return 返回导出的 key 信息
+     *     @param format the export format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param key the key to export
+     *     @return returns the exported key information
      *
      */
     function exportKeySync(format: string, key: Class_CryptoKey): any;
 
     /**
-     * @description 导出 key 的信息，如果 key 不可导出，则返回一个错误
+     * @description Exports the key's information; returns an error if the key is not exportable
      *
-     *     @param format 导出的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param key 要导出的 key
-     *     @return 返回导出的 key 信息
+     *     @param format the export format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param key the key to export
+     *     @return returns the exported key information
      *
      */
     function exportKeyAsync(format: string, key: Class_CryptoKey): Promise<any>;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKey(algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKeySync(algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): any;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKeyAsync(algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKey(algorithm: string, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKeySync(algorithm: string, extractable: boolean, usages: any[]): any;
 
     /**
-     * @description 生成一个新的 key
+     * @description Generates a new key
      *
-     *     @param algorithm 指定生成 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回生成的 key
+     *     @param algorithm the algorithm used to generate the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the generated key
      *
      */
     function generateKeyAsync(algorithm: string, extractable: boolean, usages: any[]): Promise<any>;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKey(format: string, keyData: any, algorithm: string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKeySync(format: string, keyData: any, algorithm: string, extractable: boolean, usages: any[]): Class_CryptoKey;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKeyAsync(format: string, keyData: any, algorithm: string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKeySync(format: string, keyData: any, algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Class_CryptoKey;
 
     /**
-     * @description 导入 key
+     * @description Imports a key
      *
-     *     @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
-     *     @param keyData 包含 key 数据的对象
-     *     @param algorithm 指定 key 的算法
-     *     @param extractable 指定 key 是否可以导出到外部
-     *     @param usages 指定 key 的用途
-     *     @return 返回导入的 key
+     *     @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
+     *     @param keyData the object containing the key data
+     *     @param algorithm the algorithm of the key
+     *     @param extractable specifies whether the key can be exported
+     *     @param usages the usages of the key
+     *     @return returns the imported key
      *
      */
     function importKeyAsync(format: string, keyData: any, algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function sign(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function signSync(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): ArrayBuffer;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function signAsync(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function sign(algorithm: string, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function signSync(algorithm: string, key: Class_CryptoKey, data: Class_Buffer): ArrayBuffer;
 
     /**
-     * @description 使用 key 对数据进行签名
+     * @description Signs data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于签名的 key
-     *     @param data 指定要签名的数据
-     *     @return 返回签名后的数据
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for signing
+     *     @param data the data to sign
+     *     @return returns the signed data
      *
      */
     function signAsync(algorithm: string, key: Class_CryptoKey, data: Class_Buffer): Promise<ArrayBuffer>;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verify(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verifySync(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): boolean;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verifyAsync(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verify(algorithm: string, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verifySync(algorithm: string, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): boolean;
 
     /**
-     * @description 使用 key 对数据进行验签
+     * @description Verifies data using the key
      *
-     *     @param algorithm 指定签名算法
-     *     @param key 指定用于验签的 key
-     *     @param signature 指定签名数据
-     *     @param data 指定要验签的数据
-     *     @return 返回验签结果
+     *     @param algorithm the signing algorithm to use
+     *     @param key the key used for verification
+     *     @param signature the signature data to use
+     *     @param data the data to verify
+     *     @return returns the verification result
      *
      */
     function verifyAsync(algorithm: string, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBits(algorithm: FIBJS.GeneralObject, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBitsSync(algorithm: FIBJS.GeneralObject, baseKey: Class_CryptoKey, length?: number): ArrayBuffer;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBitsAsync(algorithm: FIBJS.GeneralObject, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBits(algorithm: string, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBitsSync(algorithm: string, baseKey: Class_CryptoKey, length?: number): ArrayBuffer;
 
     /**
-     * @description 从基本密钥派生出位数组
-     *     @param algorithm 指定派生算法
-     *     @param baseKey 指定用于派生的基本密钥
-     *     @param length 指定派生的位数
-     *     @return 返回派生得到的位数组
+     * @description Derives bits from a base key
+     *     @param algorithm the derivation algorithm to use
+     *     @param baseKey the base key used for derivation
+     *     @param length the number of bits to derive
+     *     @return returns the derived bits
      *
      */
     function deriveBitsAsync(algorithm: string, baseKey: Class_CryptoKey, length?: number): Promise<ArrayBuffer>;

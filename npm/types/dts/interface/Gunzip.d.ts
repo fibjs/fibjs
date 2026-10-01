@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gunzip 解压缩编解码器，解压 gzip 压缩的数据
+ * @description Gunzip decompression codec, decompresses gzip-compressed data
  */
 declare class Class_Gunzip extends Class_ZlibCodec {
     /**
-     * @description Gunzip 构造函数
-     *      @param opts 解压缩选项
+     * @description Gunzip constructor
+     *      @param opts decompression options
      *
      */
     constructor(opts?: FIBJS.GeneralObject);

@@ -20,7 +20,6 @@ function writeIfChanged(file, content) {
     return true;
 }
 
-const IDL_LANG = process.env.FIBJS_IDL_LANG || 'zh-CN';
 const LOG_PREFIX = `[generator]`;
 
 // Escape string value for IDL output
@@ -85,7 +84,7 @@ const ejs_tpl_module_member_prop = ejs.compile(fs.readFileSync(path.resolve(__di
 const ejs_tpl_module_member_object = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/module_member_object.idl.ejs'), "utf8"));
 const ejs_tpl_module_member_method = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/module_member_method.idl.ejs'), "utf8"));
 
-function normalizeIDLTextFromModuleDef(mdef, idlLang = IDL_LANG) {
+function normalizeIDLTextFromModuleDef(mdef) {
     const _translate = (input) => input;
 
     return ejs_tpl_module({
@@ -138,7 +137,7 @@ const ejs_tpl_interface_member_method = ejs.compile(fs.readFileSync(path.resolve
 const ejs_tpl_interface_member_operator = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/interface_member_operator.idl.ejs'), "utf8"));
 const ejs_tpl_interface_member_event = ejs.compile(fs.readFileSync(path.resolve(__dirname, './tmpl/interface_member_event.idl.ejs'), "utf8"));
 
-function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
+function normalizeIDLTextFromInterfaceDef(mdef) {
     const _translate = (input) => input;
 
     return ejs_tpl_interface({
@@ -192,29 +191,15 @@ function normalizeIDLTextFromInterfaceDef(mdef, idlLang = IDL_LANG) {
     });
 }
 
-module.exports = (
-    defs,
-    idlLang = IDL_LANG,
-    langDirname = idlLang
-) => {
+module.exports = (defs) => {
     const totalDefs = Object.keys(defs).length;
     console.log(`   📊 Generating IDL files for ${totalDefs} definitions...`);
-    
-    // dump defs as json;
-    var snapshotsDir = path.resolve(__dirname, '../../idl/__snapshots__');
-    try { fs.mkdirSync(snapshotsDir) } catch (error) { };
-
-    writeIfChanged(
-        path.resolve(snapshotsDir, `./defs_${idlLang}.json`),
-        JSON.stringify(defs, null, '  ')
-    )
-    console.log(`   💾 Saved definitions snapshot to ${path.basename(snapshotsDir)}`);
 
     let processedCount = 0;
     for (const [dname, def] of Object.entries(defs)) {
         // TODO: deal with 'interface'
 
-        const targetDir = path.resolve(__dirname, `../../idl/${langDirname}`)
+        const targetDir = path.resolve(__dirname, '../../idl')
         if (!fs.existsSync(targetDir)) {
             try {
                 fs.mkdirSync(targetDir)
@@ -227,13 +212,13 @@ module.exports = (
             case 'module':
                 writeIfChanged(
                     path.resolve(targetDir, `./${name}.idl`),
-                    normalizeIDLTextFromModuleDef(def, idlLang)
+                    normalizeIDLTextFromModuleDef(def)
                 )
                 break
             case 'interface':
                 writeIfChanged(
                     path.resolve(targetDir, `./${name}.idl`),
-                    normalizeIDLTextFromInterfaceDef(def, idlLang)
+                    normalizeIDLTextFromInterfaceDef(def)
                 )
                 break
         }

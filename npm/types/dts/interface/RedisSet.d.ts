@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
+ * @description Redis database client Set object; this object is a client bound to the given key and only calling its methods operates on the database
  *
- *  用以操作 Redis 的 Set 对象，创建方法：
+ *  Used to operate on a Redis Set object. To create one:
  *  ```JavaScript
  *  var db = require("db");
  *  var rdb = new db.openRedis("redis-server");
@@ -14,68 +14,68 @@
  */
 declare class Class_RedisSet extends Class_object {
     /**
-     * @description 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略
-     *      @param members 指定要添加的元素数组
-     *      @return 被添加到集合中的新元素的数量，不包括被忽略的元素
+     * @description Adds one or more member elements to the set key; member elements already in the set are ignored
+     *      @param members the array of elements to add
+     *      @return the number of new elements added to the set, excluding ignored elements
      */
     add(members: any[]): number;
 
     /**
-     * @description 同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域
-     *      @param members 指定要添加的元素列表
-     *      @return 被添加到集合中的新元素的数量，不包括被忽略的元素
+     * @description Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
+     *      @param members the list of elements to add
+     *      @return the number of new elements added to the set, excluding ignored elements
      */
     add(...members: any[]): number;
 
     /**
-     * @description 移除集合中的一个或多个 member 元素
-     *      @param members 指定要移除的元素数组
-     *      @return 被成功移除的元素的数量，不包括被忽略的元素
+     * @description Removes one or more member elements from the set
+     *      @param members the array of elements to remove
+     *      @return the number of elements successfully removed, excluding ignored elements
      */
     remove(members: any[]): number;
 
     /**
-     * @description 移除集合中的一个或多个 member 元素
-     *      @param members 指定要移除的元素列表
-     *      @return 被成功移除的元素的数量，不包括被忽略的元素
+     * @description Removes one or more member elements from the set
+     *      @param members the list of elements to remove
+     *      @return the number of elements successfully removed, excluding ignored elements
      */
     remove(...members: any[]): number;
 
     /**
-     * @description 返回集合中元素的数量
-     *      @return 返回集合的长度
+     * @description Returns the number of elements in the set
+     *      @return returns the length of the set
      */
     len(): number;
 
     /**
-     * @description 判断 member 元素是否集合的成员
-     *      @param member 指定检查的 member
-     *      @return 如果 member 元素是集合的成员，返回 true
+     * @description Checks whether member is a member of the set
+     *      @param member the member to check
+     *      @return returns true if member is a member of the set
      */
     exists(member: Class_Buffer): boolean;
 
     /**
-     * @description 返回集合中的所有成员
-     *      @return 集合中所有成员的列表
+     * @description Returns all members of the set
+     *      @return the list of all members of the set
      */
     members(): any[];
 
     /**
-     * @description 移除并返回集合中的一个随机元素
-     *      @return 被移除的随机元素。当集合是空集时，返回 null
+     * @description Removes and returns a random element from the set
+     *      @return the removed random element. Returns null when the set is empty
      */
     pop(): Class_Buffer;
 
     /**
-     * @description 从集合中获取随机的一个元素
-     *      @return 返回一个元素；如果集合为空，返回 null
+     * @description Gets one random element from the set
+     *      @return returns an element; returns null if the set is empty
      */
     randMember(): any;
 
     /**
-     * @description 从集合中获取随机的若干元素
-     *      @param count 指定返回的元素个数。正数，返回一个包含 count 个元素的数组；负数，返回一个数组，数组中的元素可能会重复出现多次，而数组的长度为 count 的绝对值
-     *      @return 返回一个列表；如果集合为空，返回空列表
+     * @description Gets several random elements from the set
+     *      @param count the number of elements to return. A positive count returns an array containing count elements; a negative count returns an array whose elements may repeat multiple times and whose length is the absolute value of count
+     *      @return returns a list; returns an empty list if the set is empty
      */
     randMember(count: number): any;
 

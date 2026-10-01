@@ -1,28 +1,28 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description WebRTC 会话描述对象
+ * @description WebRTC session description object
  */
 declare class Class_RTCSessionDescription extends Class_object {
     /**
-     * @description 构造函数
+     * @description constructor
      *
-     *      description 初始化参数，支持以下字段：
-     *         - type: 描述类型
-     *         - sdp: 描述字符串
+     *      description is the initialization parameter, supporting the following fields:
+     *         - type: description type
+     *         - sdp: description string
      *
-     *       @param description 初始化参数
+     *       @param description initialization parameter
      *
      */
     constructor(description?: FIBJS.GeneralObject);
 
     /**
-     * @description 返回描述类型
+     * @description returns the description type
      */
     readonly type: string;
 
     /**
-     * @description 返回描述字符串
+     * @description returns the description string
      */
     readonly sdp: string;
 

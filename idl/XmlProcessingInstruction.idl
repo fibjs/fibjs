@@ -1,0 +1,12 @@
+/*! @brief The XmlProcessingInstruction object represents an xml processing instruction
+ */
+interface XmlProcessingInstruction : XmlNode
+{
+    /*! @brief Returns the target of this processing instruction
+	*/
+    readonly String target;
+
+    /*! @brief Sets or returns the content of this processing instruction
+	*/
+    String data;
+};

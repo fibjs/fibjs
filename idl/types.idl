@@ -1,0 +1,354 @@
+/*! @brief The types module provides utility functions for data type checking
+
+The following is a detailed introduction with examples:
+
+```JavaScript
+var util = require('util');
+console.log(util.types.isDate(new Date()));
+console.log(util.types.isRegExp(/some regexp/));
+```
+*/
+module types
+{
+    /*! @brief Checks whether the given variable contains no value (no enumerable properties)
+     @param v the variable to check
+     @return returns True if empty
+     */
+    static Boolean isEmpty(Value v);
+
+    /*! @brief Checks whether the given variable is an array
+     @param v the variable to check
+     @return returns True if it is an array
+     */
+    static Boolean isArray(Value v);
+
+    /*! @brief Checks whether the given variable is a Boolean
+     @param v the variable to check
+     @return returns True if it is a Boolean
+     */
+    static Boolean isBoolean(Value v);
+
+    /*! @brief Checks whether the given variable is Null
+     @param v the variable to check
+     @return returns True if it is Null
+     */
+    static Boolean isNull(Value v);
+
+    /*! @brief Checks whether the given variable is Null or Undefined
+     @param v the variable to check
+     @return returns True if it is Null or Undefined
+     */
+    static Boolean isNullOrUndefined(Value v);
+
+    /*! @brief Checks whether the given variable is a number
+     @param v the variable to check
+     @return returns True if it is a number
+     */
+    static Boolean isNumber(Value v);
+
+    /*! @brief Checks whether the given variable is a BigInt
+     @param v the variable to check
+     @return returns True if it is a number
+     */
+    static Boolean isBigInt(Value v);
+
+    /*! @brief Checks whether the given variable is a string
+     @param v the variable to check
+     @return returns True if it is a string
+     */
+    static Boolean isString(Value v);
+
+    /*! @brief Checks whether the given variable is Undefined
+     @param v the variable to check
+     @return returns True if it is Undefined
+     */
+    static Boolean isUndefined(Value v);
+
+    /*! @brief Checks whether the given variable is a regular expression object
+     @param v the variable to check
+     @return returns True if it is a regular expression object
+     */
+    static Boolean isRegExp(Value v);
+
+    /*! @brief Checks whether the given variable is an object
+     @param v the variable to check
+     @return returns True if it is an object
+     */
+    static Boolean isObject(Value v);
+
+    /*! @brief Checks whether the given variable is a date object
+     @param v the variable to check
+     @return returns True if it is a date object
+     */
+    static Boolean isDate(Value v);
+
+    /*! @brief Checks whether the given variable is an error object
+     @param v the variable to check
+     @return returns True if it is an error object
+     */
+    static Boolean isNativeError(Value v);
+
+    /*! @brief Checks whether the given variable is a primitive type
+     @param v the variable to check
+     @return returns True if it is a primitive type
+     */
+    static Boolean isPrimitive(Value v);
+
+    /*! @brief Checks whether the given variable is a Symbol type
+     @param v the variable to check
+     @return returns True if it is a Symbol type
+     */
+    static Boolean isSymbol(Value v);
+
+    /*! @brief Checks whether the given variable is a DataView type
+     @param v the variable to check
+     @return returns True if it is a DataView type
+     */
+    static Boolean isDataView(Value v);
+
+    /*! @brief Checks whether the given variable is an External type
+     @param v the variable to check
+     @return returns True if it is an External type
+     */
+    static Boolean isExternal(Value v);
+
+    /*! @brief Checks whether the given variable is a Map type
+     @param v the variable to check
+     @return returns True if it is a Map type
+     */
+    static Boolean isMap(Value v);
+
+    /*! @brief Checks whether the given variable is a MapIterator type
+     @param v the variable to check
+     @return returns True if it is a MapIterator type
+     */
+    static Boolean isMapIterator(Value v);
+
+    /*! @brief Checks whether the given variable is a Promise type
+     @param v the variable to check
+     @return returns True if it is a Promise type
+     */
+    static Boolean isPromise(Value v);
+
+    /*! @brief Checks whether the given variable is an AsyncFunction type
+     @param v the variable to check
+     @return returns True if it is an AsyncFunction type
+     */
+    static Boolean isAsyncFunction(Value v);
+
+    /*! @brief Checks whether the given variable is a Set type
+     @param v the variable to check
+     @return returns True if it is a Set type
+     */
+    static Boolean isSet(Value v);
+
+    /*! @brief Checks whether the given variable is a SetIterator type
+     @param v the variable to check
+     @return returns True if it is a SetIterator type
+     */
+    static Boolean isSetIterator(Value v);
+
+    /*! @brief Checks whether the given variable is a TypedArray type
+     @param v the variable to check
+     @return returns True if it is a TypedArray type
+     */
+    static Boolean isTypedArray(Value v);
+
+    /*! @brief Checks whether the given variable is a Float32Array type
+     @param v the variable to check
+     @return returns True if it is a Float32Array type
+     */
+    static Boolean isFloat32Array(Value v);
+
+    /*! @brief Checks whether the given variable is a Float64Array type
+     @param v the variable to check
+     @return returns True if it is a Float64Array type
+     */
+    static Boolean isFloat64Array(Value v);
+
+    /*! @brief Checks whether the given variable is an Int8Array type
+     @param v the variable to check
+     @return returns True if it is an Int8Array type
+     */
+    static Boolean isInt8Array(Value v);
+
+    /*! @brief Checks whether the given variable is an Int16Array type
+     @param v the variable to check
+     @return returns True if it is an Int16Array type
+     */
+    static Boolean isInt16Array(Value v);
+
+    /*! @brief Checks whether the given variable is an Int32Array type
+     @param v the variable to check
+     @return returns True if it is an Int32Array type
+     */
+    static Boolean isInt32Array(Value v);
+
+    /*! @brief Checks whether the given variable is a Uint8Array type
+     @param v the variable to check
+     @return returns True if it is a Uint8Array type
+     */
+    static Boolean isUint8Array(Value v);
+
+    /*! @brief Checks whether the given variable is a Uint8ClampedArray type
+     @param v the variable to check
+     @return returns True if it is a Uint8ClampedArray type
+     */
+    static Boolean isUint8ClampedArray(Value v);
+
+    /*! @brief Checks whether the given variable is a Uint16Array type
+     @param v the variable to check
+     @return returns True if it is a Uint16Array type
+     */
+    static Boolean isUint16Array(Value v);
+
+    /*! @brief Checks whether the given variable is a Uint32Array type
+     @param v the variable to check
+     @return returns True if it is a Uint32Array type
+     */
+    static Boolean isUint32Array(Value v);
+
+    /*! @brief Checks whether the given variable is a function object
+     @param v the variable to check
+     @return returns True if it is a function object
+     */
+    static Boolean isFunction(Value v);
+
+    /*! @brief Checks whether the given variable is a Buffer object
+     @param v the variable to check
+     @return returns True if it is a Buffer object
+     */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief Checks whether the given variable is a BigInt object, not a primitive type
+     @param v the variable to check
+     @return returns True if it is a BigInt object
+     */
+    static Boolean isBigIntObject(Value v);
+
+    /*! @brief Checks whether the given variable is a Boolean object, not a primitive type
+     @param v the variable to check
+     @return returns True if it is a Boolean object
+     */
+    static Boolean isBooleanObject(Value v);
+
+    /*! @brief Checks whether the given variable is a Number object, not a primitive type
+     @param v the variable to check
+     @return returns True if it is a Number object
+     */
+    static Boolean isNumberObject(Value v);
+
+    /*! @brief Checks whether the given variable is a String object, not a primitive type
+     @param v the variable to check
+     @return returns True if it is a String object
+     */
+    static Boolean isStringObject(Value v);
+
+    /*! @brief Checks whether the given variable is a Symbol object, not a primitive type
+     @param v the variable to check
+     @return returns True if it is a Symbol object
+     */
+    static Boolean isSymbolObject(Value v);
+
+    /*! @brief Checks whether the given variable is a WeakMap type
+     @param v the variable to check
+     @return returns True if it is a WeakMap type
+     */
+    static Boolean isWeakMap(Value v);
+
+    /*! @brief Checks whether the given variable is a WeakSet type
+     @param v the variable to check
+     @return returns True if it is a WeakSet type
+     */
+    static Boolean isWeakSet(Value v);
+
+    /*! @brief Checks whether the given variable is an ArrayBuffer type
+     @param v the variable to check
+     @return returns True if it is an ArrayBuffer type
+     */
+    static Boolean isArrayBuffer(Value v);
+
+    /*! @brief Checks whether the given variable is an ArrayBufferView type
+     @param v the variable to check
+     @return returns True if it is an ArrayBufferView type
+     */
+    static Boolean isArrayBufferView(Value v);
+
+    /*! @brief Checks whether the given variable is a BigInt64Array type
+     @param v the variable to check
+     @return returns True if it is a BigInt64Array type
+     */
+    static Boolean isBigInt64Array(Value v);
+
+    /*! @brief Checks whether the given variable is a BigUint64Array type
+     @param v the variable to check
+     @return returns True if it is a BigUint64Array type
+     */
+    static Boolean isBigUint64Array(Value v);
+
+    /*! @brief Checks whether the given variable is a Float16Array type
+     @param v the variable to check
+     @return returns True if it is a Float16Array type
+     */
+    static Boolean isFloat16Array(Value v);
+
+    /*! @brief Checks whether the given variable is an ArrayBuffer or SharedArrayBuffer type
+     @param v the variable to check
+     @return returns True if it is an ArrayBuffer or SharedArrayBuffer type
+     */
+    static Boolean isAnyArrayBuffer(Value v);
+
+    /*! @brief Checks whether the given variable is a SharedArrayBuffer type
+     @param v the variable to check
+     @return returns True if it is a SharedArrayBuffer type
+     */
+    static Boolean isSharedArrayBuffer(Value v);
+
+    /*! @brief Checks whether the given variable is an arguments object
+     @param v the variable to check
+     @return returns True if it is an arguments object
+     */
+    static Boolean isArgumentsObject(Value v);
+
+    /*! @brief Checks whether the given variable is a boxed primitive object (such as new Boolean(), new String(), etc.)
+     @param v the variable to check
+     @return returns True if it is a boxed primitive object
+     */
+    static Boolean isBoxedPrimitive(Value v);
+
+    /*! @brief Checks whether the given variable is a GeneratorFunction type
+     @param v the variable to check
+     @return returns True if it is a GeneratorFunction type
+     */
+    static Boolean isGeneratorFunction(Value v);
+
+    /*! @brief Checks whether the given variable is a Generator object
+     @param v the variable to check
+     @return returns True if it is a Generator object
+     */
+    static Boolean isGeneratorObject(Value v);
+
+    /*! @brief Checks whether the given variable is a Proxy instance
+     @param v the variable to check
+     @return returns True if it is a Proxy instance
+     */
+    static Boolean isProxy(Value v);
+
+    /*! @brief Checks whether the given variable is a Module Namespace object
+     @param v the variable to check
+     @return returns True if it is a Module Namespace object
+     */
+    static Boolean isModuleNamespaceObject(Value v);
+
+    /*! @brief Checks whether the given variable is a CryptoKey type
+     @param v the variable to check
+     @return returns True if it is a CryptoKey type
+     */
+    static Boolean isCryptoKey(Value v);
+
+    /*! @brief Checks whether the given variable is a KeyObject type
+     @param v the variable to check
+     @return returns True if it is a KeyObject type
+     */
+    static Boolean isKeyObject(Value v);
+};

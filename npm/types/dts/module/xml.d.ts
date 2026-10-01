@@ -4,9 +4,9 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description xml 处理模块，可以使用 xml 模块解析和处理 xml 和 html 文件
+ * @description The xml processing module; the xml module can be used to parse and process xml and html files
  *
- * 要解析 xml 文件，你可以使用如下代码：
+ * To parse an xml file, you can use the following code:
  * ```JavaScript
  * var xml = require('xml');
  * var fs = require('fs');
@@ -16,9 +16,9 @@
  *
  * console.log(xmlDoc.documentElement.nodeName);  // output root node name
  * ```
- * 在上面的代码中，我们使用 fs 模块的 readFile 方法读取了一个 xml 文件，然后使用 xml 模块的 parse 方法解析该 xml 文件，并返回一个 XmlDocument 对象 xmlDoc。然后，我们就可以通过 xmlDoc.documentElement 访问 xml 文档的根元素了。
+ * In the above code, we use the readFile method of the fs module to read an xml file, then use the parse method of the xml module to parse the xml file and return an XmlDocument object xmlDoc. Then we can access the root element of the xml document through xmlDoc.documentElement.
  *
- * 要解析 html 文件，你只需稍微修改一下代码：
+ * To parse an html file, you only need to modify the code slightly:
  * ```JavaScript
  * var xml = require('xml');
  * var fs = require('fs');
@@ -28,122 +28,122 @@
  *
  * console.log(xmlDoc.documentElement.nodeName);  // output root node name
  * ```
- * 在这里，我们同样使用了 fs 模块的 readFile 方法读取了一个 html 文件，但我们在调用 xml 模块的 parse 方法时指定了第二个参数为 ‘text/html’，这样 xml 模块就会按照 html 的语法规则解析文件。
+ * Here we also use the readFile method of the fs module to read an html file, but we specify the second parameter as 'text/html' when calling the parse method of the xml module, so that the xml module parses the file according to the syntax rules of html.
  *
- * 解析后的 Xml 文档对象都是 XmlDocument 类型，其属性和方法都可以参考 xml 对象模型（DOM）进行操作。
+ * The parsed Xml document objects are all of type XmlDocument, and their properties and methods can be used by referring to the xml object model (DOM).
  *
  */
 declare module 'xml' {
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlElement 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlElement object
      *
      */
     export const ELEMENT_NODE: 1;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlAttr 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlAttr object
      *
      */
     export const ATTRIBUTE_NODE: 2;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlText 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlText object
      *
      */
     export const TEXT_NODE: 3;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlCDATASection 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlCDATASection object
      *
      */
     export const CDATA_SECTION_NODE: 4;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 EntityReference 对象（已废弃）
+     * @description The nodeType property constant of XmlNode, indicating that the node is an EntityReference object (deprecated)
      *
      */
     export const ENTITY_REFERENCE_NODE: 5;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 Entity 对象（已废弃）
+     * @description The nodeType property constant of XmlNode, indicating that the node is an Entity object (deprecated)
      *
      */
     export const ENTITY_NODE: 6;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlProcessingInstruction 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlProcessingInstruction object
      *
      */
     export const PROCESSING_INSTRUCTION_NODE: 7;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlComment 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlComment object
      *
      */
     export const COMMENT_NODE: 8;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlDocument 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocument object
      *
      */
     export const DOCUMENT_NODE: 9;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentType 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocumentType object
      *
      */
     export const DOCUMENT_TYPE_NODE: 10;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentFragment 对象
+     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocumentFragment object
      *
      */
     export const DOCUMENT_FRAGMENT_NODE: 11;
 
     /**
-     * @description XmlNode 的 nodeType 属性常量，表示节点为 Notation 对象（已废弃）
+     * @description The nodeType property constant of XmlNode, indicating that the node is a Notation object (deprecated)
      *
      */
     export const NOTATION_NODE: 12;
 
     /**
-     * @description xml 文档对象，参见 XmlDocument 对象
+     * @description The xml document object, see the XmlDocument object
      */
     const Document: typeof Class_XmlDocument;
 
     /**
-     * @description DOMParser 接口，用于将字符串解析为 DOM 文档，参见 DOMParser 对象
+     * @description The DOMParser interface, used to parse a string into a DOM document, see the DOMParser object
      */
     const DOMParser: typeof Class_DOMParser;
 
     /**
-     * @description 解析 xml/html 文本，并创建 XmlDocument 对象，不支持多语种
-     *      @param source 指定需要解析的 xml/html 文本
-     *      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
-     *      @param options 指定解析限制，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *       - maxElementDepth: 最大元素嵌套层数，根元素为 1，超出时报错；0 或负数表示不限制
-     *       - maxNodeCount: 最大节点数，包含元素、属性、文本、注释、CDATA、处理指令和文档类型，超出时报错；0 或负数表示不限制
-     *     @return 返回创建的 XmlDocument 对象
+     * @description Parses xml/html text and creates an XmlDocument object; multilingual text is not supported
+     *      @param source the xml/html text to parse
+     *      @param type the text type, default text/xml; can also be set to text/html
+     *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *       - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
+     *       - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
+     *     @return returns the created XmlDocument object
      *
      */
     function parse(source: string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
-     * @description 解析 xml/html，并创建 XmlDocument 对象，解析时会根据指定的语种转换
-     *      @param source 指定需要解析的 xml/html 二进制数据
-     *      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
-     *      @param options 指定解析限制，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *       - maxElementDepth: 最大元素嵌套层数，根元素为 1，超出时报错；0 或负数表示不限制
-     *       - maxNodeCount: 最大节点数，包含元素、属性、文本、注释、CDATA、处理指令和文档类型，超出时报错；0 或负数表示不限制
-     *      @return 返回创建的 XmlDocument 对象
+     * @description Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
+     *      @param source the xml/html binary data to parse
+     *      @param type the text type, default text/xml; can also be set to text/html
+     *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *       - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
+     *       - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
+     *      @return returns the created XmlDocument object
      *
      */
     function parse(source: Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
-     * @description 序列化 XmlNode 为字符串
-     *      @param node 指定需要序列化的 XmlNode
-     *      @return 返回序列化的字符串
+     * @description Serializes an XmlNode to a string
+     *      @param node the XmlNode to serialize
+     *      @return returns the serialized string
      *
      */
     function serialize(node: Class_XmlNode): string;

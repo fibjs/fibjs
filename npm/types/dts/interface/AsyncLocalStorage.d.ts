@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 该对象允许您在异步操作中存储和检索数据
+ * @description This object allows you to store and retrieve data across asynchronous operations
  *
- *  AsyncLocalStorage 可用于在异步调用链中传递数据，类似于线程本地存储。每个异步操作都可以访问其创建时的存储数据，而不会与其他异步操作的数据混淆。
+ *  AsyncLocalStorage can be used to pass data along an asynchronous call chain, similar to thread-local storage. Each asynchronous operation can access the store data from when it was created, without being mixed up with the data of other asynchronous operations.
  *
- *  以下是一个简单的示例：
+ *  The following is a simple example:
  *  ```javascript
  *  const { AsyncLocalStorage } = require('async_hooks');
  *  const als = new AsyncLocalStorage();
@@ -21,31 +21,31 @@
  */
 declare class Class_AsyncLocalStorage extends Class_object {
     /**
-     * @description 创建一个新的 AsyncLocalStorage 实例
+     * @description Creates a new AsyncLocalStorage instance
      *
-     *      options 支持以下选项：
-     *       - defaultValue: 指定默认值，当没有存储值时返回该值
-     *       - name: 为 AsyncLocalStorage 实例指定一个名称，便于调试
+     *      options supports the following options:
+     *       - defaultValue: the default value returned when there is no stored value
+     *       - name: a name for the AsyncLocalStorage instance, for debugging
      *
-     *      @param options 一个可选的对象，用于配置 AsyncLocalStorage 实例
+     *      @param options an optional object used to configure the AsyncLocalStorage instance
      *
      */
     constructor(options?: FIBJS.GeneralObject);
 
     /**
-     * @description 获取 AsyncLocalStorage 实例的名称
+     * @description Gets the name of the AsyncLocalStorage instance
      *
-     *      名称在创建实例时通过 options.name 设置，用于调试目的。如果未设置，返回空字符串。
+     *      The name is set via options.name when the instance is created, for debugging purposes. If not set, an empty string is returned.
      *
      */
     readonly name: string;
 
     /**
-     * @description 创建一个快照函数，用于捕获当前的异步上下文
+     * @description Creates a snapshot function that captures the current asynchronous context
      *
-     *      返回的函数可以在任何时候调用，它会在捕获时的上下文中执行传入的回调函数。
+     *      The returned function can be called at any time and executes the passed callback in the context captured at snapshot time.
      *
-     *      示例：
+     *      Example:
      *      ```javascript
      *      const runInContext = als.run({ id: 1 }, () => AsyncLocalStorage.snapshot());
      *      // Later in a different context
@@ -56,18 +56,18 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      });
      *      ```
      *
-     *      @return 返回一个函数，该函数接受一个回调并在捕获的上下文中执行它
+     *      @return returns a function that takes a callback and executes it in the captured context
      *
      */
     static snapshot(): (...args: any[])=>any;
 
     /**
-     * @description 将函数绑定到当前的异步上下文
+     * @description Binds a function to the current asynchronous context
      *
-     *      返回一个新函数，该函数在调用时会在捕获时的异步上下文中执行原始函数。
-     *      这对于确保回调函数在正确的上下文中执行非常有用。
+     *      Returns a new function that executes the original function in the asynchronous context captured at bind time when called.
+     *      This is useful for ensuring that callbacks execute in the correct context.
      *
-     *      示例：
+     *      Example:
      *      ```javascript
      *      const bound = als.run({ id: 1 }, () => {
      *          return AsyncLocalStorage.bind(() => als.getStore());
@@ -77,38 +77,38 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      });
      *      ```
      *
-     *      @param fn 要绑定的函数
-     *      @return 返回绑定到当前上下文的新函数
+     *      @param fn the function to bind
+     *      @return returns a new function bound to the current context
      *
      */
     static bind(fn: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 禁用当前 AsyncLocalStorage 实例
+     * @description Disables the current AsyncLocalStorage instance
      *
-     *      调用此方法后，getStore() 将返回 undefined（除非设置了 defaultValue），并且不再传播存储数据到后续的异步操作。
+     *      After calling this method, getStore() returns undefined (unless defaultValue is set), and store data is no longer propagated to subsequent asynchronous operations.
      *
      */
     disable(): void;
 
     /**
-     * @description 获取当前异步上下文中的存储数据
+     * @description Gets the store data of the current asynchronous context
      *
-     *      如果在 run() 或 enterWith() 设置的上下文中调用，返回对应的存储数据。
-     *      如果不在任何上下文中，返回 undefined 或创建实例时指定的 defaultValue。
+     *      If called within a context set by run() or enterWith(), returns the corresponding store data.
+     *      If not within any context, returns undefined or the defaultValue specified when the instance was created.
      *
-     *      @return 返回当前上下文中的存储数据
+     *      @return returns the store data of the current context
      *
      */
     getStore(): any;
 
     /**
-     * @description 进入一个新的异步上下文，并设置存储数据
+     * @description Enters a new asynchronous context and sets the store data
      *
-     *      与 run() 不同，enterWith() 不需要回调函数，它会在当前执行上下文中设置存储数据，
-     *      该数据会传播到后续的所有异步操作，直到当前异步上下文结束。
+     *      Unlike run(), enterWith() does not require a callback function; it sets the store data in the current execution context,
+     *      and the data is propagated to all subsequent asynchronous operations until the current asynchronous context ends.
      *
-     *      示例：
+     *      Example:
      *      ```javascript
      *      setImmediate(() => {
      *          als.enterWith({ id: 1 });
@@ -118,19 +118,19 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      });
      *      ```
      *
-     *      @param store 要存储的数据
+     *      @param store the data to store
      *
      */
     enterWith(store: any): void;
 
     /**
-     * @description 在新的异步上下文中运行回调函数
+     * @description Runs a callback function in a new asynchronous context
      *
-     *      创建一个新的异步上下文，在该上下文中设置存储数据，然后执行回调函数。
-     *      回调函数内部及其触发的所有异步操作都可以通过 getStore() 获取该存储数据。
-     *      回调执行完毕后，上下文自动恢复到调用 run() 之前的状态。
+     *      Creates a new asynchronous context, sets the store data in that context, and then executes the callback function.
+     *      The callback function and all asynchronous operations it triggers can obtain the store data through getStore().
+     *      After the callback finishes executing, the context automatically restores to the state before run() was called.
      *
-     *      示例：
+     *      Example:
      *      ```javascript
      *      const result = als.run({ userId: 'user-1' }, (a, b) => {
      *          console.log(als.getStore().userId);  // Output: user-1
@@ -139,21 +139,21 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      console.log(result);  // Output: 30
      *      ```
      *
-     *      @param store 要存储的数据
-     *      @param callback 要执行的回调函数
-     *      @param args 传递给回调函数的参数
-     *      @return 返回回调函数的返回值
+     *      @param store the data to store
+     *      @param callback the callback function to execute
+     *      @param args the parameters passed to the callback function
+     *      @return returns the return value of the callback function
      *
      */
     run(store: any, callback: (...args: any[])=>any, ...args: any[]): any;
 
     /**
-     * @description 暂时退出当前异步上下文执行回调函数
+     * @description Temporarily exits the current asynchronous context to execute a callback function
      *
-     *      在回调执行期间，getStore() 将返回 undefined（或 defaultValue）。
-     *      回调执行完毕后，恢复到原来的上下文。
+     *      During the callback execution, getStore() returns undefined (or defaultValue).
+     *      After the callback finishes executing, the original context is restored.
      *
-     *      示例：
+     *      Example:
      *      ```javascript
      *      als.run({ id: 1 }, () => {
      *          console.log(als.getStore().id);  // Output: 1
@@ -164,9 +164,9 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      });
      *      ```
      *
-     *      @param callback 要执行的回调函数
-     *      @param args 传递给回调函数的参数
-     *      @return 返回回调函数的返回值
+     *      @param callback the callback function to execute
+     *      @param args the parameters passed to the callback function
+     *      @return returns the return value of the callback function
      *
      */
     exit(callback: (...args: any[])=>any, ...args: any[]): any;

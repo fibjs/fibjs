@@ -1,103 +1,103 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
- * @description timers 模块提供定时任务调度能力，包括延时执行、周期执行、空闲执行与带超时限制的函数调用，可用于延迟任务、周期轮询、避免阻塞与超时保护等场景
+ * @description The timers module provides timer scheduling capabilities, including delayed execution, periodic execution, idle execution and function calls with a timeout limit, and can be used for delayed tasks, periodic polling, avoiding blocking and timeout protection and other scenarios
  *
- *  定时函数提供以下能力：
+ *  The timer functions provide the following capabilities:
  *
- *  - `setTimeout`：在指定延时后执行一次回调函数；
- *  - `setInterval`：按固定间隔周期执行回调函数；
- *  - `setHrInterval`：高精度周期执行，回调可打断正在运行的脚本；
- *  - `setImmediate`：在当前同步代码执行完毕后执行回调函数；
- *  - `call`：在指定时间内调用函数，超时未返回时中断执行并抛出异常。
+ *  - `setTimeout`: executes a callback function once after the specified delay;
+ *  - `setInterval`: executes a callback function periodically at a fixed interval;
+ *  - `setHrInterval`: high-precision periodic execution; the callback can interrupt the running script;
+ *  - `setImmediate`: executes a callback function after the current synchronous code finishes executing;
+ *  - `call`: calls a function within the specified time; if it does not return in time, the execution is interrupted and an exception is thrown.
  *
- *  模块内所有定时函数均为全局函数，全局 `setTimeout`、`setInterval`、`setImmediate` 与模块内同名函数行为一致，可直接调用，无需引入模块。
+ *  All timer functions in the module are global functions; the global `setTimeout`, `setInterval` and `setImmediate` behave the same as the functions with the same names in this module and can be called directly without requiring the module.
  *
- *  定时函数均返回 Timer 对象，通过该对象控制定时器生命周期：
+ *  All timer functions return a Timer object, through which the timer lifecycle is controlled:
  *
- *  - 定时器执行完毕或被清除后，其 `stopped` 属性为 `true`；
- *  - 回调函数中的 `this` 指向当前定时器对象，可在回调内直接清除自身；
- *  - 定时器默认会阻止 fibjs 进程退出；调用 `Timer.unref()` 后，进程可在定时器等待期间正常退出；
- *  - 清除函数接受任意值，非定时器对象时静默忽略，重复清除同一定时器不会产生错误。
+ *  - after the timer finishes executing or is cleared, its `stopped` property is `true`;
+ *  - the `this` in the callback function points to the current timer object, so the callback can clear itself directly;
+ *  - by default a timer prevents the fibjs process from exiting; after calling `Timer.unref()`, the process can exit normally while the timer is waiting;
+ *  - the clear functions accept any value; non-timer objects are silently ignored, and clearing the same timer repeatedly does not raise an error.
  *
- *  延时与周期函数的 timeout 参数以毫秒为单位，小于 1 或大于 2^31-1（约 24.8 天）的值按 1ms 处理。
+ *  The timeout parameter of delay and periodic functions is in milliseconds; values less than 1 or greater than 2^31-1 (about 24.8 days) are treated as 1ms.
  *
- *  示例：
+ *  Example:
  *
  *  ```JavaScript
  *  var timers = require('timers');
  *
- *  // 延时执行一次，timeout 缺省为 1ms
+ *  // Execute once after a delay; timeout defaults to 1ms
  *  timers.setTimeout(() => {
  *      console.log('timeout');
  *  }, 1000);
  *
- *  // 周期执行，在回调内清除自身
+ *  // Periodic execution; clear itself inside the callback
  *  var intervalId = timers.setInterval(function () {
  *      console.log('tick');
  *      timers.clearInterval(this);
  *  }, 500);
  *
- *  // 空闲执行：当前同步代码执行完毕后立即执行，不会阻塞
+ *  // Idle execution: runs immediately after the current synchronous code finishes, without blocking
  *  timers.setImmediate(() => console.log('immediate'));
  *
- *  // 带超时的函数调用，返回函数执行结果
+ *  // Function call with a timeout; returns the function execution result
  *  var r = timers.call((a, b) => a + b, 100, 3, 4);
  *  console.log(r); // 7
  *  ```
  *
- *  上述示例中创建的定时器会保持进程运行，定时器全部结束或清除后进程才会退出。
+ *  The timers created in the above examples keep the process running; the process exits only after all timers have finished or been cleared.
  *
  */
 declare module 'timers' {
     /**
-     * @description 延时执行回调函数，定时器执行一次后自动停止
+     * @description Executes the callback function after a delay; the timer stops automatically after one execution
      *
-     *      timeout 缺省为 1ms，小于 1 或大于 2^31-1 的值按 1ms 处理。args 中的参数将原样传递给回调函数。
-     *      @param callback 回调函数
-     *      @param timeout 延时时间，以毫秒为单位，缺省为 1
-     *      @param args 传递给回调函数的额外参数，可选
-     *      @return 返回定时器对象
+     *      timeout defaults to 1ms; values less than 1 or greater than 2^31-1 are treated as 1ms. The arguments in args are passed to the callback function unchanged.
+     *      @param callback callback function
+     *      @param timeout delay time in milliseconds, default 1
+     *      @param args additional arguments passed to the callback function, optional
+     *      @return returns a timer object
      *
      */
     function setTimeout(callback: (...args: any[])=>any, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
-     * @description 清除指定的定时器
+     * @description Clears the specified timer
      *
-     *      参数可以是任意值，非定时器对象时静默忽略；重复清除同一定时器不会产生错误。
-     *      @param t 指定要清除的定时器
+     *      The parameter can be any value; non-timer objects are silently ignored; clearing the same timer repeatedly does not raise an error.
+     *      @param t the timer to clear
      *
      */
     function clearTimeout(t: any): void;
 
     /**
-     * @description 按固定间隔周期执行回调函数
+     * @description Executes the callback function periodically at a fixed interval
      *
-     *      timeout 取值规则与 setTimeout 相同。定时器将持续运行，直到调用 clearInterval 清除，或在回调内清除自身。
-     *      @param callback 回调函数
-     *      @param timeout 间隔时间，以毫秒为单位
-     *      @param args 传递给回调函数的额外参数，可选
-     *      @return 返回定时器对象
+     *      The timeout value rules are the same as setTimeout. The timer keeps running until clearInterval is called, or it clears itself inside the callback.
+     *      @param callback callback function
+     *      @param timeout interval time in milliseconds
+     *      @param args additional arguments passed to the callback function, optional
+     *      @return returns a timer object
      *
      */
     function setInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
-     * @description 清除指定的定时器
+     * @description Clears the specified timer
      *
-     *      参数可以是任意值，非定时器对象时静默忽略；重复清除同一定时器不会产生错误。
-     *      @param t 指定要清除的定时器
+     *      The parameter can be any value; non-timer objects are silently ignored; clearing the same timer repeatedly does not raise an error.
+     *      @param t the timer to clear
      *
      */
     function clearInterval(t: any): void;
 
     /**
-     * @description 按固定间隔周期执行回调函数的高精度定时器
+     * @description High-precision timer that executes the callback function periodically at a fixed interval
      *
-     *      与 setInterval 不同，高精度定时器的回调不依赖事件循环调度，可在任意时刻打断正在运行的脚本执行，时间精度更高。
+     *      Unlike setInterval, the callback of a high-precision timer does not depend on event loop scheduling; it can interrupt the running script at any time and has higher time precision.
      *
-     *      由于回调可能随时插入执行，回调内不应修改可能影响其它模块的数据，也不应调用任何异步 API，否则将产生不可预知的结果。例如：
+     *      Since the callback may be inserted at any time, it should not modify data that may affect other modules, nor call any asynchronous API, otherwise unpredictable results may occur. For example:
      *
      *      ```JavaScript
      *      var timers = require('timers');
@@ -105,7 +105,7 @@ declare module 'timers' {
      *      var n = 0;
      *      var t = timers.setHrInterval(() => n++, 100);
      *
-     *      // 忙等 50ms，期间回调仍会按间隔触发
+     *      // Busy-wait for 50ms; the callback still fires at the interval during this time
      *      var end = Date.now() + 50;
      *      while (Date.now() < end);
      *
@@ -113,56 +113,56 @@ declare module 'timers' {
      *      console.log(n);
      *      ```
      *
-     *      需要注意的是，即时编译器可能对循环条件进行优化，导致回调中变量的修改无法被循环感知，例如 `while (n < 10)` 不会因回调修改了 n 而退出。
-     *      @param callback 回调函数
-     *      @param timeout 间隔时间，以毫秒为单位
-     *      @param args 传递给回调函数的额外参数，可选
-     *      @return 返回定时器对象
+     *      Note that the just-in-time compiler may optimize the loop condition, so modifications to variables in the callback may not be observed by the loop; for example, `while (n < 10)` will not exit because the callback modified n.
+     *      @param callback callback function
+     *      @param timeout interval time in milliseconds
+     *      @param args additional arguments passed to the callback function, optional
+     *      @return returns a timer object
      *
      */
     function setHrInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
-     * @description 清除指定的定时器
+     * @description Clears the specified timer
      *
-     *      参数可以是任意值，非定时器对象时静默忽略；重复清除同一定时器不会产生错误。
-     *      @param t 指定要清除的定时器
+     *      The parameter can be any value; non-timer objects are silently ignored; clearing the same timer repeatedly does not raise an error.
+     *      @param t the timer to clear
      *
      */
     function clearHrInterval(t: any): void;
 
     /**
-     * @description 在当前同步代码执行完毕后执行回调函数
+     * @description Executes the callback function after the current synchronous code finishes executing
      *
-     *      args 中的参数将原样传递给回调函数。
-     *      @param callback 回调函数
-     *      @param args 传递给回调函数的额外参数，可选
-     *      @return 返回定时器对象
+     *      The arguments in args are passed to the callback function unchanged.
+     *      @param callback callback function
+     *      @param args additional arguments passed to the callback function, optional
+     *      @return returns a timer object
      *
      */
     function setImmediate(callback: (...args: any[])=>any, ...args: any[]): Class_Timer;
 
     /**
-     * @description 清除指定的定时器
+     * @description Clears the specified timer
      *
-     *      参数可以是任意值，非定时器对象时静默忽略；重复清除同一定时器不会产生错误。
-     *      @param t 指定要清除的定时器
+     *      The parameter can be any value; non-timer objects are silently ignored; clearing the same timer repeatedly does not raise an error.
+     *      @param t the timer to clear
      *
      */
     function clearImmediate(t: any): void;
 
     /**
-     * @description 在指定时间内调用函数，函数超时未返回时中断执行并抛出异常
+     * @description Calls a function within the specified time; if the function does not return in time, the execution is interrupted and an exception is thrown
      *
-     *      timeout 以毫秒为单位，小于 1 或大于 2^31-1 的值按 1ms 处理。函数正常返回时，返回其执行结果；args 中的参数将原样传递给函数。
+     *      timeout is in milliseconds; values less than 1 or greater than 2^31-1 are treated as 1ms. If the function returns normally, its execution result is returned; the arguments in args are passed to the function unchanged.
      *
      *      ```JavaScript
      *      var timers = require('timers');
      *
-     *      // 正常返回函数结果
+     *      // The function returns its result normally
      *      var r = timers.call((a, b) => a + b, 100, 3, 4);
      *
-     *      // 超时抛出异常
+     *      // Timeout throws an exception
      *      try {
      *          timers.call(() => {
      *              while (true);
@@ -171,10 +171,10 @@ declare module 'timers' {
      *          console.error(e);
      *      }
      *      ```
-     *      @param func 要调用的函数
-     *      @param timeout 超时时间，以毫秒为单位
-     *      @param args 传递给函数的额外参数，可选
-     *      @return 返回函数的执行结果
+     *      @param func the function to call
+     *      @param timeout timeout in milliseconds
+     *      @param args additional arguments passed to the function, optional
+     *      @return returns the execution result of the function
      *
      */
     function call(func: (...args: any[])=>any, timeout: number, ...args: any[]): any;

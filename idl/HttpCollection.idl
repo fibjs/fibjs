@@ -1,0 +1,174 @@
+/*! @brief HttpCollection is a general-purpose container for handling headers, query, form and cookie data in http messages
+
+We use headers as an example to explain how to use HttpCollection.
+
+HttpCollection supports three forms of adding data:
+
+1. Add a key-value entry; adding data does not modify the data of an existing key. `add`
+
+```JavaScript
+headers.add({
+    'Content-Type': 'text/plain',
+    'User-Agent': 'fibjs'
+});
+```
+
+2. Add a group of data for a key; adding data does not modify the data of an existing key. `add`
+
+```JavaScript
+headers.add('Set-Cookie', [
+    'a=10',
+    'b=20'
+]);
+```
+
+3. Add a key-value entry; adding data does not modify the data of an existing key. `add`
+
+```JavaScript
+headers.add('Accept-Encoding', 'gzip');
+```
+
+Setting data in HttpCollection works the same way as adding, using the `set` method.
+
+We can use `has` to check whether data of the specified key exists in the container
+
+```JavaScript
+const contentTypeExists = headers.has('Content-Type');
+```
+
+Use `first` to get the first value corresponding to a key in the container:
+
+```JavaScript
+const contentType = headers.first('Content-Type');
+```
+
+Use `all` to query all values of the specified key, returning an array. If an empty string parameter is passed, all values are returned
+
+```JavaScript
+const cookieArray = headers.all('Set-Cookie');
+const alls = headers.all();
+```
+
+Use the `delete` method to delete all data of the specified key; returning `true` indicates */
+interface HttpCollection : object
+{
+    /*! @brief clears the container data */
+    clear();
+
+    /*! @brief checks whether data of the specified key exists in the container
+     @param name specifies the key to check
+     @return returns whether the key exists
+     */
+    Boolean has(String name);
+
+    /*! @brief queries the first value of the specified key
+     @param name specifies the key to query
+     @return returns the value corresponding to the key, or undefined if it does not exist
+     */
+    Variant first(String name);
+
+    /*! @brief queries the first value of the specified key, same as first
+     @param name specifies the key to query
+     @return returns the value corresponding to the key, or undefined if it does not exist
+     */
+    Variant get(String name);
+
+    /*! @brief queries all values of the specified key
+     @param name specifies the key to query; passing an empty string returns the result of all keys
+     @return returns an array of all values corresponding to the key, or null if the data does not exist
+     */
+    NObject all(String name = "");
+
+    /*! @brief queries all values of the specified key
+     @param name specifies the key to query
+     @return returns an array of all values corresponding to the key, or null if the data does not exist
+     */
+    NArray getAll(String name);
+
+    /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
+     @param map specifies the key-value data dictionary to append
+     */
+    append(Object map);
+
+    /*! @brief appends a group of data for a key; appending data does not modify the data of an existing key
+     @param name specifies the key to append
+     @param values specifies the group of data to append
+     */
+    append(String name, Array values);
+
+    /*! @brief appends a group of data; appending data does not modify the data of an existing key
+     @param entries specifies the group of data to append, in the format [[<key>, <value>]]
+     */
+    append(Array entries);
+
+    /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
+     @param name specifies the key to append
+     @param value specifies the data to append
+     */
+    append(String name, Variant value);
+
+    /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     @param map specifies the key-value data dictionary to set
+     */
+    set(Object map);
+
+    /*! @brief sets a group of data for a key; setting data modifies the value of the key and clears the remaining data with the same key
+     @param name specifies the key to set
+     @param values specifies the group of data to set
+     */
+    set(String name, Array values);
+
+    /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     @param name specifies the key to set
+     @param value specifies the data to set
+     */
+    set(String name, Variant value);
+
+    /*! @brief deletes all values of the specified key
+     @param name specifies the key to delete
+     */
+    remove(String name);
+
+    /*! @brief deletes all values of the specified key
+     @param name specifies the key to delete
+     */
+    delete(String name);
+
+    /*! @brief sorts the contents of the container by key
+     */
+    sort();
+
+    /*! @brief iterates over the contents of the container
+     @param callback specifies the function called during iteration, whose parameters are (value, key, object)
+     */
+    forEach(Function callback);
+
+    /*! @brief iterates over the contents of the container
+     @param callback specifies the function called during iteration, whose parameters are (value, key, object)
+     @param thisArg specifies the this object of the callback function
+     */
+    forEach(Function callback, Value thisArg);
+
+    /*! @brief queries the keys in the container
+     @return returns an iterator containing all keys
+     */
+    Iterator keys();
+
+    /*! @brief queries the values in the container
+     @return returns an iterator containing all values
+     */
+    Iterator values();
+
+    /*! @brief queries the keys and values in the container
+     @return returns an iterator containing all keys and values
+     */
+    Iterator entries();
+
+    /*! @brief allows direct access to values by using keys as subscripts */
+    Variant operator[String];
+
+    /*! @brief queries the iterator of the elements of the current object
+     @return returns the iterator of the elements of the current object
+    */
+    Iterator @iterator();
+};

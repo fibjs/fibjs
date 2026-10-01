@@ -1,0 +1,80 @@
+/*! @brief performance basic performance monitoring module
+
+ Reference method:
+ ```JavaScript
+ var performance = require('perf_hooks').performance;
+ ```
+ */
+module performance
+{
+    /*! @brief Clears all performance marks
+     @param name the mark name; if empty, clears all marks
+     */
+    static clearMarks(String name = "");
+
+    /*! @brief Clears all performance measures
+     @param name the measure name; if empty, clears all measures
+     */
+    static clearMeasures(String name = "");
+
+    /*! @brief Creates a performance mark
+
+     options is an object containing the following properties:
+      - detail: additional information
+      - startTime: start time; if empty, uses the current time
+
+     @param name the mark name
+     @param options the additional options
+    */
+    static mark(String name, Object options = {});
+
+    /*! @brief Creates a performance measure
+     @param name the measure name
+     @param startMark the start mark name; if empty, uses the process start time
+     @param endMark the end mark name; if empty, uses the current time
+    */
+    static measure(String name, String startMark = "", String endMark = "");
+
+    /*! @brief Creates a performance measure
+
+     options is an object containing the following properties:
+      - detail: additional information
+      - duration: the duration
+      - end: if of Number type, represents the end time; if of String type, represents the end mark name
+      - start: if of Number type, represents the start time; if of String type, represents the start mark name
+
+     @param name the measure name
+     @param options the additional options
+    */
+    static measure(String name, Object options = {});
+
+    /*! @brief Gets all performance entries
+     @return returns all performance entries*/
+    static NArray getEntries();
+
+    /*! @brief Gets all performance entries
+     @param type the entry type
+     @return returns all performance entries*/
+    static NArray getEntriesByType(String type);
+
+    /*! @brief Gets all performance entries
+     @param name the entry name
+     @param type the entry type
+     @return returns all performance entries*/
+    static NArray getEntriesByName(String name, String type = "");
+
+    /*! @brief Marks resource timing (compatibility no-op)
+     @param timingInfo the timing information object
+     @param requestedUrl the requested URL
+     @param initiatorType the initiator type
+     @param global the global object
+     @param cacheState the cache state
+     @param bodyInfo the request body information
+     @param responseStatus the response status code
+     */
+    static markResourceTiming(Value timingInfo, String requestedUrl, String initiatorType, Value global, String cacheState, Value bodyInfo, Integer responseStatus);
+
+    /*! @brief Queries the current process time 
+     @return returns the current process time*/
+    static Number now();
+};

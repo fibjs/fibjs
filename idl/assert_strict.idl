@@ -1,0 +1,410 @@
+/*! @brief Strict assertion test module; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
+
+ Reference method:
+ ```JavaScript
+ var assert = require('assert').strict;
+ ```
+ Or reference it through the test module:
+ ```JavaScript
+ var test = require('test');
+ var assert = test.assert.strict;
+ ```
+ Or configure it through test.setup:
+ ```JavaScript
+ require("test").setup();
+ ```
+ */
+module assert_strict
+{
+    /*! @brief Assertion error object */
+    static readonly Function AssertionError;
+
+    /*! @brief Tests that the value is truthy; the assertion fails if it is false
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static Function(Value actual = undefined, String msg = "");
+
+    /*! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module */
+    static ok = assert;
+
+    /*! @brief Tests that the value is falsy; the assertion fails if it is true
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static notOk(Value actual, String msg = "");
+
+    /*! @brief Tests that the value equals the expected value; the assertion fails if they are not equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static equal(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value does not equal the expected value; the assertion fails if they are equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value strictly equals the expected value; the assertion fails if they are not equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static strictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notStrictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value deeply equals the expected value; the assertion fails if they are not equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static deepEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notDeepEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static deepStrictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notDeepStrictEqual(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the string contains the expected string, otherwise the assertion fails
+     @param actual the string to test
+     @param expected the expected regular expression
+     @param msg the message when the assertion fails
+     */
+    static match(String actual, RegExp expected, String msg = "");
+
+    /*! @brief Tests that the string does not contain the expected string, otherwise the assertion fails
+     @param actual the string to test
+     @param expected the expected regular expression
+     @param msg the message when the assertion fails
+     */
+    static doesNotMatch(String actual, RegExp expected, String msg = "");
+
+    /*! @brief Tests that the value is approximately equal to the expected value, otherwise the assertion fails
+     @param actual the value to test
+     @param expected the expected value
+     @param delta the decimal precision of the approximation
+     @param msg the message when the assertion fails
+     */
+    static closeTo(Value actual, Value expected, Value delta, String msg = "");
+
+    /*! @brief Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
+     @param actual the value to test
+     @param expected the expected value
+     @param delta the decimal precision of the approximation
+     @param msg the message when the assertion fails
+     */
+    static notCloseTo(Value actual, Value expected, Value delta, String msg = "");
+
+    /*! @brief Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static lessThan(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value is not less than the expected value; the assertion fails if it is less
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notLessThan(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static greaterThan(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the value is not greater than the expected value; the assertion fails if it is greater
+     @param actual the value to test
+     @param expected the expected value
+     @param msg the message when the assertion fails
+     */
+    static notGreaterThan(Value actual, Value expected, String msg = "");
+
+    /*! @brief Tests that the variable exists; the assertion fails if it is false
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static exist(Value actual, String msg = "");
+
+    /*! @brief Tests that the variable does not exist; the assertion fails if it is true
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static notExist(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is boolean true, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isTrue(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not boolean true, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotTrue(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is boolean false, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isFalse(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not boolean false, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotFalse(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is Null, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNull(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not Null, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotNull(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is undefined, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isUndefined(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not undefined, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isDefined(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is a function, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isFunction(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not a function, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotFunction(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is an object, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isObject(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not an object, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotObject(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is an array, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isArray(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not an array, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotArray(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is a string, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isString(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not a string, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotString(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is a number, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNumber(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not a number, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotNumber(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is a boolean, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isBoolean(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is not a boolean, otherwise the assertion fails
+     @param actual the value to test
+     @param msg the message when the assertion fails
+     */
+    static isNotBoolean(Value actual, String msg = "");
+
+    /*! @brief Tests that the value is of the given type, otherwise the assertion fails
+     @param actual the value to test
+     @param type the specified type
+     @param msg the message when the assertion fails
+     */
+    static typeOf(Value actual, String type, String msg = "");
+
+    /*! @brief Tests that the value is not of the given type, otherwise the assertion fails
+     @param actual the value to test
+     @param type the specified type
+     @param msg the message when the assertion fails
+     */
+    static notTypeOf(Value actual, String type, String msg = "");
+
+    /*! @brief Tests that the object contains the specified property, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test
+     @param msg the message when the assertion fails
+     */
+    static property(Value object, Value prop, String msg = "");
+
+    /*! @brief Tests that the object does not contain the specified property, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test
+     @param msg the message when the assertion fails
+     */
+    static notProperty(Value object, Value prop, String msg = "");
+
+    /*! @brief Deeply tests that the object contains the specified property, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test, separated by "."
+     @param msg the message when the assertion fails
+     */
+    static deepProperty(Value object, Value prop, String msg = "");
+
+    /*! @brief Deeply tests that the object does not contain the specified property, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test, separated by "."
+     @param msg the message when the assertion fails
+     */
+    static notDeepProperty(Value object, Value prop, String msg = "");
+
+    /*! @brief Tests that the specified property in the object has the given value, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test
+     @param value the given value
+     @param msg the message when the assertion fails
+     */
+    static propertyVal(Value object, Value prop, Value value, String msg = "");
+
+    /*! @brief Tests that the specified property in the object does not have the given value, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test
+     @param value the given value
+     @param msg the message when the assertion fails
+     */
+    static propertyNotVal(Value object, Value prop, Value value, String msg = "");
+
+    /*! @brief Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test, separated by "."
+     @param value the given value
+     @param msg the message when the assertion fails
+     */
+    static deepPropertyVal(Value object, Value prop, Value value, String msg = "");
+
+    /*! @brief Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
+     @param object the object to test
+     @param prop the property to test, separated by "."
+     @param value the given value
+     @param msg the message when the assertion fails
+     */
+    static deepPropertyNotVal(Value object, Value prop, Value value, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param block the code to test, given as a function
+     @param msg the message when the assertion fails
+     */
+    static throws(Function block, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param block the code to test, given as a function
+     @param error the specified error, which can be a RegExp/Function/Object/Error
+     @param msg the message when the assertion fails
+     */
+    static throws(Function block, Value error, String msg = "");
+
+    /*! @brief Tests that the given code does not throw an error; the assertion fails if it throws
+     @param block the code to test, given as a function
+     @param msg the message when the assertion fails
+     */
+    static doesNotThrow(Function block, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param block the code to test, given as a function
+     @param msg the message when the assertion fails
+     @return returns a Promise
+     */
+    static Promise rejects(Function block, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param block the code to test, given as a function
+     @param error the specified error, which can be a RegExp/Function/Object/Error
+     @param msg the message when the assertion fails
+     @return returns a Promise
+     */
+    static Promise rejects(Function block, Value error, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param result the code to test, given as a Promise
+     @param msg the message when the assertion fails
+     @return returns a Promise
+     */
+    static Promise rejects(Promise result, String msg = "");
+
+    /*! @brief Tests that the given code throws an error; the assertion fails if nothing is thrown
+     @param result the code to test, given as a Promise
+     @param error the specified error, which can be a RegExp/Function/Object/Error
+     @param msg the message when the assertion fails
+     @return returns a Promise
+     */
+    static Promise rejects(Promise result, Value error, String msg = "");
+
+    /*! @brief Throws if the argument is true
+     @param object the argument
+     */
+    static ifError(Value object = undefined);
+};

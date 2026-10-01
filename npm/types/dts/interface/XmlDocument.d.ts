@@ -10,15 +10,15 @@
 /// <reference path="../interface/XmlProcessingInstruction.d.ts" />
 /// <reference path="../interface/XmlDocumentFragment.d.ts" />
 /**
- * @description XmlDocument 是  xml 模块的一个对象，它代表整个 XML 文档，提供了对整个文档的访问入口
+ * @description XmlDocument is an object of the xml module; it represents the whole XML document and provides the entry point for accessing the whole document
  *
- * XmlDocument 是一棵文档树的根，包含了整个 XML 文档中的所有节点。XmlDocument 对象同样提供了以下功能：
+ * XmlDocument is the root of a document tree and contains all nodes in the whole XML document. The XmlDocument object also provides the following functions:
  *
- * 1. 创建元素节点、文本节点、注释和处理指令等
- * 2. 访问和修改文档属性和相关信息（如 DTD 注释及文档声明）
- * 3. 解析 XML 文档
+ * 1. Creates element nodes, text nodes, comments, processing instructions, etc.
+ * 2. Accesses and modifies document properties and related information (such as DTD comments and the document declaration)
+ * 3. Parses XML documents
  *
- * 下面是使用 XmlDocument 对象解析一个 XML 文档的示例代码：
+ * The following is sample code that uses the XmlDocument object to parse an XML document:
  *
  * ```JavaScript
  * var xml = require('xml');
@@ -29,227 +29,227 @@
  *
  * // get document root node name
  * var rootName = xmlDoc.documentElement.nodeName;
- * console.log(`文档根节点名称是 ${rootName}`);
+ * console.log(`the document root node name is ${rootName}`);
  * ```
  *
- * 在上述代码中，我们首先使用 `fs` 模块的 `readFile()` 方法读取了一个 XML 文件，并将文件流赋值给变量 `xmlStr`。然后我们使用 `xml` 模块的 `parse()` 方法解析该 XML 文件，并将解析后的 `XmlDocument` 对象赋值给变量 `xmlDoc`。最后我们使用 `xmlDoc` 的 `documentElement` 属性获取文档根节点，并获取其节点名称，输出到控制台上。
+ * In the above code, we first use the `readFile()` method of the `fs` module to read an XML file and assign the file stream to the variable `xmlStr`. Then we use the `parse()` method of the `xml` module to parse the XML file and assign the parsed `XmlDocument` object to the variable `xmlDoc`. Finally we use the `documentElement` property of `xmlDoc` to get the document root node and obtain its node name, which is output to the console.
  *
- * 由于 XmlDocument 是整个 XML 文档的入口，因此我们可以通过它获取和修改文档的相关信息。例如，我们可以通过 `xmlDoc.xmlVersion` 和 `xmlDoc.xmlStandalone` 分别获取和修改文档的 XML 版本和 standalone 属性。我们还可以通过 `xmlDoc.createProcessingInstruction()` 方法来创建新的处理指令节点。
+ * Since XmlDocument is the entry point of the whole XML document, we can get and modify related information of the document through it. For example, we can get and modify the XML version and the standalone property of the document through `xmlDoc.xmlVersion` and `xmlDoc.xmlStandalone` respectively. We can also create new processing instruction nodes with the `xmlDoc.createProcessingInstruction()` method.
  *
- * XmlDocument 对象是一个非常强大的类型，为我们处理解析 XML 文件提供了很大的便利。
+ * The XmlDocument object is a very powerful type that provides great convenience for parsing XML files.
  *
  */
 declare class Class_XmlDocument extends Class_XmlNode {
     /**
-     * @description 构造一个 XmlDocument 对象
-     *      @param type 指定文档对象的类型，缺省为 "text/xml"，若需要处理 html 则需要指定 "text/html"
+     * @description Constructs an XmlDocument object
+     *      @param type the type of the document object, default "text/xml"; to handle html, you need to specify "text/html"
      *
      */
     constructor(type?: string);
 
     /**
-     * @description 通过解析一个 XML/HTML 字符串来组成该文档，不支持多语种
-     *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
-     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     * @description Forms the document by parsing an XML/HTML string; multilingual text is not supported
+     *      @param source the XML/HTML text to parse, depending on the type when the document was created
+     *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
     load(source: string, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 通过解析一个二进制 XML/HTML 字符串来组成该文档，并根据语种自动转换
-     *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
-     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     * @description Forms the document by parsing binary XML/HTML data and converts automatically according to the language
+     *      @param source the XML/HTML text to parse, depending on the type when the document was created
+     *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
     load(source: Class_Buffer, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 返回用于文档的编码（在解析时）
+     * @description Returns the encoding used for the document (at parse time)
      *
      */
     readonly inputEncoding: string;
 
     /**
-     * @description 设置或返回文档是否为 standalone
+     * @description Sets or returns whether the document is standalone
      *
      */
     xmlStandalone: boolean;
 
     /**
-     * @description 设置或返回文档的 XML 版本
+     * @description Sets or returns the XML version of the document
      *
      */
     xmlVersion: string;
 
     /**
-     * @description 返回与文档相关的文档类型声明（Document Type Declaration）
+     * @description Returns the Document Type Declaration related to the document
      *
-     *     对于没有 DTD 的 XML 文档，则返回 null。此属性可提供对 XmlDocumentType 对象（ XmlDocument 的一个子节点）的直接访问。
+     *     For an XML document without a DTD, returns null. This property provides direct access to the XmlDocumentType object (a child node of XmlDocument).
      *
      */
     readonly doctype: Class_XmlDocumentType;
 
     /**
-     * @description 返回文档的根节点
+     * @description Returns the root node of the document
      *
      */
     readonly documentElement: Class_XmlElement;
 
     /**
-     * @description 返回 HTML 文档的 head 节点，仅在 html 模式有效
+     * @description Returns the head node of an HTML document; only valid in html mode
      *
      */
     readonly head: Class_XmlElement;
 
     /**
-     * @description 返回 HTML 文档的 title 节点的内容，仅在 html 模式有效
+     * @description Returns the content of the title node of an HTML document; only valid in html mode
      *
      */
     readonly title: string;
 
     /**
-     * @description 返回 HTML 文档的 body 节点，仅在 html 模式有效
+     * @description Returns the body node of an HTML document; only valid in html mode
      *
      */
     readonly body: Class_XmlElement;
 
     /**
-     * @description 返回带有指定名称的所有元素的一个节点列表
+     * @description Returns a node list of all elements with the specified name
      *
-     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中具有指定标签名的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了指定标签名的元素，它的内容会自动进行必要的更新。
-     *      @param tagName 需检索的标签名。值 "*" 匹配所有的标签
-     *      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document with the specified tag name, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements with the specified tag name are added to or removed from the document, its content is updated automatically as necessary.
+     *      @param tagName the tag name to retrieve. The value "*" matches all tags
+     *      @return an XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
      *
      */
     getElementsByTagName(tagName: string): Class_XmlNodeList;
 
     /**
-     * @description 返回带有指定命名空间和名称的所有元素的一个节点列表
+     * @description Returns a node list of all elements with the specified namespace and name
      *
-     *      该方法与 getElementsByTagName() 方法相似，只是它根据命名空间和名称来检索元素。
-     *      @param namespaceURI 指定检索的命名空间 URI。值 "*" 可匹配所有的标签
-     *      @param localName 需检索的标签名。值 "*" 匹配所有的标签
-     *      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+     *      This method is similar to the getElementsByTagName() method, except that it retrieves elements by namespace and name.
+     *      @param namespaceURI the namespace URI to retrieve. The value "*" matches all tags
+     *      @param localName the tag name to retrieve. The value "*" matches all tags
+     *      @return an XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
      *
      */
     getElementsByTagNameNS(namespaceURI: string, localName: string): Class_XmlNodeList;
 
     /**
-     * @description 返回拥有指定 id 属性的元素
+     * @description Returns the element with the specified id attribute
      *
-     *      该方法将遍历文档的子孙节点，返回一个 XmlElement 节点对象，表示第一个具有指定 id 属性的文档元素。。
-     *      @param id 需检索的 id
-     *      @return 节点树中具有指定 id 属性的 XmlElement 节点
+     *      This method traverses the descendant nodes of the document and returns an XmlElement node object representing the first document element with the specified id attribute.
+     *      @param id the id to retrieve
+     *      @return the XmlElement node with the specified id attribute in the node tree
      *
      */
     getElementById(id: string): Class_XmlElement;
 
     /**
-     * @description 返回带有指定 class 名称的所有元素的一个节点列表
+     * @description Returns a node list of all elements with the specified class name
      *
-     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中具有指定 class 名的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了指定标签名的元素，它的内容会自动进行必要的更新。
-     *      @param className 需检索的 class 名称
-     *      @return 文档树中具有指定 class 名的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document with the specified class name, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements with the specified tag name are added to or removed from the document, its content is updated automatically as necessary.
+     *      @param className the class name to retrieve
+     *      @return an XmlNodeList collection of XmlElement nodes with the specified class name in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
      *
      */
     getElementsByClassName(className: string): Class_XmlNodeList;
 
     /**
-     * @description 创建元素节点
-     *      @param tagName 指定元素节点规定名称
-     *      @return 返回新创建的 XmlElement 节点，具有指定的标签名
+     * @description Creates an element node
+     *      @param tagName the specified name of the element node
+     *      @return returns the newly created XmlElement node with the specified tag name
      *
      */
     createElement(tagName: string): Class_XmlElement;
 
     /**
-     * @description 创建带有指定命名空间的元素节点
-     *      @param namespaceURI 指定元素节点命名空间 URI
-     *      @param qualifiedName 指定元素节点规定名称
-     *      @return 返回新创建的 XmlElement 节点，具有指定的标签名
+     * @description Creates an element node with the specified namespace
+     *      @param namespaceURI the namespace URI of the element node
+     *      @param qualifiedName the qualified name of the element node
+     *      @return returns the newly created XmlElement node with the specified tag name
      *
      */
     createElementNS(namespaceURI: string, qualifiedName: string): Class_XmlElement;
 
     /**
-     * @description 创建文本节点
-     *      @param data 指定此节点的文本
-     *      @return 返回新创建的 XmlText 节点，表示指定的 data 字符串
+     * @description Creates a text node
+     *      @param data the text of this node
+     *      @return returns the newly created XmlText node representing the specified data string
      *
      */
     createTextNode(data: string): Class_XmlText;
 
     /**
-     * @description 创建注释节点
-     *      @param data 指定此节点的注释文本
-     *      @return 返回新创建的 XmlComment 节点，注释文本为指定的 data
+     * @description Creates a comment node
+     *      @param data the comment text of this node
+     *      @return returns the newly created XmlComment node whose comment text is the specified data
      *
      */
     createComment(data: string): Class_XmlComment;
 
     /**
-     * @description 创建 XmlCDATASection 节点
-     *      @param data 指定此节点规定 CDATA 数据
-     *      @return 返回新创建的 XmlCDATASection 节点，内容为指定的 data
+     * @description Creates an XmlCDATASection node
+     *      @param data the CDATA data of this node
+     *      @return returns the newly created XmlCDATASection node whose content is the specified data
      *
      */
     createCDATASection(data: string): Class_XmlCDATASection;
 
     /**
-     * @description 创建 XmlProcessingInstruction 节点
-     *      @param target 指定处理指令的目标
-     *      @param data 指定处理指令的内容文本
-     *      @return 新创建的 ProcessingInstruction 节点
+     * @description Creates an XmlProcessingInstruction node
+     *      @param target the target of the processing instruction
+     *      @param data the content text of the processing instruction
+     *      @return the newly created ProcessingInstruction node
      *
      */
     createProcessingInstruction(target: string, data: string): Class_XmlProcessingInstruction;
 
     /**
-     * @description 创建空的 XmlDocumentFragment 节点
+     * @description Creates an empty XmlDocumentFragment node
      *
-     *      DocumentFragment 是一个轻量级的文档对象，可以包含多个子节点。当把 DocumentFragment 插入文档时，插入的不是 DocumentFragment 本身，而是它的所有子节点。
-     *      @return 新创建的 XmlDocumentFragment 节点
+     *      DocumentFragment is a lightweight document object that can contain multiple child nodes. When a DocumentFragment is inserted into a document, what is inserted is not the DocumentFragment itself but all of its child nodes.
+     *      @return the newly created XmlDocumentFragment node
      *
      */
     createDocumentFragment(): Class_XmlDocumentFragment;
 
     /**
-     * @description 从另一个文档导入节点到当前文档
+     * @description Imports a node from another document into the current document
      *
-     *      此方法创建源节点的副本，可以将其插入当前文档。源节点保持不变。如果需要将节点从另一个文档移动到当前文档而不是复制，请使用 adoptNode 方法。
-     *      @param importedNode 要导入的节点
-     *      @param deep 如果为 true，则递归导入节点的整个子树；如果为 false，则只导入节点本身
-     *      @return 返回导入到当前文档的新节点
+     *      This method creates a copy of the source node and can insert it into the current document. The source node remains unchanged. If you need to move a node from another document to the current document instead of copying it, use the adoptNode method.
+     *      @param importedNode the node to import
+     *      @param deep if true, imports the whole subtree of the node recursively; if false, imports only the node itself
+     *      @return returns the new node imported into the current document
      *
      */
     importNode(importedNode: Class_XmlNode, deep?: boolean): Class_XmlNode;
 
     /**
-     * @description 从另一个文档采用节点到当前文档
+     * @description Adopts a node from another document into the current document
      *
-     *      此方法将节点从另一个文档移动到当前文档。节点将从原文档中移除，其 ownerDocument 属性将更改为当前文档。与 importNode 不同，adoptNode 不会创建副本。
-     *      @param adoptedNode 要采用的节点
-     *      @return 返回被采用的节点
+     *      This method moves a node from another document to the current document. The node is removed from the original document and its ownerDocument property is changed to the current document. Unlike importNode, adoptNode does not create a copy.
+     *      @param adoptedNode the node to adopt
+     *      @return returns the adopted node
      *
      */
     adoptNode(adoptedNode: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description 返回符合指定 CSS 选择器的元素的 XmlNodeList
+     * @description Returns an XmlNodeList of elements matching the specified CSS selector
      *
-     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。
-     *      @param selectors 指定 CSS 选择器
-     *      @return 符合指定 CSS 选择器的 XmlElement 节点
+     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document that match the specified CSS selector, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements matching the specified selector are added to or removed from the document, its content is updated automatically as necessary.
+     *      @param selectors the CSS selector
+     *      @return the XmlElement node matching the specified CSS selector
      *
      */
     querySelector(selectors: string): Class_XmlElement;
 
     /**
-     * @description 返回符合指定 CSS 选择器的所有元素的 XmlNodeList
+     * @description Returns an XmlNodeList of all elements matching the specified CSS selector
      *
-     *      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中符合指定 CSS 选择器的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了符合指定选择器的元素，它的内容会自动进行必要的更新。
-     *      @param selectors 指定 CSS 选择器
-     *      @return 符合指定 CSS 选择器的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
+     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document that match the specified CSS selector, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements matching the specified selector are added to or removed from the document, its content is updated automatically as necessary.
+     *      @param selectors the CSS selector
+     *      @return an XmlNodeList collection of XmlElement nodes matching the specified CSS selector. The order of the returned element nodes is the order in which they appear in the source document.
      *
      */
     querySelectorAll(selectors: string): Class_XmlNodeList;

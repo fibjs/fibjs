@@ -1,48 +1,48 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 消息处理器接口
+ * @description Message handler interface
  */
 declare class Class_Handler extends Class_object {
     /**
-     * @description 构造一个消息处理器链处理对象
-     *      @param hdlrs 处理器数组
+     * @description Constructs a message handler chain object
+     *      @param hdlrs handler array
      *
      */
     constructor(hdlrs: Class_Handler[]);
 
     /**
-     * @description 创建一个消息处理器路由对象
-     *      @param map 初始化路由参数
+     * @description Creates a message handler routing object
+     *      @param map initialization routing parameters
      *
      */
     constructor(map: FIBJS.GeneralObject);
 
     /**
-     * @description 创建一个 JavaSvript 消息处理器
-     *      @param hdlr JavaScript 处理器函数
+     * @description Creates a JavaScript message handler
+     *      @param hdlr JavaScript handler function
      *
      */
     constructor(hdlr: (...args: any[])=>any);
 
     /**
-     * @description 构造一个 fileHandler 或者 HttpRepeater
-     *      @param hdlr 处理器的地址参数
+     * @description Constructs a fileHandler or HttpRepeater
+     *      @param hdlr the address parameter of the handler
      *
      */
     constructor(hdlr: string);
 
     /**
-     * @description 查询当前处理器是否支持路由
-     *      @return 返回当前处理器是否支持路由
+     * @description Queries whether the current handler supports routing
+     *      @return returns whether the current handler supports routing
      *
      */
     isRouting(): boolean;
 
     /**
-     * @description 处理一个消息或对象
-     *      @param v 指定处理的消息或对象
-     *      @return 返回下一步的处理器
+     * @description Processes a message or object
+     *      @param v the message or object to process
+     *      @return returns the next handler
      *
      */
     invoke(v: Class_object): Class_Handler;
@@ -50,17 +50,17 @@ declare class Class_Handler extends Class_object {
     invoke(v: Class_object, callback: (err: Error | undefined | null, retVal: Class_Handler)=>any): void;
 
     /**
-     * @description 处理一个消息或对象
-     *      @param v 指定处理的消息或对象
-     *      @return 返回下一步的处理器
+     * @description Processes a message or object
+     *      @param v the message or object to process
+     *      @return returns the next handler
      *
      */
     invokeSync(v: Class_object): Class_Handler;
 
     /**
-     * @description 处理一个消息或对象
-     *      @param v 指定处理的消息或对象
-     *      @return 返回下一步的处理器
+     * @description Processes a message or object
+     *      @param v the message or object to process
+     *      @return returns the next handler
      *
      */
     invokeAsync(v: Class_object): Promise<Class_Handler>;

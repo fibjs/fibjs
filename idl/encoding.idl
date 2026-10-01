@@ -1,0 +1,91 @@
+/*! @brief The `encoding` module is a built-in FibJS module used to convert between various data encoding formats and binary. These data encoding formats include some commonly used ones such as `base64`, `base32`, `hex`, `json`, `msgpack`, `multibase` and `base58`.
+
+Below is a brief introduction to each submodule provided by the `encoding` module:
+
+- `base64`: provides Base64 encoding and decoding support; it can encode a string as Base64 and decode a Base64-encoded string back to a string.
+- `base32`: provides Base32 encoding and decoding support; it can encode the given data as Base32 and return the encoded string, and can decode a Base32-encoded string back to the original data.
+- `hex`: provides hexadecimal encoding and decoding support; it can encode the given data as hexadecimal and return the encoded string, and can decode a hexadecimal-encoded string back to the original data.
+- `json`: provides JSON encoding and decoding support; it can serialize JavaScript objects into JSON strings and deserialize JSON strings back into JavaScript objects.
+- `multibase`: provides Multibase encoding support. Multibase is an encoding scheme that introduces multiple encoding prefixes on top of Base1x encodings.
+- `msgpack`: provides Msgpack encoding and decoding support. Msgpack is a lighter-weight data interchange format than JSON; it can serialize JSON objects into binary data for faster and more efficient data interchange.
+- `base58`: provides Base58 encoding and decoding support. Base58 is a representation combining digits and letters that excludes easily confused characters such as the digit 0 and the letters O, I and L, making it less error-prone.
+
+Most submodules of the `encoding` module contain two functions, one for encoding and one for decoding; these functions can encode or decode data in a specific format. When using these encoding/decoding modules, choose the most suitable module according to its type and characteristics to ensure correct encoding and decoding.
+ 
+ How to reference the `encoding` module:
+ ```JavaScript
+ var encoding = require('encoding');
+ ```
+
+
+
+ */
+module encoding
+{
+    /*! @brief base32 encoding and decoding module */
+    static base32;
+
+    /*! @brief base64 encoding and decoding module */
+    static base64;
+
+    /*! @brief base58 encoding and decoding module */
+    static base58;
+
+    /*! @brief hex encoding and decoding module */
+    static hex;
+
+    /*! @brief multibase encoding and decoding module */
+    static multibase;
+
+    /*! @brief Determines whether the specified encoding is supported
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU
+     @return returns whether the encoding is supported
+    */
+    static Boolean isEncoding(String codec);
+
+    /*! @brief Encodes the Buffer as a string
+     @param data the initial string, written in utf-8 format
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+     @return returns the encoded string
+    */
+    static String encode(Buffer data, String codec = "utf8");
+
+    /*! @brief Decodes the string as a Buffer
+     @param str the initial string, written in utf-8 format
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+     @return returns the decoded Buffer
+    */
+    static Buffer decode(String str, String codec = "utf8");
+
+    /*! @brief json encoding and decoding module */
+    static json;
+
+    /*! @brief msgpack encoding and decoding module */
+    static msgpack;
+
+    /*! @brief Encodes a string as a javascript escaped string, for embedding text in javascript code
+     @param str the string to encode
+     @param json whether to generate a json-compatible string
+     @return returns the encoded string
+     */
+    static String jsstr(String str, Boolean json = false);
+
+    /*! @brief url string safe encoding
+     @param url the url to encode
+     @return returns the encoded string
+     */
+    static String encodeURI(String url);
+
+    /*! @brief url component string safe encoding
+     @param url the url to encode
+     @param formEncoded whether to encode in application/x-www-form-urlencoded format (spaces are encoded as +), default is false
+     @return returns the encoded string
+     */
+    static String encodeURIComponent(String url, Boolean formEncoded = false);
+
+    /*! @brief url safe string decoding
+     @param url the url to decode
+     @return returns the decoded string
+     */
+    static String decodeURI(String url);
+};

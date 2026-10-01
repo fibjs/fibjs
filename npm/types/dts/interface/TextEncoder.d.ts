@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description TextEncoder 编码对象
+ * @description TextEncoder encoding object
  *
- *  创建方法
+ *  Creation method
  *  ```JavaScript
  *  var textEncoder = new util.TextEncoder('utf8');
  *  ```
@@ -12,33 +12,33 @@
  */
 declare class Class_TextEncoder extends Class_object {
     /**
-     * @description TextEncoder 对象构造函数，使用参数构造
-     * 	 @param codec 指定编码字符集
-     *  	 @param opts 指定编码选项
+     * @description TextEncoder object constructor, constructed with parameters
+     * 	 @param codec the encoding charset
+     *  	 @param opts encoding options
      *
      */
     constructor(codec?: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 将文本转换为二进制数据
-     * 	 @param data 要转换的文本
-     *  	 @param opts 指定编码选项
-     * 	 @return 返回编码的二进制数据
+     * @description Converts text to binary data
+     * 	 @param data the text to convert
+     *  	 @param opts encoding options
+     * 	 @return returns the encoded binary data
      *
      */
     encode(data?: string, opts?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 将文本编码到目标缓冲区
-     * 	 @param source 要编码的文本
-     * 	 @param destination 写入的目标缓冲区
-     * 	 @return 返回包含 read 和 written 属性的对象
+     * @description Encodes text into the destination buffer
+     * 	 @param source the text to encode
+     * 	 @param destination the destination buffer to write into
+     * 	 @return returns an object containing the read and written properties
      *
      */
     encodeInto(source: string, destination: Class_Buffer): FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前的编码字符集
+     * @description Queries the current encoding charset
      */
     readonly encoding: string;
 

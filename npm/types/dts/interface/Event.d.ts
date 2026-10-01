@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
- * @description Event 模块提供了一个事件对象，用于协同共享数据操作。它允许多个纤程（协程）之间进行同步操作，以实现协作式多任务。事件对象有 wait，pulse 和 clear 三个方法，wait 方法将阻塞当前纤程，直至事件被触发，pulse 方法将唤醒所有等待该事件的纤程，而 clear 方法则将事件标志重置为 false。通过使用 coroutine.Event 模块，开发者可以控制纤程之间的执行顺序和数据共享，实现复杂业务逻辑。
+ * @description The Event module provides an event object for coordinated shared data operations. It allows multiple fibers (coroutines) to perform synchronous operations, implementing cooperative multitasking. The event object has three methods: wait, pulse and clear. The wait method blocks the current fiber until the event is triggered, the pulse method wakes up all fibers waiting for the event, and the clear method resets the event flag to false. By using the coroutine.Event module, developers can control the execution order and data sharing between fibers and implement complex business logic.
  *
- * 举个例子，假设我们需要两个纤程间进行数据共享，然而它们执行的顺序是不确定的，你可以通过一个事件对象，控制纤程的执行顺序，保证一个纤程执行之前，触发另一个纤程的事件。
+ * For example, suppose two fibers need to share data, but the order in which they execute is indeterminate; you can use an event object to control the execution order of the fibers and ensure that the event of one fiber is triggered before another fiber executes.
  * ```JavaScript
  * const coroutine = require('coroutine');
  *
@@ -25,53 +25,53 @@
  *    }
  * });
  * ```
- * 在上面的例子中，我们创建了一个事件对象 evt，在纤程1中使用wait方法等待事件触发，而在纤程2中通过pulse方法触发事件，当i等于5的时候，纤程2触发事件，纤程1通过事件监听被唤醒，继续执行。在这个过程中，两个纤程之间没有使用任何的锁或其它同步工具，但是它们在纤程级别上保证了数据的同步。
+ * In the example above, we create an event object evt, use the wait method in fiber 1 to wait for the event to be triggered, and trigger the event through the pulse method in fiber 2. When i equals 5, fiber 2 triggers the event, and fiber 1 is woken up through the event listener and continues executing. In this process, no locks or other synchronization tools are used between the two fibers, but they guarantee data synchronization at the fiber level.
  *
  */
 declare class Class_Event extends Class_Lock {
     /**
-     * @description 事件对象构造函数
-     *      @param value 指定是否等待，为 true 时等待，缺省为 false
+     * @description Event object constructor
+     *      @param value whether to wait; waits when true, default is false
      *
      */
     constructor(value?: boolean);
 
     /**
-     * @description 判断事件对象是否为真
-     *      @return 如果事件为真，返回 true
+     * @description Determines whether the event object is true
+     *      @return returns true if the event is true
      *
      */
     isSet(): boolean;
 
     /**
-     * @description 激活事件（将事件状态改为true），并调用pulse()
+     * @description Activates the event (sets the event state to true) and calls pulse()
      */
     set(): void;
 
     /**
-     * @description 激活等待该事件的所有纤程
+     * @description Activates all fibers waiting for this event
      */
     pulse(): void;
 
     /**
-     * @description 重置事件（将事件状态改为false）
+     * @description Resets the event (sets the event state to false)
      */
     clear(): void;
 
     /**
-     * @description 等待一个事件
+     * @description Waits for an event
      */
     wait(): void;
 
     wait(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 等待一个事件
+     * @description Waits for an event
      */
     waitSync(): void;
 
     /**
-     * @description 等待一个事件
+     * @description Waits for an event
      */
     waitAsync(): Promise<void>;
 

@@ -2,22 +2,22 @@
 /// <reference path="../interface/UrlObject.d.ts" />
 /// <reference path="../interface/URLSearchParams.d.ts" />
 /**
- * @description URL 处理模块，提供 URL 解析、格式化、文件路径转换和国际化域名处理等功能
+ * @description URL processing module, providing functions such as URL parsing, formatting, file path conversion and internationalized domain name handling
  *
- * url 模块实现了完整的 URL 处理功能，兼容 WHATWG URL 标准与传统 URL API。
- * 它提供了 URL 对象、URLSearchParams 对象以及各种实用的 URL 操作函数。
+ * The url module implements complete URL processing functionality and is compatible with the WHATWG URL standard and the traditional URL API.
+ * It provides the URL object, the URLSearchParams object and various practical URL manipulation functions.
  *
- * ## 主要功能
+ * ## Main features
  *
- * - **URL 解析和格式化**: 支持解析和格式化各种 URL 格式
- * - **文件 URL 处理**: 提供文件路径与 file:// URL 之间的转换
- * - **国际化域名**: 支持 ASCII 和 Unicode 域名之间的转换
- * - **查询参数处理**: 集成 URLSearchParams 提供强大的查询参数操作
- * - **相对路径解析**: 支持相对 URL 的解析和合并
+ * - **URL parsing and formatting**: supports parsing and formatting various URL formats
+ * - **File URL handling**: provides conversion between file paths and file:// URLs
+ * - **Internationalized domain names**: supports conversion between ASCII and Unicode domain names
+ * - **Query parameter handling**: integrates URLSearchParams to provide powerful query parameter operations
+ * - **Relative path resolution**: supports resolution and merging of relative URLs
  *
- * ## 基本用法
+ * ## Basic usage
  *
- * ### 1. 创建和操作 URL 对象
+ * ### 1. Create and manipulate URL objects
  *
  * ```JavaScript
  * const { URL, URLSearchParams } = require('url');
@@ -39,7 +39,7 @@
  * console.log(myURL.href);      // 'https://example.com:8080/new-path?key=value&new-key=new-value#hash'
  * ```
  *
- * ### 2. 传统 API 兼容
+ * ### 2. Traditional API compatibility
  *
  * ```JavaScript
  * const url = require('url');
@@ -61,7 +61,7 @@
  * console.log(resolved);   // 'https://example.com/bar'
  * ```
  *
- * ### 3. 文件 URL 处理
+ * ### 3. File URL handling
  *
  * ```JavaScript
  * const url = require('url');
@@ -75,119 +75,119 @@
  * console.log(filePath);      // '/path/to/file.txt'
  * ```
  *
- * ### 4. 国际化域名处理
+ * ### 4. Internationalized domain name handling
  *
  * ```JavaScript
  * const url = require('url');
  *
  * // Convert Unicode domain to ASCII
- * const ascii = url.domainToASCII('测试.com');
- * console.log(ascii);         // 'xn--0zwm56d.com'
+ * const ascii = url.domainToASCII('bücher.com');
+ * console.log(ascii);         // 'xn--bcher-kva.com'
  *
  * // Convert ASCII domain to Unicode
- * const unicode = url.domainToUnicode('xn--0zwm56d.com');
- * console.log(unicode);       // '测试.com'
+ * const unicode = url.domainToUnicode('xn--bcher-kva.com');
+ * console.log(unicode);       // 'bücher.com'
  * ```
  *
  */
 declare module 'url' {
     /**
-     * @description 将 URL 字符串格式化为标准的 URL 字符串
-     *      @param href URL 字符串
-     *      @return 格式化后的 URL 字符串
+     * @description formats a URL string into a standard URL string
+     *      @param href the URL string
+     *      @return the formatted URL string
      *
      */
     function format(href: string): string;
 
     /**
-     * @description 使用 URL 组件对象构造 URL 字符串
-     *      @param args URL 组件对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
-     *      @return 构造的 URL 字符串
+     * @description constructs a URL string from a URL components object
+     *      @param args the URL components object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
+     *      @return the constructed URL string
      *
      */
     function format(args: FIBJS.GeneralObject): string;
 
     /**
-     * @description 格式化 URL 对象为字符串，支持格式化选项
-     *      @param urlObject 要格式化的 URL 对象
-     *      @param options 格式化选项，支持的字段有：fragment（是否包含片段）, unicode（是否使用 Unicode 显示域名）, auth（是否包含认证信息）
-     *      @return 格式化后的 URL 字符串
+     * @description formats a URL object into a string, with formatting options
+     *      @param urlObject the URL object to format
+     *      @param options formatting options, supporting the fields: fragment (whether to include the fragment), unicode (whether to display domain names in Unicode), auth (whether to include authentication information)
+     *      @return the formatted URL string
      *
      */
     function format(urlObject: Class_UrlObject, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 解析 URL 字符串为 URL 对象（传统 API）
-     *      @param url 要解析的 URL 字符串
-     *      @param parseQueryString 是否将查询字符串解析为对象，默认为 false
-     *      @param slashesDenoteHost 是否将 '//' 后到下一个 '/' 前的字符串解析为主机，默认为 false
-     *      @return 解析后的 UrlObject 对象
+     * @description parses a URL string into a URL object (traditional API)
+     *      @param url the URL string to parse
+     *      @param parseQueryString whether to parse the query string into an object, default is false
+     *      @param slashesDenoteHost whether to parse the string after '//' up to the next '/' as the host, default is false
+     *      @return the parsed UrlObject object
      *
      */
     function parse(url: string, parseQueryString?: boolean, slashesDenoteHost?: boolean): Class_UrlObject;
 
     /**
-     * @description 解析相对 URL 并合并为绝对 URL
-     *      @param _from 基础 URL 字符串
-     *      @param to 要解析的相对 URL 字符串
-     *      @return 合并后的绝对 URL 字符串
+     * @description resolves a relative URL and merges it into an absolute URL
+     *      @param _from the base URL string
+     *      @param to the relative URL string to resolve
+     *      @return the merged absolute URL string
      *
      */
     function resolve(_from: string, to: string): string;
 
     /**
-     * @description 创建 URL 对象，参见 UrlObject
-     *      @return 新的 UrlObject 实例
+     * @description creates a URL object, see UrlObject
+     *      @return a new UrlObject instance
      *
      */
     const URL: typeof Class_UrlObject;
 
     /**
-     * @description 创建 URLSearchParams 对象，参见 URLSearchParams
-     *      @return 新的 URLSearchParams 实例
+     * @description creates a URLSearchParams object, see URLSearchParams
+     *      @return a new URLSearchParams instance
      *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
 
     /**
-     * @description 将文件 URL 对象转换为平台相关的文件路径
-     *      @param url 文件 URL 对象（必须是 file: 协议）
-     *      @param options 转换选项，支持 windows 字段指定是否强制使用 Windows 路径格式
-     *      @return 转换后的文件路径字符串
+     * @description converts a file URL object into a platform-specific file path
+     *      @param url the file URL object (must use the file: protocol)
+     *      @param options conversion options; the windows field specifies whether to force the Windows path format
+     *      @return the converted file path string
      *
      */
     function fileURLToPath(url: Class_UrlObject, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 将文件 URL 字符串转换为平台相关的文件路径
-     *      @param url 文件 URL 字符串（必须是 file: 协议）
-     *      @param options 转换选项，支持 windows 字段指定是否强制使用 Windows 路径格式
-     *      @return 转换后的文件路径字符串
+     * @description converts a file URL string into a platform-specific file path
+     *      @param url the file URL string (must use the file: protocol)
+     *      @param options conversion options; the windows field specifies whether to force the Windows path format
+     *      @return the converted file path string
      *
      */
     function fileURLToPath(url: string, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 将文件路径转换为文件 URL 对象
-     *      @param path 要转换的文件路径
-     *      @param options 转换选项，支持 windows 字段指定路径是否为 Windows 格式
-     *      @return 转换后的文件 URL 对象
+     * @description converts a file path into a file URL object
+     *      @param path the file path to convert
+     *      @param options conversion options; the windows field specifies whether the path is in Windows format
+     *      @return the converted file URL object
      *
      */
     function pathToFileURL(path: string, options?: FIBJS.GeneralObject): Class_UrlObject;
 
     /**
-     * @description 将国际化域名转换为 ASCII 编码（Punycode）
-     *      @param domain 要转换的域名（可包含 Unicode 字符）
-     *      @return ASCII 编码的域名
+     * @description converts an internationalized domain name to ASCII encoding (Punycode)
+     *      @param domain the domain name to convert (may contain Unicode characters)
+     *      @return the ASCII-encoded domain name
      *
      */
     function domainToASCII(domain: string): string;
 
     /**
-     * @description 将 ASCII 编码的域名转换为 Unicode 显示格式
-     *      @param domain 要转换的 ASCII 域名
-     *      @return Unicode 格式的域名
+     * @description converts an ASCII-encoded domain name to Unicode display format
+     *      @param domain the ASCII domain name to convert
+     *      @return the domain name in Unicode format
      *
      */
     function domainToUnicode(domain: string): string;

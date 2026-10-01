@@ -2,84 +2,84 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 对称加密算法对象
+ * @description Symmetric encryption algorithm object
  */
 declare class Class_Cipher extends Class_object {
     /**
-     * @description 设置认证标签
-     *      @param buffer 指定认证标签数据
-     *      @param encoding 指定认证标签数据编码方式
-     *      @return 返回当前 Cipher 对象
+     * @description Sets the authentication tag
+     *      @param buffer the authentication tag data to use
+     *      @param encoding the encoding of the authentication tag data
+     *      @return returns the current Cipher object
      *
      */
     setAuthTag(buffer: Class_Buffer, encoding?: string): Class_Cipher;
 
     /**
-     * @description 设置认证标签
-     *      @param buffer 指定认证标签数据
-     *      @param encoding 指定认证标签数据编码方式
-     *      @return 返回当前 Cipher 对象
+     * @description Sets the authentication tag
+     *      @param buffer the authentication tag data to use
+     *      @param encoding the encoding of the authentication tag data
+     *      @return returns the current Cipher object
      *
      */
     setAuthTag(buffer: string, encoding?: string): Class_Cipher;
 
     /**
-     * @description 查询认证标签
-     *       @return 返回认证标签数据
+     * @description Queries the authentication tag
+     *       @return returns the authentication tag data
      *
      */
     getAuthTag(): Class_Buffer;
 
     /**
-     * @description 设置附加身份验证数据
-     *      @param buffer 指定附加身份验证数据
-     *      @param options 指定附加身份验证数据选项
-     *      @return 返回当前 Cipher 对象
+     * @description Sets additional authenticated data
+     *      @param buffer the additional authenticated data to use
+     *      @param options the additional authenticated data options to use
+     *      @return returns the current Cipher object
      *
      */
     setAAD(buffer: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 设置附加身份验证数据
-     *      @param buffer 指定附加身份验证数据
-     *      @param options 指定附加身份验证数据选项
-     *      @return 返回当前 Cipher 对象
+     * @description Sets additional authenticated data
+     *      @param buffer the additional authenticated data to use
+     *      @param options the additional authenticated data options to use
+     *      @return returns the current Cipher object
      *
      */
     setAAD(buffer: string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description 设置自动填充
-     *      @param autoPadding 指定是否自动填充
-     *      @return 返回当前 Cipher 对象
+     * @description Sets automatic padding
+     *      @param autoPadding specifies whether to pad automatically
+     *      @return returns the current Cipher object
      *
      */
     setAutoPadding(autoPadding?: boolean): Class_Cipher;
 
     /**
-     * @description 更新数据
-     *       @param data 指定要更新的数据
-     *       @param inputEncoding 指定输入数据编码方式
-     *       @param outputEncoding 指定输出数据编码方式
-     *       @return 返回更新后的数据
+     * @description Updates the data
+     *       @param data the data to update
+     *       @param inputEncoding the encoding of the input data
+     *       @param outputEncoding the encoding of the output data
+     *       @return returns the updated data
      *
      */
     update(data: Class_Buffer, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
-     * @description 更新数据
-     *       @param data 指定要更新的数据
-     *       @param inputEncoding 指定输入数据编码方式
-     *       @param outputEncoding 指定输出数据编码方式
-     *       @return 返回更新后的数据
+     * @description Updates the data
+     *       @param data the data to update
+     *       @param inputEncoding the encoding of the input data
+     *       @param outputEncoding the encoding of the output data
+     *       @return returns the updated data
      *
      */
     update(data: string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
-     * @description 终止数据
-     *       @param outputEncoding 指定输出数据编码方式
-     *       @return 返回更新后的数据
+     * @description Finalizes the data
+     *       @param outputEncoding the encoding of the output data
+     *       @return returns the updated data
      *
      */
     final(outputEncoding?: string): any;

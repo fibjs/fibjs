@@ -1,0 +1,43 @@
+/*! @brief tls/ssl protocol conversion handler
+
+ Used to convert data streams into the tls/ssl stream protocol. TLSHandler is a wrapper around TLSSocket, used to build servers, logically equivalent to:
+ ```JavaScript
+ 
+ function(s){
+    var s1 = new tls.TLSSocket(ctx);
+    s1.accept(s);
+    hdlr.invoke(s1);
+    s1.close();
+ }
+ ```
+ */
+interface TLSHandler : Handler
+{
+    /*! @brief creates a new TLSHandler object
+    @param context specifies the secure context used to create TLSHandler
+    @param handler the event handling interface object
+    */
+    TLSHandler(SecureContext context, Handler handler);
+
+    /*! @brief creates a new TLSHandler object
+    @param options the options needed to create a secure context with tls.createSecureContext
+    @param handler the event handling interface object
+    */
+    TLSHandler(Object options, Handler handler);
+
+    /*! @brief queries the SecureContext used by the current TLSHandler */
+    readonly SecureContext secureContext;
+
+    /*! @brief sets the SecureContext used by the current TLSHandler
+    @param context specifies the new SecureContext
+    */
+    setSecureContext(SecureContext context);
+
+    /*! @brief sets the SecureContext used by the current TLSHandler
+    @param options the options needed to create a secure context with tls.createSecureContext
+    */
+    setSecureContext(Object options);
+
+    /*! @brief the current event handling interface object of the ssl protocol conversion handler */
+    Handler handler;
+};

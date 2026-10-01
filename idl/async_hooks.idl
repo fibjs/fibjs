@@ -1,0 +1,9 @@
+/*! @brief Defines the asynchronous hooks module */
+module async_hooks
+{
+    /*! @brief AsyncLocalStorage object, see AsyncLocalStorage */
+    static AsyncLocalStorage;
+
+    /*! @brief AsyncResource object, see AsyncResource */
+    static AsyncResource;
+};

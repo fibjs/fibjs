@@ -1,0 +1,50 @@
+/*! @brief Server-Sent Events (SSE) module, implementing HTTP-based server push functionality
+ 
+  The SSE module provides a standard EventSource interface implementation, supporting real-time data stream push from server to client.
+  This module follows the W3C Server-Sent Events specification and provides complete client and server implementations:
+  
+  Client features:
+  - EventSource interface: creates a persistent connection to the server and receives real-time event streams
+  - Event parsing: supports standard fields such as data, event, id, retry
+  
+  Server features:
+  - Protocol upgrade handling: upgrades HTTP requests to SSE connections
+  - Event sending: pushes formatted event data to clients
+  - Connection management: maintains the lifecycle of multiple client connections
+  
+  Connection states:
+  - CONNECTING (0): the connection is being established
+  - OPEN (1): the connection is established and data can be sent and received
+  - CLOSED (2): the connection is closed
+  - SENDER (3): sending mode, used for server-side push
+  
+  Event types:
+  - open: connection established successfully
+  - message: server message received
+  - error: connection error or data parsing error
+  - close: connection closed
+*/
+module sse
+{
+    /*! @brief event source state: connecting */
+    const CONNECTING = 0;
+
+    /*! @brief event source state: connected */
+    const OPEN = 1;
+
+    /*! @brief event source state: closed */
+    const CLOSED = 2;
+
+    /*! @brief event source state: sending mode */
+    const SENDER = 3;
+
+    /*! @brief creates an event source interface for server-sent events, see EventSource */
+    static EventSource;
+
+    /*! @brief creates an sse protocol handler that receives upgrade requests from http and performs the handshake, generating an EventSource object
+     ```
+     @param accept the connection success handler; the callback will receive two parameters, the first is the received EventSource object and the second is the HttpRequest object of the handshake
+     @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
+     */
+    static Handler upgrade(Function accept);
+};

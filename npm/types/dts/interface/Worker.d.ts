@@ -1,34 +1,34 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /**
- * @description Worker 对象是用于创建子线程的对象，可以在程序中创建和处理子线程。一个 Worker 对象可以理解为一个在与主线程不同的线程中执行的 JavaScript 进程。 Worker 不与主线程共享内存，不会阻塞主线程，是一种主流的异步编程方式
+ * @description The Worker object is used to create child threads, allowing child threads to be created and handled in a program. A Worker object can be understood as a JavaScript process running in a thread different from the main thread. A Worker does not share memory with the main thread and does not block the main thread; it is a mainstream way of asynchronous programming
  *
- * Worker 对象的构造函数如下：
+ * The constructor of the Worker object is as follows:
  *
  * ```JavaScript
  * new Worker(String path, Object opts = {})
  * ```
  *
- * 其中，path 参数指定的就是新线程的 JavaScript 文件路径。例如，可以写一个 work.js 文件，内容如下：
+ * Here, the path parameter specifies the JavaScript file path of the new thread. For example, you can write a work.js file with the following content:
  *
  * ```JavaScript
  * const { Worker } = require('worker_threads');
  * console.log('Hi from worker');
  * ```
  *
- * 在主程序中，通过以下代码运行 work.js：
+ * In the main program, run work.js with the following code:
  *
  * ```JavaScript
  * const { Worker } = require('worker_threads');
  * const worker = new Worker('path/to/work.js');
  * ```
  *
- * 运行后，可以在主程序的控制台看到输出 "Hi from worker"。
+ * After running it, you can see the output "Hi from worker" in the console of the main program.
  *
- * 在下面的例子里，假设我们有一个长耗时计算，我们希望将它放进另一个线程去处理，同时避免在主线程中被此计算阻塞。代码如下：
+ * In the following example, suppose we have a long-running computation and want to put it into another thread for processing, while avoiding being blocked by this computation in the main thread. The code is as follows:
  *
  *
- * 主线程:
+ * Main thread:
  * ```JavaScript
  * const { Worker } = require('worker_threads');
  *
@@ -45,9 +45,9 @@
  * console.log('main thread still working');
  * ```
  *
- * 在这个例子中，我们通过 Worker 对象的构造函数创建了一个工作线程来处理 Fibonacci 数列的计算，主线程通过 postMessage() 方法给工作线程传递数据，并通过 message 事件来获取处理结果。同时，主线程显示 'still working' 消息，以证明已将此计算任务 '委托'给了工作线程，并可以继续处理其他事情。
+ * In this example, we create a worker thread through the Worker object constructor to handle the computation of a Fibonacci sequence; the main thread passes data to the worker thread through the postMessage() method and obtains the processing result through the message event. At the same time, the main thread displays the 'still working' message, proving that this computation task has been 'delegated' to the worker thread and that it can continue to handle other things.
  *
- * 工作线程代码样式如下：
+ * The worker thread code looks like this:
  *
  * ```JavaScript
  * // fib-worker.js
@@ -64,45 +64,45 @@
  * }
  * ```
  *
- * 在工作线程中，我们通过 parentPort.on('message') 监听主线程发送的消息，计算指定的 Fibonacci 数列，并通过 parentPort.postMessage() 将计算结果传送回主线程。
+ * In the worker thread, we listen for messages sent by the main thread through parentPort.on('message'), compute the specified Fibonacci sequence, and send the result back to the main thread through parentPort.postMessage().
  *
- * 这是一个最基础的 Worker 示例，使用 Worker 对象开发时，主线程与工作线程是完全异步的，每个 Worker 对象都是一个单独的线程，在主线程中实例化的 Worker 对象并不会产生任何阻塞。
+ * This is the most basic Worker example. When developing with Worker objects, the main thread and the worker thread are completely asynchronous; each Worker object is a separate thread, and a Worker object instantiated in the main thread does not cause any blocking.
  *
  */
 declare class Class_Worker extends Class_EventEmitter {
     /**
-     * @description Worker 对象构造函数
-     *    @param path 指定 Worker 入口脚本，接受绝对路径、以 ./ 或 ../ 开头的相对路径，或者在 opts.eval = true 时直接传入源码
-     *    @param opts 构造选项，支持 eval 和 workerData
+     * @description Worker object constructor
+     *    @param path the Worker entry script; accepts an absolute path, a relative path starting with ./ or ../, or the source code directly when opts.eval = true
+     *    @param opts construction options, supports eval and workerData
      *
      */
     constructor(path: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 查询目标 worker 的逻辑 worker 标识
+     * @description Queries the logical worker id of the target worker
      */
     readonly threadId: number;
 
     /**
-     * @description 向对端线程发送消息，
-     *      @param data 指定发送的消息内容
+     * @description Sends a message to the peer thread
+     *      @param data the message content to send
      *
      */
     postMessage(data: any): void;
 
     /**
-     * @description 向对端线程发送消息，并转移指定的对象，
-     *      @param data 指定发送的消息内容
-     *      @param transfer 需要转移的对象数组（ArrayBuffer 等），转移后原对象在发送方不可再使用
+     * @description Sends a message to the peer thread and transfers the specified objects
+     *      @param data the message content to send
+     *      @param transfer the array of objects to transfer (ArrayBuffer, etc.); after transfer, the original objects can no longer be used by the sender
      *
      */
     postMessage(data: any, transfer: any[]): void;
 
     /**
-     * @description 终止 worker
+     * @description Terminates the worker
      *
-     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
-     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *    Consistent with Node.js, returns a Promise that resolves with the exit code when the worker exits (the `exit` event).
+     *    After being called, the JavaScript in the worker stops executing as soon as possible.
      *
      *    ```JavaScript
      *    const { Worker } = require('worker_threads');
@@ -110,16 +110,16 @@ declare class Class_Worker extends Class_EventEmitter {
      *    const worker = new Worker(__dirname + '/fib-worker.js');
      *    const exitCode = await worker.terminate();
      *    ```
-     *      @return 返回 worker 的退出码
+     *      @return returns the exit code of the worker
      *
      */
     terminate(): Promise<number>;
 
     /**
-     * @description 终止 worker
+     * @description Terminates the worker
      *
-     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
-     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *    Consistent with Node.js, returns a Promise that resolves with the exit code when the worker exits (the `exit` event).
+     *    After being called, the JavaScript in the worker stops executing as soon as possible.
      *
      *    ```JavaScript
      *    const { Worker } = require('worker_threads');
@@ -127,16 +127,16 @@ declare class Class_Worker extends Class_EventEmitter {
      *    const worker = new Worker(__dirname + '/fib-worker.js');
      *    const exitCode = await worker.terminate();
      *    ```
-     *      @return 返回 worker 的退出码
+     *      @return returns the exit code of the worker
      *
      */
     terminateSync(): number;
 
     /**
-     * @description 终止 worker
+     * @description Terminates the worker
      *
-     *    与 Node.js 一致，返回一个 Promise，在 worker 退出（`exit` 事件）时以退出码 resolve。
-     *    调用后 worker 中的 JavaScript 会尽快停止执行。
+     *    Consistent with Node.js, returns a Promise that resolves with the exit code when the worker exits (the `exit` event).
+     *    After being called, the JavaScript in the worker stops executing as soon as possible.
      *
      *    ```JavaScript
      *    const { Worker } = require('worker_threads');
@@ -144,40 +144,40 @@ declare class Class_Worker extends Class_EventEmitter {
      *    const worker = new Worker(__dirname + '/fib-worker.js');
      *    const exitCode = await worker.terminate();
      *    ```
-     *      @return 返回 worker 的退出码
+     *      @return returns the exit code of the worker
      *
      */
     terminateAsync(): Promise<number>;
 
     /**
-     * @description 维持 fibjs 进程不退出
+     * @description Keeps the fibjs process from exiting
      *
      */
     ref(): void;
 
     /**
-     * @description 允许 fibjs 进程退出
+     * @description Allows the fibjs process to exit
      *
      */
     unref(): void;
 
     /**
-     * @description 查询和绑定接受 worker 就绪事件，相当于 on("online", func);
+     * @description Queries and binds the worker ready event, equivalent to on("online", func);
      */
     on(event: "online", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受 postMessage 消息事件，相当于 on("message", func);
+     * @description Queries and binds the postMessage message event, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受 error 消息事件，相当于 on("error", func);
+     * @description Queries and binds the error message event, equivalent to on("error", func);
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受 worker 退出事件，相当于 on("exit", func);
+     * @description Queries and binds the worker exit event, equivalent to on("exit", func);
      */
     on(event: "exit", listener: ()=>void): this;
 

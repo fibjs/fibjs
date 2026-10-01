@@ -2,9 +2,9 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
 /**
- * @description 事件源接口，用于服务器推送事件
+ * @description event source interface, used for server-sent events
  *
- *   引用方式：
+ *   Reference:
  *   ```JavaScript
  *     const http = require('http');
  *
@@ -14,9 +14,9 @@
  */
 declare class Class_EventSource extends Class_EventEmitter {
     /**
-     * @description 构造函数
+     * @description constructor
      *
-     *      options 包含请求的附加选项，支持的内容如下：
+     *      options contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
      *      {
      *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
@@ -36,33 +36,33 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      }
      *      ```
      *
-     *       @param url 服务器地址
-     *       @param options 选项
+     *       @param url server address
+     *       @param options options
      *
      */
     constructor(url: string, options?: FIBJS.GeneralObject);
 
     /**
-     * @description 关闭连接
+     * @description closes the connection
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭连接
+     * @description closes the connection
      */
     closeSync(): void;
 
     /**
-     * @description 关闭连接
+     * @description closes the connection
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 发送事件到客户端
+     * @description sends an event to the client
      *
-     *      options 包含请求的附加选项，支持的内容如下：
+     *      options contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
      *      {
      *          "event": "message", // Specify the event type, default is message
@@ -71,9 +71,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      }
      *      ```
      *
-     *      @param data 事件数据
-     *      @param options 选项
-     *      @return 返回发送的字节数
+     *      @param data event data
+     *      @param options options
+     *      @return returns the number of bytes sent
      *
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
@@ -81,9 +81,9 @@ declare class Class_EventSource extends Class_EventEmitter {
     send(data: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 发送事件到客户端
+     * @description sends an event to the client
      *
-     *      options 包含请求的附加选项，支持的内容如下：
+     *      options contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
      *      {
      *          "event": "message", // Specify the event type, default is message
@@ -92,17 +92,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      }
      *      ```
      *
-     *      @param data 事件数据
-     *      @param options 选项
-     *      @return 返回发送的字节数
+     *      @param data event data
+     *      @param options options
+     *      @return returns the number of bytes sent
      *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
 
     /**
-     * @description 发送事件到客户端
+     * @description sends an event to the client
      *
-     *      options 包含请求的附加选项，支持的内容如下：
+     *      options contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
      *      {
      *          "event": "message", // Specify the event type, default is message
@@ -111,50 +111,50 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      }
      *      ```
      *
-     *      @param data 事件数据
-     *      @param options 选项
-     *      @return 返回发送的字节数
+     *      @param data event data
+     *      @param options options
+     *      @return returns the number of bytes sent
      *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
 
     /**
-     * @description 事件源状态，取值为 CONNECTING、OPEN、CLOSED
+     * @description event source state, the value is CONNECTING, OPEN, CLOSED
      */
     readonly readyState: number;
 
     /**
-     * @description 服务器地址
+     * @description server address
      */
     readonly url: string;
 
     /**
-     * @description 是否携带凭证
+     * @description whether to carry credentials
      */
     readonly withCredentials: boolean;
 
     /**
-     * @description http 响应对象
+     * @description http response object
      */
     readonly response: Class_HttpResponse;
 
     /**
-     * @description 打开事件回调
+     * @description open event callback
      */
     on(event: "open", listener: ()=>void): this;
 
     /**
-     * @description 错误事件回调
+     * @description error event callback
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 消息事件回调
+     * @description message event callback
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 关闭事件回调
+     * @description close event callback
      */
     on(event: "close", listener: ()=>void): this;
 

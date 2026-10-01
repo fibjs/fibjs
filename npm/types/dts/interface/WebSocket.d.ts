@@ -4,11 +4,11 @@
 /// <reference path="../interface/WebSocketMessage.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description WebSocket 是一种基于 TCP 协议的全双工通信协议，在浏览器和服务器之间建立起一个不断开的连接，可以实现实时双向数据传输，并且可以支持任意格式的数据传输。在 fibjs 中，WebSocket 支持模块提供了相应的 API 接口，可以实现 WebSocket 服务器端和客户端的开发
+ * @description WebSocket is a full-duplex communication protocol based on TCP; it establishes a persistent connection between browser and server, enabling real-time bidirectional data transmission and supporting data in any format. In fibjs, the WebSocket support module provides corresponding API interfaces for developing WebSocket servers and clients
  *
- * WebSocket 支持模块只是 WebSocket 协议的一个实现，需要在 HTTP 协议之上才能工作。在服务器端，可以通过 upgrade 函数将 HTTP 请求转换为 WebSocket 连接，而在客户端，则需要通过 WebSocket 协议的 URL 来指定需要连接的服务器地址。
+ * The WebSocket support module is only an implementation of the WebSocket protocol and needs to work on top of the HTTP protocol. On the server side, HTTP requests can be converted into WebSocket connections through the upgrade function; on the client side, the server address to connect is specified via a WebSocket protocol URL.
  *
- * 启动WebSocket服务器示例：
+ * Example of starting a WebSocket server:
  * ```JavaScript
  * var http = require('http');
  *
@@ -23,7 +23,7 @@
  * });
  * svr.start();
  * ```
- * 在客户端中与上述服务器建立连接的示例：
+ * Example of establishing a connection to the above server from a client:
  * ```JavaScript
  * var conn = new WebSocket("ws://127.0.0.1/ws", ['json', 'text']);
  * // emit open event
@@ -40,26 +40,26 @@
  */
 declare class Class_WebSocket extends Class_EventEmitter {
     /**
-     * @description WebSocket 构造函数
-     *      @param url 指定连接的服务器
-     *      @param protocol 指定握手协议，缺省为 ""
-     *      @param origin 指定握手时模拟的源，缺省为 ""
+     * @description WebSocket constructor
+     *      @param url specifies the server to connect
+     *      @param protocol specifies the handshake protocol, default is ""
+     *      @param origin specifies the origin to simulate during the handshake, default is ""
      *
      */
     constructor(url: string, protocol?: string, origin?: string);
 
     /**
-     * @description WebSocket 构造函数
-     *      @param url 指定连接的服务器
-     *      @param protocols 指定握手时的候选子协议列表
-     *      @param origin 指定握手时模拟的源，缺省为 ""
+     * @description WebSocket constructor
+     *      @param url specifies the server to connect
+     *      @param protocols specifies the list of candidate sub-protocols for the handshake
+     *      @param origin specifies the origin to simulate during the handshake, default is ""
      *
      */
     constructor(url: string, protocols: string[], origin?: string);
 
     /**
-     * @description WebSocket 构造函数
-     *      opts 包含请求的附加选项，支持的内容如下：
+     * @description WebSocket constructor
+     *      opts contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
      *      {
      *          "protocol": "", // specify the sub-protocol, default is ""
@@ -71,8 +71,8 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *          "headers": // specify the http headers, default is {}
      *      }
      *      ```
-     *      @param url 指定连接的服务器
-     *      @param opts 连接选项，缺省是 {}
+     *      @param url specifies the server to connect
+     *      @param opts connection options, default is {}
      *
      */
     constructor(url: string, opts: FIBJS.GeneralObject);
@@ -88,97 +88,97 @@ declare class Class_WebSocket extends Class_EventEmitter {
 
 
     /**
-     * @description 查询当前对象连接的服务器
+     * @description queries the server the current object is connected to
      */
     readonly url: string;
 
     /**
-     * @description 查询当前对象连接时的协议
+     * @description queries the protocol used when the current object connected
      */
     readonly protocol: string;
 
     /**
-     * @description 查询当前对象连接的源
+     * @description queries the origin the current object connected with
      */
     readonly origin: string;
 
     /**
-     * @description 查询当前对象的连接状态，参见 ws
+     * @description queries the connection state of the current object, see ws
      */
     readonly readyState: number;
 
     /**
-     * @description 关闭当前连接，此操作会向对方发送 CLOSE 数据包，并等待对方响应
-     *      @param code 指定关闭的代码，允许值为 3000-4999 或者 1000，缺省为 1000
-     *      @param reason 指定关闭的原因，缺省为 ""
+     * @description closes the current connection; this operation sends a CLOSE packet to the peer and waits for its response
+     *      @param code specifies the close code, allowed values are 3000-4999 or 1000, default is 1000
+     *      @param reason specifies the reason for closing, default is ""
      *
      */
     close(code?: number, reason?: string): void;
 
     /**
-     * @description 向对方发送一段文本
-     *      @param data 指定发送的文本
+     * @description sends a piece of text to the peer
+     *      @param data specifies the text to send
      *
      */
     send(data: string): void;
 
     /**
-     * @description 向对方发送一段二进制数据
-     *      @param data 指定发送的二进制数据
+     * @description sends a piece of binary data to the peer
+     *      @param data specifies the binary data to send
      *
      */
     send(data: Class_Buffer): void;
 
     /**
-     * @description 查询和绑定连接成功事件，相当于 on("open", func);
+     * @description queries and binds the connection success event, equivalent to on("open", func);
      */
     on(event: "open", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受到对方消息的事件，相当于 on("message", func);
+     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定连接关闭的事件，相当于 on("close", func);
+     * @description queries and binds the connection close event, equivalent to on("close", func);
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定错误发生的事件，相当于 on("error", func);
+     * @description queries and binds the error event, equivalent to on("error", func);
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
+     *      @return returns the current object
      *
      */
     ref(): Class_WebSocket;
 
     /**
-     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description allows the fibjs process to exit, allowing the fibjs process to exit while the object is bound
+     *      @return returns the current object
      *
      */
     unref(): Class_WebSocket;
 
     /**
-     * @description WebSocketMessage 类，用于创建 WebSocket 协议消息，参见 WebSocketMessage 对象
+     * @description the WebSocketMessage class, used to create WebSocket protocol messages, see the WebSocketMessage object
      */
     static Message: Class_WebSocketMessage;
 
     /**
-     * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
-     *      @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
-     *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     * @description creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
+     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
+     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
     static upgrade(accept: (...args: any[])=>any): Class_Handler;
 
     /**
-     * @description 创建一个 WebSocket 协议处理器，接收 http 的升级请求并握手，生成 WebSocket 对象
-     *      opts 支持使用 `protocol` 或 `protocols` 指定服务端可接受的子协议，并在握手成功时回写 `Sec-WebSocket-Protocol`，例如：
+     * @description creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
+     *      opts supports using `protocol` or `protocols` to specify the sub-protocols acceptable to the server, and writes back `Sec-WebSocket-Protocol` when the handshake succeeds, for example:
      *      ```JavaScript
      *      WebSocket.upgrade({
      *          protocols: ['json', 'text']
@@ -186,9 +186,9 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *          console.log(conn.protocol); // selected sub-protocol
      *      })
      *      ```
-     *      @param opts 连接选项，缺省为 {}
-     *      @param accept 连接成功处理函数，回调将传递两个参数，第一个是收到的 WebSocket 对象，第二个是握手时的 HttpRequest 对象
-     *      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等配合使用
+     *      @param opts connection options, default is {}
+     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
+     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
     static upgrade(opts: FIBJS.GeneralObject, accept: (...args: any[])=>any): Class_Handler;

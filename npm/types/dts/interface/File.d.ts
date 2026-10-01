@@ -2,18 +2,18 @@
 /// <reference path="../interface/Blob.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description File 对象用于表示文件系统中的文件，兼容 Web 标准 File API。
+ * @description The File object represents a file in the file system, compatible with the Web standard File API.
  *
- * File 继承自 Blob，除具备所有 Blob 的二进制数据能力外，还增加了文件名（name）和最后修改时间（lastModified）等属性，常用于文件上传、下载、Web API 交互等场景。
+ * File inherits from Blob; besides all the binary data capabilities of Blob, it adds properties such as the file name (name) and last modification time (lastModified), and is commonly used in scenarios such as file upload, download and Web API interaction.
  *
- * 主要特性：
- * 1. 继承自 Blob，支持所有二进制数据操作、切片、异步读取等。
- * 2. 只读属性 name：表示文件名，通常用于展示、上传或保存文件时使用。
- * 3. 只读属性 lastModified：表示文件的最后修改时间（自 1970-01-01 00:00:00 UTC 起的毫秒数）。
- * 4. 构造函数要求必须传递文件名参数，否则抛出 TypeError。
- * 5. 构造时可指定 type、endings、lastModified 等选项，行为与 Web File API 保持一致。
+ * Key features:
+ * 1. Inherits from Blob and supports all binary data operations, slicing, asynchronous reading, etc.
+ * 2. Read-only property name: represents the file name, typically used when displaying, uploading or saving the file.
+ * 3. Read-only property lastModified: represents the last modification time of the file (in milliseconds since 1970-01-01 00:00:00 UTC).
+ * 4. The constructor requires the file name parameter, otherwise it throws a TypeError.
+ * 5. Options such as type, endings and lastModified can be specified at construction; the behavior is consistent with the Web File API.
  *
- * 常见用法示例：
+ * Common usage examples:
  * ```JavaScript
  * // Create File object
  * const file = new File(["hello"], "greeting.txt", { type: "text/plain" });
@@ -35,59 +35,59 @@
  */
 declare class Class_File extends Class_Blob {
     /**
-     * !@description File 构造函数，创建一个新的 File 实例。File 继承自 Blob，支持所有 Blob 的数据类型。
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
      *
-     *     options 支持以下属性：
-     *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
-     *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
+     *     options supports the following properties:
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
      *
-     *      @param blobParts 初始化数据数组，可以包含字符串、ArrayBuffer、TypedArray、Blob 等。
-     *      @param name 文件名，必须为字符串，表示该文件的名称（如 "a.txt"），不能为空。
-     *      @param options 可选参数对象
+     *      @param blobParts the initial data array, may contain strings, ArrayBuffers, TypedArrays, Blobs, etc.
+     *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *      @param options optional parameter object
      *
      */
     constructor(blobParts: any[], name: string, options?: FIBJS.GeneralObject);
 
     /**
-     * !@description File 构造函数，创建一个新的 File 实例。File 继承自 Blob，支持所有 Blob 的数据类型。
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
      *
-     *     options 支持以下属性：
-     *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
-     *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
+     *     options supports the following properties:
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
      *
-     *      @param blobData 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型。
-     *      @param name 文件名，必须为字符串，表示该文件的名称（如 "a.txt"），不能为空。
-     *      @param options 可选参数对象
+     *      @param blobData the initial binary data, can be a Buffer or another binary data type.
+     *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *      @param options optional parameter object
      *
      */
     constructor(blobData: Class_Buffer, name: string, options?: FIBJS.GeneralObject);
 
     /**
-     * !@description File 构造函数，创建一个新的 File 实例。File 继承自 Blob，支持所有 Blob 的数据类型。
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
      *
-     *     options 支持以下属性：
-     *        - data: 初始化的二进制数据，可以是 Buffer 或其他二进制数据类型。
-     *        - name: 文件名，必须为字符串，表示该文件的名称（如 "a.txt"），不能为空。
-     *        - type: 指定 MIME 类型（如 "text/plain"），默认为空字符串。
-     *        - lastModified: 指定最后修改时间（时间戳，单位为毫秒），默认为当前时间。
+     *     options supports the following properties:
+     *        - data: the initial binary data, can be a Buffer or another binary data type.
+     *        - name: the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
      *
-     *      @param options 可选参数对象
+     *      @param options optional parameter object
      *
      */
     constructor(options?: FIBJS.GeneralObject);
 
     /**
-     * !@description 文件名，只读属性，返回文件的名称。
+     * !@description File name, read-only property, returns the name of the file.
      *
-     *      该属性用于标识文件，通常用于显示、上传或保存文件时使用。
+     *      This property identifies the file, and is typically used when displaying, uploading or saving it.
      *
      */
     readonly name: string;
 
     /**
-     * !@description 最后修改时间戳，只读属性，返回文件的最后修改时间（毫秒）。
+     * !@description Last modification timestamp, read-only property, returns the last modification time of the file (in milliseconds).
      *
-     *      该属性表示文件的最后修改时间，单位为自 1970-01-01 00:00:00 UTC 起的毫秒数。
+     *      This property represents the last modification time of the file, in milliseconds since 1970-01-01 00:00:00 UTC.
      *
      */
     readonly lastModified: number;

@@ -1,0 +1,15 @@
+/*! @brief data of one multipart entry */
+interface HttpUploadData : object
+{
+    /*! @brief the file name of the data of this entry */
+    readonly String fileName;
+
+    /*! @brief the type of the data of this entry */
+    readonly String contentType;
+
+    /*! @brief the transfer encoding type of the data of this entry */
+    readonly String contentTransferEncoding;
+
+    /*! @brief the stream object containing the data part of this entry */
+    readonly SeekableStream body;
+};

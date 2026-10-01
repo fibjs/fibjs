@@ -2,126 +2,126 @@
 /// <reference path="../module/assert.d.ts" />
 /// <reference path="../interface/ConsoleObject.d.ts" />
 /**
- * @description 控制台访问对象
+ * @description Console access object
  *
- *  console 模块是一个核心模块，它提供了类似于浏览器中 console 对象的功能，可以将信息输出到控制台，方便调试和输出信息。
+ *  The console module is a core module that provides functionality similar to the console object in browsers: it can output information to the console, making debugging and information output convenient.
  *
- *  模块的主要能力：
+ *  Main capabilities of the module:
  *
- *  - **分级日志**：`log`、`debug`、`info`、`notice`、`warn`、`error`、`crit`、`alert` 按严重程度分级输出，通过 `loglevel` 过滤；`trace` 输出调用堆栈；
- *  - **输出设备管理**：`add`/`use` 将输出发送到 console、syslog、event、nslog、file 等设备，`reset` 恢复默认；
- *  - **格式化输出**：`dir` 以 JSON 格式输出对象，`table` 以表格输出，`print` 输出不记日志且不换行；
- *  - **交互**：`readLine` 读取用户输入，`getpass` 读取密码，`moveTo`/`hideCursor`/`showCursor`/`clear` 控制光标与屏幕；
- *  - **计时**：`time`/`timeElapse`/`timeEnd` 计时代码执行时间。
+ *  - **Leveled logging**: `log`, `debug`, `info`, `notice`, `warn`, `error`, `crit`, `alert` output at different severity levels, filtered by `loglevel`; `trace` outputs the call stack;
+ *  - **Output device management**: `add`/`use` send output to console, syslog, event, nslog, file and other devices; `reset` restores the defaults;
+ *  - **Formatted output**: `dir` outputs objects in JSON format, `table` outputs tables, `print` outputs without logging and without a newline;
+ *  - **Interaction**: `readLine` reads user input, `getpass` reads a password, `moveTo`/`hideCursor`/`showCursor`/`clear` control the cursor and the screen;
+ *  - **Timing**: `time`/`timeElapse`/`timeEnd` measure code execution time.
  *
- *  console 模块中最常用的方法是 log()，该方法可以将任何 JavaScript 值打印到控制台，并自动添加换行符。除了 log() 方法外，还有 info()、warn()、error() 方法，分别用于输出信息、警告和错误，它们的功能和 log() 方法基本相同，只是在控制台中显示的样式不同。
+ *  The most commonly used method in the console module is log(), which can print any JavaScript value to the console and automatically appends a newline. Besides log(), there are also info(), warn() and error(), which output information, warnings and errors respectively; they work basically the same as log(), only the style displayed in the console differs.
  *
- *  console 模块还提供了 dir() 方法，用于将一个对象的属性和方法以可读性更强的形式输出到控制台，方便调试复杂的对象。另外，还有 time() 和 timeEnd() 方法，用于在控制台中计时代码执行的时间，并输出时间差。
+ *  The console module also provides the dir() method, which outputs an object's properties and methods to the console in a more readable form, making it convenient to debug complex objects. In addition, there are time() and timeEnd(), which measure code execution time in the console and output the time difference.
  *
- *  除了以上常用的方法，console 模块还提供了一些其他的方法，如 assert()、notice()、trace() 等，可以在不同的情况下方便地进行调试和信息输出。
+ *  Besides the commonly used methods above, the console module also provides some other methods, such as assert(), notice(), trace(), etc., which make debugging and information output convenient in different situations.
  *
- *  console 模块是一个非常实用的模块，可以在开发过程中提高调试效率，方便快捷地输出各种信息。
+ *  The console module is a very practical module that can improve debugging efficiency during development and output various kinds of information quickly and conveniently.
  *
  */
 declare module 'console' {
     /**
-     * @description loglevel 级别常量，致命错误，最严重级别
+     * @description loglevel constant, fatal error, the most severe level
      */
     export const FATAL: 0;
 
     /**
-     * @description loglevel 级别常量，警报级别
+     * @description loglevel constant, alert level
      */
     export const ALERT: 1;
 
     /**
-     * @description loglevel 级别常量，严重错误级别
+     * @description loglevel constant, critical error level
      */
     export const CRIT: 2;
 
     /**
-     * @description loglevel 级别常量，错误级别
+     * @description loglevel constant, error level
      */
     export const ERROR: 3;
 
     /**
-     * @description loglevel 级别常量，警告级别
+     * @description loglevel constant, warning level
      */
     export const WARN: 4;
 
     /**
-     * @description loglevel 级别常量，提示级别
+     * @description loglevel constant, notice level
      */
     export const NOTICE: 5;
 
     /**
-     * @description loglevel 级别常量，信息级别
+     * @description loglevel constant, info level
      */
     export const INFO: 6;
 
     /**
-     * @description loglevel 级别常量，调试级别
+     * @description loglevel constant, debug level
      */
     export const DEBUG: 7;
 
     /**
-     * @description loglevel 仅用于输出，信息输出后不换行，file 和 syslog 不保存此级别信息
+     * @description loglevel for output only; no newline after the message is output; file and syslog do not record information at this level
      */
     export const PRINT: 9;
 
     /**
-     * @description loglevel 级别常量，全部输出，缺省级别
+     * @description loglevel constant, output everything, the default level
      */
     export const NOTSET: 10;
 
     /**
-     * @description 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出。信息过滤之后才会输出给 add 设定的各个设备。
+     * @description Output level used to filter output information; the default is NOTSET, which outputs everything. Information is filtered before being output to the devices configured by add.
      *
      */
     var loglevel: number;
 
     /**
-     * @description 查询终端每行字符数
+     * @description Queries the number of characters per line of the terminal
      */
     const width: number;
 
     /**
-     * @description 查询终端行数
+     * @description Queries the number of lines of the terminal
      */
     const height: number;
 
     /**
-     * @description 添加 console 输出系统，支持的设备为 console, syslog, event，最多可以添加 10 个输出
+     * @description Adds a console output system; supported devices are console, syslog, event; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
-     *      type 为配置，为设备名称字符串：
+     *      type is the configuration, a device name string:
      *
      *      ```JavaScript
      *      console.add("console");
      *      ```
      *
-     *      syslog 仅在 posix 平台有效：
+     *      syslog is only valid on posix platforms:
      *      ```JavaScript
      *      console.add("syslog");
      *      ```
      *
-     *      event 仅在 windows 平台有效：
+     *      event is only valid on windows platforms:
      *      ```JavaScript
      *      console.add("event");
      *      ```
      *
-     *      @param type 输出设备
+     *      @param type output device
      *
      */
     function add(type: string): void;
 
     /**
-     * @description 添加 console 输出系统，支持的设备为 console, syslog, event, nslog 和 file，最多可以添加 10 个输出
+     * @description Adds a console output system; supported devices are console, syslog, event, nslog and file; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
-     *      cfg 可以为一个设备配置对象：
+     *      cfg can be a device configuration object:
      *      ```JavaScript
      *      console.add({
      *         type: "console",
@@ -129,7 +129,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      syslog 仅在 posix 平台有效：
+     *      syslog is only valid on posix platforms:
      *      ```JavaScript
      *      console.add({
      *         type: "syslog",
@@ -137,7 +137,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      event 仅在 windows 平台有效：
+     *      event is only valid on windows platforms:
      *      ```JavaScript
      *      console.add({
      *         type: "event",
@@ -145,7 +145,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      nslog 仅在 Darwin 平台有效：
+     *      nslog is only valid on Darwin platforms:
      *      ```JavaScript
      *      console.add({
      *          type: "nslog",
@@ -153,7 +153,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      file 日志：
+     *      file log:
      *      ```JavaScript
      *      console.add({
      *         type: "file",
@@ -164,15 +164,15 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      @param cfg 输出配置
+     *      @param cfg output configuration
      *
      */
     function add(cfg: FIBJS.GeneralObject): void;
 
     /**
-     * @description 批量添加 console 输出系统，支持的设备为 console, syslog, event 和 file，最多可以添加 10 个输出
+     * @description Adds console output systems in batch; supported devices are console, syslog, event and file; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
      *      ```JavaScript
      *      console.add(["console", {
@@ -181,43 +181,43 @@ declare module 'console' {
      *      }]);
      *      ```
      *
-     *      @param cfg 输出配置数组
+     *      @param cfg output configuration array
      *
      */
     function add(cfg: any[]): void;
 
     /**
-     * @description 添加 console 输出系统，支持的设备为 console, syslog, event，最多可以添加 10 个输出
+     * @description Adds a console output system; supported devices are console, syslog, event; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
-     *      type 为配置，为设备名称字符串：
+     *      type is the configuration, a device name string:
      *
      *      ```JavaScript
      *      console.use("console");
      *      ```
      *
-     *      syslog 仅在 posix 平台有效：
+     *      syslog is only valid on posix platforms:
      *      ```JavaScript
      *      console.use("syslog");
      *      ```
      *
-     *      event 仅在 windows 平台有效：
+     *      event is only valid on windows platforms:
      *      ```JavaScript
      *      console.use("event");
      *      ```
      *
-     *      @param type 输出设备
+     *      @param type output device
      *
      */
     function use(type: string): void;
 
     /**
-     * @description 添加 console 输出系统，支持的设备为 console, syslog, event, nslog 和 file，最多可以添加 10 个输出
+     * @description Adds a console output system; supported devices are console, syslog, event, nslog and file; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
-     *      cfg 可以为一个设备配置对象：
+     *      cfg can be a device configuration object:
      *      ```JavaScript
      *      console.use({
      *         type: "console",
@@ -225,7 +225,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      syslog 仅在 posix 平台有效：
+     *      syslog is only valid on posix platforms:
      *      ```JavaScript
      *      console.use({
      *         type: "syslog",
@@ -233,7 +233,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      event 仅在 windows 平台有效：
+     *      event is only valid on windows platforms:
      *      ```JavaScript
      *      console.use({
      *         type: "event",
@@ -241,7 +241,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      nslog 仅在 Darwin 平台有效：
+     *      nslog is only valid on Darwin platforms:
      *      ```JavaScript
      *      console.use({
      *          type: "nslog",
@@ -249,7 +249,7 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      file 日志：
+     *      file log:
      *      ```JavaScript
      *      console.use({
      *         type: "file",
@@ -260,15 +260,15 @@ declare module 'console' {
      *      });
      *      ```
      *
-     *      @param cfg 输出配置
+     *      @param cfg output configuration
      *
      */
     function use(cfg: FIBJS.GeneralObject): void;
 
     /**
-     * @description 批量添加 console 输出系统，支持的设备为 console, syslog, event 和 file，最多可以添加 10 个输出
+     * @description Adds console output systems in batch; supported devices are console, syslog, event and file; up to 10 outputs can be added
      *
-     *      通过配置 console，可以将程序输出和系统错误发往不同设备，用于运行环境信息收集。
+     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
      *
      *      ```JavaScript
      *      console.use(["console", {
@@ -277,229 +277,229 @@ declare module 'console' {
      *      }]);
      *      ```
      *
-     *      @param cfg 输出配置数组
+     *      @param cfg output configuration array
      *
      */
     function use(cfg: any[]): void;
 
     /**
-     * @description 初始化到缺省设置，只在 console 输出信息
+     * @description Resets to the default settings, outputting information only to console
      */
     function reset(): void;
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function log(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
      *
      */
     function log(...args: any[]): void;
 
     /**
-     * @description 记录调试日志信息
+     * @description Records debug log information
      *
-     *      记录调试日志信息。通常用于输出调试信息。不重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records debug log information. Usually used to output debug information. Not important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function debug(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录调试日志信息
+     * @description Records debug log information
      *
-     *      记录调试日志信息。通常用于输出调试信息。不重要。
-     *      @param args 可选参数列表
+     *      Records debug log information. Usually used to output debug information. Not important.
+     *      @param args optional argument list
      *
      */
     function debug(...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 log 等同
+     * @description Records general log information, same as log
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function info(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 log 等同
+     * @description Records general log information, same as log
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
      *
      */
     function info(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records notice log information
      *
-     *      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function notice(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records notice log information
      *
-     *      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
-     *      @param args 可选参数列表
+     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
+     *      @param args optional argument list
      *
      */
     function notice(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息，与 warning 等同
+     * @description Records warning log information, same as warning
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function warn(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息，与 warning 等同
+     * @description Records warning log information, same as warning
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param args optional argument list
      *
      */
     function warn(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records warning log information
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function warning(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records warning log information
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param args optional argument list
      *
      */
     function warning(...args: any[]): void;
 
     /**
-     * @description 记录错误日志信息
+     * @description Records error log information
      *
-     *      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function error(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录错误日志信息
+     * @description Records error log information
      *
-     *      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
-     *      @param args 可选参数列表
+     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
+     *      @param args optional argument list
      *
      */
     function error(...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息，与 critical 等同
+     * @description Records critical error log information, same as critical
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function crit(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息，与 critical 等同
+     * @description Records critical error log information, same as critical
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param args optional argument list
      *
      */
     function crit(...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息
+     * @description Records critical error log information
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function critical(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息
+     * @description Records critical error log information
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param args optional argument list
      *
      */
     function critical(...args: any[]): void;
 
     /**
-     * @description 记录警报错误日志信息
+     * @description Records alert error log information
      *
-     *      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function alert(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警报错误日志信息
+     * @description Records alert error log information
      *
-     *      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
-     *      @param args 可选参数列表
+     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
+     *      @param args optional argument list
      *
      */
     function alert(...args: any[]): void;
 
     /**
-     * @description 输出当前调用堆栈
+     * @description Outputs the current call stack
      *
-     *      通过日志输出当前调用堆栈。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Outputs the current call stack through logging.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function trace(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 输出当前调用堆栈
+     * @description Outputs the current call stack
      *
-     *      通过日志输出当前调用堆栈。
-     *      @param args 可选参数列表
+     *      Outputs the current call stack through logging.
+     *      @param args optional argument list
      *
      */
     function trace(...args: any[]): void;
 
     /**
-     * @description 用 JSON 格式输出对象
+     * @description Outputs an object in JSON format
      *
-     *      支持以下参数:
+     *      The following parameters are supported:
      *      ```JavaScript
      *      {
      *          "colors": false, // Specify whether to color the output, default is false
@@ -511,69 +511,69 @@ declare module 'console' {
      *          "fields": [], // Specify the fields to display, default is all
      *      }
      *      ```
-     *      @param obj 指定需要处理的对象
-     *      @param options 指定格式控制选项
+     *      @param obj specifies the object to process
+     *      @param options specifies the format control options
      *
      */
     function dir(obj: any, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 用 JSON 格式输出对象
-     *      @param obj 给定要显示的对象
+     * @description Outputs an object in JSON format
+     *      @param obj the object to display
      *
      */
     function table(obj: any): void;
 
     /**
-     * @description 用 JSON 格式输出对象
-     *      @param obj 给定要显示的对象
-     *      @param fields 给定要显示的字段
+     * @description Outputs an object in JSON format
+     *      @param obj the object to display
+     *      @param fields the fields to display
      *
      */
     function table(obj: any, fields: any[]): void;
 
     /**
-     * @description 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     * @description Outputs formatted text to the console; the output is not recorded in the logging system and no newline is appended, so it can be output continuously
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     function print(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
-     *      @param args 可选参数列表
+     * @description Outputs formatted text to the console; the output is not recorded in the logging system and no newline is appended, so it can be output continuously
+     *      @param args optional argument list
      *
      */
     function print(...args: any[]): void;
 
     /**
-     * @description 移动控制台光标到指定位置
-     *      @param row 指定新光标的行坐标
-     *      @param column 指定新光标的列坐标
+     * @description Moves the console cursor to the specified position
+     *      @param row specifies the row coordinate of the new cursor
+     *      @param column specifies the column coordinate of the new cursor
      *
      */
     function moveTo(row: number, column: number): void;
 
     /**
-     * @description 隐藏控制台光标
+     * @description Hides the console cursor
      */
     function hideCursor(): void;
 
     /**
-     * @description 显示控制台光标
+     * @description Shows the console cursor
      */
     function showCursor(): void;
 
     /**
-     * @description 清除控制台
+     * @description Clears the console
      */
     function clear(): void;
 
     /**
-     * @description 从控制台读取用户输入
-     *      @param msg 提示信息
-     *      @return 返回用户输入的信息
+     * @description Reads user input from the console
+     *      @param msg prompt message
+     *      @return returns the information entered by the user
      *
      */
     function readLine(msg?: string): string;
@@ -581,25 +581,25 @@ declare module 'console' {
     function readLine(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 从控制台读取用户输入
-     *      @param msg 提示信息
-     *      @return 返回用户输入的信息
+     * @description Reads user input from the console
+     *      @param msg prompt message
+     *      @return returns the information entered by the user
      *
      */
     function readLineSync(msg?: string): string;
 
     /**
-     * @description 从控制台读取用户输入
-     *      @param msg 提示信息
-     *      @return 返回用户输入的信息
+     * @description Reads user input from the console
+     *      @param msg prompt message
+     *      @return returns the information entered by the user
      *
      */
     function readLineAsync(msg?: string): Promise<string>;
 
     /**
-     * @description 从控制台读取用户输入的密码
-     *      @param msg 提示信息
-     *      @return 返回用户输入的密码
+     * @description Reads a password entered by the user from the console
+     *      @param msg prompt message
+     *      @return returns the password entered by the user
      *
      */
     function getpass(msg?: string): string;
@@ -607,52 +607,52 @@ declare module 'console' {
     function getpass(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 从控制台读取用户输入的密码
-     *      @param msg 提示信息
-     *      @return 返回用户输入的密码
+     * @description Reads a password entered by the user from the console
+     *      @param msg prompt message
+     *      @return returns the password entered by the user
      *
      */
     function getpassSync(msg?: string): string;
 
     /**
-     * @description 从控制台读取用户输入的密码
-     *      @param msg 提示信息
-     *      @return 返回用户输入的密码
+     * @description Reads a password entered by the user from the console
+     *      @param msg prompt message
+     *      @return returns the password entered by the user
      *
      */
     function getpassAsync(msg?: string): Promise<string>;
 
     /**
-     * @description 启动一个计时器
+     * @description Starts a timer
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     function time(label?: string): void;
 
     /**
-     * @description 输出指定计时器当前计时值
+     * @description Outputs the current timing value of the specified timer
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     function timeElapse(label?: string): void;
 
     /**
-     * @description 结束指定计时器，并输出最后计时值
+     * @description Ends the specified timer and outputs the final timing value
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     function timeEnd(label?: string): void;
 
     /**
-     * @description 断言测试，如果测试值为假，则报错
+     * @description Assertion test; reports an error if the test value is falsy
      */
     const assert: typeof import ('assert');
 
     /**
-     * @description Console 构造函数，用于创建输出到指定流的新 Console 实例
+     * @description Console constructor, used to create a new Console instance that outputs to the specified streams
      */
     const Console: typeof Class_ConsoleObject;
 

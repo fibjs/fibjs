@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description DOMEvent 表示一个 W3C DOM 事件对象
+ * @description DOMEvent represents a W3C DOM event object
  *
- *  DOMEvent 实现了标准的 Web Event 接口，提供事件类型、冒泡、取消等标准事件属性。
+ *  DOMEvent implements the standard Web Event interface, providing standard event properties such as event type, bubbling and cancellation.
  *
  *  ```JavaScript
  *  const ev = new Event('click', { bubbles: true, cancelable: true });
@@ -15,65 +15,65 @@
  */
 declare class Class_DOMEvent extends Class_object {
     /**
-     * @description DOMEvent 构造函数
-     *      @param type 事件类型
-     *      @param eventInitDict 可选的事件初始化字典
+     * @description DOMEvent constructor
+     *      @param type event type
+     *      @param eventInitDict optional event initialization dictionary
      *
      */
     constructor(type: string, eventInitDict?: FIBJS.GeneralObject);
 
     /**
-     * @description 事件类型
+     * @description Event type
      */
     readonly type: string;
 
     /**
-     * @description 事件是否冒泡
+     * @description Whether the event bubbles
      */
     readonly bubbles: boolean;
 
     /**
-     * @description 事件是否可取消
+     * @description Whether the event is cancelable
      */
     readonly cancelable: boolean;
 
     /**
-     * @description 事件是否可穿越 Shadow DOM 边界
+     * @description Whether the event can cross Shadow DOM boundaries
      */
     readonly composed: boolean;
 
     /**
-     * @description 是否已调用 preventDefault()
+     * @description Whether preventDefault() has been called
      */
     readonly defaultPrevented: boolean;
 
     /**
-     * @description 事件目标
+     * @description Event target
      */
     readonly target: any;
 
     /**
-     * @description 当前事件目标
+     * @description Current event target
      */
     readonly currentTarget: any;
 
     /**
-     * @description 事件创建时间戳
+     * @description Event creation timestamp
      */
     readonly timeStamp: number;
 
     /**
-     * @description 阻止事件的进一步传播
+     * @description Stops further propagation of the event
      */
     stopPropagation(): void;
 
     /**
-     * @description 阻止同一事件的其他监听器被调用
+     * @description Prevents other listeners of the same event from being called
      */
     stopImmediatePropagation(): void;
 
     /**
-     * @description 如果事件可取消，则取消该事件
+     * @description Cancels the event if it is cancelable
      */
     preventDefault(): void;
 

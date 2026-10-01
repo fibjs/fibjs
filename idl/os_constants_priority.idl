@@ -1,0 +1,27 @@
+/*! @brief os_constants priority submodule, containing process priority constants
+
+ Usage:
+ ```JavaScript
+ var priority = require('os').constants.priority
+ ```
+ */
+module os_constants_priority
+{
+    /*! @brief Low priority */
+    const PRIORITY_LOW = 19;
+
+    /*! @brief Below-normal priority */
+    const PRIORITY_BELOW_NORMAL = 10;
+
+    /*! @brief Normal priority */
+    const PRIORITY_NORMAL = 0;
+
+    /*! @brief Above-normal priority */
+    const PRIORITY_ABOVE_NORMAL = -7;
+
+    /*! @brief High priority */
+    const PRIORITY_HIGH = -14;
+
+    /*! @brief Highest priority */
+    const PRIORITY_HIGHEST = -20;
+};

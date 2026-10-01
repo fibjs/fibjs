@@ -1,0 +1,345 @@
+/*! @brief Process handling module, used to manage the resources of the current process
+
+ Main capabilities of the module:
+
+ - **Process information**: properties such as `argv`, `execArgv`, `version`, `execPath`, `arch`, `platform`, `pid`, `ppid`, `env`;
+ - **Process control**: `exit` exits the process, `exitCode` exit code, `cwd`/`chdir` working path, `umask`, `uptime`, `hrtime` timing, `kill` sends a signal;
+ - **Resource reports**: `cpuUsage`, `memoryUsage`, `resourceUsage`;
+ - **Scheduling**: `nextTick` starts a fiber to execute a function;
+ - **Standard streams**: `stdin`, `stdout`, `stderr`;
+ - **Parent-child process communication**: `send`, `disconnect`, `connected`;
+ - **Process events**: `beforeExit`, `exit`, `unhandledRejection`, `warning`, signal events (see below for details).
+
+ Usage:
+ ```JavaScript
+ var process = require('process');
+ ```
+
+ ## Process events
+ The process module object is an instance of EventEmitter; process-level events can be responded to by registering event listeners.
+
+ ### beforeExit event
+ **When fibjs's task queue is empty and no extra work has been added, the `beforeExit` event is triggered**
+ ```JavaScript
+ process.on('beforeExit', exitCode => {});
+ ```
+ Normally, if no extra work is added to the task queue, the fibjs process exits. However, if the callback of a listener bound to the `beforeExit` event starts a new task, such as starting a fiber, the fibjs process continues to run.
+
+ process.exitCode is passed as the only argument to the callback of the `beforeExit` event listener. If the process is about to terminate for an explicit reason, such as calling process.exit directly or throwing an uncaught exception, the `beforeExit` event is not triggered.
+
+ ### unhandledRejection event
+ **When a Promise is rejected and no error handler is bound, the `unhandledRejection` event is triggered**
+ ```JavaScript
+ process.on('unhandledRejection', (reason, promise) => {});
+ ```
+ The callback of the `unhandledRejection` event listener has two arguments: the first is the rejection reason `reason`, and the second is the rejected `promise` object.
+
+ If no listener is bound to the `unhandledRejection` event, fibjs terminates the process with exit code 1 after printing the error (consistent with the behavior of node >= 15); the `beforeExit` event is not triggered.
+
+ ### exit event
+ **When fibjs exits, the `exit` event is triggered; once all listeners bound to the `exit` event have finished executing, the process terminates**
+ ```JavaScript
+ process.on('exit', exitCode => {});
+ ```
+ The callback of the `exit` event listener has only one argument, whose value can be the value of the process.exitCode property, or the `exitCode` value passed when calling the process.exit method.
+
+ ### Signal event
+ **When the fibjs process receives a signal, a signal event is triggered; currently supported signals are SIGINT and SIGTERM. Each event name is the signal name in uppercase (for example, the event 'SIGINT' corresponds to the signal SIGINT).**
+ 
+ Signal events differ from other process events: signal events are preemptive. When a signal occurs, the corresponding event is triggered as soon as possible, whether the current operation is io or JavaScript computation. For example, you can use the following code to interrupt the current application and output the running state:
+ ```JavaScript
+ var coroutine = require('coroutine');
+
+ process.on('SIGINT', () => {
+    coroutine.fibers.forEach(f => console.error("Fiber %d:\n%s", f.id, f.stack));
+    process.exit();
+ });
+ ```
+ The signal names and their meanings are as follows:
+ * SIGINT: Supported on all platforms when running in a terminal; usually triggered by CTRL+C.
+ * SIGTERM: This signal is triggered when the process is killed. Not supported on Windows.
+ */
+module process : EventEmitter
+{
+    /*! @brief Returns the command line arguments of the current process */
+    static Array argv;
+
+    /*! @brief Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment */
+    static readonly Array execArgv;
+
+    /*! @brief Returns the fibjs version string */
+    static readonly String version;
+
+    /*! @brief Returns version information of fibjs and its components */
+    static readonly Object versions;
+
+    /*! @brief Queries the full path of the currently running executable file */
+    static readonly String execPath;
+
+    /*! @brief Queries the environment variables of the current process */
+    static readonly Object env;
+
+    /*! @brief Queries the current cpu environment; possible results are 'amd64', 'arm', 'arm64', 'ia32' */
+    static readonly String arch;
+
+    /*! @brief Queries the current platform name; possible results are 'darwin', 'freebsd', 'linux', or 'win32' */
+    static readonly String platform;
+
+    /*! @brief Returns the release metadata of the current build; name is set to 'node' */
+    static readonly Object release;
+
+    /*! @brief Title of the current process, fixed to 'fibjs' */
+    const title = "fibjs";
+
+    /*! @brief Reads the id of the process the current object points to */
+    static readonly Integer pid;
+
+    /*! @brief Reads the id of the parent process the current object points to */
+    static readonly Integer ppid;
+
+    /*! @brief Queries the standard input object of the current process; in a tty it is TTYInputStream, otherwise Stream */
+    static readonly Stream stdin;
+
+    /*! @brief Queries the standard output object of the current process; in a tty it is TTYOutputStream, otherwise Stream */
+    static readonly Stream stdout;
+
+    /*! @brief Queries the standard error output object of the current process; in a tty it is TTYOutputStream, otherwise Stream */
+    static readonly Stream stderr;
+
+    /*! @brief Queries and sets the exit code of the current process */
+    static Integer exitCode;
+
+    /*! @brief Changes the current umask; not supported on Windows
+     @param mask specifies the new mask
+     @return returns the previous mask
+    */
+    static Integer umask(Integer mask);
+
+    /*! @brief Changes the current umask; not supported on Windows
+     @param mask specifies the new mask as an octal string (e.g: "0664")
+     @return returns the previous mask
+    */
+    static Integer umask(String mask);
+
+    /*! @brief Returns the current umask; not supported on Windows
+     @return returns the current mask value
+    */
+    static Integer umask();
+
+    /*! @brief Returns the system high-resolution time; this time is unrelated to the current time and is only used for high-precision timing
+     @param diff the initial time to compare against
+     @return returns the measured time in the format [seconds, nanoseconds]
+    */
+    static Array hrtime(Array diff = []);
+
+    /*! @brief Exits the current process, using exitCode as the process result     */
+    static exit();
+
+    /*! @brief Exits the current process and returns the result
+     @param code the process result to return
+     */
+    static exit(Integer code);
+
+    /*! @brief Returns the current working path of the operating system
+     @return returns the current system path
+     */
+    static String cwd();
+
+    /*! @brief Dynamically loads a C++ extension (Node-API / N-API extension)
+
+     First the dynamic library is opened with flags (the default is 1, i.e. os.constants.dlopen.RTLD_LAZY), then the extension's registration function completes initialization:
+     A Node-API extension exports napi_register_module_v1; the exports object registered by this function is written to module.exports, and requiring a .node file ultimately goes through this path as well.
+
+     Compatibility notes:
+     - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is consistent with Node.js's contract that "one napi_env corresponds to one OS thread";
+       therefore extensions that cache class constructors or runtime handles in thread-local storage (TLS) when the module is loaded work correctly;
+     - When started with --no-js-thread-affinity, the isolate's JS fibers are scheduled back on the shared thread pool, and extensions that rely on TLS may fail randomly;
+     - If an extension uses napi_tsfn_blocking on a full threadsafe function inside a callback coming from JS, it blocks the isolate's only
+       JS thread, while draining that queue also requires this thread, resulting in self-deadlock; Node.js's single-threaded event loop has the same limitation.
+
+     @param module specifies the module to load
+     @param filename specifies the file name of the module to load
+     @param flags specifies how to load the module, the default is 1
+    */
+    static dlopen(Object module, String filename, Integer flags = 1);
+
+    /*! @brief Changes the current working path of the operating system
+     @param directory specifies the new path to set
+     */
+    static chdir(String directory);
+
+    /*! @brief Loads environment variables from a dotenv file into process.env
+     @param path specifies the dotenv file path; when empty, reads .env in the current directory by default
+     */
+    static loadEnvFile(String path = "");
+
+    /*! @brief Queries the uptime of the runtime environment, in seconds
+     @return returns a numeric value representing the time
+    */
+    static Number uptime();
+
+    /*! @brief Queries the time spent by the current process in user and system code, in microseconds (one millionth of a second)
+
+     The report is generated similar to the following:
+     ```JavaScript
+     {
+       "user": 132379,
+       "system": 50507
+     }
+     ```
+     Where:
+     - user returns the time the process spent in user code
+     - system returns the time the process spent in system code
+     @param previousValue specifies the time of the previous query
+     @return returns the time report
+     */
+    static Object cpuUsage(Object previousValue = {});
+
+    /*! @brief Queries the memory usage report of the current process
+
+     The report is generated similar to the following:
+     ```JavaScript
+     {
+       "rss": 8622080,
+       "heapTotal": 4083456,
+       "heapUsed": 1621800
+     }
+     ```
+     Where:
+     - rss returns the physical memory currently occupied by the process
+     - heapTotal returns the heap memory size of the v8 engine
+     - heapUsed returns the heap memory currently used by the v8 engine
+     @return returns the memory report
+     */
+    static Object memoryUsage();
+
+    /*! @brief Queries the resource usage report of the current process
+
+     resourceUsage generates results similar to the following:
+     ```JavaScript
+     {
+       "userCPUTime": 132379,      // User CPU time (microseconds), same as process.cpuUsage().user
+       "systemCPUTime": 50507,     // System CPU time (microseconds), same as process.cpuUsage().system
+       "maxRSS": 8622080,          // Maximum physical memory usage (KB)
+       "sharedMemorySize": 0,      // Shared memory size (not supported)
+       "unsharedDataSize": 0,      // Unshared data size (not supported)
+       "unsharedStackSize": 0,     // Unshared stack size (not supported)
+       "minorPageFault": 2,        // Number of minor page faults
+       "majorPageFault": 0,        // Number of major page faults (not supported on Windows)
+       "swappedOut": 0,            // Number of times swapped out (not supported)
+       "fsRead": 100,              // Number of filesystem reads
+       "fsWrite": 50,              // Number of filesystem writes
+       "ipcSent": 0,               // Number of IPC messages sent (not supported)
+       "ipcReceived": 0,           // Number of IPC messages received (not supported)
+       "signalsCount": 0,          // Number of signals received (not supported)
+       "voluntaryContextSwitches": 1000,    // Number of voluntary context switches (not supported on Windows)
+       "involuntaryContextSwitches": 500    // Number of involuntary context switches (not supported on Windows)
+     }
+     ```
+     @return returns an object containing the resource usage report
+     */
+    static Object resourceUsage();
+
+    /*! @brief Starts a fiber to execute the specified function
+
+     The callback is started after the current synchronous code finishes executing; multiple nextTick callbacks are executed in registration order; the arguments in args are passed to the function.
+     @param func specifies the function executed by the fiber
+     @param args variable argument sequence, passed to the function inside the fiber
+     */
+    static nextTick(Function func, ...args);
+
+    /*! @brief Gets the internal module with the specified name
+     @param name specifies the name of the internal module to query
+     @return returns the specified internal module
+     */
+    static Value binding(String name);
+
+    /*! @brief Gets the built-in module with the specified name; returns undefined if the module does not exist
+     @param id specifies the name of the built-in module to get; the "node:" prefix may be omitted or included, and subpaths are supported, such as "path", "node:path/posix", "fs/promises"
+     @return returns the built-in module object, or undefined if the module does not exist
+     */
+    static Value getBuiltinModule(String id);
+
+    /*! @brief Queries the group id of the current process
+     @return returns the group id of the current process
+     */
+    static Integer getgid();
+
+    /*! @brief Queries the user id of the current process
+     @return returns the user id of the current process
+     */
+    static Integer getuid();
+
+    /*! @brief Sets the group id of the current process
+     @param id specifies the group id to set
+     */
+    static setgid(Integer id);
+
+    /*! @brief Sets the user id of the current process
+     @param id specifies the user id to set
+     */
+    static setuid(Integer id);
+
+    /*! @brief Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+
+     The options include the following:
+     ```JavaScript
+     {
+       "type": "Warning", // specifies the name of the type of warning issued. Default value: 'Warning'
+       "code": "", // specify the unique identifier of the warning instance issued
+       "detail": "" // specify additional text for warnings
+     }
+     ```
+     Usage is as follows:
+     ```JavaScript
+     const { emitWarning } = require('process');
+
+     // Emit a warning with a code and additional detail.
+     emitWarning('Something happened!', {
+       code: 'MY_WARNING',
+       detail: 'This is some additional information',
+     });
+
+     process.on('warning', (warning) => {
+       console.warn(warning.name);    // 'Warning'
+       console.warn(warning.message); // 'Something happened!'
+       console.warn(warning.code);    // 'MY_WARNING'
+       console.warn(warning.stack);   // Stack trace
+       console.warn(warning.detail);  // 'This is some additional information'
+     });
+     ```
+     @param warning specifies the warning to emit
+     @param options specifies the options of the warning
+    */
+    static emitWarning(Value warning, Object options);
+
+    /*! @brief Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+     @param warning specifies the warning to emit
+     @param type specifies the name of the type of warning issued. Default value: 'Warning'
+     @param code specifies the unique identifier of the warning instance issued
+    */
+    static emitWarning(Value warning, String type = "Warning", String code = "");
+
+    /*! @brief Sends a signal to the specified process
+     @param pid specifies the process id
+     @param signal specifies the signal number to send
+    */
+    static kill(Integer pid, Integer signal);
+
+    /*! @brief Sends a signal to the specified process
+     @param pid specifies the process id
+     @param signal specifies the signal name to send, the default is SIGTERM
+    */
+    static kill(Integer pid, String signal = "SIGTERM");
+
+    /*! @brief Queries whether the pipe to the parent process is properly connected */
+    static readonly Boolean connected;
+
+    /*! @brief Closes the ipc pipe to the parent process */
+    static disconnect();
+
+    /*! @brief Sends a message to the parent process
+     @param msg specifies the message to send
+    */
+    static send(Value msg);
+};

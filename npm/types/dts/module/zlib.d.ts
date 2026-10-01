@@ -10,15 +10,15 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description zlib 是内置的压缩模块，支持 gzip、deflate、zlib 等多种压缩格式和模式
+ * @description zlib is a built-in compression module that supports multiple compression formats and modes such as gzip, deflate and zlib
  *
- *  zlib 主要由以下 3 个函数组成：
+ *  zlib mainly consists of the following 3 functions:
  *
- * - deflate：压缩数据；
- * - inflate：解压数据；
- * - gzip：gzip 压缩格式。
+ * - deflate: compresses data;
+ * - inflate: decompresses data;
+ * - gzip: the gzip compression format.
  *
- * 在使用 zlib 前，需要先根据需要使用的压缩算法选择其中一种。可以参考 zlib 的常量来选择相应的压缩算法。比如，我们使用 deflate 压缩算法进行模块说明：
+ * Before using zlib, you need to choose one of the compression algorithms according to your needs. You can refer to the constants of zlib to select the corresponding compression algorithm. For example, we use the deflate compression algorithm to explain the module:
  *
  * ```JavaScript
  * const zlib = require('zlib');
@@ -33,131 +33,131 @@
  * console.log(inflated.toString());
  * ```
  *
- * 上面的代码展示了如何压缩和解压数据，先用 `zlib.deflate` 方法压缩 `hello, world` 这个字符串，并传入 `BEST_SPEED` 作为压缩级别选项，然后用 `zlib.inflate` 方法解压缩该数据，输出的结果应该与原始字符串相同。
+ * The above code shows how to compress and decompress data: first use the `zlib.deflate` method to compress the string `hello, world` and pass `BEST_SPEED` as the compression level option, then use the `zlib.inflate` method to decompress the data; the output should be the same as the original string.
  *
- * `zlib.deflate` 和 `zlib.inflate` 都支持定义压缩级别，压缩级别是一个数字，取值范围为 `[NO_COMPRESSION, BEST_SPEED, DEFAULT_COMPRESSION, BEST_COMPRESSION]`，默认值为 `DEFAULT_COMPRESSION`。关于这 4 种压缩级别的含义，可以参考下面的 table：
+ * Both `zlib.deflate` and `zlib.inflate` support defining the compression level. The compression level is a number in the range `[NO_COMPRESSION, BEST_SPEED, DEFAULT_COMPRESSION, BEST_COMPRESSION]`, with a default value of `DEFAULT_COMPRESSION`. For the meaning of these 4 compression levels, see the following table:
  *
  * | Compression Level | Meaning                                                                      |
  * | ----------------- | ---------------------------------------------------------------------------- |
- * | zlib.NO_COMPRESSION | 不压缩数据（含有压缩头完成的支持）                                    |
- * | zlib.BEST_SPEED     | 最快的压缩速度；但是压缩比也相应的差一些                           |
- * | zlib.DEFAULT_COMPRESSION | 根据压缩算法的默认值，通常情况下比 BEST_SPEED 的压缩速度慢但压缩率更高 |
- * | zlib.BEST_COMPRESSION   | 最高压缩比，但压缩速度也相应较慢。                                   |
+ * | zlib.NO_COMPRESSION | Does not compress the data (a complete compression header is included)                                    |
+ * | zlib.BEST_SPEED     | The fastest compression speed, but the compression ratio is correspondingly worse                           |
+ * | zlib.DEFAULT_COMPRESSION | The default value of the compression algorithm; usually slower than BEST_SPEED but with a higher compression ratio |
+ * | zlib.BEST_COMPRESSION   | The best compression ratio, but the compression speed is correspondingly slower.                                   |
  *
- * 在使用 `zlib` 模块时需要注意的是，如果要同时压缩和解压数据，建议先使用 `deflate` 对数据进行压缩之后再使用 `inflate` 对数据进行解压缩，避免出现错误。而对于不同的压缩格式和算法，还有其他的类和方法进行压缩和解压缩，可以参考以下文档进行使用。
+ * Note when using the `zlib` module: if you want to compress and decompress data at the same time, it is recommended to use `deflate` to compress the data and then use `inflate` to decompress it, to avoid errors. For different compression formats and algorithms, there are other classes and methods for compression and decompression; see the following documents for their usage.
  *
  */
 declare module 'zlib' {
     /**
-     * @description deflate 压缩级别，设定不压缩
+     * @description deflate compression level, sets no compression
      */
     export const NO_COMPRESSION: 0;
 
     /**
-     * @description deflate 压缩级别，设定最快压缩
+     * @description deflate compression level, sets the fastest compression
      */
     export const BEST_SPEED: 1;
 
     /**
-     * @description deflate 压缩级别，设定最高压缩
+     * @description deflate compression level, sets the best compression
      */
     export const BEST_COMPRESSION: 9;
 
     /**
-     * @description deflate 压缩级别，设定缺省设置
+     * @description deflate compression level, sets the default setting
      */
     export const DEFAULT_COMPRESSION: -1;
 
     /**
-     * ! zlib 模块的常量对象，参见 zlib_constants
+     * ! The constant object of the zlib module, see zlib_constants
      */
     const constants: typeof import ('zlib_constants');
 
     /**
-     * ! Gzip 压缩类
+     * ! Gzip compression class
      */
     const Gzip: typeof Class_Gzip;
 
     /**
-     * ! Gunzip 解压缩类
+     * ! Gunzip decompression class
      */
     const Gunzip: typeof Class_Gunzip;
 
     /**
-     * ! Deflate 压缩类
+     * ! Deflate compression class
      */
     const Deflate: typeof Class_Deflate;
 
     /**
-     * ! Inflate 解压缩类
+     * ! Inflate decompression class
      */
     const Inflate: typeof Class_Inflate;
 
     /**
-     * ! DeflateRaw 压缩类
+     * ! DeflateRaw compression class
      */
     const DeflateRaw: typeof Class_DeflateRaw;
 
     /**
-     * ! InflateRaw 解压缩类
+     * ! InflateRaw decompression class
      */
     const InflateRaw: typeof Class_InflateRaw;
 
     /**
-     * ! Unzip 自动检测解压缩类
+     * ! Unzip auto-detect decompression class
      */
     const Unzip: typeof Class_Unzip;
 
     /**
-     * @description 创建一个 deflate 流对象
-     *      @param to 用于存储处理结果的流
-     *      @return 返回封装过的流对象
+     * @description Creates a deflate stream object
+     *      @param to the stream used to store the processing result
+     *      @return returns the wrapped stream object
      */
     function createDeflate(to: Class_Stream): Class_Stream;
 
     /**
-     * @description 创建一个 deflateRaw 流对象
-     *      @param to 用于存储处理结果的流
-     *      @return 返回封装过的流对象
+     * @description Creates a deflateRaw stream object
+     *      @param to the stream used to store the processing result
+     *      @return returns the wrapped stream object
      */
     function createDeflateRaw(to: Class_Stream): Class_Stream;
 
     /**
-     * @description 创建一个 gunzip 流对象
-     *      @param to 用于存储处理结果的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回封装过的流对象
+     * @description Creates a gunzip stream object
+     *      @param to the stream used to store the processing result
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the wrapped stream object
      */
     function createGunzip(to: Class_Stream, maxSize?: number): Class_Stream;
 
     /**
-     * @description 创建一个 gzip 流对象
-     *      @param to 用于存储处理结果的流
-     *      @return 返回封装过的流对象
+     * @description Creates a gzip stream object
+     *      @param to the stream used to store the processing result
+     *      @return returns the wrapped stream object
      */
     function createGzip(to: Class_Stream): Class_Stream;
 
     /**
-     * @description 创建一个 inflate 流对象
-     *      @param to 用于存储处理结果的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回封装过的流对象
+     * @description Creates an inflate stream object
+     *      @param to the stream used to store the processing result
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the wrapped stream object
      */
     function createInflate(to: Class_Stream, maxSize?: number): Class_Stream;
 
     /**
-     * @description 创建一个 inflateRaw 流对象
-     *      @param to 用于存储处理结果的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回封装过的流对象
+     * @description Creates an inflateRaw stream object
+     *      @param to the stream used to store the processing result
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the wrapped stream object
      */
     function createInflateRaw(to: Class_Stream, maxSize?: number): Class_Stream;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflate(data: Class_Buffer, level: number): Class_Buffer;
@@ -165,29 +165,29 @@ declare module 'zlib' {
     function deflate(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateSync(data: Class_Buffer, level: number): Class_Buffer;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflate(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -195,30 +195,30 @@ declare module 'zlib' {
     function deflate(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 deflate 算法压缩数据(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
@@ -226,28 +226,28 @@ declare module 'zlib' {
     function deflateTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(zlib格式)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(zlib格式)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateTo(src: Class_Stream, stm: Class_Stream, level: number): void;
@@ -255,28 +255,28 @@ declare module 'zlib' {
     function deflateTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(zlib格式)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(zlib格式)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflate(data: Class_Buffer, maxSize?: number): Class_Buffer;
@@ -284,29 +284,29 @@ declare module 'zlib' {
     function inflate(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateSync(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateAsync(data: Class_Buffer, maxSize?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflate(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -314,30 +314,30 @@ declare module 'zlib' {
     function inflate(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(zlib格式)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
@@ -345,28 +345,28 @@ declare module 'zlib' {
     function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
@@ -374,27 +374,27 @@ declare module 'zlib' {
     function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @return returns the compressed binary data
      *
      */
     function gzip(data: Class_Buffer): Class_Buffer;
@@ -402,27 +402,27 @@ declare module 'zlib' {
     function gzip(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @return returns the compressed binary data
      *
      */
     function gzipSync(data: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @return returns the compressed binary data
      *
      */
     function gzipAsync(data: Class_Buffer): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function gzip(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -430,29 +430,29 @@ declare module 'zlib' {
     function gzip(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function gzipSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 gzip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the gzip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function gzipAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 gzip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data into a stream object with the gzip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipTo(data: Class_Buffer, stm: Class_Stream): void;
@@ -460,25 +460,25 @@ declare module 'zlib' {
     function gzipTo(data: Class_Buffer, stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 gzip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data into a stream object with the gzip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToSync(data: Class_Buffer, stm: Class_Stream): void;
 
     /**
-     * @description 使用 gzip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data into a stream object with the gzip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToAsync(data: Class_Buffer, stm: Class_Stream): Promise<void>;
 
     /**
-     * @description 使用 gzip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data from a source stream into a stream object with the gzip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipTo(src: Class_Stream, stm: Class_Stream): void;
@@ -486,26 +486,26 @@ declare module 'zlib' {
     function gzipTo(src: Class_Stream, stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 gzip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data from a source stream into a stream object with the gzip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToSync(src: Class_Stream, stm: Class_Stream): void;
 
     /**
-     * @description 使用 gzip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
+     * @description Compresses data from a source stream into a stream object with the gzip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToAsync(src: Class_Stream, stm: Class_Stream): Promise<void>;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzip(data: Class_Buffer, maxSize?: number): Class_Buffer;
@@ -513,29 +513,29 @@ declare module 'zlib' {
     function gunzip(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzipSync(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzipAsync(data: Class_Buffer, maxSize?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzip(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -543,30 +543,30 @@ declare module 'zlib' {
     function gunzip(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzipSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the gzip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function gunzipAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
@@ -574,28 +574,28 @@ declare module 'zlib' {
     function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩 gzip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 解压缩源流中 gzip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
@@ -603,28 +603,28 @@ declare module 'zlib' {
     function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩源流中 gzip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩源流中 gzip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function gunzipToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRaw(data: Class_Buffer, level: number): Class_Buffer;
@@ -632,29 +632,29 @@ declare module 'zlib' {
     function deflateRaw(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRawSync(data: Class_Buffer, level: number): Class_Buffer;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRawAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRaw(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -662,30 +662,30 @@ declare module 'zlib' {
     function deflateRaw(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRawSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 deflate 算法压缩数据(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function deflateRawAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
@@ -693,28 +693,28 @@ declare module 'zlib' {
     function deflateRawTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 deflate 算法压缩数据到流对象中(deflateRaw)
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(deflateRaw)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawTo(src: Class_Stream, stm: Class_Stream, level: number): void;
@@ -722,28 +722,28 @@ declare module 'zlib' {
     function deflateRawTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(deflateRaw)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 deflate 算法压缩源流中的数据到流对象中(deflateRaw)
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function deflateRawToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRaw(data: Class_Buffer, maxSize?: number): Class_Buffer;
@@ -751,29 +751,29 @@ declare module 'zlib' {
     function inflateRaw(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRawSync(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRawAsync(data: Class_Buffer, maxSize?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRaw(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -781,30 +781,30 @@ declare module 'zlib' {
     function inflateRaw(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRawSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据(inflateRaw)
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function inflateRawAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
@@ -812,28 +812,28 @@ declare module 'zlib' {
     function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
@@ -841,44 +841,44 @@ declare module 'zlib' {
     function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function inflateRawToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 创建一个 zip 流对象
-     *      @param to 用于存储处理结果的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回封装过的流对象
+     * @description Creates a zip stream object
+     *      @param to the stream used to store the processing result
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the wrapped stream object
      */
     function createZip(to: Class_Stream, level: number): Class_Stream;
 
     /**
-     * @description 创建一个 unzip 流对象
-     *      @param to 用于存储处理结果的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回封装过的流对象
+     * @description Creates a unzip stream object
+     *      @param to the stream used to store the processing result
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the wrapped stream object
      */
     function createUnzip(to: Class_Stream, maxSize?: number): Class_Stream;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zip(data: Class_Buffer, level: number): Class_Buffer;
@@ -886,29 +886,29 @@ declare module 'zlib' {
     function zip(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zipSync(data: Class_Buffer, level: number): Class_Buffer;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zipAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zip(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -916,30 +916,30 @@ declare module 'zlib' {
     function zip(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zipSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 使用 zip 算法压缩数据
-     *      @param data 给定要压缩的数据
-     *      @param options 指定压缩选项，支持的选项包括：
-     *        - level: 指定压缩级别，缺省为 DEFAULT_COMPRESSION
-     *      @return 返回压缩后的二进制数据
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param options the compression options, supported options include:
+     *        - level: the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
      *
      */
     function zipAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 使用 zip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the zip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
@@ -947,28 +947,28 @@ declare module 'zlib' {
     function zipTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 zip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the zip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 zip 算法压缩数据到流对象中
-     *      @param data 给定要压缩的数据
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data into a stream object with the zip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 使用 zip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the zip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipTo(src: Class_Stream, stm: Class_Stream, level: number): void;
@@ -976,28 +976,28 @@ declare module 'zlib' {
     function zipTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 使用 zip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the zip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
 
     /**
-     * @description 使用 zip 算法压缩源流中的数据到流对象中
-     *      @param src 给定要压缩的数据所在的流
-     *      @param stm 指定存储压缩数据的流
-     *      @param level 指定压缩级别，缺省为 DEFAULT_COMPRESSION
+     * @description Compresses data from a source stream into a stream object with the zip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
     function zipToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzip(data: Class_Buffer, maxSize?: number): Class_Buffer;
@@ -1005,29 +1005,29 @@ declare module 'zlib' {
     function unzip(data: Class_Buffer, maxSize?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzipSync(data: Class_Buffer, maxSize?: number): Class_Buffer;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzipAsync(data: Class_Buffer, maxSize?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzip(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
@@ -1035,30 +1035,30 @@ declare module 'zlib' {
     function unzip(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzipSync(data: Class_Buffer, options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据
-     *      @param data 给定压缩后的数据
-     *      @param options 指定解压缩选项，支持的选项包括：
-     *        - maxOutputLength: 指定解压缩尺寸限制，缺省为 -1，不限制
-     *      @return 返回解压缩后的二进制数据
+     * @description Decompresses data compressed with the zip algorithm
+     *      @param data the compressed data
+     *      @param options the decompression options, supported options include:
+     *        - maxOutputLength: the decompression size limit, default -1, no limit
+     *      @return returns the decompressed binary data
      *
      */
     function unzipAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
@@ -1066,28 +1066,28 @@ declare module 'zlib' {
     function unzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩 zip 算法压缩的数据到流对象中
-     *      @param data 给定要解压缩的数据
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
 
     /**
-     * @description 解压缩源流中 zip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
@@ -1095,19 +1095,19 @@ declare module 'zlib' {
     function unzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 解压缩源流中 zip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
 
     /**
-     * @description 解压缩源流中 zip 算法压缩的数据到流对象中
-     *      @param src 给定要解压缩的数据所在的流
-     *      @param stm 指定存储解压缩数据的流
-     *      @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
+     * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
     function unzipToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;

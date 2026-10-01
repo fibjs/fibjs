@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/PerformanceEntry.d.ts" />
 /**
- * @description PerformanceMark 接口提供了 performance mark 记录的详细信息。
+ * @description The PerformanceMark interface provides the detailed information of performance mark entries.
  */
 declare class Class_PerformanceMark extends Class_PerformanceEntry {
     /**
-     * @description performance mark 记录的详细信息.
+     * @description The detailed information of the performance mark entry.
      */
     readonly detail: any;
 

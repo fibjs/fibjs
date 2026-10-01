@@ -1,0 +1,38 @@
+/*! @brief The hex module is a built-in module that provides a hexadecimal implementation for encoding and decoding between binary data and ASCII characters. The `hex` module provides encoding and decoding functions
+
+Using the encoding method, arbitrary binary data can be encoded as a hexadecimal string. For example:
+
+```JavaScript
+const hex = require('hex')
+
+const data = new Buffer([0x4e, 0x4f, 0x44, 0x45]) // [0x4e, 0x4f, 0x44, 0x45] => 'NODE'
+const encodedData = hex.encode(data)
+console.log(encodedData) // "4e4f4445"
+```
+
+Using the decoding method, a hexadecimal string can be decoded back to the original binary data. For example:
+
+```JavaScript
+const hex = require('hex')
+
+const encodedData = '4e4f4445' // 'NODE'
+const decodedData = hex.decode(encodedData)
+console.log(decodedData) // [0x4e, 0x4f, 0x44, 0x45]
+```
+
+As can be seen, `hex` is a very simple encoding and decoding module, suitable for simple conversion needs between binary data and strings.
+ */
+module hex
+{
+    /*! @brief Encodes data in hex format
+	 @param data the data to encode
+	 @return returns the encoded string
+	 */
+    static String encode(Buffer data);
+
+    /*! @brief Decodes a string into binary data in hex format
+	 @param data the string to decode
+	 @return returns the decoded binary data
+	 */
+    static Buffer decode(String data);
+};

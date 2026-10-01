@@ -4,9 +4,9 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
- * @description 基础消息对象
+ * @description Basic message object
  *
- *  Message 对象兼容于 mq 各个模块，可用于构建自定义消息处理系统，创建方法：
+ *  The Message object is compatible with all mq modules and can be used to build a custom message processing system. It is created as follows:
  *  ```JavaScript
  *  var mq = require("mq");
  *  var m = new mq.Message();
@@ -17,44 +17,44 @@ declare class Class_Message extends Class_EventEmitter {
 
 
     /**
-     * @description 消息对象构造函数
+     * @description Message object constructor
      */
     constructor();
 
     /**
-     * @description 当前消息是否已经发送
+     * @description Whether the current message has been sent
      */
     readonly sent: boolean;
 
     /**
-     * @description 消息的基本内容
+     * @description The basic content of the message
      */
     value: string;
 
     /**
-     * @description 消息的基本参数
+     * @description The basic parameters of the message
      */
     readonly params: any[];
 
     /**
-     * @description 消息类型
+     * @description Message type
      */
     type: number;
 
     /**
-     * @description 包含消息数据部分的流对象
+     * @description The stream object containing the data part of the message
      */
     body: Class_Stream;
 
     /**
-     * @description 查询消息的 body 是否已被消费
+     * @description Queries whether the body of the message has been consumed
      */
     readonly bodyUsed: boolean;
 
     /**
-     * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     read(bytes?: number): Class_Buffer;
@@ -62,24 +62,24 @@ declare class Class_Message extends Class_EventEmitter {
     read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     readSync(bytes?: number): Class_Buffer;
 
     /**
-     * @description 从流内读取指定大小的数据，此方法为 body 相应方法的别名
-     *      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     readAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     readAll(): Class_Buffer;
@@ -87,34 +87,34 @@ declare class Class_Message extends Class_EventEmitter {
     readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     readAllSync(): Class_Buffer;
 
     /**
-     * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
-     *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
+     * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
     readAllAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description 设置消息体的编码方式，此方法为 body 相应方法的别名
+     * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
-     *      设置后 `data` 事件与 `read()` 将返回字符串而非 Buffer 对象，与 Node 的
-     *      IncomingMessage.setEncoding 行为一致
-     *      @param encoding 要使用的编码，如 'utf8'、'ascii'、'hex' 等。传入 null 恢复为 Buffer 模式
-     *      @return 返回当前消息对象
+     *      After setting, the `data` event and `read()` return strings instead of Buffer objects,
+     *      consistent with the behavior of Node's IncomingMessage.setEncoding
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     *      @return returns the current message object
      *
      */
     setEncoding(encoding: string): Class_Message;
 
     /**
-     * @description 写入给定的数据，此方法为 body 相应方法的别名
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description Writes the given data; this method is an alias of the corresponding body method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     write(data: Class_Buffer): number;
@@ -122,25 +122,25 @@ declare class Class_Message extends Class_EventEmitter {
     write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入给定的数据，此方法为 body 相应方法的别名
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description Writes the given data; this method is an alias of the corresponding body method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     writeSync(data: Class_Buffer): number;
 
     /**
-     * @description 写入给定的数据，此方法为 body 相应方法的别名
-     *      @param data 给定要写入的数据
-     *      @return 返回实际写入的字节数
+     * @description Writes the given data; this method is an alias of the corresponding body method
+     *      @param data the data to write
+     *      @return returns the number of bytes actually written
      *
      */
     writeAsync(data: Class_Buffer): Promise<number>;
 
     /**
-     * @description 写入给定的文本数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given text data
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     text(data: string): string;
@@ -148,24 +148,24 @@ declare class Class_Message extends Class_EventEmitter {
     text(data: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 写入给定的文本数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given text data
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     textSync(data: string): string;
 
     /**
-     * @description 写入给定的文本数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given text data
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     textAsync(data: string): Promise<string>;
 
     /**
-     * @description 以文本编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as text encoding
+     *      @return returns the parsing result
      *
      */
     text(): string;
@@ -173,22 +173,22 @@ declare class Class_Message extends Class_EventEmitter {
     text(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 以文本编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as text encoding
+     *      @return returns the parsing result
      *
      */
     textSync(): string;
 
     /**
-     * @description 以文本编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as text encoding
+     *      @return returns the parsing result
      *
      */
     textAsync(): Promise<string>;
 
     /**
-     * @description 以二进制形式返回消息的数据部分
-     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     * @description Returns the data part of the message in binary form
+     *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
     arrayBuffer(): ArrayBuffer;
@@ -196,23 +196,23 @@ declare class Class_Message extends Class_EventEmitter {
     arrayBuffer(callback: (err: Error | undefined | null, retVal: ArrayBuffer)=>any): void;
 
     /**
-     * @description 以二进制形式返回消息的数据部分
-     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     * @description Returns the data part of the message in binary form
+     *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
     arrayBufferSync(): ArrayBuffer;
 
     /**
-     * @description 以二进制形式返回消息的数据部分
-     *      @return 返回包含消息数据部分的 ArrayBuffer 对象
+     * @description Returns the data part of the message in binary form
+     *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
     arrayBufferAsync(): Promise<ArrayBuffer>;
 
     /**
-     * @description 以 Blob 形式返回消息中的数据部分
-     *      @param type Blob 的 MIME 类型，默认为空字符串
-     *      @return 返回包含消息数据部分的 Blob 对象
+     * @description Returns the data part of the message as a Blob
+     *      @param type the MIME type of the Blob, default is an empty string
+     *      @return returns a Blob object containing the data part of the message
      *
      */
     blob(type?: string): Class_Blob;
@@ -220,24 +220,24 @@ declare class Class_Message extends Class_EventEmitter {
     blob(type?: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
 
     /**
-     * @description 以 Blob 形式返回消息中的数据部分
-     *      @param type Blob 的 MIME 类型，默认为空字符串
-     *      @return 返回包含消息数据部分的 Blob 对象
+     * @description Returns the data part of the message as a Blob
+     *      @param type the MIME type of the Blob, default is an empty string
+     *      @return returns a Blob object containing the data part of the message
      *
      */
     blobSync(type?: string): Class_Blob;
 
     /**
-     * @description 以 Blob 形式返回消息中的数据部分
-     *      @param type Blob 的 MIME 类型，默认为空字符串
-     *      @return 返回包含消息数据部分的 Blob 对象
+     * @description Returns the data part of the message as a Blob
+     *      @param type the MIME type of the Blob, default is an empty string
+     *      @return returns a Blob object containing the data part of the message
      *
      */
     blobAsync(type?: string): Promise<Class_Blob>;
 
     /**
-     * @description 以 Buffer 形式返回消息中的数据部分
-     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     * @description Returns the data part of the message as a Buffer
+     *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
     bytes(): Class_Buffer;
@@ -245,23 +245,23 @@ declare class Class_Message extends Class_EventEmitter {
     bytes(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 以 Buffer 形式返回消息中的数据部分
-     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     * @description Returns the data part of the message as a Buffer
+     *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
     bytesSync(): Class_Buffer;
 
     /**
-     * @description 以 Buffer 形式返回消息中的数据部分
-     *      @return 返回包含消息数据部分的 Buffer，若无数据则返回空 Buffer
+     * @description Returns the data part of the message as a Buffer
+     *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
     bytesAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description 以 JSON 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with JSON encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     json(data: any): any;
@@ -269,24 +269,24 @@ declare class Class_Message extends Class_EventEmitter {
     json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 JSON 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with JSON encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     jsonSync(data: any): any;
 
     /**
-     * @description 以 JSON 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with JSON encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     jsonAsync(data: any): Promise<any>;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     json(): any;
@@ -294,23 +294,23 @@ declare class Class_Message extends Class_EventEmitter {
     json(callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     jsonSync(): any;
 
     /**
-     * @description 以 JSON 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as JSON
+     *      @return returns the parsing result
      *
      */
     jsonAsync(): Promise<any>;
 
     /**
-     * @description 以 msgpack 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with msgpack encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     pack(data: any): any;
@@ -318,24 +318,24 @@ declare class Class_Message extends Class_EventEmitter {
     pack(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 msgpack 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with msgpack encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     packSync(data: any): any;
 
     /**
-     * @description 以 msgpack 编码写入给定的数据
-     *      @param data 给定要写入的数据
-     *      @return 此方法不会返回数据
+     * @description Writes the given data with msgpack encoding
+     *      @param data the data to write
+     *      @return this method does not return data
      *
      */
     packAsync(data: any): Promise<any>;
 
     /**
-     * @description 以 msgpack 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as msgpack
+     *      @return returns the parsing result
      *
      */
     pack(): any;
@@ -343,27 +343,27 @@ declare class Class_Message extends Class_EventEmitter {
     pack(callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 以 msgpack 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as msgpack
+     *      @return returns the parsing result
      *
      */
     packSync(): any;
 
     /**
-     * @description 以 msgpack 编码解析消息中的数据
-     *      @return 返回解析的结果
+     * @description Parses the data in the message as msgpack
+     *      @return returns the parsing result
      *
      */
     packAsync(): Promise<any>;
 
     /**
-     * @description 消息数据部分的长度
+     * @description The length of the data part of the message
      */
     readonly length: number;
 
     /**
-     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
-     *      @return 成功返回 0
+     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     *      @return returns 0 on success
      *
      */
     end(): number;
@@ -371,23 +371,23 @@ declare class Class_Message extends Class_EventEmitter {
     end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
-     *      @return 成功返回 0
+     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     *      @return returns 0 on success
      *
      */
     endSync(): number;
 
     /**
-     * @description 设置当前消息处理结束，Chain 处理器不再继续后面的事务
-     *      @return 成功返回 0
+     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     *      @return returns 0 on success
      *
      */
     endAsync(): Promise<number>;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @return returns 0 on success
      *
      */
     end(data: Class_Buffer): number;
@@ -395,26 +395,26 @@ declare class Class_Message extends Class_EventEmitter {
     end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @return returns 0 on success
      *
      */
     endSync(data: Class_Buffer): number;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @return returns 0 on success
      *
      */
     endAsync(data: Class_Buffer): Promise<number>;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     *      @return returns 0 on success
      *
      */
     end(data: Class_Buffer, encoding: string): number;
@@ -422,28 +422,28 @@ declare class Class_Message extends Class_EventEmitter {
     end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     *      @return returns 0 on success
      *
      */
     endSync(data: Class_Buffer, encoding: string): number;
 
     /**
-     * @description 写入给定的数据并设置当前消息处理结束
-     *      @param data 给定要写入的数据
-     *      @param encoding 指定编码方式，由于 data 是 Buffer 类型，此参数将被忽略
-     *      @return 成功返回 0
+     * @description Writes the given data and sets the end of current message processing
+     *      @param data the data to write
+     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     *      @return returns 0 on success
      *
      */
     endAsync(data: Class_Buffer, encoding: string): Promise<number>;
 
     /**
-     * @description 写入给定的字符串数据并设置当前消息处理结束
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
-     *      @return 成功返回 0
+     * @description Writes the given string data and sets the end of current message processing
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns 0 on success
      *
      */
     end(data: string, encoding?: string): number;
@@ -451,39 +451,39 @@ declare class Class_Message extends Class_EventEmitter {
     end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入给定的字符串数据并设置当前消息处理结束
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
-     *      @return 成功返回 0
+     * @description Writes the given string data and sets the end of current message processing
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns 0 on success
      *
      */
     endSync(data: string, encoding?: string): number;
 
     /**
-     * @description 写入给定的字符串数据并设置当前消息处理结束
-     *      @param data 给定要写入的字符串数据
-     *      @param encoding 指定字符串的编码方式，默认为 "utf8"
-     *      @return 成功返回 0
+     * @description Writes the given string data and sets the end of current message processing
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns 0 on success
      *
      */
     endAsync(data: string, encoding?: string): Promise<number>;
 
     /**
-     * @description 查询当前消息是否结束
-     *      @return 结束则返回 true
+     * @description Queries whether the current message has ended
+     *      @return returns true if ended
      *
      */
     isEnded(): boolean;
 
     /**
-     * @description 清除消息的内容
+     * @description Clears the content of the message
      */
     clear(): void;
 
     /**
-     * @description 发送格式化消息到给定的流对象
-     *      @param stm 指定接收格式化消息的流对象
-     *      @param options 指定发送选项
+     * @description Sends a formatted message to the given stream object
+     *      @param stm the stream object that receives the formatted message
+     *      @param options the sending options
      *
      */
     sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
@@ -491,25 +491,25 @@ declare class Class_Message extends Class_EventEmitter {
     sendTo(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 发送格式化消息到给定的流对象
-     *      @param stm 指定接收格式化消息的流对象
-     *      @param options 指定发送选项
+     * @description Sends a formatted message to the given stream object
+     *      @param stm the stream object that receives the formatted message
+     *      @param options the sending options
      *
      */
     sendToSync(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 发送格式化消息到给定的流对象
-     *      @param stm 指定接收格式化消息的流对象
-     *      @param options 指定发送选项
+     * @description Sends a formatted message to the given stream object
+     *      @param stm the stream object that receives the formatted message
+     *      @param options the sending options
      *
      */
     sendToAsync(stm: Class_Stream, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
-     *      @param stm 指定读取格式化消息的流对象
-     *      @param options 指定读取选项
+     * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *      @param stm the stream object from which the formatted message is read
+     *      @param options the reading options
      *
      */
     readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
@@ -517,83 +517,83 @@ declare class Class_Message extends Class_EventEmitter {
     readFrom(stm: Class_Stream, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
-     *      @param stm 指定读取格式化消息的流对象
-     *      @param options 指定读取选项
+     * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *      @param stm the stream object from which the formatted message is read
+     *      @param options the reading options
      *
      */
     readFromSync(stm: Class_Stream, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
-     *      @param stm 指定读取格式化消息的流对象
-     *      @param options 指定读取选项
+     * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *      @param stm the stream object from which the formatted message is read
+     *      @param options the reading options
      *
      */
     readFromAsync(stm: Class_Stream, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description 查询消息 readFrom 时的流对象
+     * @description Queries the stream object used when the message was read from
      */
     readonly stream: Class_Stream;
 
     /**
-     * @description 查询和设置消息处理的最后错误
+     * @description Queries and sets the last error of message processing
      */
     lastError: string;
 
     /**
-     * @description 复制当前消息对象
-     *      @return 返回复制的消息对象
+     * @description Copies the current message object
+     *      @return returns the copied message object
      *
      */
     clone(): Class_Message;
 
     /**
-     * @description 将消息的 body 流切换到流动读取模式
-     *      @return 返回消息对象
+     * @description Switches the message body stream to flowing read mode
+     *      @return returns the message object
      *
      */
     resume(): Class_Message;
 
     /**
-     * @description 暂停消息的 body 流的自动读取模式。此方法仅为兼容，调用后不会有实际效果
-     *      @return 返回消息对象
+     * @description Pauses the automatic reading mode of the message body stream. This method is for compatibility only and has no actual effect when called
+     *      @return returns the message object
      *
      */
     pause(): Class_Message;
 
     /**
-     * @description 将消息的 body 流数据管道传输到目标流
-     *      @param destination 目标流对象
-     *      @param options 管道选项，可选
-     *      @return 返回目标流对象
+     * @description Pipes the message body stream data to a destination stream
+     *      @param destination the destination stream object
+     *      @param options pipe options, optional
+     *      @return returns the destination stream object
      *
      */
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 移除消息的 body 流的所有管道目标。此方法仅为兼容，调用后不会有实际效果
-     *      @param destination 要取消管道的特定可写目标
+     * @description Removes all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect when called
+     *      @param destination a specific writable destination to unpipe
      *
      */
     unpipe(destination?: Class_Stream): void;
 
     /**
-     * @description 查询和绑定流数据事件，相当于 on("data", func);
-     *      @param data 读取到的数据
+     * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *      @param data the data read
      *
      */
     on(event: "data", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定流关闭事件，相当于 on("close", func);
+     * @description Queries and binds the stream close event, equivalent to on("close", func);
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定流错误事件，相当于 on("error", func);
-     *      @param code 错误码
+     * @description Queries and binds the stream error event, equivalent to on("error", func);
+     *      @param code error code
      *
      */
     on(event: "error", listener: ()=>void): this;

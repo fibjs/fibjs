@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description dns 域名查询模块
+ * @description dns domain name query module
  *
- *  基础模块，提供主机名的地址查询能力：
+ *  Base module, provides hostname address resolution capabilities:
  *
- *  - `resolve`：查询主机名的全部地址，返回 ip 字符串数组；
- *  - `lookup`：查询主机名的地址，支持指定地址族与返回全部结果。
+ *  - `resolve`: queries all addresses of a hostname, returns an array of ip strings;
+ *  - `lookup`: queries the address of a hostname, supports specifying the address family and returning all results.
  *
- *  引用方式：
+ *  Reference:
  *  ```JavaScript
  *  var dns = require('dns');
  *  ```
@@ -15,9 +15,9 @@
  */
 declare module 'dns' {
     /**
-     * @description 查询给定的主机名的地址
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串数组
+     * @description queries the address of the given hostname
+     *      @param name specifies the hostname
+     *      @return returns the array of queried ip strings
      *
      */
     function resolve(name: string): any[];
@@ -25,36 +25,36 @@ declare module 'dns' {
     function resolve(name: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 查询给定的主机名的地址
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串数组
+     * @description queries the address of the given hostname
+     *      @param name specifies the hostname
+     *      @return returns the array of queried ip strings
      *
      */
     function resolveSync(name: string): any[];
 
     /**
-     * @description 查询给定的主机名的地址
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串数组
+     * @description queries the address of the given hostname
+     *      @param name specifies the hostname
+     *      @return returns the array of queried ip strings
      *
      */
     function resolveAsync(name: string): Promise<any[]>;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given hostname
      *
-     *      options 支持的选项如下：
+     *      The supported options of options are as follows:
      *      ```JavaScript
      *      {
-     *          "family": 0, // 指定地址族：0 为任意，4 为 IPv4，6 为 IPv6，也可使用 "IPv4"/"IPv6"。默认: 0
-     *          "all": false // 为 true 时返回全部地址的对象数组，否则返回第一个地址的字符串。默认: false
+     *          "family": 0, // specify the address family: 0 for any, 4 for IPv4, 6 for IPv6, "IPv4"/"IPv6" is also allowed. Default: 0
+     *          "all": false // when true, returns an object array of all addresses, otherwise returns a string of the first address. Default: false
      *      }
      *      ```
      *
-     *      all 为 true 时返回的数组元素包含 `address`（ip 字符串）与 `family`（地址族编号）字段。
-     *      @param name 指定主机名
-     *      @param options 查询选项
-     *      @return 返回查询的 ip 字符串
+     *      When all is true, the returned array elements contain the `address` (ip string) and `family` (address family number) fields.
+     *      @param name specifies the hostname
+     *      @param options query options
+     *      @return returns the queried ip string
      *
      */
     function lookup(name: string, options?: FIBJS.GeneralObject): any;
@@ -62,39 +62,39 @@ declare module 'dns' {
     function lookup(name: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given hostname
      *
-     *      options 支持的选项如下：
+     *      The supported options of options are as follows:
      *      ```JavaScript
      *      {
-     *          "family": 0, // 指定地址族：0 为任意，4 为 IPv4，6 为 IPv6，也可使用 "IPv4"/"IPv6"。默认: 0
-     *          "all": false // 为 true 时返回全部地址的对象数组，否则返回第一个地址的字符串。默认: false
+     *          "family": 0, // specify the address family: 0 for any, 4 for IPv4, 6 for IPv6, "IPv4"/"IPv6" is also allowed. Default: 0
+     *          "all": false // when true, returns an object array of all addresses, otherwise returns a string of the first address. Default: false
      *      }
      *      ```
      *
-     *      all 为 true 时返回的数组元素包含 `address`（ip 字符串）与 `family`（地址族编号）字段。
-     *      @param name 指定主机名
-     *      @param options 查询选项
-     *      @return 返回查询的 ip 字符串
+     *      When all is true, the returned array elements contain the `address` (ip string) and `family` (address family number) fields.
+     *      @param name specifies the hostname
+     *      @param options query options
+     *      @return returns the queried ip string
      *
      */
     function lookupSync(name: string, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given hostname
      *
-     *      options 支持的选项如下：
+     *      The supported options of options are as follows:
      *      ```JavaScript
      *      {
-     *          "family": 0, // 指定地址族：0 为任意，4 为 IPv4，6 为 IPv6，也可使用 "IPv4"/"IPv6"。默认: 0
-     *          "all": false // 为 true 时返回全部地址的对象数组，否则返回第一个地址的字符串。默认: false
+     *          "family": 0, // specify the address family: 0 for any, 4 for IPv4, 6 for IPv6, "IPv4"/"IPv6" is also allowed. Default: 0
+     *          "all": false // when true, returns an object array of all addresses, otherwise returns a string of the first address. Default: false
      *      }
      *      ```
      *
-     *      all 为 true 时返回的数组元素包含 `address`（ip 字符串）与 `family`（地址族编号）字段。
-     *      @param name 指定主机名
-     *      @param options 查询选项
-     *      @return 返回查询的 ip 字符串
+     *      When all is true, the returned array elements contain the `address` (ip string) and `family` (address family number) fields.
+     *      @param name specifies the hostname
+     *      @param options query options
+     *      @return returns the queried ip string
      *
      */
     function lookupAsync(name: string, options?: FIBJS.GeneralObject): Promise<any>;

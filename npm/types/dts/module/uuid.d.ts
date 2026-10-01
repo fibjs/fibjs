@@ -1,225 +1,225 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description uuid 模块提供唯一 id 的创建于操作。它可以用于生成符合各种不同要求的 UUID(Universally Unique Identifier)
+ * @description The uuid module provides creation and manipulation of unique ids. It can be used to generate UUIDs (Universally Unique Identifiers) meeting various requirements
  *
- * `uuid` 模块提供了多个静态函数，可以用于配置和生成不同种类的 UUID。
- * 以下是使用 md5 创建 uuid 的例子:
+ * The `uuid` module provides several static functions that can be used to configure and generate different kinds of UUIDs.
+ * The following is an example of creating a uuid with md5:
  * ```JavaScript
  * const uuid = require('uuid');
  * const ns = uuid.DNS;
  * const name = 'example.com';
  * console.log(uuid.md5(ns, name));
  * ```
- * 在以上例子中，首先引入了 uuid 模块，然后指定了名字空间和名称，并通过 md5 算法生成了符合要求的 UUID，并输出到控制台。
- * 同样，我们还可以使用 snowflake 算法生成 uuid，以下是使用 snowflake 算法创建 uuid 的例子：
+ * In the example above, the uuid module is first imported, then the namespace and name are specified, and a UUID meeting the requirements is generated with the md5 algorithm and printed to the console.
+ * Similarly, we can also generate a uuid with the snowflake algorithm. The following is an example of creating a uuid with the snowflake algorithm:
  * ```JavaScript
  * const uuid = require('uuid');
  * const s = uuid.snowflake();
  * console.log(s);
  * ```
- * 在以上例子中，snowflake() 方法会返回一个 Buffer 对象，可以将其转换为字符串后输出到控制台，以获取生成的 uuid。
+ * In the example above, the snowflake() method returns a Buffer object, which can be converted to a string and printed to the console to obtain the generated uuid.
  *
  */
 declare module 'uuid' {
     /**
-     * @description md5 与 sha1 创建 uuid 时指定 name 命名为域名
+     * @description Specifies the name as a domain name when creating a uuid with md5 or sha1
      */
     export const DNS: 0;
 
     /**
-     * @description md5 与 sha1 创建 uuid 时指定 name 命名为 url 地址
+     * @description Specifies the name as a url address when creating a uuid with md5 or sha1
      */
     export const URL: 1;
 
     /**
-     * @description md5 与 sha1 创建 uuid 时指定 name 命名为 ISO OID
+     * @description Specifies the name as an ISO OID when creating a uuid with md5 or sha1
      */
     export const OID: 2;
 
     /**
-     * @description md5 与 sha1 创建 uuid 时指定 name 命名为 X.500 DN
+     * @description Specifies the name as an X.500 DN when creating a uuid with md5 or sha1
      */
     export const X509: 3;
 
     /**
-     * @description 返回一个空的 uuid
+     * @description An empty uuid
      */
     export const NIL: "00000000-0000-0000-0000-000000000000";
 
     /**
-     * @description 返回一个最大 UUID 字符串
+     * @description The maximum UUID string
      */
     export const MAX: "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
     /**
-     * @description v3 和 v5 的 DNS 命名空间 UUID
+     * @description The DNS namespace UUID for v3 and v5
      */
     export const DNS_NAMESPACE: "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
     /**
-     * @description v3 和 v5 的 URL 命名空间 UUID
+     * @description The URL namespace UUID for v3 and v5
      */
     export const URL_NAMESPACE: "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
 
     /**
-     * @description 解析 uuid 字符串
-     *      @param uuid 要解析的 uuid 字符串
-     *      @return 返回解析后的二进制 id
+     * @description Parses a uuid string
+     *      @param uuid the uuid string to parse
+     *      @return returns the parsed binary id
      *
      */
     function parse(uuid: string): Class_Buffer;
 
     /**
-     * @description 将二进制数组转换为 uuid 字符串
-     *      @param arr 包含 uuid 二进制数据的数组或 Buffer，长度需不少于 16 字节
-     *      @param offset 可选，指定 uuid 数据在数组中的起始偏移，默认为 0
-     *      @return 返回转换后的 uuid 字符串
+     * @description Converts a binary array to a uuid string
+     *      @param arr the array or Buffer containing the uuid binary data; its length must be at least 16 bytes
+     *      @param offset optional; the starting offset of the uuid data in the array, default 0
+     *      @return returns the converted uuid string
      *
      */
     function stringify(arr: Class_Buffer, offset?: number): string;
 
     /**
-     * @description 使用时间戳创建 uuid
-     *      @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid using a timestamp
+     *      @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+     *      @return returns a generated uuid string
      *
      */
     function v1(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 使用 MD5 命名空间创建 uuid（二进制命名空间格式）
-     *      @param name 指定名称
-     *      @param ns 命名空间 UUID 的二进制表示，长度需为 16 字节
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid with an MD5 namespace (binary namespace format)
+     *      @param name the name to use
+     *      @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     *      @return returns a generated uuid string
      *
      */
     function v3(name: string, ns: Class_Buffer): string;
 
     /**
-     * @description 使用 MD5 命名空间创建 uuid（字符串格式）
-     *      @param name 指定名称
-     *      @param ns 命名空间 UUID 字符串，或使用预定义命名空间
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid with an MD5 namespace (string format)
+     *      @param name the name to use
+     *      @param ns the namespace UUID string, or use a predefined namespace
+     *      @return returns a generated uuid string
      *
      */
     function v3(name: string, ns: string): string;
 
     /**
-     * @description 使用随机数创建 uuid
-     *      @param options 可选参数对象，支持以下属性：random（Buffer，随机数）、rng（Function，随机数生成器）
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid using random numbers
+     *      @param options optional parameter object; supports the following properties: random (Buffer, random numbers), rng (Function, random number generator)
+     *      @return returns a generated uuid string
      *
      */
     function v4(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 使用 SHA1 命名空间创建 uuid（二进制命名空间格式）
-     *      @param name 指定名称
-     *      @param ns 命名空间 UUID 的二进制表示，长度需为 16 字节
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid with a SHA1 namespace (binary namespace format)
+     *      @param name the name to use
+     *      @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     *      @return returns a generated uuid string
      *
      */
     function v5(name: string, ns: Class_Buffer): string;
 
     /**
-     * @description 使用 SHA1 命名空间创建 uuid（字符串格式）
-     *      @param name 指定名称
-     *      @param ns 命名空间 UUID 字符串，或使用预定义命名空间
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid with a SHA1 namespace (string format)
+     *      @param name the name to use
+     *      @param ns the namespace UUID string, or use a predefined namespace
+     *      @return returns a generated uuid string
      *
      */
     function v5(name: string, ns: string): string;
 
     /**
-     * @description 获取 uuid 的版本号
-     *      @param uuid 要检查的 uuid 字符串
-     *      @return 返回 uuid 的版本号（0-7），如果格式无效则返回 undefined
+     * @description Gets the version number of the uuid
+     *      @param uuid the uuid string to check
+     *      @return returns the uuid version number (0-7), or undefined if the format is invalid
      *
      */
     function version(uuid: string): number;
 
     /**
-     * @description 使用重排序时间戳创建 uuid v6
-     *      @param options 可选参数对象，支持以下属性：node（Buffer，节点 ID）、clockseq（Integer，时钟序列）、msecs（Integer，毫秒时间戳）、nsecs（Integer，纳秒时间戳）
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid v6 using a reordered timestamp
+     *      @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+     *      @return returns a generated uuid string
      *
      */
     function v6(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 使用 Unix Epoch 时间戳创建 uuid v7
-     *      @param options 可选参数对象，支持以下属性：msecs（Integer，毫秒时间戳）
-     *      @return 返回一个生成的 uuid 字符串
+     * @description Creates a uuid v7 using a Unix Epoch timestamp
+     *      @param options optional parameter object; supports the following properties: msecs (Integer, millisecond timestamp)
+     *      @return returns a generated uuid string
      *
      */
     function v7(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 将 uuid v1 转换为 v6
-     *      @param uuid v1 格式的 uuid 字符串
-     *      @return 返回转换后的 v6 uuid 字符串
+     * @description Converts a uuid v1 to v6
+     *      @param uuid the uuid string in v1 format
+     *      @return returns the converted v6 uuid string
      *
      */
     function v1ToV6(uuid: string): string;
 
     /**
-     * @description 将 uuid v6 转换为 v1
-     *      @param uuid v6 格式的 uuid 字符串
-     *      @return 返回转换后的 v1 uuid 字符串
+     * @description Converts a uuid v6 to v1
+     *      @param uuid the uuid string in v6 format
+     *      @return returns the converted v1 uuid string
      *
      */
     function v6ToV1(uuid: string): string;
 
     /**
-     * @description 验证 uuid 字符串是否符合规范
-     *      @param uuid 要验证的 uuid 字符串
-     *      @return 返回 true 表示符合规范，false 表示不符合规范
+     * @description Validates whether a uuid string conforms to the specification
+     *      @param uuid the uuid string to validate
+     *      @return returns true if it conforms to the specification, false otherwise
      *
      */
     function validate(uuid: string): boolean;
 
     /**
-     * @description 使用时间和主机名创建 uuid
-     *      @return 返回一个生成的二进制 id
+     * @description Creates a uuid using the time and host name
+     *      @return returns a generated binary id
      *
      */
     function node(): Class_Buffer;
 
     /**
-     * @description 使用特定命名的 md5 创建 uuid
-     *      @param ns 指定命名空间，可以为 uuid.DNS, uuid.URL, uuid.OID, uuid.X509
-     *      @param name 指定名称
-     *      @return 返回一个生成的二进制 id
+     * @description Creates a uuid with md5 for a specific name
+     *      @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     *      @param name the name to use
+     *      @return returns a generated binary id
      *
      */
     function md5(ns: number, name: string): Class_Buffer;
 
     /**
-     * @description 使用随机数创建 uuid
-     *      @return 返回一个生成的二进制 id
+     * @description Creates a uuid using random numbers
+     *      @return returns a generated binary id
      *
      */
     function random(): Class_Buffer;
 
     /**
-     * @description 使用特定命名的 sha1 创建 uuid
-     *      @param ns 指定命名空间，可以为 uuid.DNS, uuid.URL, uuid.OID, uuid.X509
-     *      @param name 指定名称
-     *      @return 返回一个生成的二进制 id
+     * @description Creates a uuid with sha1 for a specific name
+     *      @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     *      @param name the name to use
+     *      @return returns a generated binary id
      *
      */
     function sha1(ns: number, name: string): Class_Buffer;
 
     /**
-     * @description 使用 Snowflake 算法创建 uuid
-     *      @return 返回一个生成的二进制 id
+     * @description Creates a uuid using the Snowflake algorithm
+     *      @return returns a generated binary id
      *
      */
     function snowflake(): Class_Buffer;
 
     /**
-     * @description 查询和修改 Snowflake 算法的主机 id
+     * @description Queries and modifies the host id of the Snowflake algorithm
      */
     var hostID: number;
 

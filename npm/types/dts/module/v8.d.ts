@@ -3,20 +3,20 @@
 /// <reference path="../interface/Timer.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 内存 v8 模块
+ * @description v8 memory module
  *
- * `v8` 模块是一个用于分析和监控 JavaScript 应用程序内存使用情况的工具。它提供了一系列方法，可以帮助开发者深入了解应用程序的内存分配和垃圾回收行为，从而优化性能和内存使用。
+ * The `v8` module is a tool for analyzing and monitoring the memory usage of JavaScript applications. It provides a series of methods that help developers gain insight into the memory allocation and garbage collection behavior of applications, so as to optimize performance and memory usage.
  *
- * 在 JavaScript 中，内存管理是由垃圾回收机制自动处理的。然而，对于复杂的应用程序，特别是那些处理大量数据或长时间运行的应用程序，内存泄漏和不必要的内存占用可能会成为性能瓶颈。通过使用 `v8` 模块，开发者可以获取详细的内存使用情况，并识别和解决潜在的内存问题。
+ * In JavaScript, memory management is handled automatically by the garbage collection mechanism. However, for complex applications, especially those that process large amounts of data or run for a long time, memory leaks and unnecessary memory usage may become performance bottlenecks. By using the `v8` module, developers can obtain detailed memory usage information and identify and solve potential memory problems.
  *
- * `v8` 模块提供了以下主要功能：
+ * The `v8` module provides the following main features:
  *
- * 1. **获取堆内存统计信息**：包括堆内存的总体使用情况、各个堆空间的详细使用情况以及堆中代码的统计信息。
- * 2. **堆快照**：可以保存和加载堆快照，记录特定时间点的堆内存状态。
- * 3. **堆快照对比**：执行给定的函数，并对比执行前后堆内存的变化，帮助识别内存分配和回收的差异。
- * 4. **运行状态采样**：启动一次运行状态采样日志，记录指定时间段内的内存使用情况。
+ * 1. **Get heap memory statistics**: including the overall heap memory usage, the detailed usage of each heap space, and statistics of the code in the heap.
+ * 2. **Heap snapshot**: can save and load heap snapshots, recording the heap memory state at a specific point in time.
+ * 3. **Heap snapshot comparison**: executes the given function and compares the heap memory changes before and after execution, helping identify differences in memory allocation and reclamation.
+ * 4. **Runtime state sampling**: starts a runtime state sampling log that records memory usage within a specified period of time.
  *
- * 以下是一些使用 `v8` 模块的示例代码，展示了如何获取堆内存统计信息、保存和加载堆快照以及启动运行状态采样。
+ * The following is some example code using the `v8` module, showing how to get heap memory statistics, save and load heap snapshots, and start runtime state sampling.
  *
  * ```javascript
  * // Import v8 module
@@ -60,193 +60,193 @@
  * // timer.clear();
  * ```
  *
- * 通过这些功能和方法，开发者可以更好地监控和优化 JavaScript 应用程序的内存使用情况，提高应用程序的性能和稳定性。
+ * Through these features and methods, developers can better monitor and optimize the memory usage of JavaScript applications, improving application performance and stability.
  *
  */
 declare module 'v8' {
     /**
-     * @description 隐藏节点，当显示给用户时可以被过滤掉
+     * @description Hidden node, can be filtered out when shown to the user
      */
     export const Node_Hidden: 0;
 
     /**
-     * @description 数组
+     * @description Array
      */
     export const Node_Array: 1;
 
     /**
-     * @description 字符串
+     * @description String
      */
     export const Node_String: 2;
 
     /**
-     * @description JS对象（字符串和数组除外）
+     * @description JS object (other than strings and arrays)
      */
     export const Node_Object: 3;
 
     /**
-     * @description 编译后的代码
+     * @description Compiled code
      */
     export const Node_Code: 4;
 
     /**
-     * @description 函数闭包
+     * @description Function closure
      */
     export const Node_Closure: 5;
 
     /**
-     * @description 正则表达式
+     * @description Regular expression
      */
     export const Node_RegExp: 6;
 
     /**
-     * @description 堆中排好序的数字
+     * @description Sorted number in the heap
      */
     export const Node_HeapNumber: 7;
 
     /**
-     * @description Native对象（非v8堆上的）
+     * @description Native object (not on the v8 heap)
      */
     export const Node_Native: 8;
 
     /**
-     * @description Synthetic对象
+     * @description Synthetic object
      */
     export const Node_Synthetic: 9;
 
     /**
-     * @description 拼接的字符串
+     * @description Concatenated string
      */
     export const Node_ConsString: 10;
 
     /**
-     * @description 分割的字符串
+     * @description Sliced string
      */
     export const Node_SlicedString: 11;
 
     /**
-     * @description 符号（ES6）
+     * @description Symbol (ES6)
      */
     export const Node_Symbol: 12;
 
     /**
-     * @description 堆中排好序的SIMD值(ES7)
+     * @description Sorted SIMD value in the heap (ES7)
      */
     export const Node_SimdValue: 13;
 
     /**
-     * @description 函数中的变量
+     * @description Variable in a function
      */
     export const Edge_ContextVariable: 0;
 
     /**
-     * @description 数组中的元素
+     * @description Element in an array
      */
     export const Edge_Element: 1;
 
     /**
-     * @description 有名对象的属性
+     * @description Property of a named object
      */
     export const Edge_Property: 2;
 
     /**
-     * @description JS无法进入的链接
+     * @description Link that JS cannot enter
      */
     export const Edge_Internal: 3;
 
     /**
-     * @description 指向需要事先计算出空间大小的节点
+     * @description Points to a node whose space size must be computed in advance
      */
     export const Edge_Hidden: 4;
 
     /**
-     * @description 指向无法事先计算出空间大小的节点
+     * @description Points to a node whose space size cannot be computed in advance
      */
     export const Edge_Shortcut: 5;
 
     /**
-     * @description 一个弱引用（被GC忽视）
+     * @description A weak reference (ignored by the GC)
      */
     export const Edge_Weak: 6;
 
     /**
-     * @description 获取= v8 堆中代码及其元数据的统计信息
-     *      @return 返回元数据的统计信息
+     * @description Gets = statistics of the code and its metadata in the v8 heap
+     *      @return returns the statistics of the metadata
      *
      */
     function getHeapCodeStatistics(): FIBJS.GeneralObject;
 
     /**
-     * @description 获取 v8 堆内存的详细使用情况
-     *      @return 返回堆内存的详细使用情况
+     * @description Gets the detailed usage of v8 heap memory
+     *      @return returns the detailed usage of heap memory
      *
      */
     function getHeapSpaceStatistics(): any[];
 
     /**
-     * @description 获取 v8 堆内存使用情况的统计信息
-     *      @return 返回堆内存使用情况的统计信息
+     * @description Gets statistics of v8 heap memory usage
+     *      @return returns statistics of heap memory usage
      *
      */
     function getHeapStatistics(): FIBJS.GeneralObject;
 
     /**
-     * @description 根据指定名称保存一个堆快照
-     * 	 @param fname 堆快照名称
+     * @description Saves a heap snapshot under the specified name
+     * 	 @param fname the heap snapshot name
      *
      */
     function saveSnapshot(fname: string): void;
 
     /**
-     * @description 根据指定名称读取一个堆快照
-     * 	 @param fname 堆快照名称
-     * 	 @return 返回读取到的堆快照
+     * @description Reads a heap snapshot under the specified name
+     * 	 @param fname the heap snapshot name
+     * 	 @return returns the loaded heap snapshot
      *
      */
     function loadSnapshot(fname: string): Class_HeapSnapshot;
 
     /**
-     * @description 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
-     * 	 @return 返回获取到的堆信息快照
+     * @description Gets the heap snapshot at the current point in time; the heap snapshot records the state of the JS heap at the current moment
+     * 	 @return returns the obtained heap snapshot
      *
      */
     function takeSnapshot(): Class_HeapSnapshot;
 
     /**
-     * @description 执行给定的函数，并对比执行前后 v8 堆的变化
-     * 	 @param test 给定要测试的函数
-     * 	 @return 返回对比的结果
+     * @description Executes the given function and compares the changes of the v8 heap before and after execution
+     * 	 @param test the function to test
+     * 	 @return returns the comparison result
      *
      */
     function diff(test: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 启动一次运行状态采样日志
-     * 	 @param fname 给定日志存储文件名
-     * 	 @param time 指定采样时间，缺省 1 分钟
-     * 	 @param interval 指定间隔时间，缺省 100 毫秒
-     *      @return 返回采样定时器，可以通过 clear 方法提前停止采样
+     * @description Starts a runtime state sampling log
+     * 	 @param fname the log storage file name
+     * 	 @param time the sampling time to use, default 1 minute
+     * 	 @param interval the interval time to use, default 100 milliseconds
+     *      @return returns the sampling timer; sampling can be stopped early through the clear method
      *
      */
     function start(fname: string, time?: number, interval?: number): Class_Timer;
 
     /**
-     * @description 将值序列化为 Buffer
+     * @description Serializes a value into a Buffer
      *
-     *      使用 V8 的序列化格式将任意 JavaScript 值转换为二进制数据。支持循环引用、TypedArray、Map、Set、Date、RegExp、Error 等类型。
-     *      不支持函数、Symbol、WeakMap、WeakSet 等类型。
-     *      @param value 要序列化的值
-     *      @return 返回序列化后的 Buffer
+     *      Uses the V8 serialization format to convert any JavaScript value into binary data. Supports circular references, TypedArray, Map, Set, Date, RegExp, Error and other types.
+     *      Does not support functions, Symbol, WeakMap, WeakSet and other types.
+     *      @param value the value to serialize
+     *      @return returns the serialized Buffer
      *
      */
     function serialize(value: any): Class_Buffer;
 
     /**
-     * @description 将 Buffer 反序列化为值
+     * @description Deserializes a Buffer into a value
      *
-     *      将之前通过 serialize 序列化的二进制数据还原为 JavaScript 值。
-     *      @param data 要反序列化的 Buffer
-     *      @return 返回反序列化后的值
+     *      Restores binary data previously serialized by serialize back into a JavaScript value.
+     *      @param data the Buffer to deserialize
+     *      @return returns the deserialized value
      *
      */
     function deserialize(data: Class_Buffer): any;

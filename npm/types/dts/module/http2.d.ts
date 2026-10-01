@@ -6,20 +6,20 @@
 /// <reference path="../interface/Http2Stream.d.ts" />
 /// <reference path="../module/http2_constants.d.ts" />
 /**
- * @description http2 模块提供 HTTP/2 协议支持
+ * @description the http2 module provides HTTP/2 protocol support
  *
- * http2 模块允许创建 HTTP/2 服务器和客户端，完整支持流多路复用、头部压缩和流量控制。
+ * The http2 module allows creating HTTP/2 servers and clients, with full support for stream multiplexing, header compression and flow control.
  *
  * ```JavaScript
  * const http2 = require('http2');
  *
- * // 客户端示例
+ * // client example
  * const session = http2.connect('https://example.com');
  * const stream = session.request({ ':path': '/' });
  * const response = stream.read();
  * session.close();
  *
- * // 服务端示例
+ * // server example
  * const server = http2.createServer({
  *     key: ...,
  *     cert: ...
@@ -33,39 +33,39 @@
  */
 declare module 'http2' {
     /**
-     * @description 创建 Http2Server 对象，参见 Http2Server
+     * @description creates an Http2Server object, see Http2Server
      */
     const Server: typeof Class_Http2Server;
 
     /**
-     * @description 创建 Http2 服务器
-     *      @param options TLS 选项对象或 SecureContext 配置
-     *      @param hdlr 请求处理函数
-     *      @return 返回 Http2Server 对象，调用 listen() 然后 start() 开始服务
+     * @description creates an Http2 server
+     *      @param options TLS options object or SecureContext configuration
+     *      @param hdlr the request handling function
+     *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
     function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler): Class_Http2Server;
 
     /**
-     * @description 创建 Http2 服务器
-     *      @param context SecureContext 对象用于 TLS 配置
-     *      @param hdlr 请求处理函数
-     *      @return 返回 Http2Server 对象，调用 listen() 然后 start() 开始服务
+     * @description creates an Http2 server
+     *      @param context SecureContext object used for TLS configuration
+     *      @param hdlr the request handling function
+     *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
     function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_Http2Server;
 
     /**
-     * @description 创建到指定目标的 HTTP/2 客户端会话
+     * @description creates an HTTP/2 client session to the specified target
      *
-     *      authority 应为 URL 字符串，如 'https://example.com' 或 'https://example.com:8443'。
+     *      authority should be a URL string such as 'https://example.com' or 'https://example.com:8443'.
      *
-     *      options 可包含：
-     *      - 所有 SecureContext 选项（key、cert、ca 等）
+     *      options may contain:
+     *      - all SecureContext options (key, cert, ca, etc.)
      *
-     *      @param authority 要连接的服务器 URL
-     *      @param options 连接选项
-     *      @return 返回 Http2Session 客户端会话
+     *      @param authority URL of the server to connect
+     *      @param options connection options
+     *      @return returns the Http2Session client session
      *
      */
     function connect(authority: string, options?: FIBJS.GeneralObject): Class_Http2Session;
@@ -73,54 +73,54 @@ declare module 'http2' {
     function connect(authority: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
 
     /**
-     * @description 创建到指定目标的 HTTP/2 客户端会话
+     * @description creates an HTTP/2 client session to the specified target
      *
-     *      authority 应为 URL 字符串，如 'https://example.com' 或 'https://example.com:8443'。
+     *      authority should be a URL string such as 'https://example.com' or 'https://example.com:8443'.
      *
-     *      options 可包含：
-     *      - 所有 SecureContext 选项（key、cert、ca 等）
+     *      options may contain:
+     *      - all SecureContext options (key, cert, ca, etc.)
      *
-     *      @param authority 要连接的服务器 URL
-     *      @param options 连接选项
-     *      @return 返回 Http2Session 客户端会话
+     *      @param authority URL of the server to connect
+     *      @param options connection options
+     *      @return returns the Http2Session client session
      *
      */
     function connectSync(authority: string, options?: FIBJS.GeneralObject): Class_Http2Session;
 
     /**
-     * @description 创建到指定目标的 HTTP/2 客户端会话
+     * @description creates an HTTP/2 client session to the specified target
      *
-     *      authority 应为 URL 字符串，如 'https://example.com' 或 'https://example.com:8443'。
+     *      authority should be a URL string such as 'https://example.com' or 'https://example.com:8443'.
      *
-     *      options 可包含：
-     *      - 所有 SecureContext 选项（key、cert、ca 等）
+     *      options may contain:
+     *      - all SecureContext options (key, cert, ca, etc.)
      *
-     *      @param authority 要连接的服务器 URL
-     *      @param options 连接选项
-     *      @return 返回 Http2Session 客户端会话
+     *      @param authority URL of the server to connect
+     *      @param options connection options
+     *      @return returns the Http2Session client session
      *
      */
     function connectAsync(authority: string, options?: FIBJS.GeneralObject): Promise<Class_Http2Session>;
 
     /**
-     * @description 返回默认的 HTTP/2 设置对象
-     *      @return 返回包含默认设置的对象
+     * @description returns the default HTTP/2 settings object
+     *      @return returns an object containing the default settings
      *
      */
     function getDefaultSettings(): FIBJS.GeneralObject;
 
     /**
-     * @description Http2Stream 对象，参见 Http2Stream
+     * @description Http2Stream object, see Http2Stream
      */
     const Http2Stream: typeof Class_Http2Stream;
 
     /**
-     * @description Http2Session 对象，参见 Http2Session
+     * @description Http2Session object, see Http2Session
      */
     const Http2Session: typeof Class_Http2Session;
 
     /**
-     * @description http2 模块的常量对象，参见 http2_constants
+     * @description the constants object of the http2 module, see http2_constants
      */
     const constants: typeof import ('http2_constants');
 

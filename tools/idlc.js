@@ -5,12 +5,10 @@ var generator = require('./util/generator');
 var record_idljson = require('./util/record_idljson');
 var gen_dts = require('./util/gen_dts');
 
-var idlLang = process.env.FIBJS_IDL_LANG || 'zh-cn'
-var idlFolder = path.resolve(__dirname, `../idl/${idlLang}`);
+var idlFolder = path.resolve(__dirname, '../idl');
 var baseCodeFolder = path.resolve(__dirname, "../fibjs/include/ifs/");
 
 console.log('🚀 Starting fibjs IDL compilation...');
-console.log(`📂 IDL Language: ${idlLang}`);
 console.log(`📁 IDL Folder: ${idlFolder}`);
 console.log(`📁 Code Output: ${baseCodeFolder}`);
 
@@ -23,8 +21,8 @@ record_idljson(defs);
 console.log('✅ IDL JSON recorded');
 
 console.log('\n🔄 Generating IDL files...');
-// generate back
-generator(defs, 'zh-CN', 'zh-cn');
+// normalize the idl source in place, so the corpus stays canonical
+generator(defs);
 console.log('✅ IDL files generated');
 
 console.log('\n⚡ Generating C++ code...');

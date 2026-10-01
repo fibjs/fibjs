@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description EventEmitter 是事件触发对象，它可以被用于建立观察者模式，支持事件触发的对象均继承于此
+ * @description EventEmitter is an event-triggering object that can be used to build the observer pattern; all objects that support event triggering inherit from it
  *
- * 当一个事件被触发时，所有与该事件相关联的监听器会以异步方式被调用。它还允许我们创建具有高度可定制性和灵活性的代码。
+ * When an event is triggered, all listeners associated with that event are invoked asynchronously. It also allows us to create highly customizable and flexible code.
  *
- * 常用函数包括：addListener/on、once、removeListener/off、removeAllListeners 和 emit。
+ * Commonly used functions include: addListener/on, once, removeListener/off, removeAllListeners and emit.
  *
- * 下面是一个示例代码：
+ * The following is an example:
  *
  * ```javascript
  * var fs = require('fs');
@@ -35,308 +35,308 @@
  * event.emit('read_file', 'test.txt');
  * ```
  *
- * 上述示例代码，当运行时，事件emitter实例event首先监听'read_file'事件，然后在事件触发时(`event.emit('read_file', 'test.txt')`)触发读取文件的操作。当读取成功后，会触发'show_content'事件，此时监听了'show_content'事件的函数就会被执行并显示文件内容。如果在读取文件过程中发生错误，则会触发'error'事件，此时操作失败的情况就得到了应对。
+ * In the example above, when run, the event emitter instance event first listens for the 'read_file' event, and then triggers the file reading operation when the event is triggered (`event.emit('read_file', 'test.txt')`). When the read succeeds, the 'show_content' event is triggered; the function listening for the 'show_content' event is then executed and displays the file content. If an error occurs while reading the file, the 'error' event is triggered, and the failure is handled.
  *
- * 这种模式在应对异步操作的业务场景中具有很好的优越性。
+ * This pattern has great advantages in business scenarios dealing with asynchronous operations.
  *
  */
 declare class Class_EventEmitter extends Class_object {
     /**
-     * @description 构造函数
-     *      @param options 选项对象，支持 captureRejections 等
+     * @description Constructor
+     *      @param options options object, supports captureRejections, etc.
      *
      */
     constructor(options?: FIBJS.GeneralObject);
 
     /**
-     * @description 事件触发对象
+     * @description The event emitter object
      */
     static EventEmitter: Class_EventEmitter;
 
     /**
-     * @description 默认全局最大监听器数
+     * @description Default global maximum number of listeners
      */
     static defaultMaxListeners: number;
 
     /**
-     * @description 绑定一个事件处理函数到对象
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the object
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象
-     *     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the object
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the object
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象
-     *     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the object
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象
+     * @description Binds an event handler to the object
      *
-     *     options 参数是一个对象，它可以包含以下属性：
-     *     - once: 如果为 true，则事件处理函数只会触发一次，触发后会被移除
+     *     The options parameter is an object that can contain the following property:
+     *     - once: if true, the event handler is triggered only once and is removed after being triggered
      *
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @param options 指定事件处理函数的选项
-     *     @return 返回事件对象本身，便于链式调用
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @param options the options of the event handler
+     *     @return returns the event object itself for chaining
      *
      */
     addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象起始
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the start of the object's handler queue
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象起始
-     *     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the start of the object's handler queue
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds a one-time event handler to the object; the one-time handler is triggered only once
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
-     *     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds a one-time event handler to the object; the one-time handler is triggered only once
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象起始
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the start of the object's handler queue
+     *     @param ev the event name to bind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 绑定一个事件处理函数到对象起始
-     *     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Binds an event handler to the start of the object's handler queue
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消指定函数
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes the specified function from the object's handler queue
+     *     @param ev the event name to unbind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 取消对象处理队列中的全部函数
-     *     @param ev 指定事件的名称
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes all functions from the object's handler queue
+     *     @param ev the event name to unbind
+     *     @return returns the event object itself for chaining
      *
      */
     off(ev: any): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消指定函数
-     *     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes the specified function from the object's handler queue
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消指定函数
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes the specified function from the object's handler queue
+     *     @param ev the event name to unbind
+     *     @param func the event handler function
+     *     @return returns the event object itself for chaining
      *
      */
     removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 取消对象处理队列中的全部函数
-     *     @param ev 指定事件的名称
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes all functions from the object's handler queue
+     *     @param ev the event name to unbind
+     *     @return returns the event object itself for chaining
      *
      */
     removeListener(ev: any): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消指定函数
-     *     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes the specified function from the object's handler queue
+     *     @param map the event mapping; object property names are used as event names and property values as event handler functions
+     *     @return returns the event object itself for chaining
      *
      */
     removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消指定函数
-     *     @param ev 指定事件的名称
-     *     @param func 指定事件处理函数
-     *     @param options 指定事件处理函数的选项
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes the specified function from the object's handler queue
+     *     @param ev the event name to unbind
+     *     @param func the event handler function
+     *     @param options the options of the event handler
+     *     @return returns the event object itself for chaining
      *
      */
     removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
-     *     @param ev 指定事件的名称
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
+     *     @param ev the event name to remove
+     *     @return returns the event object itself for chaining
      *
      */
     removeAllListeners(ev: any): FIBJS.GeneralObject;
 
     /**
-     * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
-     *     @param evs 指定事件的名称
-     *     @return 返回事件对象本身，便于链式调用
+     * @description Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
+     *     @param evs the event names to remove
+     *     @return returns the event object itself for chaining
      *
      */
     removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
 
     /**
-     *  监听器的默认限制的数量，仅用于兼容
-     *     @param n 指定事件的数量
+     *  The default listener limit, for compatibility only
+     *     @param n the number of events
      *
      */
     setMaxListeners(n: number): void;
 
     /**
-     *  获取监听器的默认限制的数量，仅用于兼容
-     *     @return 返回默认限制数量
+     *  Gets the default listener limit, for compatibility only
+     *     @return returns the default limit
      *
      */
     getMaxListeners(): number;
 
     /**
-     * @description 查询对象指定事件的监听器数组
-     *     @param ev 指定事件的名称
-     *     @return 返回指定事件的监听器数组
+     * @description Queries the listener array of the specified event of the object
+     *     @param ev the event name to query
+     *     @return returns the listener array of the specified event
      *
      */
     listeners(ev: any): any[];
 
     /**
-     * @description 查询对象指定事件的监听器数组，包含 once 包装函数
-     *     @param ev 指定事件的名称
-     *     @return 返回指定事件的监听器数组
+     * @description Queries the listener array of the specified event of the object, including once wrapper functions
+     *     @param ev the event name to query
+     *     @return returns the listener array of the specified event
      *
      */
     rawListeners(ev: any): any[];
 
     /**
-     * @description 查询对象指定事件的监听器数量
-     *     @param ev 指定事件的名称
-     *     @return 返回指定事件的监听器数量
+     * @description Queries the number of listeners of the specified event of the object
+     *     @param ev the event name to query
+     *     @return returns the number of listeners of the specified event
      *
      */
     listenerCount(ev: any): number;
 
     /**
-     * @description 查询对象指定事件的监听器数量
-     *     @param o 指定查询的对象
-     *     @param ev 指定事件的名称
-     *     @return 返回指定事件的监听器数量
+     * @description Queries the number of listeners of the specified event of the object
+     *     @param o the object to query
+     *     @param ev the event name to query
+     *     @return returns the number of listeners of the specified event
      *
      */
     listenerCount(o: any, ev: any): number;
 
     /**
-     * @description 查询监听器事件名称
-     *     @return 返回事件名称数组
+     * @description Queries the names of the events with listeners
+     *     @return returns the array of event names
      *
      */
     eventNames(): any[];
 
     /**
-     * @description 主动触发一个事件
-     *     @param ev 事件名称
-     *     @param args 事件参数，将会传递给事件处理函数
-     *     @return 返回事件触发状态，有响应事件返回 true，否则返回 false
+     * @description Actively triggers an event
+     *     @param ev event name
+     *     @param args event parameters, which are passed to the event handler
+     *     @return returns the event trigger status; returns true if the event is responded to, otherwise false
      *
      */
     emit(ev: any, ...args: any[]): boolean;
 
     /**
-     * @description 监听一个 AbortSignal 的 abort 事件，返回一个可释放的对象
+     * @description Listens for the abort event of an AbortSignal and returns a disposable object
      *
-     *     返回的对象包含 `[Symbol.dispose]()` 方法，调用后将移除监听器。如果信号已中止，则监听器会被立即调用。
+     *     The returned object contains a `[Symbol.dispose]()` method; calling it removes the listener. If the signal has already been aborted, the listener is invoked immediately.
      *
-     *     @param signal 要监听的 AbortSignal 对象
-     *     @param func abort 事件的处理函数
-     *     @return 返回一个包含 `[Symbol.dispose]` 方法的 Disposable 对象
+     *     @param signal the AbortSignal object to listen to
+     *     @param func the handler for the abort event
+     *     @return returns a Disposable object containing a `[Symbol.dispose]` method
      *
      */
     static addAbortListener(signal: Class_EventEmitter, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
-     * @description 创建一个 Promise，等待指定事件触发一次后解析
+     * @description Creates a Promise that resolves after the specified event is triggered once
      *
-     *     返回一个 Promise，当目标事件触发时以事件参数数组解析。如果在此期间触发 'error' 事件（且监听的不是 'error' 事件本身），Promise 将被拒绝。
+     *     Returns a Promise that resolves with the array of event parameters when the target event is triggered. If the 'error' event is triggered in the meantime (and what is listened to is not the 'error' event itself), the Promise is rejected.
      *
-     *     options 参数可包含：
-     *     - signal: AbortSignal，用于取消等待
+     *     The options parameter can contain:
+     *     - signal: AbortSignal, used to cancel the wait
      *
-     *     @param emitter 要监听的事件触发器对象
-     *     @param ev 指定事件的名称
-     *     @param options 可选参数对象
-     *     @return 返回 Promise，以事件参数数组解析
+     *     @param emitter the event emitter object to listen to
+     *     @param ev the event name to listen for
+     *     @param options optional parameter object
+     *     @return returns a Promise that resolves with the array of event parameters
      *
      */
     static once(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 创建一个异步迭代器，持续监听指定事件
+     * @description Creates an async iterator that continuously listens for the specified event
      *
-     *     返回一个 AsyncIterator，每次事件触发时产出事件参数数组。如果触发 'error' 事件，迭代器将抛出错误。
+     *     Returns an AsyncIterator that yields the array of event parameters each time the event is triggered. If the 'error' event is triggered, the iterator throws an error.
      *
-     *     options 参数可包含：
-     *     - signal: AbortSignal，用于取消迭代
-     *     - close: 字符串数组，指定结束迭代的事件名称
+     *     The options parameter can contain:
+     *     - signal: AbortSignal, used to cancel the iteration
+     *     - close: string array, specifying the names of events that end the iteration
      *
-     *     @param emitter 要监听的事件触发器对象
-     *     @param ev 指定事件的名称
-     *     @param options 可选参数对象
-     *     @return 返回 AsyncIterator 对象
+     *     @param emitter the event emitter object to listen to
+     *     @param ev the event name to listen for
+     *     @param options optional parameter object
+     *     @return returns an AsyncIterator object
      *
      */
     static on(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;

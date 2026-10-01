@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description DOMStringMap 对象表示元素 data-* 属性的键值映射，常用于 dataset 属性
+ * @description The DOMStringMap object represents the key-value mapping of the data-* attributes of an element, commonly used for the dataset property
  *
- *  读写都会实时同步到元素的 data-* 属性：读取时把 data-xxx-yyy 转换为驼峰键，
- *  写入时把驼峰键转换回 data-* 属性名。
+ *  Reads and writes are synchronized to the data-* attributes of the element in real time: reads convert data-xxx-yyy to a camelCase key,
+ *  and writes convert the camelCase key back to the data-* attribute name.
  *
- *  示例:
+ *  Example:
  *  ```JavaScript
  *  var doc = new DOMParser().parseFromString('<div id="a" data-user-id="1"></div>', 'text/html');
  *  var el = doc.getElementById('a');

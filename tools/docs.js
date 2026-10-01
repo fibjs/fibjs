@@ -3,7 +3,7 @@ var child_process = require('child_process');
 var parser = require('./util/parser');
 var gen_docs = require('./util/gen_docs');
 
-var baseFolder = path.join(__dirname, "../idl/zh-cn");
+var baseFolder = path.join(__dirname, "../idl");
 var docsFolder = path.join(__dirname, "../docs/docs/manual/");
 
 console.log('🚀 Starting fibjs documentation generation...');

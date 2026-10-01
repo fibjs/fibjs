@@ -6,16 +6,16 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description tls 模块是 fibjs 内置的加密模块，用于建立 tls/ssl 加密网络连接，提供加密验证，确保客户端和服务器之间的连接是安全的
+ * @description the tls module is a built-in encryption module of fibjs, used to establish tls/ssl encrypted network connections, providing encryption verification to ensure that connections between clients and servers are secure
  *
- *  模块的主要能力：
+ *  Main capabilities of the module:
  *
- *  - **安全上下文**：`createSecureContext` 创建 SecureContext 对象，维护 CA 证书、证书链、私钥等 TLS 配置；
- *  - **服务器**：`createServer` 创建 TLSServer，支持指定 SecureContext 或直接传 TLS 选项；
- *  - **客户端**：`connect` 以多种形式建立 tls/ssl 连接，支持 URL、端口与主机名、选项对象三种形式；
- *  - **对象别名**：`TLSSocket`、`Handler`（TLSHandler）、`Server`（TLSServer）。
+ *  - **Secure context**: `createSecureContext` creates SecureContext objects, maintaining CA certificates, certificate chains, private keys and other TLS configurations;
+ *  - **Server**: `createServer` creates TLSServer, supporting specifying a SecureContext or passing TLS options directly;
+ *  - **Client**: `connect` establishes tls/ssl connections in multiple forms, supporting URL, port and hostname, and options object;
+ *  - **Object aliases**: `TLSSocket`, `Handler` (TLSHandler), `Server` (TLSServer).
  *
- *  引用方式：
+ *  Reference:
  *  ```JavaScript
  *  var tls = require('tls');
  *  ```
@@ -23,82 +23,82 @@
  */
 declare module 'tls' {
     /**
-     * @description tls/ssl 网络套接口对象，参见 TLSSocket
+     * @description tls/ssl network socket object, see TLSSocket
      */
     const TLSSocket: typeof Class_TLSSocket;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSHandler
+     * @description tls/ssl protocol conversion handler, see TLSHandler
      */
     const Handler: typeof Class_TLSHandler;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSServer
+     * @description tls/ssl protocol conversion handler, see TLSServer
      */
     const Server: typeof Class_TLSServer;
 
     /**
-     * @description 创建一个 TLS 服务器
-     *      @param context 指定安全上下文
-     *      @param listener 连接处理函数
-     *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
+     * @description creates a TLS server
+     *      @param context specifies the secure context
+     *      @param listener the connection handling function
+     *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
     function createServer(context: Class_SecureContext, listener: Class_Handler): Class_TLSServer;
 
     /**
-     * @description 创建一个 TLS 服务器
-     *      @param options 创建安全上下文的选项
-     *      @param listener 连接处理函数
-     *      @return 返回未绑定端口的 TLSServer 对象，需调用 listen() 启动
+     * @description creates a TLS server
+     *      @param options the options for creating the secure context
+     *      @param listener the connection handling function
+     *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
     function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TLSServer;
 
     /**
-     * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
+     * @description creates a SecureContext object, used to maintain secure contexts in the tls module
      *
-     *      创建安全上下文的选项支持以下选项：
-     *      - ca: 覆盖受信任的 CA 证书。默认是信任由 Mozilla 管理的知名 CA。当使用此选项显式指定 CA 时，Mozilla 的 CA 将被完全替换。该值可以是字符串或 Buffer ，或者字符串或 Buffer 的 Array。任何字符串或 Buffer 都可以包含连接在一起的多个 PEM CA。对等方的证书必须可链接到服务器信任的 CA，以便对连接进行身份验证。当使用不可链接到知名 CA 的证书时，必须将证书的 CA 明确指定为受信任的 CA，否则连接将无法进行身份验证。如果对等方使用的证书与默认 CA 之一不匹配或链接到，请使用 ca 选项提供对等方证书可以匹配或链接到的 CA 证书。对于自签名证书，该证书是其自己的 CA，并且必须提供。对于 PEM 编码的证书，支持的类型为 TRUSTED CERTIFICATE、X509 CERTIFICATE 和 CERTIFICATE。
-     *      - cert: PEM 格式的证书链。每个私钥应提供一个证书链。每个证书链应包含所提供的私有 key 的 PEM 格式的证书，后跟 PEM 格式的中间证书（如果有），按顺序排列，并且不包括根 CA（根 CA 必须是预先生成的）。提供多个证书链时，它们的顺序不必与 key 中的私钥相同。如果未提供中间证书，对等方将无法验证证书，握手将失败。
-     *      - key: PEM 格式的私钥。PEM 允许选择加密私钥。加密的密钥将使用 options.passphrase 进行解密。
-     *      - passphrase: 用于单个私钥和/或 PFX 的共享密码。
-     *      - requestCert: 如果为 true，则服务器将要求客户端证书进行身份验证。默认值: true。
-     *      - rejectUnverified: 如果不是 false，服务器将拒绝任何未通过 CA 列表验证证书的连接。默认值: true。
-     *      - rejectUnauthorized: 如果不是 false，服务器将拒绝任何未提供 CA 列表授权证书的连接。客户端模式默认值: true，服务端模式默认值: false。
-     *      - maxVersion: 设置允许的最大 TLS 版本。 'TLSv1.3' 、 'TLSv1.2' 、 'TLSv1.1' 或 'TLSv1' 之一。不能与 secureProtocol 选项一起指定。
-     *      - minVersion: 设置允许的最低 TLS 版本。 'TLSv1.3' 、 'TLSv1.2' 、 'TLSv1.1' 或 'TLSv1' 之一。不能与 secureProtocol 选项一起指定。
-     *      - secureProtocol: 传统机制选择要使用的 TLS 协议版本，不支持最小和最大版本的独立控制，也不支持将协议限制为 TLSv1.3。建议改用 minVersion 和 maxVersion。
-     *      - sessionTimeout: 经过多少秒后，服务器创建的 TLS 会话将不再可恢复。默认值: 300。
-     *      - SNIResolver: 用于在 SNI 回调中解析服务器名称。函数签名为 function(servername)，其中 servername 是客户端发送的服务器名称指示符。返回值是 SecureContext 对象，如果不能解析，则返回 null。
-     *      - SNICacheSize: SNI 上下文缓存的大小。默认值: 1024。
-     *      - SNICacheTimeout: SNI 上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则缓存将不会过期。
-     *      - SNICacheIdleTimeout: SNI 空闲上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则空闲缓存将不会过期。
+     *      The options for creating a secure context support the following options:
+     *      - ca: overrides the trusted CA certificates. By default, the well-known CAs managed by Mozilla are trusted. When this option is used to explicitly specify CAs, Mozilla's CAs are completely replaced. The value can be a string or a Buffer, or an Array of strings or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be able to chain to a CA trusted by the server for the connection to be authenticated. When using certificates that do not chain to a well-known CA, the certificate's CA must be explicitly specified as a trusted CA, otherwise the connection will not be authenticated. If the certificate used by the peer does not match or chain to one of the default CAs, use the ca option to provide a CA certificate that the peer certificate can match or chain to. For self-signed certificates, the certificate is its own CA and must be provided. For PEM-encoded certificates, the supported types are TRUSTED CERTIFICATE, X509 CERTIFICATE and CERTIFICATE.
+     *      - cert: certificate chains in PEM format. One certificate chain should be provided for each private key. Each certificate chain should contain the certificate in PEM format for the provided private key, followed by intermediate certificates in PEM format (if any), in order, and excluding the root CA (the root CA must be pre-generated). When multiple certificate chains are provided, their order does not have to be the same as the private keys in key. If intermediate certificates are not provided, the peer will not be able to verify the certificate and the handshake will fail.
+     *      - key: the private key in PEM format. PEM allows encrypted private keys to be chosen. Encrypted keys will be decrypted using options.passphrase.
+     *      - passphrase: the shared passphrase used for a single private key and/or a PFX.
+     *      - requestCert: if true, the server will require a client certificate for authentication. Default: true.
+     *      - rejectUnverified: if not false, the server will reject any connection whose certificate fails CA list verification. Default: true.
+     *      - rejectUnauthorized: if not false, the server will reject any connection that does not provide a certificate authorized by the CA list. Default: true in client mode, false in server mode.
+     *      - maxVersion: sets the maximum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1' or 'TLSv1'. Cannot be specified together with the secureProtocol option.
+     *      - minVersion: sets the minimum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1' or 'TLSv1'. Cannot be specified together with the secureProtocol option.
+     *      - secureProtocol: legacy mechanism to select the TLS protocol version to use; it does not support independent control of the minimum and maximum versions, nor restricting the protocol to TLSv1.3. Using minVersion and maxVersion is recommended instead.
+     *      - sessionTimeout: the number of seconds after which a TLS session created by the server will no longer be resumable. Default: 300.
+     *      - SNIResolver: used to resolve the server name in the SNI callback. The function signature is function(servername), where servername is the server name indication sent by the client. The return value is a SecureContext object, or null if it cannot be resolved.
+     *      - SNICacheSize: the size of the SNI context cache. Default: 1024.
+     *      - SNICacheTimeout: the timeout of the SNI context cache (in seconds). Default: 300. If set to 0 or a negative number, the cache will never expire.
+     *      - SNICacheIdleTimeout: the timeout of the SNI idle context cache (in seconds). Default: 300. If set to 0 or a negative number, the idle cache will never expire.
      *
-     *      @param options 创建安全上下文的选项
-     *      @param isServer 是否是服务器模式，默认为 false
-     *      @return 返回创建的安全上下文
+     *      @param options the options for creating the secure context
+     *      @param isServer whether it is in server mode, default is false
+     *      @return returns the created secure context
      *
      */
     function createSecureContext(options: FIBJS.GeneralObject, isServer?: boolean): Class_SecureContext;
 
     /**
-     * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
-     *      @param isServer 是否是服务器模式，默认为 false
-     *      @return 返回创建的安全上下文
+     * @description creates a SecureContext object, used to maintain secure contexts in the tls module
+     *      @param isServer whether it is in server mode, default is false
+     *      @return returns the created secure context
      *
      */
     function createSecureContext(isServer?: boolean): Class_SecureContext;
 
     /**
-     * @description 查询缺省 SecureContext
+     * @description queries the default SecureContext
      */
     const secureContext: Class_SecureContext;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connect(options: FIBJS.GeneralObject): Class_Stream;
@@ -106,35 +106,35 @@ declare module 'tls' {
     function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connect(url: string, timeout?: number): Class_Stream;
@@ -142,29 +142,29 @@ declare module 'tls' {
     function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectSync(url: string, timeout?: number): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectAsync(url: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
@@ -172,30 +172,30 @@ declare module 'tls' {
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectSync(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectAsync(url: string, secureContext: Class_SecureContext, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connect(url: string, options: FIBJS.GeneralObject): Class_Stream;
@@ -203,29 +203,29 @@ declare module 'tls' {
     function connect(url: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectSync(url: string, options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectAsync(url: string, options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名，缺省为 "localhost"
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect, default is "localhost"
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
@@ -233,111 +233,111 @@ declare module 'tls' {
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名，缺省为 "localhost"
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect, default is "localhost"
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectSync(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名，缺省为 "localhost"
-     *      @param options 指定连接的选项
-     *      @return 返回 tls/ssl 连接对象
+     * @description creates a tls/ssl connection based on the hostname and port number
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect, default is "localhost"
+     *      @param options specifies the connection options
+     *      @return returns the tls/ssl connection object
      *
      */
     function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(url: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(url: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param secureContext 指定安全上下文
-     *      @param timeout 指定连接超时时间，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据 url 创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param url 指定连接的 URL
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 根据主机名和端口号创建一个 tls/ssl 连接，并在连接建立后触发 connect 事件
-     *      @param port 指定连接的端口号
-     *      @param host 指定连接的主机名
-     *      @param options 指定连接的选项
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;

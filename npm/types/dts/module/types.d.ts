@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description types 模块提供了对数据类型判断的工具函数
+ * @description The types module provides utility functions for data type checking
  *
- * 下面是具体的介绍和示例：
+ * The following is a detailed introduction with examples:
  *
  * ```JavaScript
  * var util = require('util');
@@ -13,457 +13,457 @@
  */
 declare module 'types' {
     /**
-     * @description 检测给定的变量是否不包含任何值(没有可枚举的属性)
-     *      @param v 给定需要检测的变量
-     *      @return 如果为空则返回 True
+     * @description Checks whether the given variable contains no value (no enumerable properties)
+     *      @param v the variable to check
+     *      @return returns True if empty
      *
      */
     function isEmpty(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是数组
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数组则返回 True
+     * @description Checks whether the given variable is an array
+     *      @param v the variable to check
+     *      @return returns True if it is an array
      *
      */
     function isArray(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Boolean
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Boolean 则返回 True
+     * @description Checks whether the given variable is a Boolean
+     *      @param v the variable to check
+     *      @return returns True if it is a Boolean
      *
      */
     function isBoolean(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Null
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Null 则返回 True
+     * @description Checks whether the given variable is Null
+     *      @param v the variable to check
+     *      @return returns True if it is Null
      *
      */
     function isNull(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Null 或者 Undefined
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Null 或者 Undefined 则返回 True
+     * @description Checks whether the given variable is Null or Undefined
+     *      @param v the variable to check
+     *      @return returns True if it is Null or Undefined
      *
      */
     function isNullOrUndefined(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是数字
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数字则返回 True
+     * @description Checks whether the given variable is a number
+     *      @param v the variable to check
+     *      @return returns True if it is a number
      *
      */
     function isNumber(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 BigInt
-     *      @param v 给定需要检测的变量
-     *      @return 如果是数字则返回 True
+     * @description Checks whether the given variable is a BigInt
+     *      @param v the variable to check
+     *      @return returns True if it is a number
      *
      */
     function isBigInt(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是字符串
-     *      @param v 给定需要检测的变量
-     *      @return 如果是字符串则返回 True
+     * @description Checks whether the given variable is a string
+     *      @param v the variable to check
+     *      @return returns True if it is a string
      *
      */
     function isString(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Undefined
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Undefined 则返回 True
+     * @description Checks whether the given variable is Undefined
+     *      @param v the variable to check
+     *      @return returns True if it is Undefined
      *
      */
     function isUndefined(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是正则对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是正则对象则返回 True
+     * @description Checks whether the given variable is a regular expression object
+     *      @param v the variable to check
+     *      @return returns True if it is a regular expression object
      *
      */
     function isRegExp(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是对象则返回 True
+     * @description Checks whether the given variable is an object
+     *      @param v the variable to check
+     *      @return returns True if it is an object
      *
      */
     function isObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是日期对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是日期对象则返回 True
+     * @description Checks whether the given variable is a date object
+     *      @param v the variable to check
+     *      @return returns True if it is a date object
      *
      */
     function isDate(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是错误对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是错误对象则返回 True
+     * @description Checks whether the given variable is an error object
+     *      @param v the variable to check
+     *      @return returns True if it is an error object
      *
      */
     function isNativeError(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是原始类型则返回 True
+     * @description Checks whether the given variable is a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a primitive type
      *
      */
     function isPrimitive(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是Symbol类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是Symbol类型则返回 True
+     * @description Checks whether the given variable is a Symbol type
+     *      @param v the variable to check
+     *      @return returns True if it is a Symbol type
      *
      */
     function isSymbol(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 DataView 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 DataView 类型则返回 True
+     * @description Checks whether the given variable is a DataView type
+     *      @param v the variable to check
+     *      @return returns True if it is a DataView type
      *
      */
     function isDataView(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 External 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 External 类型则返回 True
+     * @description Checks whether the given variable is an External type
+     *      @param v the variable to check
+     *      @return returns True if it is an External type
      *
      */
     function isExternal(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Map 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Map 类型则返回 True
+     * @description Checks whether the given variable is a Map type
+     *      @param v the variable to check
+     *      @return returns True if it is a Map type
      *
      */
     function isMap(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 MapIterator 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 MapIterator 类型则返回 True
+     * @description Checks whether the given variable is a MapIterator type
+     *      @param v the variable to check
+     *      @return returns True if it is a MapIterator type
      *
      */
     function isMapIterator(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Promise 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Promise 类型则返回 True
+     * @description Checks whether the given variable is a Promise type
+     *      @param v the variable to check
+     *      @return returns True if it is a Promise type
      *
      */
     function isPromise(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 AsyncFunction 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 AsyncFunction 类型则返回 True
+     * @description Checks whether the given variable is an AsyncFunction type
+     *      @param v the variable to check
+     *      @return returns True if it is an AsyncFunction type
      *
      */
     function isAsyncFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Set 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Set 类型则返回 True
+     * @description Checks whether the given variable is a Set type
+     *      @param v the variable to check
+     *      @return returns True if it is a Set type
      *
      */
     function isSet(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 SetIterator 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 SetIterator 类型则返回 True
+     * @description Checks whether the given variable is a SetIterator type
+     *      @param v the variable to check
+     *      @return returns True if it is a SetIterator type
      *
      */
     function isSetIterator(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 TypedArray 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 TypedArray 类型则返回 True
+     * @description Checks whether the given variable is a TypedArray type
+     *      @param v the variable to check
+     *      @return returns True if it is a TypedArray type
      *
      */
     function isTypedArray(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Float32Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Float32Array 类型则返回 True
+     * @description Checks whether the given variable is a Float32Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Float32Array type
      *
      */
     function isFloat32Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Float64Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Float64Array 类型则返回 True
+     * @description Checks whether the given variable is a Float64Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Float64Array type
      *
      */
     function isFloat64Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Int8Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Int8Array 类型则返回 True
+     * @description Checks whether the given variable is an Int8Array type
+     *      @param v the variable to check
+     *      @return returns True if it is an Int8Array type
      *
      */
     function isInt8Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Int16Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Int16Array 类型则返回 True
+     * @description Checks whether the given variable is an Int16Array type
+     *      @param v the variable to check
+     *      @return returns True if it is an Int16Array type
      *
      */
     function isInt16Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Int32Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Int32Array 类型则返回 True
+     * @description Checks whether the given variable is an Int32Array type
+     *      @param v the variable to check
+     *      @return returns True if it is an Int32Array type
      *
      */
     function isInt32Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Uint8Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Uint8Array 类型则返回 True
+     * @description Checks whether the given variable is a Uint8Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Uint8Array type
      *
      */
     function isUint8Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Uint8ClampedArray 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Uint8ClampedArray 类型则返回 True
+     * @description Checks whether the given variable is a Uint8ClampedArray type
+     *      @param v the variable to check
+     *      @return returns True if it is a Uint8ClampedArray type
      *
      */
     function isUint8ClampedArray(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Uint16Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Uint16Array 类型则返回 True
+     * @description Checks whether the given variable is a Uint16Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Uint16Array type
      *
      */
     function isUint16Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Uint32Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Uint32Array 类型则返回 True
+     * @description Checks whether the given variable is a Uint32Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Uint32Array type
      *
      */
     function isUint32Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是函数对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是函数对象则返回 True
+     * @description Checks whether the given variable is a function object
+     *      @param v the variable to check
+     *      @return returns True if it is a function object
      *
      */
     function isFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是函数 Buffer 对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是函数 Buffer 对象则返回 True
+     * @description Checks whether the given variable is a Buffer object
+     *      @param v the variable to check
+     *      @return returns True if it is a Buffer object
      *
      */
     function isBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 BigInt 对象，而不是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 BigInt 对象则返回 True
+     * @description Checks whether the given variable is a BigInt object, not a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a BigInt object
      *
      */
     function isBigIntObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Boolean 对象，而不是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Boolean 对象则返回 True
+     * @description Checks whether the given variable is a Boolean object, not a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a Boolean object
      *
      */
     function isBooleanObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Number 对象，而不是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Number 对象则返回 True
+     * @description Checks whether the given variable is a Number object, not a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a Number object
      *
      */
     function isNumberObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 String 对象，而不是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 String 对象则返回 True
+     * @description Checks whether the given variable is a String object, not a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a String object
      *
      */
     function isStringObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Symbol 对象，而不是原始类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Symbol 对象则返回 True
+     * @description Checks whether the given variable is a Symbol object, not a primitive type
+     *      @param v the variable to check
+     *      @return returns True if it is a Symbol object
      *
      */
     function isSymbolObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 WeakMap 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 WeakMap 类型则返回 True
+     * @description Checks whether the given variable is a WeakMap type
+     *      @param v the variable to check
+     *      @return returns True if it is a WeakMap type
      *
      */
     function isWeakMap(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 WeakSet 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 WeakSet 类型则返回 True
+     * @description Checks whether the given variable is a WeakSet type
+     *      @param v the variable to check
+     *      @return returns True if it is a WeakSet type
      *
      */
     function isWeakSet(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 ArrayBuffer 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 ArrayBuffer 类型则返回 True
+     * @description Checks whether the given variable is an ArrayBuffer type
+     *      @param v the variable to check
+     *      @return returns True if it is an ArrayBuffer type
      *
      */
     function isArrayBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 ArrayBufferView 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 ArrayBufferView 类型则返回 True
+     * @description Checks whether the given variable is an ArrayBufferView type
+     *      @param v the variable to check
+     *      @return returns True if it is an ArrayBufferView type
      *
      */
     function isArrayBufferView(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 BigInt64Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 BigInt64Array 类型则返回 True
+     * @description Checks whether the given variable is a BigInt64Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a BigInt64Array type
      *
      */
     function isBigInt64Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 BigUint64Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 BigUint64Array 类型则返回 True
+     * @description Checks whether the given variable is a BigUint64Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a BigUint64Array type
      *
      */
     function isBigUint64Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Float16Array 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Float16Array 类型则返回 True
+     * @description Checks whether the given variable is a Float16Array type
+     *      @param v the variable to check
+     *      @return returns True if it is a Float16Array type
      *
      */
     function isFloat16Array(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 ArrayBuffer 或 SharedArrayBuffer 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 ArrayBuffer 或 SharedArrayBuffer 类型则返回 True
+     * @description Checks whether the given variable is an ArrayBuffer or SharedArrayBuffer type
+     *      @param v the variable to check
+     *      @return returns True if it is an ArrayBuffer or SharedArrayBuffer type
      *
      */
     function isAnyArrayBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 SharedArrayBuffer 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 SharedArrayBuffer 类型则返回 True
+     * @description Checks whether the given variable is a SharedArrayBuffer type
+     *      @param v the variable to check
+     *      @return returns True if it is a SharedArrayBuffer type
      *
      */
     function isSharedArrayBuffer(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 arguments 对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 arguments 对象则返回 True
+     * @description Checks whether the given variable is an arguments object
+     *      @param v the variable to check
+     *      @return returns True if it is an arguments object
      *
      */
     function isArgumentsObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是装箱的原始类型对象（如 new Boolean()、new String() 等）
-     *      @param v 给定需要检测的变量
-     *      @return 如果是装箱的原始类型对象则返回 True
+     * @description Checks whether the given variable is a boxed primitive object (such as new Boolean(), new String(), etc.)
+     *      @param v the variable to check
+     *      @return returns True if it is a boxed primitive object
      *
      */
     function isBoxedPrimitive(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 GeneratorFunction 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 GeneratorFunction 类型则返回 True
+     * @description Checks whether the given variable is a GeneratorFunction type
+     *      @param v the variable to check
+     *      @return returns True if it is a GeneratorFunction type
      *
      */
     function isGeneratorFunction(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Generator 对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Generator 对象则返回 True
+     * @description Checks whether the given variable is a Generator object
+     *      @param v the variable to check
+     *      @return returns True if it is a Generator object
      *
      */
     function isGeneratorObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Proxy 实例
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Proxy 实例则返回 True
+     * @description Checks whether the given variable is a Proxy instance
+     *      @param v the variable to check
+     *      @return returns True if it is a Proxy instance
      *
      */
     function isProxy(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 Module Namespace 对象
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 Module Namespace 对象则返回 True
+     * @description Checks whether the given variable is a Module Namespace object
+     *      @param v the variable to check
+     *      @return returns True if it is a Module Namespace object
      *
      */
     function isModuleNamespaceObject(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 CryptoKey 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 CryptoKey 类型则返回 True
+     * @description Checks whether the given variable is a CryptoKey type
+     *      @param v the variable to check
+     *      @return returns True if it is a CryptoKey type
      *
      */
     function isCryptoKey(v: any): boolean;
 
     /**
-     * @description 检测给定的变量是否是 KeyObject 类型
-     *      @param v 给定需要检测的变量
-     *      @return 如果是 KeyObject 类型则返回 True
+     * @description Checks whether the given variable is a KeyObject type
+     *      @param v the variable to check
+     *      @return returns True if it is a KeyObject type
      *
      */
     function isKeyObject(v: any): boolean;

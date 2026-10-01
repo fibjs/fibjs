@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description base58 编码与解码模块
+ * @description base58 encoding and decoding module
  *
- *  `base58` 模块是一个用于对数据进行 Base58 编解码的模块。Base58 是一种数字与字母的组合表示方法，它不包含数字 0、字母 O、字母 I、字母 l 等易混淆字符，具有不易出错的特点。
+ *  The `base58` module is a module for Base58 encoding and decoding of data. Base58 is a representation combining digits and letters that excludes easily confused characters such as the digit 0, the letters O and I, and the letter l, giving it the characteristic of being less error-prone.
  *
- *  该模块提供了 `encode` 和 `decode` 两个方法。`encode` 方法用于将给定的数据进行 Base58 编码，返回编码后的字符串。`decode` 方法用于将给定的 Base58 编码的字符串进行解码，返回解码后的二进制数据。
+ *  The module provides two methods, `encode` and `decode`. The `encode` method Base58-encodes the given data and returns the encoded string. The `decode` method decodes the given Base58-encoded string and returns the decoded binary data.
  *
- *  以下是 `base58` 模块的示例代码：
+ *  Below is example code for the `base58` module:
  *  ```JavaScript
  *  var base58 = require('base58');
  *
@@ -22,35 +22,35 @@
  */
 declare module 'base58' {
     /**
-     * @description 以 base58 方式编码数据
-     * 	 @param data 要编码的数据
-     * 	 @return 返回编码的字符串
+     * @description Encodes data in base58 format
+     * 	 @param data the data to encode
+     * 	 @return returns the encoded string
      *
      */
     function encode(data: Class_Buffer): string;
 
     /**
-     * @description 以 base58check 方式编码数据
-     * 	 @param data 要编码的数据
-     * 	 @param chk_ver 指定校验版本
-     * 	 @return 返回编码的字符串
+     * @description Encodes data in base58check format
+     * 	 @param data the data to encode
+     * 	 @param chk_ver the check version to use
+     * 	 @return returns the encoded string
      *
      */
     function encode(data: Class_Buffer, chk_ver: number): string;
 
     /**
-     * @description 以 base58 方式解码字符串为二进制数据
-     * 	 @param data 要解码的字符串
-     * 	 @return 返回解码的二进制数据
+     * @description Decodes a string into binary data in base58 format
+     * 	 @param data the string to decode
+     * 	 @return returns the decoded binary data
      *
      */
     function decode(data: string): Class_Buffer;
 
     /**
-     * @description 以 base58check 方式解码字符串为二进制数据
-     * 	 @param data 要解码的字符串
-     * 	 @param chk_ver 指定校验版本
-     * 	 @return 返回解码的二进制数据
+     * @description Decodes a string into binary data in base58check format
+     * 	 @param data the string to decode
+     * 	 @param chk_ver the check version to use
+     * 	 @return returns the decoded binary data
      *
      */
     function decode(data: string, chk_ver: number): Class_Buffer;

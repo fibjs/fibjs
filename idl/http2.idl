@@ -1,0 +1,70 @@
+/*! @brief the http2 module provides HTTP/2 protocol support
+
+The http2 module allows creating HTTP/2 servers and clients, with full support for stream multiplexing, header compression and flow control.
+
+```JavaScript
+const http2 = require('http2');
+
+// client example
+const session = http2.connect('https://example.com');
+const stream = session.request({ ':path': '/' });
+const response = stream.read();
+session.close();
+
+// server example
+const server = http2.createServer({
+    key: ...,
+    cert: ...
+}, function(req) {
+    req.response.write('Hello, HTTP/2!');
+});
+server.listen(8443);
+server.start();
+```
+*/
+module http2
+{
+    /*! @brief creates an Http2Server object, see Http2Server */
+    static Server = Http2Server;
+
+    /*! @brief creates an Http2 server
+     @param options TLS options object or SecureContext configuration
+     @param hdlr the request handling function
+     @return returns an Http2Server object; call listen() then start() to start serving
+    */
+    static Http2Server createServer(Object options, Handler hdlr);
+
+    /*! @brief creates an Http2 server
+     @param context SecureContext object used for TLS configuration
+     @param hdlr the request handling function
+     @return returns an Http2Server object; call listen() then start() to start serving
+    */
+    static Http2Server createServer(SecureContext context, Handler hdlr);
+
+    /*! @brief creates an HTTP/2 client session to the specified target
+
+     authority should be a URL string such as 'https://example.com' or 'https://example.com:8443'.
+
+     options may contain:
+     - all SecureContext options (key, cert, ca, etc.)
+
+     @param authority URL of the server to connect
+     @param options connection options
+     @return returns the Http2Session client session
+    */
+    static Http2Session connect(String authority, Object options = {}) async;
+
+    /*! @brief returns the default HTTP/2 settings object
+     @return returns an object containing the default settings
+    */
+    static Object getDefaultSettings();
+
+    /*! @brief Http2Stream object, see Http2Stream */
+    static Http2Stream;
+
+    /*! @brief Http2Session object, see Http2Session */
+    static Http2Session;
+
+    /*! @brief the constants object of the http2 module, see http2_constants */
+    static constants = http2_constants;
+};

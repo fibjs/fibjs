@@ -1,0 +1,198 @@
+/*! @brief The test module is a testing framework; together with the assertion module `assert` it makes it easy to write various test cases; it can be called as a function
+
+Before writing test cases, it is usually necessary to first define a test module to describe the test content.
+
+- describe
+
+describe is the container of all test groups, similar to the concept of a test suite; it is used to attach `it` tests under a specific category, and describe can contain multiple it cases or other sub-categories represented by nested describe.
+
+```
+describe(String name, Function block)
+```
+
+Call parameters:
+name: String, defines the module name
+block: Function, the module initialization code
+
+- it
+
+Represents a single test case; each description should test only a single situation to ensure the reliability of the test result.
+
+```
+it(String name, Function block)
+```
+
+Call parameters:
+name: String, defines the item name
+block: Function, the test content
+
+- xit & it.skip
+
+Represents a skipped test case.
+
+```
+xit(String name, Function block)
+```
+
+Call parameters:
+name: String, defines the item name
+block: Function, the test content
+
+- oit & it.only
+
+Represents running only the current test case and ignoring other test cases, so as to debug the current case separately; very practical.
+
+```
+oit(String name, Function block)
+it.only(String name, Function block)
+```
+
+Call parameters:
+name: String, defines the item name
+block: Function, the test content
+
+- todo
+
+Represents the plan of test cases that need further improvement.
+
+```
+todo(String name, Function block)
+```
+
+Call parameters:
+name: String, defines the item name
+block: Function, the test content
+
+When writing test cases, the assert assertion module is usually used to check the return of functions. The usage is as follows:
+
+```
+assert(condition, String message);
+```
+
+The first parameter is the condition to assert, and the second parameter is the error message.
+ */
+module test
+{
+    /*! @brief Defines a test item
+     @param name defines the item name
+     @param block the test content
+     */
+    static Function(String name, Function block);
+
+    /*! @brief Defines a test item (with options)
+     @param name defines the item name
+     @param options the test options, supporting: { skip, todo, only }
+     @param block the test content
+     */
+    static Function(String name, Object options, Function block);
+
+    /*! @brief Test framework module; points to this module and can be called as a function */
+    static test;
+
+    /*! @brief Test framework module; points to this module and can be called as a function */
+    static it = test;
+
+    /*! @brief Test suite module; can be called as a function, see test_suite */
+    static suite = test_suite;
+
+    /*! @brief Test suite module; can be called as a function, see test_suite */
+    static describe = test_suite;
+
+    /*! @brief Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error */
+    static assert;
+
+    /*! @brief Paused test suite definition
+     @param name defines the module name
+     @param block the module initialization code
+     */
+    static xdescribe(String name, Function block);
+
+    /*! @brief Independent test suite definition
+     @param name defines the module name
+     @param block the module initialization code
+     */
+    static odescribe(String name, Function block);
+
+    /*! @brief Paused test item definition
+     @param name defines the item name
+     @param block the test content
+     */
+    static xit(String name, Function block);
+
+    /*! @brief Paused test item definition
+     @param name defines the item name
+     @param block the test content
+     */
+    static skip(String name, Function block);
+
+    /*! @brief Independent test item definition
+     @param name defines the item name
+     @param block the test content
+     */
+    static oit(String name, Function block);
+
+    /*! @brief Independent test item definition
+     @param name defines the item name
+     @param block the test content
+     */
+    static only(String name, Function block);
+
+    /*! @brief Planned test item definition
+     @param name defines the item name
+     @param block the test content
+     */
+    static todo(String name, Function block);
+
+    /*! @brief Planned test item definition (with options)
+     @param name defines the item name
+     @param options the test options, supporting: { skip, todo, only }
+     @param block the test content
+     */
+    static todo(String name, Object options, Function block);
+
+    /*! @brief Planned test item definition
+     @param name defines the item name
+     */
+    static todo(String name);
+
+    /*! @brief Defines the enter event of the current test module
+     @param func the event function
+     */
+    static before(Function func);
+
+    /*! @brief Defines the exit event of the current test module
+     @param func the event function
+     */
+    static after(Function func);
+
+    /*! @brief Defines the test item enter event of the current test module
+     @param func the event function
+     */
+    static beforeEach(Function func);
+
+    /*! @brief Defines the test item exit event of the current test module
+     @param func the event function
+     */
+    static afterEach(Function func);
+
+    /*! @brief Tests that a function must be called a specified number of times
+     @param func the function to test
+     @return returns the wrapped function
+     */
+    static Function mustCall(Function func);
+
+    /*! @brief Tests that a function must not be called
+     @param func the function to test
+     @return returns the wrapped function
+     */
+    static Function mustNotCall(Function func);
+
+    /*! @brief Tests that a function must not be called
+     @return returns the wrapped function
+    */
+    static Function mustNotCall();
+
+    /*! @brief Sets and queries the slow test warning threshold, in ms, default 75
+     */
+    static Integer slow;
+};

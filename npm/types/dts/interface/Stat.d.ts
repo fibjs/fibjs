@@ -1,207 +1,207 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 文件的基础信息对象
+ * @description Basic file information object
  *
- *   Stat 对象通过 fs.stat, FileStream.stat, fs.readdir 查询，不可独立创建
+ *   The Stat object is queried through fs.stat, FileStream.stat, fs.readdir and cannot be created independently
  *
  */
 declare class Class_Stat extends Class_object {
     /**
-     * @description 文件名称
+     * @description File name
      */
     readonly name: string;
 
     /**
-     * @description 包含该文件的设备 ID
+     * @description Device ID containing the file
      */
     readonly dev: number;
 
     /**
-     * @description 文件中的 Inode 数量
+     * @description Number of Inodes in the file
      */
     readonly ino: number;
 
     /**
-     * @description 文件权限，Windows 不支持此属性
+     * @description File permission; not supported on Windows
      */
     readonly mode: number;
 
     /**
-     * @description 与此文件相关联的硬链接数量
+     * @description Number of hard links associated with this file
      */
     readonly nlink: number;
 
     /**
-     * @description 文件拥有者的id
+     * @description Owner id of the file
      */
     readonly uid: number;
 
     /**
-     * @description 文件所属的组id
+     * @description Group id of the file
      */
     readonly gid: number;
 
     /**
-     * @description 对于特殊类型的文件, 包含该文件的设备 ID
+     * @description For special file types, the device ID containing the file
      */
     readonly rdev: number;
 
     /**
-     * @description 文件尺寸
+     * @description File size
      */
     readonly size: number;
 
     /**
-     * @description 在 I/O 操作中文件系统区块大小
+     * @description File system block size for I/O operations
      */
     readonly blksize: number;
 
     /**
-     * @description 分配给该文件的区块数量
+     * @description Number of blocks allocated to the file
      */
     readonly blocks: number;
 
     /**
-     * @description 文件最后修改时间
+     * @description Last modification time of the file
      */
     readonly mtime: typeof Date;
 
     /**
-     * @description 文件最后修改时间(ms)
+     * @description Last modification time of the file (ms)
      */
     readonly mtimeMs: number;
 
     /**
-     * @description 文件最后修改时间(ns)，仅在 bigint 为 true 时有效
+     * @description Last modification time of the file (ns), valid only when bigint is true
      */
     readonly mtimeNs: number;
 
     /**
-     * @description 文件最后访问时间
+     * @description Last access time of the file
      */
     readonly atime: typeof Date;
 
     /**
-     * @description 文件最后访问时间(ms)
+     * @description Last access time of the file (ms)
      */
     readonly atimeMs: number;
 
     /**
-     * @description 文件最后访问时间(ns)，仅在 bigint 为 true 时有效
+     * @description Last access time of the file (ns), valid only when bigint is true
      */
     readonly atimeNs: number;
 
     /**
-     * @description 文件状态修改时间
+     * @description File status change time
      */
     readonly ctime: typeof Date;
 
     /**
-     * @description 文件状态修改时间(ms)
+     * @description File status change time (ms)
      */
     readonly ctimeMs: number;
 
     /**
-     * @description 文件状态修改时间(ns)，仅在 bigint 为 true 时有效
+     * @description File status change time (ns), valid only when bigint is true
      */
     readonly ctimeNs: number;
 
     /**
-     * @description 文件产生时间
+     * @description File creation time
      */
     readonly birthtime: typeof Date;
 
     /**
-     * @description 文件产生时间(ms)
+     * @description File creation time (ms)
      */
     readonly birthtimeMs: number;
 
     /**
-     * @description 文件产生时间(ns)，仅在 bigint 为 true 时有效
+     * @description File creation time (ns), valid only when bigint is true
      */
     readonly birthtimeNs: number;
 
     /**
-     * @description 查询文件是否有写入权限
-     *      @return 为 true 则有写入权限
+     * @description Queries whether the file is writable
+     *      @return true if it is writable
      *
      */
     isWritable(): boolean;
 
     /**
-     * @description 查询文件是否有读权限
-     *      @return 为 true 则有读权限
+     * @description Queries whether the file is readable
+     *      @return true if it is readable
      *
      */
     isReadable(): boolean;
 
     /**
-     * @description 查询文件是否有执行权限
-     *      @return 为 true 则有执行权限
+     * @description Queries whether the file is executable
+     *      @return true if it is executable
      *
      */
     isExecutable(): boolean;
 
     /**
-     * @description 查询文件是否隐藏
-     *      @return 为 true 则隐藏
+     * @description Queries whether the file is hidden
+     *      @return true if it is hidden
      *
      */
     isHidden(): boolean;
 
     /**
-     * @description 查询 Stat 是否描述了一个 block device
-     *      @return 为 true 表示描述了一个 block device
+     * @description Queries whether the Stat describes a block device
+     *      @return true if it describes a block device
      *
      */
     isBlockDevice(): boolean;
 
     /**
-     * @description 查询 Stat 是否描述了一个 character device
-     *      @return 为 true 表示描述了一个 character device
+     * @description Queries whether the Stat describes a character device
+     *      @return true if it describes a character device
      *
      */
     isCharacterDevice(): boolean;
 
     /**
-     * @description 查询文件是否是目录
-     *      @return 为 true 则是目录
+     * @description Queries whether the file is a directory
+     *      @return true if it is a directory
      *
      */
     isDirectory(): boolean;
 
     /**
-     * @description 查询 Stat 是否描述了一个 FIFO 管道
-     *      @return 为 true 表示描述了一个 FIFO 管道
+     * @description Queries whether the Stat describes a FIFO pipe
+     *      @return true if it describes a FIFO pipe
      *
      */
     isFIFO(): boolean;
 
     /**
-     * @description 查询文件是否是文件
-     *      @return 为 true 则是文件
+     * @description Queries whether the file is a file
+     *      @return true if it is a file
      *
      */
     isFile(): boolean;
 
     /**
-     * @description 查询文件是否是符号链接
-     *      @return 为 true 则是符号链接
+     * @description Queries whether the file is a symbolic link
+     *      @return true if it is a symbolic link
      *
      */
     isSymbolicLink(): boolean;
 
     /**
-     * @description 查询文件是否是内存文件
-     *      @return 为 true 则是内存文件
+     * @description Queries whether the file is a memory file
+     *      @return true if it is a memory file
      *
      */
     isMemory(): boolean;
 
     /**
-     * @description 查询文件是否是 Socket
-     *      @return 为 true 则是 Socket
+     * @description Queries whether the file is a Socket
+     *      @return true if it is a Socket
      *
      */
     isSocket(): boolean;

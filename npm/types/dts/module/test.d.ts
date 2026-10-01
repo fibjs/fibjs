@@ -2,248 +2,248 @@
 /// <reference path="../module/test_suite.d.ts" />
 /// <reference path="../module/assert.d.ts" />
 /**
- * @description test 模块是一个测试框架，结合断言模块 `assert` 可以方便地编写各种测试用例，可作为函数调用
+ * @description The test module is a testing framework; together with the assertion module `assert` it makes it easy to write various test cases; it can be called as a function
  *
- * 在编写测试用例前通常需要先定义一个测试模块用来描述测试内容。
+ * Before writing test cases, it is usually necessary to first define a test module to describe the test content.
  *
  * - describe
  *
- * describe 所有的测试分组的容器，类似于测试套件的概念，是用于将 `it` 测试挂靠在特定的分类下，describe 可以包含多个 it 用例或者其它嵌套的 describe 表示的子分类。
+ * describe is the container of all test groups, similar to the concept of a test suite; it is used to attach `it` tests under a specific category, and describe can contain multiple it cases or other sub-categories represented by nested describe.
  *
  * ```
  * describe(String name, Function block)
  * ```
  *
- * 调用参数:
- * name: String, 定义模块名称
- * block: Function, 模块初始化代码
+ * Call parameters:
+ * name: String, defines the module name
+ * block: Function, the module initialization code
  *
  * - it
  *
- * 表示单个测试用例，每个描述都应该只测单一的一种情况，以保证测试结果的可靠性。
+ * Represents a single test case; each description should test only a single situation to ensure the reliability of the test result.
  *
  * ```
  * it(String name, Function block)
  * ```
  *
- * 调用参数:
- * name: String, 定义项目名称
- * block: Function, 测试内容
+ * Call parameters:
+ * name: String, defines the item name
+ * block: Function, the test content
  *
  * - xit & it.skip
  *
- * 表示被跳过的测试用例。
+ * Represents a skipped test case.
  *
  * ```
  * xit(String name, Function block)
  * ```
  *
- * 调用参数:
- * name: String, 定义项目名称
- * block: Function, 测试内容
+ * Call parameters:
+ * name: String, defines the item name
+ * block: Function, the test content
  *
  * - oit & it.only
  *
- * 表示仅运行当前测试用例，忽略其他测试用例，以便单独调试当前用例，非常实用。
+ * Represents running only the current test case and ignoring other test cases, so as to debug the current case separately; very practical.
  *
  * ```
  * oit(String name, Function block)
  * it.only(String name, Function block)
  * ```
  *
- * 调用参数:
- * name: String, 定义项目名称
- * block: Function, 测试内容
+ * Call parameters:
+ * name: String, defines the item name
+ * block: Function, the test content
  *
  * - todo
  *
- * 表示需进一步完善测试用例的计划。
+ * Represents the plan of test cases that need further improvement.
  *
  * ```
  * todo(String name, Function block)
  * ```
  *
- * 调用参数:
- * name: String, 定义项目名称
- * block: Function, 测试内容
+ * Call parameters:
+ * name: String, defines the item name
+ * block: Function, the test content
  *
- * 在编写测试用例时，通常使用 assert 断言模块，对函数的返回进行检查。使用方法如下：
+ * When writing test cases, the assert assertion module is usually used to check the return of functions. The usage is as follows:
  *
  * ```
  * assert(condition, String message);
  * ```
  *
- * 其中，第一个参数是需要断言的条件，第二个参数是错误消息。
+ * The first parameter is the condition to assert, and the second parameter is the error message.
  *
  */
 declare module 'test' {
     /**
-     * @description 定义一个测试项目
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Defines a test item
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function Function(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 定义一个测试项目（带选项）
-     *      @param name 定义项目名称
-     *      @param options 测试选项，支持: { skip, todo, only }
-     *      @param block 测试内容
+     * @description Defines a test item (with options)
+     *      @param name defines the item name
+     *      @param options the test options, supporting: { skip, todo, only }
+     *      @param block the test content
      *
      */
     function Function(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
 
     /**
-     * @description 测试框架模块，指向本模块，可作为函数调用
+     * @description Test framework module; points to this module and can be called as a function
      */
     const test: typeof import ('test');
 
     /**
-     * @description 测试框架模块，指向本模块，可作为函数调用
+     * @description Test framework module; points to this module and can be called as a function
      */
     const it: typeof import ('test');
 
     /**
-     * @description 测试套件模块，可作为函数调用，参见 test_suite
+     * @description Test suite module; can be called as a function, see test_suite
      */
     const suite: typeof import ('test_suite');
 
     /**
-     * @description 测试套件模块，可作为函数调用，参见 test_suite
+     * @description Test suite module; can be called as a function, see test_suite
      */
     const describe: typeof import ('test_suite');
 
     /**
-     * @description 断言测试模块，可作为函数调用，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
+     * @description Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
      */
     const assert: typeof import ('assert');
 
     /**
-     * @description 暂停测试套件定义
-     *      @param name 定义模块名称
-     *      @param block 模块初始化代码
+     * @description Paused test suite definition
+     *      @param name defines the module name
+     *      @param block the module initialization code
      *
      */
     function xdescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 独立测试套件定义
-     *      @param name 定义模块名称
-     *      @param block 模块初始化代码
+     * @description Independent test suite definition
+     *      @param name defines the module name
+     *      @param block the module initialization code
      *
      */
     function odescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 暂停测试的项目定义
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Paused test item definition
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function xit(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 暂停测试的项目定义
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Paused test item definition
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function skip(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 独立测试的项目定义
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Independent test item definition
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function oit(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 独立测试的项目定义
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Independent test item definition
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function only(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 计划项目定义
-     *      @param name 定义项目名称
-     *      @param block 测试内容
+     * @description Planned test item definition
+     *      @param name defines the item name
+     *      @param block the test content
      *
      */
     function todo(name: string, block: (...args: any[])=>any): void;
 
     /**
-     * @description 计划项目定义（带选项）
-     *      @param name 定义项目名称
-     *      @param options 测试选项，支持: { skip, todo, only }
-     *      @param block 测试内容
+     * @description Planned test item definition (with options)
+     *      @param name defines the item name
+     *      @param options the test options, supporting: { skip, todo, only }
+     *      @param block the test content
      *
      */
     function todo(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
 
     /**
-     * @description 计划项目定义
-     *      @param name 定义项目名称
+     * @description Planned test item definition
+     *      @param name defines the item name
      *
      */
     function todo(name: string): void;
 
     /**
-     * @description 定义当前测试模块进入事件
-     *      @param func 事件函数
+     * @description Defines the enter event of the current test module
+     *      @param func the event function
      *
      */
     function before(func: (...args: any[])=>any): void;
 
     /**
-     * @description 定义当前测试模块退出事件
-     *      @param func 事件函数
+     * @description Defines the exit event of the current test module
+     *      @param func the event function
      *
      */
     function after(func: (...args: any[])=>any): void;
 
     /**
-     * @description 定义当前测试模块测试项目进入事件
-     *      @param func 事件函数
+     * @description Defines the test item enter event of the current test module
+     *      @param func the event function
      *
      */
     function beforeEach(func: (...args: any[])=>any): void;
 
     /**
-     * @description 定义当前测试模块测试项目退出事件
-     *      @param func 事件函数
+     * @description Defines the test item exit event of the current test module
+     *      @param func the event function
      *
      */
     function afterEach(func: (...args: any[])=>any): void;
 
     /**
-     * @description 测试一个函数必须被调用指定次数
-     *      @param func 被测试的函数
-     *      @return 返回被包裹的函数
+     * @description Tests that a function must be called a specified number of times
+     *      @param func the function to test
+     *      @return returns the wrapped function
      *
      */
     function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 测试一个函数必须不被调用
-     *      @param func 被测试的函数
-     *      @return 返回被包裹的函数
+     * @description Tests that a function must not be called
+     *      @param func the function to test
+     *      @return returns the wrapped function
      *
      */
     function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 测试一个函数必须不被调用
-     *      @return 返回被包裹的函数
+     * @description Tests that a function must not be called
+     *      @return returns the wrapped function
      *
      */
     function mustNotCall(): (...args: any[])=>any;
 
     /**
-     * @description 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
+     * @description Sets and queries the slow test warning threshold, in ms, default 75
      *
      */
     var slow: number;

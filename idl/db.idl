@@ -1,0 +1,92 @@
+/*! @brief Database access module
+
+ Basic module. Can be used to create and operate on database resources. To require it:
+ ```JavaScript
+ var db = require('db');
+ var conn = db.open('rng://user:pass@host:port/dbname');
+ ```
+ Different database connections can be established by specifying a database engine. fibjs has two built-in sql engines: sqlite and mysql, and also supports connecting to more databases through ODBC/unixODBC; based on ODBC/unixODBC, fibjs provides drivers for mssql and PostgreSQL.
+ To use ODBC/unixODBC, the corresponding drivers must be installed; on posix, using mssql requires installing freetds, and using PostgreSQL requires installing psqlodbc.
+ Normally, once the drivers are installed successfully they can be used directly without further configuration.
+ */
+module db
+{
+    /*! @brief Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     @param connString the database description, such as: mysql://user:pass@host/db
+     @return returns the database connection object
+     */
+    static object open(String connString) async;
+
+    /*! @brief Opens a mysql database
+     @param connString the database description, such as: mysql://user:pass@host/db
+     @return returns the database connection object
+     */
+    static MySQL openMySQL(String connString) async;
+
+    /*! @brief Opens a sqlite database
+     @param connString the database description, such as: sqlite:test.db or test.db
+     @return returns the database connection object
+     */
+    static SQLite openSQLite(String connString) async;
+
+    /*! @brief Opens a sqlite database
+     @param connString the database description, such as: odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     @return returns the database connection object
+     */
+    static DbConnection openOdbc(String connString) async;
+
+    /*! @brief Opens an mssql database
+
+     To connect to mssql, the freetds odbc driver must be installed on posix; the Microsoft mssql driver can also be used by specifying it; to specify a driver, append the ?driver=msodbcsql17[.so/.dylib] option to the url.
+     @param connString the database description, such as: mssql://user:pass@host/db
+     @return returns the database connection object
+     */
+    static DbConnection openMSSQL(String connString) async;
+
+    /*! @brief Opens a DaMeng database
+
+     To connect to a DaMeng database, the odbc driver of DaMeng must be installed.
+     On Linux, obtain the ODBC driver file from the DaMeng installation directory, copy it into the system library path and configure unixODBC.
+     @param connString the database description, such as: dm://user:pass@host/db
+     @return returns the database connection object
+     */
+    static DbConnection openDM(String connString) async;
+
+    /*! @brief Opens a PostgresSQL database
+
+     To connect to PostgresSQL, the odbc driver of PostgresSQL must be installed.
+     On ubuntu, install the PostgresSQL odbc driver with the following command:
+     ```bash
+     apt install unixodbc unixodbc-dev odbc-postgresql
+     ```
+     On mac, install the PostgresSQL odbc driver with the following command:
+     ```bash
+     brew install unixodbc psqlodbc
+     ```
+     You also need to add the path of the brew-installed odbc driver to the environment variables; it is usually /usr/local/lib or /opt/homebrew/lib. You can use find to locate the path of libodbc.dylib:
+    ```bash
+    find /usr/local/ -name libodbc.dylib
+    find /opt/homebrew/ -name libodbc.dylib
+    ```
+     Edit ~/.zshrc and add the following content:
+     ```bash
+     export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
+     ```
+
+     @param connString the database description, such as: psql://user:pass@host/db
+     @return returns the database connection object
+     */
+    static DbConnection openPSQL(String connString) async;
+
+    /*! @brief Opens a leveldb database
+     @param connString the database description, such as: level:test.db or test.db
+     @return returns the database object
+     */
+    static LevelDB openLevelDB(String connString) async;
+
+    /*! @brief Opens a Redis database
+     @param connString the database description, such as: redis://server:port or "server"
+     @return returns the database connection object
+     */
+    static Redis openRedis(String connString) async;
+};

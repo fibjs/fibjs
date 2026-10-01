@@ -1,14 +1,14 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
- * @description 纤程信号量对象
+ * @description Fiber semaphore object
  *
- *  信号量对象管理一个内部计数器，此计数器调用 acquire 或者 wait 后减一，调用 release 或者 post 后加一。
- *  计数器不会减至负数，因为 acquire 和 wait 在发现数值为 0 的时候，会休眠当前纤程，直至其它纤程通过 release 或 post 增加计数器的值。
+ *  The semaphore object manages an internal counter; the counter is decremented by calls to acquire or wait, and incremented by calls to release or post.
+ *  The counter never decreases below zero, because acquire and wait sleep the current fiber when they find the value is 0, until another fiber increments the counter through release or post.
  *
- *  信号量常用的场合是限制资源并发使用，以及生产者/消费者模式的应用。
+ *  Semaphores are commonly used to limit concurrent use of resources and in producer/consumer pattern applications.
  *
- *  以数据库请求为例，限制资源并发使用的情形：
+ *  Taking database requests as an example, limiting concurrent use of resources looks like this:
  *  ```JavaScript
  *  var maxconnections = 5;
  *  var l = new coroutine.Semaphore(maxconnections);
@@ -22,22 +22,22 @@
  *  l.release();
  *  ```
  *
- *  生产者/消费者模式通常则将信号量与队列配合使用。生产者向队列中加入数据，并 post 一个信号，消费者则先 wait 信号，获取信号后去队查询取数据。
+ *  The producer/consumer pattern usually uses a semaphore together with a queue. The producer adds data to the queue and posts a signal, while the consumer waits for the signal first and then queries the queue for data after acquiring the signal.
  *
  *
  */
 declare class Class_Semaphore extends Class_Lock {
     /**
-     * @description 信号量构造函数
-     *      @param value 计数器初始数值
+     * @description Semaphore constructor
+     *      @param value the initial value of the counter
      *
      */
     constructor(value?: number);
 
     /**
-     * @description 等待一个信号量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a semaphore
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     wait(timeout?: number): boolean;
@@ -45,29 +45,29 @@ declare class Class_Semaphore extends Class_Lock {
     wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 等待一个信号量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a semaphore
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     waitSync(timeout?: number): boolean;
 
     /**
-     * @description 等待一个信号量
-     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Waits for a semaphore
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     waitAsync(timeout?: number): Promise<boolean>;
 
     /**
-     * @description 释放一个信号量，等同于 release()
+     * @description Releases a semaphore, equivalent to release()
      */
     post(): void;
 
     /**
-     * @description 尝试获取一个信号，如不能获取，则立即返回并返回 false，等同于 acquire(false)
-     *      @return 获取成功则返回 true，超时返回 false
+     * @description Tries to acquire a signal; if it cannot be acquired, returns immediately with false, equivalent to acquire(false)
+     *      @return returns true if acquired successfully, or false on timeout
      *
      */
     trywait(): boolean;

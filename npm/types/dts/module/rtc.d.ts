@@ -3,20 +3,20 @@
 /// <reference path="../interface/RTCSessionDescription.d.ts" />
 /// <reference path="../interface/RTCIceCandidate.d.ts" />
 /**
- * @description WebRTC 网络实时通信模块
+ * @description WebRTC real-time network communication module
  *
- * `rtc` 模块是一个用于实现 WebRTC 网络实时通信的模块。它提供了一系列功能和接口，帮助开发者创建和管理 WebRTC 连接，发送和接收实时数据。该模块包含以下主要组件：
+ * The `rtc` module is a module for implementing WebRTC real-time network communication. It provides a series of features and interfaces to help developers create and manage WebRTC connections and send and receive real-time data. The module contains the following main components:
  *
- * 1. **RTCPeerConnection**：核心对象，用于创建和管理 WebRTC 连接，处理连接状态，发送和接收媒体数据。
- * 2. **RTCSessionDescription**：会话描述对象，用于描述 WebRTC 连接的媒体格式和其他属性。
- * 3. **RTCIceCandidate**：ICE 候选参数对象，用于 NAT 穿透和连接建立。
- * 4. **RTCDataChannel**：数据通道接口，用于在 WebRTC 连接中传输任意类型的数据。
+ * 1. **RTCPeerConnection**: core object, used to create and manage WebRTC connections, handle connection states, and send and receive media data.
+ * 2. **RTCSessionDescription**: session description object, used to describe the media formats and other properties of a WebRTC connection.
+ * 3. **RTCIceCandidate**: ICE candidate parameter object, used for NAT traversal and connection establishment.
+ * 4. **RTCDataChannel**: data channel interface, used to transmit arbitrary types of data over a WebRTC connection.
  *
- * 此外，`rtc` 模块还提供了全局 SCTP 参数设置、侦听服务绑定和解除绑定等功能，确保开发者能够灵活地配置和管理 WebRTC 连接。通过这些接口和方法，开发者可以轻松实现实时音视频通信、文件传输、文本聊天等功能。
+ * In addition, the `rtc` module also provides global SCTP parameter settings, listening service bind and unbind features, etc., enabling developers to flexibly configure and manage WebRTC connections. With these interfaces and methods, developers can easily implement real-time audio and video communication, file transfer, text chat and other features.
  *
- * ### 示例
+ * ### Example
  *
- * 以下是如何使用 `rtc` 模块创建一个简单的 WebRTC 连接的示例：
+ * The following is an example of how to use the `rtc` module to create a simple WebRTC connection:
  *
  * ```javascript
  * const rtc = require('rtc');
@@ -89,111 +89,111 @@
  * };
  * ```
  *
- * 通过上述示例代码，开发者可以创建一个基本的 WebRTC 连接，并处理连接状态、数据通道、ICE 候选项等事件。
+ * Through the above example code, developers can create a basic WebRTC connection and handle events such as connection state, data channels and ICE candidates.
  */
 declare module 'rtc' {
     /**
-     * @description WebRTC 连接对象，参见 RTCPeerConnection
+     * @description WebRTC connection object, see RTCPeerConnection
      */
     const RTCPeerConnection: typeof Class_RTCPeerConnection;
 
     /**
-     * @description WebRTC 会话描述对象，参见 RTCSessionDescription
+     * @description WebRTC session description object, see RTCSessionDescription
      */
     const RTCSessionDescription: typeof Class_RTCSessionDescription;
 
     /**
-     * @description WebRTC ICE 候选参数对象，参见 RTCIceCandidate
+     * @description WebRTC ICE candidate parameter object, see RTCIceCandidate
      */
     const RTCIceCandidate: typeof Class_RTCIceCandidate;
 
     /**
-     * @description 在指定地址和端口上绑定一个 WebRTC 侦听服务
+     * @description binds a WebRTC listening service on the specified address and port
      *
-     *     bind 方法用于在指定地址和端口上绑定一个 WebRTC 侦听服务，用于响应未握手的 WebRTC 连接请求。
+     *     The bind method binds a WebRTC listening service on the specified address and port, used to respond to WebRTC connection requests that have not yet been handshaked.
      *
-     *      @param bind_address 绑定地址
-     *      @param local_port 本地端口
-     *      @param cb 回调函数
+     *      @param bind_address binding address
+     *      @param local_port local port
+     *      @param cb callback function
      *
      */
     function listen(bind_address: string, local_port: number, cb: (...args: any[])=>any): void;
 
     /**
-     * @description 在指定端口上绑定一个 WebRTC 侦听服务
+     * @description binds a WebRTC listening service on the specified port
      *
-     *     bind 方法用于在指定端口上绑定一个 WebRTC 侦听服务，用于响应未握手的 WebRTC 连接请求。
+     *     The bind method binds a WebRTC listening service on the specified port, used to respond to WebRTC connection requests that have not yet been handshaked.
      *
-     *      @param local_port 本地端口
-     *      @param cb 回调函数
+     *      @param local_port local port
+     *      @param cb callback function
      *
      */
     function listen(local_port: number, cb: (...args: any[])=>any): void;
 
     /**
-     * @description 解除 WebRTC 侦听服务绑定
-     *      @param bind_address 绑定地址
-     *      @param local_port 本地端口
+     * @description unbinds the WebRTC listening service
+     *      @param bind_address binding address
+     *      @param local_port local port
      *
      */
     function stopListen(bind_address: string, local_port: number): void;
 
     /**
-     * @description 解除 WebRTC 侦听服务绑定
-     *      @param local_port 本地端口
+     * @description unbinds the WebRTC listening service
+     *      @param local_port local port
      *
      */
     function stopListen(local_port: number): void;
 
     /**
-     * @description 启动一个 STUN/TURN 服务器
+     * @description starts a STUN/TURN server
      *
-     *      startServer 方法用于启动一个 STUN/TURN 服务器，用于 NAT 穿透和连接建立。config 参数是一个对象，包含以下字段：
-     *         - `credentials` - 服务器凭证，包含 { `username`: `password`} 的键值对
-     *         - `maxAllocations` - 最大分配数
-     *         - `maxPeers` - 最大对等数
-     *         - `bindAddress` - 绑定地址
-     *         - `port` - 端口
-     *         - `relayPortRangeBegin` - TURN 服务器端口范围开始
-     *         - `relayPortRangeEnd` - TURN 服务器端口范围结束
+     *      The startServer method starts a STUN/TURN server for NAT traversal and connection establishment. The config parameter is an object containing the following fields:
+     *         - `credentials` - server credentials, containing key-value pairs of { `username`: `password`}
+     *         - `maxAllocations` - maximum number of allocations
+     *         - `maxPeers` - maximum number of peers
+     *         - `bindAddress` - binding address
+     *         - `port` - port
+     *         - `relayPortRangeBegin` - start of the TURN server port range
+     *         - `relayPortRangeEnd` - end of the TURN server port range
      *
-     *      @param config 服务器配置
+     *      @param config server configuration
      *
      */
     function startServer(config: FIBJS.GeneralObject): void;
 
     /**
-     * @@description 设置 WebRTC 全局 SCTP 参数
+     * @@description sets the WebRTC global SCTP parameters
      *
-     *      setSctpSettings 方法用于设置 WebRTC 全局 SCTP 参数，新设置的参数会立即生效。已经存在的连接不受影响。支持以下参数：
-     *         - `recvBufferSize` - 接收缓冲区大小，以字节为单位（默认值: 1MiB）
-     *         - `sendBufferSize` - 发送缓冲区大小，以字节为单位（默认值: 1MiB）
-     *         - `maxChunksOnQueue` - 队列中最大数据块数量（默认值: 10K）
-     *         - `initialCongestionWindow` - 初始拥塞窗口大小，以 MTU（最大传输单元）为单位（默认值: 10 MTUs）
-     *         - `maxBurst` - 最大突发传输量，以 MTU 为单位（默认值: 10 MTUs）
-     *         - `congestionControlModule` - 拥塞控制模块，0: RFC2581（默认），1: HSTCP，2: H-TCP，3: RTCC
-     *         - `delayedSackTimeMs` - 延迟确认时间，以毫秒为单位（默认值: 20ms）
-     *         - `minRetransmitTimeoutMs` - 最小重传超时时间，以毫秒为单位（默认值: 200ms）
-     *         - `maxRetransmitTimeoutMs` - 最大重传超时时间，以毫秒为单位（默认值: 10s）
-     *         - `initialRetransmitTimeoutMs` - 初始重传超时时间，以毫秒为单位（默认值: 1s）
-     *         - `maxRetransmitAttempts` - 最大重传尝试次数（默认值: 5）
-     *         - `heartbeatIntervalMs` - 心跳间隔时间，以毫秒为单位（默认值: 10s）
+     *      The setSctpSettings method sets the WebRTC global SCTP parameters; new settings take effect immediately. Existing connections are not affected. The following parameters are supported:
+     *         - `recvBufferSize` - receive buffer size in bytes (default: 1MiB)
+     *         - `sendBufferSize` - send buffer size in bytes (default: 1MiB)
+     *         - `maxChunksOnQueue` - maximum number of chunks in the queue (default: 10K)
+     *         - `initialCongestionWindow` - initial congestion window size in MTU (maximum transmission unit) (default: 10 MTUs)
+     *         - `maxBurst` - maximum burst size in MTU (default: 10 MTUs)
+     *         - `congestionControlModule` - congestion control module, 0: RFC2581 (default), 1: HSTCP, 2: H-TCP, 3: RTCC
+     *         - `delayedSackTimeMs` - delayed acknowledgement time in milliseconds (default: 20ms)
+     *         - `minRetransmitTimeoutMs` - minimum retransmit timeout in milliseconds (default: 200ms)
+     *         - `maxRetransmitTimeoutMs` - maximum retransmit timeout in milliseconds (default: 10s)
+     *         - `initialRetransmitTimeoutMs` - initial retransmit timeout in milliseconds (default: 1s)
+     *         - `maxRetransmitAttempts` - maximum number of retransmit attempts (default: 5)
+     *         - `heartbeatIntervalMs` - heartbeat interval in milliseconds (default: 10s)
      *
-     *      @param settings SCTP 参数
+     *      @param settings SCTP parameters
      *
      */
     function setSctpSettings(settings: FIBJS.GeneralObject): void;
 
     /**
-     * @description 查询和设置 WebRTC 日志级别
+     * @description queries and sets the WebRTC log level
      *
-     *      loglevel 属性用于查询和设置 WebRTC 日志级别，新设置的级别会立即生效。支持以下级别：
-     *         - `none` - 不输出日志
-     *         - `error` - 输出错误日志
-     *         - `warning` - 输出警告日志
-     *         - `info` - 输出信息日志
-     *         - `debug` - 输出调试日志
-     *         - `verbose` - 输出详细日志
+     *      The loglevel property is used to query and set the WebRTC log level; the new level takes effect immediately. The following levels are supported:
+     *         - `none` - no log output
+     *         - `error` - outputs error logs
+     *         - `warning` - outputs warning logs
+     *         - `info` - outputs info logs
+     *         - `debug` - outputs debug logs
+     *         - `verbose` - outputs verbose logs
      *
      */
     var loglevel: string;

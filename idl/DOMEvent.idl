@@ -1,0 +1,52 @@
+/*! @brief DOMEvent represents a W3C DOM event object
+
+ DOMEvent implements the standard Web Event interface, providing standard event properties such as event type, bubbling and cancellation.
+
+ ```JavaScript
+ const ev = new Event('click', { bubbles: true, cancelable: true });
+ console.log(ev.type);       // 'click'
+ console.log(ev.bubbles);    // true
+ console.log(ev.cancelable); // true
+ ```
+ */
+interface DOMEvent : object
+{
+    /*! @brief DOMEvent constructor
+     @param type event type
+     @param eventInitDict optional event initialization dictionary
+     */
+    DOMEvent(String type, Object eventInitDict = {});
+
+    /*! @brief Event type */
+    readonly String type;
+
+    /*! @brief Whether the event bubbles */
+    readonly Boolean bubbles;
+
+    /*! @brief Whether the event is cancelable */
+    readonly Boolean cancelable;
+
+    /*! @brief Whether the event can cross Shadow DOM boundaries */
+    readonly Boolean composed;
+
+    /*! @brief Whether preventDefault() has been called */
+    readonly Boolean defaultPrevented;
+
+    /*! @brief Event target */
+    readonly Value target;
+
+    /*! @brief Current event target */
+    readonly Value currentTarget;
+
+    /*! @brief Event creation timestamp */
+    readonly Number timeStamp;
+
+    /*! @brief Stops further propagation of the event */
+    stopPropagation();
+
+    /*! @brief Prevents other listeners of the same event from being called */
+    stopImmediatePropagation();
+
+    /*! @brief Cancels the event if it is cancelable */
+    preventDefault();
+};

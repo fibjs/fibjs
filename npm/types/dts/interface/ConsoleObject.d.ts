@@ -1,33 +1,33 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 日志对象，用于记录日志信息
+ * @description Log object, used to record log information
  *
  *
- * `Logger` 对象用于记录各种等级的日志信息。它是一个强大的工具，可以帮助开发者在开发和调试过程中记录和追踪应用程序的行为。通过记录日志信息，开发者可以更容易地发现和解决问题，提高代码的可靠性和可维护性。
+ * The `Logger` object is used to record log information at various levels. It is a powerful tool that helps developers record and track application behavior during development and debugging. By recording log information, developers can more easily discover and solve problems, improving the reliability and maintainability of the code.
  *
- * 在软件开发过程中，日志记录是一个非常重要的环节。通过记录日志，开发者可以了解应用程序的运行状态、捕获异常和错误、分析性能瓶颈等。日志信息通常分为不同的等级，例如调试信息、普通信息、警告信息、错误信息和关键错误信息等。不同等级的日志信息可以帮助开发者更好地分类和管理日志数据。
+ * In the software development process, logging is a very important part. By logging, developers can understand the running state of the application, catch exceptions and errors, and analyze performance bottlenecks. Log information is usually divided into different levels, such as debug information, general information, warning information, error information and critical error information. Different levels of log information help developers better classify and manage log data.
  *
- * `Logger` 对象提供了多种方法来记录不同等级的日志信息。可以通过 `util.debuglog` 模块创建
+ * The `Logger` object provides multiple methods to record log information at different levels. A `Logger` object can be created through the `util.debuglog` module
  *
- * `Logger` 对象。例如：
+ * Example of creating a `Logger` object:
  *
  * ```JavaScript
  * var logger = util.debuglog('example');
  * ```
  *
- * `Logger` 对象提供了以下主要功能：
+ * The `Logger` object provides the following main features:
  *
- * - **记录普通日志信息**：用于输出非错误性提示信息。
- * - **记录调试日志信息**：用于输出调试信息，帮助开发者在开发过程中追踪代码执行情况。
- * - **记录警告日志信息**：用于输出提示性调试信息，通常表示可能需要注意的问题。
- * - **记录错误日志信息**：用于输出错误信息，表示程序运行过程中出现了问题。
- * - **记录关键错误日志信息**：用于输出关键错误信息，表示程序运行过程中出现了严重问题。
- * - **记录警报错误日志信息**：用于输出最高级别的错误信息，表示程序运行过程中出现了非常严重的问题。
- * - **输出当前调用堆栈**：通过日志输出当前调用堆栈，帮助开发者了解代码的执行路径。
- * - **用 JSON 格式输出对象**：以 JSON 格式输出对象，支持多种格式控制选项。
+ * - **Record general log information**: used to output non-error prompt information.
+ * - **Record debug log information**: used to output debug information, helping developers track code execution during development.
+ * - **Record warning log information**: used to output prompt debug information, usually indicating issues that may need attention.
+ * - **Record error log information**: used to output error information, indicating that a problem occurred while the program was running.
+ * - **Record critical error log information**: used to output critical error information, indicating that a serious problem occurred while the program was running.
+ * - **Record alert error log information**: used to output the highest-level error information, indicating that a very serious problem occurred while the program was running.
+ * - **Output the current call stack**: output the current call stack through logging, helping developers understand the code execution path.
+ * - **Output objects in JSON format**: output objects in JSON format, supporting various format control options.
  *
- * 以下是一些使用 `Logger` 对象的示例：
+ * The following are some examples of using the `Logger` object:
  *
  * ```JavaScript
  * // Create Logger object
@@ -61,265 +61,265 @@
  * logger.dir({ key: 'value' }, { colors: true, depth: 1 });
  * ```
  *
- * 通过这些方法，您可以方便地记录和管理应用程序中的日志信息。日志记录不仅可以帮助开发者在开发和调试过程中发现和解决问题，还可以在应用程序的生产环境中提供重要的运行时信息，帮助运维人员监控和维护系统的稳定性和性能。
+ * With these methods, you can conveniently record and manage log information in your application. Logging not only helps developers discover and solve problems during development and debugging, but also provides important runtime information in the production environment of the application, helping operators monitor and maintain the stability and performance of the system.
  *
  */
 declare class Class_ConsoleObject extends Class_object {
     /**
-     * @description ConsoleObject 构造函数，创建新的 ConsoleObject 对象
+     * @description ConsoleObject constructor, creates a new ConsoleObject object
      */
     constructor();
 
     /**
-     * @description ConsoleObject 构造函数，创建新的 ConsoleObject 对象
-     *      @param out 指定输出的可写流，默认为 process.stdout
-     *      @param err 指定错误输出的可写流，默认为 stdout
+     * @description ConsoleObject constructor, creates a new ConsoleObject object
+     *      @param out specifies the writable stream for output, the default is process.stdout
+     *      @param err specifies the writable stream for error output, the default is stdout
      *
      */
     constructor(out: any, err?: any);
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     Function(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
      *
      */
     Function(...args: any[]): void;
 
     /**
-     * @description 查询当前日志对象的 section 名称
+     * @description Queries the section name of the current log object
      */
     readonly section: string;
 
     /**
-     * @description 查询当前日志对象是否启用
+     * @description Queries whether the current log object is enabled
      */
     readonly enabled: boolean;
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     log(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 info 等同
+     * @description Records general log information, same as info
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
      *
      */
     log(...args: any[]): void;
 
     /**
-     * @description 记录调试日志信息
+     * @description Records debug log information
      *
-     *      记录调试日志信息。通常用于输出调试信息。不重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records debug log information. Usually used to output debug information. Not important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     debug(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录调试日志信息
+     * @description Records debug log information
      *
-     *      记录调试日志信息。通常用于输出调试信息。不重要。
-     *      @param args 可选参数列表
+     *      Records debug log information. Usually used to output debug information. Not important.
+     *      @param args optional argument list
      *
      */
     debug(...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 log 等同
+     * @description Records general log information, same as log
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     info(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录普通日志信息，与 log 等同
+     * @description Records general log information, same as log
      *
-     *      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     *      @param args 可选参数列表
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
      *
      */
     info(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records notice log information
      *
-     *      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     notice(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records notice log information
      *
-     *      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
-     *      @param args 可选参数列表
+     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
+     *      @param args optional argument list
      *
      */
     notice(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息，与 warning 等同
+     * @description Records warning log information, same as warning
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     warn(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息，与 warning 等同
+     * @description Records warning log information, same as warning
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param args optional argument list
      *
      */
     warn(...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records warning log information
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     warning(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警告日志信息
+     * @description Records warning log information
      *
-     *      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     *      @param args 可选参数列表
+     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      @param args optional argument list
      *
      */
     warning(...args: any[]): void;
 
     /**
-     * @description 记录错误日志信息
+     * @description Records error log information
      *
-     *      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     error(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录错误日志信息
+     * @description Records error log information
      *
-     *      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
-     *      @param args 可选参数列表
+     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
+     *      @param args optional argument list
      *
      */
     error(...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息，与 critical 等同
+     * @description Records critical error log information, same as critical
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     crit(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息，与 critical 等同
+     * @description Records critical error log information, same as critical
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param args optional argument list
      *
      */
     crit(...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息
+     * @description Records critical error log information
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     critical(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录关键错误日志信息
+     * @description Records critical error log information
      *
-     *      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     *      @param args 可选参数列表
+     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      @param args optional argument list
      *
      */
     critical(...args: any[]): void;
 
     /**
-     * @description 记录警报错误日志信息
+     * @description Records alert error log information
      *
-     *      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     alert(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 记录警报错误日志信息
+     * @description Records alert error log information
      *
-     *      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
-     *      @param args 可选参数列表
+     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
+     *      @param args optional argument list
      *
      */
     alert(...args: any[]): void;
 
     /**
-     * @description 输出当前调用堆栈
+     * @description Outputs the current call stack
      *
-     *      通过日志输出当前调用堆栈。
-     *      @param fmt 格式化字符串
-     *      @param args 可选参数列表
+     *      Outputs the current call stack through logging.
+     *      @param fmt format string
+     *      @param args optional argument list
      *
      */
     trace(fmt: string, ...args: any[]): void;
 
     /**
-     * @description 输出当前调用堆栈
+     * @description Outputs the current call stack
      *
-     *      通过日志输出当前调用堆栈。
-     *      @param args 可选参数列表
+     *      Outputs the current call stack through logging.
+     *      @param args optional argument list
      *
      */
     trace(...args: any[]): void;
 
     /**
-     * @description 用 JSON 格式输出对象
+     * @description Outputs an object in JSON format
      *
-     *      支持以下参数:
+     *      The following parameters are supported:
      *      ```JavaScript
      *      {
      *          "colors": false, // specify if output should be colorized, defaults to false
@@ -331,47 +331,47 @@ declare class Class_ConsoleObject extends Class_object {
      *          "fields": [], // specify the fields to be displayed, defaults to all
      *      }
      *      ```
-     *      @param obj 指定需要处理的对象
-     *      @param options 指定格式控制选项
+     *      @param obj specifies the object to process
+     *      @param options specifies the format control options
      *
      */
     dir(obj: any, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description 用 JSON 格式输出对象
-     *      @param obj 给定要显示的对象
+     * @description Outputs an object in JSON format
+     *      @param obj the object to display
      *
      */
     table(obj: any): void;
 
     /**
-     * @description 用 JSON 格式输出对象
-     *      @param obj 给定要显示的对象
-     *      @param fields 给定要显示的字段
+     * @description Outputs an object in JSON format
+     *      @param obj the object to display
+     *      @param fields the fields to display
      *
      */
     table(obj: any, fields: any[]): void;
 
     /**
-     * @description 启动一个计时器
+     * @description Starts a timer
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     time(label?: string): void;
 
     /**
-     * @description 输出指定计时器当前计时值
+     * @description Outputs the current timing value of the specified timer
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     timeElapse(label?: string): void;
 
     /**
-     * @description 结束指定计时器，并输出最后计时值
+     * @description Ends the specified timer and outputs the final timing value
      *
-     *      @param label 标题，缺省为空字符串。
+     *      @param label title, defaults to an empty string.
      *
      */
     timeEnd(label?: string): void;

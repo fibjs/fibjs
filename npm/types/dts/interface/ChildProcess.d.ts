@@ -2,7 +2,7 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description 子进程对象
+ * @description Child process object
  *
  *  ```JavaScript
  *  var child_process = require("child_process");
@@ -12,22 +12,22 @@
  */
 declare class Class_ChildProcess extends Class_EventEmitter {
     /**
-     * @description 杀掉当前对象指向的进程，并传递信号
-     *       @param signal 传递的信号
+     * @description Kills the process this object refers to and delivers a signal
+     *       @param signal the signal to deliver
      *
      */
     kill(signal: number): void;
 
     /**
-     * @description 杀掉当前对象指向的进程，并传递信号
-     *       @param signal 传递的信号
+     * @description Kills the process this object refers to and delivers a signal
+     *       @param signal the signal to deliver
      *
      */
     kill(signal?: string): void;
 
     /**
-     * @description 等待当前对象指向的进程结束，并返回进程结束代码
-     *       @return 进程的结束代码
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
      *
      */
     join(): number;
@@ -35,58 +35,58 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     join(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 等待当前对象指向的进程结束，并返回进程结束代码
-     *       @return 进程的结束代码
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
      *
      */
     joinSync(): number;
 
     /**
-     * @description 等待当前对象指向的进程结束，并返回进程结束代码
-     *       @return 进程的结束代码
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
      *
      */
     joinAsync(): Promise<number>;
 
     /**
-     * @description 查询与子进程的管道是否正常连接
+     * @description Queries whether the pipe to the child process is properly connected
      */
     readonly connected: boolean;
 
     /**
-     * @description 关闭与子进程的 ipc 管道
+     * @description Closes the ipc pipe to the child process
      */
     disconnect(): void;
 
     /**
-     * @description 向当前子进程发送一个消息
-     *      @param msg 指定发送的消息
+     * @description Sends a message to the current child process
+     *      @param msg the message to send
      *
      */
     send(msg: any): void;
 
     /**
-     * @description 调整当前子进程的终端大小
-     *      @param cols 终端的列数
-     *      @param rows 终端的行数
+     * @description Resizes the terminal of the current child process
+     *      @param cols the number of terminal columns
+     *      @param rows the number of terminal rows
      *
      */
     resize(cols: number, rows: number): void;
 
     /**
-     * @description 查询当前终端的列数
+     * @description Queries the number of terminal columns
      */
     readonly cols: number;
 
     /**
-     * @description 查询当前终端的行数
+     * @description Queries the number of terminal rows
      */
     readonly rows: number;
 
     /**
-     * @description 查询当前进程占用的内存和花费的时间
+     * @description Queries the memory used and the time spent by the current process
      *
-     *      内存报告生成类似以下结果：
+     *      The memory report is generated similar to the following result:
      *      ```JavaScript
      *      {
      *        "user": 132379,
@@ -94,88 +94,88 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *        "rss": 8622080
      *      }
      *      ```
-     *      其中：
-     *      - user 返回进程在用户代码中花费的时间，单位为微秒值（百万分之一秒）
-     *      - system 返回进程在系统代码中花费的时间，单位为微秒值（百万分之一秒）
-     *      - rss 返回进程当前占用物理内存大小
-     *      @return 返回包含时间报告
+     *      Where:
+     *      - user returns the time spent by the process in user code, in microseconds (millionths of a second)
+     *      - system returns the time spent by the process in system code, in microseconds (millionths of a second)
+     *      - rss returns the amount of physical memory currently used by the process
+     *      @return returns the report containing the time information
      *
      */
     usage(): FIBJS.GeneralObject;
 
     /**
-     * @description 读取当前对象指向的进程的 id
+     * @description Reads the id of the process this object refers to
      *
      */
     readonly pid: number;
 
     /**
-     * @description 查询当前对象指向的进程是否已经退出
+     * @description Queries whether the process this object refers to has already exited
      */
     readonly killed: boolean;
 
     /**
-     * @description 查询和设置当前进程的退出码
+     * @description Queries and sets the exit code of the current process
      */
     readonly exitCode: number;
 
     /**
-     * @description 读取当前对象指向的进程的标准输入对象
+     * @description Reads the standard input object of the process this object refers to
      *
      */
     readonly stdin: Class_Stream;
 
     /**
-     * @description 读取当前对象指向的进程的标准输出对象
+     * @description Reads the standard output object of the process this object refers to
      *
      */
     readonly stdout: Class_Stream;
 
     /**
-     * @description 读取当前对象指向的进程的标准错误对象
+     * @description Reads the standard error object of the process this object refers to
      *
      */
     readonly stderr: Class_Stream;
 
     /**
-     * @description 读取当前对象指向进程的标准 IO 对象列表
+     * @description Reads the list of standard IO objects of the process this object refers to
      *
-     *      数组中包含子进程的标准 IO 流,与 spawn 时传入的 stdio 选项对应。管道项为
-     *      Stream 对象,其他项为 null。
+     *      The array contains the standard IO streams of the child process, corresponding to the stdio option passed to spawn. Pipe entries are
+     *      Stream objects, and other entries are null.
      *
      */
     readonly stdio: any[];
 
     /**
-     * @description 查询和绑定进程退出事件，相当于 on("exit", func);
+     * @description Queries and binds the process exit event, equivalent to on("exit", func);
      */
     on(event: "exit", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定子进程消息事件，相当于 on("message", func);
+     * @description Queries and binds the child process message event, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定子进程启动事件，相当于 on("spawn", func);
+     * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);
      */
     on(event: "spawn", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定子进程断开连接事件，相当于 on("disconnect", func);
+     * @description Queries and binds the child process disconnect event, equivalent to on("disconnect", func);
      */
     on(event: "disconnect", listener: ()=>void): this;
 
     /**
-     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
+     *      @return returns the current object
      *
      */
     ref(): Class_ChildProcess;
 
     /**
-     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Allows the fibjs process to exit; permits the fibjs process to exit while the object is bound
+     *      @return returns the current object
      *
      */
     unref(): Class_ChildProcess;

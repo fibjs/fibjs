@@ -1,0 +1,128 @@
+/*! @brief FormData is a container class for managing HTTP form data (multipart/form-data), inheriting from HttpCollection.
+
+FormData provides the standard Web FormData API and supports initializing and operating form fields in multiple ways; it is suitable for scenarios such as HTTP file uploads and form data construction.
+
+Main features:
+1. Supports initialization via an empty constructor, an object, or an existing FormData instance.
+2. Supports append, set and other methods to add and modify fields, with support for File (Blob) and filename parameters.
+3. Compatible with Web standard FormData behavior, allowing multiple values for the same field name and file uploads.
+
+Common usage example:
+```JavaScript
+// Create empty form data
+const form = new FormData();
+
+// Initialize with object
+const form = new FormData({ foo: 'bar', file: blob });
+
+// Append fields
+form.append('name', 'value');
+form.append('file', blob, 'filename.txt');
+
+// Overwrite fields
+form.set('name', 'newValue');
+form.set('file', blob2, 'file2.txt');
+```
+ */
+interface FormData : HttpCollection
+{
+    /*! @brief FormData constructor, creates a new empty HTTP form data container
+        Creates an empty FormData instance for dynamically adding form fields later.
+    */
+    FormData();
+
+    /*! @brief FormData constructor, initializes the form data container with the given form data string
+     @param init the form data string used for initialization, such as "name=value&key=val"
+     */
+    FormData(String init);
+
+    /*! @brief FormData constructor, initializes form data from a Buffer. Suitable for creating a FormData instance from existing multipart/form-data data
+     @param init the multipart/form-data binary data used for initialization
+     @param boundary specifies the boundary string of the multipart/form-data, used to parse the data, in the format: multipart/form-data; boundary=${boundary}
+     */
+    FormData(Buffer init, String boundary);
+
+    /*! @brief FormData constructor, initializes form data from a Blob. Suitable for creating a FormData instance from the result of FormData.encode() or other multipart/form-data Blob data
+     @param init the Blob object used for initialization, usually the result of FormData.encode()
+     @param boundary optional boundary string; if not specified, it is automatically parsed from the type property of the Blob (e.g. "multipart/form-data; boundary=xxx")
+     */
+    FormData(Blob init, String boundary = "");
+
+    /*! @brief FormData constructor, initializes the HTTP form data container with the given object
+        
+     Initializes form fields in bulk by passing an object. The keys of the object are field names and the values are field values (which can be strings, Blobs or arrays).
+
+     @param init the field object used for initialization, whose keys are field names and values are field values (strings, Blobs or arrays)
+    */
+    FormData(Object init);
+
+    /*! @brief FormData constructor, initializes the HTTP form data container with the given HTTP form data container
+        
+     Copies all fields by passing another FormData instance.
+    
+     @param init the HTTP form data container used for initialization
+    */
+    FormData(FormData init);
+
+    /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
+        
+     Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
+
+     @param name specifies the field name to append
+     @param value specifies the Blob to append
+    */
+    append(String name, Blob value);
+
+    /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
+        
+     Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
+
+     @param name specifies the field name to append
+     @param value specifies the Blob/File to append; passing other types throws a TypeError
+     @param filename specifies the file name to append
+    */
+    append(String name, Variant value, String filename);
+
+    /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+        
+     Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
+
+     @param name specifies the field name to set
+     @param value specifies the Blob to set
+    */
+    set(String name, Blob value);
+
+    /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+        
+     Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
+
+     @param name specifies the field name to set
+     @param value specifies the Blob/File to set; passing other types throws a TypeError
+     @param filename specifies the file name to set
+    */
+    set(String name, Variant value, String filename);
+
+    /*! @brief encodes the current form data into a Buffer object
+
+     Encodes the form data according to the specified content-type, supporting multiple encoding formats:
+     
+     Encoding rules:
+     1. When type is "multipart/form-data" and a boundary is specified:
+        encode in multipart/form-data format using the specified boundary
+        
+     2. When type is "multipart/form-data" and no boundary is specified:
+        automatically generate a random boundary and encode in multipart/form-data format
+        
+     3. When type is "application/x-www-form-urlencoded":
+        encode the form data in URL encoding format (name=value&name2=value2)
+        supported aliases: "urlencoded", "form-urlencoded", "www-form-urlencoded"
+        Notes: if the form contains File/Blob objects, an error is thrown indicating the specific field name
+        
+     4. Other values or unsupported formats:
+        throw an error
+
+     @param type specifies the content-type to encode with, supporting "multipart/form-data" and "application/x-www-form-urlencoded" (and their aliases), default is "application/x-www-form-urlencoded"
+     @return returns the encoded Blob object, containing the correct content-type
+    */
+    Blob encode(String type = "application/x-www-form-urlencoded");
+};

@@ -2,16 +2,16 @@
 /// <reference path="../interface/AsyncLocalStorage.d.ts" />
 /// <reference path="../interface/AsyncResource.d.ts" />
 /**
- * @description 定义异步钩子模块
+ * @description Defines the asynchronous hooks module
  */
 declare module 'async_hooks' {
     /**
-     * @description AsyncLocalStorage 对象，参见 AsyncLocalStorage
+     * @description AsyncLocalStorage object, see AsyncLocalStorage
      */
     const AsyncLocalStorage: typeof Class_AsyncLocalStorage;
 
     /**
-     * @description AsyncResource 对象，参见 AsyncResource
+     * @description AsyncResource object, see AsyncResource
      */
     const AsyncResource: typeof Class_AsyncResource;
 

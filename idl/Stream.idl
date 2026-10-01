@@ -1,0 +1,174 @@
+/*! @brief Stream operation object, used for binary data stream read/write
+
+Stream is a base object that defines the standard interface for stream processing and cannot be created independently. Concrete stream objects such as FileStream, MemoryStream and Socket all inherit from Stream.
+
+Stream objects provide the following capabilities:
+
+ - **Reading**: `read`, `readBuffer` read data of the specified size, `readAll` reads all remaining data; `setEncoding` sets the encoding so that `read` returns strings;
+ - **Writing**: `write`, `writeBuffer` write data, `copyTo` copies data to the destination stream;
+ - **Events**: `data`, `close`, `error` events (inherited from EventEmitter);
+ - **Lifecycle**: `flush` flushes data, `end` ends writing, `close` closes the stream, `destroy` destroys the stream;
+ - **Process control**: `ref`/`unref` control whether the stream object prevents the fibjs process from exiting;
+ - **Compatible interfaces**: `resume`, `pause`, `pipe`, `unpipe`, `getReader` (WHATWG ReadableStreamDefaultReader compatible).
+
+Read methods return null when there is no data to read or the connection is interrupted. */
+interface Stream : EventEmitter
+{
+    /*! @brief Queries the file descriptor value of the Stream, implemented by subclasses */
+    readonly Integer fd;
+
+    /*! @brief Queries whether the stream is writable */
+    readonly Boolean writable;
+
+    /*! @brief Queries whether the stream is readable */
+    readonly Boolean readable;
+
+    /*! @brief Queries the readable state object of the stream */
+    readonly Object _readableState;
+
+    /*! @brief Queries the writable state object of the stream */
+    readonly Object _writableState;
+
+    /*! @brief Reads data of the specified size from the stream
+     @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     */
+    Variant read(Integer bytes = -1) async;
+
+    /*! @brief Reads data of the specified size from the stream, returned as a Buffer
+     @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
+     @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     */
+    Buffer readBuffer(Integer bytes = -1) async;
+
+    /*! @brief Reads all remaining data from the stream
+     @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     */
+    Buffer readAll() async;
+
+    /*! @brief Sets the encoding of the stream. After setting, read() returns strings instead of Buffer objects
+     @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     @return returns the current stream object
+     */
+    Stream setEncoding(String encoding);
+
+    /*! @brief Writes the given binary data to the stream
+     @param data the Buffer data to write
+     */
+    writeBuffer(Buffer data) async;
+
+    /*! @brief Writes the given data to the stream
+     @param data the data to write
+     @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     */
+    Boolean write(Buffer data) async;
+
+    /*! @brief Writes the given data to the stream
+     @param data the data to write
+     @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     */
+    Boolean write(Buffer data, String encoding) async;
+
+    /*! @brief Writes the given string to the stream
+     @param data the string data to write
+     @param encoding the encoding of the string, default is "utf8"
+     @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     */
+    Boolean write(String data, String encoding = "utf8") async;
+
+    /*! @brief Switches the stream to flowing read mode. In fibjs, switching to flowing read mode is irreversible and cannot be switched back to non-flowing read mode.
+     @return returns the current stream object
+     */
+    Stream resume();
+
+    /*! @brief Pauses the automatic read mode of the stream. This method is for compatibility only; it currently has no effect
+     @return returns the current stream object
+     */
+    Stream pause();
+
+    /*! @brief Pipes stream data to the destination stream. Data is transferred from the source stream to the destination stream in an event-driven way, with backpressure control
+     @param destination the destination stream object
+     @param options pipe options, optional
+     @return returns the destination stream object, supporting chained calls
+     */
+    Value pipe(Value destination, Object options = {});
+
+    /*! @brief Removes all pipe destinations, or only the specified destination. This method is for compatibility only; it currently has no effect
+     @param destination the specific writable destination to unpipe
+     */
+    unpipe(Stream destination = null);
+
+    /*! @brief Ends the stream operation, optionally writing the final data
+     @return returns an asynchronous object
+     */
+    Integer end() async;
+
+    /*! @brief Writes the given file buffer to the stream and ends the stream operation
+     @param data the file buffer data to write
+     @return returns an asynchronous object
+     */
+    Integer end(Buffer data) async;
+
+    /*! @brief Writes the given file buffer to the stream and ends the stream operation
+     @param data the file buffer data to write
+     @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     @return returns an asynchronous object
+     */
+    Integer end(Buffer data, String encoding) async;
+
+    /*! @brief Writes the given string to the stream and ends the stream operation
+     @param data the string data to write
+     @param encoding the encoding of the string, default is "utf8"
+     @return returns an asynchronous object
+     */
+    Integer end(String data, String encoding = "utf8") async;
+
+    /*! @brief Writes the file buffer content to the physical device */
+    flush() async;
+
+    /*! @brief Closes the current stream object */
+    close() async;
+
+    /*! @brief Copies stream data to the destination stream
+     @param stm the destination stream object
+     @param bytes the number of bytes to copy
+     @return returns the number of bytes copied
+     */
+    Long copyTo(Stream stm, Long bytes = -1) async;
+
+    /*! @brief Queries and binds the stream data event, equivalent to on("data", func);
+     @param data the data read
+     */
+    event data(Buffer data);
+
+    /*! @brief Queries and binds the stream close event, equivalent to on("close", func); */
+    event close();
+
+    /*! @brief Queries and binds the stream error event, equivalent to on("error", func);
+     @param code the error code
+     */
+    event error(Integer code);
+
+    /*! @brief Gets a reader for the stream, compatible with the WHATWG ReadableStreamDefaultReader interface
+     @return returns a StreamReader object
+    */
+    StreamReader getReader();
+
+    /*! @brief Keeps the fibjs process alive, preventing it from exiting while the object is bound
+     @return returns the current object
+    */
+    Stream ref();
+
+    /*! @brief Allows the fibjs process to exit; allows the fibjs process to exit while the object is bound
+     @return returns the current object
+    */
+    Stream unref();
+
+    /*! @brief Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
+     After calling, the stream can no longer be used.
+     @param err optional error object, emitted as the 'error' event
+     @return returns the current object
+    */
+    Stream destroy(Value err = undefined) async;
+};

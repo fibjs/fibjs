@@ -5,11 +5,11 @@
 /// <reference path="../interface/FormData.d.ts" />
 /// <reference path="../interface/URLSearchParams.d.ts" />
 /**
- * @description HttpRequest 是用来处理 HTTP 请求的类， 它允许你创建 HTTP 请求并与服务器交互。你可以使用它来向 Web 服务器发送 GET、POST 以及其它类型的 HTTP 请求
+ * @description HttpRequest is the class used to handle HTTP requests; it allows you to create HTTP requests and interact with servers. You can use it to send GET, POST and other types of HTTP requests to a Web server
  *
- * 假设我们有一个 key 为 name 的查询参数，我们来根据这个参数返回不同的处理结果：如果参数为空，返回 "Hello world!"；如果参数为 "fibjs"，返回 "Hello fibjs!"；否则返回 "Hello some body!".
+ * Suppose we have a query parameter whose key is name; we return different results according to this parameter: if the parameter is empty, return "Hello world!"; if the parameter is "fibjs", return "Hello fibjs!"; otherwise return "Hello some body!".
  *
- * 代码实现如下：
+ * The implementation is as follows:
  * ```JavaScript
  * const http = require('http');
  *
@@ -23,80 +23,80 @@
  * svr.start();
  * ```
  *
- * 这里我们使用了 `req.query` 这个 Collection 类型，它代表 HTTP 请求 URL 中的查询参数。
+ * Here we use `req.query`, a Collection type, which represents the query parameters in the HTTP request URL.
  *
- * 我们向服务程序通过浏览器访问 http://127.0.0.1:8080/?name=fibjs 得到的服务端响应内容是 `Hello fibjs!`。
+ * When we access http://127.0.0.1:8080/?name=fibjs from a browser, the server response we get is `Hello fibjs!`.
  *
  */
 declare class Class_HttpRequest extends Class_HttpMessage {
     /**
-     * @description HttpRequest 构造函数，创建一个新的 HttpRequest 对象
+     * @description HttpRequest constructor, creates a new HttpRequest object
      */
     constructor();
 
     /**
-     * @description HttpRequest 构造函数，根据 URL 字符串和选项创建请求对象（Fetch API）
-     *      @param url 请求 URL
-     *      @param options 请求选项，可包含 method、headers、body 等字段
+     * @description HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
+     *      @param url the request URL
+     *      @param options the request options, which can contain fields such as method, headers and body
      *
      */
     constructor(url: string, options?: FIBJS.GeneralObject);
 
     /**
-     * @description HttpRequest 构造函数，从已有 Request 对象复制并可覆盖选项（Fetch API）
-     *      @param request 已有的 HttpRequest 对象
-     *      @param options 覆盖选项，可包含 method、headers、body 等字段
+     * @description HttpRequest constructor, copies from an existing Request object and can override options (Fetch API)
+     *      @param request the existing HttpRequest object
+     *      @param options the override options, which can contain fields such as method, headers and body
      *
      */
     constructor(request: Class_HttpRequest, options?: FIBJS.GeneralObject);
 
     /**
-     * @description 获取响应消息对象
+     * @description gets the response message object
      */
     readonly response: Class_HttpResponse;
 
     /**
-     * @description 查询和设置请求方法
+     * @description queries and sets the request method
      */
     method: string;
 
     /**
-     * @description 查询和设置请求地址
+     * @description queries and sets the request address
      */
     address: string;
 
     /**
-     * @description 查询和设置请求的 URL 路径和查询字符串，例如 /path?key=value
+     * @description queries and sets the URL path and query string of the request, for example /path?key=value
      */
     url: string;
 
     /**
-     * @description 获取请求的完整 URL，包含协议、主机、路径和查询字符串
+     * @description gets the complete URL of the request, including protocol, host, path and query string
      */
     readonly href: string;
 
     /**
-     * @description 查询和设置请求查询字符串
+     * @description queries and sets the request query string
      */
     queryString: string;
 
     /**
-     * @description 获取包含消息 cookies 的容器
+     * @description gets the container holding the message cookies
      */
     readonly cookies: Class_HttpCollection;
 
     /**
-     * @description 获取包含消息 form 的容器
+     * @description gets the container holding the message form
      */
     readonly form: Class_FormData;
 
     /**
-     * @description 获取包含消息 query 的容器
+     * @description gets the container holding the message query
      */
     readonly query: Class_URLSearchParams;
 
     /**
-     * @description 中止请求，关闭底层连接
+     * @description aborts the request and closes the underlying connection
      */
     abort(): void;
 

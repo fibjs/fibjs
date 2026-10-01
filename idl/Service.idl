@@ -1,0 +1,65 @@
+/*! @brief System service management object */
+interface Service : EventEmitter
+{
+    /*! @brief System service management object constructor
+     @param name service name
+     @param worker service run function
+     @param event service event handling
+     */
+    Service(String name, Function worker, Object event = {});
+
+    /*! @brief Starts running the service entity */
+    run() async;
+
+    /*! @brief Queries and sets the service name */
+    String name;
+
+    /*! @brief Queries and binds the service stop event, equivalent to on("stop", func); */
+    event stop();
+
+    /*! @brief Queries and binds the service pause event, equivalent to on("pause", func); */
+    event pause();
+
+    /*! @brief Queries and binds the service resume event, equivalent to on("continue", func); */
+    event continue();
+
+    /*! @brief Installs the service into the system
+     @param name service name
+     @param cmd service command line
+     @param displayName service display name
+     @param description service description
+     */
+    static install(String name, String cmd, String displayName = "", String description = "");
+
+    /*! @brief Uninstalls the service from the system 
+     @param name service name
+     */
+    static remove(String name);
+
+    /*! @brief Starts the service 
+     @param name service name
+     */
+    static start(String name);
+
+    /*! @brief Stops the service 
+     @param name service name
+     */
+    static stop(String name);
+
+    /*! @brief Restarts the service 
+     @param name service name
+     */
+    static restart(String name);
+
+    /*! @brief Checks whether the service is installed
+     @param name service name
+     @return returns True if the service is installed
+     */
+    static Boolean isInstalled(String name);
+
+    /*! @brief Checks whether the service is running
+     @param name service name
+     @return returns True if the service is running
+     */
+    static Boolean isRunning(String name);
+};

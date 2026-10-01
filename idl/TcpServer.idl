@@ -1,0 +1,107 @@
+/*! @brief TcpServer` is a high-concurrency TCP Socket server, which can be used to create a TCP server that already has TCP connections established with clients in its initial state
+
+The `TcpServer` object can be used to quickly create a multi-fiber concurrent TCP server. When a client connects to the listened address, the callback function is invoked and returns a new connected `Socket` object, which we can use to send or receive TCP messages to or from the client.
+
+The following is a concrete example of echoing client TCP messages based on the `TcpServer` object:
+
+```JavaScript
+const net = require("net");
+
+function onConnect(conn) {
+  console.log(`new client accepted! local:${conn.localAddress}, remote:${conn.remoteAddress}`);
+  const data = conn.read();
+  if (data) {
+    console.log(`recv data on fn onConnect: ${data}`);
+    conn.write(data);
+  }
+  conn.close();
+}
+
+new net.TcpServer('0.0.0.0', 8080, onConnect).start();
+console.log('server is running on port: 8080');
+```
+In the above code, we create a `TcpServer` object and use the callback function `onConnect` to handle received client request information, writing its data back to the client.
+
+When this service is started, it will listen for all IP addresses and requests on port `8080`. When you connect to the service via `telnet` or other client tools, you will see the service print connection information and send every request you send back unchanged.
+ */
+interface TcpServer : EventEmitter
+{
+    /*! @brief TcpServer constructor, listening on all local addresses
+    @param port specifies the tcp server listening port
+    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+   */
+    TcpServer(Integer port, Handler listener);
+
+    /*! @brief TcpServer constructor
+    @param addr specifies the tcp server listening address; "" means listening on all local addresses
+    @param port specifies the tcp server listening port
+    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+   */
+    TcpServer(String addr, Integer port, Handler listener);
+
+    /*! @brief TcpServer constructor
+
+     options supports the following properties:
+     - address: specifies the listening address, optional, defaults to listening on all addresses
+     - port: specifies the listening port, optional, listen() must be called to start when not provided
+
+    @param options server options
+    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+   */
+    TcpServer(Object options, Handler listener);
+
+    /*! @brief TcpServer constructor
+    @param addr specifies the unix socket or Windows pipe server listening address
+    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+   */
+    TcpServer(String addr, Handler listener);
+
+    /*! @brief TcpServer constructor, does not bind a port, listen() must be called to start
+    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+   */
+    TcpServer(Handler listener);
+
+    /*! @brief starts the current server */
+    start();
+
+    /*! @brief binds the address and port and starts listening for connections
+    @param port specifies the TCP server listening port
+    @param addr specifies the TCP server listening address; "" means listening on all local addresses
+    @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+    */
+    listen(Integer port, String addr = "", Integer backlog = -1) async;
+
+    /*! @brief closes the socket and aborts the running server */
+    stop() async;
+
+    /*! @brief closes the socket and aborts the running server; an alias of stop() */
+    close() async;
+
+    /*! @brief returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
+     @return returns the address, address family and port bound by the server
+    */
+    (String address, String family, Integer port) address();
+
+    /*! @brief the Socket object the server is currently listening on */
+    readonly Socket socket;
+
+    /*! @brief queries and sets the timeout in milliseconds; this timeout is used for newly accepted connections*/
+    Integer timeout;
+
+    /*! @brief the current event handling interface object of the server */
+    Handler handler;
+
+    /*! @brief emitted after start() is called and binding completes */
+    event listening();
+
+    /*! @brief emitted when a new TCP connection is established
+     @param socket the newly established Socket connection object
+    */
+    event connection(Socket socket);
+
+    /*! @brief emitted when an error occurs */
+    event error();
+
+    /*! @brief emitted after the server is closed */
+    event close();
+};

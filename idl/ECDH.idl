@@ -1,0 +1,60 @@
+/*! @brief The ECDH object 
+
+*/
+interface ECDH : object
+{
+    /*! @brief Converts a public key to the specified format
+        @param key the public key to convert
+        @param curve the predefined elliptic curve to use
+        @param inputEncoding the encoding of key: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
+        @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
+        @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
+        @return returns the converted public key
+    */
+    static Value convertKey(Value key, String curve, String inputEncoding = "hex", String outputEncoding = "hex", String format = "uncompressed");
+
+    /*! @brief Computes the shared secret from another public key
+        @param otherPublicKey the other party's public key
+        @param inputEncoding the encoding of otherPublicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
+        @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+        @return returns the computed shared secret
+    */
+    Value computeSecret(Value otherPublicKey, String inputEncoding = "hex", String outputEncoding = "buffer");
+
+    /*! @brief Generates a key pair
+        @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+        @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
+        @return returns the generated public key
+    */
+    Value generateKeys(String outputEncoding = "buffer", String format = "uncompressed");
+
+    /*! @brief Gets the name of the elliptic curve
+        @return returns the name of the elliptic curve
+    */
+    readonly String curveName;
+
+    /*! @brief Gets the private key
+        @param encoding the encoding of the private key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+        @return returns the private key
+    */
+    Value getPrivateKey(String encoding = "buffer");
+
+    /*! @brief Gets the public key
+        @param encoding the encoding of the public key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+        @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
+        @return returns the public key
+    */
+    Value getPublicKey(String encoding = "buffer", String format = "uncompressed");
+
+    /*! @brief Sets the private key
+        @param privateKey the private key data
+        @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
+    */
+    setPrivateKey(Value privateKey, String encoding = "hex");
+
+    /*! @brief Sets the public key
+        @param publicKey the public key data
+        @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
+    */
+    setPublicKey(Value publicKey, String encoding = "hex");
+};

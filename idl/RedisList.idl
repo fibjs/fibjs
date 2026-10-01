@@ -1,0 +1,82 @@
+/*! @brief Redis database client List object; this object is a client bound to the given key and only calling its methods operates on the database
+
+ Used to operate on a Redis List object. To create one:
+ ```JavaScript
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var list = rdb.getList("test");
+ ```
+ */
+interface RedisList : object
+{
+    /*! @brief Inserts one or more values at the head of the list
+     @param values the values to insert
+     @return the length of the list after insertion */
+    Integer push(Array values);
+
+    /*! @brief Inserts one or more values at the head of the list
+     @param values the values to insert
+     @return the length of the list after insertion */
+    Integer push(...values);
+
+    /*! @brief Removes and returns the head element of the list key
+     @return the head element of the list, or null if the list is empty */
+    Buffer pop();
+
+    /*! @brief Inserts one or more values at the tail (rightmost end) of the list
+     @param values the values to insert
+     @return the length of the list after insertion */
+    Integer rpush(Array values);
+
+    /*! @brief Inserts one or more values at the tail (rightmost end) of the list
+     @param values the values to insert
+     @return the length of the list after insertion */
+    Integer rpush(...values);
+
+    /*! @brief Removes and returns the tail (rightmost) element of the list key
+     @return the head element of the list, or null if the list is empty */
+    Buffer rpop();
+
+    /*! @brief Sets the element at the given index of the list to value
+     @param index the index to modify
+     @param value the value to modify*/
+    set(Integer index, Buffer value);
+
+    /*! @brief Returns the element at the given index of the list
+     @param index the index to query
+     @return the element at the given index of the list*/
+    Buffer get(Integer index);
+
+    /*! @brief Inserts value into the list before the pivot value
+     @param pivot the value to search for on insertion
+     @param value the value to insert
+     @return the length of the list after insertion */
+    Integer insertBefore(Buffer pivot, Buffer value);
+
+    /*! @brief Inserts value into the list after the pivot value
+     @param pivot the value to search for on insertion
+     @param value the value to insert
+     @return the length of the list after insertion */
+    Integer insertAfter(Buffer pivot, Buffer value);
+
+    /*! @brief Removes elements equal to the value parameter from the list according to the count parameter
+     @param count the number of elements to remove
+     @param value the value to remove
+     @return the number of elements removed */
+    Integer remove(Integer count, Buffer value);
+
+    /*! @brief Trims a list so that it keeps only the elements in the given range; elements outside the range are removed
+     @param start the start index to trim; 0 means the first element and -1 means the last element
+     @param stop the stop index to trim; 0 means the first element and -1 means the last element */
+    trim(Integer start, Integer stop);
+
+    /*! @brief Returns the length of the list
+     @return returns the length of the list */
+    Integer len();
+
+    /*! @brief Returns the elements in the given range of the list; the range is specified by the start and stop offsets and includes the elements at start and stop
+     @param start the start index to query; 0 means the first element and -1 means the last element
+     @param stop the stop index to query; 0 means the first element and -1 means the last element
+     @return an array containing the elements in the given range */
+    NArray range(Integer start, Integer stop);
+};

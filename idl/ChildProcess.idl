@@ -1,0 +1,116 @@
+/*! @brief Child process object
+
+ ```JavaScript
+ var child_process = require("child_process");
+ var child = child_process.spawn("ls");
+ ```
+ */
+interface ChildProcess : EventEmitter
+{
+    /*! @brief Kills the process this object refers to and delivers a signal
+      @param signal the signal to deliver
+     */
+    kill(Integer signal);
+
+    /*! @brief Kills the process this object refers to and delivers a signal
+      @param signal the signal to deliver
+     */
+    kill(String signal = "SIGTERM");
+
+    /*! @brief Waits for the process this object refers to to exit and returns the exit code
+      @return the exit code of the process
+     */
+    Integer join() async;
+
+    /*! @brief Queries whether the pipe to the child process is properly connected */
+    readonly Boolean connected;
+
+    /*! @brief Closes the ipc pipe to the child process */
+    disconnect();
+
+    /*! @brief Sends a message to the current child process
+     @param msg the message to send
+    */
+    send(Value msg);
+
+    /*! @brief Resizes the terminal of the current child process
+     @param cols the number of terminal columns
+     @param rows the number of terminal rows
+    */
+    resize(Integer cols, Integer rows);
+
+    /*! @brief Queries the number of terminal columns */
+    readonly Integer cols;
+
+    /*! @brief Queries the number of terminal rows */
+    readonly Integer rows;
+
+    /*! @brief Queries the memory used and the time spent by the current process
+
+     The memory report is generated similar to the following result:
+     ```JavaScript
+     {
+       "user": 132379,
+       "system": 50507,
+       "rss": 8622080
+     }
+     ```
+     Where:
+     - user returns the time spent by the process in user code, in microseconds (millionths of a second)
+     - system returns the time spent by the process in system code, in microseconds (millionths of a second)
+     - rss returns the amount of physical memory currently used by the process
+     @return returns the report containing the time information
+     */
+    Object usage();
+
+    /*! @brief Reads the id of the process this object refers to
+     */
+    readonly Integer pid;
+
+    /*! @brief Queries whether the process this object refers to has already exited */
+    readonly Boolean killed;
+
+    /*! @brief Queries and sets the exit code of the current process */
+    readonly Integer exitCode;
+
+    /*! @brief Reads the standard input object of the process this object refers to
+     */
+    readonly Stream stdin;
+
+    /*! @brief Reads the standard output object of the process this object refers to
+     */
+    readonly Stream stdout;
+
+    /*! @brief Reads the standard error object of the process this object refers to
+     */
+    readonly Stream stderr;
+
+    /*! @brief Reads the list of standard IO objects of the process this object refers to
+
+     The array contains the standard IO streams of the child process, corresponding to the stdio option passed to spawn. Pipe entries are
+     Stream objects, and other entries are null.
+     */
+    readonly Array stdio;
+
+    /*! @brief Queries and binds the process exit event, equivalent to on("exit", func); */
+    event exit();
+
+    /*! @brief Queries and binds the child process message event, equivalent to on("message", func); */
+    event message();
+
+    /*! @brief Queries and binds the child process spawn event, equivalent to on("spawn", func); */
+    event spawn();
+
+    /*! @brief Queries and binds the child process disconnect event, equivalent to on("disconnect", func); */
+    event disconnect();
+
+    /*! @brief Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
+     @return returns the current object
+    */
+    ChildProcess ref();
+
+    /*! @brief Allows the fibjs process to exit; permits the fibjs process to exit while the object is bound
+     @return returns the current object
+    */
+    ChildProcess unref();
+};

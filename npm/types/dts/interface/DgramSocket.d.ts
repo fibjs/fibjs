@@ -2,11 +2,11 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description dgram.Socket 对象是一个封装了数据包函数功能的 EventEmitter。
+ * @description the dgram.Socket object is an EventEmitter encapsulating datagram functionality.
  *
- * DgramSocket 实例是由 dgram.createSocket() 创建的。创建 dgram.Socket 实例不需要使用 new 关键字。
+ * DgramSocket instances are created by dgram.createSocket(). Creating a dgram.Socket instance does not require the new keyword.
  *
- * 创建方法：
+ * Creation:
  * ```JavaScript
  * var dgram = require('dgram');
  * var sock = dgram.createSocket('udp4');
@@ -15,9 +15,9 @@
  */
 declare class Class_DgramSocket extends Class_EventEmitter {
     /**
-     * @description 该方法会令 dgram.Socket 在指定的 `port` 和 `addr` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param port 指定绑定端口，若 `port` 未指定或为 0，操作系统会尝试绑定一个随机的端口
-     *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
+     * @description this method makes dgram.Socket listen for datagrams on the specified `port` and `addr`. A `listening` event is emitted when binding completes.
+     *      @param port specifies the binding port; if `port` is not specified or is 0, the operating system will try to bind a random port
+     *      @param addr specifies the binding address; if address is not specified, the operating system will try to listen on all addresses.
      *
      */
     bind(port?: number, addr?: string): void;
@@ -25,24 +25,24 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bind(port?: number, addr?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 该方法会令 dgram.Socket 在指定的 `port` 和 `addr` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param port 指定绑定端口，若 `port` 未指定或为 0，操作系统会尝试绑定一个随机的端口
-     *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
+     * @description this method makes dgram.Socket listen for datagrams on the specified `port` and `addr`. A `listening` event is emitted when binding completes.
+     *      @param port specifies the binding port; if `port` is not specified or is 0, the operating system will try to bind a random port
+     *      @param addr specifies the binding address; if address is not specified, the operating system will try to listen on all addresses.
      *
      */
     bindSync(port?: number, addr?: string): void;
 
     /**
-     * @description 该方法会令 dgram.Socket 在指定的 `port` 和 `addr` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param port 指定绑定端口，若 `port` 未指定或为 0，操作系统会尝试绑定一个随机的端口
-     *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
+     * @description this method makes dgram.Socket listen for datagrams on the specified `port` and `addr`. A `listening` event is emitted when binding completes.
+     *      @param port specifies the binding port; if `port` is not specified or is 0, the operating system will try to bind a random port
+     *      @param addr specifies the binding address; if address is not specified, the operating system will try to listen on all addresses.
      *
      */
     bindAsync(port?: number, addr?: string): Promise<void>;
 
     /**
-     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param opts 指定绑定参数
+     * @description this method makes dgram.Socket listen for datagrams on the `port` and `address` specified by `opts`. A `listening` event is emitted when binding completes.
+     *      @param opts specifies the binding parameters
      *
      */
     bind(opts: FIBJS.GeneralObject): void;
@@ -50,25 +50,25 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param opts 指定绑定参数
+     * @description this method makes dgram.Socket listen for datagrams on the `port` and `address` specified by `opts`. A `listening` event is emitted when binding completes.
+     *      @param opts specifies the binding parameters
      *
      */
     bindSync(opts: FIBJS.GeneralObject): void;
 
     /**
-     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
-     *      @param opts 指定绑定参数
+     * @description this method makes dgram.Socket listen for datagrams on the `port` and `address` specified by `opts`. A `listening` event is emitted when binding completes.
+     *      @param opts specifies the binding parameters
      *
      */
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     send(msg: Class_Buffer, port: number, address?: string): number;
@@ -76,33 +76,33 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     sendSync(msg: Class_Buffer, port: number, address?: string): number;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     sendAsync(msg: Class_Buffer, port: number, address?: string): Promise<number>;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param offset 从指定偏移开始发送
-     *      @param length 之发送指定长度
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param offset starts sending from the specified offset
+     *      @param length sends the specified length
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
@@ -110,139 +110,139 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param offset 从指定偏移开始发送
-     *      @param length 之发送指定长度
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param offset starts sending from the specified offset
+     *      @param length sends the specified length
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     sendSync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description 在 socket 上发送一个数据包
-     *      @param msg 指定发送的数据
-     *      @param offset 从指定偏移开始发送
-     *      @param length 之发送指定长度
-     *      @param port 指定发送的目的端口
-     *      @param address 指定发送的目的地址
-     *      @return 返回发送尺寸
+     * @description sends a datagram on the socket
+     *      @param msg specifies the data to send
+     *      @param offset starts sending from the specified offset
+     *      @param length sends the specified length
+     *      @param port specifies the destination port to send to
+     *      @param address specifies the destination address to send to
+     *      @return returns the number of bytes sent
      *
      */
     sendAsync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
-     * @description 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。
-     *      @return 返回对象绑定地址
+     * @description returns an object containing the socket address information. For UDP sockets, the object will contain the address, family and port properties.
+     *      @return returns the object bound address
      *
      */
     address(): FIBJS.GeneralObject;
 
     /**
-     * @description 关闭当前 socket
+     * @description closes the current socket
      */
     close(): void;
 
     /**
-     * @description 关闭当前 socket
-     *      @param callback 关闭完成后的回调函数，它相当于为 `close` 事件添加了一个监听器
+     * @description closes the current socket
+     *      @param callback the callback function after closing completes, which is equivalent to adding a listener for the `close` event
      *
      */
     close(callback: (...args: any[])=>any): void;
 
     /**
-     * @description 查询 socket 接收缓冲区大小
-     *      @return 返回查询结果
+     * @description queries the socket receive buffer size
+     *      @return returns the query result
      *
      */
     getRecvBufferSize(): number;
 
     /**
-     * @description 查询 socket 发送缓冲区大小
-     *      @return 返回查询结果
+     * @description queries the socket send buffer size
+     *      @return returns the query result
      *
      */
     getSendBufferSize(): number;
 
     /**
-     * @description 使用 IP_ADD_MEMBERSHIP 套接字选项加入给定 multicastAddress 和 multicastInterface 处的多播组。如果未指定 multicastInterface 参数，操作系统将选择一个接口并向其添加成员资格。要向每个可用接口添加成员资格，请多次调用 addMembership ，每个接口调用一次。
-     *      @param multicastAddress 指定要加入的多播组地址
-     *      @param multicastInterface 指定要加入的多播组接口
+     * @description joins the multicast group at the given multicastAddress and multicastInterface using the IP_ADD_MEMBERSHIP socket option. If the multicastInterface parameter is not specified, the operating system will choose an interface and add membership to it. To add membership to every available interface, call addMembership multiple times, once per interface.
+     *      @param multicastAddress specifies the multicast group address to join
+     *      @param multicastInterface specifies the multicast group interface to join
      *
      */
     addMembership(multicastAddress: string, multicastInterface?: string): void;
 
     /**
-     * @description 使用 IP_DROP_MEMBERSHIP 套接字选项在 multicastAddress 处留下多播组。当套接字关闭或进程终止时，内核会自动调用此方法，因此大多数应用程序永远没有理由调用此方法。
-     *      @param multicastAddress 指定要删除的多播组地址
-     *      @param multicastInterface 指定要删除的多播组接口
+     * @description leaves the multicast group at multicastAddress using the IP_DROP_MEMBERSHIP socket option. The kernel calls this method automatically when the socket is closed or the process terminates, so most applications never need to call it.
+     *      @param multicastAddress specifies the multicast group address to drop
+     *      @param multicastInterface specifies the multicast group interface to drop
      *
      */
     dropMembership(multicastAddress: string, multicastInterface?: string): void;
 
     /**
-     * @description 设置 IP_MULTICAST_TTL 套接字选项
-     *      @param ttl 指定要设置的 ttl，ttl 参数可以介于 0 和 255 之间。大多数系统上的默认值为 1。
+     * @description sets the IP_MULTICAST_TTL socket option
+     *      @param ttl specifies the ttl to set; the ttl parameter can be between 0 and 255. The default value on most systems is 1.
      *
      */
     setMulticastTTL(ttl: number): void;
 
     /**
-     * @description 设置 socket 接收缓冲区大小
-     *      @param size 指定要设置的尺寸
+     * @description sets the socket receive buffer size
+     *      @param size specifies the size to set
      *
      */
     setRecvBufferSize(size: number): void;
 
     /**
-     * @description 设置 socket 发送缓冲区大小
-     *      @param size 指定要设置的尺寸
+     * @description sets the socket send buffer size
+     *      @param size specifies the size to set
      *
      */
     setSendBufferSize(size: number): void;
 
     /**
-     * @description 设置或清除 SO_BROADCAST socket 选项
-     *      @param flag 当设置为 true, UDP包会被发送到一个本地接口的广播地址
+     * @description sets or clears the SO_BROADCAST socket option
+     *      @param flag when set to true, UDP packets will be sent to the broadcast address of a local interface
      *
      */
     setBroadcast(flag: boolean): void;
 
     /**
-     * @description `close` 事件将在使用 `close()` 关闭一个 `socket` 之后触发。该事件一旦触发，这个 `socket` 上将不会触发新的 `message` 事件
+     * @description the `close` event is emitted after a `socket` is closed with `close()`. Once this event is emitted, no new `message` events will be emitted on this `socket`
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 当有任何错误发生时，`error` 事件将被触发
+     * @description the `error` event is emitted when any error occurs
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 当一个 `socket` 开始监听数据包信息时，`listening` 事件将被触发。该事件会在创建 UDP socket 之后被立即触发
+     * @description the `listening` event is emitted when a `socket` starts listening for datagrams. This event is emitted immediately after the UDP socket is created
      */
     on(event: "listening", listener: ()=>void): this;
 
     /**
-     * @description 当有新的数据包被 `socket` 接收时，`message` 事件会被触发。`msg` 和 `rinfo` 会作为参数传递到该事件的处理函数中。
-     *      @param msg 接收到的数据包
-     *      @param rinfo 包含接收数据包的远程信息的对象。该对象包含 `address`、`port` 和 `family` 属性，分别表示远程地址、端口和协议族。
+     * @description the `message` event is emitted when a new datagram is received by the `socket`. `msg` and `rinfo` are passed as parameters to the handler of this event.
+     *      @param msg the received datagram
+     *      @param rinfo an object containing the remote information of the received datagram. The object contains `address`, `port` and `family` properties, representing the remote address, port and protocol family respectively.
      *
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
+     *      @return returns the current object
      *
      */
     ref(): Class_DgramSocket;
 
     /**
-     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description allows the fibjs process to exit, allowing the fibjs process to exit while the object is bound
+     *      @return returns the current object
      *
      */
     unref(): Class_DgramSocket;

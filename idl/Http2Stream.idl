@@ -1,0 +1,50 @@
+/*! @brief Http2Stream is the object representing a single HTTP/2 stream in an Http2Session
+
+Each Http2Stream instance is a duplex stream. Data written to the stream is sent as DATA frames, and received data is provided as DATA frames from the remote end.
+
+Http2Stream instances are created by Http2Session and should not be constructed directly.
+*/
+interface Http2Stream : Stream
+{
+    /*! @brief queries the numeric stream identifier of this Http2Stream instance */
+    readonly Integer id;
+
+    /*! @brief queries whether this Http2Stream instance is closed */
+    readonly Boolean closed;
+
+    /*! @brief queries whether this Http2Stream instance is destroyed */
+    readonly Boolean destroyed;
+
+    /*! @brief queries the headers object received by this stream */
+    readonly NObject headers;
+
+    /*! @brief sends response headers to the remote end
+     @param headers an object containing header name-value pairs
+    */
+    respond(Object headers = {});
+
+    /*! @brief sends additional informational (1xx) headers to the remote end
+     @param headers an object containing header name-value pairs
+    */
+    additionalHeaders(Object headers);
+
+    /*! @brief sends trailing headers to the remote end, marking the end of the stream
+     @param headers an object containing trailing header name-value pairs
+    */
+    sendTrailers(Object headers);
+
+    /*! @brief sends an RST_STREAM frame to the remote end, closing the stream
+     @param code RST_STREAM error code, default is NGHTTP2_NO_ERROR (0)
+    */
+    rstStream(Integer code = 0);
+
+    /*! @brief emitted when response headers are received (client)
+     @param headers response headers object
+    */
+    event headers(Object headers);
+
+    /*! @brief emitted when trailing headers are received
+     @param headers trailing headers object
+    */
+    event trailers(Object headers);
+};

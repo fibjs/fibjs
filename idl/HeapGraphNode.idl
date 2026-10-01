@@ -1,0 +1,36 @@
+/*! @brief HeapGraphNode represents a node in the heap view */
+interface HeapGraphNode : object
+{
+    /*! @brief Node type, possible values:
+     - profiler.Node_Hidden,         Hidden node, can be filtered out when shown to the user
+     - profiler.Node_Array,          Array
+     - profiler.Node_String,         String
+     - profiler.Node_Object,         JS object (other than strings and arrays)
+     - profiler.Node_Code,           Compiled code
+     - profiler.Node_Closure,        Function closure
+     - profiler.Node_RegExp,         Regular expression
+     - profiler.Node_HeapNumber,     Sorted number in the heap
+     - profiler.Node_Native,         Native object (not on the v8 heap)
+     - profiler.Node_Synthetic,      Synthetic object
+     - profiler.Node_ConsString,     Concatenated string
+     - profiler.Node_SlicedString,   Sliced string
+     - profiler.Node_Symbol,         Symbol (ES6)
+     - profiler.Node_SimdValue,      Sorted SIMD value in the heap (ES7)
+    */
+    readonly Integer type;
+
+    /*! @brief Node name */
+    readonly String name;
+
+    /*! @brief Node description */
+    readonly String description;
+
+    /*! @brief Node ID */
+    readonly Integer id;
+
+    /*! @brief Node size, in bytes */
+    readonly Integer shallowSize;
+
+    /*! @brief Child node list, composed of HeapGraphEdge type objects */
+    readonly NArray childs;
+};

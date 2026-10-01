@@ -1,0 +1,36 @@
+/*! @brief The XmlAttr object represents an attribute of an XmlElement object */
+interface XmlAttr : object
+{
+    /*! @brief Queries the local name of the element. If the selected node has no namespace, this property is equivalent to nodeName
+    */
+    readonly String localName;
+
+    /*! @brief The value of the attribute
+    */
+    String value;
+
+    /*! @brief The name of the attribute
+    */
+    readonly String name;
+
+    /*! @brief Queries the namespace URI of the element. If the selected node has no namespace, this property returns NULL
+    */
+    readonly String namespaceURI;
+
+    /*! @brief Queries and sets the namespace prefix of the element. If the selected node has no namespace, this property returns NULL
+    */
+    String prefix;
+
+    /*! @brief The name of the attribute, for compatibility purposes
+    */
+    readonly String nodeName;
+
+    /*! @brief The value of the attribute, for compatibility purposes
+    */
+    String nodeValue;
+
+    /*! @brief Clones the XmlAttr object
+    @return returns a copy of the XmlAttr object
+    */
+    XmlAttr cloneNode();
+};

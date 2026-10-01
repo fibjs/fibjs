@@ -1,0 +1,91 @@
+/*! @brief Buffered reading object
+
+ The BufferedStream object is a buffered stream object for binary stream reading. It can buffer its underlying stream and provides text reading capability. To use a BufferedStream object, simply pass the stream object to process as the constructor parameter. Creation method:
+ ```JavaScript
+ var reader = new io.BufferedStream(stream);
+ ```
+
+ BufferedStream inherits from the Stream object and has all the methods and properties of the Stream object. The stream property queries the stream object used when the buffer object was created. The BufferedStream object also supports the EOL property to query and set the line ending marker (by default posix:\"\n\"; windows:\"\r\n\") and the charset property to query and set the charset used when processing text, default is utf-8.
+
+ When reading stream data, the BufferedStream object uses a chunked approach: it first reads data into the buffer and then fetches data from the buffer, which effectively reduces the number of network interactions when reading stream data and improves reading efficiency.
+
+ The BufferedStream object also provides a write method that writes the given data to the stream and, when the underlying stream object is blocked for writing, waits until it can accept data before proceeding. The Flush method writes the file buffer content to the physical device. The close method closes the current stream object. The concrete implementation of some methods can be provided in subclasses.
+
+ When using a BufferedStream object, take care not to mix it with other underlying stream objects already in use, otherwise data may be read twice or read incorrectly.
+
+ Below is an example of using a BufferedStream object to read file content:
+  ```JavaScript
+  var fs = require('fs');
+  var io = require('io');
+
+  var filename = "test.txt";
+
+  // open file
+  var file = fs.openFile(filename);
+
+  // create BufferedStream object
+  var reader = new io.BufferedStream(file);
+
+  // read file content
+  var lines = reader.readLines();
+
+  for(var i = 0; i < lines.length; i ++)
+      console.log(lines[i]);
+
+  // close file
+  file.close();
+  ```
+ */
+interface BufferedStream : Stream
+{
+    /*! @brief BufferedStream constructor
+      @param stm the binary underlying stream object of the BufferedStream
+     */
+    BufferedStream(Stream stm);
+
+    /*! @brief Reads text of the specified number of characters
+     @param size the number of text characters to read, measured in utf8 or the specified encoding bytes
+     @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
+     */
+    String readText(Integer size) async;
+
+    /*! @brief Reads one line of text; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
+     */
+    String readLine(Integer maxlen = -1) async;
+
+    /*! @brief Reads a group of text lines as an array; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     @param maxlines the maximum number of lines to read this time; by default all text lines are read
+     @return returns the array of text lines read; an empty array if there is no data to read, or the connection is interrupted
+     */
+    Array readLines(Integer maxlines = -1);
+
+    /*! @brief Reads a text string ending with the specified bytes
+     @param mk the ending string
+     @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
+     */
+    String readUntil(String mk, Integer maxlen = -1) async;
+
+    /*! @brief Writes a string
+     @param txt the string to write
+     @return the number of bytes actually written
+     */
+    Integer writeText(String txt) async;
+
+    /*! @brief Writes a string and a newline character
+     @param txt the string to write
+     @return the number of bytes actually written
+     */
+    Integer writeLine(String txt) async;
+
+    /*! @brief Queries the stream object used when the buffer was created */
+    readonly Stream stream;
+
+    /*! @brief Queries and sets the charset used when processing text, default is utf-8 */
+    String charset;
+
+    /*! @brief Queries and sets the line ending marker, by default posix:\"\\n\"; windows:\"\\r\\n\"   */
+    String EOL;
+};

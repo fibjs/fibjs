@@ -1,0 +1,205 @@
+/*! @brief The `os` module is one of the core modules, providing functions for the running operating system. It offers utility features for interacting with the operating system, including file addresses, file paths, network interfaces, hostname, operating system type, etc.
+
+### Common methods
+
+The `os` module provides many methods; the following are a few of the more commonly used ones:
+
+#### os.hostname()
+
+Gets the hostname of the current computer.
+
+Example:
+
+```JavaScript
+const os = require('os');
+const hostname = os.hostname();
+console.log(hostname);
+```
+
+The returned result is similar to:
+
+```sh
+localhost
+```
+
+#### os.type()
+
+Gets the name of the current operating system.
+
+Example:
+
+```JavaScript
+const os = require('os');
+const type = os.type();
+console.log(type);
+```
+
+The returned result is similar to:
+
+```sh
+Windows_NT
+```
+
+#### os.release()
+
+Gets the version of the current operating system.
+
+Example:
+
+```JavaScript
+const os = require('os');
+const release = os.release();
+console.log(release);
+```
+
+The returned result is similar to:
+
+```sh
+10.0.18362
+```
+
+#### os.arch()
+
+Gets the processor architecture of the operating system.
+
+Example:
+
+```JavaScript
+const os = require('os');
+const arch = os.arch();
+console.log(arch);
+```
+
+The returned result is similar to:
+
+```sh
+x64
+```
+
+#### os.cpus()
+
+Gets CPU information.
+
+Example:
+
+```JavaScript
+const os = require('os');
+const cpus = os.cpus();
+console.log(cpus);
+```
+
+The returned result is similar to:
+
+```sh
+[
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 2400298, nice: 0, sys: 9684894, idle: 91516801, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 464927, nice: 0, sys: 1454926, idle: 95119061, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 232077, nice: 0, sys: 898942, idle: 95482112, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 950448, nice: 0, sys: 1875169, idle: 93117788, irq: 0 } }
+]
+```
+ */
+module os
+{
+    /*! @brief Service constructor, see Service */
+    static Service;
+
+    /*! @brief Queries the hostname of the current runtime environment
+     @return returns the hostname
+    */
+    static String hostname();
+
+    /*! @brief Queries the byte order of the current CPU
+     @return returns the byte order
+    */
+    static String endianness();
+
+    /*! @brief Queries the operating system name of the current runtime environment
+     @return returns the system name
+    */
+    static String type();
+
+    /*! @brief Queries the operating system version of the current runtime environment
+     @return returns the version information
+     */
+    static String release();
+
+    /*! @brief Queries the home directory of the current user
+     @return returns the directory string
+    */
+    static String homedir();
+
+    /*! @brief Queries the current cpu environment
+     @return returns the cpu type; possible results are 'amd64', 'arm', 'arm64', 'ia32'
+    */
+    static String arch();
+
+    /*! @brief Queries the current time zone of the runtime environment */
+    static readonly Integer timezone;
+
+    /*! @brief Queries the line ending of the current runtime environment, posix:\"\\n\"; windows:\"\\r\\n\"   */
+    static readonly String EOL;
+
+    /*! The constants object of the os module, see os_constants */
+    static constants = os_constants;
+
+    /*! @brief Queries the 1-minute, 5-minute and 15-minute average load of the runtime environment
+     @return returns an array containing three load values
+    */
+    static Array loadavg();
+
+    /*! @brief Queries the total memory of the runtime environment, in bytes
+     @return returns the memory value
+    */
+    static Long totalmem();
+
+    /*! @brief Queries the available memory of the runtime environment, in bytes
+     @return returns the memory value
+    */
+    static Long freemem();
+
+    /*! @brief Queries the number and parameters of CPUs in the current runtime environment
+     @return returns an array containing cpu parameters, each item corresponding to one cpu
+    */
+    static Array cpus();
+
+    /*! @brief Queries the number of CPUs in the current runtime environment
+     @return returns the number of CPUs
+    */
+    static Integer cpuNumbers();
+
+    /*! @brief Queries the temporary file directory of the current runtime environment
+     @return returns the temporary file directory
+    */
+    static String tmpdir();
+
+    /*! @brief Returns information about the currently effective user
+     @param options character encoding used to interpret the result strings
+     @return information about the currently effective user
+    */
+    static Object userInfo(Object options = {});
+
+    /*! @brief Queries the network information of the current runtime environment
+     @return returns the network interface information
+    */
+    static Object networkInterfaces();
+
+    /*! @brief Queries the current platform name
+     @return returns the platform name; possible results are 'darwin', 'freebsd', 'linux', or 'win32'
+     */
+    static String platform();
+
+    /*! @brief Parses a time string or queries the current time of the runtime environment
+     @param tmString time string; if omitted, queries the current time
+     @return returns a javascript Date object
+     */
+    static Date time(String tmString = "");
+
+    /*! @brief Time calculation function; calculates the time according to part
+     @param d specifies the Date object used for the calculation
+     @param num specifies the value of the operation
+     @param part specifies the time part of the operation; accepted values are: "year", "month", "day", "hour", "minute", "second"
+     @return returns a javascript Date object
+     */
+    static Date dateAdd(Date d, Integer num, String part);
+};

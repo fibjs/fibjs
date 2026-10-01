@@ -1,0 +1,71 @@
+/*! @brief A utility for generating signatures
+
+  The crypto.createSign method is used to create a Sign instance. The parameter is the string name of the hash function to use. Sign objects cannot be created directly with the new keyword.
+
+  Example:
+  ```JavaScript
+    const {
+        generateKeyPairSync,
+        createSign,
+        createVerify,
+    } = require('crypto');
+
+    const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+    });
+
+    const sign = createSign('SHA256');
+    sign.update('some data to sign');
+    const signature = sign.sign(privateKey);
+
+    const verify = createVerify('SHA256');
+    verify.update('some data to sign');
+    console.log(verify.verify(publicKey, signature));
+  ```
+ */
+interface Sign : object
+{
+    /*! @brief Updates the Sign content with the given data
+     @param data the data to update with
+     @return returns the Sign object itself
+    */
+    Sign update(Buffer data);
+
+    /*! @brief Updates the Sign content with the given data
+     @param data the data to update with
+     @param codec the encoding of data
+     @return returns the Sign object itself
+    */
+    Sign update(String data, String codec = "utf8");
+
+    /*! @brief Computes the signature of all the data passed in
+     @param privateKey the private key used for signing
+     @param encoding the encoding of the return value
+     @return returns the signature value
+    */
+    Value sign(Buffer privateKey, String encoding = "buffer");
+
+    /*! @brief Computes the signature of all the data passed in
+     @param privateKey the private key used for signing
+     @param encoding the encoding of the return value
+     @return returns the signature value
+    */
+    Value sign(KeyObject privateKey, String encoding = "buffer");
+
+    /*! @brief Computes the signature of all the data passed in
+
+     The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
+      - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s) 
+      - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
+     - padding optional RSA padding value, one of the following: 
+      - RSA_PKCS1_PADDING (default)
+      - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
+     - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+
+     @param key the private key used for signing
+     @param encoding the encoding of the return value
+     @return returns the signature value
+    */
+    Value sign(Object key, String encoding = "buffer");
+};

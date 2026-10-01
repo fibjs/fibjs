@@ -2,19 +2,19 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description Smtp对象
+ * @description Smtp object
  *
  *
  */
 declare class Class_Smtp extends Class_object {
     /**
-     * @description Smtp 对象构造函数
+     * @description Smtp object constructor
      */
     constructor();
 
     /**
-     * @description 建立到指定的服务器
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     * @description Establishes a connection to the specified server
+     *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
     connect(url: string): void;
@@ -22,24 +22,24 @@ declare class Class_Smtp extends Class_object {
     connect(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 建立到指定的服务器
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     * @description Establishes a connection to the specified server
+     *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
     connectSync(url: string): void;
 
     /**
-     * @description 建立到指定的服务器
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     * @description Establishes a connection to the specified server
+     *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
     connectAsync(url: string): Promise<void>;
 
     /**
-     * @description 发送指定命令，并返回响应，服务器报错则抛出错误
-     *      @param cmd 命令名
-     *      @param arg 参数
-     *      @return 如果成功，返回服务器响应
+     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     *      @param cmd command name
+     *      @param arg parameter
+     *      @return returns the server response on success
      *
      */
     command(cmd: string, arg: string): string;
@@ -47,26 +47,26 @@ declare class Class_Smtp extends Class_object {
     command(cmd: string, arg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 发送指定命令，并返回响应，服务器报错则抛出错误
-     *      @param cmd 命令名
-     *      @param arg 参数
-     *      @return 如果成功，返回服务器响应
+     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     *      @param cmd command name
+     *      @param arg parameter
+     *      @return returns the server response on success
      *
      */
     commandSync(cmd: string, arg: string): string;
 
     /**
-     * @description 发送指定命令，并返回响应，服务器报错则抛出错误
-     *      @param cmd 命令名
-     *      @param arg 参数
-     *      @return 如果成功，返回服务器响应
+     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     *      @param cmd command name
+     *      @param arg parameter
+     *      @return returns the server response on success
      *
      */
     commandAsync(cmd: string, arg: string): Promise<string>;
 
     /**
-     * @description 发送 HELO 命令，服务器报错则抛出错误
-     *      @param hostname 主机名，缺省为“localhost”
+     * @description Sends the HELO command; throws an error if the server reports an error
+     *      @param hostname host name, default is "localhost"
      *
      */
     hello(hostname?: string): void;
@@ -74,23 +74,23 @@ declare class Class_Smtp extends Class_object {
     hello(hostname?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 发送 HELO 命令，服务器报错则抛出错误
-     *      @param hostname 主机名，缺省为“localhost”
+     * @description Sends the HELO command; throws an error if the server reports an error
+     *      @param hostname host name, default is "localhost"
      *
      */
     helloSync(hostname?: string): void;
 
     /**
-     * @description 发送 HELO 命令，服务器报错则抛出错误
-     *      @param hostname 主机名，缺省为“localhost”
+     * @description Sends the HELO command; throws an error if the server reports an error
+     *      @param hostname host name, default is "localhost"
      *
      */
     helloAsync(hostname?: string): Promise<void>;
 
     /**
-     * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误
-     *      @param username 用户名
-     *      @param password 密码
+     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     *      @param username user name
+     *      @param password password
      *
      */
     login(username: string, password: string): void;
@@ -98,24 +98,24 @@ declare class Class_Smtp extends Class_object {
     login(username: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误
-     *      @param username 用户名
-     *      @param password 密码
+     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     *      @param username user name
+     *      @param password password
      *
      */
     loginSync(username: string, password: string): void;
 
     /**
-     * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误
-     *      @param username 用户名
-     *      @param password 密码
+     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     *      @param username user name
+     *      @param password password
      *
      */
     loginAsync(username: string, password: string): Promise<void>;
 
     /**
-     * @description 指定发件人信箱，服务器报错则抛出错误
-     *      @param address 发件人信箱
+     * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *      @param address sender mailbox
      *
      */
     from(address: string): void;
@@ -123,22 +123,22 @@ declare class Class_Smtp extends Class_object {
     from(address: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 指定发件人信箱，服务器报错则抛出错误
-     *      @param address 发件人信箱
+     * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *      @param address sender mailbox
      *
      */
     fromSync(address: string): void;
 
     /**
-     * @description 指定发件人信箱，服务器报错则抛出错误
-     *      @param address 发件人信箱
+     * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *      @param address sender mailbox
      *
      */
     fromAsync(address: string): Promise<void>;
 
     /**
-     * @description 指定收件人信箱，服务器报错则抛出错误
-     *      @param address 收件人信箱
+     * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *      @param address recipient mailbox
      *
      */
     to(address: string): void;
@@ -146,22 +146,22 @@ declare class Class_Smtp extends Class_object {
     to(address: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 指定收件人信箱，服务器报错则抛出错误
-     *      @param address 收件人信箱
+     * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *      @param address recipient mailbox
      *
      */
     toSync(address: string): void;
 
     /**
-     * @description 指定收件人信箱，服务器报错则抛出错误
-     *      @param address 收件人信箱
+     * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *      @param address recipient mailbox
      *
      */
     toAsync(address: string): Promise<void>;
 
     /**
-     * @description 发送文本到收件人，服务器报错则抛出错误
-     *      @param txt 要发送的文本
+     * @description Sends text to the recipient; throws an error if the server reports an error
+     *      @param txt the text to send
      *
      */
     data(txt: string): void;
@@ -169,43 +169,43 @@ declare class Class_Smtp extends Class_object {
     data(txt: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 发送文本到收件人，服务器报错则抛出错误
-     *      @param txt 要发送的文本
+     * @description Sends text to the recipient; throws an error if the server reports an error
+     *      @param txt the text to send
      *
      */
     dataSync(txt: string): void;
 
     /**
-     * @description 发送文本到收件人，服务器报错则抛出错误
-     *      @param txt 要发送的文本
+     * @description Sends text to the recipient; throws an error if the server reports an error
+     *      @param txt the text to send
      *
      */
     dataAsync(txt: string): Promise<void>;
 
     /**
-     * @description 退出并关闭连接，服务器报错则抛出错误
+     * @description Quits and closes the connection; throws an error if the server reports an error
      */
     quit(): void;
 
     quit(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 退出并关闭连接，服务器报错则抛出错误
+     * @description Quits and closes the connection; throws an error if the server reports an error
      */
     quitSync(): void;
 
     /**
-     * @description 退出并关闭连接，服务器报错则抛出错误
+     * @description Quits and closes the connection; throws an error if the server reports an error
      */
     quitAsync(): Promise<void>;
 
     /**
-     * @description 查询和设置超时时间 单位毫秒
+     * @description Queries and sets the timeout in milliseconds
      */
     timeout: number;
 
     /**
-     * @description 查询 Smtp 对象当前连接的 Socket
+     * @description Queries the Socket currently connected to the Smtp object
      */
     readonly socket: Class_Stream;
 

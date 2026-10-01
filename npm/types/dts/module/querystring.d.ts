@@ -1,16 +1,16 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description querystring 模块提供了一些用于解析和序列化 URL 查询参数的实用函数，使用 querystring 模块可以方便地将 URL 查询参数解析为对象或字符串，也可以将对象序列化为 URL 查询参数字符串
+ * @description the querystring module provides some utility functions for parsing and serializing URL query parameters; with the querystring module, URL query parameters can be conveniently parsed into objects or strings, and objects can be serialized into URL query parameter strings
  *
- * 以下是 `querystring` 模块的常用函数：
+ * The commonly used functions of the `querystring` module are as follows:
  *
- * - `querystring.parse(str[, sep[, eq[, options]]])`: 将 URL 查询参数解析为对象
- * - `querystring.stringify(obj[, sep[, eq[, options]]])`: 将对象序列化为 URL 查询参数字符串
+ * - `querystring.parse(str[, sep[, eq[, options]]])`: parses URL query parameters into an object
+ * - `querystring.stringify(obj[, sep[, eq[, options]]])`: serializes an object into a URL query parameter string
  *
- * 其中，`str` 是要解析的 URL 查询参数字符串，`obj` 是要序列化的对象。
+ * Here, `str` is the URL query parameter string to parse and `obj` is the object to serialize.
  *
- * 以下示例说明如何使用 `querystring` 模块从 URL 中解析查询参数为对象：
+ * The following example shows how to use the `querystring` module to parse query parameters from a URL into an object:
  *
  * ```JavaScript
  * const querystring = require('querystring');
@@ -23,9 +23,9 @@
  * console.log(query); // output { foo: 'bar', baz: 'qux' }
  * ```
  *
- * 以上代码先获取了一个 URL，然后从中提取出查询参数部分，并使用 `querystring.parse()` 函数将其解析为对象，最后将对象打印出来。
+ * The code above first obtains a URL, then extracts the query parameter part from it, parses it into an object with the `querystring.parse()` function, and finally prints the object.
  *
- * 接下来，示例说明如何使用 `querystring` 模块将对象序列化为 URL 查询参数字符串：
+ * Next, the example shows how to use the `querystring` module to serialize an object into a URL query parameter string:
  *
  * ```JavaScript
  * const querystring = require('querystring');
@@ -40,46 +40,46 @@
  * console.log(query); // output "foo=bar&baz=qux"
  * ```
  *
- * 以上代码中，首先定义了一个对象，然后使用 `querystring.stringify()` 函数将其序列化为 URL 查询参数字符串，最后将字符串打印出来。
+ * In the code above, an object is first defined, then serialized into a URL query parameter string with the `querystring.stringify()` function, and finally the string is printed.
  *
- * 可以发现，使用 `querystring` 模块可以方便地对 URL 查询参数进行解析和序列化，减少了对字符串的繁琐处理，提高了代码的可读性和可维护性。
+ * As can be seen, the `querystring` module makes it convenient to parse and serialize URL query parameters, reducing tedious string handling and improving code readability and maintainability.
  *
  */
 declare module 'querystring' {
     /**
-     * @description url 部件字符串安全编码
-     *      @param str 要编码的 url
-     *      @return 返回编码的字符串
+     * @description safely encodes a url component string
+     *      @param str the url to encode
+     *      @return returns the encoded string
      *
      */
     function escape(str: string): string;
 
     /**
-     * @description url 安全字符串解码
-     *      @param str 要解码的 url
-     *      @return 返回解码的字符串
+     * @description safely decodes a url string
+     *      @param str the url to decode
+     *      @return returns the decoded string
      *
      */
     function unescape(str: string): string;
 
     /**
-     * @description 解析 query 字符串
-     *      @param str 要解析的字符串
-     *      @param sep 解析时使用的分割字符串，缺省为 &
-     *      @param eq 解析时使用的赋值字符串，缺省为 =
-     *      @param opt 解析参数，暂未支持
-     *      @return 返回解码的对象
+     * @description parses a query string
+     *      @param str the string to parse
+     *      @param sep the separator string used when parsing, default is &
+     *      @param eq the assignment string used when parsing, default is =
+     *      @param opt parse options, not supported yet
+     *      @return returns the decoded object
      *
      */
     function parse(str: string, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): Class_HttpCollection;
 
     /**
-     * @description 序列化一个对象为 query 字符串
-     *      @param obj 要序列化的对象
-     *      @param sep 序列化时使用的分割字符串，缺省为 &
-     *      @param eq 序列化时使用的赋值字符串，缺省为 =
-     *      @param opt 解析参数，暂未支持
-     *      @return 返回序列化后的字符串
+     * @description serializes an object into a query string
+     *      @param obj the object to serialize
+     *      @param sep the separator string used when serializing, default is &
+     *      @param eq the assignment string used when serializing, default is =
+     *      @param opt parse options, not supported yet
+     *      @return returns the serialized string
      *
      */
     function stringify(obj: FIBJS.GeneralObject, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;

@@ -1,29 +1,29 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description PerformanceObserverEntryList 对象包含了 PerformanceObserver 观察到的 performance 记录的详细信息
+ * @description The PerformanceObserverEntryList object contains the detailed information of the performance entries observed by the PerformanceObserver
  */
 declare class Class_PerformanceObserverEntryList extends Class_object {
     /**
-     * @description 查询全部 performance 记录的详细信息。
-     *      @return PerformanceEntry 对象数组
+     * @description Queries the detailed information of all performance entries.
+     *      @return an array of PerformanceEntry objects
      *
      */
     getEntries(): any[];
 
     /**
-     * @description 根据名称查询 performance 记录的详细信息
-     *      @param name 一个字符串，表示 performance 记录的名称。
-     *      @param entryType 一个字符串，表示 performance 记录的类型。
-     *      @return PerformanceEntry 对象数组
+     * @description Queries the detailed information of performance entries by name
+     *      @param name a string, representing the name of the performance entry.
+     *      @param entryType a string, representing the type of the performance entry.
+     *      @return an array of PerformanceEntry objects
      *
      */
     getEntriesByName(name: string, entryType?: string): any[];
 
     /**
-     * @description 根据类型查询 performance 记录的详细信息
-     *      @param entryType 一个字符串，表示 performance 记录的类型。
-     *      @return PerformanceEntry 对象数组
+     * @description Queries the detailed information of performance entries by type
+     *      @param entryType a string, representing the type of the performance entry.
+     *      @return an array of PerformanceEntry objects
      *
      */
     getEntriesByType(entryType: string): any[];

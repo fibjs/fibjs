@@ -1,10 +1,10 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description HttpCookie 是 HTTP 协议封装的 cookie 对象，它提供了获取、设置 cookie 的各个属性，同时也支持多个 cookie 的组织与处理，是 http.Request 和 http.Response 两个对象都支持的一个重要属性
+ * @description HttpCookie is a cookie object encapsulated by the HTTP protocol. It provides access to the various properties of a cookie and also supports organizing and handling multiple cookies; it is an important property supported by both the http.Request and http.Response objects
  *
- * 在服务器端，可以通过 HttpRequest.cookies 来获取 HTTP 请求中的所有 cookie。这里的每个 cookie 都是一个 HttpCookie 对象，通过它的属性或方法可以获取或设置 cookie 的相关信息。
- * 例如我们可以通过下述代码从客户端发送的 cookie 中读取对应属性：
+ * On the server side, HttpRequest.cookies can be used to get all cookies in an HTTP request. Each cookie here is an HttpCookie object, and its properties or methods can be used to get or set the related cookie information.
+ * For example, we can read the corresponding properties from a cookie sent by the client with the following code:
  * ```JavaScript
  * const http = require('http');
  * const server = new http.Server(8080, function(request) {
@@ -14,9 +14,9 @@
  * });
  * server.start();
  * ```
- * 这里我们使用 HttpRequest.cookies 属性获取请求中的所有 cookie。然后使用 cookies.get 方法，传入 cookie 的名称，来获取该 cookie 的值。
+ * Here we use the HttpRequest.cookies property to get all cookies in the request, and then use the cookies.get method, passing the cookie name, to get the value of that cookie.
  *
- * 为了向客户端发送一个 cookie，可以通过 HttpCookie 对象来创建一个新的 cookie 并将其添加到 HttpReponse.cookies 集合中。以下是一个示例：
+ * To send a cookie to the client, a new cookie can be created through the HttpCookie object and added to the HttpReponse.cookies collection. The following is an example:
  * ```JavaScript
  * const http = require('http');
  * const server = new http.Server(8080, function(request) {
@@ -35,14 +35,14 @@
  *
  * server.start();
  * ```
- * 在上述示例中，我们首先获取了 HttpServletRequest.cookies，然后尝试从中读取名称为 name 的 cookie 的值。如果 cookie 存在，那就向请求发送响应并使用该 cookie 的值来向客户端打招呼。如果该 cookie 不存在，我们创建一个新的 cookie 对象，并添加到 HttpServletResponse.cookies 集合中。配有 name 和 value 的第一个参数用于指定 cookie 名称和对应的值。同时，expires 属性用于指定 cookie 的过期时间，这里指定了现在时间加上 15 分钟为过期时间。最后，我们将返回值的内容添加上欢迎语。
+ * In the example above, we first get HttpServletRequest.cookies and then try to read the value of the cookie named name from it. If the cookie exists, we send a response to the request and use the cookie value to greet the client. If the cookie does not exist, we create a new cookie object and add it to the HttpServletResponse.cookies collection. The first parameter with name and value is used to specify the cookie name and its corresponding value. The expires property is used to specify the expiration time of the cookie; here the expiration time is set to the current time plus 15 minutes. Finally, we append a welcome message to the returned content.
  *
  */
 declare class Class_HttpCookie extends Class_object {
     /**
-     * @description HttpCookie 构造函数，创建一个新的 HttpCookie 对象
+     * @description HttpCookie constructor, creates a new HttpCookie object
      *
-     *      opts 可以设置的选项如下：
+     *      The options that can be set in opts are as follows:
      *      ```JavaScript
      *      {
      *          "name": "", // specify the name of the cookie
@@ -54,15 +54,15 @@ declare class Class_HttpCookie extends Class_object {
      *          "httpOnly": false, // specify the httpOnly of the cookie
      *      }
      *      ```
-     *      @param opts 指定创建的 cookie 的属性
+     *      @param opts specifies the properties of the cookie to create
      *
      */
     constructor(opts?: FIBJS.GeneralObject);
 
     /**
-     * @description HttpCookie 构造函数，创建一个新的 HttpCookie 对象
+     * @description HttpCookie constructor, creates a new HttpCookie object
      *
-     *      opts 可以设置的选项如下：
+     *      The options that can be set in opts are as follows:
      *      ```JavaScript
      *      {
      *          "expires": Date, // specify the expires time of the cookie
@@ -72,71 +72,71 @@ declare class Class_HttpCookie extends Class_object {
      *          "httpOnly": false, // specify the httpOnly of the cookie
      *      }
      *      ```
-     *      @param name 指定创建的 cookie 名称
-     *      @param value 指定创建的 cookie 值
-     *      @param opts 指定创建的 cookie 的其它属性
+     *      @param name specifies the name of the cookie to create
+     *      @param value specifies the value of the cookie to create
+     *      @param opts specifies the other properties of the cookie to create
      *
      */
     constructor(name: string, value: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 解析给定的字符串，填充 cookie 对象
-     *      @param header 指定需要解析的 header 字符串
+     * @description parses the given string and fills the cookie object
+     *      @param header specifies the header string to parse
      *
      */
     parse(header: string): void;
 
     /**
-     * @description 解析给定的字符串，填充 cookie 对象，不对 name 和 value 进行 URL 解码
+     * @description parses the given string and fills the cookie object, without URL-decoding name and value
      *
-     *      按照 RFC 6265，cookie 值是不透明字符串，Set-Cookie 头中的 %XX 应当原样保留。
-     *      解析服务端发来的原始 Set-Cookie 头时请使用本方法；
-     *      parse 方法会进行 URL 解码，与 toString 保持往返。
-     *      @param header 指定需要解析的 header 字符串
+     *      According to RFC 6265, cookie values are opaque strings, and %XX in the Set-Cookie header should be preserved as is.
+     *      Use this method when parsing the raw Set-Cookie header sent by the server;
+     *      the parse method performs URL decoding and round-trips with toString.
+     *      @param header specifies the header string to parse
      *
      */
     parseRaw(header: string): void;
 
     /**
-     * @description 检测给定的 url 是否匹配当前设置
-     *      @param url 指定测试的 url
-     *      @return 匹配成功返回 true
+     * @description checks whether the given url matches the current settings
+     *      @param url specifies the url to test
+     *      @return returns true on a successful match
      *
      */
     match(url: string): boolean;
 
     /**
-     * @description 查询和设置 cookie 名称
+     * @description queries and sets the cookie name
      */
     name: string;
 
     /**
-     * @description 查询和设置 cookie 的值
+     * @description queries and sets the cookie value
      */
     value: string;
 
     /**
-     * @description 查询和设置 cookie 的域名范围
+     * @description queries and sets the domain scope of the cookie
      */
     domain: string;
 
     /**
-     * @description 查询和设置 cookie 的路径范围
+     * @description queries and sets the path scope of the cookie
      */
     path: string;
 
     /**
-     * @description 查询和设置 cookie 的过期时间
+     * @description queries and sets the expiration time of the cookie
      */
     expires: typeof Date;
 
     /**
-     * @description 查询和设置 cookie 是否仅允许 http 请求，缺省 false
+     * @description queries and sets whether the cookie is only allowed for http requests, default false
      */
     httpOnly: boolean;
 
     /**
-     * @description 查询和设置 cookie 是否仅通过 https 传递，缺省 false
+     * @description queries and sets whether the cookie is only transmitted over https, default false
      */
     secure: boolean;
 

@@ -1,0 +1,129 @@
+/*! @brief File path processing module
+
+ Usage:
+ ```JavaScript
+ var path = require('path').posix;
+ ```
+ */
+module path_posix
+{
+    /*! @brief Normalizes a path, resolving parent directory references
+
+     @param path the path to normalize
+     @return the normalized path
+     */
+    static String normalize(String path);
+
+    /*! @brief Returns the file name of a path, removing a matching extension when ext is given
+
+     @param path the path to query
+     @param ext the extension to remove when the file name matches
+     @return the file name
+     */
+    static String basename(String path, String ext = "");
+
+    /*! @brief Returns the extension of the file in a path
+
+     @param path the path to query
+     @return the extension
+     */
+    static String extname(String path);
+
+    /*! @brief Formats an object into a path
+
+     pathObject supports the following fields:
+     ```JavaScript
+     {
+         "dir": "", // Specify the directory of the path
+         "root": "", // Specify the root of the path
+         "base": "", // Specify the base name of the path, which is the combination of name and ext
+         "name": "", // Specify the name of the path
+         "ext": "", // Specify the extension of the path
+     }
+     ```
+     @param pathObject the path object
+     @return the formatted path
+     */
+    static String format(Object pathObject);
+
+    /*! @brief Parses a path into a path object
+
+     @param path the path to parse
+     @return the parsed path object
+     */
+    static NObject parse(String path);
+
+    /*! @brief Returns the directory name of a path
+
+     @param path the path to query
+     @return the directory name
+     */
+    static String dirname(String path);
+
+    /*! @brief Converts a path into a full path
+
+     @param path the path to convert
+     @return the full path
+     */
+    static String fullpath(String path);
+
+    /*! @brief Checks whether a path matches the given glob pattern
+
+     @param path the path to check
+     @param pattern the glob pattern
+     @return the match result
+     */
+    static Boolean matchesGlob(String path, String pattern);
+
+    /*! @brief Checks whether a path is absolute
+
+     @param path the path to check
+     @return true when the path is absolute
+     */
+    static Boolean isAbsolute(String path);
+
+    /*! @brief Joins a series of paths into a single path
+
+     @param ps one or more paths
+     @return the joined path
+     */
+    static String join(...ps);
+
+    /*! @brief Resolves a series of paths into an absolute path
+
+     @param ps one or more paths
+     @return the resolved path
+     */
+    static String resolve(...ps);
+
+    /*! @brief Returns the relative path from _from to to
+
+     @param _from the source path
+     @param to the target path
+     @return the relative path
+     */
+    static String relative(String _from, String to);
+
+    /*! @brief Converts a path into a namespace-prefixed path; only effective on Windows, other systems get the input back
+    see: https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces
+     @param path the path to convert
+     @return the converted path
+     */
+    static Value toNamespacedPath(Value path = undefined);
+
+    /*! @brief The path segment separator of the current system: '/' on posix, a backslash on Windows
+     */
+    const sep = "/";
+
+    /*! @brief The multi-path delimiter of the current system: ':' on posix, ';' on Windows
+     */
+    const delimiter = ":";
+
+    /*! @brief The posix implementation, see path_posix
+     */
+    static readonly Object posix;
+
+    /*! @brief The Windows implementation, see path_win32
+     */
+    static readonly Object win32;
+};

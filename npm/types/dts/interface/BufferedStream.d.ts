@@ -1,22 +1,22 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description 缓存读取对象
+ * @description Buffered reading object
  *
- *  BufferedStream 对象是一个用于二进制流读取的缓存流对象。它可以对其底层流进行缓存，并提供文本读取能力。在使用 BufferedStream 对象时，只需要将待处理的流对象作为构造参数传入即可。创建方法：
+ *  The BufferedStream object is a buffered stream object for binary stream reading. It can buffer its underlying stream and provides text reading capability. To use a BufferedStream object, simply pass the stream object to process as the constructor parameter. Creation method:
  *  ```JavaScript
  *  var reader = new io.BufferedStream(stream);
  *  ```
  *
- *  BufferedStream 继承自 Stream 对象，具有 Stream 对象的所有方法和属性。其中，stream 属性用于查询创建缓存对象时的流对象。BufferedStream 对象还支持 EOL 属性用于查询和设置行结尾标识（缺省时，posix:\"\n\"；windows:\"\r\n\"）以及 charset 属性用于查询和设置当前对象处理文本时的字符集，缺省为 utf-8。
+ *  BufferedStream inherits from the Stream object and has all the methods and properties of the Stream object. The stream property queries the stream object used when the buffer object was created. The BufferedStream object also supports the EOL property to query and set the line ending marker (by default posix:\"\n\"; windows:\"\r\n\") and the charset property to query and set the charset used when processing text, default is utf-8.
  *
- *  BufferedStream 对象在读取流数据时，采用分块的方式，先将数据读入到缓冲区中，再从缓冲区中获取数据，这样可以有效减少读取流数据时的网络交互次数，提高了读取效率。
+ *  When reading stream data, the BufferedStream object uses a chunked approach: it first reads data into the buffer and then fetches data from the buffer, which effectively reduces the number of network interactions when reading stream data and improves reading efficiency.
  *
- *  BufferedStream 对象还提供了 write 方法将给定的数据写入流，并在底层流对象处于写入阻塞时，等待其可以接受数据后再进行下一步操作。Flush 方法将文件缓冲区内容写入物理设备。close 方法关闭当前流对象。部分方法的具体实现可以在子类中进行实现。
+ *  The BufferedStream object also provides a write method that writes the given data to the stream and, when the underlying stream object is blocked for writing, waits until it can accept data before proceeding. The Flush method writes the file buffer content to the physical device. The close method closes the current stream object. The concrete implementation of some methods can be provided in subclasses.
  *
- *  在使用 BufferedStream 对象时，需要注意不要将其与其他已经在使用的底层流对象混用，否则可能会导致数据重复读取或者读取错误。
+ *  When using a BufferedStream object, take care not to mix it with other underlying stream objects already in use, otherwise data may be read twice or read incorrectly.
  *
- *  下面是一个使用 BufferedStream 对象读取文件内容的示例代码：
+ *  Below is an example of using a BufferedStream object to read file content:
  *   ```JavaScript
  *   var fs = require('fs');
  *   var io = require('io');
@@ -42,16 +42,16 @@
  */
 declare class Class_BufferedStream extends Class_Stream {
     /**
-     * @description BufferedStream 构造函数
-     *       @param stm BufferedStream 的二进制基础流对象
+     * @description BufferedStream constructor
+     *       @param stm the binary underlying stream object of the BufferedStream
      *
      */
     constructor(stm: Class_Stream);
 
     /**
-     * @description 读取指定字符的文本
-     *      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads text of the specified number of characters
+     *      @param size the number of text characters to read, measured in utf8 or the specified encoding bytes
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readText(size: number): string;
@@ -59,25 +59,25 @@ declare class Class_BufferedStream extends Class_Stream {
     readText(size: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 读取指定字符的文本
-     *      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads text of the specified number of characters
+     *      @param size the number of text characters to read, measured in utf8 or the specified encoding bytes
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readTextSync(size: number): string;
 
     /**
-     * @description 读取指定字符的文本
-     *      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads text of the specified number of characters
+     *      @param size the number of text characters to read, measured in utf8 or the specified encoding bytes
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readTextAsync(size: number): Promise<string>;
 
     /**
-     * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads one line of text; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readLine(maxlen?: number): string;
@@ -85,34 +85,34 @@ declare class Class_BufferedStream extends Class_Stream {
     readLine(maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads one line of text; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readLineSync(maxlen?: number): string;
 
     /**
-     * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads one line of text; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readLineAsync(maxlen?: number): Promise<string>;
 
     /**
-     * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
-     *      @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
-     *      @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
+     * @description Reads a group of text lines as an array; the line ending is based on the EOL property setting, by default posix:\"\\n\"; windows:\"\\r\\n\"
+     *      @param maxlines the maximum number of lines to read this time; by default all text lines are read
+     *      @return returns the array of text lines read; an empty array if there is no data to read, or the connection is interrupted
      *
      */
     readLines(maxlines?: number): any[];
 
     /**
-     * @description 读取一个文本字符串，以指定的字节为结尾
-     *      @param mk 指定结尾的字符串
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads a text string ending with the specified bytes
+     *      @param mk the ending string
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readUntil(mk: string, maxlen?: number): string;
@@ -120,27 +120,27 @@ declare class Class_BufferedStream extends Class_Stream {
     readUntil(mk: string, maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 读取一个文本字符串，以指定的字节为结尾
-     *      @param mk 指定结尾的字符串
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads a text string ending with the specified bytes
+     *      @param mk the ending string
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readUntilSync(mk: string, maxlen?: number): string;
 
     /**
-     * @description 读取一个文本字符串，以指定的字节为结尾
-     *      @param mk 指定结尾的字符串
-     *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
-     *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
+     * @description Reads a text string ending with the specified bytes
+     *      @param mk the ending string
+     *      @param maxlen the maximum string to read this time, measured in utf8 encoded bytes; by default the number of characters is not limited
+     *      @return returns the text string read; if there is no data to read, or the connection is interrupted, returns null
      *
      */
     readUntilAsync(mk: string, maxlen?: number): Promise<string>;
 
     /**
-     * @description 写入一个字符串
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeText(txt: string): number;
@@ -148,25 +148,25 @@ declare class Class_BufferedStream extends Class_Stream {
     writeText(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入一个字符串
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeTextSync(txt: string): number;
 
     /**
-     * @description 写入一个字符串
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeTextAsync(txt: string): Promise<number>;
 
     /**
-     * @description 写入一个字符串，并写入换行符
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string and a newline character
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeLine(txt: string): number;
@@ -174,33 +174,33 @@ declare class Class_BufferedStream extends Class_Stream {
     writeLine(txt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 写入一个字符串，并写入换行符
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string and a newline character
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeLineSync(txt: string): number;
 
     /**
-     * @description 写入一个字符串，并写入换行符
-     *      @param txt 指定写入的字符串
-     *      @return 实际写入的字节数
+     * @description Writes a string and a newline character
+     *      @param txt the string to write
+     *      @return the number of bytes actually written
      *
      */
     writeLineAsync(txt: string): Promise<number>;
 
     /**
-     * @description 查询创建缓存对象时的流对象
+     * @description Queries the stream object used when the buffer was created
      */
     readonly stream: Class_Stream;
 
     /**
-     * @description 查询和设置当前对象处理文本时的字符集，缺省为 utf-8
+     * @description Queries and sets the charset used when processing text, default is utf-8
      */
     charset: string;
 
     /**
-     * @description 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
+     * @description Queries and sets the line ending marker, by default posix:\"\\n\"; windows:\"\\r\\n\"
      */
     EOL: string;
 

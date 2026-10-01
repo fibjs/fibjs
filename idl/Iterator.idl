@@ -1,0 +1,28 @@
+/*! @brief Iterator object, used to traverse collection data */
+interface Iterator : object
+{
+    /*! @brief Queries the iterator of the elements of the current object
+     @return returns the iterator of the elements of the current object
+    */
+    Iterator @iterator();
+
+    /*! @brief Queries the asynchronous iterator of the elements of the current object
+
+     Called by the JS engine when iterating with for await...of; the next() of the returned iterator
+     returns Promise<{ done, value }> in asynchronous (promise) style,
+     and a plain { done, value } in synchronous style; both can be consumed by for await.
+
+     @return returns the asynchronous iterator of the elements of the current object
+    */
+    Iterator @asyncIterator();
+
+    /*! @brief Iterates to the next element
+     @return returns the next element, or marks the end of iteration */
+    (Variant value, Boolean done) next() async;
+
+    /*! @brief Terminates iteration and releases all resources held by the iterator (idempotent, safe to call repeatedly)
+      Called automatically by the JS engine when for...of / for await...of exits early
+     @param value ignored parameter, used for compatibility with return(value) calls in the JS iteration protocol
+     @return returns {done: true} to mark the end of iteration */
+    (Boolean done) return(Value value = undefined);
+};

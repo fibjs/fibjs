@@ -1,26 +1,26 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能
+ * @description The CryptoKey class represents symmetric or asymmetric keys, each exposing different features
  */
 declare class Class_CryptoKey extends Class_object {
     /**
-     * @description 密钥的类型，对于秘密（对称）密钥，此属性为 'secret'，对于公共（非对称）密钥，此属性为 'public' 或 'private'
+     * @description The type of the key; for secret (symmetric) keys this property is 'secret', for public (asymmetric) keys it is 'public' or 'private'
      */
     readonly type: string;
 
     /**
-     * @description 密钥的算法信息
+     * @description The key's algorithm information
      */
     readonly algorithm: FIBJS.GeneralObject;
 
     /**
-     * @description 密钥是否可以导出到外部
+     * @description Whether the key can be exported
      */
     readonly extractable: boolean;
 
     /**
-     * @description 密钥的用途，可以是以下值的数组：
+     * @description The usages of the key, which can be an array of the following values:
      *         - 'encrypt'
      *         - 'decrypt'
      *         - 'sign'

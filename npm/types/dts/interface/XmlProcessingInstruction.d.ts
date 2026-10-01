@@ -1,18 +1,18 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XmlProcessingInstruction 对象表示 xml 处理指令
+ * @description The XmlProcessingInstruction object represents an xml processing instruction
  *
  */
 declare class Class_XmlProcessingInstruction extends Class_XmlNode {
     /**
-     * @description 返回此处理指令的目标
+     * @description Returns the target of this processing instruction
      *
      */
     readonly target: string;
 
     /**
-     * @description 设置或返回此处理指令的内容
+     * @description Sets or returns the content of this processing instruction
      *
      */
     data: string;

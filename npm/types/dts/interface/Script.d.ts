@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Script 脚本编译和运行对象
+ * @description Script compilation and execution object
  *
- *  创建方法
+ *  Creation method
  *  ```JavaScript
  *  var Script = new vm.Script('console.log(100)');
  *  ```
@@ -12,42 +12,42 @@
  */
 declare class Class_Script extends Class_object {
     /**
-     * @description Script 对象构造函数
-     *      @param code 指定要编译和运行的脚本代码
-     *      @param opts 指定编译和运行选项
+     * @description Script object constructor
+     *      @param code the script code to compile and run
+     *      @param opts compile and run options
      *
      */
     constructor(code: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 在给定 contextifiedObject 内运行 vm.Script 对象包含的已编译代码并返回结果
-     *      @param contextifiedObject 指定运行时的上下文对象
-     *      @param opts 指定运行选项
-     *      @return 返回运行结果
+     * @description Runs the compiled code contained in the vm.Script object within the given contextifiedObject and returns the result
+     *      @param contextifiedObject the context object to run in
+     *      @param opts run options
+     *      @return returns the run result
      *
      */
     runInContext(contextifiedObject: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 使用给定的 contextObject 在创建的上下文中, 在其中运行 vm.Script 对象包含的已编译代码并返回结果
-     *      @param contextObject 指定将被上下文化的对象
-     *      @param opts 指定运行选项
-     *      @return 返回运行结果
+     * @description Creates a context using the given contextObject, runs the compiled code contained in the vm.Script object in it, and returns the result
+     *      @param contextObject the object to be contextified
+     *      @param opts run options
+     *      @return returns the run result
      *
      */
     runInNewContext(contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 在当前上下文内内运行 vm.Script 对象包含的已编译代码并返回结果
-     *      @param opts 指定运行选项
-     *      @return 返回运行结果
+     * @description Runs the compiled code contained in the vm.Script object in the current context and returns the result
+     *      @param opts run options
+     *      @return returns the run result
      *
      */
     runInThisContext(opts?: FIBJS.GeneralObject): any;
 
     /**
-     * @description 根据当前 Script 对象创建代码缓存
-     *      @return 返回代码缓存数据
+     * @description Creates code cache from the current Script object
+     *      @return returns the code cache data
      *
      */
     createCachedData(): Class_Buffer;

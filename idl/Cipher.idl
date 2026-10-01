@@ -1,0 +1,64 @@
+/*! @brief Symmetric encryption algorithm object */
+interface Cipher : object
+{
+    /*! @brief Sets the authentication tag
+     @param buffer the authentication tag data to use
+     @param encoding the encoding of the authentication tag data
+     @return returns the current Cipher object
+     */
+    Cipher setAuthTag(Buffer buffer, String encoding = "buffer");
+
+    /*! @brief Sets the authentication tag
+     @param buffer the authentication tag data to use
+     @param encoding the encoding of the authentication tag data
+     @return returns the current Cipher object
+     */
+    Cipher setAuthTag(String buffer, String encoding = "utf8");
+
+    /*! @brief Queries the authentication tag 
+      @return returns the authentication tag data
+    */
+    Buffer getAuthTag();
+
+    /*! @brief Sets additional authenticated data
+     @param buffer the additional authenticated data to use
+     @param options the additional authenticated data options to use
+     @return returns the current Cipher object
+    */
+    Cipher setAAD(Buffer buffer, Object options = {});
+
+    /*! @brief Sets additional authenticated data
+     @param buffer the additional authenticated data to use
+     @param options the additional authenticated data options to use
+     @return returns the current Cipher object
+    */
+    Cipher setAAD(String buffer, Object options = {});
+
+    /*! @brief Sets automatic padding
+     @param autoPadding specifies whether to pad automatically
+     @return returns the current Cipher object
+    */
+    Cipher setAutoPadding(Boolean autoPadding = true);
+
+    /*! @brief Updates the data
+      @param data the data to update
+      @param inputEncoding the encoding of the input data
+      @param outputEncoding the encoding of the output data
+      @return returns the updated data
+    */
+    Value update(Buffer data, String inputEncoding = "buffer", String outputEncoding = "buffer");
+
+    /*! @brief Updates the data
+      @param data the data to update
+      @param inputEncoding the encoding of the input data
+      @param outputEncoding the encoding of the output data
+      @return returns the updated data
+    */
+    Value update(String data, String inputEncoding = "utf8", String outputEncoding = "buffer");
+
+    /*! @brief Finalizes the data
+      @param outputEncoding the encoding of the output data
+      @return returns the updated data
+    */
+    Value final(String outputEncoding = "buffer");
+};

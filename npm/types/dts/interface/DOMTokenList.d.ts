@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description DOMTokenList 对象，表示一组空格分隔的标记，常用于 classList 属性
+ * @description The DOMTokenList object represents a set of space-separated tokens, commonly used for the classList property
  *
- *  DOMTokenList 是表示一组空格分隔的标记的接口。它可以用于表示 CSS 类列表。
+ *  DOMTokenList is the interface representing a set of space-separated tokens. It can be used to represent a CSS class list.
  *
- *  示例:
+ *  Example:
  *  ```JavaScript
  *  var xml = require('xml');
  *  var doc = xml.parse('<div class="foo bar"></div>', 'text/html');
@@ -21,66 +21,66 @@
  */
 declare class Class_DOMTokenList extends Class_object {
     /**
-     * @description 返回集合中的标记数量
+     * @description Returns the number of tokens in the set
      */
     readonly length: number;
 
     /**
-     * @description 返回集合中所有标记的字符串表示，用空格分隔
+     * @description Returns the string representation of all tokens in the set, separated by spaces
      */
     readonly value: string;
 
     /**
-     * @description 返回指定索引处的标记
-     *      @param index 标记的索引
-     *      @return 返回标记字符串，如果索引超出范围则返回 null
+     * @description Returns the token at the specified index
+     *      @param index the index of the token
+     *      @return returns the token string, or null if the index is out of range
      *
      */
     item(index: number): string;
 
     /**
-     * @description 检查集合中是否包含指定的标记
-     *      @param token 要检查的标记
-     *      @return 如果包含该标记则返回 true，否则返回 false
+     * @description Checks whether the set contains the specified token
+     *      @param token the token to check
+     *      @return returns true if the token is contained, otherwise false
      *
      */
     contains(token: string): boolean;
 
     /**
-     * @description 向集合中添加一个或多个标记
-     *      @param tokens 要添加的标记，可变参数
+     * @description Adds one or more tokens to the set
+     *      @param tokens the tokens to add, variadic parameter
      *
      */
     add(...tokens: any[]): void;
 
     /**
-     * @description 从集合中移除一个或多个标记
-     *      @param tokens 要移除的标记，可变参数
+     * @description Removes one or more tokens from the set
+     *      @param tokens the tokens to remove, variadic parameter
      *
      */
     remove(...tokens: any[]): void;
 
     /**
-     * @description 如果标记存在则移除它，否则添加它
-     *      @param token 要切换的标记
-     *      @param force 可选。如果为 true，则只添加标记；如果为 false，则只移除标记
-     *      @return 如果操作后标记存在则返回 true，否则返回 false
+     * @description Removes the token if it exists, otherwise adds it
+     *      @param token the token to toggle
+     *      @param force optional. If true, only adds the token; if false, only removes the token
+     *      @return returns true if the token is present after the operation, otherwise false
      *
      */
     toggle(token: string, ...force: any[]): boolean;
 
     /**
-     * @description 用新标记替换现有标记
-     *      @param oldToken 要替换的标记
-     *      @param newToken 新标记
-     *      @return 如果替换成功则返回 true，否则返回 false
+     * @description Replaces an existing token with a new token
+     *      @param oldToken the token to replace
+     *      @param newToken the new token
+     *      @return returns true if the replacement succeeded, otherwise false
      *
      */
     replace(oldToken: string, newToken: string): boolean;
 
     /**
-     * @description 返回集合中所有标记的字符串表示，用空格分隔
-     *      @return 返回标记字符串
+     * @description Returns the string representation of all tokens in the set, separated by spaces
+     *      @return returns the token string
      *
      */
     toString(): string;

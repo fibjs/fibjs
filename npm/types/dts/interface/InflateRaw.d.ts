@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description InflateRaw 解压缩编解码器，解压 deflate 算法压缩的数据(raw格式)
+ * @description InflateRaw decompression codec, decompresses data compressed with the deflate algorithm (raw format)
  */
 declare class Class_InflateRaw extends Class_ZlibCodec {
     /**
-     * @description InflateRaw 构造函数
-     *      @param opts 解压缩选项
+     * @description InflateRaw constructor
+     *      @param opts decompression options
      *
      */
     constructor(opts?: FIBJS.GeneralObject);

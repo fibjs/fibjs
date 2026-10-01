@@ -1,0 +1,37 @@
+/*! @brief Stream object interface with a movable current pointer */
+interface SeekableStream : Stream
+{
+    /*! @brief Moves the current file operation position
+      @param offset the new position
+      @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
+     */
+    seek(Long offset, Integer whence = fs.SEEK_SET);
+
+    /*! @brief Queries the current stream position
+     @return returns the current stream position
+     */
+    Long tell();
+
+    /*! @brief Moves the current position to the beginning of the stream */
+    rewind();
+
+    /*! @brief Queries the stream size
+     @return returns the stream size
+     */
+    Long size();
+
+    /*! @brief Modifies the file size; if the new size is smaller than the original size, the file is truncated
+      @param bytes the new file size
+     */
+    truncate(Long bytes) async;
+
+    /*! @brief Queries whether the file is at the end
+     @return returns True if at the end
+     */
+    Boolean eof();
+
+    /*! @brief Queries the basic information of the current file
+     @return returns the Stat object describing the file information
+     */
+    Stat stat() async;
+};

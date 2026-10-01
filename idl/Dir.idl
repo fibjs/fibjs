@@ -1,0 +1,17 @@
+/*! @brief Directory iterator object, created by fs.opendir, used to read directory entries one by one */
+interface Dir : Iterator
+{
+    /*! @brief Dir constructor, creates a directory iterator object from a path
+     @param path the directory to iterate
+     */
+    Dir(String path);
+
+    /*! @brief Queries the directory path of the current iteration */
+    readonly String path;
+
+    /*! @brief Reads the next directory entry, returns null when iteration ends */
+    DirEntry read() async;
+
+    /*! @brief Closes the directory iterator object and releases the iteration state; safe to call repeatedly */
+    close() async;
+};

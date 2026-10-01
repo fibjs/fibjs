@@ -2,31 +2,31 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description LevelDB 是 fibjs 内置的数据库操作对象，用于创建和管理键值对形式的字典对象。使用 LevelDB 对象，可轻松实现键值对数据的存储、查询、删除、枚举等操作。它基于 Google 开源的 LevelDB 实现，具有高效、可靠、可扩展等优点
+ * @description LevelDB is a database operation object built into fibjs for creating and managing key-value dictionaries. With the LevelDB object, key-value data can be stored, queried, deleted and enumerated easily. It is based on Google's open source LevelDB implementation and offers high efficiency, reliability and scalability
  *
- * LevelDB 对象的创建非常简单，只需通过 db.openLevelDB 方法即可创建一个指定名称的数据库对象。例如：
+ * Creating a LevelDB object is very simple: call the db.openLevelDB method to create a database object with the given name. For example:
  *
  * ```JavaScript
  * var db = require("db");
  * var test = db.openLevelDB("test.db");
  * ```
  *
- * 其中，db 为 fibjs 的数据库操作对象，openLevelDB 方法用于打开 leveldb 数据库，test.db 为数据库名称，函数返回的 test 对象即为操作数据库的对象。
+ * Here db is the fibjs database operation object, the openLevelDB method opens the leveldb database, test.db is the database name, and the returned test object is the object for operating on the database.
  *
- * LevelDB 对象支持的主要操作包括：
+ * The main operations supported by the LevelDB object include:
  *
- * - set(key, value)：设置一个键值数据，键值不存在则插入新数据。
- * - get(key)：查询指定键值的值。
- * - has(key)：判断指定键值是否存在。
- * - remove(key)：删除指定键值的全部值。
- * - forEach(func)：枚举数据库中所有的键值对。
- * - between(from, to, func)：枚举数据库中键值在 from 和 to 之间的键值对。
- * - toJSON(key)：返回对象的 JSON 格式表示，一般返回对象定义的可读属性集合。
- * - begin()：在当前数据库上开启一个事务。
- * - commit()：提交当前事务。
- * - close()：关闭当前数据库连接或事务。
+ * - set(key, value): sets a key-value pair; inserts new data if the key does not exist.
+ * - get(key): queries the value of the given key.
+ * - has(key): checks whether the given key exists.
+ * - remove(key): removes all values of the given key.
+ * - forEach(func): enumerates all key-value pairs in the database.
+ * - between(from, to, func): enumerates key-value pairs whose keys are between from and to.
+ * - toJSON(key): returns the JSON representation of the object, generally the readable property set defined by the object.
+ * - begin(): starts a transaction on the current database.
+ * - commit(): commits the current transaction.
+ * - close(): closes the current database connection or transaction.
  *
- * 例如：
+ * For example:
  *
  * ```JavaScript
  * var db = require("db");
@@ -44,14 +44,14 @@
  * test.close();
  * ```
  *
- * 以上是 LevelDB 对象的基本用法及示例，可以方便灵活地操作键值对数据。在实际应用中，它可以被用于存储、缓存、日志等场景，提高数据读写效率、简化程序逻辑、减少开发复杂度等。
+ * The above covers the basic usage of the LevelDB object with examples, making key-value data easy and flexible to operate on. In practice it can be used for storage, caching, logging and other scenarios, improving data read/write efficiency, simplifying program logic and reducing development complexity.
  *
  */
 declare class Class_LevelDB extends Class_object {
     /**
-     * @description 检查数据库内是否存在指定键值的数据
-     *      @param key 指定要检查的键值
-     *      @return 返回键值是否存在
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
      *
      */
     has(key: Class_Buffer): boolean;
@@ -59,25 +59,25 @@ declare class Class_LevelDB extends Class_object {
     has(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 检查数据库内是否存在指定键值的数据
-     *      @param key 指定要检查的键值
-     *      @return 返回键值是否存在
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
      *
      */
     hasSync(key: Class_Buffer): boolean;
 
     /**
-     * @description 检查数据库内是否存在指定键值的数据
-     *      @param key 指定要检查的键值
-     *      @return 返回键值是否存在
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
      *
      */
     hasAsync(key: Class_Buffer): Promise<boolean>;
 
     /**
-     * @description 查询指定键值的值
-     *      @param key 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 null
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
      *
      */
     get(key: Class_Buffer): Class_Buffer;
@@ -85,33 +85,33 @@ declare class Class_LevelDB extends Class_object {
     get(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 查询指定键值的值
-     *      @param key 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 null
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
      *
      */
     getSync(key: Class_Buffer): Class_Buffer;
 
     /**
-     * @description 查询指定键值的值
-     *      @param key 指定要查询的键值
-     *      @return 返回键值所对应的值，若不存在，则返回 null
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
      *
      */
     getAsync(key: Class_Buffer): Promise<Class_Buffer>;
 
     /**
-     * @description 查询一组指定键值的值
-     *      @param keys 指定要查询的键值数组
-     *      @return 返回包含键值得数组
+     * @description Queries the values of the given keys
+     *      @param keys the array of keys to query
+     *      @return returns an array containing the values of the keys
      *
      */
     mget(keys: any[]): any[];
 
     /**
-     * @description 设定一个键值数据，键值不存在则插入新数据
-     *      @param key 指定要设定的键值
-     *      @param value 指定要设定的数据
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     set(key: Class_Buffer, value: Class_Buffer): void;
@@ -119,38 +119,38 @@ declare class Class_LevelDB extends Class_object {
     set(key: Class_Buffer, value: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 设定一个键值数据，键值不存在则插入新数据
-     *      @param key 指定要设定的键值
-     *      @param value 指定要设定的数据
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setSync(key: Class_Buffer, value: Class_Buffer): void;
 
     /**
-     * @description 设定一个键值数据，键值不存在则插入新数据
-     *      @param key 指定要设定的键值
-     *      @param value 指定要设定的数据
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setAsync(key: Class_Buffer, value: Class_Buffer): Promise<void>;
 
     /**
-     * @description 设定一组键值数据，键值不存在则插入新数据
-     *      @param map 指定要设定的键值数据字典
+     * @description Sets a group of key-value pairs; inserts new data if the keys do not exist
+     *      @param map the key-value dictionary to set
      *
      */
     mset(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description 删除一组指定键值的值
-     *      @param keys 指定要删除的键值数组
+     * @description Removes the values of the given keys
+     *      @param keys the array of keys to remove
      *
      */
     mremove(keys: any[]): void;
 
     /**
-     * @description 删除指定键值的全部值
-     *      @param key 指定要删除的键值
+     * @description Removes all values of the given key
+     *      @param key the key to remove
      *
      */
     remove(key: Class_Buffer): void;
@@ -158,22 +158,22 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 删除指定键值的全部值
-     *      @param key 指定要删除的键值
+     * @description Removes all values of the given key
+     *      @param key the key to remove
      *
      */
     removeSync(key: Class_Buffer): void;
 
     /**
-     * @description 删除指定键值的全部值
-     *      @param key 指定要删除的键值
+     * @description Removes all values of the given key
+     *      @param key the key to remove
      *
      */
     removeAsync(key: Class_Buffer): Promise<void>;
 
     /**
-     *  @description 查询最小的 key
-     *       @return 返回最小的 key
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
      *
      */
     firstKey(): Class_Buffer;
@@ -181,43 +181,43 @@ declare class Class_LevelDB extends Class_object {
     firstKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     *  @description 查询最小的 key
-     *       @return 返回最小的 key
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
      *
      */
     firstKeySync(): Class_Buffer;
 
     /**
-     *  @description 查询最小的 key
-     *       @return 返回最小的 key
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
      *
      */
     firstKeyAsync(): Promise<Class_Buffer>;
 
     /**
-     *  @description 查询最大的 key
-     *     @return 返回最大的 key
+     *  @description Queries the largest key
+     *     @return returns the largest key
      */
     lastKey(): Class_Buffer;
 
     lastKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     *  @description 查询最大的 key
-     *     @return 返回最大的 key
+     *  @description Queries the largest key
+     *     @return returns the largest key
      */
     lastKeySync(): Class_Buffer;
 
     /**
-     *  @description 查询最大的 key
-     *     @return 返回最大的 key
+     *  @description Queries the largest key
+     *     @return returns the largest key
      */
     lastKeyAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -227,15 +227,15 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param func 枚举回调函数
+     *      @param func the enumeration callback function
      *
      */
     forEach(func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -245,16 +245,16 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param from 枚举的最小键值，枚举时包含此键值
-     *      @param func 枚举回调函数
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param func the enumeration callback function
      *
      */
     forEach(from: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -264,17 +264,17 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param from 枚举的最小键值，枚举时包含此键值
-     *      @param to 枚举的最大键值，枚举时不包含此键值
-     *      @param func 枚举回调函数
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param func the enumeration callback function
      *
      */
     forEach(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -284,16 +284,16 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param opt 枚举选项，支持 skip, limit, reverse
-     *      @param func 枚举回调函数
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
      *
      */
     forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -303,17 +303,17 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param from 枚举的最小键值，枚举时包含此键值
-     *      @param opt 枚举选项，支持 skip, limit, reverse
-     *      @param func 枚举回调函数
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
      *
      */
     forEach(from: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中所有的键值对
+     * @description Enumerates all key-value pairs in the database
      *
-     *      回调函数有两个参数，(value, key)
+     *      The callback function takes two parameters, (value, key)
      *
      *      ```JavaScript
      *      var db = require("db");
@@ -323,39 +323,39 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param from 枚举的最小键值，枚举时包含此键值
-     *      @param to 枚举的最大键值，枚举时不包含此键值
-     *      @param opt 枚举选项，支持 skip, limit, reverse
-     *      @param func 枚举回调函数
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
      *
      */
     forEach(from: Class_Buffer, to: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
 
     /**
-     * @description 在当前数据库上开启一个事务
-     *      @return 返回一个开启的事务对象
+     * @description Starts a transaction on the current database
+     *      @return returns the started transaction object
      */
     begin(): Class_LevelDB;
 
     /**
-     * @description 提交当前事务
+     * @description Commits the current transaction
      */
     commit(): void;
 
     /**
-     * @description 关闭当前数据库连接或事务
+     * @description Closes the current database connection or transaction
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前数据库连接或事务
+     * @description Closes the current database connection or transaction
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前数据库连接或事务
+     * @description Closes the current database connection or transaction
      */
     closeAsync(): Promise<void>;
 

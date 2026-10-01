@@ -1,0 +1,8 @@
+/*! @brief Gzip compression codec, compresses data with the gzip algorithm */
+interface Gzip : ZlibCodec
+{
+    /*! @brief Gzip constructor
+     @param opts compression options
+     */
+    Gzip(Object opts = {});
+};

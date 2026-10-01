@@ -1,0 +1,108 @@
+/*! @brief os_constants signals submodule, containing POSIX signal constants
+
+ Usage:
+ ```JavaScript
+ var signals = require('os').constants.signals
+ ```
+ */
+module os_constants_signals
+{
+    /*! @brief Hangup signal, sent when the terminal is closed */
+    const SIGHUP = 1;
+
+    /*! @brief Interrupt signal, usually triggered by CTRL+C */
+    const SIGINT = 2;
+
+    /*! @brief Quit signal, usually triggered by CTRL+\ */
+    const SIGQUIT = 3;
+
+    /*! @brief Illegal instruction */
+    const SIGILL = 4;
+
+    /*! @brief Trap signal, used for debugging */
+    const SIGTRAP = 5;
+
+    /*! @brief Abort signal, sent when abort() is called */
+    const SIGABRT = 6;
+
+    /*! @brief Same as SIGABRT */
+    const SIGIOT = 6;
+
+    /*! @brief Bus error */
+    const SIGBUS = 7;
+
+    /*! @brief Floating-point exception */
+    const SIGFPE = 8;
+
+    /*! @brief Kill signal, cannot be caught or ignored */
+    const SIGKILL = 9;
+
+    /*! @brief User-defined signal 1 */
+    const SIGUSR1 = 10;
+
+    /*! @brief Segmentation fault, invalid memory access */
+    const SIGSEGV = 11;
+
+    /*! @brief User-defined signal 2 */
+    const SIGUSR2 = 12;
+
+    /*! @brief Broken pipe, write to a pipe with no readers */
+    const SIGPIPE = 13;
+
+    /*! @brief Timer expired signal */
+    const SIGALRM = 14;
+
+    /*! @brief Termination signal, usually sent by the kill command */
+    const SIGTERM = 15;
+
+    /*! @brief Coprocessor stack error */
+    const SIGSTKFLT = 16;
+
+    /*! @brief Child process stopped or terminated */
+    const SIGCHLD = 17;
+
+    /*! @brief Continue a stopped process */
+    const SIGCONT = 18;
+
+    /*! @brief Stop the process, cannot be caught or ignored */
+    const SIGSTOP = 19;
+
+    /*! @brief Terminal stop signal, usually triggered by CTRL+Z */
+    const SIGTSTP = 20;
+
+    /*! @brief Background process reading from the terminal */
+    const SIGTTIN = 21;
+
+    /*! @brief Background process writing to the terminal */
+    const SIGTTOU = 22;
+
+    /*! @brief Urgent data available on the socket */
+    const SIGURG = 23;
+
+    /*! @brief CPU time limit exceeded */
+    const SIGXCPU = 24;
+
+    /*! @brief File size limit exceeded */
+    const SIGXFSZ = 25;
+
+    /*! @brief Virtual timer expired */
+    const SIGVTALRM = 26;
+
+    /*! @brief Profiling timer expired */
+    const SIGPROF = 27;
+
+    /*! @brief Terminal window size changed */
+    const SIGWINCH = 28;
+
+    /*! @brief Asynchronous I/O is ready */
+    const SIGIO = 29;
+
+    /*! @brief Same as SIGIO */
+    const SIGPOLL = 29;
+
+    /*! @brief Power failure */
+    const SIGPWR = 30;
+
+    /*! @brief Invalid system call */
+    const SIGSYS = 31;
+};

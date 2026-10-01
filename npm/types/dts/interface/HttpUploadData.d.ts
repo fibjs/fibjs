@@ -2,26 +2,26 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description 包含 multipart 的一个条目数据
+ * @description data of one multipart entry
  */
 declare class Class_HttpUploadData extends Class_object {
     /**
-     * @description 包含本条目数据的文件名
+     * @description the file name of the data of this entry
      */
     readonly fileName: string;
 
     /**
-     * @description 包含本条目数据的类型
+     * @description the type of the data of this entry
      */
     readonly contentType: string;
 
     /**
-     * @description 包含本条目数据的传输编码类型
+     * @description the transfer encoding type of the data of this entry
      */
     readonly contentTransferEncoding: string;
 
     /**
-     * @description 包含本条目数据部分的流对象
+     * @description the stream object containing the data part of this entry
      */
     readonly body: Class_SeekableStream;
 

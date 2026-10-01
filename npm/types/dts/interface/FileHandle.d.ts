@@ -3,7 +3,7 @@
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 文件句柄对象
+ * @description File handle object
  *
  *  ```JavaScript
  *  var fd = fs.open('test.txt');
@@ -12,20 +12,20 @@
  */
 declare class Class_FileHandle extends Class_object {
     /**
-     * @description FileHandle 构造函数，从文件描述符创建文件句柄
-     *      @param fd 文件描述符数值
+     * @description FileHandle constructor, creates a file handle from a file descriptor
+     *      @param fd the file descriptor value
      *
      */
     constructor(fd: number);
 
     /**
-     * @description 查询当前文件描述符
+     * @description Queries the current file descriptor
      */
     readonly fd: number;
 
     /**
-     * @description 查询当前文件的访问权限，Windows 不支持此方法
-     *      @param mode 指定设定的访问权限
+     * @description Queries the access permission of the current file; not supported on Windows
+     *      @param mode the access permission to set
      *
      */
     chmod(mode: number): void;
@@ -33,22 +33,22 @@ declare class Class_FileHandle extends Class_object {
     chmod(mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 查询当前文件的访问权限，Windows 不支持此方法
-     *      @param mode 指定设定的访问权限
+     * @description Queries the access permission of the current file; not supported on Windows
+     *      @param mode the access permission to set
      *
      */
     chmodSync(mode: number): void;
 
     /**
-     * @description 查询当前文件的访问权限，Windows 不支持此方法
-     *      @param mode 指定设定的访问权限
+     * @description Queries the access permission of the current file; not supported on Windows
+     *      @param mode the access permission to set
      *
      */
     chmodAsync(mode: number): Promise<void>;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回文件的基础信息
+     * @description Queries the basic information of the current file
+     *      @return returns the basic information of the file
      *
      */
     stat(): Class_Stat;
@@ -56,26 +56,26 @@ declare class Class_FileHandle extends Class_object {
     stat(callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回文件的基础信息
+     * @description Queries the basic information of the current file
+     *      @return returns the basic information of the file
      *
      */
     statSync(): Class_Stat;
 
     /**
-     * @description 查询当前文件的基础信息
-     *      @return 返回文件的基础信息
+     * @description Queries the basic information of the current file
+     *      @return returns the basic information of the file
      *
      */
     statAsync(): Promise<Class_Stat>;
 
     /**
-     * @description 根据文件描述符，读取文件内容
-     *      @param buffer 读取结果写入的 Buffer 对象
-     *      @param offset Buffer 写入偏移量， 默认为 0
-     *      @param length 文件读取字节数，默认为 0
-     *      @param position 文件读取位置，默认为当前文件位置
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     * @description Reads file content by file descriptor
+     *      @param buffer the Buffer object to write the read result into
+     *      @param offset the Buffer write offset, default is 0
+     *      @param length the number of bytes to read from the file, default is 0
+     *      @param position the file read position, default is the current file position
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesRead: number, buffer: Buffer];
@@ -83,41 +83,41 @@ declare class Class_FileHandle extends Class_object {
     read(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: [bytesRead: number, buffer: Buffer])=>any): void;
 
     /**
-     * @description 根据文件描述符，读取文件内容
-     *      @param buffer 读取结果写入的 Buffer 对象
-     *      @param offset Buffer 写入偏移量， 默认为 0
-     *      @param length 文件读取字节数，默认为 0
-     *      @param position 文件读取位置，默认为当前文件位置
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     * @description Reads file content by file descriptor
+     *      @param buffer the Buffer object to write the read result into
+     *      @param offset the Buffer write offset, default is 0
+     *      @param length the number of bytes to read from the file, default is 0
+     *      @param position the file read position, default is the current file position
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     readSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesRead: number, buffer: Buffer];
 
     /**
-     * @description 根据文件描述符，读取文件内容
-     *      @param buffer 读取结果写入的 Buffer 对象
-     *      @param offset Buffer 写入偏移量， 默认为 0
-     *      @param length 文件读取字节数，默认为 0
-     *      @param position 文件读取位置，默认为当前文件位置
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     * @description Reads file content by file descriptor
+     *      @param buffer the Buffer object to write the read result into
+     *      @param offset the Buffer write offset, default is 0
+     *      @param length the number of bytes to read from the file, default is 0
+     *      @param position the file read position, default is the current file position
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<[bytesRead: number, buffer: Buffer]>;
 
     /**
-     * @description 根据文件描述符，读取文件内容
+     * @description Reads file content by file descriptor
      *
-     *      options 支持以下属性：
+     *      options supports the following properties:
      *      ```JavaScript
      *      {
-     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
-     *          "offset": 0, // Buffer 写入偏移量，默认为 0
-     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
-     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
+     *          "offset": 0, // the Buffer write offset, default is 0
+     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
+     *          "position": -1 // the file read position, default is the current file position
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      @param options the read options
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     read(options: FIBJS.GeneralObject): [bytesRead: number, buffer: Buffer];
@@ -125,48 +125,48 @@ declare class Class_FileHandle extends Class_object {
     read(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [bytesRead: number, buffer: Buffer])=>any): void;
 
     /**
-     * @description 根据文件描述符，读取文件内容
+     * @description Reads file content by file descriptor
      *
-     *      options 支持以下属性：
+     *      options supports the following properties:
      *      ```JavaScript
      *      {
-     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
-     *          "offset": 0, // Buffer 写入偏移量，默认为 0
-     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
-     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
+     *          "offset": 0, // the Buffer write offset, default is 0
+     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
+     *          "position": -1 // the file read position, default is the current file position
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      @param options the read options
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     readSync(options: FIBJS.GeneralObject): [bytesRead: number, buffer: Buffer];
 
     /**
-     * @description 根据文件描述符，读取文件内容
+     * @description Reads file content by file descriptor
      *
-     *      options 支持以下属性：
+     *      options supports the following properties:
      *      ```JavaScript
      *      {
-     *          "buffer": Buffer.alloc(16384), // 读取结果写入的 Buffer 对象，未提供时自动分配
-     *          "offset": 0, // Buffer 写入偏移量，默认为 0
-     *          "length": 0, // 读取字节数，默认为 buffer.length - offset
-     *          "position": -1 // 文件读取位置，默认为当前文件位置
+     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
+     *          "offset": 0, // the Buffer write offset, default is 0
+     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
+     *          "position": -1 // the file read position, default is the current file position
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回包含 bytesRead 和 buffer 属性的对象
+     *      @param options the read options
+     *      @return returns an object containing the bytesRead and buffer properties
      *
      */
     readAsync(options: FIBJS.GeneralObject): Promise<[bytesRead: number, buffer: Buffer]>;
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param buffer 待写入的 Buffer 对象
-     *      @param offset Buffer 数据读取偏移量， 默认为 0
-     *      @param length 文件写入字节数，默认为 -1
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param buffer the Buffer object to write
+     *      @param offset the Buffer data read offset, default is 0
+     *      @param length the number of bytes to write to the file, default is -1
+     *      @param position the file write position, default is the current file position
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesWritten: number, buffer: Buffer];
@@ -174,33 +174,33 @@ declare class Class_FileHandle extends Class_object {
     write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: [bytesWritten: number, buffer: Buffer])=>any): void;
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param buffer 待写入的 Buffer 对象
-     *      @param offset Buffer 数据读取偏移量， 默认为 0
-     *      @param length 文件写入字节数，默认为 -1
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param buffer the Buffer object to write
+     *      @param offset the Buffer data read offset, default is 0
+     *      @param length the number of bytes to write to the file, default is -1
+     *      @param position the file write position, default is the current file position
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): [bytesWritten: number, buffer: Buffer];
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param buffer 待写入的 Buffer 对象
-     *      @param offset Buffer 数据读取偏移量， 默认为 0
-     *      @param length 文件写入字节数，默认为 -1
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param buffer the Buffer object to write
+     *      @param offset the Buffer data read offset, default is 0
+     *      @param length the number of bytes to write to the file, default is -1
+     *      @param position the file write position, default is the current file position
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<[bytesWritten: number, buffer: Buffer]>;
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param string 待写入的字符串
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param string the string to write
+     *      @param position the file write position, default is the current file position
+     *      @param encoding the decoding method, utf8 by default
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     write(string: string, position?: number, encoding?: string): [bytesWritten: number, buffer: Buffer];
@@ -208,29 +208,29 @@ declare class Class_FileHandle extends Class_object {
     write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: [bytesWritten: number, buffer: Buffer])=>any): void;
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param string 待写入的字符串
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param string the string to write
+     *      @param position the file write position, default is the current file position
+     *      @param encoding the decoding method, utf8 by default
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     writeSync(string: string, position?: number, encoding?: string): [bytesWritten: number, buffer: Buffer];
 
     /**
-     * @description 根据文件描述符，向文件写入内容
-     *      @param string 待写入的字符串
-     *      @param position 文件写入取位置，默认为当前文件位置
-     *      @param encoding 指定解码方式，缺省解码 utf8
-     *      @return 返回包含 bytesWritten 和 buffer 属性的对象
+     * @description Writes content to the file by file descriptor
+     *      @param string the string to write
+     *      @param position the file write position, default is the current file position
+     *      @param encoding the decoding method, utf8 by default
+     *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
     writeAsync(string: string, position?: number, encoding?: string): Promise<[bytesWritten: number, buffer: Buffer]>;
 
     /**
-     * @description 读取文件的全部内容
-     *      @param encoding 指定解码方式，缺省不解码
-     *      @return 返回文件内容
+     * @description Reads the entire content of the file
+     *      @param encoding the decoding method; by default no decoding is performed
+     *      @return returns the file content
      *
      */
     readFile(encoding?: string): any;
@@ -238,32 +238,32 @@ declare class Class_FileHandle extends Class_object {
     readFile(encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 读取文件的全部内容
-     *      @param encoding 指定解码方式，缺省不解码
-     *      @return 返回文件内容
+     * @description Reads the entire content of the file
+     *      @param encoding the decoding method; by default no decoding is performed
+     *      @return returns the file content
      *
      */
     readFileSync(encoding?: string): any;
 
     /**
-     * @description 读取文件的全部内容
-     *      @param encoding 指定解码方式，缺省不解码
-     *      @return 返回文件内容
+     * @description Reads the entire content of the file
+     *      @param encoding the decoding method; by default no decoding is performed
+     *      @return returns the file content
      *
      */
     readFileAsync(encoding?: string): Promise<any>;
 
     /**
-     * @description 读取文件的全部内容
+     * @description Reads the entire content of the file
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回文件内容
+     *      @param options the read options
+     *      @return returns the file content
      *
      */
     readFile(options: FIBJS.GeneralObject): any;
@@ -271,40 +271,40 @@ declare class Class_FileHandle extends Class_object {
     readFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 读取文件的全部内容
+     * @description Reads the entire content of the file
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回文件内容
+     *      @param options the read options
+     *      @return returns the file content
      *
      */
     readFileSync(options: FIBJS.GeneralObject): any;
 
     /**
-     * @description 读取文件的全部内容
+     * @description Reads the entire content of the file
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options 指定读取选项
-     *      @return 返回文件内容
+     *      @param options the read options
+     *      @return returns the file content
      *
      */
     readFileAsync(options: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项，将被忽略
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options; ignored
+     *      @return the number of bytes actually written
      *
      */
     writeFile(data: Class_Buffer, opt?: string): number;
@@ -312,28 +312,28 @@ declare class Class_FileHandle extends Class_object {
     writeFile(data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项，将被忽略
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options; ignored
+     *      @return the number of bytes actually written
      *
      */
     writeFileSync(data: Class_Buffer, opt?: string): number;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项，将被忽略
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options; ignored
+     *      @return the number of bytes actually written
      *
      */
     writeFileAsync(data: Class_Buffer, opt?: string): Promise<number>;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFile(data: string, opt?: string): number;
@@ -341,35 +341,35 @@ declare class Class_FileHandle extends Class_object {
     writeFile(data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileSync(data: string, opt?: string): number;
 
     /**
-     * @description 将数据写入文件，替换其内容
-     *      @param data 待写入的数据
-     *      @param opt 指定写入选项
-     *      @return 实际写入的字节数
+     * @description Writes data to the file, replacing its content
+     *      @param data the data to write
+     *      @param opt the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileAsync(data: string, opt?: string): Promise<number>;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFile(data: Class_Buffer, options: FIBJS.GeneralObject): number;
@@ -377,49 +377,49 @@ declare class Class_FileHandle extends Class_object {
     writeFile(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileSync(data: Class_Buffer, options: FIBJS.GeneralObject): number;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFile(data: string, options: FIBJS.GeneralObject): number;
@@ -427,43 +427,43 @@ declare class Class_FileHandle extends Class_object {
     writeFile(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileSync(data: string, options: FIBJS.GeneralObject): number;
 
     /**
-     * @description 将数据写入文件，替换其内容
+     * @description Writes data to the file, replacing its content
      *
-     *      options 支持以下选项：
+     *      options supports the following options:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定编码，默认为 utf8。
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param data 待写入的数据
-     *      @param options 指定写入选项
-     *      @return 实际写入的字节数
+     *      @param data the data to write
+     *      @param options the write options
+     *      @return the number of bytes actually written
      *
      */
     writeFileAsync(data: string, options: FIBJS.GeneralObject): Promise<number>;
 
     /**
-     * @description 修改文件的访问时间和修改时间
+     * @description Modifies the access and modification times of the file
      *
-     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
-     *      @param atime 文件的最后访问时间
-     *      @param mtime 文件的最后修改时间
+     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      @param atime the last access time of the file
+     *      @param mtime the last modification time of the file
      *
      */
     utimes(atime: any, mtime: any): void;
@@ -471,29 +471,29 @@ declare class Class_FileHandle extends Class_object {
     utimes(atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 修改文件的访问时间和修改时间
+     * @description Modifies the access and modification times of the file
      *
-     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
-     *      @param atime 文件的最后访问时间
-     *      @param mtime 文件的最后修改时间
+     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      @param atime the last access time of the file
+     *      @param mtime the last modification time of the file
      *
      */
     utimesSync(atime: any, mtime: any): void;
 
     /**
-     * @description 修改文件的访问时间和修改时间
+     * @description Modifies the access and modification times of the file
      *
-     *     时间参数可以是 Date 对象、Unix 时间戳（秒）或日期字符串，与 Node.js 一致。
-     *      @param atime 文件的最后访问时间
-     *      @param mtime 文件的最后修改时间
+     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      @param atime the last access time of the file
+     *      @param mtime the last modification time of the file
      *
      */
     utimesAsync(atime: any, mtime: any): Promise<void>;
 
     /**
-     * @description 修改文件的拥有者，Windows 不支持此方法
-     *      @param uid 文件拥有者用户id
-     *      @param gid 文件拥有者组id
+     * @description Modifies the owner of the file; not supported on Windows
+     *      @param uid the file owner user id
+     *      @param gid the file owner group id
      *
      */
     chown(uid: number, gid: number): void;
@@ -501,25 +501,25 @@ declare class Class_FileHandle extends Class_object {
     chown(uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 修改文件的拥有者，Windows 不支持此方法
-     *      @param uid 文件拥有者用户id
-     *      @param gid 文件拥有者组id
+     * @description Modifies the owner of the file; not supported on Windows
+     *      @param uid the file owner user id
+     *      @param gid the file owner group id
      *
      */
     chownSync(uid: number, gid: number): void;
 
     /**
-     * @description 修改文件的拥有者，Windows 不支持此方法
-     *      @param uid 文件拥有者用户id
-     *      @param gid 文件拥有者组id
+     * @description Modifies the owner of the file; not supported on Windows
+     *      @param uid the file owner user id
+     *      @param gid the file owner group id
      *
      */
     chownAsync(uid: number, gid: number): Promise<void>;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     同步文件数据与元数据，确保写入内容持久化。
+     *     Synchronizes file data and metadata, ensuring written content is persisted.
      *
      */
     sync(): void;
@@ -527,25 +527,25 @@ declare class Class_FileHandle extends Class_object {
     sync(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     同步文件数据与元数据，确保写入内容持久化。
+     *     Synchronizes file data and metadata, ensuring written content is persisted.
      *
      */
     syncSync(): void;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     同步文件数据与元数据，确保写入内容持久化。
+     *     Synchronizes file data and metadata, ensuring written content is persisted.
      *
      */
     syncAsync(): Promise<void>;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
      *
      */
     datasync(): void;
@@ -553,24 +553,24 @@ declare class Class_FileHandle extends Class_object {
     datasync(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
      *
      */
     datasyncSync(): void;
 
     /**
-     * @description 同步数据到磁盘
+     * @description Synchronizes data to disk
      *
-     *     仅同步文件数据部分，不包含文件元数据，比 sync 开销更小。
+     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
      *
      */
     datasyncAsync(): Promise<void>;
 
     /**
-     * @description 修改文件尺寸
-     *      @param len 指定修改后文件的大小，缺省为 0
+     * @description Modifies the file size
+     *      @param len the file size to set, default is 0
      *
      */
     truncate(len?: number): void;
@@ -578,23 +578,23 @@ declare class Class_FileHandle extends Class_object {
     truncate(len?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 修改文件尺寸
-     *      @param len 指定修改后文件的大小，缺省为 0
+     * @description Modifies the file size
+     *      @param len the file size to set, default is 0
      *
      */
     truncateSync(len?: number): void;
 
     /**
-     * @description 修改文件尺寸
-     *      @param len 指定修改后文件的大小，缺省为 0
+     * @description Modifies the file size
+     *      @param len the file size to set, default is 0
      *
      */
     truncateAsync(len?: number): Promise<void>;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFile(data: Class_Buffer): number;
@@ -602,25 +602,25 @@ declare class Class_FileHandle extends Class_object {
     appendFile(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFileSync(data: Class_Buffer): number;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFileAsync(data: Class_Buffer): Promise<number>;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFile(data: string): number;
@@ -628,35 +628,35 @@ declare class Class_FileHandle extends Class_object {
     appendFile(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFileSync(data: string): number;
 
     /**
-     * @description 以追加方式写入内容
-     *      @param data 指定要写入的数据
-     *      @return 实际写入的字节数
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
      *
      */
     appendFileAsync(data: string): Promise<number>;
 
     /**
-     * @description 关闭当前文件句柄
+     * @description Closes the current file handle
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前文件句柄
+     * @description Closes the current file handle
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前文件句柄
+     * @description Closes the current file handle
      */
     closeAsync(): Promise<void>;
 

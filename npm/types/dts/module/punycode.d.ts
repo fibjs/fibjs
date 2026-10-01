@@ -1,10 +1,10 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description punycode 国际化域名转换模块
+ * @description punycode internationalized domain name conversion module
  *
- *  Punycode 是由 RFC 3492 定义的主要用于国际化域名的字符编码方案。因为 URL 中主机名限制只能是 ASCII 字符，包括非 ASCII 字符的主机名必须使用 punycode 算法转化为ASCII。
+ *  Punycode is a character encoding scheme defined by RFC 3492, mainly used for internationalized domain names. Because hostnames in URLs are restricted to ASCII characters only, hostnames containing non-ASCII characters must be converted to ASCII using the punycode algorithm.
  *
- *  使用方法：
+ *  Usage:
  *  ```JavaScript
  *  var punycode = require('punycode');
  *  ```
@@ -12,33 +12,33 @@
  */
 declare module 'punycode' {
     /**
-     * @description 将一个 Unicode 字符串转化为等价的只含有 ASCII 字符的 Punycode 字符串
-     * 	 @param domain 给定Unicode 字符串
-     * 	 @return 返回编码后的只含有 ASCII 字符的 Punycode 字符串
+     * @description converts a Unicode string into an equivalent Punycode string containing only ASCII characters
+     * 	 @param domain the given Unicode string
+     * 	 @return returns the encoded Punycode string containing only ASCII characters
      *
      */
     function encode(domain: string): string;
 
     /**
-     * @description 将一个 Punycode 字符串转化为等价的 Unicode 字符串
-     * 	 @param domain 给定Unicode 字符串
-     * 	 @return 返回解码后的 Unicode 字符串
+     * @description converts a Punycode string into an equivalent Unicode string
+     * 	 @param domain the given Unicode string
+     * 	 @return returns the decoded Unicode string
      *
      */
     function decode(domain: string): string;
 
     /**
-     * @description 转换一个代表了一个域名的Unicode字符串为一个只含有 ASCII 字符的字符串。只有代表了域名的部分的非 ASCII 字符串会被转换。也就是说，如果你调用了一个已经被转换为ASCII的字符串，也是没有问题的。
-     * 	 @param domain 给定Unicode 字符串
-     * 	 @return 返回编码后的 ASCII 字符串
+     * @description converts a Unicode string representing a domain name into a string containing only ASCII characters. Only the non-ASCII parts representing the domain name are converted. That is, it is also fine to call this on a string that has already been converted to ASCII.
+     * 	 @param domain the given Unicode string
+     * 	 @return returns the encoded ASCII string
      *
      */
     function toASCII(domain: string): string;
 
     /**
-     * @description 转换一个代表了一个域名的Punycode字符串为一个Unicode字符串。只有代表了域名的部分的Punycode字符串会被转换。也就是说，如果你调用了一个已经被转换为Unicode的字符串，也是没有问题的。
-     * 	 @param domain 给定 ASCII 字符串
-     * 	 @return 返回解码后的 Unicode 字符串
+     * @description converts a Punycode string representing a domain name into a Unicode string. Only the Punycode parts representing the domain name are converted. That is, it is also fine to call this on a string that has already been converted to Unicode.
+     * 	 @param domain the given ASCII string
+     * 	 @return returns the decoded Unicode string
      *
      */
     function toUnicode(domain: string): string;

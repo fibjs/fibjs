@@ -1,0 +1,8 @@
+/*! @brief DeflateRaw compression codec, compresses data with the deflate algorithm (raw format, without the zlib header) */
+interface DeflateRaw : ZlibCodec
+{
+    /*! @brief DeflateRaw constructor
+     @param opts compression options
+     */
+    DeflateRaw(Object opts = {});
+};

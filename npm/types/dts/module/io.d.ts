@@ -4,19 +4,19 @@
 /// <reference path="../interface/RangeStream.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description 输入输出处理模块，提供流对象的创建与流间数据搬运能力
+ * @description The io module provides stream creation and data movement between streams
  *
- *  模块的主要能力：
+ *  Main capabilities:
  *
- *  - **流对象**：`MemoryStream` 内存流、`BufferedStream` 缓存流、`RangeStream` 范围流；
- *  - **数据搬运**：`copyStream` 将流数据复制到目标流，`bridge` 双向复制流数据。
+ *  - **Stream objects**: `MemoryStream`, `BufferedStream` and `RangeStream`;
+ *  - **Data movement**: `copyStream` copies data into a target stream, `bridge` copies both ways.
  *
- *  使用方法：
+ *  Usage:
  *  ```JavaScript
  *  var io = require('io');
  *  ```
  *
- *  复制流数据示例：
+ *  Example of copying a stream:
  *
  *  ```JavaScript
  *  var io = require('io');
@@ -32,28 +32,29 @@
  */
 declare module 'io' {
     /**
-     * @description 创建一个内存流对象，参见 MemoryStream
+     * @description Creates a memory stream, see MemoryStream
      */
     const MemoryStream: typeof Class_MemoryStream;
 
     /**
-     * @description 创建一个缓存流读取对象，参见 BufferedStream
+     * @description Creates a buffered stream, see BufferedStream
      */
     const BufferedStream: typeof Class_BufferedStream;
 
     /**
-     * @description 创建一个 Range 查询流读取对象，参见 RangeStream
+     * @description Creates a range stream, see RangeStream
      */
     const RangeStream: typeof Class_RangeStream;
 
     /**
-     * @description 复制流数据到目标流中
+     * @description Copies the data of a stream into a target stream
      *
-     *      bytes 指定复制的字节数，缺省为 -1，表示复制源流中的全部数据；复制完成后返回实际复制的字节数。
-     *      @param from 源流对象
-     *      @param to 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     *      bytes specifies the number of bytes to copy; -1 by default, which copies all the data of
+     *      the source stream. The number of bytes actually copied is returned once the copy is done.
+     *      @param from the source stream
+     *      @param to the target stream
+     *      @param bytes the number of bytes to copy
+     *      @return the number of bytes copied
      *
      */
     function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number): number;
@@ -61,35 +62,38 @@ declare module 'io' {
     function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description 复制流数据到目标流中
+     * @description Copies the data of a stream into a target stream
      *
-     *      bytes 指定复制的字节数，缺省为 -1，表示复制源流中的全部数据；复制完成后返回实际复制的字节数。
-     *      @param from 源流对象
-     *      @param to 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     *      bytes specifies the number of bytes to copy; -1 by default, which copies all the data of
+     *      the source stream. The number of bytes actually copied is returned once the copy is done.
+     *      @param from the source stream
+     *      @param to the target stream
+     *      @param bytes the number of bytes to copy
+     *      @return the number of bytes copied
      *
      */
     function copyStreamSync(from: Class_Stream, to: Class_Stream, bytes?: number): number;
 
     /**
-     * @description 复制流数据到目标流中
+     * @description Copies the data of a stream into a target stream
      *
-     *      bytes 指定复制的字节数，缺省为 -1，表示复制源流中的全部数据；复制完成后返回实际复制的字节数。
-     *      @param from 源流对象
-     *      @param to 目标流对象
-     *      @param bytes 复制的字节数
-     *      @return 返回复制的字节数
+     *      bytes specifies the number of bytes to copy; -1 by default, which copies all the data of
+     *      the source stream. The number of bytes actually copied is returned once the copy is done.
+     *      @param from the source stream
+     *      @param to the target stream
+     *      @param bytes the number of bytes to copy
+     *      @return the number of bytes copied
      *
      */
     function copyStreamAsync(from: Class_Stream, to: Class_Stream, bytes?: number): Promise<number>;
 
     /**
-     * @description 双向复制流数据，直到流中无数据，或者流被关闭
+     * @description Copies data in both directions until no data is left or a stream is closed
      *
-     *      stm1 与 stm2 互为对方的输入与输出，任一方向的数据传输结束后整体停止。
-     *      @param stm1 流对象一
-     *      @param stm2 流对象二
+     *      stm1 and stm2 are the input and output of each other; the copy stops as a whole when
+     *      either direction ends.
+     *      @param stm1 the first stream
+     *      @param stm2 the second stream
      *
      */
     function bridge(stm1: Class_Stream, stm2: Class_Stream): void;
@@ -97,21 +101,23 @@ declare module 'io' {
     function bridge(stm1: Class_Stream, stm2: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 双向复制流数据，直到流中无数据，或者流被关闭
+     * @description Copies data in both directions until no data is left or a stream is closed
      *
-     *      stm1 与 stm2 互为对方的输入与输出，任一方向的数据传输结束后整体停止。
-     *      @param stm1 流对象一
-     *      @param stm2 流对象二
+     *      stm1 and stm2 are the input and output of each other; the copy stops as a whole when
+     *      either direction ends.
+     *      @param stm1 the first stream
+     *      @param stm2 the second stream
      *
      */
     function bridgeSync(stm1: Class_Stream, stm2: Class_Stream): void;
 
     /**
-     * @description 双向复制流数据，直到流中无数据，或者流被关闭
+     * @description Copies data in both directions until no data is left or a stream is closed
      *
-     *      stm1 与 stm2 互为对方的输入与输出，任一方向的数据传输结束后整体停止。
-     *      @param stm1 流对象一
-     *      @param stm2 流对象二
+     *      stm1 and stm2 are the input and output of each other; the copy stops as a whole when
+     *      either direction ends.
+     *      @param stm1 the first stream
+     *      @param stm2 the second stream
      *
      */
     function bridgeAsync(stm1: Class_Stream, stm2: Class_Stream): Promise<void>;

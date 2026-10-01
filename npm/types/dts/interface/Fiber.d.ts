@@ -1,10 +1,10 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 纤程操作对象，此对象不可直接创建
+ * @description Fiber operation object; this object cannot be created directly
  *
- *  使用 coroutine.start 创建纤程后，将返回此对象，用于纤程处理和纤程间通信。
- *  纤程主函数可以通过 this 访问本纤程对象，也可通过 coroutine.current 获取当前纤程。
+ *  After creating a fiber with coroutine.start, this object is returned and used for fiber handling and inter-fiber communication.
+ *  The fiber main function can access this fiber object through this, or get the current fiber through coroutine.current.
  *  ```JavaScript
  *  function func(v1)
  *  {
@@ -18,7 +18,7 @@
  *  fb.join();
  *  ```
  *
- *  纤程局部存储通过共享的 Fiber 对象完成，通过 coroutine.current 获取当前纤程，通过修改和查询其变量达到共享数据的目的。
+ *  Fiber-local storage is implemented through the shared Fiber object; get the current fiber through coroutine.current and share data by modifying and querying its variables.
  *
  *  ```JavaScript
  *  function func()
@@ -31,7 +31,7 @@
  *  func();
  *  ```
  *
- *  纤程在创建时，会自动复制当前纤程的局部变量到新的纤程，之后，各自的局部变量的修改不会相互影响，除非变量本身为对象引用。
+ *  When a fiber is created, the local variables of the current fiber are automatically copied to the new fiber; afterwards, modifications to their respective local variables do not affect each other, unless the variable itself is an object reference.
  *
  *  ```JavaScript
  *  function func()
@@ -51,22 +51,22 @@
  */
 declare class Class_Fiber extends Class_object {
     /**
-     * @description 等待纤程结束
+     * @description Waits for the fiber to finish
      */
     join(): void;
 
     /**
-     * @description 查询纤程的唯一 id
+     * @description Queries the unique id of the fiber
      */
     readonly id: number;
 
     /**
-     * @description 查询纤程的调用堆栈
+     * @description Queries the call stack of the fiber
      */
     readonly stack: string;
 
     /**
-     * @description 查询纤程已使用的堆栈尺寸
+     * @description Queries the used stack size of the fiber
      */
     readonly stack_usage: number;
 

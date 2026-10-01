@@ -1,0 +1,77 @@
+/*! @brief Redis database client Hash object; this object is a client bound to the given key and only calling its methods operates on the database
+
+ Used to operate on a Redis Hash object. To create one:
+ ```JavaScript
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var hash = rdb.getHash("test");
+ ```
+ */
+interface RedisHash : object
+{
+    /*! @brief Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten
+     @param field the field to modify
+     @param value the value to modify */
+    set(Buffer field, Buffer value);
+
+    /*! @brief Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect
+     @param field the field to modify
+     @param value the value to modify */
+    setNX(Buffer field, Buffer value);
+
+    /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
+     @param kvs the field/value object to set*/
+    mset(Object kvs);
+
+    /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
+     @param kvs the field/value list to set*/
+    mset(...kvs);
+
+    /*! @brief Returns the value of the given field in the hash table
+     @param field the field to query
+     @return the value of the given field; returns null when the given field does not exist or the given key does not exist */
+    Buffer get(Buffer field);
+
+    /*! @brief Returns the values of one or more given fields in the hash table
+     @param fields the array of fields to query
+     @return a list containing the values of all the given fields */
+    NArray mget(Array fields);
+
+    /*! @brief Returns the values of one or more given fields in the hash table
+     @param fields the list of fields to query
+     @return a list containing the values of all the given fields */
+    NArray mget(...fields);
+
+    /*! @brief Adds the increment to the value stored in the field
+     @param field the field to modify
+     @param num the number to add
+     @return the value of the field after adding num */
+    Long incr(Buffer field, Long num = 1);
+
+    /*! @brief Returns all fields and values in the hash table
+     @return returns a list containing all fields in the hash table */
+    NArray getAll();
+
+    /*! @brief Returns all fields in the hash table
+     @return in the returned value, each field name (field name) is immediately followed by the field value (value), so the length of the returned value is twice the size of the hash table */
+    NArray keys();
+
+    /*! @brief Returns the number of fields in the hash table
+     @return returns the number of fields in the hash table */
+    Integer len();
+
+    /*! @brief Checks whether the given field exists in the hash table
+     @param field the field to query
+     @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist */
+    Boolean exists(Buffer field);
+
+    /*! @brief Removes one or more given fields from the hash table; non-existing fields are ignored
+     @param fields the array of fields to remove
+     @return the number of fields removed */
+    Integer del(Array fields);
+
+    /*! @brief Removes one or more given fields from the hash table; non-existing fields are ignored
+     @param fields the list of fields to remove
+     @return the number of fields removed */
+    Integer del(...fields);
+};

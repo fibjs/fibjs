@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/AbortSignal.d.ts" />
 /**
- * @description 控制器对象，用于在需要时中止一个或多个 Web 请求
+ * @description The controller object used to abort one or more Web requests on demand
  *
- * AbortController 对象为全局基础类，在任何时候都可以直接以 new AbortController() 创建：
+ * The AbortController object is a global base class and can be created at any time directly with new AbortController():
  *  ```JavaScript
  *  var buf = new AbortController();
  *  ```
@@ -12,25 +12,25 @@
  */
 declare class Class_AbortController extends Class_object {
     /**
-     * @description 用于中止一个或多个 Web 请求的 AbortSignal 对象
+     * @description The AbortSignal object used to abort one or more Web requests
      */
     constructor();
 
     /**
-     * @description 用于中止一个或多个 Web 请求的 AbortSignal 对象
+     * @description The AbortSignal object used to abort one or more Web requests
      */
     readonly signal: Class_AbortSignal;
 
     /**
-     * @description 用于中止一个或多个 Web 请求
-     *      @param reason 一个可选的字符串，用于描述中止请求的原因
+     * @description Aborts one or more Web requests
+     *      @param reason an optional string describing the reason for aborting the request
      *
      */
     abort(reason?: string): void;
 
     /**
-     * @description 用于中止一个或多个 Web 请求
-     *      @param reason 一个任意类型的值，用于描述中止请求的原因
+     * @description Aborts one or more Web requests
+     *      @param reason a value of any type describing the reason for aborting the request
      *
      */
     abort(reason: any): void;

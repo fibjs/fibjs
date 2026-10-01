@@ -2,41 +2,41 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /**
- * @description DOMParser 接口提供将 XML 或 HTML 源代码字符串解析为 DOM Document 的能力
+ * @description The DOMParser interface provides the ability to parse XML or HTML source strings into DOM Documents
  *
- *  DOMParser 可以将字符串中的 XML 或 HTML 源代码解析为 DOM 文档：
+ *  DOMParser can parse XML or HTML source in a string into a DOM document:
  *  ```JavaScript
  *  const parser = new DOMParser();
  *
- *  // 解析 HTML
+ *  // parses HTML
  *  const htmlDoc = parser.parseFromString('<html><body>Hello</body></html>', 'text/html');
- *  console.log(htmlDoc.body.textContent); // 输出: Hello
+ *  console.log(htmlDoc.body.textContent); // output: Hello
  *
- *  // 解析 XML
+ *  // parses XML
  *  const xmlDoc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
- *  console.log(xmlDoc.documentElement.nodeName); // 输出: root
+ *  console.log(xmlDoc.documentElement.nodeName); // output: root
  *  ```
  *
- *  支持的 MIME 类型包括：
- *  - text/html - 解析为 HTML 文档
- *  - text/xml - 解析为 XML 文档
- *  - application/xml - 解析为 XML 文档
- *  - application/xhtml+xml - 解析为 XHTML 文档
- *  - image/svg+xml - 解析为 SVG 文档
+ *  Supported MIME types include:
+ *  - text/html - parses as an HTML document
+ *  - text/xml - parses as an XML document
+ *  - application/xml - parses as an XML document
+ *  - application/xhtml+xml - parses as an XHTML document
+ *  - image/svg+xml - parses as an SVG document
  *
  */
 declare class Class_DOMParser extends Class_object {
     /**
-     * @description 构造一个 DOMParser 对象
+     * @description Constructs a DOMParser object
      */
     constructor();
 
     /**
-     * @description 将字符串解析为 DOM 文档
-     *      @param string 要解析的 HTML 或 XML 字符串
-     *      @param mimeType 指定文本类型，支持 "text/html", "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml"
-     *      @param options 指定解析限制，与 xml.parse 一致，缺省为 { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *      @return 返回解析后的 XmlDocument 对象
+     * @description Parses a string into a DOM document
+     *      @param string the HTML or XML string to parse
+     *      @param mimeType the text type, supporting "text/html", "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml"
+     *      @param options the parse limits, consistent with xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *      @return returns the parsed XmlDocument object
      *
      */
     parseFromString(string: string, mimeType: string, options?: FIBJS.GeneralObject): Class_XmlDocument;

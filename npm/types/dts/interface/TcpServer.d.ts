@@ -3,11 +3,11 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
 /**
- * @description TcpServer` 是高并发的 TCP Socket 服务器，可以用来创建一个初始状态下已经与客户端建立了 TCP 连接的 TCP 服务器
+ * @description TcpServer` is a high-concurrency TCP Socket server, which can be used to create a TCP server that already has TCP connections established with clients in its initial state
  *
- * 使用 `TcpServer` 对象可以迅速创建一个多纤程并发处理的 TCP 服务器。当有客户端连接到这个监听的地址时，回调函数会被调用并返回一个新的被连接的 `Socket` 对象，我们可以使用这个对象来往客户端发送或接收 TCP 报文。
+ * The `TcpServer` object can be used to quickly create a multi-fiber concurrent TCP server. When a client connects to the listened address, the callback function is invoked and returns a new connected `Socket` object, which we can use to send or receive TCP messages to or from the client.
  *
- * 下面是一个基于 `TcpServer` 对象来实现的回写客户端 TCP 报文的具体示例：
+ * The following is a concrete example of echoing client TCP messages based on the `TcpServer` object:
  *
  * ```JavaScript
  * const net = require("net");
@@ -25,67 +25,67 @@
  * new net.TcpServer('0.0.0.0', 8080, onConnect).start();
  * console.log('server is running on port: 8080');
  * ```
- * 在上述代码中，我们创建了一个 `TcpServer` 对象并通过回调函数 `onConnect` 来处理接收到的客户端请求信息，将其中的数据回写到客户端。
+ * In the above code, we create a `TcpServer` object and use the callback function `onConnect` to handle received client request information, writing its data back to the client.
  *
- * 当启动这个服务时，它将监听 `8080` 端口上面的所有 IP 地址和请求，当你通过 `telnet` 或者其他客户端工具连接到该服务时，你将会看到服务打印连接信息，并将你发送来的每一条请求原样发送回去。
+ * When this service is started, it will listen for all IP addresses and requests on port `8080`. When you connect to the service via `telnet` or other client tools, you will see the service print connection information and send every request you send back unchanged.
  *
  */
 declare class Class_TcpServer extends Class_EventEmitter {
     /**
-     * @description TcpServer 构造函数，在所有本机地址侦听
-     *     @param port 指定 tcp 服务器侦听端口
-     *     @param listener 指定 tcp 接收到的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     * @description TcpServer constructor, listening on all local addresses
+     *     @param port specifies the tcp server listening port
+     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
      *
      */
     constructor(port: number, listener: Class_Handler);
 
     /**
-     * @description TcpServer 构造函数
-     *     @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
-     *     @param port 指定 tcp 服务器侦听端口
-     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     * @description TcpServer constructor
+     *     @param addr specifies the tcp server listening address; "" means listening on all local addresses
+     *     @param port specifies the tcp server listening port
+     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
      *
      */
     constructor(addr: string, port: number, listener: Class_Handler);
 
     /**
-     * @description TcpServer 构造函数
+     * @description TcpServer constructor
      *
-     *      options 支持以下属性：
-     *      - address: 指定监听的地址，可选，默认在所有地址监听
-     *      - port: 指定监听的端口，可选，不提供时需调用 listen() 启动
+     *      options supports the following properties:
+     *      - address: specifies the listening address, optional, defaults to listening on all addresses
+     *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
-     *     @param options 服务器选项
-     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *     @param options server options
+     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
      *
      */
     constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
 
     /**
-     * @description TcpServer 构造函数
-     *     @param addr 指定 unix socket 或者 Windows pipe 服务器侦听地址
-     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     * @description TcpServer constructor
+     *     @param addr specifies the unix socket or Windows pipe server listening address
+     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
      *
      */
     constructor(addr: string, listener: Class_Handler);
 
     /**
-     * @description TcpServer 构造函数，不绑定端口，需调用 listen() 启动
-     *     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
      *
      */
     constructor(listener: Class_Handler);
 
     /**
-     * @description 启动当前服务器
+     * @description starts the current server
      */
     start(): void;
 
     /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param port 指定 TCP 服务器侦听端口
-     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
+     * @description binds the address and port and starts listening for connections
+     *     @param port specifies the TCP server listening port
+     *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
+     *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
      *
      */
     listen(port: number, addr?: string, backlog?: number): void;
@@ -93,98 +93,98 @@ declare class Class_TcpServer extends Class_EventEmitter {
     listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param port 指定 TCP 服务器侦听端口
-     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
+     * @description binds the address and port and starts listening for connections
+     *     @param port specifies the TCP server listening port
+     *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
+     *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
      *
      */
     listenSync(port: number, addr?: string, backlog?: number): void;
 
     /**
-     * @description 绑定地址和端口并开始侦听连接
-     *     @param port 指定 TCP 服务器侦听端口
-     *     @param addr 指定 TCP 服务器侦听地址，"" 表示侦听本机所有地址
-     *     @param backlog 指定连接队列的最大长度，-1 表示使用系统默认值
+     * @description binds the address and port and starts listening for connections
+     *     @param port specifies the TCP server listening port
+     *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
+     *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
      *
      */
     listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器
+     * @description closes the socket and aborts the running server
      */
     stop(): void;
 
     stop(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器
+     * @description closes the socket and aborts the running server
      */
     stopSync(): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器
+     * @description closes the socket and aborts the running server
      */
     stopAsync(): Promise<void>;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
+     * @description closes the socket and aborts the running server; an alias of stop()
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
+     * @description closes the socket and aborts the running server; an alias of stop()
      */
     closeSync(): void;
 
     /**
-     * @description 关闭 socket中止正在运行的服务器，stop() 的别名
+     * @description closes the socket and aborts the running server; an alias of stop()
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 返回一个包含服务器绑定地址、地址族和端口的对象。用于获取操作系统分配的地址时查找实际端口。
-     *      @return 返回服务器绑定的地址、地址族和端口
+     * @description returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
+     *      @return returns the address, address family and port bound by the server
      *
      */
     address(): [address: string, family: string, port: number];
 
     /**
-     * @description 服务器当前侦听的 Socket 对象 
+     * @description the Socket object the server is currently listening on
      */
     readonly socket: Class_Socket;
 
     /**
-     * @description 查询和设置超时时间，单位毫秒，此超时时间用于设置接收到的新连接
+     * @description queries and sets the timeout in milliseconds; this timeout is used for newly accepted connections
      */
     timeout: number;
 
     /**
-     * @description 服务器当前事件处理接口对象
+     * @description the current event handling interface object of the server
      */
     handler: Class_Handler;
 
     /**
-     * @description 调用 start() 并完成绑定后触发
+     * @description emitted after start() is called and binding completes
      */
     on(event: "listening", listener: ()=>void): this;
 
     /**
-     * @description 建立新 TCP 连接时触发
-     *      @param socket 新建立的 Socket 连接对象
+     * @description emitted when a new TCP connection is established
+     *      @param socket the newly established Socket connection object
      *
      */
     on(event: "connection", listener: ()=>void): this;
 
     /**
-     * @description 发生错误时触发
+     * @description emitted when an error occurs
      */
     on(event: "error", listener: ()=>void): this;
 
     /**
-     * @description 服务器关闭后触发
+     * @description emitted after the server is closed
      */
     on(event: "close", listener: ()=>void): this;
 

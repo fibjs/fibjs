@@ -2,17 +2,17 @@
 /// <reference path="../interface/Service.d.ts" />
 /// <reference path="../module/os_constants.d.ts" />
 /**
- * @description `os` 模块是核心模块之一，用于运行的操作系统函数。它提供了与操作系统交互的实用程序功能，包括文件地址、文件路径、网络接口、主机名、操作系统类型等
+ * @description The `os` module is one of the core modules, providing functions for the running operating system. It offers utility features for interacting with the operating system, including file addresses, file paths, network interfaces, hostname, operating system type, etc.
  *
- * ### 常用方法
+ * ### Common methods
  *
- * `os` 模块中提供的方法很多，以下是几个比较常用的方法：
+ * The `os` module provides many methods; the following are a few of the more commonly used ones:
  *
  * #### os.hostname()
  *
- * 获取当前计算机的主机名。
+ * Gets the hostname of the current computer.
  *
- * 示例代码：
+ * Example:
  *
  * ```JavaScript
  * const os = require('os');
@@ -20,7 +20,7 @@
  * console.log(hostname);
  * ```
  *
- * 返回结果类似如下：
+ * The returned result is similar to:
  *
  * ```sh
  * localhost
@@ -28,9 +28,9 @@
  *
  * #### os.type()
  *
- * 获取当前操作系统的名称。
+ * Gets the name of the current operating system.
  *
- * 示例代码：
+ * Example:
  *
  * ```JavaScript
  * const os = require('os');
@@ -38,7 +38,7 @@
  * console.log(type);
  * ```
  *
- * 返回结果类似如下：
+ * The returned result is similar to:
  *
  * ```sh
  * Windows_NT
@@ -46,9 +46,9 @@
  *
  * #### os.release()
  *
- * 获取当前操作系统的版本。
+ * Gets the version of the current operating system.
  *
- * 示例代码：
+ * Example:
  *
  * ```JavaScript
  * const os = require('os');
@@ -56,7 +56,7 @@
  * console.log(release);
  * ```
  *
- * 返回结果类似如下：
+ * The returned result is similar to:
  *
  * ```sh
  * 10.0.18362
@@ -64,9 +64,9 @@
  *
  * #### os.arch()
  *
- * 获取操作系统的处理器架构。
+ * Gets the processor architecture of the operating system.
  *
- * 示例代码：
+ * Example:
  *
  * ```JavaScript
  * const os = require('os');
@@ -74,7 +74,7 @@
  * console.log(arch);
  * ```
  *
- * 返回结果类似如下：
+ * The returned result is similar to:
  *
  * ```sh
  * x64
@@ -82,9 +82,9 @@
  *
  * #### os.cpus()
  *
- * 获取 CPU 的信息。
+ * Gets CPU information.
  *
- * 示例代码：
+ * Example:
  *
  * ```JavaScript
  * const os = require('os');
@@ -92,7 +92,7 @@
  * console.log(cpus);
  * ```
  *
- * 返回结果类似如下：
+ * The returned result is similar to:
  *
  * ```sh
  * [
@@ -106,145 +106,145 @@
  */
 declare module 'os' {
     /**
-     * @description Service 构造函数，参见 Service
+     * @description Service constructor, see Service
      */
     const Service: typeof Class_Service;
 
     /**
-     * @description 查询当前运行环境主机名
-     *      @return 返回主机名
+     * @description Queries the hostname of the current runtime environment
+     *      @return returns the hostname
      *
      */
     function hostname(): string;
 
     /**
-     * @description 查询当前 CPU 的字节顺序
-     *      @return 返回字节顺序
+     * @description Queries the byte order of the current CPU
+     *      @return returns the byte order
      *
      */
     function endianness(): string;
 
     /**
-     * @description 查询当前运行环境操作系统名称
-     *      @return 返回系统名称
+     * @description Queries the operating system name of the current runtime environment
+     *      @return returns the system name
      *
      */
     function type(): string;
 
     /**
-     * @description 查询当前运行环境操作系统版本
-     *      @return 返回版本信息
+     * @description Queries the operating system version of the current runtime environment
+     *      @return returns the version information
      *
      */
     function release(): string;
 
     /**
-     * @description 查询当前用户目录
-     *      @return 返回目录字符串
+     * @description Queries the home directory of the current user
+     *      @return returns the directory string
      *
      */
     function homedir(): string;
 
     /**
-     * @description 查询当前 cpu 环境
-     *      @return 返回 cpu 类型，可能的结果为 'amd64', 'arm', 'arm64', 'ia32'
+     * @description Queries the current cpu environment
+     *      @return returns the cpu type; possible results are 'amd64', 'arm', 'arm64', 'ia32'
      *
      */
     function arch(): string;
 
     /**
-     * @description 查询运行环境当前时区
+     * @description Queries the current time zone of the runtime environment
      */
     const timezone: number;
 
     /**
-     * @description 查询当前运行环境行结尾标识，posix:\"\\n\"；windows:\"\\r\\n\"
+     * @description Queries the line ending of the current runtime environment, posix:\"\\n\"; windows:\"\\r\\n\"
      */
     const EOL: string;
 
     /**
-     * ! os 模块的常量对象，参见 os_constants
+     * ! The constants object of the os module, see os_constants
      */
     const constants: typeof import ('os_constants');
 
     /**
-     * @description 查询运行环境 1分钟，5分钟，15分钟平均负载
-     *      @return 返回包含三个负载数据的数组
+     * @description Queries the 1-minute, 5-minute and 15-minute average load of the runtime environment
+     *      @return returns an array containing three load values
      *
      */
     function loadavg(): any[];
 
     /**
-     * @description 查询运行环境总内存，以字节为单位
-     *      @return 返回内存数据
+     * @description Queries the total memory of the runtime environment, in bytes
+     *      @return returns the memory value
      *
      */
     function totalmem(): number;
 
     /**
-     * @description 查询运行环境可用内存，以字节为单位
-     *      @return 返回内存数据
+     * @description Queries the available memory of the runtime environment, in bytes
+     *      @return returns the memory value
      *
      */
     function freemem(): number;
 
     /**
-     * @description 查询当前运行环境 cpu 个数和参数
-     *      @return 返回包含 cpu 参数的数组，每一项对应一个 cpu
+     * @description Queries the number and parameters of CPUs in the current runtime environment
+     *      @return returns an array containing cpu parameters, each item corresponding to one cpu
      *
      */
     function cpus(): any[];
 
     /**
-     * @description 查询当前运行环境 cpu 个数
-     *      @return 返回 cpu 个数
+     * @description Queries the number of CPUs in the current runtime environment
+     *      @return returns the number of CPUs
      *
      */
     function cpuNumbers(): number;
 
     /**
-     * @description 查询当前运行环境临时文件目录
-     *      @return 返回临时文件目录
+     * @description Queries the temporary file directory of the current runtime environment
+     *      @return returns the temporary file directory
      *
      */
     function tmpdir(): string;
 
     /**
-     * @description 返回当前有效执行用户信息
-     *      @param options 用于解释结果字符串的字符编码
-     *      @return 当前有效执行用户信息
+     * @description Returns information about the currently effective user
+     *      @param options character encoding used to interpret the result strings
+     *      @return information about the currently effective user
      *
      */
     function userInfo(options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前运行环境网络信息
-     *      @return 返回网卡信息
+     * @description Queries the network information of the current runtime environment
+     *      @return returns the network interface information
      *
      */
     function networkInterfaces(): FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前平台名称
-     *      @return 返回平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32'
+     * @description Queries the current platform name
+     *      @return returns the platform name; possible results are 'darwin', 'freebsd', 'linux', or 'win32'
      *
      */
     function platform(): string;
 
     /**
-     * @description 解析时间字符串或查询运行环境当前时间
-     *      @param tmString 时间字符串，缺省则查询当前时间
-     *      @return 返回 javascript Date 对象
+     * @description Parses a time string or queries the current time of the runtime environment
+     *      @param tmString time string; if omitted, queries the current time
+     *      @return returns a javascript Date object
      *
      */
     function time(tmString?: string): typeof Date;
 
     /**
-     * @description 时间计算函数，根据 part 指定计算时间
-     *      @param d 指定用于计算 Date 对象
-     *      @param num 指定运算的数值
-     *      @param part 指定运算的时间部位，接收值为："year", "month", "day", "hour", "minute", "second"
-     *      @return 返回 javascript Date 对象
+     * @description Time calculation function; calculates the time according to part
+     *      @param d specifies the Date object used for the calculation
+     *      @param num specifies the value of the operation
+     *      @param part specifies the time part of the operation; accepted values are: "year", "month", "day", "hour", "minute", "second"
+     *      @return returns a javascript Date object
      *
      */
     function dateAdd(d: typeof Date, num: number, part: string): typeof Date;

@@ -1,0 +1,30 @@
+/*! @brief The PerformanceObserver interface is an interface for observing performance entries
+
+ The PerformanceObserver interface is an interface for observing performance entries. It allows you to register a callback function, which is called when a new performance entry is added to the performance buffer of the browser. You can use the PerformanceObserver interface to observe specific types of performance entries, such as resource load time, user input delay, etc.
+*/
+interface PerformanceObserver : object
+{
+    /*! @brief Constructor
+
+     @param callback the callback function called when a new performance entry is added to the performance buffer of the browser
+    */
+    PerformanceObserver(Function callback);
+
+    /*! @brief Registers the observed resource types 
+
+     options is an object containing the following properties:
+       - type: the observed resource type
+       - entryTypes: the list of observed resource types
+
+     @param options the observed resource types
+    */
+    observe(Object options);
+
+    /*! @brief Unregisters the observed resource types */
+    disconnect();
+
+    /*! @brief Gets the entries of the observed resource types
+     @return returns the entries of the observed resource types
+    */
+    NArray takeRecords();
+};

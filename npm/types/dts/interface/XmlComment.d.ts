@@ -1,12 +1,12 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlCharacterData.d.ts" />
 /**
- * @description XmlComment 对象表示文档中注释节点的内容
+ * @description The XmlComment object represents the content of a comment node in a document
  *
- * XmlComment 节点表示 XML 文档中的注释。
- * 使用由 XmlCharacterData 接口继承的 data 属性，或使用由 XmlNode 接口继承的 nodeValue 属性，可以访问注释的内容。（即 <!-- 和 --> 之间的文本）。使用由 XmlCharacterData 接口继承的各种方法可以操作注释的内容。
+ * An XmlComment node represents a comment in an XML document.
+ * The comment content (that is, the text between <!-- and -->) can be accessed with the data property inherited from the XmlCharacterData interface or the nodeValue property inherited from the XmlNode interface. The comment content can be manipulated with the various methods inherited from the XmlCharacterData interface.
  *
- * 使用 XmlDocument.createComment() 来创建一个注释对象。
+ * Use XmlDocument.createComment() to create a comment object.
  *
  */
 declare class Class_XmlComment extends Class_XmlCharacterData {

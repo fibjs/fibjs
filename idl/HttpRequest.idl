@@ -1,0 +1,69 @@
+/*! @brief HttpRequest is the class used to handle HTTP requests; it allows you to create HTTP requests and interact with servers. You can use it to send GET, POST and other types of HTTP requests to a Web server
+
+Suppose we have a query parameter whose key is name; we return different results according to this parameter: if the parameter is empty, return "Hello world!"; if the parameter is "fibjs", return "Hello fibjs!"; otherwise return "Hello some body!". 
+
+The implementation is as follows: 
+```JavaScript
+const http = require('http');
+
+var svr = new http.Server(8080, (req) => {
+  var name = req.query.get('name');
+  var msg = name ? `Hello ${name}!` : 'Hello world!';
+  
+  req.response.write(msg);
+});
+
+svr.start();
+```
+
+Here we use `req.query`, a Collection type, which represents the query parameters in the HTTP request URL. 
+
+When we access http://127.0.0.1:8080/?name=fibjs from a browser, the server response we get is `Hello fibjs!`.
+ */
+interface HttpRequest : HttpMessage
+{
+    /*! @brief HttpRequest constructor, creates a new HttpRequest object */
+    HttpRequest();
+
+    /*! @brief HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
+     @param url the request URL
+     @param options the request options, which can contain fields such as method, headers and body
+    */
+    HttpRequest(String url, Object options = {});
+
+    /*! @brief HttpRequest constructor, copies from an existing Request object and can override options (Fetch API)
+     @param request the existing HttpRequest object
+     @param options the override options, which can contain fields such as method, headers and body
+    */
+    HttpRequest(HttpRequest request, Object options = {});
+
+    /*! @brief gets the response message object*/
+    readonly HttpResponse response;
+
+    /*! @brief queries and sets the request method */
+    String method;
+
+    /*! @brief queries and sets the request address */
+    String address;
+
+    /*! @brief queries and sets the URL path and query string of the request, for example /path?key=value */
+    String url;
+
+    /*! @brief gets the complete URL of the request, including protocol, host, path and query string */
+    readonly String href;
+
+    /*! @brief queries and sets the request query string */
+    String queryString;
+
+    /*! @brief gets the container holding the message cookies*/
+    readonly HttpCollection cookies;
+
+    /*! @brief gets the container holding the message form*/
+    readonly FormData form;
+
+    /*! @brief gets the container holding the message query*/
+    readonly URLSearchParams query;
+
+    /*! @brief aborts the request and closes the underlying connection */
+    abort();
+};

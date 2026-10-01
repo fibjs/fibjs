@@ -1,0 +1,33 @@
+/*! @brief Message handler chain object
+
+ The Chain object is a message handler chain object in fibjs, used to link a series of message handlers and process them in a chain in the specified order. A Chain object is created as follows:
+
+```
+var chain = new mq.Chain([
+    func1, func2
+]);
+```
+
+In this creation method, func1 and func2 are both message handler function objects. The Chain object links these handlers together in order to form a handler chain. When processing each message, a handler can customize the processing of the message and then pass the message to the next handler. In this way, a message can be processed step by step to its final state.
+
+The invoke() function of the Chain object processes a message or object. When this function is called, the Chain object passes the message or object to each handler in turn and processes them in the order of the handlers until all handlers have finished. During this process, each handler can customize the processing of the message or object, and may also choose to pass the message or object to the next handler for processing.
+
+In practice, the Chain object can be applied to various scenarios; for example, in a web framework, request messages can be passed to each handler in turn for processing, and in a message queue, a batch of messages can be passed to each handler in turn for processing. The Chain object is very flexible to use and can be customized according to actual needs, with high extensibility and reusability.
+ */
+interface Chain : Handler
+{
+    /*! @brief Constructs a message handler chain object
+     @param hdlrs handler array
+     */
+    Chain(Handler hdlrs[]);
+
+    /*! @brief Adds a handler array
+     @param hdlrs handler array
+     */
+    append(Handler hdlrs[]);
+
+    /*! @brief Adds a handler
+     @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     */
+    append(Handler hdlr);
+};

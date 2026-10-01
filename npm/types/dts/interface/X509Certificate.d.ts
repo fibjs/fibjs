@@ -3,7 +3,7 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /**
- * @description 封装 X509 证书并提供信息读取
+ * @description Encapsulates an X509 certificate and provides information reading
  *
  * ```JavaScript
  * const crypto = require('crypto');
@@ -13,188 +13,188 @@
  */
 declare class Class_X509Certificate extends Class_object {
     /**
-     * @description 从证书创建 X509Certificate 对象
+     * @description Creates an X509Certificate object from a certificate
      *
-     *     如果 cert 中包含多个证书，则返回的对象将包含第一个证书，并且 next() 方法将返回下一个证书
+     *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
      *
-     *     @param cert PEM 格式证书的二进制数据
-     *     @return 返回一个 X509Certificate 对象
+     *     @param cert the binary data of the certificate in PEM format
+     *     @return returns an X509Certificate object
      *
      */
     constructor(cert: Class_Buffer);
 
     /**
-     * @description 从一组证书创建 X509Certificate 对象
+     * @description Creates an X509Certificate object from a group of certificates
      *
-     *     如果 cert 中包含多个证书，则返回的对象将包含第一个证书，并且 next() 方法将返回下一个证书
+     *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
      *
-     *     @param certs PEM 格式证书的数组
-     *     @return 返回一个 X509Certificate 对象
+     *     @param certs the array of certificates in PEM format
+     *     @return returns an X509Certificate object
      *
      */
     constructor(certs: Class_Buffer[]);
 
     /**
-     * @description 证书的主题
+     * @description The subject of the certificate
      */
     readonly subject: string;
 
     /**
-     * @description 证书的序列号
+     * @description The serial number of the certificate
      */
     readonly serialNumber: string;
 
     /**
-     * @description 证书的认证的公钥
+     * @description The certified public key of the certificate
      */
     readonly publicKey: Class_KeyObject;
 
     /**
-     * @description 证书的主题备用名称
+     * @description The subject alternative names of the certificate
      */
     readonly subjectAltName: string;
 
     /**
-     * @description 证书的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值
+     * @description The information access extension of the certificate; returns a newline-separated list of access descriptions. Each line begins with the access method and the type of the access location, followed by a colon and the value associated with the access location
      */
     readonly infoAccess: string;
 
     /**
-     * @description 证书的颁发者
+     * @description The issuer of the certificate
      */
     readonly issuer: string;
 
     /**
-     * @description 证书是否是 CA 证书
+     * @description Whether the certificate is a CA certificate
      */
     readonly ca: boolean;
 
     /**
-     * @description 证书的路径长度约束
+     * @description The path length constraint of the certificate
      */
     readonly pathlen: number;
 
     /**
-     * @description 证书的密钥用法
+     * @description The key usage of the certificate
      */
     readonly keyUsage: any[];
 
     /**
-     * @description 证书的 Netscape 类型
+     * @description The Netscape type of the certificate
      */
     readonly type: any[];
 
     /**
-     * @description 证书的有效期开始时间
+     * @description The start time of the certificate validity period
      */
     readonly validFrom: string;
 
     /**
-     * @description 证书的有效期结束时间
+     * @description The end time of the certificate validity period
      */
     readonly validTo: string;
 
     /**
-     * @description 证书的原始二进制数据
+     * @description The raw binary data of the certificate
      */
     readonly raw: Class_Buffer;
 
     /**
-     * @description 证书的 PEM 编码
+     * @description The PEM encoding of the certificate
      */
     readonly pem: string;
 
     /**
-     * @description 证书的 SHA-1 指纹
+     * @description The SHA-1 fingerprint of the certificate
      */
     readonly fingerprint: string;
 
     /**
-     * @description 证书的 SHA-256 指纹
+     * @description The SHA-256 fingerprint of the certificate
      */
     readonly fingerprint256: string;
 
     /**
-     * @description 证书的 SHA-512 指纹
+     * @description The SHA-512 fingerprint of the certificate
      */
     readonly fingerprint512: string;
 
     /**
-     * @description 证书链的下一个证书
-     *      @return 返回下一个证书
+     * @description The next certificate in the certificate chain
+     *      @return returns the next certificate
      *
      */
     next(): Class_X509Certificate;
 
     /**
-     * @description 检查证书是否与给定的电子邮件地址匹配
+     * @description Checks whether the certificate matches the given email address
      *
-     *     如果 options.subject 选项未定义或设置为 'default'，则仅当主题备用名称扩展不存在或不包含任何电子邮件地址时才考虑证书主题。
+     *     If the options.subject option is undefined or set to 'default', the certificate subject is considered only when the subject alternative name extension is absent or contains no email addresses.
      *
-     *     如果 options.subject 选项设置为 'always' 并且主题备用名称扩展不存在或不包含匹配的电子邮件地址，则考虑证书主题。
+     *     If the options.subject option is set to 'always' and the subject alternative name extension is absent or contains no matching email address, the certificate subject is considered.
      *
-     *     如果 options.subject 选项设置为 'never'，则永远不会考虑证书主题，即使证书不包含主题备用名称。
+     *     If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate contains no subject alternative names.
      *
-     *     @param email 电子邮件地址
-     *     @param options 选项
-     *     @return 如果证书匹配，则返回 email，如果不匹配，则返回 undefined
+     *     @param email the email address
+     *     @param options the options
+     *     @return returns email if the certificate matches, or undefined if it does not
      *
      */
     checkEmail(email: string, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 检查证书是否与给定的主机名匹配
+     * @description Checks whether the certificate matches the given host name
      *
-     *     如果证书与给定的主机名匹配，则返回匹配的主题名称。返回的名称可能是完全匹配的（foo.example.com），也可能包含通配符（*.example.com ）。由于主机名比较不区分大小写，因此返回的使用者名称的大小写也可能与给定的 name 不同。
+     *     If the certificate matches the given host name, the matching subject name is returned. The returned name may be an exact match (foo.example.com) or may contain wildcards (*.example.com ). Since host name comparison is case-insensitive, the case of the returned subject name may differ from the given name.
      *
-     *     options 支持一下属性：
-     *      - subject: 'default'、'always' 或 'never'。默认值：'default'。
-     *      - wildcards: 默认值 true。
-     *      - partialWildcards: 默认值 true。
-     *      - multiLabelWildcards: 默认值 false。
-     *      - singleLabelSubdomains: 默认值 false。
+     *     options supports the following properties:
+     *      - subject: 'default', 'always' or 'never'. Default: 'default'.
+     *      - wildcards: default true.
+     *      - partialWildcards: default true.
+     *      - multiLabelWildcards: default false.
+     *      - singleLabelSubdomains: default false.
      *
-     *     如果 options.subject 选项未定义或设置为 'default'，则仅当使用者备用名称扩展不存在或不包含任何 DNS 名称时才考虑证书使用者。
+     *     If the options.subject option is undefined or set to 'default', the certificate subject is considered only when the subject alternative name extension is absent or contains no DNS names.
      *
-     *     如果 options.subject 选项设置为 'always' 并且使用者备用名称扩展不存在或不包含匹配的 DNS 名称，则将考虑证书使用者。
+     *     If the options.subject option is set to 'always' and the subject alternative name extension is absent or contains no matching DNS names, the certificate subject is considered.
      *
-     *     如果 options.subject 选项设置为 'never'，则永远不会考虑证书主题，即使证书不包含主题备用名称。
+     *     If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate contains no subject alternative names.
      *
-     *      @param name 主机名
-     *      @param options 选项
-     *      @return 返回与 name 匹配的主题名称，如果没有主题名称与 name 匹配，则返回 undefined
+     *      @param name the host name
+     *      @param options the options
+     *      @return returns the subject name matching name, or undefined if no subject name matches name
      *
      */
     checkHost(name: string, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description 检查证书是否与给定的 IP 地址（IPv4 或 IPv6）匹配
-     *     @param ip IP 地址
-     *     @return 如果证书匹配，则返回 ip ，如果不匹配，则返回 undefined
+     * @description Checks whether the certificate matches the given IP address (IPv4 or IPv6)
+     *     @param ip the IP address
+     *     @return returns ip if the certificate matches, or undefined if it does not
      *
      */
     checkIP(ip: string): string;
 
     /**
-     * @description 检查此证书是否由给定的 issuer 颁发
-     *     @param issuer 颁发者证书
-     *     @return 如果证书由 issuer 颁发，则返回 true，否则返回 false
+     * @description Checks whether this certificate was issued by the given issuer
+     *     @param issuer the issuer certificate
+     *     @return returns true if the certificate was issued by issuer, false otherwise
      *
      */
     checkIssued(issuer: Class_X509Certificate): boolean;
 
     /**
-     * @description 检查证书的公钥是否与给定的私钥签名匹配
-     *     @param privateKey 私钥
-     *     @return 如果匹配，则返回 true，否则返回 false
+     * @description Checks whether the certificate's public key matches the signature of the given private key
+     *     @param privateKey the private key
+     *     @return returns true if they match, false otherwise
      *
      */
     checkPrivateKey(privateKey: Class_KeyObject): boolean;
 
     /**
-     * @description 验证此证书是否由给定的公钥签名。不对证书执行任何其他验证检查
-     *     @param publicKey 公钥
-     *     @return 如果验证成功，则返回 true，否则返回 false
+     * @description Verifies that this certificate was signed by the given public key. No other validation checks are performed on the certificate
+     *     @param publicKey the public key
+     *     @return returns true if verification succeeds, false otherwise
      *
      */
     verify(publicKey: Class_KeyObject): boolean;

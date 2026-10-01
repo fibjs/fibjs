@@ -1,0 +1,246 @@
+/*! @brief os_constants errno submodule, containing POSIX error code constants
+
+ Usage:
+ ```JavaScript
+ var errno = require('os').constants.errno
+ ```
+ */
+module os_constants_errno
+{
+    /*! @brief Argument list too long */
+    const E2BIG = 7;
+
+    /*! @brief Permission denied */
+    const EACCES = 13;
+
+    /*! @brief Address already in use */
+    const EADDRINUSE = 98;
+
+    /*! @brief Address not available */
+    const EADDRNOTAVAIL = 99;
+
+    /*! @brief Address family not supported */
+    const EAFNOSUPPORT = 97;
+
+    /*! @brief Resource temporarily unavailable, try again */
+    const EAGAIN = 11;
+
+    /*! @brief Operation already in progress */
+    const EALREADY = 114;
+
+    /*! @brief Bad file descriptor */
+    const EBADF = 9;
+
+    /*! @brief Bad message */
+    const EBADMSG = 74;
+
+    /*! @brief Device or resource busy */
+    const EBUSY = 16;
+
+    /*! @brief Operation canceled */
+    const ECANCELED = 125;
+
+    /*! @brief No child processes */
+    const ECHILD = 10;
+
+    /*! @brief Connection aborted */
+    const ECONNABORTED = 103;
+
+    /*! @brief Connection refused */
+    const ECONNREFUSED = 111;
+
+    /*! @brief Connection reset */
+    const ECONNRESET = 104;
+
+    /*! @brief Resource deadlock avoided */
+    const EDEADLK = 35;
+
+    /*! @brief Destination address required */
+    const EDESTADDRREQ = 89;
+
+    /*! @brief Mathematics argument out of domain of function */
+    const EDOM = 33;
+
+    /*! @brief Disk quota exceeded */
+    const EDQUOT = 122;
+
+    /*! @brief File exists */
+    const EEXIST = 17;
+
+    /*! @brief Bad address */
+    const EFAULT = 14;
+
+    /*! @brief File too large */
+    const EFBIG = 27;
+
+    /*! @brief Host is unreachable */
+    const EHOSTUNREACH = 113;
+
+    /*! @brief Identifier removed */
+    const EIDRM = 43;
+
+    /*! @brief Illegal byte sequence */
+    const EILSEQ = 84;
+
+    /*! @brief Operation in progress */
+    const EINPROGRESS = 115;
+
+    /*! @brief Interrupted system call */
+    const EINTR = 4;
+
+    /*! @brief Invalid argument */
+    const EINVAL = 22;
+
+    /*! @brief I/O error */
+    const EIO = 5;
+
+    /*! @brief Socket is connected */
+    const EISCONN = 106;
+
+    /*! @brief Is a directory */
+    const EISDIR = 21;
+
+    /*! @brief Too many levels of symbolic links */
+    const ELOOP = 40;
+
+    /*! @brief Too many open files */
+    const EMFILE = 24;
+
+    /*! @brief Too many links */
+    const EMLINK = 31;
+
+    /*! @brief Message too long */
+    const EMSGSIZE = 90;
+
+    /*! @brief Multihop attempted */
+    const EMULTIHOP = 72;
+
+    /*! @brief File name too long */
+    const ENAMETOOLONG = 36;
+
+    /*! @brief Network is down */
+    const ENETDOWN = 100;
+
+    /*! @brief Network dropped connection on reset */
+    const ENETRESET = 102;
+
+    /*! @brief Network is unreachable */
+    const ENETUNREACH = 101;
+
+    /*! @brief Too many open files in system */
+    const ENFILE = 23;
+
+    /*! @brief No buffer space available */
+    const ENOBUFS = 105;
+
+    /*! @brief No data available */
+    const ENODATA = 61;
+
+    /*! @brief No such device */
+    const ENODEV = 19;
+
+    /*! @brief No such file or directory */
+    const ENOENT = 2;
+
+    /*! @brief Exec format error */
+    const ENOEXEC = 8;
+
+    /*! @brief No locks available */
+    const ENOLCK = 37;
+
+    /*! @brief Link has been severed */
+    const ENOLINK = 67;
+
+    /*! @brief Out of memory */
+    const ENOMEM = 12;
+
+    /*! @brief No message of desired type */
+    const ENOMSG = 42;
+
+    /*! @brief Protocol not available */
+    const ENOPROTOOPT = 92;
+
+    /*! @brief No space left on device */
+    const ENOSPC = 28;
+
+    /*! @brief No STREAM resources */
+    const ENOSR = 63;
+
+    /*! @brief Not a STREAM */
+    const ENOSTR = 60;
+
+    /*! @brief Function not implemented */
+    const ENOSYS = 38;
+
+    /*! @brief Socket is not connected */
+    const ENOTCONN = 107;
+
+    /*! @brief Not a directory */
+    const ENOTDIR = 20;
+
+    /*! @brief Directory not empty */
+    const ENOTEMPTY = 39;
+
+    /*! @brief Not a socket */
+    const ENOTSOCK = 88;
+
+    /*! @brief Operation not supported */
+    const ENOTSUP = 95;
+
+    /*! @brief Inappropriate ioctl for device */
+    const ENOTTY = 25;
+
+    /*! @brief No such device or address */
+    const ENXIO = 6;
+
+    /*! @brief Operation not supported on socket */
+    const EOPNOTSUPP = 95;
+
+    /*! @brief Value too large to be stored in data type */
+    const EOVERFLOW = 75;
+
+    /*! @brief Operation not permitted */
+    const EPERM = 1;
+
+    /*! @brief Broken pipe */
+    const EPIPE = 32;
+
+    /*! @brief Protocol error */
+    const EPROTO = 71;
+
+    /*! @brief Protocol not supported */
+    const EPROTONOSUPPORT = 93;
+
+    /*! @brief Protocol wrong type for socket */
+    const EPROTOTYPE = 91;
+
+    /*! @brief Numerical result out of range */
+    const ERANGE = 34;
+
+    /*! @brief Read-only file system */
+    const EROFS = 30;
+
+    /*! @brief Invalid seek */
+    const ESPIPE = 29;
+
+    /*! @brief No such process */
+    const ESRCH = 3;
+
+    /*! @brief Stale file handle */
+    const ESTALE = 116;
+
+    /*! @brief Timer expired */
+    const ETIME = 62;
+
+    /*! @brief Connection timed out */
+    const ETIMEDOUT = 110;
+
+    /*! @brief Text file busy */
+    const ETXTBSY = 26;
+
+    /*! @brief Operation would block */
+    const EWOULDBLOCK = 11;
+
+    /*! @brief Cross-device link */
+    const EXDEV = 18;
+};

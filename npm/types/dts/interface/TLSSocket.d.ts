@@ -3,9 +3,9 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /**
- * @description tls/ssl 网络套接口对象
+ * @description tls/ssl network socket object
  *
- * TLSSocket 属于 tls 模块，创建方法
+ * TLSSocket belongs to the tls module; creation:
  *  ```JavaScript
  *  var s = new tls.TLSSocket();
  *  ```
@@ -13,29 +13,29 @@
  */
 declare class Class_TLSSocket extends Class_Stream {
     /**
-     * @description 创建一个新的 TLSSocket 对象，使用当前缺省 SecureContext
+     * @description creates a new TLSSocket object using the current default SecureContext
      */
     constructor();
 
     /**
-     * @description 根据 context 创建一个新的 TLSSocket 对象
-     *      @param context 指定创建 TLSSocket 使用的安全上下文
+     * @description creates a new TLSSocket object from context
+     *      @param context specifies the secure context used to create TLSSocket
      *
      */
     constructor(context: Class_SecureContext);
 
     /**
-     * @description 根据 options 创建一个新的 TLSSocket 对象
-     *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
-     *      @param isServer 是否是服务端模式
+     * @description creates a new TLSSocket object from options
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param isServer whether it is in server mode
      *
      */
     constructor(options: FIBJS.GeneralObject, isServer?: boolean);
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
-     *      @param socket 给定的底层连接
-     *      @param server_name 服务端名称，用于验证服务端证书
+     * @description establishes a tls/ssl connection on the given connection, client mode
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
      *
      */
     connect(socket: Class_Stream, server_name?: string): void;
@@ -43,41 +43,41 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
-     *      @param socket 给定的底层连接
-     *      @param server_name 服务端名称，用于验证服务端证书
+     * @description establishes a tls/ssl connection on the given connection, client mode
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
      *
      */
     connectSync(socket: Class_Stream, server_name?: string): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
-     *      @param socket 给定的底层连接
-     *      @param server_name 服务端名称，用于验证服务端证书
+     * @description establishes a tls/ssl connection on the given connection, client mode
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
      *
      */
     connectAsync(socket: Class_Stream, server_name?: string): Promise<void>;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
-     *      @param socket 给定的底层连接
-     *      @param connectListener 指定 once 的 connect 事件监听器
+     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+     *      @param socket the given underlying connection
+     *      @param connectListener specifies the once connect event listener
      *
      */
     connect(socket: Class_Stream, connectListener: (...args: any[])=>any): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式，并在连接建立后触发 connect 事件
-     *      @param socket 给定的底层连接
-     *      @param server_name 服务端名称，用于验证服务端证书
-     *      @param connectListener 指定 once 的 connect 事件监听器
+     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
+     *      @param connectListener specifies the once connect event listener
      *
      */
     connect(socket: Class_Stream, server_name: string, connectListener: (...args: any[])=>any): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
-     *      @param socket 给定的底层连接
+     * @description establishes a tls/ssl connection on the given connection, server mode
+     *      @param socket the given underlying connection
      *
      */
     accept(socket: Class_Stream): void;
@@ -85,72 +85,72 @@ declare class Class_TLSSocket extends Class_Stream {
     accept(socket: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
-     *      @param socket 给定的底层连接
+     * @description establishes a tls/ssl connection on the given connection, server mode
+     *      @param socket the given underlying connection
      *
      */
     acceptSync(socket: Class_Stream): void;
 
     /**
-     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
-     *      @param socket 给定的底层连接
+     * @description establishes a tls/ssl connection on the given connection, server mode
+     *      @param socket the given underlying connection
      *
      */
     acceptAsync(socket: Class_Stream): Promise<void>;
 
     /**
-     * @description 查询消息 tls/ssl 建立时的下层流对象
+     * @description queries the underlying stream object when the tls/ssl connection was established
      */
     readonly stream: Class_Stream;
 
     /**
-     * @description 当前连接协商的 tls/ssl 协议版本
-     *      @return 返回 tls/ssl 协议版本
+     * @description the tls/ssl protocol version negotiated by the current connection
+     *      @return returns the tls/ssl protocol version
      *
      */
     getProtocol(): string;
 
     /**
-     * @description 当前连接协商的本地证书
-     *      @return 返回本地证书
+     * @description the local certificate negotiated by the current connection
+     *      @return returns the local certificate
      *
      */
     getX509Certificate(): Class_X509Certificate;
 
     /**
-     * @description 当前连接协商的对等证书
-     *      @return 返回对等证书
+     * @description the peer certificate negotiated by the current connection
+     *      @return returns the peer certificate
      *
      */
     getPeerX509Certificate(): Class_X509Certificate;
 
     /**
-     * @description 查询当前 TLSSocket 使用的 SecureContext
+     * @description queries the SecureContext used by the current TLSSocket
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description 查询当前连接的对方地址
+     * @description queries the peer address of the current connection
      */
     readonly remoteAddress: string;
 
     /**
-     * @description 查询当前连接的对方端口
+     * @description queries the peer port of the current connection
      */
     readonly remotePort: number;
 
     /**
-     * @description 查询当前连接的本地地址
+     * @description queries the local address of the current connection
      */
     readonly localAddress: string;
 
     /**
-     * @description 查询当前连接的本地端口
+     * @description queries the local port of the current connection
      */
     readonly localPort: number;
 
     /**
-     * @description 查询当前连接协商的 ALPN 协议，如果没有协商则返回 undefined
+     * @description queries the ALPN protocol negotiated by the current connection, returns undefined if not negotiated
      */
     readonly alpnProtocol: string;
 

@@ -1,0 +1,166 @@
+/*! @brief The uuid module provides creation and manipulation of unique ids. It can be used to generate UUIDs (Universally Unique Identifiers) meeting various requirements
+
+The `uuid` module provides several static functions that can be used to configure and generate different kinds of UUIDs.
+The following is an example of creating a uuid with md5:
+```JavaScript
+const uuid = require('uuid');
+const ns = uuid.DNS;
+const name = 'example.com';
+console.log(uuid.md5(ns, name));
+```
+In the example above, the uuid module is first imported, then the namespace and name are specified, and a UUID meeting the requirements is generated with the md5 algorithm and printed to the console.
+Similarly, we can also generate a uuid with the snowflake algorithm. The following is an example of creating a uuid with the snowflake algorithm:
+```JavaScript
+const uuid = require('uuid');
+const s = uuid.snowflake();
+console.log(s);
+```
+In the example above, the snowflake() method returns a Buffer object, which can be converted to a string and printed to the console to obtain the generated uuid.
+ */
+module uuid
+{
+    /*! @brief Specifies the name as a domain name when creating a uuid with md5 or sha1 */
+    const DNS = 0;
+
+    /*! @brief Specifies the name as a url address when creating a uuid with md5 or sha1 */
+    const URL = 1;
+
+    /*! @brief Specifies the name as an ISO OID when creating a uuid with md5 or sha1 */
+    const OID = 2;
+
+    /*! @brief Specifies the name as an X.500 DN when creating a uuid with md5 or sha1 */
+    const X509 = 3;
+
+    /*! @brief An empty uuid */
+    const NIL = "00000000-0000-0000-0000-000000000000";
+
+    /*! @brief The maximum UUID string */
+    const MAX = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+
+    /*! @brief The DNS namespace UUID for v3 and v5 */
+    const DNS_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
+
+    /*! @brief The URL namespace UUID for v3 and v5 */
+    const URL_NAMESPACE = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
+
+    /*! @brief Parses a uuid string
+     @param uuid the uuid string to parse
+     @return returns the parsed binary id
+     */
+    static Buffer parse(String uuid);
+
+    /*! @brief Converts a binary array to a uuid string
+     @param arr the array or Buffer containing the uuid binary data; its length must be at least 16 bytes
+     @param offset optional; the starting offset of the uuid data in the array, default 0
+     @return returns the converted uuid string
+     */
+    static String stringify(Buffer arr, Integer offset = 0);
+
+    /*! @brief Creates a uuid using a timestamp
+     @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+     @return returns a generated uuid string
+     */
+    static String v1(Object options = {});
+
+    /*! @brief Creates a uuid with an MD5 namespace (binary namespace format)
+     @param name the name to use
+     @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     @return returns a generated uuid string
+     */
+    static String v3(String name, Buffer ns);
+
+    /*! @brief Creates a uuid with an MD5 namespace (string format)
+     @param name the name to use
+     @param ns the namespace UUID string, or use a predefined namespace
+     @return returns a generated uuid string
+     */
+    static String v3(String name, String ns);
+
+    /*! @brief Creates a uuid using random numbers
+     @param options optional parameter object; supports the following properties: random (Buffer, random numbers), rng (Function, random number generator)
+     @return returns a generated uuid string
+     */
+    static String v4(Object options = {});
+
+    /*! @brief Creates a uuid with a SHA1 namespace (binary namespace format)
+     @param name the name to use
+     @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     @return returns a generated uuid string
+     */
+    static String v5(String name, Buffer ns);
+
+    /*! @brief Creates a uuid with a SHA1 namespace (string format)
+     @param name the name to use
+     @param ns the namespace UUID string, or use a predefined namespace
+     @return returns a generated uuid string
+     */
+    static String v5(String name, String ns);
+
+    /*! @brief Gets the version number of the uuid
+     @param uuid the uuid string to check
+     @return returns the uuid version number (0-7), or undefined if the format is invalid
+     */
+    static Integer version(String uuid);
+
+    /*! @brief Creates a uuid v6 using a reordered timestamp
+     @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+     @return returns a generated uuid string
+     */
+    static String v6(Object options = {});
+
+    /*! @brief Creates a uuid v7 using a Unix Epoch timestamp
+     @param options optional parameter object; supports the following properties: msecs (Integer, millisecond timestamp)
+     @return returns a generated uuid string
+     */
+    static String v7(Object options = {});
+
+    /*! @brief Converts a uuid v1 to v6
+     @param uuid the uuid string in v1 format
+     @return returns the converted v6 uuid string
+     */
+    static String v1ToV6(String uuid);
+
+    /*! @brief Converts a uuid v6 to v1
+     @param uuid the uuid string in v6 format
+     @return returns the converted v1 uuid string
+     */
+    static String v6ToV1(String uuid);
+
+    /*! @brief Validates whether a uuid string conforms to the specification
+     @param uuid the uuid string to validate
+     @return returns true if it conforms to the specification, false otherwise
+     */
+    static Boolean validate(String uuid);
+
+    /*! @brief Creates a uuid using the time and host name
+     @return returns a generated binary id
+     */
+    static Buffer node();
+
+    /*! @brief Creates a uuid with md5 for a specific name
+     @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     @param name the name to use
+     @return returns a generated binary id
+     */
+    static Buffer md5(Integer ns, String name);
+
+    /*! @brief Creates a uuid using random numbers
+     @return returns a generated binary id
+     */
+    static Buffer random();
+
+    /*! @brief Creates a uuid with sha1 for a specific name
+     @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
+     @param name the name to use
+     @return returns a generated binary id
+     */
+    static Buffer sha1(Integer ns, String name);
+
+    /*! @brief Creates a uuid using the Snowflake algorithm
+     @return returns a generated binary id
+     */
+    static Buffer snowflake();
+
+    /*! @brief Queries and modifies the host id of the Snowflake algorithm */
+    static Integer hostID;
+};

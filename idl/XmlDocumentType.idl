@@ -1,0 +1,16 @@
+/*! @brief The XmlDocumentType object is used to access the entities defined by XML
+*/
+interface XmlDocumentType : XmlNode
+{
+    /*! @brief Returns the name of the DTD
+	*/
+    readonly String name;
+
+    /*! @brief Returns the public identifier of the external DTD
+	*/
+    readonly String publicId;
+
+    /*! @brief Returns the system identifier of the external DTD
+	*/
+    readonly String systemId;
+};

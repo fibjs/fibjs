@@ -9,6 +9,7 @@ Select type of change you made and delete the others:
 
 If adding/changing one existing module or internal Object:
 - [ ] Add/Change the corresponding `*.idl` file
+- [ ] Keep the IDL comments in English - they are the manual of `fibjs --man`
 - [ ] Run `fibjs ./tools/idlc.js` to auto-generate `*.h`, **never change it**
 
 If removing one existing module or internal Object:

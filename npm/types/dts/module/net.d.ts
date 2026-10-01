@@ -6,78 +6,78 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/UrlObject.d.ts" />
 /**
- * @description net 模块提供网络基础能力，包括建立 TCP 连接、域名解析、IP 地址检测、创建 TCP 服务器等，是 http、tls、smtp 等网络模块的基础
+ * @description the net module provides basic network capabilities, including establishing TCP connections, domain name resolution, IP address detection and creating TCP servers; it is the foundation of network modules such as http, tls and smtp
  *
- *  模块的主要能力：
+ *  Main capabilities of the module:
  *
- *  - **连接**：`connect` 以多种形式建立 TCP 连接，支持 `tcp://`、`ssl://`、`unix:`、`pipe://` 协议；
- *  - **解析**：`resolve`、`ip`、`ipv6` 查询主机名的地址；
- *  - **服务器**：`createServer` 创建 TCP 服务器；
- *  - **检测**：`isIP`、`isIPv4`、`isIPv6` 检测 IP 地址格式；
- *  - **对象别名**：`Socket`、`Smtp`、`TcpServer`、`Url`。
+ *  - **Connection**: `connect` establishes TCP connections in multiple forms, supporting `tcp://`, `ssl://`, `unix:` and `pipe://` protocols;
+ *  - **Resolution**: `resolve`, `ip` and `ipv6` query the addresses of host names;
+ *  - **Server**: `createServer` creates a TCP server;
+ *  - **Detection**: `isIP`, `isIPv4` and `isIPv6` detect IP address formats;
+ *  - **Object aliases**: `Socket`, `Smtp`, `TcpServer` and `Url`.
  *
- *  引用方式：
+ *  Referenced as:
  *
  *  ```JavaScript
  *  var net = require('net');
  *  ```
  *
- *  建立 TCP 连接示例：
+ *  Example of establishing a TCP connection:
  *
  *  ```JavaScript
  *  var net = require('net');
  *
- *  // 指定端口与主机
+ *  // specify the port and host
  *  var sock = net.connect(80, 'example.com');
  *  sock.send('GET / HTTP/1.0\r\n\r\n');
  *  console.log(sock.recv());
  *  sock.close();
  *
- *  // 使用 URL 形式，支持 tcp:// 与 ssl:// 协议
+ *  // use the URL form, supporting tcp:// and ssl:// protocols
  *  var ssl = net.connect('ssl://example.com:443');
  *  ```
  *
  */
 declare module 'net' {
     /**
-     * @description 地址集常量，指定 unix socket
+     * @description address family constant, specifies unix socket
      */
     export const AF_UNIX: 1;
 
     /**
-     * @description 地址集常量，指定 Windows pipe
+     * @description address family constant, specifies Windows pipe
      */
     export const AF_PIPE: 1;
 
     /**
-     * @description 地址集常量，指定 ipv4
+     * @description address family constant, specifies ipv4
      */
     export const AF_INET: 2;
 
     /**
-     * @description 地址集常量，指定 ipv6
+     * @description address family constant, specifies ipv6
      */
     export const AF_INET6: 10;
 
     /**
-     * @description 查询和设置 socket 后端是否使用 uv，缺省为 false
+     * @description queries and sets whether the socket backend uses uv, default is false
      */
     var use_uv_socket: boolean;
 
     /**
-     * @description 查询当前运行环境网络信息
-     *      @return 返回网卡信息
+     * @description queries the network information of the current runtime environment
+     *      @return returns the network interface information
      *
      */
     function info(): FIBJS.GeneralObject;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given host name
      *
-     *      family 指定返回的地址族，取值为 AF_INET 或 AF_INET6，其他取值抛出异常。
-     *      @param name 指定主机名
-     *      @param family 指定查询返回类型，缺省为 AF_INET
-     *      @return 返回查询的 ip 字符串
+     *      family specifies the address family to return, with values AF_INET or AF_INET6; other values throw an exception.
+     *      @param name specifies the host name
+     *      @param family specifies the type returned by the query, default is AF_INET
+     *      @return returns the queried ip string
      *
      */
     function resolve(name: string, family: number): string;
@@ -85,31 +85,31 @@ declare module 'net' {
     function resolve(name: string, family: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given host name
      *
-     *      family 指定返回的地址族，取值为 AF_INET 或 AF_INET6，其他取值抛出异常。
-     *      @param name 指定主机名
-     *      @param family 指定查询返回类型，缺省为 AF_INET
-     *      @return 返回查询的 ip 字符串
+     *      family specifies the address family to return, with values AF_INET or AF_INET6; other values throw an exception.
+     *      @param name specifies the host name
+     *      @param family specifies the type returned by the query, default is AF_INET
+     *      @return returns the queried ip string
      *
      */
     function resolveSync(name: string, family: number): string;
 
     /**
-     * @description 查询给定的主机名的地址
+     * @description queries the address of the given host name
      *
-     *      family 指定返回的地址族，取值为 AF_INET 或 AF_INET6，其他取值抛出异常。
-     *      @param name 指定主机名
-     *      @param family 指定查询返回类型，缺省为 AF_INET
-     *      @return 返回查询的 ip 字符串
+     *      family specifies the address family to return, with values AF_INET or AF_INET6; other values throw an exception.
+     *      @param name specifies the host name
+     *      @param family specifies the type returned by the query, default is AF_INET
+     *      @return returns the queried ip string
      *
      */
     function resolveAsync(name: string, family: number): Promise<string>;
 
     /**
-     * @description 快速查询的主机地址，等效于 resolve(name)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串
+     * @description quickly queries the host address, equivalent to resolve(name)
+     *      @param name specifies the host name
+     *      @return returns the queried ip string
      *
      */
     function ip(name: string): string;
@@ -117,25 +117,25 @@ declare module 'net' {
     function ip(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 快速查询的主机地址，等效于 resolve(name)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串
+     * @description quickly queries the host address, equivalent to resolve(name)
+     *      @param name specifies the host name
+     *      @return returns the queried ip string
      *
      */
     function ipSync(name: string): string;
 
     /**
-     * @description 快速查询的主机地址，等效于 resolve(name)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ip 字符串
+     * @description quickly queries the host address, equivalent to resolve(name)
+     *      @param name specifies the host name
+     *      @return returns the queried ip string
      *
      */
     function ipAsync(name: string): Promise<string>;
 
     /**
-     * @description 快速查询的主机 ipv6 地址，等效于 resolve(name, net.AF_INET6)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ipv6 字符串
+     * @description quickly queries the host ipv6 address, equivalent to resolve(name, net.AF_INET6)
+     *      @param name specifies the host name
+     *      @return returns the queried ipv6 string
      *
      */
     function ipv6(name: string): string;
@@ -143,36 +143,36 @@ declare module 'net' {
     function ipv6(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 快速查询的主机 ipv6 地址，等效于 resolve(name, net.AF_INET6)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ipv6 字符串
+     * @description quickly queries the host ipv6 address, equivalent to resolve(name, net.AF_INET6)
+     *      @param name specifies the host name
+     *      @return returns the queried ipv6 string
      *
      */
     function ipv6Sync(name: string): string;
 
     /**
-     * @description 快速查询的主机 ipv6 地址，等效于 resolve(name, net.AF_INET6)
-     *      @param name 指定主机名
-     *      @return 返回查询的 ipv6 字符串
+     * @description quickly queries the host ipv6 address, equivalent to resolve(name, net.AF_INET6)
+     *      @param name specifies the host name
+     *      @return returns the queried ipv6 string
      *
      */
     function ipv6Async(name: string): Promise<string>;
 
     /**
-     * @description 创建一个 Socket 对象，参见 Socket
+     * @description creates a Socket object, see Socket
      */
     const Socket: typeof Class_Socket;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
+     * @description creates a Socket object and establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     function connect(options: FIBJS.GeneralObject): Class_Stream;
@@ -180,50 +180,50 @@ declare module 'net' {
     function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
+     * @description creates a Socket object and establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     function connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
+     * @description creates a Socket object and establishes a connection
      *
-     *      options 参数可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *
-     *      @param options 指定连接选项对象
-     *      @return 返回连接成功的 Socket 对象
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
      *
      */
     function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param options 指定连接选项对象，可以包含以下属性：
-     *       - port: 指定对方端口
-     *       - host: 指定对方地址或主机名
-     *       - timeout: 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 创建一个 Socket 或 SslSocket 对象并建立连接
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 或者 SslSocket 对象
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
      *
      */
     function connect(url: string, timeout?: number): Class_Stream;
@@ -231,29 +231,29 @@ declare module 'net' {
     function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 创建一个 Socket 或 SslSocket 对象并建立连接
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 或者 SslSocket 对象
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
      *
      */
     function connectSync(url: string, timeout?: number): Class_Stream;
 
     /**
-     * @description 创建一个 Socket 或 SslSocket 对象并建立连接
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 或者 SslSocket 对象
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
      *
      */
     function connectAsync(url: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 对象
+     * @description creates a Socket object and establishes a connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, host?: string, timeout?: number): Class_Stream;
@@ -261,84 +261,84 @@ declare module 'net' {
     function connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 对象
+     * @description creates a Socket object and establishes a connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     function connectSync(port: number, host?: string, timeout?: number): Class_Stream;
 
     /**
-     * @description 创建一个 Socket 对象并建立连接
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Socket 对象
+     * @description creates a Socket object and establishes a connection
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket object
      *
      */
     function connectAsync(port: number, host?: string, timeout?: number): Promise<Class_Stream>;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param port 指定对方端口
-     *      @param host 指定对方地址或主机名，缺省为 localhost
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 建立一个连接，并在连接建立后触发 connect 事件
-     *      @param path 指定 unix socket 或 Windows pipe 路径
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @param connectListener 指定 once 的 connect 事件监听器
-     *      @return 返回连接的 Socket 对象
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param path specifies the unix socket or Windows pipe path
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
      *
      */
     function connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
-     * @description 创建一个 Smtp 对象，参见 Smtp
+     * @description creates a Smtp object, see Smtp
      */
     const Smtp: typeof Class_Smtp;
 
     /**
-     * @description 创建一个 Smtp 对象并建立连接，参见 Smtp
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Smtp 对象
+     * @description creates a Smtp object and establishes a connection, see Smtp
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Smtp object
      *
      */
     function openSmtp(url: string, timeout?: number): Class_Smtp;
@@ -346,107 +346,107 @@ declare module 'net' {
     function openSmtp(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
 
     /**
-     * @description 创建一个 Smtp 对象并建立连接，参见 Smtp
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Smtp 对象
+     * @description creates a Smtp object and establishes a connection, see Smtp
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Smtp object
      *
      */
     function openSmtpSync(url: string, timeout?: number): Class_Smtp;
 
     /**
-     * @description 创建一个 Smtp 对象并建立连接，参见 Smtp
-     *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
-     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
-     *      @return 返回连接成功的 Smtp 对象
+     * @description creates a Smtp object and establishes a connection, see Smtp
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Smtp object
      *
      */
     function openSmtpAsync(url: string, timeout?: number): Promise<Class_Smtp>;
 
     /**
-     * @description 创建一个 TcpServer 对象，参见 TcpServer
+     * @description creates a TcpServer object, see TcpServer
      */
     const TcpServer: typeof Class_TcpServer;
 
     /**
-     * @description 创建一个 TCP 服务器
-     *      @param options 服务器选项对象，可以包含以下属性：
-     *       - address: 指定监听地址，默认为所有地址
-     *       - port: 指定监听端口，可选。不提供时需调用 listen() 启动
-     *      @param listener 连接处理函数
-     *      @return 返回 TcpServer 对象
+     * @description creates a TCP server
+     *      @param options the server options object, which can contain the following properties:
+     *       - address: specifies the listening address, default is all addresses
+     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
+     *      @param listener the connection handler function
+     *      @return returns the TcpServer object
      *
      */
     function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TcpServer;
 
     /**
-     * @description 创建一个 TCP 服务器
-     *      @param listener 连接处理函数
-     *      @return 返回未绑定端口的 TcpServer 对象，需调用 listen() 启动
+     * @description creates a TCP server
+     *      @param listener the connection handler function
+     *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
     function createServer(listener: Class_Handler): Class_TcpServer;
 
     /**
-     * @description 创建一个 UrlObject 对象，参见 UrlObject
+     * @description creates a UrlObject object, see UrlObject
      */
     const Url: typeof Class_UrlObject;
 
     /**
-     * @description 查询当前系统异步网络引擎
-     *      @return 返回网络引擎名称
+     * @description queries the asynchronous network engine of the current system
+     *      @return returns the network engine name
      *
      */
     function backend(): string;
 
     /**
-     * @description 检测输入是否是 IP 地址
-     *      @param ip 指定要检测的字符串
-     *      @return 非合法的 IP 地址，返回 0, 如果是 IPv4 则返回 4，如果是 IPv6 则返回 6
+     * @description detects whether the input is an IP address
+     *      @param ip specifies the string to detect
+     *      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
      *
      */
     function isIP(ip?: string): number;
 
     /**
-     * @description 检测输入是否是 IPv4 地址
-     *      @param ip 指定要检测的字符串
-     *      @return 如果是 IPv4 则返回 true.否则返回 false
+     * @description detects whether the input is an IPv4 address
+     *      @param ip specifies the string to detect
+     *      @return returns true if it is IPv4, otherwise returns false
      *
      */
     function isIPv4(ip?: string): boolean;
 
     /**
-     * @description 检测输入是否是 IPv6 地址
-     *      @param ip 指定要检测的字符串
-     *      @return 如果是 IPv6 则返回 true.否则返回 false
+     * @description detects whether the input is an IPv6 address
+     *      @param ip specifies the string to detect
+     *      @return returns true if it is IPv6, otherwise returns false
      *
      */
     function isIPv6(ip?: string): boolean;
 
     /**
-     * @description 查询 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
-     *      @return 返回当前默认值，缺省为 true
+     * @description queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     *      @return returns the current default value, default is true
      *
      */
     function getDefaultAutoSelectFamily(): boolean;
 
     /**
-     * @description 设置 net.connect 默认是否启用自动地址族选择，兼容 Node.js >= 18.13
-     *      @param enabled 指定默认值，必须为布尔值
+     * @description sets whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     *      @param enabled specifies the default value, which must be a boolean
      *
      */
     function setDefaultAutoSelectFamily(enabled: boolean): void;
 
     /**
-     * @description 查询默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
-     *      @return 返回当前默认超时时间，单位毫秒，缺省为 250
+     * @description queries the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     *      @return returns the current default timeout in milliseconds, default is 250
      *
      */
     function getDefaultAutoSelectFamilyAttemptTimeout(): number;
 
     /**
-     * @description 设置默认的自动地址族选择超时时间，兼容 Node.js >= 18.13
-     *      @param milliseconds 指定默认超时时间，单位毫秒，必须为大于等于 10 的整数
+     * @description sets the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     *      @param milliseconds specifies the default timeout in milliseconds, which must be an integer greater than or equal to 10
      *
      */
     function setDefaultAutoSelectFamilyAttemptTimeout(milliseconds: number): void;

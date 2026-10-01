@@ -1,0 +1,128 @@
+/*! @brief DBConnection is the base class of database connections, used to establish and maintain a database connection session. It implements the basic connection operations and serves as the base for derived classes. It also supports starting, committing and rolling back transactions. 
+
+Subclasses of DBConnection include Odbc, MySQL and SQLite; by instantiating each subclass we can conveniently access different kinds of databases.
+
+DBConnection cannot be created directly; it can only be created with methods such as db.open, for example:
+
+```js
+var db = require("db");
+var conn = db.open("mysql://root:123456@localhost:3306/test");
+```
+*/
+interface DbConnection : object
+{
+    /*! @brief Queries the type of the current database connection */
+    readonly String type;
+
+    /*! @brief Closes the current database connection */
+    close() async;
+
+    /*! @brief Selects the default database of the current database connection
+	 @param dbName the database name
+	 */
+    use(String dbName) async;
+
+    /*! @brief Gets information about all tables in the current database
+
+     @return returns an array containing table information; each element contains the table name and related properties
+     */
+    NArray getTables() async;
+
+    /*! @brief Gets detailed information about the given table
+
+     @param tableName the table name to query
+     @return returns an array containing detailed table information; each element contains the field name, type, length, whether NULL is allowed and other properties
+     */
+    NArray getTableInfo(String tableName) async;
+
+    /*! @brief Starts a transaction on the current database connection
+    
+     @param point the transaction name, not specified by default
+    */
+    begin(String point = "") async;
+
+    /*! @brief Commits the transaction on the current database connection
+    
+     @param point the transaction name, not specified by default
+    */
+    commit(String point = "") async;
+
+    /*! @brief Rolls back the transaction on the current database connection
+    
+     @param point the transaction name, not specified by default
+    */
+    rollback(String point = "") async;
+
+    /*! @brief Enters a transaction to execute a function, and commits or rolls back depending on the function result 
+     The execution of func has three outcomes:
+     * the function returns normally, including finishing or an explicit return; the transaction is committed automatically
+     * the function returns false; the transaction is rolled back
+     * the function throws an error; the transaction is rolled back automatically
+
+     @param func the function to execute in a transaction
+     @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+    */
+    Boolean trans(Function func);
+
+    /*! @brief Enters a transaction to execute a function, and commits or rolls back depending on the function result 
+     The execution of func has three outcomes:
+     * the function returns normally, including finishing or an explicit return; the transaction is committed automatically
+     * the function returns false; the transaction is rolled back
+     * the function throws an error; the transaction is rolled back automatically
+
+     @param point the transaction name
+     @param func the function to execute in a transaction
+     @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+    */
+    Boolean trans(String point, Function func);
+
+    /*! @brief Executes an sql command and returns the execution result
+
+     @param sql the sql string
+     @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
+     */
+    NArray execute(String sql) async;
+
+    /*! @brief Executes an sql command and returns the execution result; the string can be formatted with the given parameters
+
+     @param sql the format string; optional parameters are specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     @param args the optional parameter list
+     @return returns an array containing the result records; if the request is UPDATE or INSERT, the result also contains affected and insertId; mssql does not support insertId.
+     */
+    NArray execute(String sql, ...args) async;
+
+    /*! @brief Formats an sql command and returns the formatted result
+
+     @param sql the format string; optional parameters are specified with ?. For example: 'SELECT FROM TEST WHERE [id]=?'
+     @param args the optional parameter list
+     @return returns the formatted sql command
+     */
+    String format(String sql, ...args);
+
+    /*! @brief Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
+
+     @param sql the query statement to prepare
+     @return returns the prepared statement object
+     */
+    Statement prepare(String sql) async;
+
+    /*! @brief Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
+
+     Traversing with for...of is recommended (break/exception releases the cursor automatically):
+
+     ```js
+     for (var row of conn.iterate('SELECT * FROM log WHERE ts > ?', ts)) {
+         process(row);    // only one row resides in memory at a time
+     }
+     // break/exception/normal completion all release the cursor automatically; the connection is immediately reusable
+     ```
+
+     Calling next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     return() releases the cursor; otherwise the leaked cursor occupies the connection.
+
+     @param sql the query statement to prepare
+     @param args the bound parameters
+     @return returns a row iterator that produces row objects one by one with bounded memory
+     */
+    Iterator iterate(String sql, ...args) async;
+};

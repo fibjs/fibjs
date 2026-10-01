@@ -2,11 +2,11 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
 /**
- * @description HttpRepeater 是一个 HTTP 请求转发器，可以将 HTTP 请求转发到指定的后端服务器并获得响应。它常常用于需要在前端与多个服务端交互的复杂系统中，或者用于负载均衡
+ * @description HttpRepeater is an HTTP request forwarder that can forward HTTP requests to a specified backend server and obtain responses. It is often used in complex systems where the front end interacts with multiple servers, or for load balancing
  *
- * 使用 HttpRepeater 非常简单，只需要在创建实例时为其提供后端服务器的 URL 或负载均衡 URL 数组即可。
+ * Using HttpRepeater is very simple; just provide the URL of the backend server or an array of load-balancing URLs when creating the instance.
  *
- * 如下是一个使用单个后端的示例：
+ * The following is an example using a single backend:
  * ```JavaScript
  * var http = require('http');
  * var serverUrl = 'http://localhost:' + actualPort + '/example'
@@ -15,7 +15,7 @@
  * var server = new http.Server(8081, repeater);
  * server.start();
  * ```
- * 下面是一个使用 URL 数组实现负载均衡的示例：
+ * The following is an example using a URL array to implement load balancing:
  * ```JavaScript
  * var serverURLs = [
  *   'http://server1.example.com',
@@ -31,33 +31,33 @@
  */
 declare class Class_HttpRepeater extends Class_Handler {
     /**
-     * @description HttpRepeater 构造函数，创建一个新的 HttpRepeater 对象
-     *      @param url 指定一个后端服务器 url
+     * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *      @param url specifies a backend server url
      *
      */
     constructor(url: string);
 
     /**
-     * @description HttpRepeater 构造函数，创建一个新的 HttpRepeater 对象
-     *      @param urls 指定一组后端服务器 url
+     * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *      @param urls specifies a group of backend server urls
      *
      */
     constructor(urls: string[]);
 
     /**
-     * @description 加载一组新的后端 url
-     *      @param urls 指定一组后端服务器 url
+     * @description loads a new group of backend urls
+     *      @param urls specifies a group of backend server urls
      *
      */
     load(urls: string[]): void;
 
     /**
-     * @description 查询当前后端服务器 url 列表
+     * @description queries the current list of backend server urls
      */
     readonly urls: any[];
 
     /**
-     * @description 请求转发处理器内部使用的 HttpClient 对象
+     * @description the HttpClient object used internally by the request forwarding handler
      */
     readonly client: Class_HttpClient;
 

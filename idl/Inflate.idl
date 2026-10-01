@@ -1,0 +1,8 @@
+/*! @brief Inflate decompression codec, decompresses data compressed with the deflate algorithm (zlib format) */
+interface Inflate : ZlibCodec
+{
+    /*! @brief Inflate constructor
+     @param opts decompression options
+     */
+    Inflate(Object opts = {});
+};

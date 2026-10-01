@@ -1,0 +1,227 @@
+/*! @brief the net module provides basic network capabilities, including establishing TCP connections, domain name resolution, IP address detection and creating TCP servers; it is the foundation of network modules such as http, tls and smtp
+
+ Main capabilities of the module:
+
+ - **Connection**: `connect` establishes TCP connections in multiple forms, supporting `tcp://`, `ssl://`, `unix:` and `pipe://` protocols;
+ - **Resolution**: `resolve`, `ip` and `ipv6` query the addresses of host names;
+ - **Server**: `createServer` creates a TCP server;
+ - **Detection**: `isIP`, `isIPv4` and `isIPv6` detect IP address formats;
+ - **Object aliases**: `Socket`, `Smtp`, `TcpServer` and `Url`.
+
+ Referenced as:
+
+ ```JavaScript
+ var net = require('net');
+ ```
+
+ Example of establishing a TCP connection:
+
+ ```JavaScript
+ var net = require('net');
+
+ // specify the port and host
+ var sock = net.connect(80, 'example.com');
+ sock.send('GET / HTTP/1.0\r\n\r\n');
+ console.log(sock.recv());
+ sock.close();
+
+ // use the URL form, supporting tcp:// and ssl:// protocols
+ var ssl = net.connect('ssl://example.com:443');
+ ```
+ */
+module net
+{
+    /*! @brief address family constant, specifies unix socket */
+    const AF_UNIX = 1;
+
+    /*! @brief address family constant, specifies Windows pipe */
+    const AF_PIPE = 1;
+
+    /*! @brief address family constant, specifies ipv4 */
+    const AF_INET = 2;
+
+    /*! @brief address family constant, specifies ipv6 */
+    const AF_INET6 = 10;
+
+    /*! @brief queries and sets whether the socket backend uses uv, default is false */
+    static Boolean use_uv_socket;
+
+    /*! @brief queries the network information of the current runtime environment
+     @return returns the network interface information
+    */
+    static Object info();
+
+    /*! @brief queries the address of the given host name
+
+     family specifies the address family to return, with values AF_INET or AF_INET6; other values throw an exception.
+     @param name specifies the host name
+     @param family specifies the type returned by the query, default is AF_INET
+     @return returns the queried ip string
+     */
+    static String resolve(String name, Integer family = AF_INET) async;
+
+    /*! @brief quickly queries the host address, equivalent to resolve(name)
+     @param name specifies the host name
+     @return returns the queried ip string
+     */
+    static String ip(String name) async;
+
+    /*! @brief quickly queries the host ipv6 address, equivalent to resolve(name, net.AF_INET6)
+     @param name specifies the host name
+     @return returns the queried ipv6 string
+     */
+    static String ipv6(String name) async;
+
+    /*! @brief creates a Socket object, see Socket */
+    static Socket;
+
+    /*! @brief creates a Socket object and establishes a connection
+
+     The options parameter can contain the following properties:
+      - port: specifies the remote port
+      - host: specifies the remote address or host name
+      - timeout: specifies the timeout in milliseconds, default is 0
+
+     @param options specifies the connection options object
+     @return returns the connected Socket object
+     */
+    static Stream connect(Object options) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param options specifies the connection options object, which can contain the following properties:
+      - port: specifies the remote port
+      - host: specifies the remote address or host name
+      - timeout: specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Object options, Function connectListener) async;
+
+    /*! @brief creates a Socket or SslSocket object and establishes a connection
+     @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Socket or SslSocket object
+     */
+    static Stream connect(String url, Integer timeout = 0) async;
+
+    /*! @brief creates a Socket object and establishes a connection
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Integer timeout, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param path specifies the unix socket or Windows pipe path
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(String path, Function connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param path specifies the unix socket or Windows pipe path
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(String path, Integer timeout, Function connectListener) async;
+
+    /*! @brief creates a Smtp object, see Smtp */
+    static Smtp;
+
+    /*! @brief creates a Smtp object and establishes a connection, see Smtp
+     @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Smtp object
+     */
+    static Smtp openSmtp(String url, Integer timeout = 0) async;
+
+    /*! @brief creates a TcpServer object, see TcpServer */
+    static TcpServer;
+
+    /*! @brief creates a TCP server
+     @param options the server options object, which can contain the following properties:
+      - address: specifies the listening address, default is all addresses
+      - port: specifies the listening port, optional. When not provided, listen() must be called to start
+     @param listener the connection handler function
+     @return returns the TcpServer object
+     */
+    static TcpServer createServer(Object options, Handler listener);
+
+    /*! @brief creates a TCP server
+     @param listener the connection handler function
+     @return returns a TcpServer object not bound to a port; listen() must be called to start it
+     */
+    static TcpServer createServer(Handler listener);
+
+    /*! @brief creates a UrlObject object, see UrlObject */
+    static Url = UrlObject;
+
+    /*! @brief queries the asynchronous network engine of the current system
+     @return returns the network engine name
+    */
+    static String backend();
+
+    /*! @brief detects whether the input is an IP address
+     @param ip specifies the string to detect
+     @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
+    */
+    static Integer isIP(String ip = "");
+
+    /*! @brief detects whether the input is an IPv4 address
+     @param ip specifies the string to detect
+     @return returns true if it is IPv4, otherwise returns false
+    */
+    static Boolean isIPv4(String ip = "");
+
+    /*! @brief detects whether the input is an IPv6 address
+     @param ip specifies the string to detect
+     @return returns true if it is IPv6, otherwise returns false
+    */
+    static Boolean isIPv6(String ip = "");
+
+    /*! @brief queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     @return returns the current default value, default is true
+    */
+    static Boolean getDefaultAutoSelectFamily();
+
+    /*! @brief sets whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     @param enabled specifies the default value, which must be a boolean
+    */
+    static setDefaultAutoSelectFamily(Boolean enabled);
+
+    /*! @brief queries the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     @return returns the current default timeout in milliseconds, default is 250
+    */
+    static Integer getDefaultAutoSelectFamilyAttemptTimeout();
+
+    /*! @brief sets the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     @param milliseconds specifies the default timeout in milliseconds, which must be an integer greater than or equal to 10
+    */
+    static setDefaultAutoSelectFamilyAttemptTimeout(Integer milliseconds);
+};

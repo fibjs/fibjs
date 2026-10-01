@@ -2,20 +2,20 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XmlNodeList 对象代表一个有顺序的节点列表
+ * @description The XmlNodeList object represents an ordered list of nodes
  *
  */
 declare class Class_XmlNodeList extends Class_object {
     /**
-     * @description 返回节点列表中的节点数目
+     * @description Returns the number of nodes in the node list
      *
      */
     readonly length: number;
 
     /**
-     * @description 返回节点列表中处于指定的索引号的节点
-     *      @param index 指定要查询的索引
-     *      @return 指定索引号的节点
+     * @description Returns the node at the given index in the node list
+     *      @param index the index to query
+     *      @return the node at the given index
      *
      */
     item(index: number): Class_XmlNode;
@@ -23,29 +23,29 @@ declare class Class_XmlNodeList extends Class_object {
     "[Symbol.iterator]"(): Iterator<any>;
 
     /**
-     * @description 对列表中的每个节点执行一次指定的回调函数
-     *      @param callback 对每个节点执行的回调函数，接收三个参数：当前节点、索引、节点列表本身
+     * @description Calls the given callback function once for each node in the list
+     *      @param callback the callback function called for each node, receiving three parameters: the current node, the index and the node list itself
      *
      */
     forEach(callback: (...args: any[])=>any): void;
 
     /**
-     * @description 返回一个迭代器，用于遍历节点列表中每个节点的索引
-     *      @return 返回索引迭代器
+     * @description Returns an iterator for traversing the index of each node in the node list
+     *      @return returns the index iterator
      *
      */
     keys(): Iterator<any>;
 
     /**
-     * @description 返回一个迭代器，用于遍历节点列表中每个节点的值
-     *      @return 返回值迭代器
+     * @description Returns an iterator for traversing the value of each node in the node list
+     *      @return returns the value iterator
      *
      */
     values(): Iterator<any>;
 
     /**
-     * @description 返回一个迭代器，用于遍历节点列表中每个节点的 [索引, 值] 对
-     *      @return 返回键值对迭代器
+     * @description Returns an iterator for traversing the [index, value] pairs of each node in the node list
+     *      @return returns the key-value pair iterator
      *
      */
     entries(): Iterator<any>;

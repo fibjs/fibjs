@@ -1,0 +1,124 @@
+/*! @brief The Worker object is used to create child threads, allowing child threads to be created and handled in a program. A Worker object can be understood as a JavaScript process running in a thread different from the main thread. A Worker does not share memory with the main thread and does not block the main thread; it is a mainstream way of asynchronous programming
+
+The constructor of the Worker object is as follows:
+
+```JavaScript
+new Worker(String path, Object opts = {})
+```
+
+Here, the path parameter specifies the JavaScript file path of the new thread. For example, you can write a work.js file with the following content:
+
+```JavaScript
+const { Worker } = require('worker_threads');
+console.log('Hi from worker');
+```
+
+In the main program, run work.js with the following code:
+
+```JavaScript
+const { Worker } = require('worker_threads');
+const worker = new Worker('path/to/work.js');
+```
+
+After running it, you can see the output "Hi from worker" in the console of the main program.
+
+In the following example, suppose we have a long-running computation and want to put it into another thread for processing, while avoiding being blocked by this computation in the main thread. The code is as follows:
+
+
+Main thread:
+```JavaScript
+const { Worker } = require('worker_threads');
+
+// create a worker thread
+const fib = new Worker(__dirname + '/fib-worker.js');
+// Receive result from worker thread
+fib.on('message', (result) => {
+  console.log('result: ', result);
+});
+fib.on('error', (err) => {
+  console.error(err);
+});
+fib.postMessage(40);
+console.log('main thread still working');
+```
+
+In this example, we create a worker thread through the Worker object constructor to handle the computation of a Fibonacci sequence; the main thread passes data to the worker thread through the postMessage() method and obtains the processing result through the message event. At the same time, the main thread displays the 'still working' message, proving that this computation task has been 'delegated' to the worker thread and that it can continue to handle other things.
+
+The worker thread code looks like this:
+
+```JavaScript
+// fib-worker.js
+const { parentPort } = require('worker_threads');
+
+parentPort.on('message', (n) => {
+  const result = fib(n);
+  // After calculation, result is sent back to main thread.
+  parentPort.postMessage(result);
+});
+function fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 1) + fib(n - 2);
+}
+```
+
+In the worker thread, we listen for messages sent by the main thread through parentPort.on('message'), compute the specified Fibonacci sequence, and send the result back to the main thread through parentPort.postMessage().
+
+This is the most basic Worker example. When developing with Worker objects, the main thread and the worker thread are completely asynchronous; each Worker object is a separate thread, and a Worker object instantiated in the main thread does not cause any blocking.
+ */
+interface Worker : EventEmitter
+{
+    /*! @brief Worker object constructor
+   @param path the Worker entry script; accepts an absolute path, a relative path starting with ./ or ../, or the source code directly when opts.eval = true
+   @param opts construction options, supports eval and workerData
+     */
+    Worker(String path, Object opts = {});
+
+    /*! @brief Queries the logical worker id of the target worker */
+    readonly Integer threadId;
+
+    /*! @brief Sends a message to the peer thread
+     @param data the message content to send
+     */
+    postMessage(Value data);
+
+    /*! @brief Sends a message to the peer thread and transfers the specified objects
+     @param data the message content to send
+     @param transfer the array of objects to transfer (ArrayBuffer, etc.); after transfer, the original objects can no longer be used by the sender
+     */
+    postMessage(Value data, Array transfer);
+
+    /*! @brief Terminates the worker
+
+   Consistent with Node.js, returns a Promise that resolves with the exit code when the worker exits (the `exit` event).
+   After being called, the JavaScript in the worker stops executing as soon as possible.
+
+   ```JavaScript
+   const { Worker } = require('worker_threads');
+
+   const worker = new Worker(__dirname + '/fib-worker.js');
+   const exitCode = await worker.terminate();
+   ```
+     @return returns the exit code of the worker
+     */
+    Integer terminate() promise;
+
+    /*! @brief Keeps the fibjs process from exiting
+   */
+    ref();
+
+    /*! @brief Allows the fibjs process to exit
+   */
+    unref();
+
+    /*! @brief Queries and binds the worker ready event, equivalent to on("online", func); */
+    event online();
+
+    /*! @brief Queries and binds the postMessage message event, equivalent to on("message", func); */
+    event message();
+
+    /*! @brief Queries and binds the error message event, equivalent to on("error", func); */
+    event error();
+
+    /*! @brief Queries and binds the worker exit event, equivalent to on("exit", func); */
+    event exit();
+};

@@ -3,13 +3,13 @@
 /// <reference path="../interface/Menu.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description WebView 对象，嵌入式浏览器窗口组件。
+ * @description WebView object, an embedded browser window component.
  *
- *  WebView 是一个嵌入浏览器的窗口组件。由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以需要通过消息进行通讯。
+ *  WebView is a window component with an embedded browser. Since the JavaScript code inside a WebView does not run in the same engine as fibjs, they communicate through messages.
  *
- *  WebView 内可以通过 window 与 fibjs 进行消息通讯，支持 postMessage 方法和 message 事件。
+ *  Inside a WebView, you can communicate with fibjs through window; the postMessage method and the message event are supported.
  *
- *  以下是一个简单的通讯示例代码：
+ *  The following is a simple communication example:
  *  ```JavaScript
  *  // index.js
  *  var gui = require('gui');
@@ -20,7 +20,7 @@
  *  webview.postMessage("hello from fibjs");
  *  ```
  *
- *  index.html 的内容如下：
+ *  The content of index.html is as follows:
  *  ```html
  *  <script>
  *      window.addEventListener("message", function (msg) {
@@ -29,9 +29,9 @@
  *  </script>
  *  ```
  *
- *  WebView 还支持更方便的 app API 接口。WebView 内用于 API 调用的对象是 window.app，可以在创建 WebView 时通过 app 参数指定 API 接口，API 接口的方法可以在 WebView 内通过 await window.app... 调用。
+ *  WebView also supports a more convenient app API interface. The object used for API calls inside a WebView is window.app; you can specify the API interface through the app parameter when creating the WebView, and its methods can be called inside the WebView with await window.app.<method>.
  *
- *  以下是一个简单的调用示例代码：
+ *  The following is a simple call example:
  *  ```JavaScript
  *  const gui = require('gui');
  *  const coroutine = require('coroutine');
@@ -62,7 +62,7 @@
  *  })();`);
  *  ```
  *
- *  如果需要在 WebView 内关闭窗口，可以调用 window.close。需要注意，在 macOS 下的全屏窗口会因为 macOS 的机制而阻止关闭。
+ *  If you need to close the window from inside the WebView, call window.close. Note that a fullscreen window on macOS is prevented from closing by the macOS mechanism.
  *  ```html
  *  <script lang="JavaScript">
  *     document.getElementById('close').addEventListener('click', function () {
@@ -70,7 +70,7 @@
  *     });
  *  </script>
  *  ```
- *  在某些应用中，需要在 WebView 内实现拖动窗口的功能，可以通过以下代码实现：
+ *  In some applications, you may need to implement window dragging inside the WebView; this can be done with the following code:
  *  ```html
  *  <script>
  *     document.getElementById('dragRegion').addEventListener('mousedown', function (event) {
@@ -84,8 +84,8 @@
  */
 declare class Class_WebView extends Class_EventEmitter {
     /**
-     * @description 加载指定 url 的页面
-     * 	 @param url 指定的 url
+     * @description Loads the page at the specified url
+     * 	 @param url the url to load
      *
      */
     loadUrl(url: string): void;
@@ -93,22 +93,22 @@ declare class Class_WebView extends Class_EventEmitter {
     loadUrl(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 加载指定 url 的页面
-     * 	 @param url 指定的 url
+     * @description Loads the page at the specified url
+     * 	 @param url the url to load
      *
      */
     loadUrlSync(url: string): void;
 
     /**
-     * @description 加载指定 url 的页面
-     * 	 @param url 指定的 url
+     * @description Loads the page at the specified url
+     * 	 @param url the url to load
      *
      */
     loadUrlAsync(url: string): Promise<void>;
 
     /**
-     * @description 加载指定文件的页面
-     *      @param file 指定的文件
+     * @description Loads the page of the specified file
+     *      @param file the file to load
      *
      */
     loadFile(file: string): void;
@@ -116,22 +116,22 @@ declare class Class_WebView extends Class_EventEmitter {
     loadFile(file: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 加载指定文件的页面
-     *      @param file 指定的文件
+     * @description Loads the page of the specified file
+     *      @param file the file to load
      *
      */
     loadFileSync(file: string): void;
 
     /**
-     * @description 加载指定文件的页面
-     *      @param file 指定的文件
+     * @description Loads the page of the specified file
+     *      @param file the file to load
      *
      */
     loadFileAsync(file: string): Promise<void>;
 
     /**
-     * @description 查询当前页面的 url
-     * 	 @return 返回当前页面的 url
+     * @description Queries the url of the current page
+     * 	 @return returns the url of the current page
      *
      */
     getUrl(): string;
@@ -139,22 +139,22 @@ declare class Class_WebView extends Class_EventEmitter {
     getUrl(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 查询当前页面的 url
-     * 	 @return 返回当前页面的 url
+     * @description Queries the url of the current page
+     * 	 @return returns the url of the current page
      *
      */
     getUrlSync(): string;
 
     /**
-     * @description 查询当前页面的 url
-     * 	 @return 返回当前页面的 url
+     * @description Queries the url of the current page
+     * 	 @return returns the url of the current page
      *
      */
     getUrlAsync(): Promise<string>;
 
     /**
-     * @description 设置 webview 的页面 html
-     * 	 @param html 设置的 html
+     * @description Sets the page html of the webview
+     * 	 @param html the html to set
      *
      */
     setHtml(html: string): void;
@@ -162,22 +162,22 @@ declare class Class_WebView extends Class_EventEmitter {
     setHtml(html: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 设置 webview 的页面 html
-     * 	 @param html 设置的 html
+     * @description Sets the page html of the webview
+     * 	 @param html the html to set
      *
      */
     setHtmlSync(html: string): void;
 
     /**
-     * @description 设置 webview 的页面 html
-     * 	 @param html 设置的 html
+     * @description Sets the page html of the webview
+     * 	 @param html the html to set
      *
      */
     setHtmlAsync(html: string): Promise<void>;
 
     /**
-     * @description 获取 webview 的页面 html
-     *      @return 返回 webview 的页面 html
+     * @description Gets the page html of the webview
+     *      @return returns the page html of the webview
      *
      */
     getHtml(): string;
@@ -185,22 +185,22 @@ declare class Class_WebView extends Class_EventEmitter {
     getHtml(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 获取 webview 的页面 html
-     *      @return 返回 webview 的页面 html
+     * @description Gets the page html of the webview
+     *      @return returns the page html of the webview
      *
      */
     getHtmlSync(): string;
 
     /**
-     * @description 获取 webview 的页面 html
-     *      @return 返回 webview 的页面 html
+     * @description Gets the page html of the webview
+     *      @return returns the page html of the webview
      *
      */
     getHtmlAsync(): Promise<string>;
 
     /**
-     * @description 查询当前页面是否加载完成
-     *      @return 返回当前页面是否加载完成
+     * @description Queries whether the current page has finished loading
+     *      @return returns whether the current page has finished loading
      *
      */
     isReady(): boolean;
@@ -208,22 +208,22 @@ declare class Class_WebView extends Class_EventEmitter {
     isReady(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 查询当前页面是否加载完成
-     *      @return 返回当前页面是否加载完成
+     * @description Queries whether the current page has finished loading
+     *      @return returns whether the current page has finished loading
      *
      */
     isReadySync(): boolean;
 
     /**
-     * @description 查询当前页面是否加载完成
-     *      @return 返回当前页面是否加载完成
+     * @description Queries whether the current page has finished loading
+     *      @return returns whether the current page has finished loading
      *
      */
     isReadyAsync(): Promise<boolean>;
 
     /**
-     * @description 等待当前页面加载完成
-     *      @param url 指定等待的 url，为空表示等待当前页面
+     * @description Waits for the current page to finish loading
+     *      @param url the url to wait for; empty means waiting for the current page
      *
      */
     waitFor(url?: string): void;
@@ -231,74 +231,74 @@ declare class Class_WebView extends Class_EventEmitter {
     waitFor(url?: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 等待当前页面加载完成
-     *      @param url 指定等待的 url，为空表示等待当前页面
+     * @description Waits for the current page to finish loading
+     *      @param url the url to wait for; empty means waiting for the current page
      *
      */
     waitForSync(url?: string): void;
 
     /**
-     * @description 等待当前页面加载完成
-     *      @param url 指定等待的 url，为空表示等待当前页面
+     * @description Waits for the current page to finish loading
+     *      @param url the url to wait for; empty means waiting for the current page
      *
      */
     waitForAsync(url?: string): Promise<void>;
 
     /**
-     * @description 刷新当前页面
+     * @description Refreshes the current page
      */
     reload(): void;
 
     reload(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 刷新当前页面
+     * @description Refreshes the current page
      */
     reloadSync(): void;
 
     /**
-     * @description 刷新当前页面
+     * @description Refreshes the current page
      */
     reloadAsync(): Promise<void>;
 
     /**
-     * @description 退回到上一个页面
+     * @description Goes back to the previous page
      */
     goBack(): void;
 
     goBack(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 退回到上一个页面
+     * @description Goes back to the previous page
      */
     goBackSync(): void;
 
     /**
-     * @description 退回到上一个页面
+     * @description Goes back to the previous page
      */
     goBackAsync(): Promise<void>;
 
     /**
-     * @description 前进到下一个页面
+     * @description Goes forward to the next page
      */
     goForward(): void;
 
     goForward(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 前进到下一个页面
+     * @description Goes forward to the next page
      */
     goForwardSync(): void;
 
     /**
-     * @description 前进到下一个页面
+     * @description Goes forward to the next page
      */
     goForwardAsync(): Promise<void>;
 
     /**
-     * @description 在当前窗口运行一段 JavaScript 代码
-     * 	 @param code 指定要执行的 JavaScript 代码
-     *      @return 返回执行结果
+     * @description Runs a piece of JavaScript code in the current window
+     * 	 @param code the JavaScript code to execute
+     *      @return returns the execution result
      *
      */
     eval(code: string): any;
@@ -306,24 +306,24 @@ declare class Class_WebView extends Class_EventEmitter {
     eval(code: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description 在当前窗口运行一段 JavaScript 代码
-     * 	 @param code 指定要执行的 JavaScript 代码
-     *      @return 返回执行结果
+     * @description Runs a piece of JavaScript code in the current window
+     * 	 @param code the JavaScript code to execute
+     *      @return returns the execution result
      *
      */
     evalSync(code: string): any;
 
     /**
-     * @description 在当前窗口运行一段 JavaScript 代码
-     * 	 @param code 指定要执行的 JavaScript 代码
-     *      @return 返回执行结果
+     * @description Runs a piece of JavaScript code in the current window
+     * 	 @param code the JavaScript code to execute
+     *      @return returns the execution result
      *
      */
     evalAsync(code: string): Promise<any>;
 
     /**
-     * @description 设置窗口的标题
-     *      @param title 指定窗口的标题
+     * @description Sets the title of the window
+     *      @param title the title of the window
      *
      */
     setTitle(title: string): void;
@@ -331,22 +331,22 @@ declare class Class_WebView extends Class_EventEmitter {
     setTitle(title: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 设置窗口的标题
-     *      @param title 指定窗口的标题
+     * @description Sets the title of the window
+     *      @param title the title of the window
      *
      */
     setTitleSync(title: string): void;
 
     /**
-     * @description 设置窗口的标题
-     *      @param title 指定窗口的标题
+     * @description Sets the title of the window
+     *      @param title the title of the window
      *
      */
     setTitleAsync(title: string): Promise<void>;
 
     /**
-     * @description 查询窗口的标题
-     *      @return 返回窗口的标题
+     * @description Queries the title of the window
+     *      @return returns the title of the window
      *
      */
     getTitle(): string;
@@ -354,22 +354,22 @@ declare class Class_WebView extends Class_EventEmitter {
     getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 查询窗口的标题
-     *      @return 返回窗口的标题
+     * @description Queries the title of the window
+     *      @return returns the title of the window
      *
      */
     getTitleSync(): string;
 
     /**
-     * @description 查询窗口的标题
-     *      @return 返回窗口的标题
+     * @description Queries the title of the window
+     *      @return returns the title of the window
      *
      */
     getTitleAsync(): Promise<string>;
 
     /**
-     * @description 设置窗口是否可见
-     *      @return 返回窗口是否可见
+     * @description Sets whether the window is visible
+     *      @return returns whether the window is visible
      *
      */
     isVisible(): boolean;
@@ -377,57 +377,57 @@ declare class Class_WebView extends Class_EventEmitter {
     isVisible(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 设置窗口是否可见
-     *      @return 返回窗口是否可见
+     * @description Sets whether the window is visible
+     *      @return returns whether the window is visible
      *
      */
     isVisibleSync(): boolean;
 
     /**
-     * @description 设置窗口是否可见
-     *      @return 返回窗口是否可见
+     * @description Sets whether the window is visible
+     *      @return returns whether the window is visible
      *
      */
     isVisibleAsync(): Promise<boolean>;
 
     /**
-     * @description 显示窗口
+     * @description Shows the window
      */
     show(): void;
 
     show(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 显示窗口
+     * @description Shows the window
      */
     showSync(): void;
 
     /**
-     * @description 显示窗口
+     * @description Shows the window
      */
     showAsync(): Promise<void>;
 
     /**
-     * @description 隐藏窗口
+     * @description Hides the window
      */
     hide(): void;
 
     hide(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 隐藏窗口
+     * @description Hides the window
      */
     hideSync(): void;
 
     /**
-     * @description 隐藏窗口
+     * @description Hides the window
      */
     hideAsync(): Promise<void>;
 
     /**
-     * @description 设置窗口的尺寸
-     *      @param width 指定窗口的宽度
-     *      @param height 指定窗口的高度
+     * @description Sets the size of the window
+     *      @param width the width of the window
+     *      @param height the height of the window
      *
      */
     setSize(width: number, height: number): void;
@@ -435,24 +435,24 @@ declare class Class_WebView extends Class_EventEmitter {
     setSize(width: number, height: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 设置窗口的尺寸
-     *      @param width 指定窗口的宽度
-     *      @param height 指定窗口的高度
+     * @description Sets the size of the window
+     *      @param width the width of the window
+     *      @param height the height of the window
      *
      */
     setSizeSync(width: number, height: number): void;
 
     /**
-     * @description 设置窗口的尺寸
-     *      @param width 指定窗口的宽度
-     *      @param height 指定窗口的高度
+     * @description Sets the size of the window
+     *      @param width the width of the window
+     *      @param height the height of the window
      *
      */
     setSizeAsync(width: number, height: number): Promise<void>;
 
     /**
-     * @description 查询窗口的尺寸
-     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     * @description Queries the size of the window
+     *      @return returns the size of the window as an array whose first element is the width and second element is the height
      *
      */
     getSize(): any[];
@@ -460,23 +460,23 @@ declare class Class_WebView extends Class_EventEmitter {
     getSize(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 查询窗口的尺寸
-     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     * @description Queries the size of the window
+     *      @return returns the size of the window as an array whose first element is the width and second element is the height
      *
      */
     getSizeSync(): any[];
 
     /**
-     * @description 查询窗口的尺寸
-     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     * @description Queries the size of the window
+     *      @return returns the size of the window as an array whose first element is the width and second element is the height
      *
      */
     getSizeAsync(): Promise<any[]>;
 
     /**
-     * @description 设置窗口的位置
-     *      @param left 指定窗口的左上角 x 坐标
-     *      @param top 指定窗口的左上角 y 坐标
+     * @description Sets the position of the window
+     *      @param left the x coordinate of the top-left corner of the window
+     *      @param top the y coordinate of the top-left corner of the window
      *
      */
     setPosition(left: number, top: number): void;
@@ -484,24 +484,24 @@ declare class Class_WebView extends Class_EventEmitter {
     setPosition(left: number, top: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 设置窗口的位置
-     *      @param left 指定窗口的左上角 x 坐标
-     *      @param top 指定窗口的左上角 y 坐标
+     * @description Sets the position of the window
+     *      @param left the x coordinate of the top-left corner of the window
+     *      @param top the y coordinate of the top-left corner of the window
      *
      */
     setPositionSync(left: number, top: number): void;
 
     /**
-     * @description 设置窗口的位置
-     *      @param left 指定窗口的左上角 x 坐标
-     *      @param top 指定窗口的左上角 y 坐标
+     * @description Sets the position of the window
+     *      @param left the x coordinate of the top-left corner of the window
+     *      @param top the y coordinate of the top-left corner of the window
      *
      */
     setPositionAsync(left: number, top: number): Promise<void>;
 
     /**
-     * @description 查询窗口的位置
-     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     * @description Queries the position of the window
+     *      @return returns the position of the window as an array whose first element is the x coordinate and second element is the y coordinate
      *
      */
     getPosition(): any[];
@@ -509,22 +509,22 @@ declare class Class_WebView extends Class_EventEmitter {
     getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 查询窗口的位置
-     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     * @description Queries the position of the window
+     *      @return returns the position of the window as an array whose first element is the x coordinate and second element is the y coordinate
      *
      */
     getPositionSync(): any[];
 
     /**
-     * @description 查询窗口的位置
-     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     * @description Queries the position of the window
+     *      @return returns the position of the window as an array whose first element is the x coordinate and second element is the y coordinate
      *
      */
     getPositionAsync(): Promise<any[]>;
 
     /**
-     * @description 查询窗口是否是激活窗口
-     *      @return 返回窗口是否是激活窗口
+     * @description Queries whether the window is the active window
+     *      @return returns whether the window is the active window
      *
      */
     isActived(): boolean;
@@ -532,49 +532,49 @@ declare class Class_WebView extends Class_EventEmitter {
     isActived(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 查询窗口是否是激活窗口
-     *      @return 返回窗口是否是激活窗口
+     * @description Queries whether the window is the active window
+     *      @return returns whether the window is the active window
      *
      */
     isActivedSync(): boolean;
 
     /**
-     * @description 查询窗口是否是激活窗口
-     *      @return 返回窗口是否是激活窗口
+     * @description Queries whether the window is the active window
+     *      @return returns whether the window is the active window
      *
      */
     isActivedAsync(): Promise<boolean>;
 
     /**
-     * @description 激活窗口
+     * @description Activates the window
      */
     active(): void;
 
     active(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 激活窗口
+     * @description Activates the window
      */
     activeSync(): void;
 
     /**
-     * @description 激活窗口
+     * @description Activates the window
      */
     activeAsync(): Promise<void>;
 
     /**
-     * @description 查询窗口的菜单
-     *      @return 返回窗口的菜单
+     * @description Queries the menu of the window
+     *      @return returns the menu of the window
      *
      */
     getMenu(): Class_Menu;
 
     /**
-     * @description 截取当前窗口的图像
+     * @description Captures an image of the current window
      *
-     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
-     *      @param fullPage 指定是否截取整个页面，默认为 false，表示只截取可见区域
-     *      @return 返回截取的图像
+     *      Page capture works for most pages, but for lazily loaded pages the full content may not be captured. It is recommended to test on the page to be captured, and to actively adjust the window size when necessary to trigger page loading.
+     *      @param fullPage whether to capture the whole page; the default is false, which captures only the visible area
+     *      @return returns the captured image
      *
      */
     takeScreenshot(fullPage?: boolean): Class_Buffer;
@@ -582,46 +582,46 @@ declare class Class_WebView extends Class_EventEmitter {
     takeScreenshot(fullPage?: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 截取当前窗口的图像
+     * @description Captures an image of the current window
      *
-     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
-     *      @param fullPage 指定是否截取整个页面，默认为 false，表示只截取可见区域
-     *      @return 返回截取的图像
+     *      Page capture works for most pages, but for lazily loaded pages the full content may not be captured. It is recommended to test on the page to be captured, and to actively adjust the window size when necessary to trigger page loading.
+     *      @param fullPage whether to capture the whole page; the default is false, which captures only the visible area
+     *      @return returns the captured image
      *
      */
     takeScreenshotSync(fullPage?: boolean): Class_Buffer;
 
     /**
-     * @description 截取当前窗口的图像
+     * @description Captures an image of the current window
      *
-     *      网页截取对于大部分网页都可以正常工作，但是对于延迟加载的页面，可能会截取不到全部内容。建议针对需要截取的页面进行测试，必要的时候可能需要主动调整窗口大小以触发页面加载。
-     *      @param fullPage 指定是否截取整个页面，默认为 false，表示只截取可见区域
-     *      @return 返回截取的图像
+     *      Page capture works for most pages, but for lazily loaded pages the full content may not be captured. It is recommended to test on the page to be captured, and to actively adjust the window size when necessary to trigger page loading.
+     *      @param fullPage whether to capture the whole page; the default is false, which captures only the visible area
+     *      @return returns the captured image
      *
      */
     takeScreenshotAsync(fullPage?: boolean): Promise<Class_Buffer>;
 
     /**
-     * @description 关闭当前窗口
+     * @description Closes the current window
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 关闭当前窗口
+     * @description Closes the current window
      */
     closeSync(): void;
 
     /**
-     * @description 关闭当前窗口
+     * @description Closes the current window
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description 向 webview 内发送消息
-     *      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
-     * 	 @param msg 要发送的消息
+     * @description Sends a message into the webview
+     *      postMessage must be sent after the window has finished loading; messages sent before that are lost. Therefore it is recommended to call this method only after the onload event fires.
+     * 	 @param msg the message to send
      *
      */
     postMessage(msg: string): void;
@@ -629,35 +629,35 @@ declare class Class_WebView extends Class_EventEmitter {
     postMessage(msg: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 向 webview 内发送消息
-     *      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
-     * 	 @param msg 要发送的消息
+     * @description Sends a message into the webview
+     *      postMessage must be sent after the window has finished loading; messages sent before that are lost. Therefore it is recommended to call this method only after the onload event fires.
+     * 	 @param msg the message to send
      *
      */
     postMessageSync(msg: string): void;
 
     /**
-     * @description 向 webview 内发送消息
-     *      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
-     * 	 @param msg 要发送的消息
+     * @description Sends a message into the webview
+     *      postMessage must be sent after the window has finished loading; messages sent before that are lost. Therefore it is recommended to call this method only after the onload event fires.
+     * 	 @param msg the message to send
      *
      */
     postMessageAsync(msg: string): Promise<void>;
 
     /**
-     * @description 查询和绑定窗口开始加载事件，相当于 on("loading", func);
+     * @description Queries and binds the window load start event, equivalent to on("loading", func);
      */
     on(event: "loading", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口加载 完成事件，相当于 on("load", func);
+     * @description Queries and binds the window load completed event, equivalent to on("load", func);
      */
     on(event: "load", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口移动事件，相当于 on("move", func);
+     * @description Queries and binds the window move event, equivalent to on("move", func);
      *
-     * 	 以下示例会在窗口移动时输出窗口的左上角坐标：
+     * 	 The following example outputs the top-left corner coordinates of the window when it moves:
      * 	 ```JavaScript
      * 	 var gui = require('gui');
      * 	 var webview = gui.open('fs://index.html');
@@ -669,9 +669,9 @@ declare class Class_WebView extends Class_EventEmitter {
     on(event: "move", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
+     * @description Queries and binds the window size change event, equivalent to on("size", func);
      *
-     *      以下示例会在窗口改变大小时输出窗口的尺寸：
+     *      The following example outputs the size of the window when it is resized:
      *      ```JavaScript
      *      var gui = require('gui');
      *      var webview = gui.open('fs://index.html');
@@ -683,35 +683,35 @@ declare class Class_WebView extends Class_EventEmitter {
     on(event: "resize", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口获得焦点事件，相当于 on("focus", func);
+     * @description Queries and binds the window focus event, equivalent to on("focus", func);
      */
     on(event: "focus", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口失去焦点事件，相当于 on("blur", func);
+     * @description Queries and binds the window blur event, equivalent to on("blur", func);
      */
     on(event: "blur", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func);
+     * @description Queries and binds the window close event, which fires after the WebView is closed, equivalent to on("closed", func);
      */
     on(event: "close", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
+     * @description Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
+     *      @return returns the current object
      *
      */
     ref(): Class_WebView;
 
     /**
-     * @description 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
-     *      @return 返回当前对象
+     * @description Allows the fibjs process to exit; permits the fibjs process to exit while the object is bound
+     *      @return returns the current object
      *
      */
     unref(): Class_WebView;

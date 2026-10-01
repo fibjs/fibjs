@@ -1,0 +1,41 @@
+/*! @brief http protocol conversion handler
+
+  Used to convert a data stream into http protocol messages. It can be created with:
+  ```JavaScript
+  var hdlr = new mq.HttpHandler(...);
+  ```
+  or:
+  ```JavaScript
+  var hdlr = new http.Handler(...);
+  ```
+ */
+interface HttpHandler : Handler
+{
+    /*! @brief creates an http protocol handler object, converting the data of a stream object into http message objects
+    @param hdlr the built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+    */
+    HttpHandler(Handler hdlr);
+
+    /*! @brief enables cross-origin requests
+     @param allowHeaders specifies the accepted http header fields
+     */
+    enableCrossOrigin(String allowHeaders = "Content-Type");
+
+    /*! @brief queries and sets the maximum number of request headers, default is 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief queries and sets the maximum request header length, default is 8192 */
+    Integer maxHeaderSize;
+
+    /*! @brief queries and sets the maximum body size in MB, default is 64 */
+    Integer maxBodySize;
+
+    /*! @brief switch for the automatic decompression feature, disabled by default */
+    Boolean enableEncoding;
+
+    /*! @brief queries and sets the server name, default is: fibjs/0.x.0 */
+    String serverName;
+
+    /*! @brief the current event handling interface object of the http protocol conversion handler */
+    Handler handler;
+};

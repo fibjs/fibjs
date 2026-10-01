@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/StringDecoder.d.ts" />
 /**
- * @description 解码 Buffer 到字符串
+ * @description Decodes Buffer to string
  *
- *  使用方法：
+ *  Usage:
  *  ```JavaScript
  *   const { StringDecoder } = require('string_decoder');
  *   const decoder = new StringDecoder('utf8');
@@ -18,7 +18,7 @@
  */
 declare module 'string_decoder' {
     /**
-     * @description 创建一个解码对象，参见 StringDecoder
+     * @description Creates a decoder object, see StringDecoder
      */
     const StringDecoder: typeof Class_StringDecoder;
 

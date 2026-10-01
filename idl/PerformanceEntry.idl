@@ -1,0 +1,15 @@
+/*! @brief The PerformanceEntry interface provides the common properties of performance entries */
+interface PerformanceEntry : object
+{
+    /*! @brief The name of the performance entry. */
+    readonly String name;
+
+    /*! @brief The type of the performance entry. */
+    readonly String entryType;
+
+    /*! @brief The start time of the performance entry. */
+    readonly Number startTime;
+
+    /*! @brief The duration of the performance entry. */
+    readonly Number duration;
+};

@@ -233,7 +233,7 @@ function generalTypeMap(dataType, {
 
 /**
  * 
- * @param {import('../../idl/ir').IIDLDefinition['members'][number]['params'][number]['type']} paramType 
+ * @param {import('./ir').IIDLDefinition['members'][number]['params'][number]['type']} paramType 
  */
 function mapMemPropertyTypeToDtsType(propertyType, {
     memberInfo,
@@ -266,7 +266,7 @@ function mapMemPropertyTypeToDtsType(propertyType, {
 
 /**
  * 
- * @param {import('../../idl/ir').IIDLDefinition['members'][number]['params'][number]['type']} memReturnType 
+ * @param {import('./ir').IIDLDefinition['members'][number]['params'][number]['type']} memReturnType 
  */
 function mapMemMethodReturnTypeToDtsType(memReturnType, {
     memberInfo,
@@ -329,7 +329,7 @@ function mapMemMethodReturnTypeToDtsType(memReturnType, {
 
 /**
  * 
- * @param {import('../../idl/ir').IIDLDefinition['members'][number]['type']} paramType 
+ * @param {import('./ir').IIDLDefinition['members'][number]['type']} paramType 
  */
 function mapParamTypeToDtsType(paramType, {
     param: paramInfo,
@@ -371,7 +371,7 @@ function isVoidDomType(type) {
 
 /**
  * 
- * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
+ * @param {import('./ir').IIDLDefinition['members'][number]['overs']} methodHost 
  * @returns 
  */
 function generateDtsFunction(functionHost, normalParams, returnType, {
@@ -504,7 +504,7 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
 
 /**
  * 
- * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
+ * @param {import('./ir').IIDLDefinition['members'][number]['overs']} methodHost 
  * @returns 
  */
 function generateDtsMethod(methodHost, normalParams, returnType, {
@@ -636,7 +636,7 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
 }
 
 /**
- * @param {import('../../idl/ir').IIDLDefinition} def
+ * @param {import('./ir').IIDLDefinition} def
  * @param {*} configuration
  * @param {{
  *  dtsUnit: dom.ClassDeclaration
@@ -890,7 +890,7 @@ function processDeclareInterface(def, {
 }
 
 /**
- * @param {import('../../idl/ir').IIDLDefinition} def
+ * @param {import('./ir').IIDLDefinition} def
  * @param {*} configuration
  * @param {*} retValue
  */
@@ -1099,7 +1099,7 @@ function processDeclareModule(def, {
 /**
  * @description generate *.d.ts for definitions
  * 
- * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
+ * @param {Record<string, import('./ir').IIDLDefinition>} defs 
  * 
  * @returns {{
  *  allInterfacesNames: Set<string>
@@ -1249,7 +1249,7 @@ function gen_bridge_dts({
 /**
  * @description generate *.d.ts for fibjs
  * 
- * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
+ * @param {Record<string, import('./ir').IIDLDefinition>} defs 
  */
 module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
     const totalDefs = Object.keys(defs).length;

@@ -2,9 +2,9 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /**
- * @description tty 写流对象, 用于处理 tty 输出
+ * @description tty write stream object, used to handle tty output
  *
- *  没有途径可以单独创建该类, 全局只有 `process.stdout` 实例
+ *  There is no way to create this class separately; globally there is only the `process.stdout` instance
  *
  *  ```JavaScript
  *  // clear line
@@ -14,62 +14,62 @@
  */
 declare class Class_TTYOutputStream extends Class_Stream {
     /**
-     * @description 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件描述符
-     *      @param fd 指定底层的文件描述符, 该描述符必须是一个 tty 设备
-     *      @param opts 传递给 Stream 构造函数的选项对象
+     * @description Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor
+     *      @param fd the underlying file descriptor, which must be a tty device
+     *      @param opts options object passed to the Stream constructor
      *
      */
     constructor(fd: number, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 创建一个新的 TTYOutputStream 对象, 参数 fd 指定底层的文件对象
-     *      @param fd 指定底层的文件对象, 该文件对象必须是一个 tty 设备
-     *      @param opts 传递给 Stream 构造函数的选项对象
+     * @description Creates a new TTYOutputStream object; the fd parameter specifies the underlying file object
+     *      @param fd the underlying file object, which must be a tty device
+     *      @param opts options object passed to the Stream constructor
      *
      */
     constructor(fd: Class_FileHandle, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description 恒为 true
+     * @description Always true
      *
      */
     readonly isTTY: boolean;
 
     /**
-     * @description 返回此 TTYOutputStream 对应的终端的列数
+     * @description Returns the number of columns of the terminal corresponding to this TTYOutputStream
      *
      */
     readonly columns: number;
 
     /**
-     * @description 返回此 TTYOutputStream 对应的终端的行数
+     * @description Returns the number of rows of the terminal corresponding to this TTYOutputStream
      *
      */
     readonly rows: number;
 
     /**
-     * @description 根据 dir 指示的方向 clear line
+     * @description Clears the line according to the direction indicated by dir
      *
-     *      dir 的方向:
-     *      - -1: 从光标起往行起始清理
-     *      - 0: 清理整行
-     *      - 1: 从光标起往行结尾清理
+     *      Directions of dir:
+     *      - -1: clear from the cursor to the beginning of the line
+     *      - 0: clear the entire line
+     *      - 1: clear from the cursor to the end of the line
      *
-     *      @param dir 清理方向
+     *      @param dir clearing direction
      *
      */
     clearLine(dir?: number): void;
 
     /**
-     * @description 清除从光标处起到屏幕结尾的字符
+     * @description Clears the characters from the cursor to the end of the screen
      *
      */
     clearScreenDown(): void;
 
     /**
-     * @description 将光标移动到指定位置
-     *      @param x 指定的列数
-     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     * @description Moves the cursor to the specified position
+     *      @param x the column number
+     *      @param y the row number, default -1, meaning the row number is not changed
      *
      */
     cursorTo(x: number, y?: number): void;
@@ -77,25 +77,25 @@ declare class Class_TTYOutputStream extends Class_Stream {
     cursorTo(x: number, y?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 将光标移动到指定位置
-     *      @param x 指定的列数
-     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     * @description Moves the cursor to the specified position
+     *      @param x the column number
+     *      @param y the row number, default -1, meaning the row number is not changed
      *
      */
     cursorToSync(x: number, y?: number): void;
 
     /**
-     * @description 将光标移动到指定位置
-     *      @param x 指定的列数
-     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     * @description Moves the cursor to the specified position
+     *      @param x the column number
+     *      @param y the row number, default -1, meaning the row number is not changed
      *
      */
     cursorToAsync(x: number, y?: number): Promise<void>;
 
     /**
-     * @description 将光标移动指定的偏移量
-     *      @param dx 指定的列偏移量
-     *      @param dy 指定的行偏移量
+     * @description Moves the cursor by the specified offset
+     *      @param dx the column offset
+     *      @param dy the row offset
      *
      */
     moveCursor(dx: number, dy: number): void;
@@ -103,30 +103,30 @@ declare class Class_TTYOutputStream extends Class_Stream {
     moveCursor(dx: number, dy: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 将光标移动指定的偏移量
-     *      @param dx 指定的列偏移量
-     *      @param dy 指定的行偏移量
+     * @description Moves the cursor by the specified offset
+     *      @param dx the column offset
+     *      @param dy the row offset
      *
      */
     moveCursorSync(dx: number, dy: number): void;
 
     /**
-     * @description 将光标移动指定的偏移量
-     *      @param dx 指定的列偏移量
-     *      @param dy 指定的行偏移量
+     * @description Moves the cursor by the specified offset
+     *      @param dx the column offset
+     *      @param dy the row offset
      *
      */
     moveCursorAsync(dx: number, dy: number): Promise<void>;
 
     /**
-     * @description 返回此 TTYOutputStream 对应的终端的尺寸
-     *      @return 返回数组 [numColumns, numRows]，其中 numColumns 和 numRows 表示相应终端中的列数和行数
+     * @description Returns the size of the terminal corresponding to this TTYOutputStream
+     *      @return returns the array [numColumns, numRows], where numColumns and numRows are the number of columns and rows in the corresponding terminal
      *
      */
     getWindowSize(): any[];
 
     /**
-     * @description 当终端尺寸改变时触发
+     * @description Emitted when the terminal size changes
      */
     on(event: "resize", listener: ()=>void): this;
 

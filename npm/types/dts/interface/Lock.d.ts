@@ -1,11 +1,11 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description Lock 是一个内建对象，它可以用来控制纤程并发访问, 可以通过一个纤程获取锁，来阻止其他纤程同时获取。Lock 可以通过 coroutine.Lock() 函数创建
+ * @description Lock is a built-in object that can be used to control concurrent access from fibers; one fiber can acquire the lock to prevent other fibers from acquiring it at the same time. A Lock can be created with the coroutine.Lock() function
  *
- * 常见情况是，在一个多线程的场景中，当多个线程都想修改同一份数据时，就会出现数据不一致。比如，两个线程都想修改同一份数据中的同一个值，在控制不当的情况下，可能会产生结果的不一致。这时使用 Lock 对象，就可以实现对同一份数据的互斥访问。
+ * A common case is that in a multi-threaded scenario, when multiple threads want to modify the same data, data inconsistency occurs. For example, if two threads both want to modify the same value in the same data, improper control may lead to inconsistent results. In this case, using a Lock object achieves mutually exclusive access to the same data.
  *
- * 下面是一个简单的例子，使用 Lock 实现两个纤程交替执行，并且共享变量 v 的值不为 300。
+ * The following is a simple example that uses Lock to make two fibers execute alternately, where the value of the shared variable v is not 300.
  *
  * ```JavaScript
  * var coroutine = require("coroutine")
@@ -29,25 +29,25 @@
  * l.release()
  * ```
  *
- * 首先创建了一个Lock对象，并进入纤程 f，获取锁后修改变量 v，然后释放锁。在主线程中，先等待纤程 f 完成……当纤程 f 释放了 Lock 后，主线程开始获取 Lock，确保变量 v 的值被改为 300。
+ * First a Lock object is created, then fiber f is entered, which acquires the lock, modifies variable v, and then releases the lock. In the main thread, fiber f is waited for first... After fiber f releases the Lock, the main thread starts to acquire the Lock, ensuring that the value of variable v has been changed to 300.
  *
  */
 declare class Class_Lock extends Class_object {
     /**
-     * @description 构造函数
+     * @description Constructor
      */
     constructor();
 
     /**
-     * @description 获取锁的拥有权
+     * @description Acquires ownership of the lock
      *
-     *      acquire 方法用于获取锁的拥有权，当锁处于可获取状态时，此方法立即返回 true。
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
      *
-     *      当锁不可获取，且 blocking 为 true，则当前纤程进入休眠，当其他纤程释放锁后，此方法返回 true。
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
      *
-     *      当锁不可获取，且 blocking 为 false，则方法返回 false。
-     *      @param blocking 指定是否等待，为 true 时等待，缺省为真
-     *      @return 返回是否成功获取锁，为 true 表示成功获取
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
      *
      */
     acquire(blocking?: boolean): boolean;
@@ -55,44 +55,44 @@ declare class Class_Lock extends Class_object {
     acquire(blocking?: boolean, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 获取锁的拥有权
+     * @description Acquires ownership of the lock
      *
-     *      acquire 方法用于获取锁的拥有权，当锁处于可获取状态时，此方法立即返回 true。
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
      *
-     *      当锁不可获取，且 blocking 为 true，则当前纤程进入休眠，当其他纤程释放锁后，此方法返回 true。
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
      *
-     *      当锁不可获取，且 blocking 为 false，则方法返回 false。
-     *      @param blocking 指定是否等待，为 true 时等待，缺省为真
-     *      @return 返回是否成功获取锁，为 true 表示成功获取
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
      *
      */
     acquireSync(blocking?: boolean): boolean;
 
     /**
-     * @description 获取锁的拥有权
+     * @description Acquires ownership of the lock
      *
-     *      acquire 方法用于获取锁的拥有权，当锁处于可获取状态时，此方法立即返回 true。
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
      *
-     *      当锁不可获取，且 blocking 为 true，则当前纤程进入休眠，当其他纤程释放锁后，此方法返回 true。
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
      *
-     *      当锁不可获取，且 blocking 为 false，则方法返回 false。
-     *      @param blocking 指定是否等待，为 true 时等待，缺省为真
-     *      @return 返回是否成功获取锁，为 true 表示成功获取
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
      *
      */
     acquireAsync(blocking?: boolean): Promise<boolean>;
 
     /**
-     * @description 释放锁的拥有权
+     * @description Releases ownership of the lock
      *
-     *      此方法将释放对锁的拥有权，如果当前纤程未拥有锁，此方法将抛出错误。
+     *      This method releases ownership of the lock; if the current fiber does not own the lock, this method throws an error.
      *
      */
     release(): void;
 
     /**
-     * @description 查询当前等待任务数
-     *      @return 返回任务数
+     * @description Queries the number of currently waiting tasks
+     *      @return returns the number of tasks
      *
      */
     count(): number;

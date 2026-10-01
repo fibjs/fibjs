@@ -2,9 +2,9 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 信息摘要对象
+ * @description Message digest object
  *
- * 可以这样使用 Digest 对象:
+ * A Digest object can be used like this:
  *
  * ```
  * const crypto = require('crypto');
@@ -21,37 +21,37 @@
  * console.log(result.toString('hex'));
  * console.log(result.toString('base64'));
  * ```
- * 上述代码中，使用 `crypto.createHash()` 方法创建了一个 SHA-512 摘要运算对象，可以通过 `update()` 方法逐步添加要进行摘要的数据，并通过 `digest()` 方法获取摘要结果。
+ * In the code above, a SHA-512 digest object is created with the `crypto.createHash()` method; data to be digested can be added incrementally with the `update()` method, and the digest result is obtained with the `digest()` method.
  *
  */
 declare class Class_Digest extends Class_object {
     /**
-     * @description 更新二进制摘要信息
-     *      @param data 二进制数据块
-     *      @return 返回信息摘要对象本身
+     * @description Updates the binary digest information
+     *      @param data the binary data block
+     *      @return returns the message digest object itself
      *
      */
     update(data: Class_Buffer): Class_Digest;
 
     /**
-     * @description 更新字符串摘要信息
-     *      @param data 字符串数据
-     *      @param codec 指定编码格式，允许值为："buffer", "hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     *      @return 返回信息摘要对象本身
+     * @description Updates the string digest information
+     *      @param data the string data
+     *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
+     *      @return returns the message digest object itself
      *
      */
     update(data: string, codec?: string): Class_Digest;
 
     /**
-     * @description 计算并返回摘要
-     *      @param codec 指定编码格式，允许值为："buffer", "hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     *      @return 返回指定编码的摘要表示
+     * @description Computes and returns the digest
+     *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
+     *      @return returns the digest representation in the specified encoding
      *
      */
     digest(codec?: string): any;
 
     /**
-     * @description 查询当前信息摘要算法的摘要字节数
+     * @description Queries the digest size in bytes of the current message digest algorithm
      */
     readonly size: number;
 

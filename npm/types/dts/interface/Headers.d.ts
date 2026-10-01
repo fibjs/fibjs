@@ -1,13 +1,13 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description Headers 是一个专门用于处理 HTTP 头部信息的容器类，继承自 HttpCollection
+ * @description Headers is a container class dedicated to handling HTTP header information, inheriting from HttpCollection
  *
- * Headers 实现了标准的 HTTP Headers API，同时作为全局 Headers 对象和 http.Headers 的实现类。它提供了完整的 HTTP 头部管理功能，支持标准的 HTTP 头部字段操作，继承了 HttpCollection 的所有功能，包括添加、设置、查询和删除头部字段。
+ * Headers implements the standard HTTP Headers API and serves both as the global Headers object and as the implementation class of http.Headers. It provides complete HTTP header management functionality, supports standard HTTP header field operations, and inherits all the functionality of HttpCollection, including adding, setting, querying and deleting header fields.
  *
- * Headers 支持以下几种使用方式：
+ * Headers supports the following ways of use:
  *
- * 1. 作为全局 Headers API 使用（Web 标准）：
+ * 1. Use as the global Headers API (Web standard):
  *
  * ```JavaScript
  * // Create empty Headers object
@@ -29,7 +29,7 @@
  * const copy = new Headers(headers);
  * ```
  *
- * 2. 作为 http.Headers 使用（fibjs 扩展）：
+ * 2. Use as http.Headers (fibjs extension):
  *
  * ```JavaScript
  * const headers = new http.Headers({
@@ -38,7 +38,7 @@
  * });
  * ```
  *
- * Headers API 标准方法示例：
+ * Example of standard Headers API methods:
  *
  * ```JavaScript
  * // Standard Headers API methods
@@ -69,7 +69,7 @@
  * });
  * ```
  *
- * fibjs 扩展方法示例（继承自 HttpCollection）：
+ * Example of fibjs extension methods (inherited from HttpCollection):
  *
  * ```JavaScript
  * // Add multiple values (without overwriting existing)
@@ -88,39 +88,39 @@
  * ]);
  * ```
  *
- * Headers 自动处理头部字段名的大小写不敏感特性，完全遵循 HTTP 协议规范和 Web 标准 Headers API。
+ * Headers automatically handles the case-insensitive nature of header field names, fully following the HTTP protocol specification and the Web standard Headers API.
  *
  */
 declare class Class_Headers extends Class_HttpCollection {
     /**
-     * @description Headers 构造函数，创建一个新的空 HTTP 头部容器
+     * @description Headers constructor, creates a new empty HTTP headers container
      */
     constructor();
 
     /**
-     * @description Headers 构造函数，使用给定的对象初始化 HTTP 头部容器
-     *      @param init 初始化用的头部字段对象，键为头部字段名，值为头部字段值
+     * @description Headers constructor, initializes the HTTP headers container with the given object
+     *      @param init the header field object used for initialization, whose keys are header field names and values are header field values
      *
      */
     constructor(init: FIBJS.GeneralObject);
 
     /**
-     * @description Headers 构造函数，使用给定的数组初始化 HTTP 头部容器
-     *      @param init 初始化用的头部字段数组，每个元素为一个包含头部字段名和头部字段值的数组
+     * @description Headers constructor, initializes the HTTP headers container with the given array
+     *      @param init the header field array used for initialization; each element is an array containing a header field name and a header field value
      *
      */
     constructor(init: any[]);
 
     /**
-     * @description Headers 构造函数，使用给定的 HTTP 头部容器初始化 HTTP 头部容器
-     *      @param init 初始化用的 HTTP 头部容器
+     * @description Headers constructor, initializes the HTTP headers container with the given HTTP headers container
+     *      @param init the HTTP headers container used for initialization
      *
      */
     constructor(init: Class_Headers);
 
     /**
-     * @description 返回所有 Set-Cookie 头部值组成的数组
-     *      @return 返回包含所有 Set-Cookie 值的数组
+     * @description returns an array composed of all Set-Cookie header values
+     *      @return returns an array containing all Set-Cookie values
      *
      */
     getSetCookie(): any[];

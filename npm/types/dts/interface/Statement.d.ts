@@ -1,70 +1,70 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description 预编译语句对象，可反复执行，支持按条读取
+ * @description Prepared statement object, can be executed repeatedly, supports row-by-row reads
  *
- * Statement 由 DbConnection.prepare() 创建。与 execute 的"一次性物化全部结果"
- * 不同，Statement 支持 get/all/run/iterate 四种执行方式，其中 iterate 按条
- * 产生行，任意时刻只驻留一行，内存有界。
+ * Statement is created by DbConnection.prepare(). Unlike the "materialize all results at once" behavior of execute,
+ * Statement supports four execution modes: get/all/run/iterate; iterate produces rows
+ * one by one, keeping only one row in memory at any time, with bounded memory.
  *
- * iterate 返回的迭代器推荐用 for...of 遍历：循环 break 或抛出异常时，引擎
- * 会自动调用迭代器的 return() 释放游标（IteratorClose 语义），无需手工干预：
+ * The iterator returned by iterate is best traversed with for...of: when the loop breaks or throws, the engine
+ * automatically calls the iterator's return() to release the cursor (IteratorClose semantics), with no manual intervention:
  *
  * ```js
  * var stmt = conn.prepare('SELECT * FROM big_table WHERE region = ?');
  * for (var row of stmt.iterate('east')) {
- *     process(row);        // 同一时刻只驻留一行
+ *     process(row);        // only one row resides in memory at a time
  * }
- * // break/异常/跑完均自动释放游标，连接立即可复用
+ * // break/exception/normal completion all release the cursor automatically; the connection is immediately reusable
  * ```
  *
- * 手动调用迭代器的 next()/return() 是危险操作：迭代器在结果耗尽前一直保持
- * 游标打开，若在 break 或异常时忘记调用 return()，游标将泄漏并占用连接
- * （同连接后续语句报 BUSY，SQLite 下还可能阻塞其他连接的表结构变更）。
- * 选择手动方式即需自行承担资源释放责任。
+ * Calling the iterator's next()/return() manually is dangerous: the iterator keeps
+ * the cursor open until the results are exhausted; if return() is forgotten on break or exception, the cursor leaks and occupies the connection
+ * (subsequent statements on the same connection report BUSY, and under SQLite it may also block table schema changes of other connections).
+ * Choosing the manual approach means you take responsibility for releasing resources yourself.
  *
  */
 declare class Class_Statement extends Class_object {
     /**
-     * @description 执行语句并返回第一行，无结果时返回 undefined
-     *          @param args 绑定参数
-     *          @return 返回第一行对象，无结果时返回 undefined
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
      *
      */
     get(...args: any[]): any;
 
     /**
-     * @description 执行语句并返回全部行（一次性物化）
-     *          @param args 绑定参数
-     *          @return 返回全部行对象组成的数组
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
      *
      */
     all(...args: any[]): any[];
 
     /**
-     * @description 执行不返回结果集的语句
-     *          @param args 绑定参数
-     *          @return 返回 { changes, lastInsertRowid } 对象
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
      *
      */
     run(...args: any[]): any;
 
     /**
-     * @description 执行语句并返回按条读取的迭代器
+     * @description Executes the statement and returns an iterator for row-by-row reads
      *
-     *          推荐使用 for...of 遍历（break/异常自动释放游标）；手动调用
-     *          next()/return() 是危险操作，必须自行保证异常与提前结束时调用
-     *          return() 释放游标，否则游标泄漏会占用连接。
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
      *
-     *          @param args 绑定参数
-     *          @return 返回行迭代器，逐行产生行对象，内存有界
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
     iterate(...args: any[]): Iterator<any>;
 
     /**
-     * @description 返回结果列元数据
-     *          @return 返回列元数据数组，每项包含 name/type 等属性
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
      *
      */
     columns(): any[];
@@ -72,38 +72,38 @@ declare class Class_Statement extends Class_object {
     columns(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
-     * @description 返回结果列元数据
-     *          @return 返回列元数据数组，每项包含 name/type 等属性
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
      *
      */
     columnsSync(): any[];
 
     /**
-     * @description 返回结果列元数据
-     *          @return 返回列元数据数组，每项包含 name/type 等属性
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
      *
      */
     columnsAsync(): Promise<any[]>;
 
     /**
-     * @description 当前语句原始 SQL
+     * @description The original SQL of the current statement
      */
     readonly sourceSQL: string;
 
     /**
-     * @description 主动关闭并释放底层句柄；迭代结束后自动释放，可重复调用
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 主动关闭并释放底层句柄；迭代结束后自动释放，可重复调用
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
      */
     closeSync(): void;
 
     /**
-     * @description 主动关闭并释放底层句柄；迭代结束后自动释放，可重复调用
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
      */
     closeAsync(): Promise<void>;
 

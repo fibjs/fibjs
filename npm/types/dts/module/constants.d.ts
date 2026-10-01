@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description 常用常量定义模块
+ * @description Common constants definition module
  *
- *  引用方法：
+ *  Reference method:
  *  ```JavaScript
  *  var constants = require('constants');
  *  ```
@@ -10,692 +10,692 @@
  */
 declare module 'constants' {
     /**
-     * @description 动态库延迟加载
+     * @description Lazy loading of a dynamic library
      */
     export const RTLD_LAZY: 1;
 
     /**
-     * @description 动态库立即加载
+     * @description Immediate loading of a dynamic library
      */
     export const RTLD_NOW: 2;
 
     /**
-     * @description 动态库全局作用域加载
+     * @description Loading a dynamic library in the global scope
      */
     export const RTLD_GLOBAL: 8;
 
     /**
-     * @description 动态库局部作用域加载
+     * @description Loading a dynamic library in the local scope
      */
     export const RTLD_LOCAL: 4;
 
     /**
-     * @description 参数列表太长错误
+     * @description Argument list too long error
      */
     export const E2BIG: 7;
 
     /**
-     * @description 没有访问权限错误
+     * @description Permission denied error
      */
     export const EACCES: 13;
 
     /**
-     * @description 地址已在使用错误
+     * @description Address already in use error
      */
     export const EADDRINUSE: 48;
 
     /**
-     * @description 地址不可用错误
+     * @description Address not available error
      */
     export const EADDRNOTAVAIL: 49;
 
     /**
-     * @description 地址族不支持错误
+     * @description Address family not supported error
      */
     export const EAFNOSUPPORT: 47;
 
     /**
-     * @description 资源暂时不可用错误
+     * @description Resource temporarily unavailable error
      */
     export const EAGAIN: 35;
 
     /**
-     * @description 连接已在进行中错误
+     * @description Connection already in progress error
      */
     export const EALREADY: 37;
 
     /**
-     * @description 文件描述符错误
+     * @description Bad file descriptor error
      */
     export const EBADF: 9;
 
     /**
-     * @description 错误消息错误
+     * @description Bad message error
      */
     export const EBADMSG: 94;
 
     /**
-     * @description 设备或资源忙错误
+     * @description Device or resource busy error
      */
     export const EBUSY: 16;
 
     /**
-     * @description 操作取消错误
+     * @description Operation canceled error
      */
     export const ECANCELED: 89;
 
     /**
-     * @description 没有子进程错误
+     * @description No child processes error
      */
     export const ECHILD: 10;
 
     /**
-     * @description 连接中止错误
+     * @description Connection aborted error
      */
     export const ECONNABORTED: 53;
 
     /**
-     * @description 连接被拒绝错误
+     * @description Connection refused error
      */
     export const ECONNREFUSED: 61;
 
     /**
-     * @description 连接重置错误
+     * @description Connection reset error
      */
     export const ECONNRESET: 54;
 
     /**
-     * @description 资源死锁避免错误
+     * @description Resource deadlock avoided error
      */
     export const EDEADLK: 11;
 
     /**
-     * @description 需要目标地址错误
+     * @description Destination address required error
      */
     export const EDESTADDRREQ: 39;
 
     /**
-     * @description 数学参数超出域错误
+     * @description Numerical argument out of domain error
      */
     export const EDOM: 33;
 
     /**
-     * @description 超出配额错误
+     * @description Disk quota exceeded error
      */
     export const EDQUOT: 69;
 
     /**
-     * @description 文件已存在错误
+     * @description File exists error
      */
     export const EEXIST: 17;
 
     /**
-     * @description 错误地址错误
+     * @description Bad address error
      */
     export const EFAULT: 14;
 
     /**
-     * @description 文件太大错误
+     * @description File too large error
      */
     export const EFBIG: 27;
 
     /**
-     * @description 主机不可达错误
+     * @description Host unreachable error
      */
     export const EHOSTUNREACH: 65;
 
     /**
-     * @description 标识符已移除错误
+     * @description Identifier removed error
      */
     export const EIDRM: 90;
 
     /**
-     * @description 非法字节序列错误
+     * @description Illegal byte sequence error
      */
     export const EILSEQ: 92;
 
     /**
-     * @description 操作进行中错误
+     * @description Operation now in progress error
      */
     export const EINPROGRESS: 36;
 
     /**
-     * @description 函数调用中断错误
+     * @description Interrupted system call error
      */
     export const EINTR: 4;
 
     /**
-     * @description 无效参数错误
+     * @description Invalid argument error
      */
     export const EINVAL: 22;
 
     /**
-     * @description 输入/输出错误
+     * @description Input/output error
      */
     export const EIO: 5;
 
     /**
-     * @description 套接字已连接错误
+     * @description Socket is connected error
      */
     export const EISCONN: 56;
 
     /**
-     * @description 是目录错误
+     * @description Is a directory error
      */
     export const EISDIR: 21;
 
     /**
-     * @description 符号链接层次过多错误
+     * @description Too many levels of symbolic links error
      */
     export const ELOOP: 62;
 
     /**
-     * @description 打开文件过多错误
+     * @description Too many open files error
      */
     export const EMFILE: 24;
 
     /**
-     * @description 链接过多错误
+     * @description Too many links error
      */
     export const EMLINK: 31;
 
     /**
-     * @description 消息太长错误
+     * @description Message too long error
      */
     export const EMSGSIZE: 40;
 
     /**
-     * @description 多跳尝试错误
+     * @description Multihop attempted error
      */
     export const EMULTIHOP: 95;
 
     /**
-     * @description 文件名太长错误
+     * @description File name too long error
      */
     export const ENAMETOOLONG: 63;
 
     /**
-     * @description 网络已关闭错误
+     * @description Network is down error
      */
     export const ENETDOWN: 50;
 
     /**
-     * @description 网络连接重置错误
+     * @description Network connection reset error
      */
     export const ENETRESET: 52;
 
     /**
-     * @description 网络不可达错误
+     * @description Network is unreachable error
      */
     export const ENETUNREACH: 51;
 
     /**
-     * @description 系统打开文件过多错误
+     * @description Too many open files in system error
      */
     export const ENFILE: 23;
 
     /**
-     * @description 无缓冲区空间错误
+     * @description No buffer space available error
      */
     export const ENOBUFS: 55;
 
     /**
-     * @description 无数据可用错误
+     * @description No data available error
      */
     export const ENODATA: 96;
 
     /**
-     * @description 无此设备错误
+     * @description No such device error
      */
     export const ENODEV: 19;
 
     /**
-     * @description 无此文件或目录错误
+     * @description No such file or directory error
      */
     export const ENOENT: 2;
 
     /**
-     * @description 可执行文件格式错误
+     * @description Exec format error
      */
     export const ENOEXEC: 8;
 
     /**
-     * @description 无可用锁错误
+     * @description No locks available error
      */
     export const ENOLCK: 77;
 
     /**
-     * @description 链接已断开错误
+     * @description Link has been severed error
      */
     export const ENOLINK: 97;
 
     /**
-     * @description 内存不足错误
+     * @description Out of memory error
      */
     export const ENOMEM: 12;
 
     /**
-     * @description 无所需类型消息错误
+     * @description No message of desired type error
      */
     export const ENOMSG: 91;
 
     /**
-     * @description 协议不可用错误
+     * @description Protocol not available error
      */
     export const ENOPROTOOPT: 42;
 
     /**
-     * @description 设备上无空间错误
+     * @description No space left on device error
      */
     export const ENOSPC: 28;
 
     /**
-     * @description 流资源不足错误
+     * @description Out of streams resources error
      */
     export const ENOSR: 98;
 
     /**
-     * @description 设备不是流错误
+     * @description Device not a stream error
      */
     export const ENOSTR: 99;
 
     /**
-     * @description 功能未实现错误
+     * @description Function not implemented error
      */
     export const ENOSYS: 78;
 
     /**
-     * @description 套接字未连接错误
+     * @description Socket is not connected error
      */
     export const ENOTCONN: 57;
 
     /**
-     * @description 不是目录错误
+     * @description Not a directory error
      */
     export const ENOTDIR: 20;
 
     /**
-     * @description 目录不为空错误
+     * @description Directory not empty error
      */
     export const ENOTEMPTY: 66;
 
     /**
-     * @description 套接字操作非套接字错误
+     * @description Socket operation on non-socket error
      */
     export const ENOTSOCK: 38;
 
     /**
-     * @description 操作不支持错误
+     * @description Operation not supported error
      */
     export const ENOTSUP: 45;
 
     /**
-     * @description 不适当的I/O控制操作错误
+     * @description Inappropriate I/O control operation error
      */
     export const ENOTTY: 25;
 
     /**
-     * @description 无此设备或地址错误
+     * @description No such device or address error
      */
     export const ENXIO: 6;
 
     /**
-     * @description 套接字上不支持操作错误
+     * @description Operation not supported on socket error
      */
     export const EOPNOTSUPP: 102;
 
     /**
-     * @description 值太大无法存储在数据类型错误
+     * @description Value too large for the data type error
      */
     export const EOVERFLOW: 84;
 
     /**
-     * @description 操作不允许错误
+     * @description Operation not permitted error
      */
     export const EPERM: 1;
 
     /**
-     * @description 管道破裂错误
+     * @description Broken pipe error
      */
     export const EPIPE: 32;
 
     /**
-     * @description 协议错误
+     * @description Protocol error
      */
     export const EPROTO: 100;
 
     /**
-     * @description 协议不支持错误
+     * @description Protocol not supported error
      */
     export const EPROTONOSUPPORT: 43;
 
     /**
-     * @description 协议错误类型错误
+     * @description Protocol wrong type error
      */
     export const EPROTOTYPE: 41;
 
     /**
-     * @description 结果太大错误
+     * @description Result too large error
      */
     export const ERANGE: 34;
 
     /**
-     * @description 只读文件系统错误
+     * @description Read-only file system error
      */
     export const EROFS: 30;
 
     /**
-     * @description 无效的查找错误
+     * @description Invalid seek error
      */
     export const ESPIPE: 29;
 
     /**
-     * @description 无此进程错误
+     * @description No such process error
      */
     export const ESRCH: 3;
 
     /**
-     * @description 文件句柄过时错误
+     * @description Stale file handle error
      */
     export const ESTALE: 70;
 
     /**
-     * @description 定时器到期错误
+     * @description Timer expired error
      */
     export const ETIME: 101;
 
     /**
-     * @description 连接超时错误
+     * @description Connection timed out error
      */
     export const ETIMEDOUT: 60;
 
     /**
-     * @description 文本文件忙错误
+     * @description Text file busy error
      */
     export const ETXTBSY: 26;
 
     /**
-     * @description 操作会阻塞错误
+     * @description Operation would block error
      */
     export const EWOULDBLOCK: 35;
 
     /**
-     * @description 跨设备链接错误
+     * @description Cross-device link error
      */
     export const EXDEV: 18;
 
     /**
-     * @description 低优先级
+     * @description Low priority
      */
     export const PRIORITY_LOW: 19;
 
     /**
-     * @description 低于正常优先级
+     * @description Below normal priority
      */
     export const PRIORITY_BELOW_NORMAL: 10;
 
     /**
-     * @description 正常优先级
+     * @description Normal priority
      */
     export const PRIORITY_NORMAL: 0;
 
     /**
-     * @description 高于正常优先级
+     * @description Above normal priority
      */
     export const PRIORITY_ABOVE_NORMAL: -7;
 
     /**
-     * @description 高优先级
+     * @description High priority
      */
     export const PRIORITY_HIGH: -14;
 
     /**
-     * @description 最高优先级
+     * @description Highest priority
      */
     export const PRIORITY_HIGHEST: -20;
 
     /**
-     * @description 挂起信号
+     * @description Hangup signal
      */
     export const SIGHUP: 1;
 
     /**
-     * @description 中断信号
+     * @description Interrupt signal
      */
     export const SIGINT: 2;
 
     /**
-     * @description 退出信号
+     * @description Quit signal
      */
     export const SIGQUIT: 3;
 
     /**
-     * @description 非法指令信号
+     * @description Illegal instruction signal
      */
     export const SIGILL: 4;
 
     /**
-     * @description 跟踪陷阱信号
+     * @description Trace trap signal
      */
     export const SIGTRAP: 5;
 
     /**
-     * @description 中止信号
+     * @description Abort signal
      */
     export const SIGABRT: 6;
 
     /**
-     * @description IOT陷阱信号
+     * @description IOT trap signal
      */
     export const SIGIOT: 6;
 
     /**
-     * @description 总线错误信号
+     * @description Bus error signal
      */
     export const SIGBUS: 10;
 
     /**
-     * @description 浮点异常信号
+     * @description Floating point exception signal
      */
     export const SIGFPE: 8;
 
     /**
-     * @description 杀死信号
+     * @description Kill signal
      */
     export const SIGKILL: 9;
 
     /**
-     * @description 用户定义信号1
+     * @description User defined signal 1
      */
     export const SIGUSR1: 30;
 
     /**
-     * @description 段错误信号
+     * @description Segmentation fault signal
      */
     export const SIGSEGV: 11;
 
     /**
-     * @description 用户定义信号2
+     * @description User defined signal 2
      */
     export const SIGUSR2: 31;
 
     /**
-     * @description 管道破裂信号
+     * @description Broken pipe signal
      */
     export const SIGPIPE: 13;
 
     /**
-     * @description 闹钟信号
+     * @description Alarm clock signal
      */
     export const SIGALRM: 14;
 
     /**
-     * @description 终止信号
+     * @description Termination signal
      */
     export const SIGTERM: 15;
 
     /**
-     * @description 子进程终止或停止信号
+     * @description Child process terminated or stopped signal
      */
     export const SIGCHLD: 20;
 
     /**
-     * @description 继续执行信号
+     * @description Continue execution signal
      */
     export const SIGCONT: 19;
 
     /**
-     * @description 停止执行信号
+     * @description Stop execution signal
      */
     export const SIGSTOP: 17;
 
     /**
-     * @description 终端停止信号
+     * @description Terminal stop signal
      */
     export const SIGTSTP: 18;
 
     /**
-     * @description 后台进程尝试读取信号
+     * @description Background process attempts to read signal
      */
     export const SIGTTIN: 21;
 
     /**
-     * @description 后台进程尝试写入信号
+     * @description Background process attempts to write signal
      */
     export const SIGTTOU: 22;
 
     /**
-     * @description 套接字紧急条件信号
+     * @description Socket urgent condition signal
      */
     export const SIGURG: 16;
 
     /**
-     * @description CPU时间限制超出信号
+     * @description CPU time limit exceeded signal
      */
     export const SIGXCPU: 24;
 
     /**
-     * @description 文件大小限制超出信号
+     * @description File size limit exceeded signal
      */
     export const SIGXFSZ: 25;
 
     /**
-     * @description 虚拟定时器到期信号
+     * @description Virtual timer expired signal
      */
     export const SIGVTALRM: 26;
 
     /**
-     * @description 分析定时器到期信号
+     * @description Profiling timer expired signal
      */
     export const SIGPROF: 27;
 
     /**
-     * @description 窗口大小改变信号
+     * @description Window size change signal
      */
     export const SIGWINCH: 28;
 
     /**
-     * @description I/O现在可能信号
+     * @description I/O now possible signal
      */
     export const SIGIO: 23;
 
     /**
-     * @description 信息请求信号
+     * @description Information request signal
      */
     export const SIGINFO: 29;
 
     /**
-     * @description 错误的系统调用信号
+     * @description Bad system call signal
      */
     export const SIGSYS: 12;
 
     /**
-     * @description 符号链接到目录
+     * @description Symbolic link to a directory
      */
     export const UV_FS_SYMLINK_DIR: 1;
 
     /**
-     * @description 符号链接到连接点
+     * @description Symbolic link to a junction point
      */
     export const UV_FS_SYMLINK_JUNCTION: 2;
 
     /**
-     * @description 仅打开读取
+     * @description Open for reading only
      */
     export const O_RDONLY: 0;
 
     /**
-     * @description 仅打开写入
+     * @description Open for writing only
      */
     export const O_WRONLY: 1;
 
     /**
-     * @description 打开读取和写入
+     * @description Open for reading and writing
      */
     export const O_RDWR: 2;
 
     /**
-     * @description 未知目录项类型
+     * @description Unknown directory entry type
      */
     export const UV_DIRENT_UNKNOWN: 0;
 
     /**
-     * @description 文件目录项类型
+     * @description File directory entry type
      */
     export const UV_DIRENT_FILE: 1;
 
     /**
-     * @description 目录目录项类型
+     * @description Directory directory entry type
      */
     export const UV_DIRENT_DIR: 2;
 
     /**
-     * @description 符号链接目录项类型
+     * @description Symbolic link directory entry type
      */
     export const UV_DIRENT_LINK: 3;
 
     /**
-     * @description FIFO目录项类型
+     * @description FIFO directory entry type
      */
     export const UV_DIRENT_FIFO: 4;
 
     /**
-     * @description 套接字目录项类型
+     * @description Socket directory entry type
      */
     export const UV_DIRENT_SOCKET: 5;
 
     /**
-     * @description 字符设备目录项类型
+     * @description Character device directory entry type
      */
     export const UV_DIRENT_CHAR: 6;
 
     /**
-     * @description 块设备目录项类型
+     * @description Block device directory entry type
      */
     export const UV_DIRENT_BLOCK: 7;
 
     /**
-     * @description 文件类型位字段的位掩码
+     * @description Bit mask of the file type bit field
      */
     export const S_IFMT: 61440;
 
     /**
-     * @description 常规文件
+     * @description Regular file
      */
     export const S_IFREG: 32768;
 
     /**
-     * @description 目录
+     * @description Directory
      */
     export const S_IFDIR: 16384;
 
     /**
-     * @description 字符设备
+     * @description Character device
      */
     export const S_IFCHR: 8192;
 
     /**
-     * @description 块设备
+     * @description Block device
      */
     export const S_IFBLK: 24576;
 
@@ -705,182 +705,182 @@ declare module 'constants' {
     export const S_IFIFO: 4096;
 
     /**
-     * @description 符号链接
+     * @description Symbolic link
      */
     export const S_IFLNK: 40960;
 
     /**
-     * @description 套接字
+     * @description Socket
      */
     export const S_IFSOCK: 49152;
 
     /**
-     * @description 如果文件不存在则创建文件
+     * @description Create the file if it does not exist
      */
     export const O_CREAT: 512;
 
     /**
-     * @description 确保文件的独占创建
+     * @description Ensure exclusive creation of the file
      */
     export const O_EXCL: 2048;
 
     /**
-     * @description 文件映射标志
+     * @description File mapping flag
      */
     export const UV_FS_O_FILEMAP: 0;
 
     /**
-     * @description 不分配控制终端
+     * @description Do not allocate a controlling terminal
      */
     export const O_NOCTTY: 131072;
 
     /**
-     * @description 将文件截断为零长度
+     * @description Truncate the file to zero length
      */
     export const O_TRUNC: 1024;
 
     /**
-     * @description 追加到文件末尾
+     * @description Append to the end of the file
      */
     export const O_APPEND: 8;
 
     /**
-     * @description 打开目录
+     * @description Open a directory
      */
     export const O_DIRECTORY: 1048576;
 
     /**
-     * @description 不跟随符号链接
+     * @description Do not follow symbolic links
      */
     export const O_NOFOLLOW: 256;
 
     /**
-     * @description 同步I/O
+     * @description Synchronous I/O
      */
     export const O_SYNC: 128;
 
     /**
-     * @description 同步I/O数据完整性完成
+     * @description Synchronous I/O data integrity completion
      */
     export const O_DSYNC: 4194304;
 
     /**
-     * @description 允许打开符号链接
+     * @description Allow opening symbolic links
      */
     export const O_SYMLINK: 2097152;
 
     /**
-     * @description 非阻塞模式
+     * @description Non-blocking mode
      */
     export const O_NONBLOCK: 4;
 
     /**
-     * @description 所有者读写执行权限
+     * @description Owner read, write and execute permission
      */
     export const S_IRWXU: 448;
 
     /**
-     * @description 所有者读权限
+     * @description Owner read permission
      */
     export const S_IRUSR: 256;
 
     /**
-     * @description 所有者写权限
+     * @description Owner write permission
      */
     export const S_IWUSR: 128;
 
     /**
-     * @description 所有者执行权限
+     * @description Owner execute permission
      */
     export const S_IXUSR: 64;
 
     /**
-     * @description 组读写执行权限
+     * @description Group read, write and execute permission
      */
     export const S_IRWXG: 56;
 
     /**
-     * @description 组读权限
+     * @description Group read permission
      */
     export const S_IRGRP: 32;
 
     /**
-     * @description 组写权限
+     * @description Group write permission
      */
     export const S_IWGRP: 16;
 
     /**
-     * @description 组执行权限
+     * @description Group execute permission
      */
     export const S_IXGRP: 8;
 
     /**
-     * @description 其他人读写执行权限
+     * @description Others read, write and execute permission
      */
     export const S_IRWXO: 7;
 
     /**
-     * @description 其他人读权限
+     * @description Others read permission
      */
     export const S_IROTH: 4;
 
     /**
-     * @description 其他人写权限
+     * @description Others write permission
      */
     export const S_IWOTH: 2;
 
     /**
-     * @description 其他人执行权限
+     * @description Others execute permission
      */
     export const S_IXOTH: 1;
 
     /**
-     * @description 测试文件是否存在
+     * @description Test whether the file exists
      */
     export const F_OK: 0;
 
     /**
-     * @description 测试读权限
+     * @description Test read permission
      */
     export const R_OK: 4;
 
     /**
-     * @description 测试写权限
+     * @description Test write permission
      */
     export const W_OK: 2;
 
     /**
-     * @description 测试执行权限
+     * @description Test execute permission
      */
     export const X_OK: 1;
 
     /**
-     * @description 独占复制文件标志
+     * @description Exclusive copy file flag
      */
     export const UV_FS_COPYFILE_EXCL: 1;
 
     /**
-     * @description 独占复制文件标志
+     * @description Exclusive copy file flag
      */
     export const COPYFILE_EXCL: 1;
 
     /**
-     * @description 文件克隆复制标志
+     * @description File clone copy flag
      */
     export const UV_FS_COPYFILE_FICLONE: 2;
 
     /**
-     * @description 文件克隆复制标志
+     * @description File clone copy flag
      */
     export const COPYFILE_FICLONE: 2;
 
     /**
-     * @description 文件克隆强制复制标志
+     * @description File clone force copy flag
      */
     export const UV_FS_COPYFILE_FICLONE_FORCE: 4;
 
     /**
-     * @description 文件克隆强制复制标志
+     * @description File clone force copy flag
      */
     export const COPYFILE_FICLONE_FORCE: 4;
 

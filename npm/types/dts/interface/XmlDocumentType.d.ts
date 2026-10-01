@@ -1,24 +1,24 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XmlDocumentType 对象用于访问 XML 所定义的实体
+ * @description The XmlDocumentType object is used to access the entities defined by XML
  *
  */
 declare class Class_XmlDocumentType extends Class_XmlNode {
     /**
-     * @description 返回 DTD 的名称
+     * @description Returns the name of the DTD
      *
      */
     readonly name: string;
 
     /**
-     * @description 可返回外部 DTD 的公共识别符
+     * @description Returns the public identifier of the external DTD
      *
      */
     readonly publicId: string;
 
     /**
-     * @description 可返回外部 DTD 的系统识别符
+     * @description Returns the system identifier of the external DTD
      *
      */
     readonly systemId: string;

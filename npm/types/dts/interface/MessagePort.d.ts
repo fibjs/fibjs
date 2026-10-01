@@ -61,12 +61,12 @@ declare class Class_MessagePort extends Class_EventEmitter {
     unref(): void;
 
     /**
-     * @description 查询和绑定接受消息事件，相当于 on("message", func); 设置后会自动调用 start()。
+     * @description Queries and binds the message reception event, equivalent to on("message", func); start() is called automatically once it is set.
      */
     on(event: "message", listener: ()=>void): this;
 
     /**
-     * @description 查询和绑定接受消息反序列化错误事件，相当于 on("messageerror", func);
+     * @description Queries and binds the message deserialization error event, equivalent to on("messageerror", func);
      */
     on(event: "messageerror", listener: ()=>void): this;
 

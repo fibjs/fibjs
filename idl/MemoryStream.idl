@@ -1,0 +1,25 @@
+/*! @brief Memory stream object
+
+ The MemoryStream object creates a memory-based stream object. Creation method:
+ ```JavaScript
+ var ms = new io.MemoryStream();
+ ```
+ */
+interface MemoryStream : SeekableStream
+{
+    /*! @brief MemoryStream constructor */
+    MemoryStream();
+
+    /*! @brief Forces the last update time of the memory stream object
+     @param d the time to set
+     */
+    setTime(Date d);
+
+    /*! @brief Creates a read-only copy of the current memory stream
+     @return returns a read-only memory stream object
+     */
+    MemoryStream clone();
+
+    /*! @brief Clears the memory file data and resets the pointer */
+    clear();
+};

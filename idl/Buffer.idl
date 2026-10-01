@@ -1,0 +1,637 @@
+/*! @brief Binary data buffer object, used for io read/write data handling
+
+ Buffer is a global base class and can be created with `Buffer.alloc(...)` / `Buffer.from(...)`:
+ ```JavaScript
+ var buf = Buffer.from("abc");
+ ```
+
+ Buffer provides static methods such as `Buffer.alloc`, `Buffer.from`, `Buffer.concat`, as well as instance methods for reading, writing, searching, slicing and encoding conversion.
+
+ Notes: the `slice` method is consistent with node and returns a view that **shares memory** with the original object (`subarray` is synonymous);
+ Use `Buffer.from(buf)` when a copy is needed.
+
+ `require('buffer')` returns a node-style module object (`Buffer`/`SlowBuffer`/`constants`/`kMaxLength`/`transcode`/`atob`/
+ `btoa`/`isUtf8`/`isAscii`), and the global `Buffer` is still the class itself.
+
+ Supported encodings include: node standard encodings ("utf8", "utf16le"/"ucs2", "latin1", "ascii", "base64", "base64url", "hex"),
+ as well as fibjs extensions ("base32", "base58", "utf16be"/"utf32" and all charsets supported by the iconv module).
+ */
+interface Buffer : object
+{
+    /*! @brief Binary data buffer object, used for io read/write data handling */
+    static Buffer;
+
+    /*! @brief Buffer constructor
+     @param datas the initial data array
+     */
+    Buffer(Array datas);
+
+    /*! @brief Buffer constructor
+     @param datas the initial data array
+     @param byteOffset the data start position, starting from 0
+     @param length the data length, default -1, meaning all remaining data
+     */
+    Buffer(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief Buffer constructor
+     @param datas the initial data array
+     @param byteOffset the data start position, starting from 0
+     @param length the data length, default -1, meaning all remaining data
+     */
+    Buffer(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief Buffer constructor
+     @param str the initial string, written in utf-8 format; if omitted, an empty object is created
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     */
+    Buffer(String str, String codec = "utf8");
+
+    /*! @brief Buffer constructor
+     @param size the initial buffer size
+     */
+    Buffer(Integer size = 0);
+
+    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+     @param size the required length of the buffer
+     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
+     @return the filled new Buffer object
+    */
+    static Buffer alloc(Integer size, Integer fill = 0);
+
+    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+     @param size the required length of the buffer
+     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return the filled new Buffer object
+    */
+    static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
+
+    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+     @param size the required length of the buffer
+     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
+     @return the filled new Buffer object
+    */
+    static Buffer alloc(Integer size, Buffer fill);
+
+    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+     @param size the required length of the buffer
+     @return a new Buffer object of the specified size
+    */
+    static Buffer allocUnsafe(Integer size);
+
+    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+     @param size the required length of the buffer
+     @return a new Buffer object of the specified size
+    */
+    static Buffer allocUnsafeSlow(Integer size);
+
+    /*! @brief Creates a Buffer object from the given array
+     @param datas the initial data array
+     @return returns a Buffer instance
+     */
+    static Buffer from(Array datas);
+
+    /*! @brief Creates a Buffer object from another Buffer
+     @param buffer the given variable of type Buffer used to create the Buffer object
+     @param byteOffset the data start position, starting from 0
+     @param length the data length, default -1, meaning all remaining data
+     @return returns a Buffer instance
+     */
+    static Buffer from(Buffer buffer, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief Creates a Buffer object from another Buffer
+     @param datas the initial data array
+     @param byteOffset the data start position, starting from 0
+     @param length the data length, default -1, meaning all remaining data
+     @return returns a Buffer instance
+     */
+    static Buffer from(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief Creates a Buffer object from another Buffer
+     @param datas the initial data array
+     @param byteOffset the data start position, starting from 0
+     @param length the data length, default -1, meaning all remaining data
+     @return returns a Buffer instance
+     */
+    static Buffer from(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief Creates a Buffer object from a string
+     @param str the initial string, written in utf-8 format; if omitted, an empty object is created
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return returns a Buffer instance
+     */
+    static Buffer from(String str, String codec = "utf8");
+
+    /*! @brief Concatenates data from multiple buffers
+     @param buflist the Buffer array to concatenate
+     @param cutLength the number of bytes to cut, default -1, meaning concatenate all data
+     @return the new Buffer object produced by concatenation
+    */
+    static Buffer concat(Array buflist, Integer cutLength = -1);
+
+    /*! @brief Checks whether the given variable is a Buffer object
+     @param v the given variable to check
+     @return whether the passed object is a Buffer object
+    */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief Checks whether the encoding format is supported
+     @param codec the encoding format to check
+     @return whether it is supported
+     */
+    static Boolean isEncoding(String codec);
+
+    /*! @brief Returns the actual byte length of the string
+     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return returns the actual byte length
+     */
+    static Integer byteLength(String str, String codec = "utf8");
+
+    /*! @brief Returns the actual byte length of the string
+     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+     @return returns the actual byte length
+     */
+    static Integer byteLength(ArrayBuffer str);
+
+    /*! @brief Returns the actual byte length of the string
+     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+     @return returns the actual byte length
+     */
+    static Integer byteLength(Uint8Array str);
+
+    /*! @brief Returns the actual byte length of the string
+     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+     @return returns the actual byte length
+     */
+    static Integer byteLength(Buffer str);
+
+    /*! @brief Compares buf1 and buf2, often used for sorting between Buffer instances. Equivalent to buf1.compare(buf2).
+    @param buf1 the buf to compare
+    @param buf2 the buf to compare
+    @return returns the comparison result: -1 if buf1 is less than buf2, 0 if equal, 1 if greater
+     */
+    static Integer compare(Buffer buf1, Buffer buf2);
+
+    /*! @brief Gets the size of the buffer object */
+    readonly Integer length;
+
+    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+     @param str the string to write
+     @param offset the write start position
+     @param length the write length (in bytes, default -1); when not specified, the length of the string to write
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return the byte length of the data written
+     */
+    Integer write(String str, Integer offset = 0, Integer length = -1, String codec = "utf8");
+
+    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+     @param str the string to write
+     @param offset the write start position
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return the byte length of the data written
+     */
+    Integer write(String str, Integer offset = 0, String codec = "utf8");
+
+    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+     @param str the string to write
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return the byte length of the data written
+     */
+    Integer write(String str, String codec = "utf8");
+
+    /*! @brief Fills the Buffer object with the specified data
+     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param offset the fill start position
+     @param end the fill end position
+     @return returns the current Buffer object
+     */
+    Buffer fill(Integer v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief Fills the Buffer object with the specified data
+     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param offset the fill start position
+     @param end the fill end position
+     @return returns the current Buffer object
+     */
+    Buffer fill(Buffer v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief Fills the Buffer object with the specified data
+     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param offset the fill start position
+     @param end the fill end position
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return returns the current Buffer object
+     */
+    Buffer fill(String v, Integer offset = 0, Integer end = -1, String codec = "utf8");
+
+    /*! @brief Fills the Buffer object with the specified data
+     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param offset the fill start position
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return returns the current Buffer object
+     */
+    Buffer fill(String v, Integer offset, String codec);
+
+    /*! @brief Fills the Buffer object with the specified data
+     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @return returns the current Buffer object
+     */
+    Buffer fill(String v, String codec);
+
+    /*! @brief Copies data from the source buffer region to the target buffer region
+     @param targetBuffer the target buffer object
+     @param targetStart the target buffer start copy byte position, default is 0
+     @param sourceStart the source buffer start byte position, default is 0
+     @param sourceEnd the source buffer end byte position, default -1, meaning the source data length
+     @return the byte length of the data copied
+     */
+    Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
+
+    /*! @brief Copies data from the source buffer region to the target buffer region
+     @param src the source buffer object
+     @param start the write start position of the target buffer object
+     @return the byte length of the data copied
+     */
+    Integer set(Buffer src, Integer start);
+
+    /*! @brief Reads an 8-bit unsigned integer value from the buffer object
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readUInt8(Integer offset = 0);
+
+    /*! @brief Reads a 16-bit unsigned integer value from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readUInt16LE(Integer offset = 0);
+
+    /*! @brief Reads a 16-bit unsigned integer value from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readUInt16BE(Integer offset = 0);
+
+    /*! @brief Reads a 32-bit unsigned integer value from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Number readUInt32LE(Integer offset = 0);
+
+    /*! @brief Reads a 32-bit unsigned integer value from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Number readUInt32BE(Integer offset = 0);
+
+    /*! @brief Reads an unsigned integer value from the buffer object, up to 48 bits, in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @param byteLength the number of bytes to read, default is 6 bytes
+     @return returns the integer value read
+     */
+    Number readUIntLE(Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Reads an unsigned integer value from the buffer object, up to 48 bits, in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @param byteLength the number of bytes to read, default is 6 bytes
+     @return returns the integer value read
+     */
+    Number readUIntBE(Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Reads a 64-bit integer value from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Long readInt64LE(Integer offset = 0);
+
+    /*! @brief Reads a 64-bit integer value from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Long readInt64BE(Integer offset = 0);
+
+    /*! @brief Reads an 8-bit integer value from the buffer object
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readInt8(Integer offset = 0);
+
+    /*! @brief Reads a 16-bit integer value from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readInt16LE(Integer offset = 0);
+
+    /*! @brief Reads a 16-bit integer value from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readInt16BE(Integer offset = 0);
+
+    /*! @brief Reads a 32-bit integer value from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readInt32LE(Integer offset = 0);
+
+    /*! @brief Reads a 32-bit integer value from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the integer value read
+     */
+    Integer readInt32BE(Integer offset = 0);
+
+    /*! @brief Reads an integer value from the buffer object, up to 48 bits, in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @param byteLength the number of bytes to read, default is 6 bytes
+     @return returns the integer value read
+     */
+    Number readIntLE(Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Reads an integer value from the buffer object, up to 48 bits, in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @param byteLength the number of bytes to read, default is 6 bytes
+     @return returns the integer value read
+     */
+    Number readIntBE(Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Reads a floating-point number from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the floating-point number read
+     */
+    Number readFloatLE(Integer offset = 0);
+
+    /*! @brief Reads a floating-point number from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the floating-point number read
+     */
+    Number readFloatBE(Integer offset = 0);
+
+    /*! @brief Reads a double-precision floating-point number from the buffer object in little-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the double-precision floating-point number read
+     */
+    Number readDoubleLE(Integer offset = 0);
+
+    /*! @brief Reads a double-precision floating-point number from the buffer object in big-endian byte order
+     @param offset the start position to read at, default is 0
+     @return returns the double-precision floating-point number read
+     */
+    Number readDoubleBE(Integer offset = 0);
+
+    /*! @brief Writes an 8-bit unsigned integer value to the buffer object
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUInt8(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 16-bit unsigned integer value to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUInt16LE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 16-bit unsigned integer value to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUInt16BE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 32-bit unsigned integer value to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUInt32LE(Long value, Integer offset = 0);
+
+    /*! @brief Writes a 32-bit unsigned integer value to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUInt32BE(Long value, Integer offset = 0);
+
+    /*! @brief Writes an unsigned integer value to the buffer object, up to 48 bits, in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @param byteLength the number of bytes to write, default is 6 bytes
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUIntLE(Long value, Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Writes an unsigned integer value to the buffer object, up to 48 bits, in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @param byteLength the number of bytes to write, default is 6 bytes
+     @return the offset plus the number of bytes written
+     */
+    Integer writeUIntBE(Long value, Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Writes an 8-bit integer value to the buffer object
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt8(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 16-bit integer value to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt16LE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 16-bit integer value to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt16BE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 32-bit integer value to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt32LE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 32-bit integer value to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt32BE(Integer value, Integer offset = 0);
+
+    /*! @brief Writes a 64-bit integer value to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt64LE(Long value, Integer offset = 0);
+
+    /*! @brief Writes a 64-bit integer value to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeInt64BE(Long value, Integer offset = 0);
+
+    /*! @brief Writes an integer value to the buffer object, up to 48 bits, in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @param byteLength the number of bytes to write, default is 6 bytes
+     @return the offset plus the number of bytes written
+     */
+    Integer writeIntLE(Long value, Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Writes an integer value to the buffer object, up to 48 bits, in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @param byteLength the number of bytes to write, default is 6 bytes
+     @return the offset plus the number of bytes written
+     */
+    Integer writeIntBE(Long value, Integer offset = 0, Integer byteLength = 6);
+
+    /*! @brief Writes a floating-point number to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeFloatLE(Number value, Integer offset);
+
+    /*! @brief Writes a floating-point number to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeFloatBE(Number value, Integer offset);
+
+    /*! @brief Writes a double-precision floating-point number to the buffer object in little-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeDoubleLE(Number value, Integer offset);
+
+    /*! @brief Writes a double-precision floating-point number to the buffer object in big-endian byte order
+     @param value the value to write
+     @param offset the start position to write at
+     @return the offset plus the number of bytes written
+     */
+    Integer writeDoubleBE(Number value, Integer offset);
+
+    /*! @brief Returns the first position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer indexOf(Integer v, Integer offset = 0);
+
+    /*! @brief Returns the first position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer indexOf(Buffer v, Integer offset = 0);
+
+    /*! @brief Returns the first position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer indexOf(String v, Integer offset = 0);
+
+    /*! @brief Returns the last position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer lastIndexOf(Integer v, Integer offset = -1);
+
+    /*! @brief Returns the last position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer lastIndexOf(Buffer v, Integer offset = -1);
+
+    /*! @brief Returns the last position of the specified data in the Buffer
+     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param offset the start search position
+     @return returns the position found, or -1 if not found
+     */
+    Integer lastIndexOf(String v, Integer offset = -1);
+
+    /*! @brief Returns a new buffer object containing data from the specified start to the end of the buffer
+
+     The new buffer object returned shares memory with the original object (consistent with node's `slice`/`subarray`), so changes affect both.
+     @param start the start of the range, default is from the beginning
+     @return returns the new buffer object
+     */
+    Buffer slice(Integer start = 0);
+
+    /*! @brief Returns a new buffer object containing the data of the specified range; if the range exceeds the buffer, only the valid part is returned
+
+     The new buffer object returned shares memory with the original object (consistent with node's `slice`/`subarray`), so changes affect both.
+     @param start the start of the range
+     @param end the end of the range
+     @return returns the new buffer object
+     */
+    Buffer slice(Integer start, Integer end);
+
+    /*! @brief Compares whether the current object equals the given object
+     @param expected the target object to compare with
+     @return returns the object comparison result
+    */
+    Boolean equals(object expected);
+
+    /*! @brief Compares the contents of the buffers
+     @param buf the buffer object to compare
+     @return the content comparison result
+     */
+    Integer compare(Buffer buf);
+
+    /*! @brief Returns the encoded string of the binary data
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param offset the read start position
+     @param end the read end position
+     @return returns the string representation of the object
+    */
+    String toString(String codec, Integer offset = 0, Integer end);
+
+    /*! @brief Returns the encoded string of the binary data
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param offset the read start position
+     @return returns the string representation of the object
+    */
+    String toString(String codec, Integer offset = 0);
+
+    /*! @brief Returns an array of all binary data
+     @return returns an array containing the object data
+    */
+    Array toArray();
+
+    /*! @brief Encodes the buffer object content using 16-base (hex) encoding
+     @return returns the encoded string
+     */
+    String hex();
+
+    /*! @brief Encodes the buffer object content using base32
+     @return returns the encoded string
+     */
+    String base32();
+
+    /*! @brief Encodes the buffer object content using base58
+     @return returns the encoded string
+     */
+    String base58();
+
+    /*! @brief Encodes the buffer object content using base64
+     @return returns the encoded string
+     */
+    String base64();
+};

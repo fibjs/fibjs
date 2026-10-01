@@ -1,55 +1,55 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description 进程处理模块，用以管理当前进程的资源
+ * @description Process handling module, used to manage the resources of the current process
  *
- *  模块的主要能力：
+ *  Main capabilities of the module:
  *
- *  - **进程信息**：`argv`、`execArgv`、`version`、`execPath`、`arch`、`platform`、`pid`、`ppid`、`env` 等属性；
- *  - **进程控制**：`exit` 退出进程、`exitCode` 退出码、`cwd`/`chdir` 工作路径、`umask`、`uptime`、`hrtime` 计时、`kill` 发送信号；
- *  - **资源报告**：`cpuUsage`、`memoryUsage`、`resourceUsage`；
- *  - **调度**：`nextTick` 启动纤程执行函数；
- *  - **标准流**：`stdin`、`stdout`、`stderr`；
- *  - **父子进程通信**：`send`、`disconnect`、`connected`；
- *  - **进程事件**：`beforeExit`、`exit`、`unhandledRejection`、`warning`、信号事件（详见下文）。
+ *  - **Process information**: properties such as `argv`, `execArgv`, `version`, `execPath`, `arch`, `platform`, `pid`, `ppid`, `env`;
+ *  - **Process control**: `exit` exits the process, `exitCode` exit code, `cwd`/`chdir` working path, `umask`, `uptime`, `hrtime` timing, `kill` sends a signal;
+ *  - **Resource reports**: `cpuUsage`, `memoryUsage`, `resourceUsage`;
+ *  - **Scheduling**: `nextTick` starts a fiber to execute a function;
+ *  - **Standard streams**: `stdin`, `stdout`, `stderr`;
+ *  - **Parent-child process communication**: `send`, `disconnect`, `connected`;
+ *  - **Process events**: `beforeExit`, `exit`, `unhandledRejection`, `warning`, signal events (see below for details).
  *
- *  引用方法：
+ *  Usage:
  *  ```JavaScript
  *  var process = require('process');
  *  ```
  *
- *  ## 进程事件
- *  process 模块对象是 EventEmitter 的实例，可以通过注册事件监听器响应进程级别的事件。
+ *  ## Process events
+ *  The process module object is an instance of EventEmitter; process-level events can be responded to by registering event listeners.
  *
- *  ### beforeExit 事件
- *  **当 fibjs 的任务已经为空，并且没有额外的工作被添加进来，事件 `beforeExit` 会被触发**
+ *  ### beforeExit event
+ *  **When fibjs's task queue is empty and no extra work has been added, the `beforeExit` event is triggered**
  *  ```JavaScript
  *  process.on('beforeExit', exitCode => {});
  *  ```
- *  正常情况下，如果没有额外的工作被添加到任务队列，fibjs 进程会结束。但是如果 `beforeExit` 事件绑定的监听器的回调函数中，启动了一个新的任务，比如开启一个 fiber，那么 fibjs 进程会继续运行。
+ *  Normally, if no extra work is added to the task queue, the fibjs process exits. However, if the callback of a listener bound to the `beforeExit` event starts a new task, such as starting a fiber, the fibjs process continues to run.
  *
- *  process.exitCode 作为唯一的参数值传递给 `beforeExit` 事件监听器的回调函数。如果进程由于显式的原因而将要终止，例如直接调用 process.exit 或抛出未捕获的异常，`beforeExit`事件不会被触发。
+ *  process.exitCode is passed as the only argument to the callback of the `beforeExit` event listener. If the process is about to terminate for an explicit reason, such as calling process.exit directly or throwing an uncaught exception, the `beforeExit` event is not triggered.
  *
- *  ### unhandledRejection 事件
- *  **当 Promise 被拒绝且没有绑定错误处理时，事件 `unhandledRejection` 会被触发**
+ *  ### unhandledRejection event
+ *  **When a Promise is rejected and no error handler is bound, the `unhandledRejection` event is triggered**
  *  ```JavaScript
  *  process.on('unhandledRejection', (reason, promise) => {});
  *  ```
- *  `unhandledRejection` 事件监听器的回调函数有两个入参：第一个是拒绝原因 `reason`，第二个是被拒绝的 `promise` 对象。
+ *  The callback of the `unhandledRejection` event listener has two arguments: the first is the rejection reason `reason`, and the second is the rejected `promise` object.
  *
- *  如果 `unhandledRejection` 事件没有绑定任何监听器，fibjs 会在打印错误后以退出码 1 终止进程（与 node >= 15 行为一致），`beforeExit` 事件不会被触发。
+ *  If no listener is bound to the `unhandledRejection` event, fibjs terminates the process with exit code 1 after printing the error (consistent with the behavior of node >= 15); the `beforeExit` event is not triggered.
  *
- *  ### exit 事件
- *  **当 fibjs 退出时，事件 `exit` 会被触发，一旦所有与 `exit` 事件绑定的监听器执行完成，进程会终止**
+ *  ### exit event
+ *  **When fibjs exits, the `exit` event is triggered; once all listeners bound to the `exit` event have finished executing, the process terminates**
  *  ```JavaScript
  *  process.on('exit', exitCode => {});
  *  ```
- *  `exit` 事件监听器的回调函数，只有一个入参，这个参数的值可以是 process.exitCode 的属性值，或者是调用 process.exit 方法时传入的 `exitCode` 值。
+ *  The callback of the `exit` event listener has only one argument, whose value can be the value of the process.exitCode property, or the `exitCode` value passed when calling the process.exit method.
  *
- *  ### Signal 事件
- *  **当 fibjs 进程接收到一个信号时，会触发信号事件，目前支持的信号有 SIGINT 和 SIGTERM。每个事件名称，以信号名称的大写表示 (比如事件'SIGINT' 对应信号 SIGINT)。**
+ *  ### Signal event
+ *  **When the fibjs process receives a signal, a signal event is triggered; currently supported signals are SIGINT and SIGTERM. Each event name is the signal name in uppercase (for example, the event 'SIGINT' corresponds to the signal SIGINT).**
  *
- *  信号事件不同于其它进程事件，信号事件是抢占的，当信号发生时，无论当前在 io 操作，还是 JavaScript 运算，都会尽快触发相应事件。比如你可以用下面的代码，中断当前应用，并输出运行状态：
+ *  Signal events differ from other process events: signal events are preemptive. When a signal occurs, the corresponding event is triggered as soon as possible, whether the current operation is io or JavaScript computation. For example, you can use the following code to interrupt the current application and output the running state:
  *  ```JavaScript
  *  var coroutine = require('coroutine');
  *
@@ -58,206 +58,206 @@
  *     process.exit();
  *  });
  *  ```
- *  信号名称及其意义如下：
- *  * SIGINT：在终端运行时，可以被所有平台支持，通常可以通过 CTRL+C 触发。
- *  * SIGTERM：当进程被 kill 时触发此信号。Windows 下不支持。
+ *  The signal names and their meanings are as follows:
+ *  * SIGINT: Supported on all platforms when running in a terminal; usually triggered by CTRL+C.
+ *  * SIGTERM: This signal is triggered when the process is killed. Not supported on Windows.
  *
  */
 declare module 'process' {
     /**
-     * @description 返回当前进程的命令行参数
+     * @description Returns the command line arguments of the current process
      */
     var argv: any[];
 
     /**
-     * @description 返回当前进程的特殊命令行参数，这些参数被 fibjs 用于设置运行环境
+     * @description Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment
      */
     const execArgv: any[];
 
     /**
-     * @description 返回 fibjs 版本字符串
+     * @description Returns the fibjs version string
      */
     const version: string;
 
     /**
-     * @description 返回 fibjs 及组件的版本信息
+     * @description Returns version information of fibjs and its components
      */
     const versions: FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前运行执行文件完整路径
+     * @description Queries the full path of the currently running executable file
      */
     const execPath: string;
 
     /**
-     * @description 查询当前进程的环境变量
+     * @description Queries the environment variables of the current process
      */
     const env: FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32'
+     * @description Queries the current cpu environment; possible results are 'amd64', 'arm', 'arm64', 'ia32'
      */
     const arch: string;
 
     /**
-     * @description 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32'
+     * @description Queries the current platform name; possible results are 'darwin', 'freebsd', 'linux', or 'win32'
      */
     const platform: string;
 
     /**
-     * @description 返回当前构建的发布元数据，name 设为 'node'
+     * @description Returns the release metadata of the current build; name is set to 'node'
      */
     const release: FIBJS.GeneralObject;
 
     /**
-     * @description 当前进程标题，固定为 'fibjs'
+     * @description Title of the current process, fixed to 'fibjs'
      */
     export const title: "fibjs";
 
     /**
-     * @description 读取当前对象指向的进程的 id
+     * @description Reads the id of the process the current object points to
      */
     const pid: number;
 
     /**
-     * @description 读取当前对象指向的父进程的 id
+     * @description Reads the id of the parent process the current object points to
      */
     const ppid: number;
 
     /**
-     * @description 查询当前进程标准输入对象, 在 tty 中为 TTYInputStream, 否则为 Stream
+     * @description Queries the standard input object of the current process; in a tty it is TTYInputStream, otherwise Stream
      */
     const stdin: Class_Stream;
 
     /**
-     * @description 查询当前进程标准输出对象, 在 tty 中为 TTYOutputStream, 否则为 Stream
+     * @description Queries the standard output object of the current process; in a tty it is TTYOutputStream, otherwise Stream
      */
     const stdout: Class_Stream;
 
     /**
-     * @description 查询当前进程标准错误输出对象, 在 tty 中为 TTYOutputStream, 否则为 Stream
+     * @description Queries the standard error output object of the current process; in a tty it is TTYOutputStream, otherwise Stream
      */
     const stderr: Class_Stream;
 
     /**
-     * @description 查询和设置当前进程的退出码
+     * @description Queries and sets the exit code of the current process
      */
     var exitCode: number;
 
     /**
-     * @description 改变当前的 umask，Windows 不支持此方法
-     *      @param mask 指定新的掩码
-     *      @return 返回之前的 mask
+     * @description Changes the current umask; not supported on Windows
+     *      @param mask specifies the new mask
+     *      @return returns the previous mask
      *
      */
     function umask(mask: number): number;
 
     /**
-     * @description 改变当前的 umask，Windows 不支持此方法
-     *      @param mask 指定新的掩码， 字符串类型八进制(e.g: "0664")
-     *      @return 返回之前的 mask
+     * @description Changes the current umask; not supported on Windows
+     *      @param mask specifies the new mask as an octal string (e.g: "0664")
+     *      @return returns the previous mask
      *
      */
     function umask(mask: string): number;
 
     /**
-     * @description 返回当前的 umask，Windows 不支持此方法
-     *      @return 返回当前的 mask 值
+     * @description Returns the current umask; not supported on Windows
+     *      @return returns the current mask value
      *
      */
     function umask(): number;
 
     /**
-     * @description 返回系统高精度时间，此时间与当前时间无关，仅用于高精度计时
-     *      @param diff 用于比较的初始时间
-     *      @return 返回计时时间，格式为 [seconds, nanoseconds]
+     * @description Returns the system high-resolution time; this time is unrelated to the current time and is only used for high-precision timing
+     *      @param diff the initial time to compare against
+     *      @return returns the measured time in the format [seconds, nanoseconds]
      *
      */
     function hrtime(diff?: any[]): any[];
 
     /**
-     * @description 退出当前进程，并返回 exitCode 作为进程结果
+     * @description Exits the current process, using exitCode as the process result
      */
     function exit(): void;
 
     /**
-     * @description 退出当前进程，并返回结果
-     *      @param code 返回进程结果
+     * @description Exits the current process and returns the result
+     *      @param code the process result to return
      *
      */
     function exit(code: number): void;
 
     /**
-     * @description 返回操作系统当前工作路径
-     *      @return 返回当前系统路径
+     * @description Returns the current working path of the operating system
+     *      @return returns the current system path
      *
      */
     function cwd(): string;
 
     /**
-     * @description 动态加载 C++ 扩展（Node-API / N-API 扩展）
+     * @description Dynamically loads a C++ extension (Node-API / N-API extension)
      *
-     *      先以 flags 打开动态库（缺省 1，即 os.constants.dlopen.RTLD_LAZY），再由扩展的注册函数完成初始化：
-     *      Node-API 扩展导出 napi_register_module_v1，该函数注册的导出对象写入 module.exports，require 一个 .node 文件最终也走这条路径。
+     *      First the dynamic library is opened with flags (the default is 1, i.e. os.constants.dlopen.RTLD_LAZY), then the extension's registration function completes initialization:
+     *      A Node-API extension exports napi_register_module_v1; the exports object registered by this function is written to module.exports, and requiring a .node file ultimately goes through this path as well.
      *
-     *      兼容性说明：
-     *      - fibjs 缺省把一个 isolate 的全部 JS 固定在一条专属 OS 线程上执行，与 Node.js 的「一个 napi_env 对应一条 OS 线程」
-     *        契约一致，因此在模块加载时把类构造器或运行时句柄缓存在线程本地存储（TLS）中的扩展可以正常工作；
-     *      - 以 --no-js-thread-affinity 启动时，isolate 的 JS fiber 会回到共享线程池上调度，依赖 TLS 的扩展可能随机失败；
-     *      - 扩展如果在来自 JS 的回调内部对已满的 threadsafe function 使用 napi_tsfn_blocking，会阻塞当前 isolate 的唯一
-     *        JS 线程，而排空该队列同样需要这条线程，于是自锁；Node.js 的单线程事件循环有同样的限制。
+     *      Compatibility notes:
+     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is consistent with Node.js's contract that "one napi_env corresponds to one OS thread";
+     *        therefore extensions that cache class constructors or runtime handles in thread-local storage (TLS) when the module is loaded work correctly;
+     *      - When started with --no-js-thread-affinity, the isolate's JS fibers are scheduled back on the shared thread pool, and extensions that rely on TLS may fail randomly;
+     *      - If an extension uses napi_tsfn_blocking on a full threadsafe function inside a callback coming from JS, it blocks the isolate's only
+     *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; Node.js's single-threaded event loop has the same limitation.
      *
-     *      @param module 指定要加载的模块
-     *      @param filename 指定要加载的模块文件名
-     *      @param flags 指定加载模块的方式，缺省为 1
+     *      @param module specifies the module to load
+     *      @param filename specifies the file name of the module to load
+     *      @param flags specifies how to load the module, the default is 1
      *
      */
     function dlopen(module: FIBJS.GeneralObject, filename: string, flags?: number): void;
 
     /**
-     * @description 修改操作系统当前工作路径
-     *      @param directory 指定设定的新路径
+     * @description Changes the current working path of the operating system
+     *      @param directory specifies the new path to set
      *
      */
     function chdir(directory: string): void;
 
     /**
-     * @description 从 dotenv 文件加载环境变量到 process.env
-     *      @param path 指定 dotenv 文件路径，空字符串时默认读取当前目录下的 .env
+     * @description Loads environment variables from a dotenv file into process.env
+     *      @param path specifies the dotenv file path; when empty, reads .env in the current directory by default
      *
      */
     function loadEnvFile(path?: string): void;
 
     /**
-     * @description 查询运行环境运行时间，以秒为单位
-     *      @return 返回表示时间的数值
+     * @description Queries the uptime of the runtime environment, in seconds
+     *      @return returns a numeric value representing the time
      *
      */
     function uptime(): number;
 
     /**
-     * @description 查询当前进程在用户和系统代码中花费的时间，其值为微秒值（百万分之一秒）
+     * @description Queries the time spent by the current process in user and system code, in microseconds (one millionth of a second)
      *
-     *      内存报告生成类似以下结果：
+     *      The report is generated similar to the following:
      *      ```JavaScript
      *      {
      *        "user": 132379,
      *        "system": 50507
      *      }
      *      ```
-     *      其中：
-     *      - user 返回进程在用户代码中花费的时间
-     *      - system 返回进程在系统代码中花费的时间
-     *      @param previousValue 指定上一次查询的时间
-     *      @return 返回包含时间报告
+     *      Where:
+     *      - user returns the time the process spent in user code
+     *      - system returns the time the process spent in system code
+     *      @param previousValue specifies the time of the previous query
+     *      @return returns the time report
      *
      */
     function cpuUsage(previousValue?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前进程内存使用报告
+     * @description Queries the memory usage report of the current process
      *
-     *      内存报告生成类似以下结果：
+     *      The report is generated similar to the following:
      *      ```JavaScript
      *      {
      *        "rss": 8622080,
@@ -265,19 +265,19 @@ declare module 'process' {
      *        "heapUsed": 1621800
      *      }
      *      ```
-     *      其中：
-     *      - rss 返回进程当前占用物理内存大小
-     *      - heapTotal 返回 v8 引擎堆内存大小
-     *      - heapUsed 返回 v8 引擎正在使用堆内存大小
-     *      @return 返回包含内存报告
+     *      Where:
+     *      - rss returns the physical memory currently occupied by the process
+     *      - heapTotal returns the heap memory size of the v8 engine
+     *      - heapUsed returns the heap memory currently used by the v8 engine
+     *      @return returns the memory report
      *
      */
     function memoryUsage(): FIBJS.GeneralObject;
 
     /**
-     * @description 查询当前进程的资源使用报告
+     * @description Queries the resource usage report of the current process
      *
-     *      resourceUsage 生成类似以下结果：
+     *      resourceUsage generates results similar to the following:
      *      ```JavaScript
      *      {
      *        "userCPUTime": 132379,      // User CPU time (microseconds), same as process.cpuUsage().user
@@ -298,69 +298,69 @@ declare module 'process' {
      *        "involuntaryContextSwitches": 500    // Number of involuntary context switches (not supported on Windows)
      *      }
      *      ```
-     *      @return 返回包含资源使用报告的对象
+     *      @return returns an object containing the resource usage report
      *
      */
     function resourceUsage(): FIBJS.GeneralObject;
 
     /**
-     * @description 启动一个纤程执行指定的函数
+     * @description Starts a fiber to execute the specified function
      *
-     *      回调在当前同步代码执行完毕后启动,多个 nextTick 回调按注册顺序执行;args 中的参数将传递给函数。
-     *      @param func 制定纤程执行的函数
-     *      @param args 可变参数序列，此序列会在纤程内传递给函数
+     *      The callback is started after the current synchronous code finishes executing; multiple nextTick callbacks are executed in registration order; the arguments in args are passed to the function.
+     *      @param func specifies the function executed by the fiber
+     *      @param args variable argument sequence, passed to the function inside the fiber
      *
      */
     function nextTick(func: (...args: any[])=>any, ...args: any[]): void;
 
     /**
-     * @description 获取指定名称的内部模块
-     *      @param name 指定要查询的内部模块名称
-     *      @return 返回指定的内部模块
+     * @description Gets the internal module with the specified name
+     *      @param name specifies the name of the internal module to query
+     *      @return returns the specified internal module
      *
      */
     function binding(name: string): any;
 
     /**
-     * @description 获取指定名称的内建模块，模块不存在时返回 undefined
-     *      @param id 指定要获取的内建模块名称，可省略或包含 "node:" 前缀，也支持子路径，如 "path"、"node:path/posix"、"fs/promises"
-     *      @return 返回内建模块对象，模块不存在时返回 undefined
+     * @description Gets the built-in module with the specified name; returns undefined if the module does not exist
+     *      @param id specifies the name of the built-in module to get; the "node:" prefix may be omitted or included, and subpaths are supported, such as "path", "node:path/posix", "fs/promises"
+     *      @return returns the built-in module object, or undefined if the module does not exist
      *
      */
     function getBuiltinModule(id: string): any;
 
     /**
-     * @description 查询当前进程的组 id
-     *      @return 返回当前进程的组 id
+     * @description Queries the group id of the current process
+     *      @return returns the group id of the current process
      *
      */
     function getgid(): number;
 
     /**
-     * @description 查询当前进程的用户 id
-     *      @return 返回当前进程的用户 id
+     * @description Queries the user id of the current process
+     *      @return returns the user id of the current process
      *
      */
     function getuid(): number;
 
     /**
-     * @description 设置当前进程的组 id
-     *      @param id 指定要设置的组 id
+     * @description Sets the group id of the current process
+     *      @param id specifies the group id to set
      *
      */
     function setgid(id: number): void;
 
     /**
-     * @description 设置当前进程的用户 id
-     *      @param id 指定要设置的用户 id
+     * @description Sets the user id of the current process
+     *      @param id specifies the user id to set
      *
      */
     function setuid(id: number): void;
 
     /**
-     * @description 发出自定义或特定于应用程序的进程警告。可以通过向 'warning' 事件添加处理程序来监听这些事件
+     * @description Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
      *
-     *       选项包含以下内容：
+     *      The options include the following:
      *      ```JavaScript
      *      {
      *        "type": "Warning", // specifies the name of the type of warning issued. Default value: 'Warning'
@@ -368,7 +368,7 @@ declare module 'process' {
      *        "detail": "" // specify additional text for warnings
      *      }
      *      ```
-     *      使用方法如下：
+     *      Usage is as follows:
      *      ```JavaScript
      *      const { emitWarning } = require('process');
      *
@@ -386,50 +386,50 @@ declare module 'process' {
      *        console.warn(warning.detail);  // 'This is some additional information'
      *      });
      *      ```
-     *      @param warning 指定要发出的警告
-     *      @param options 指定警告的选项
+     *      @param warning specifies the warning to emit
+     *      @param options specifies the options of the warning
      *
      */
     function emitWarning(warning: any, options: FIBJS.GeneralObject): void;
 
     /**
-     * @description 发出自定义或特定于应用程序的进程警告。可以通过向 'warning' 事件添加处理程序来监听这些事件
-     *      @param warning 指定要发出的警告
-     *      @param type 指定发出的警告类型的名称。默认值：'Warning'
-     *      @param code 指定发出的警告实例的唯一标识符
+     * @description Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+     *      @param warning specifies the warning to emit
+     *      @param type specifies the name of the type of warning issued. Default value: 'Warning'
+     *      @param code specifies the unique identifier of the warning instance issued
      *
      */
     function emitWarning(warning: any, type?: string, code?: string): void;
 
     /**
-     * @description 向指定的进程发送一个信号
-     *      @param pid 指定进程的 id
-     *      @param signal 指定发送的信号编号
+     * @description Sends a signal to the specified process
+     *      @param pid specifies the process id
+     *      @param signal specifies the signal number to send
      *
      */
     function kill(pid: number, signal: number): void;
 
     /**
-     * @description 向指定的进程发送一个信号
-     *      @param pid 指定进程的 id
-     *      @param signal 指定发送的信号名称，默认为 SIGTERM
+     * @description Sends a signal to the specified process
+     *      @param pid specifies the process id
+     *      @param signal specifies the signal name to send, the default is SIGTERM
      *
      */
     function kill(pid: number, signal?: string): void;
 
     /**
-     * @description 查询与父进程的管道是否正常连接
+     * @description Queries whether the pipe to the parent process is properly connected
      */
     const connected: boolean;
 
     /**
-     * @description 关闭与父进程的 ipc 管道
+     * @description Closes the ipc pipe to the parent process
      */
     function disconnect(): void;
 
     /**
-     * @description 向父进程发送一个消息
-     *      @param msg 指定发送的消息
+     * @description Sends a message to the parent process
+     *      @param msg specifies the message to send
      *
      */
     function send(msg: any): void;

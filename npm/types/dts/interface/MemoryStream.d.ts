@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description 内存流对象
+ * @description Memory stream object
  *
- *  MemoryStream 对象创建一个基于内存的流对象，创建方法：
+ *  The MemoryStream object creates a memory-based stream object. Creation method:
  *  ```JavaScript
  *  var ms = new io.MemoryStream();
  *  ```
@@ -11,26 +11,26 @@
  */
 declare class Class_MemoryStream extends Class_SeekableStream {
     /**
-     * @description MemoryStream 构造函数
+     * @description MemoryStream constructor
      */
     constructor();
 
     /**
-     * @description 强制设定内存流对象的最后更新时间
-     *      @param d 指定要设定的时间
+     * @description Forces the last update time of the memory stream object
+     *      @param d the time to set
      *
      */
     setTime(d: typeof Date): void;
 
     /**
-     * @description 创建当前内存流的一个只读副本
-     *      @return 返回只读的内存流对象
+     * @description Creates a read-only copy of the current memory stream
+     *      @return returns a read-only memory stream object
      *
      */
     clone(): Class_MemoryStream;
 
     /**
-     * @description 清空内存文件数据，复位指针
+     * @description Clears the memory file data and resets the pointer
      */
     clear(): void;
 

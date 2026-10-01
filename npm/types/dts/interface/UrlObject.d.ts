@@ -2,20 +2,20 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/URLSearchParams.d.ts" />
 /**
- * @description URL 对象，实现 WHATWG URL 标准，用于解析、构造和操作 URL
+ * @description URL object, implements the WHATWG URL standard, used to parse, construct and manipulate URLs
  *
- * UrlObject 提供了完整的 URL 处理功能，兼容现代 Web 标准 URL API。它支持 URL 的解析、构造、修改和格式化，并提供了丰富的属性和方法来操作 URL 的各个组成部分。
+ * UrlObject provides complete URL processing functionality and is compatible with the modern Web standard URL API. It supports parsing, constructing, modifying and formatting URLs, and provides a rich set of properties and methods to operate on the various parts of a URL.
  *
- * ## 主要特性
+ * ## Main features
  *
- * - **标准兼容**: 实现 WHATWG URL 标准
- * - **Unicode 支持**: 完整支持国际化域名 (IDN) 和 Unicode 字符
- * - **查询参数**: 集成 URLSearchParams 提供强大的查询参数操作
- * - **路径处理**: 自动处理路径规范化和相对路径解析
+ * - **Standard compatibility**: implements the WHATWG URL standard
+ * - **Unicode support**: full support for internationalized domain names (IDN) and Unicode characters
+ * - **Query parameters**: integrates URLSearchParams to provide powerful query parameter operations
+ * - **Path handling**: automatically handles path normalization and relative path resolution
  *
- * ## 创建 URL 对象
+ * ## Creating a URL object
  *
- * ### 1. 使用字符串创建
+ * ### 1. Create with a string
  *
  * ```JavaScript
  * const url = require('url');
@@ -28,7 +28,7 @@
  * console.log(relativeURL.href); // 'https://example.com/api/users'
  * ```
  *
- * ### 2. 使用对象构造
+ * ### 2. Construct with an object
  *
  * ```JavaScript
  * const myURL = new URL({
@@ -40,9 +40,9 @@
  * });
  * ```
  *
- * ## URL 组成部分
+ * ## URL components
  *
- * 一个完整的 URL 包含以下部分：
+ * A complete URL consists of the following parts:
  * ```
  * https://user:pass@example.com:8080/path/to/resource?query=value#fragment
  *  \___/   \______/ \_________/ \__/\________________/\___________/ \______/
@@ -52,7 +52,7 @@
  *                    origin
  * ```
  *
- * ## 常用方法
+ * ## Common methods
  *
  * ```JavaScript
  * const myURL = new URL('https://example.com/old-path');
@@ -70,172 +70,172 @@
  */
 declare class Class_UrlObject extends Class_object {
     /**
-     * @description 使用参数对象构造 URL 对象
-     *      @param args 构造参数对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
+     * @description constructs a URL object from an arguments object
+     *      @param args the construction arguments object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
      *
      */
     constructor(args?: FIBJS.GeneralObject);
 
     /**
-     * @description 使用 URL 字符串构造 URL 对象
-     *      @param url 要解析的 URL 字符串，可以是绝对 URL 或相对 URL
-     *      @param base 基础 URL 字符串，当 url 参数是相对 URL 时使用
+     * @description constructs a URL object from a URL string
+     *      @param url the URL string to parse, which can be an absolute or relative URL
+     *      @param base the base URL string, used when the url parameter is a relative URL
      *
      */
     constructor(url: string, base?: string);
 
     /**
-     * @description 解析 URL 字符串并返回 URL 对象，解析失败时返回 null
-     *      @param url 要解析的 URL 字符串
-     *      @param base 基础 URL 字符串，当 url 是相对 URL 时使用
-     *      @return 成功时返回 UrlObject 对象，解析失败时返回 null
+     * @description parses a URL string and returns a URL object, or null if parsing fails
+     *      @param url the URL string to parse
+     *      @param base the base URL string, used when url is a relative URL
+     *      @return returns a UrlObject on success, or null if parsing fails
      *
      */
     static parse(url: string, base?: string): Class_UrlObject;
 
     /**
-     * @description 检查 URL 字符串是否可以成功解析
-     *      @param url 要检查的 URL 字符串
-     *      @param base 基础 URL 字符串，当 url 是相对 URL 时使用
-     *      @return 可以解析返回 true，否则返回 false
+     * @description checks whether a URL string can be parsed successfully
+     *      @param url the URL string to check
+     *      @param base the base URL string, used when url is a relative URL
+     *      @return returns true if it can be parsed, otherwise returns false
      *
      */
     static canParse(url: string, base?: string): boolean;
 
     /**
-     * @description 解析相对 URL 并返回新的绝对 URL 对象
-     *      @param url 要解析的相对或绝对 URL 字符串
-     *      @return 返回解析后的新 UrlObject 对象
+     * @description resolves a relative URL and returns a new absolute URL object
+     *      @param url the relative or absolute URL string to resolve
+     *      @return returns the new resolved UrlObject object
      *
      */
     resolve(url: string): Class_UrlObject;
 
     /**
-     * @description 完整的 URL 字符串
+     * @description the complete URL string
      *
-     *      获取或设置完整的 URL 字符串。设置此属性时会自动解析并更新其他属性。
+     *      Gets or sets the complete URL string. Setting this property automatically parses and updates the other properties.
      *
      */
     href: string;
 
     /**
-     * @description URL 协议部分（包含冒号）
+     * @description the protocol part of the URL (including the colon)
      *
-     *      例如：'http:', 'https:', 'ftp:', 'file:' 等
+     *      For example: 'http:', 'https:', 'ftp:', 'file:', etc.
      *
      */
     protocol: string;
 
     /**
-     * @description 是否包含双斜杠
+     * @description whether double slashes are included
      *
-     *      指示 URL 是否使用双斜杠格式（如 http://）
+     *      Indicates whether the URL uses the double-slash format (such as http://)
      *
      */
     slashes: boolean;
 
     /**
-     * @description URL 的来源（协议 + 主机 + 端口）
+     * @description the origin of the URL (protocol + host + port)
      *
-     *      只读属性，返回格式如：'https://example.com:8080'
-     *      对于非网络协议（如 file:）返回 'null'
+     *      Read-only property, returned in a format such as: 'https://example.com:8080'
+     *      Returns 'null' for non-network protocols (such as file:)
      *
      */
     readonly origin: string;
 
     /**
-     * @description 认证信息（用户名:密码）
+     * @description authentication information (username:password)
      *
-     *      只读属性，返回格式如：'username:password'
+     *      Read-only property, returned in a format such as: 'username:password'
      *
      */
     readonly auth: string;
 
     /**
-     * @description 用户名部分
+     * @description the username part
      *
-     *      URL 中的用户名，用于 HTTP 基础认证
+     *      The user name in the URL, used for HTTP basic authentication
      *
      */
     username: string;
 
     /**
-     * @description 密码部分
+     * @description the password part
      *
-     *      URL 中的密码，用于 HTTP 基础认证
+     *      The password in the URL, used for HTTP basic authentication
      *
      */
     password: string;
 
     /**
-     * @description 主机部分（主机名 + 端口）
+     * @description the host part (host name + port)
      *
-     *      包含主机名和端口号，格式如：'example.com:8080'
+     *      Contains the host name and port number, in a format such as: 'example.com:8080'
      *
      */
     host: string;
 
     /**
-     * @description 主机名部分
+     * @description the host name part
      *
-     *      不包含端口号的主机名，支持 IPv4、IPv6 和域名
+     *      The host name without the port number; supports IPv4, IPv6 and domain names
      *
      */
     hostname: string;
 
     /**
-     * @description 端口号
+     * @description the port number
      *
-     *      字符串形式的端口号，空字符串表示使用默认端口
+     *      The port number as a string; an empty string means the default port is used
      *
      */
     port: string;
 
     /**
-     * @description 完整路径（路径 + 查询字符串）
+     * @description the complete path (path + query string)
      *
-     *      只读属性，包含 pathname 和 search，格式如：'/path?query=value'
+     *      Read-only property, containing pathname and search, in a format such as: '/path?query=value'
      *
      */
     readonly path: string;
 
     /**
-     * @description URL 路径部分
+     * @description the path part of the URL
      *
-     *      URL 中的路径部分，总是以 '/' 开头
+     *      The path part of the URL, always starting with '/'
      *
      */
     pathname: string;
 
     /**
-     * @description 查询字符串（包含问号）
+     * @description the query string (including the question mark)
      *
-     *      格式如：'?key1=value1&key2=value2'，空查询时为空字符串
+     *      In a format such as: '?key1=value1&key2=value2'; an empty string when there is no query
      *
      */
     search: string;
 
     /**
-     * @description 查询参数值
+     * @description the query parameter value
      *
-     *      可以是字符串或对象，设置对象时会自动序列化为查询字符串
+     *      Can be a string or an object; setting an object automatically serializes it into a query string
      *
      */
     query: any;
 
     /**
-     * @description URL 片段标识符（包含井号）
+     * @description the URL fragment identifier (including the hash sign)
      *
-     *      格式如：'#section'，没有片段时为空字符串
+     *      In a format such as: '#section'; an empty string when there is no fragment
      *
      */
     hash: string;
 
     /**
-     * @description URL 查询参数对象
+     * @description the URL query parameters object
      *
-     *      只读属性，返回 URLSearchParams 对象用于操作查询参数
-     *      与 URL 对象双向绑定，修改会自动更新 search 和 query 属性
+     *      Read-only property, returns a URLSearchParams object for manipulating query parameters
+     *      Two-way bound to the URL object; modifications automatically update the search and query properties
      *
      */
     readonly searchParams: Class_URLSearchParams;

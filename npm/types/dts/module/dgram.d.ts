@@ -1,23 +1,23 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DgramSocket.d.ts" />
 /**
- * @description dgram 基础模块之一，主要用于实现 UDP 数据包 socket 的封装。
+ * @description one of the dgram basic modules, mainly used to encapsulate UDP datagram sockets.
  *
- * 使用步骤：
+ * Usage steps:
  *
- * 1. 首先，通过下面的语句引入 dgram 模块。
+ * 1. First, import the dgram module with the following statement.
  *
  * ```
  * var dgram = require('dgram');
  * ```
  *
- * 2. 创建 UDP 数据包 socket 实例。
+ * 2. Create a UDP datagram socket instance.
  *
  * ```
  * var sock = dgram.createSocket('udp4');
  * ```
  *
- * 3. 为 UDP 数据包 socket 注册数据接收事件消息回调函数。
+ * 3. Register a data reception event message callback function for the UDP datagram socket.
  *
  * ```
  * sock.on('message', function (msg, rinfo) {
@@ -25,7 +25,7 @@
  * });
  * ```
  *
- * 4. 发送 UDP 数据包消息到指定目标地址。
+ * 4. Send UDP datagram messages to the specified destination address.
  *
  * ```
  * var msg = ...; // message to send
@@ -38,16 +38,16 @@
  */
 declare module 'dgram' {
     /**
-     * @description dgram.Socket 对象是一个封装了数据包函数功能的 EventEmitter。参见 DgramSocket
-     *      dgram.Socket 实例是由 dgram.createSocket() 创建的。创建 dgram.Socket 实例不需要使用 new 关键字。
+     * @description the dgram.Socket object is an EventEmitter encapsulating datagram functionality. See DgramSocket
+     *      dgram.Socket instances are created by dgram.createSocket(). Creating a dgram.Socket instance does not require the new keyword.
      *
      */
     const Socket: typeof Class_DgramSocket;
 
     /**
-     * @description 创建一个 dgram.Socket 对象
+     * @description creates a dgram.Socket object
      *
-     *      opts 允许的选项是:
+     *      The allowed options of opts are:
      *      ```JavaScript
      *      {
      *          "type": "udp4" | "udp6",   // socket type
@@ -58,15 +58,15 @@ declare module 'dgram' {
      *      }
      *      ```
      *      @param opts
-     *      @return 返回创建的 Socket 对象
+     *      @return returns the created Socket object
      *
      */
     function createSocket(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
     /**
-     * @description 创建一个 dgram.Socket 对象
+     * @description creates a dgram.Socket object
      *
-     *      opts 允许的选项是:
+     *      The allowed options of opts are:
      *      ```JavaScript
      *      {
      *          "type": "udp4" | "udp6",   // socket type
@@ -77,25 +77,25 @@ declare module 'dgram' {
      *      }
      *      ```
      *      @param opts
-     *      @param callback 为 'message' 事件添加一个监听器。
-     *      @return 返回创建的 Socket 对象
+     *      @param callback adds a listener for the 'message' event.
+     *      @return returns the created Socket object
      *
      */
     function createSocket(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_DgramSocket;
 
     /**
-     * @description 创建一个 dgram.Socket 对象
-     *      @param type 套接字族，'udp4' 或 'udp6'。
-     *      @return 返回创建的 Socket 对象
+     * @description creates a dgram.Socket object
+     *      @param type socket family, 'udp4' or 'udp6'.
+     *      @return returns the created Socket object
      *
      */
     function createSocket(type: string): Class_DgramSocket;
 
     /**
-     * @description 创建一个 dgram.Socket 对象
-     *      @param type 套接字族，'udp4' 或 'udp6'。
-     *      @param callback 为 'message' 事件添加一个监听器。
-     *      @return 返回创建的 Socket 对象
+     * @description creates a dgram.Socket object
+     *      @param type socket family, 'udp4' or 'udp6'.
+     *      @param callback adds a listener for the 'message' event.
+     *      @return returns the created Socket object
      *
      */
     function createSocket(type: string, callback: (...args: any[])=>any): Class_DgramSocket;

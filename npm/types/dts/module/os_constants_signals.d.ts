@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description os_constants signals 子模块，包含 POSIX 信号常量
+ * @description os_constants signals submodule, containing POSIX signal constants
  *
- *  引用方法：
+ *  Usage:
  *  ```JavaScript
  *  var signals = require('os').constants.signals
  *  ```
@@ -10,167 +10,167 @@
  */
 declare module 'os_constants_signals' {
     /**
-     * @description 挂断信号，终端关闭时发送
+     * @description Hangup signal, sent when the terminal is closed
      */
     export const SIGHUP: 1;
 
     /**
-     * @description 中断信号，通常由 CTRL+C 触发
+     * @description Interrupt signal, usually triggered by CTRL+C
      */
     export const SIGINT: 2;
 
     /**
-     * @description 退出信号，通常由 CTRL+\ 触发
+     * @description Quit signal, usually triggered by CTRL+\
      */
     export const SIGQUIT: 3;
 
     /**
-     * @description 非法指令
+     * @description Illegal instruction
      */
     export const SIGILL: 4;
 
     /**
-     * @description 陷阱信号，用于调试
+     * @description Trap signal, used for debugging
      */
     export const SIGTRAP: 5;
 
     /**
-     * @description 中止信号，调用 abort() 时发送
+     * @description Abort signal, sent when abort() is called
      */
     export const SIGABRT: 6;
 
     /**
-     * @description 与 SIGABRT 相同
+     * @description Same as SIGABRT
      */
     export const SIGIOT: 6;
 
     /**
-     * @description 总线错误
+     * @description Bus error
      */
     export const SIGBUS: 7;
 
     /**
-     * @description 浮点异常
+     * @description Floating-point exception
      */
     export const SIGFPE: 8;
 
     /**
-     * @description 强制终止信号，不可捕获或忽略
+     * @description Kill signal, cannot be caught or ignored
      */
     export const SIGKILL: 9;
 
     /**
-     * @description 用户自定义信号 1
+     * @description User-defined signal 1
      */
     export const SIGUSR1: 10;
 
     /**
-     * @description 段错误，访问无效内存
+     * @description Segmentation fault, invalid memory access
      */
     export const SIGSEGV: 11;
 
     /**
-     * @description 用户自定义信号 2
+     * @description User-defined signal 2
      */
     export const SIGUSR2: 12;
 
     /**
-     * @description 管道破裂，写入无读取端的管道
+     * @description Broken pipe, write to a pipe with no readers
      */
     export const SIGPIPE: 13;
 
     /**
-     * @description 定时器到期信号
+     * @description Timer expired signal
      */
     export const SIGALRM: 14;
 
     /**
-     * @description 终止信号，通常由 kill 命令发送
+     * @description Termination signal, usually sent by the kill command
      */
     export const SIGTERM: 15;
 
     /**
-     * @description 协处理器栈错误
+     * @description Coprocessor stack error
      */
     export const SIGSTKFLT: 16;
 
     /**
-     * @description 子进程停止或终止
+     * @description Child process stopped or terminated
      */
     export const SIGCHLD: 17;
 
     /**
-     * @description 继续运行被停止的进程
+     * @description Continue a stopped process
      */
     export const SIGCONT: 18;
 
     /**
-     * @description 停止进程，不可捕获或忽略
+     * @description Stop the process, cannot be caught or ignored
      */
     export const SIGSTOP: 19;
 
     /**
-     * @description 终端停止信号，通常由 CTRL+Z 触发
+     * @description Terminal stop signal, usually triggered by CTRL+Z
      */
     export const SIGTSTP: 20;
 
     /**
-     * @description 后台进程读取终端
+     * @description Background process reading from the terminal
      */
     export const SIGTTIN: 21;
 
     /**
-     * @description 后台进程写入终端
+     * @description Background process writing to the terminal
      */
     export const SIGTTOU: 22;
 
     /**
-     * @description 套接字上有紧急数据
+     * @description Urgent data available on the socket
      */
     export const SIGURG: 23;
 
     /**
-     * @description CPU 时间超限
+     * @description CPU time limit exceeded
      */
     export const SIGXCPU: 24;
 
     /**
-     * @description 文件大小超限
+     * @description File size limit exceeded
      */
     export const SIGXFSZ: 25;
 
     /**
-     * @description 虚拟定时器到期
+     * @description Virtual timer expired
      */
     export const SIGVTALRM: 26;
 
     /**
-     * @description 性能剖析定时器到期
+     * @description Profiling timer expired
      */
     export const SIGPROF: 27;
 
     /**
-     * @description 终端窗口大小变化
+     * @description Terminal window size changed
      */
     export const SIGWINCH: 28;
 
     /**
-     * @description 异步 I/O 就绪
+     * @description Asynchronous I/O is ready
      */
     export const SIGIO: 29;
 
     /**
-     * @description 与 SIGIO 相同
+     * @description Same as SIGIO
      */
     export const SIGPOLL: 29;
 
     /**
-     * @description 电源故障
+     * @description Power failure
      */
     export const SIGPWR: 30;
 
     /**
-     * @description 无效的系统调用
+     * @description Invalid system call
      */
     export const SIGSYS: 31;
 
