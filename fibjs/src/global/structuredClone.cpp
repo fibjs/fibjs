@@ -23,7 +23,16 @@ public:
 
     void ThrowDataCloneError(v8::Local<v8::String> message) override
     {
-        m_isolate->ThrowException(v8::Exception::Error(message));
+        // WebIDL: a value that cannot be cloned fails with a DataCloneError
+        // DOMException (matching Node.js), not with a plain Error.
+        v8::String::Utf8Value utf8(m_isolate, message);
+        exlib::string msg = *utf8 ? *utf8 : "";
+        Isolate* isolate = Isolate::current();
+
+        if (isolate)
+            m_isolate->ThrowException(MakeDOMException(isolate, "DataCloneError", msg));
+        else
+            m_isolate->ThrowException(v8::Exception::Error(message));
     }
 
     v8::Maybe<uint32_t> GetSharedArrayBufferId(
@@ -54,8 +63,8 @@ public:
     {
         for (auto& ab : m_transferList) {
             if (ab->WasDetached()) {
-                m_isolate->ThrowException(v8::Exception::TypeError(
-                    fibjs_isolate->NewString("ArrayBuffer has already been detached")));
+                m_isolate->ThrowException(MakeDOMException(fibjs_isolate, "DataCloneError",
+                    "ArrayBuffer has already been detached"));
                 return false;
             }
             m_arrayBufferBackingStores.push_back(ab->GetBackingStore());
@@ -125,12 +134,16 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
                         if (item->IsArrayBuffer()) {
                             transferList.push_back(v8::Local<v8::ArrayBuffer>::Cast(item));
                         } else {
-                            return CHECK_ERROR(Runtime::setError("Transfer list must contain only ArrayBuffer objects"));
+                            return CHECK_ERROR(Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
+                                                                     .with_code("ERR_INVALID_ARG_TYPE")
+                                                                     .format("The \"options.transfer\" property must contain only ArrayBuffer objects")));
                         }
                     }
                 }
             } else if (!transferValue->IsUndefined()) {
-                return CHECK_ERROR(Runtime::setError("options.transfer must be an array"));
+                return CHECK_ERROR(Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
+                                                         .with_code("ERR_INVALID_ARG_TYPE")
+                                                         .format("The \"options.transfer\" property must be an array")));
             }
         }
     }

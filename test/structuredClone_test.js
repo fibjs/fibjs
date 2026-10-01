@@ -311,6 +311,28 @@ describe('structuredClone', () => {
       structuredClone(buffer, { transfer: [buffer] });
       assert.throws(() => {
         structuredClone(buffer, { transfer: [buffer] });
+      }, (err) => {
+        assert.equal(err.name, 'DataCloneError');
+        assert.equal(err.code, 25);
+        return true;
+      });
+    });
+
+    it('should report ERR_INVALID_ARG_TYPE for an invalid transfer list', () => {
+      assert.throws(() => {
+        structuredClone({}, { transfer: 5 });
+      }, (err) => {
+        assert.equal(err.name, 'TypeError');
+        assert.equal(err.code, 'ERR_INVALID_ARG_TYPE');
+        return true;
+      });
+
+      assert.throws(() => {
+        structuredClone({}, { transfer: [5] });
+      }, (err) => {
+        assert.equal(err.name, 'TypeError');
+        assert.equal(err.code, 'ERR_INVALID_ARG_TYPE');
+        return true;
       });
     });
 
@@ -334,32 +356,41 @@ describe('structuredClone', () => {
   });
 
   describe('Error Cases', () => {
+    function assertDataCloneError(fn) {
+      assert.throws(fn, (err) => {
+        assert.equal(err.name, 'DataCloneError');
+        assert.equal(err.code, 25);
+        assert.ok(err instanceof DOMException);
+        return true;
+      });
+    }
+
     it('should throw for function', () => {
-      assert.throws(() => {
+      assertDataCloneError(() => {
         structuredClone(() => {});
       });
     });
 
     it('should throw for Symbol', () => {
-      assert.throws(() => {
+      assertDataCloneError(() => {
         structuredClone(Symbol('test'));
       });
     });
 
     it('should throw for WeakMap', () => {
-      assert.throws(() => {
+      assertDataCloneError(() => {
         structuredClone(new WeakMap());
       });
     });
 
     it('should throw for WeakSet', () => {
-      assert.throws(() => {
+      assertDataCloneError(() => {
         structuredClone(new WeakSet());
       });
     });
 
     it('should throw for object with function property', () => {
-      assert.throws(() => {
+      assertDataCloneError(() => {
         structuredClone({ fn: () => {} });
       });
     });

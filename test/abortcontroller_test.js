@@ -113,6 +113,40 @@ describe("AbortController API", () => {
         }, customError);
     });
 
+    it("AbortController throwIfAborted default reason uses AbortError", () => {
+        var controller = new AbortController();
+        const signal = controller.signal;
+
+        controller.abort();
+
+        try {
+            signal.throwIfAborted();
+            assert.fail('expected throwIfAborted() to throw');
+        } catch (err) {
+            assert.ok(err instanceof AbortError);
+            assert.equal(err.name, 'AbortError');
+            assert.equal(err.code, 'ABORT_ERR');
+        }
+    });
+
+    it("AbortSignal.timeout().throwIfAborted uses TimeoutError", async () => {
+        if (!(typeof AbortSignal !== 'undefined' && AbortSignal.timeout))
+            return;
+
+        const signal = AbortSignal.timeout(1);
+
+        await new Promise((resolve) => setTimeout(resolve, 5));
+
+        try {
+            signal.throwIfAborted();
+            assert.fail('expected throwIfAborted() to throw');
+        } catch (err) {
+            assert.ok(err instanceof TimeoutError);
+            assert.equal(err.name, 'TimeoutError');
+            assert.equal(err.code, 'TIMEOUT_ERR');
+        }
+    });
+
     it("AbortController listener removal", () => {
         var controller = new AbortController();
         const signal = controller.signal;
@@ -213,7 +247,7 @@ describe("AbortController API", () => {
 
         assert.throws(() => {
             signal.throwIfAborted();
-        });
+        }, { name: 'AbortError', code: 'ABORT_ERR' });
     });
 
     it("AbortSignal.abort listeners not called on already-aborted signal", () => {
@@ -455,11 +489,11 @@ describe("AbortController API", () => {
             // In fibjs, extra parameters cause an error due to strict checking
             assert.throws(() => {
                 new AbortController("invalid param");
-            }, /Invalid number of parameters/);
+            }, { name: 'TypeError', number: 20001 });
 
             assert.throws(() => {
                 new AbortController({});
-            }, /Invalid number of parameters/);
+            }, { name: 'TypeError', number: 20001 });
         } else {
             // In Node.js, extra parameters are ignored
             var controller2 = new AbortController("invalid param");
