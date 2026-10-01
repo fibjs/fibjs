@@ -111,9 +111,14 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     v8::Local<v8::Object> mod;
 
     hr = resolve(base, id, data, mod);
-    if (hr < 0)
+    if (hr < 0) {
+        // Node.js reports a failed module lookup as MODULE_NOT_FOUND.
+        if (hr == -ENOENT)
+            return Runtime::setError(ErrorPayload::make(errtype::kError)
+                    .with_code("MODULE_NOT_FOUND")
+                    .with_message("Cannot find module '" + id + "'"));
         return hr;
-    else if (!IsEmpty(mod))
+    } else if (!IsEmpty(mod))
         return wait_module(mod, retVal);
 
     hr = installScript(id, data, mod, in_cjs);

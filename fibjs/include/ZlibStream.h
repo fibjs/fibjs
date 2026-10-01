@@ -64,8 +64,21 @@ private:
             int32_t err;
 
             err = m_pThis->do_process(m_flush);
-            if (err != Z_OK && err != Z_BUF_ERROR)
+            if (err != Z_OK && err != Z_BUF_ERROR) {
+                // Node.js exposes the zlib error constant as the code. The
+                // message stays zError(err): strm.msg is not always a valid
+                // null-terminated string here.
+                const char* code = err == Z_DATA_ERROR ? "Z_DATA_ERROR"
+                    : (err == Z_STREAM_ERROR ? "Z_STREAM_ERROR"
+                    : (err == Z_MEM_ERROR ? "Z_MEM_ERROR" : nullptr));
+
+                if (code)
+                    return Runtime::setError(ErrorPayload::make(errtype::kError)
+                            .with_code(code)
+                            .with_message(zError(err)));
+
                 return CHECK_ERROR(Runtime::setError(zError(err)));
+            }
 
             if (m_pThis->strm.avail_out == ZLIB_CHUNK)
                 return next();

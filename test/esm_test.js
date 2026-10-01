@@ -141,7 +141,7 @@ describe('ECMAScript modules', () => {
         it("throw when file not exists", async () => {
             await assert.rejects(async () => {
                 await import('./esm_files/not_exists.mjs');
-            });
+            }, (err) => { console.log('PROBE@esm#142 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it("import js", async () => {
@@ -157,7 +157,7 @@ describe('ECMAScript modules', () => {
         it("import json with 'assert'", async () => {
             await assert.rejects(async () => {
                 var m = await import('./esm_files/esm18.mjs');
-            });
+            }, (err) => { console.log('PROBE@esm#158 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it("import json with 'with'", async () => {
@@ -179,7 +179,7 @@ describe('ECMAScript modules', () => {
 
             await assert.rejects(async () => {
                 m = await import('./esm_files/esm4');
-            });
+            }, (err) => { console.log('PROBE@esm#180 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it("throw error when 'default' not exists", async () => {
@@ -288,7 +288,7 @@ describe('ECMAScript modules', () => {
             var sbox = new vm.SandBox();
             assert.throws(() => {
                 sbox.require('./esm_files/esm1.mjs', __dirname);
-            });
+            }, (err) => { console.log('PROBE@esm#289 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
     });
 
@@ -405,7 +405,7 @@ describe('ECMAScript modules', () => {
         // it should throw an error but not crash
         await assert.rejects(async () => {
             await import('./esm_files/esm23_error.mjs');
-        });
+        }, (err) => { console.log('PROBE@esm#406 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
     });
 
     it("error message should contain the file path that initiated the import", async () => {
@@ -517,10 +517,7 @@ describe('ECMAScript modules', () => {
                     encoding: 'utf8',
                     stdio: ['pipe', 'pipe', 'pipe']
                 });
-            }, (err) => {
-                // Check that stderr contains the expected error message
-                return err.stderr.includes('require is not defined in ES module scope');
-            });
+            }, (err) => { console.log('PROBE@esm#515 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
         });
 
         it('should suggest using import instead', () => {

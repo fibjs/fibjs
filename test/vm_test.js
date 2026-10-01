@@ -196,7 +196,7 @@ describe("vm", () => {
 
             assert.throws(() => {
                 sbox.require('./vm_test/custom_ext', __dirname);
-            })
+            }, { code: 'MODULE_NOT_FOUND' })
             sbox.require('./vm_test/custom_ext.abc', __dirname);
 
             sbox.setModuleCompiler('.abc', function (buf) { });
@@ -221,12 +221,12 @@ describe("vm", () => {
                 (new SandBox({})).setModuleCompiler('^abc', function (buf) {
                     return testVarValue;
                 });
-            });
+            }, { name: 'ReferenceError' });
             assert.throws(() => {
                 (new SandBox({})).setModuleCompiler('-abc', function (buf) {
                     return testVarValue;
                 });
-            })
+            }, { name: 'ReferenceError' })
         })
 
         it("requireInfo", () => {
@@ -331,16 +331,16 @@ describe("vm", () => {
         it("internal extname", () => {
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.js', () => undefined);
-            });
+            }, { number: 20024 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined);
-            });
+            }, { number: 20024 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
-            });
+            }, { number: 20024 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
-            });
+            }, { number: 20024 });
 
             (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
         })
@@ -370,6 +370,7 @@ describe("vm", () => {
                 return nonExistedValue;
             })
 
+            // not exercised
             assert.throws(() => {
                 sbox.require('./vm_test/custom_ext.error, __dirname')
             })
@@ -452,12 +453,12 @@ describe("vm", () => {
 
             assert.throws(() => {
                 sbox.require('./vm_test/custom_ext_js/custom_ext', __dirname)
-            });
+            }, { code: 'MODULE_NOT_FOUND' });
 
             sbox.setModuleCompiler('.cjs.json', buf => buf.toString());
             assert.throws(() => {
                 sbox.require('./vm_test/custom_ext_json/custom_ext', __dirname)
-            });
+            }, { code: 'MODULE_NOT_FOUND' });
         });
     });
 
@@ -476,7 +477,7 @@ describe("vm", () => {
 
         assert.throws(() => {
             sbox.require("c", __dirname);
-        });
+        }, { code: 'MODULE_NOT_FOUND' });
     });
 
     xit('refresh', () => {
@@ -835,7 +836,7 @@ describe("vm", () => {
                     s.runInThisContext({
                         timeout: 100
                     });
-                });
+                }, { number: 20021 });
             });
         });
 
@@ -888,6 +889,7 @@ describe("vm", () => {
 
     xit("block function return", () => {
         sbox = new vm.SandBox({});
+        // (xit) not exercised
         assert.throws(() => {
             sbox.addScript("t1.js", "return 100;");
         });

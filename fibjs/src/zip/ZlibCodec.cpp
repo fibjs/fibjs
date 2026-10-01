@@ -68,7 +68,9 @@ public:
     virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal) override
     {
         if (m_closed)
-            return CHECK_ERROR(Runtime::setError("zlib binding closed"));
+            return Runtime::setError(ErrorPayload::make(errtype::kError)
+                    .with_code("ERR_ZLIB_BINDING_CLOSED")
+                    .with_message("zlib binding closed"));
 
         obj_ptr<Buffer> input = Buffer::Cast(chunk);
         m_strm.avail_in = (uInt)input->length();
@@ -88,8 +90,17 @@ public:
                 ret = ::inflate(&m_strm, flushFlag);
 
             if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR) {
-                const char* msg = m_strm.msg ? m_strm.msg : zError(ret);
-                return CHECK_ERROR(Runtime::setError(msg));
+                // Keep the message on the safe zlib-owned string. In the
+                // stream helper path, strm.msg is not always a valid
+                // null-terminated pointer once we surface the error.
+                const char* msg = zError(ret);
+                // Node.js exposes the zlib error constant as the code.
+                const char* code = ret == Z_DATA_ERROR ? "Z_DATA_ERROR"
+                    : (ret == Z_STREAM_ERROR ? "Z_STREAM_ERROR" : "Z_MEM_ERROR");
+
+                return Runtime::setError(ErrorPayload::make(errtype::kError)
+                        .with_code(code)
+                        .with_message(msg));
             }
 
             uInt have = ZLIB_CODEC_CHUNK - m_strm.avail_out;
@@ -167,7 +178,9 @@ public:
     virtual result_t params(int32_t level, int32_t strategy) override
     {
         if (m_closed)
-            return CHECK_ERROR(Runtime::setError("zlib binding closed"));
+            return Runtime::setError(ErrorPayload::make(errtype::kError)
+                    .with_code("ERR_ZLIB_BINDING_CLOSED")
+                    .with_message("zlib binding closed"));
 
         if (!is_deflate())
             return CHECK_ERROR(CALL_E_INVALID_CALL);

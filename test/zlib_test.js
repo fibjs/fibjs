@@ -23,7 +23,7 @@ describe("zlib", () => {
         zlib.inflate(zlib.deflate(b), M);
         assert.throws(() => {
             zlib.inflate(zlib.deflate(b), M - 1);
-        });
+        }, { name: 'RangeError', number: 20013 });
     });
 
     it("gzip", () => {
@@ -145,7 +145,7 @@ describe("zlib", () => {
         // so we only test that gunzip can't handle zip and vice versa for non-unzip methods
         assert.throws(() => {
             zlib.gunzip(zip_compressed);
-        });
+        }, { code: 'Z_DATA_ERROR' });
 
         // Note: unzip now supports auto-detection and can handle gzip format
         // This is compatible with Node.js behavior
@@ -163,7 +163,7 @@ describe("zlib", () => {
         zlib.unzip(compressed, M);
         assert.throws(() => {
             zlib.unzip(compressed, M - 1);
-        });
+        }, { name: 'RangeError', number: 20013 });
     });
 
     it("zipTo (from Buffer)", () => {
@@ -316,20 +316,20 @@ describe("zlib", () => {
         // GZIP should only work with gunzip and unzip (Node.js compatibility)
         assert.deepEqual(zlib.gunzip(gzip_data), b);
         assert.deepEqual(zlib.unzip(gzip_data), b); // unzip supports gzip in Node.js
-        assert.throws(() => zlib.inflate(gzip_data));
-        assert.throws(() => zlib.inflateRaw(gzip_data));
+        assert.throws(() => zlib.inflate(gzip_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflateRaw(gzip_data), { code: 'Z_DATA_ERROR' });
 
         // Deflate (zlib format) should work with inflate and unzip (Node.js compatibility)
         assert.deepEqual(zlib.inflate(deflate_data), b);
         assert.deepEqual(zlib.unzip(deflate_data), b); // unzip supports deflate in Node.js
-        assert.throws(() => zlib.gunzip(deflate_data));
-        assert.throws(() => zlib.inflateRaw(deflate_data));
+        assert.throws(() => zlib.gunzip(deflate_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflateRaw(deflate_data), { code: 'Z_DATA_ERROR' });
 
         // DeflateRaw should work with inflateRaw only (Node.js compatibility)
         assert.deepEqual(zlib.inflateRaw(deflateRaw_data), b);
-        assert.throws(() => zlib.unzip(deflateRaw_data)); // unzip does NOT support deflateRaw in Node.js
-        assert.throws(() => zlib.gunzip(deflateRaw_data));
-        assert.throws(() => zlib.inflate(deflateRaw_data));
+        assert.throws(() => zlib.unzip(deflateRaw_data), { code: 'Z_DATA_ERROR' }); // unzip does NOT support deflateRaw in Node.js
+        assert.throws(() => zlib.gunzip(deflateRaw_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflate(deflateRaw_data), { code: 'Z_DATA_ERROR' });
     });
 
     it("strict format validation - cross decompression errors", () => {
@@ -339,23 +339,23 @@ describe("zlib", () => {
         var deflateRaw_data = zlib.deflateRaw(b);
 
         // GZIP data should work with gunzip and unzip only
-        assert.throws(() => zlib.inflate(gzip_data), /data error/);
-        assert.throws(() => zlib.inflateRaw(gzip_data), /data error/);
+        assert.throws(() => zlib.inflate(gzip_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflateRaw(gzip_data), { code: 'Z_DATA_ERROR' });
         // Note: unzip can handle gzip in Node.js, so no error expected
 
         // Deflate (zlib) data should work with inflate and unzip only
-        assert.throws(() => zlib.gunzip(deflate_data), /data error/);
-        assert.throws(() => zlib.inflateRaw(deflate_data), /data error/);
+        assert.throws(() => zlib.gunzip(deflate_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflateRaw(deflate_data), { code: 'Z_DATA_ERROR' });
         // Note: unzip can handle deflate in Node.js, so no error expected
 
         // ZIP now uses deflate format, should work with inflate and unzip (Node.js compatibility)
-        assert.throws(() => zlib.gunzip(zip_data), /data error/);
+        assert.throws(() => zlib.gunzip(zip_data), { code: 'Z_DATA_ERROR' });
         // Note: inflate and unzip should now work with zip data since it uses deflate format
 
         // DeflateRaw data should work with inflateRaw only (Node.js compatibility) 
-        assert.throws(() => zlib.gunzip(deflateRaw_data), /data error/);
-        assert.throws(() => zlib.inflate(deflateRaw_data), /data error/);
-        assert.throws(() => zlib.unzip(deflateRaw_data), /data error/); // unzip does NOT support deflateRaw in Node.js
+        assert.throws(() => zlib.gunzip(deflateRaw_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflate(deflateRaw_data), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.unzip(deflateRaw_data), { code: 'Z_DATA_ERROR' }); // unzip does NOT support deflateRaw in Node.js
     });
 
     it("format header validation", () => {
@@ -396,12 +396,12 @@ describe("zlib", () => {
         // Test corrupted GZIP data (should throw in both Node.js and fibjs)
         var corrupted_gzip = Buffer.from(gzip_data);
         corrupted_gzip[10] ^= 0xff; // Flip bits in the middle
-        assert.throws(() => zlib.gunzip(corrupted_gzip));
+        assert.throws(() => zlib.gunzip(corrupted_gzip), { code: 'Z_DATA_ERROR' });
 
         // Test corrupted deflate data (should throw in both Node.js and fibjs)
         var corrupted_deflate = Buffer.from(deflate_data);
         corrupted_deflate[5] ^= 0xff; // Flip bits in the middle
-        assert.throws(() => zlib.inflate(corrupted_deflate));
+        assert.throws(() => zlib.inflate(corrupted_deflate), { code: 'Z_DATA_ERROR' });
 
         // Note: corrupted deflateRaw/ZIP might not always throw in Node.js
         // so we don't test that case to maintain compatibility
@@ -440,8 +440,8 @@ describe("zlib", () => {
         assert.deepEqual(zip_data, deflate_data, "ZIP and deflate should produce identical output for Node.js compatibility");
 
         // Test wrong magic numbers - these should throw data errors
-        assert.throws(() => zlib.gunzip(Buffer.from([0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01])));
-        assert.throws(() => zlib.inflate(Buffer.from([0x1f, 0x8b, 0x08, 0x00])));
+        assert.throws(() => zlib.gunzip(Buffer.from([0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01])), { code: 'Z_DATA_ERROR' });
+        assert.throws(() => zlib.inflate(Buffer.from([0x1f, 0x8b, 0x08, 0x00])), { code: 'Z_DATA_ERROR' });
     });
 
     it("format-specific decompression success validation", () => {
@@ -459,7 +459,7 @@ describe("zlib", () => {
         assert.deepEqual(zlib.gunzip(gzip_compressed), test_data);
         assert.deepEqual(zlib.inflate(deflate_compressed), test_data);
         assert.deepEqual(zlib.inflateRaw(deflateRaw_compressed), test_data);
-        assert.throws(() => zlib.unzip(deflateRaw_compressed)); // unzip does NOT support deflateRaw for Node.js compatibility
+        assert.throws(() => zlib.unzip(deflateRaw_compressed), { code: 'Z_DATA_ERROR' }); // unzip does NOT support deflateRaw for Node.js compatibility
 
         // All other combinations should fail with data errors
         var all_formats = [
@@ -479,8 +479,7 @@ describe("zlib", () => {
         all_formats.forEach(format => {
             all_methods.forEach(method => {
                 if (!method.compatible.includes(format.name)) {
-                    assert.throws(() => method.fn(format.data), /data error/,
-                        `${method.name} should not decompress ${format.name} data`);
+                    assert.throws(() => method.fn(format.data), { code: 'Z_DATA_ERROR' });
                 }
             });
         });
@@ -513,7 +512,7 @@ describe("zlib", () => {
             // This should now fail to match Node.js behavior (unzip does not support deflateRaw)
             assert.throws(() => {
                 zlib.unzip(deflateRaw_compressed);
-            }, /data error/, "unzip should NOT handle deflateRaw format like Node.js");
+            }, { code: 'Z_DATA_ERROR' });
         });
 
         it("unzip auto-detection with various data sizes", () => {
@@ -541,7 +540,7 @@ describe("zlib", () => {
                 var deflateRaw_compressed = zlib.deflateRaw(test_data);
                 assert.throws(() => {
                     zlib.unzip(deflateRaw_compressed);
-                }, `unzip should NOT handle deflateRaw format for Node.js compatibility (test case ${index + 1})`);
+                }, { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -563,7 +562,7 @@ describe("zlib", () => {
             assert.deepEqual(zlib.unzip(gzip_data), test_data, "unzip should decompress gzip data");
             assert.throws(() => {
                 zlib.unzip(deflateRaw_data);
-            }, "unzip should NOT decompress deflateRaw data for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
         });
 
         it("unzip should handle edge cases correctly", () => {
@@ -596,7 +595,7 @@ describe("zlib", () => {
             // deflateRaw should NOT work with unzip (Node.js compatibility)
             assert.throws(() => {
                 zlib.unzip(single_deflateRaw);
-            }, "unzip should NOT handle deflateRaw format for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
         });
 
         it("unzip vs specific decompression methods comparison", () => {
@@ -615,7 +614,7 @@ describe("zlib", () => {
             // unzip should NOT support deflateRaw for Node.js compatibility
             assert.throws(() => {
                 zlib.unzip(deflateRaw_data);
-            }, "unzip should NOT support deflateRaw format for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
         });
 
         it("unzip with maxSize parameter should work with all formats", () => {
@@ -633,15 +632,15 @@ describe("zlib", () => {
             // deflateRaw should NOT work with unzip (Node.js compatibility)
             assert.throws(() => {
                 zlib.unzip(deflateRaw_data, expected_size * 2);
-            }, "unzip should NOT support deflateRaw format for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
 
             // Test with exact maxSize for supported formats
             assert.deepEqual(zlib.unzip(deflate_data, expected_size), test_data);
             assert.deepEqual(zlib.unzip(gzip_data, expected_size), test_data);
 
             // Test with insufficient maxSize (should throw)
-            assert.throws(() => zlib.unzip(deflate_data, expected_size - 1));
-            assert.throws(() => zlib.unzip(gzip_data, expected_size - 1));
+            assert.throws(() => zlib.unzip(deflate_data, expected_size - 1), { name: 'RangeError', number: 20013 });
+            assert.throws(() => zlib.unzip(gzip_data, expected_size - 1), { name: 'RangeError', number: 20013 });
         });
 
         it("unzip stream operations with auto-detection", () => {
@@ -667,7 +666,7 @@ describe("zlib", () => {
             assert.throws(() => {
                 var output_stream = new io.MemoryStream();
                 zlib.unzipTo(deflateRaw_data, output_stream);
-            }, "unzipTo should NOT handle deflateRaw format for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
 
             // Test createUnzip with supported formats
             [
@@ -689,7 +688,7 @@ describe("zlib", () => {
                 var unzip_stream = zlib.createUnzip(output_stream);
                 unzip_stream.write(deflateRaw_data);
                 unzip_stream.close();
-            }, "createUnzip should NOT handle deflateRaw format for Node.js compatibility");
+            }, { code: 'Z_DATA_ERROR' });
         });
     });
 
@@ -716,8 +715,8 @@ describe("zlib", () => {
                 var gzipData = zlib.gzip(testData);
                 var deflateRawData = zlib.deflateRaw(testData);
 
-                assert.throws(() => zlib.inflate(gzipData));
-                assert.throws(() => zlib.inflate(deflateRawData));
+                assert.throws(() => zlib.inflate(gzipData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.inflate(deflateRawData), { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -738,8 +737,8 @@ describe("zlib", () => {
                 var deflateData = zlib.deflate(testData);
                 var deflateRawData = zlib.deflateRaw(testData);
 
-                assert.throws(() => zlib.gunzip(deflateData));
-                assert.throws(() => zlib.gunzip(deflateRawData));
+                assert.throws(() => zlib.gunzip(deflateData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.gunzip(deflateRawData), { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -760,8 +759,8 @@ describe("zlib", () => {
                 var gzipData = zlib.gzip(testData);
                 var deflateData = zlib.deflate(testData);
 
-                assert.throws(() => zlib.inflateRaw(gzipData));
-                assert.throws(() => zlib.inflateRaw(deflateData));
+                assert.throws(() => zlib.inflateRaw(gzipData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.inflateRaw(deflateData), { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -791,7 +790,7 @@ describe("zlib", () => {
                 var deflateRawData = zlib.deflateRaw(testData);
                 assert.throws(() => {
                     zlib.unzip(deflateRawData);
-                }, "unzip should NOT handle deflateRaw format to match Node.js");
+                }, { code: 'Z_DATA_ERROR' });
             });
 
             it("unzip format detection with various data sizes", () => {
@@ -813,19 +812,19 @@ describe("zlib", () => {
                 var invalidMagic2 = Buffer.from([0x50, 0x4b, 0x03, 0x04]); // ZIP magic (not supported)
                 var invalidMagic3 = Buffer.from([0x1f, 0x9d]); // Old compress format
                 
-                assert.throws(() => zlib.unzip(invalidMagic1), "unzip should reject random data");
-                assert.throws(() => zlib.unzip(invalidMagic2), "unzip should reject ZIP format");
-                assert.throws(() => zlib.unzip(invalidMagic3), "unzip should reject old compress format");
+                assert.throws(() => zlib.unzip(invalidMagic1), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.unzip(invalidMagic2), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.unzip(invalidMagic3), { code: 'Z_DATA_ERROR' });
             });
 
             it("unzip handles minimum data requirements", () => {
                 // Test with data that's too short
                 var tooShort = Buffer.from([0x1f]); // Only one byte
-                assert.throws(() => zlib.unzip(tooShort), "unzip should reject single byte");
+                assert.throws(() => zlib.unzip(tooShort), { code: 'Z_DATA_ERROR' });
                 
                 // Test with incomplete gzip header
                 var incompleteGzip = Buffer.from([0x1f, 0x8b]); // Only magic, no method byte
-                assert.throws(() => zlib.unzip(incompleteGzip), "unzip should reject incomplete gzip header");
+                assert.throws(() => zlib.unzip(incompleteGzip), { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -850,17 +849,17 @@ describe("zlib", () => {
                 assert.deepEqual(zlib.inflate(zipData), testData, "inflate + zip (deflate format)");
 
                 // Test incompatible combinations (should fail)
-                assert.throws(() => zlib.inflate(gzipData), "inflate should not work with gzip");
-                assert.throws(() => zlib.inflateRaw(gzipData), "inflateRaw should not work with gzip");
+                assert.throws(() => zlib.inflate(gzipData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.inflateRaw(gzipData), { code: 'Z_DATA_ERROR' });
 
-                assert.throws(() => zlib.gunzip(deflateData), "gunzip should not work with deflate");
-                assert.throws(() => zlib.inflateRaw(deflateData), "inflateRaw should not work with deflate");
+                assert.throws(() => zlib.gunzip(deflateData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.inflateRaw(deflateData), { code: 'Z_DATA_ERROR' });
 
-                assert.throws(() => zlib.gunzip(deflateRawData), "gunzip should not work with deflateRaw");
-                assert.throws(() => zlib.inflate(deflateRawData), "inflate should not work with deflateRaw");
-                assert.throws(() => zlib.unzip(deflateRawData), "unzip should not work with deflateRaw");
+                assert.throws(() => zlib.gunzip(deflateRawData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.inflate(deflateRawData), { code: 'Z_DATA_ERROR' });
+                assert.throws(() => zlib.unzip(deflateRawData), { code: 'Z_DATA_ERROR' });
 
-                assert.throws(() => zlib.gunzip(zipData), "gunzip should not work with zip");
+                assert.throws(() => zlib.gunzip(zipData), { code: 'Z_DATA_ERROR' });
             });
         });
 
@@ -1030,7 +1029,7 @@ describe("zlib", () => {
                 // Should throw when output exceeds maxOutputLength
                 assert.throws(() => {
                     zlib.inflate(compressed, { maxOutputLength: 10 });
-                });
+                }, { name: 'RangeError', number: 20013 });
             });
 
             it("gunzip with options.maxOutputLength", () => {
@@ -1041,7 +1040,7 @@ describe("zlib", () => {
                 // Should throw when output exceeds maxOutputLength
                 assert.throws(() => {
                     zlib.gunzip(compressed, { maxOutputLength: 10 });
-                });
+                }, { name: 'RangeError', number: 20013 });
             });
 
             it("inflateRaw with options.maxOutputLength", () => {
@@ -1052,7 +1051,7 @@ describe("zlib", () => {
                 // Should throw when output exceeds maxOutputLength
                 assert.throws(() => {
                     zlib.inflateRaw(compressed, { maxOutputLength: 10 });
-                });
+                }, { name: 'RangeError', number: 20013 });
             });
 
             it("unzip with options.maxOutputLength", () => {
@@ -1063,7 +1062,7 @@ describe("zlib", () => {
                 // Should throw when output exceeds maxOutputLength
                 assert.throws(() => {
                     zlib.unzip(compressed, { maxOutputLength: 10 });
-                });
+                }, { name: 'RangeError', number: 20013 });
             });
 
             it("maxOutputLength with -1 means no limit", () => {
@@ -1113,14 +1112,14 @@ describe("zlib", () => {
             it("should handle invalid level type gracefully", () => {
                 assert.throws(() => {
                     zlib.deflate(shortData, { level: "invalid" });
-                });
+                }, { name: 'TypeError', number: 20005 });
             });
 
             it("should handle invalid maxOutputLength type gracefully", () => {
                 var compressed = zlib.deflate(shortData);
                 assert.throws(() => {
                     zlib.inflate(compressed, { maxOutputLength: "invalid" });
-                });
+                }, { name: 'TypeError', number: 20005 });
             });
         });
     });
@@ -1374,7 +1373,7 @@ describe("zlib", () => {
                 gzip.close();
                 assert.throws(() => {
                     gzip._processChunk(testData, Z_FINISH);
-                });
+                }, { code: 'ERR_ZLIB_BINDING_CLOSED' });
             });
 
             it("reset allows reuse", () => {
@@ -1404,7 +1403,7 @@ describe("zlib", () => {
                 var inflate = new zlib.Inflate({});
                 assert.throws(() => {
                     inflate.params(1, 0);
-                });
+                }, { name: 'Error', number: 20009 });
             });
         });
 

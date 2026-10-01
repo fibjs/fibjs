@@ -60,7 +60,7 @@ describe("module", () => {
         it("require with invalid file: URL should throw", () => {
             assert.throws(() => {
                 require('file:///nonexistent/path/module.js');
-            });
+            }, { code: 'MODULE_NOT_FOUND' });
         });
     });
 
@@ -85,13 +85,14 @@ describe("module", () => {
     it("require error", () => {
         assert.throws(() => {
             require('./bogus');
-        });
+        }, { code: 'MODULE_NOT_FOUND' });
     });
 
     it("require compile error", () => {
+        // Node uses SyntaxError (name gap recorded)
         assert.throws(() => {
             require('./module/require_bug');
-        });
+        }, { number: 20024 });
     });
 
     it("share require", () => {
@@ -115,7 +116,7 @@ describe("module", () => {
     it("require error json", () => {
         assert.throws(() => {
             require('./module/data_err');
-        });
+        }, { name: 'SyntaxError' });
     });
 
     it("require .js module folder", () => {
@@ -405,9 +406,10 @@ describe("module", () => {
             });
 
             it("cannt require sub script not in exports", () => {
+                // Node: ERR_PACKAGE_PATH_NOT_EXPORTED (code gap recorded)
                 assert.throws(() => {
                     require('sub_script3/script2.js');
-                });
+                }, { number: 20024 });
             });
 
             it("pattern sub script", () => {
