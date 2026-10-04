@@ -21,6 +21,9 @@ class SandBox_base : public object_base {
     DECLARE_CLASS(SandBox_base);
 
 public:
+    using Union_addScript_script = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // SandBox_base
     static result_t _new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -29,7 +32,7 @@ public:
     virtual result_t addBuiltinModules() = 0;
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
-    virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t addScript(exlib::string srcname, Union_addScript_script script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t has(exlib::string id, bool& retVal) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
@@ -202,9 +205,9 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_addScript_script, 1);
 
-    hr = pInst->addScript(v0, v1.get(), vr);
+    hr = pInst->addScript(v0, v1, vr);
 
     METHOD_RETURN();
 }

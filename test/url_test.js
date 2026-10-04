@@ -3952,8 +3952,12 @@ describe("url", () => {
             const parsed = url.parse(new Date(0));
             assert.strictEqual(parsed.href, '/1970-01-01T00:00:00.000Z');
         });
-        // the rejection of a number / array / plain object moves with the
-        // strict String conversion (the Buffer/encoding family batch)
+
+        it("rejects a number, an array and a plain object", () => {
+            assert.throws(() => url.parse(1), { name: 'TypeError', number: 20005 });
+            assert.throws(() => url.parse([]), { name: 'TypeError', number: 20005 });
+            assert.throws(() => url.parse({}), { name: 'TypeError', number: 20005 });
+        });
     });
 });
 

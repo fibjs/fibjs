@@ -19,7 +19,7 @@ public:
     // PerformanceObserver_base
     virtual result_t observe(v8::Local<v8::Object> options);
     virtual result_t disconnect();
-    virtual result_t takeRecords(obj_ptr<NArray>& retVal);
+    virtual result_t takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
 
 public:
     void emit(obj_ptr<PerformanceEntry_base> entry);
@@ -157,9 +157,9 @@ public:
 
 public:
     // PerformanceObserverEntryList_base
-    virtual result_t getEntries(obj_ptr<NArray>& retVal);
-    virtual result_t getEntriesByName(exlib::string name, exlib::string entryType, obj_ptr<NArray>& retVal);
-    virtual result_t getEntriesByType(exlib::string entryType, obj_ptr<NArray>& retVal);
+    virtual result_t getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
+    virtual result_t getEntriesByName(exlib::string name, exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
+    virtual result_t getEntriesByType(exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
 
 private:
     std::vector<obj_ptr<PerformanceEntry_base>> m_entries;

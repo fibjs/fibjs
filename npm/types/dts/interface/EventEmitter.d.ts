@@ -65,7 +65,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Binds an event handler to the object
@@ -82,7 +82,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Binds an event handler to the object
@@ -104,7 +104,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description Binds an event handler to the start of the object's handler queue
@@ -113,7 +113,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Binds an event handler to the start of the object's handler queue
@@ -130,7 +130,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Binds a one-time event handler to the object; the one-time handler is triggered only once
@@ -147,7 +147,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Binds an event handler to the start of the object's handler queue
@@ -164,7 +164,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Removes all functions from the object's handler queue
@@ -189,7 +189,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     /**
      * @description Removes all functions from the object's handler queue
@@ -215,7 +215,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns the event object itself for chaining
      *
      */
-    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
@@ -306,7 +306,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return returns a Disposable object containing a `[Symbol.dispose]` method
      *
      */
-    static addAbortListener(signal: Class_EventEmitter, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    static addAbortListener(signal: Class_EventEmitter, func: (ev: FIBJS.GeneralObject)=>void): FIBJS.GeneralObject;
 
     /**
      * @description Creates a Promise that resolves after the specified event is triggered once

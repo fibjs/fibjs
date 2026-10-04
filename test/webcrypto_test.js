@@ -3451,20 +3451,19 @@ describe("webcrypto", () => {
         describe("Input Validation and Error Conditions", () => {
             it("should handle null and undefined parameters gracefully", async () => {
                 // Test null algorithm (node: TypeError, the algorithm must be a string or an object)
-                // INTERIM (commit split): the strict rejection (20005) returns with
-                // the Buffer/encoding batch; the lenient pass renders the value
                 await assert.rejects(async () => {
                     await global.crypto.subtle.digest(null, new Uint8Array([1, 2, 3]));
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20005 });
 
                 // Test undefined data
-                // INTERIM (commit split): undefined renders through the lenient
-                // conversion and digests; the rejection returns with the strict pass
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", undefined);
+                }, { name: 'TypeError', number: 20005 });
 
                 // Test null key in generateKey (node: TypeError)
                 await assert.rejects(async () => {
                     await global.crypto.subtle.generateKey(null, true, ["sign"]);
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20005 });
             });
 
             it("should handle invalid type conversions", async () => {
@@ -3473,14 +3472,14 @@ describe("webcrypto", () => {
                 assert.strictEqual(stringResult.byteLength, 32);
 
                 // Test object data (should fail)
-                // INTERIM (commit split): the rejections below return with the
-                // strict pass (the Buffer/encoding batch); the lenient pass
-                // renders the value and digests
-                const objectResult = await global.crypto.subtle.digest("SHA-256", {});
-                assert.strictEqual(objectResult.byteLength, 32);
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", {});
+                }, { name: 'TypeError', number: 20005 });
 
-                const nullResult = await global.crypto.subtle.digest("SHA-256", null);
-                assert.strictEqual(nullResult.byteLength, 32);
+                // Test null data (should fail)
+                await assert.rejects(async () => {
+                    await global.crypto.subtle.digest("SHA-256", null);
+                }, { name: 'TypeError', number: 20005 });
 
                 // Test invalid generateKey calls
                 await assert.rejects(async () => {

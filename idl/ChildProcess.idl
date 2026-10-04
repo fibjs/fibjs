@@ -8,14 +8,9 @@
 interface ChildProcess : EventEmitter
 {
     /*! @brief Kills the process this object refers to and delivers a signal
-      @param signal the signal to deliver
+      @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
      */
-    kill(Integer signal);
-
-    /*! @brief Kills the process this object refers to and delivers a signal
-      @param signal the signal to deliver
-     */
-    kill(String signal = "SIGTERM");
+    kill(String|Integer signal = "SIGTERM");
 
     /*! @brief Waits for the process this object refers to to exit and returns the exit code
       @return the exit code of the process
@@ -92,11 +87,16 @@ interface ChildProcess : EventEmitter
      */
     readonly Array stdio;
 
-    /*! @brief Queries and binds the process exit event, equivalent to on("exit", func); */
-    event exit();
+    /*! @brief Queries and binds the process exit event, equivalent to on("exit", func);
+     @param code the exit code, null when the process was killed by a signal
+     @param signal the signal name, null when the process exited normally
+     */
+    event exit(Value code, Value signal);
 
-    /*! @brief Queries and binds the child process message event, equivalent to on("message", func); */
-    event message();
+    /*! @brief Queries and binds the child process message event, equivalent to on("message", func);
+     @param msg the decoded message sent by the child process
+     */
+    event message(Value msg);
 
     /*! @brief Queries and binds the child process spawn event, equivalent to on("spawn", func); */
     event spawn();

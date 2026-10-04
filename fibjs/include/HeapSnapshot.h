@@ -21,7 +21,7 @@ public:
     virtual result_t save(exlib::string fname, AsyncEvent* ac);
     virtual result_t get_time(date_t& retVal);
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal);
-    virtual result_t get_nodes(obj_ptr<NArray>& retVal);
+    virtual result_t get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal);
 
 public:
     result_t load(exlib::string fname);
@@ -30,7 +30,7 @@ public:
 
 private:
     date_t m_time;
-    obj_ptr<NArray> m_nodes;
+    std::vector<obj_ptr<HeapGraphNode_base>> m_nodes;
     std::unordered_map<int32_t, int32_t> _nodes;
 };
 }

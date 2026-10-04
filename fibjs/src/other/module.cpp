@@ -11,35 +11,30 @@
 
 namespace fibjs {
 
-result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
+result_t module_base::get_builtinModules(std::vector<exlib::string>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Array> builtinModules = v8::Array::New(isolate->m_isolate);
     RootModule* pModule = RootModule::g_root;
-    intptr_t idx = 0;
 
     // Add "buffer" module
-    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("buffer")).IsJust();
-    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("node:buffer")).IsJust();
+    retVal.push_back("buffer");
+    retVal.push_back("node:buffer");
 
     // Add all other native builtin modules
     while (pModule) {
         const char* name = pModule->name();
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(name)).IsJust();
+        retVal.push_back(name);
 
         // Add node: prefixed version
         exlib::string node_name = "node:";
         node_name.append(name);
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(node_name)).IsJust();
+        retVal.push_back(node_name);
 
         pModule = pModule->m_next;
     }
 
     // "module" is created by SandBox::initModule instead of a native module
-    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("module")).IsJust();
-    builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString("node:module")).IsJust();
+    retVal.push_back("module");
+    retVal.push_back("node:module");
 
     // Add the embedded JS builtin modules, such as "stream", "readline" or
     // "timers/promises"
@@ -49,11 +44,11 @@ result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
         if (!is_user_opt_tool(name))
             continue;
 
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(name)).IsJust();
+        retVal.push_back(name);
 
         exlib::string node_name = "node:";
         node_name.append(name);
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(node_name)).IsJust();
+        retVal.push_back(node_name);
     }
 
     // Add sub-path builtin modules (Node.js compatibility)
@@ -64,14 +59,13 @@ result_t module_base::get_builtinModules(v8::Local<v8::Array>& retVal)
     };
 
     for (size_t i = 0; i < sizeof(s_subpaths) / sizeof(s_subpaths[0]); i++) {
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(s_subpaths[i])).IsJust();
+        retVal.push_back(s_subpaths[i]);
 
         exlib::string node_name = "node:";
         node_name.append(s_subpaths[i]);
-        builtinModules->Set(context, (uint32_t)(idx++), isolate->NewString(node_name)).IsJust();
+        retVal.push_back(node_name);
     }
 
-    retVal = builtinModules;
     return 0;
 }
 

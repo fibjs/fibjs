@@ -998,10 +998,6 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
 
 class Buffer_base;
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict = false);
-// INTERIM (commit split): the encoding-taking form is kept for the modules that
-// are not yet migrated to the String overloads; it is removed together with the
-// last caller (crypto/ECDH, crypto/encrypt, global/Blob).
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict, const char* encoding);
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict = false);
 
 // a native object is one that wraps an object_base: the class identity is

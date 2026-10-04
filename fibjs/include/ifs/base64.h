@@ -21,8 +21,11 @@ class base64_base : public object_base {
     DECLARE_CLASS(base64_base);
 
 public:
+    using Union_encode_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // base64_base
-    static result_t encode(Buffer_base* data, bool url, exlib::string& retVal);
+    static result_t encode(Union_encode_data data, bool url, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -71,10 +74,10 @@ inline void base64_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_encode_data, 0);
     OPT_ARG(bool, 1, false);
 
-    hr = encode(v0.get(), v1, vr);
+    hr = encode(v0, v1, vr);
 
     METHOD_RETURN();
 }

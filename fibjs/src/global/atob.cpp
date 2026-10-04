@@ -196,8 +196,17 @@ static result_t nodeBase64Decode(const std::string& input, std::string& retVal)
     return 0;
 }
 
-result_t global_base::btoa(exlib::string data, exlib::string& retVal)
+result_t global_base::btoa(v8::Local<v8::Value> data_, exlib::string& retVal)
 {
+    // the value is converted to its string form, as the DOM and node do:
+    // btoa(123) encodes "123", btoa(null) encodes "null"
+    exlib::string data;
+    {
+        result_t hr_ = GetDOMStringValue(data_, data);
+        if (hr_ < 0)
+            return hr_;
+    }
+
     // Convert UTF-8 to Latin1 and validate
     exlib::string latin1Data;
     result_t hr = utf8ToLatin1(data, latin1Data);
@@ -212,8 +221,17 @@ result_t global_base::btoa(exlib::string data, exlib::string& retVal)
     return 0;
 }
 
-result_t global_base::atob(exlib::string data, exlib::string& retVal)
+result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
 {
+    // the value is converted to its string form, as the DOM and node do:
+    // atob(123) decodes "123"
+    exlib::string data;
+    {
+        result_t hr_ = GetDOMStringValue(data_, data);
+        if (hr_ < 0)
+            return hr_;
+    }
+
     // Decode Base64
     std::string latin1Data;
     std::string stdData(data.c_str(), data.length());

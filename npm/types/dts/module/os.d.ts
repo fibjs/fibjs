@@ -172,7 +172,7 @@ declare module 'os' {
      *      @return returns an array containing three load values
      *
      */
-    function loadavg(): any[];
+    function loadavg(): number[];
 
     /**
      * @description Queries the total memory of the runtime environment, in bytes

@@ -5,12 +5,12 @@ module module
      @param base the base path of the module
      @return returns a module require function
     */
-    static Function createRequire(String base);
+    static Function(String id) => Value createRequire(String base);
 
     /*!@brief Built-in module name list
      The built-in module name list. Contains all fibjs built-in module names, and the versions with the node: prefix.
     */
-    static readonly Array builtinModules;
+    static readonly String[] builtinModules;
 
     /*!@brief Enables module compile cache
      In fibjs it is a no-op; used to cache V8 compiled bytecode to disk to speed up subsequent startup.

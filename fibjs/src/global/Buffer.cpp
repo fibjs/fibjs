@@ -38,32 +38,8 @@ inline result_t validOffset(const int32_t buffer_length, const int32_t offset)
     return 0;
 }
 
-result_t Buffer_base::_new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
-{
-    return from(datas, retVal);
-}
-
-result_t Buffer_base::_new(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
-{
-    return from(datas, byteOffset, length, retVal);
-}
-
-result_t Buffer_base::_new(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
-{
-    return from(datas, byteOffset, length, retVal);
-}
-
-result_t Buffer_base::_new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
-{
-    return from(str, codec, retVal);
-}
-
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
-{
-    return allocUnsafe(size, retVal);
-}
-
-result_t Buffer_base::alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& retVal)
+// the integer fill form: the merged entry dispatches here
+static result_t alloc_fill_int32(int32_t size, int32_t fill, obj_ptr<Buffer_base>& retVal)
 {
     if (size < 0)
         size = 0;
@@ -81,16 +57,19 @@ result_t Buffer_base::alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& re
     return 0;
 }
 
+result_t Buffer_base::alloc(int32_t size, Union_alloc_fill fill, obj_ptr<Buffer_base>& retVal)
+{
+    if (std::holds_alternative<int32_t>(fill))
+        return alloc_fill_int32(size, std::get<int32_t>(fill), retVal);
+
+    obj_ptr<Buffer> buf = new Buffer(NULL, size);
+    return buf->fill(std::get<obj_ptr<Buffer_base>>(fill).get(), 0, size, retVal);
+}
+
 result_t Buffer_base::alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     obj_ptr<Buffer> buf = new Buffer(NULL, size);
     return buf->fill(fill, 0, size, codec, retVal);
-}
-
-result_t Buffer_base::alloc(int32_t size, Buffer_base* fill, obj_ptr<Buffer_base>& retVal)
-{
-    obj_ptr<Buffer> buf = new Buffer(NULL, size);
-    return buf->fill(fill, 0, size, retVal);
 }
 
 result_t Buffer_base::allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal)
@@ -154,7 +133,9 @@ result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t leng
     return 0;
 }
 
-result_t Buffer_base::from(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
+// the backing-store form of Buffer.from: a negative offset clamps to 0 and an
+// out-of-range length becomes an empty buffer
+static result_t buffer_from_store(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
 {
     if (byteOffset < 0)
         byteOffset = 0;
@@ -170,17 +151,23 @@ result_t Buffer_base::from(std::shared_ptr<v8::BackingStore> datas, int32_t byte
     return 0;
 }
 
-result_t Buffer_base::from(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
+result_t Buffer_base::from(Union_from_datas datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
 {
-    if (byteOffset < 0)
-        return CALL_E_INVALIDARG;
+    if (std::holds_alternative<v8::Local<v8::Uint8Array>>(datas)) {
+        v8::Local<v8::Uint8Array> view = std::get<v8::Local<v8::Uint8Array>>(datas);
 
-    if (length < 0)
-        length = datas->ByteLength() - byteOffset;
-    else if (length > datas->ByteLength() - byteOffset)
-        return CALL_E_INVALIDARG;
+        if (byteOffset < 0)
+            return CALL_E_INVALIDARG;
 
-    return from(datas->Buffer()->GetBackingStore(), byteOffset + datas->ByteOffset(), length, retVal);
+        if (length < 0)
+            length = view->ByteLength() - byteOffset;
+        else if (length > view->ByteLength() - byteOffset)
+            return CALL_E_INVALIDARG;
+
+        return buffer_from_store(view->Buffer()->GetBackingStore(), byteOffset + view->ByteOffset(), length, retVal);
+    }
+
+    return buffer_from_store(std::get<std::shared_ptr<v8::BackingStore>>(datas), byteOffset, length, retVal);
 }
 
 result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
@@ -346,7 +333,7 @@ Buffer* Buffer::getInstance(v8::Local<v8::Value> o)
     return new Buffer(o.As<v8::Uint8Array>());
 }
 
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict, const char* encoding)
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
 {
     if (v.IsEmpty() || v->IsNumber() || v->IsNumberObject())
         return CALL_E_TYPEMISMATCH;
@@ -377,12 +364,6 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return 0;
         }
 
-        if (v->IsString() || v->IsStringObject()) {
-            exlib::string str;
-            GetArgumentValue(isolate, v, str);
-            return Buffer_base::from(str, encoding, vr);
-        }
-
         if (v->IsArray())
             return Buffer_base::from(v.As<v8::Array>(), vr);
 
@@ -400,14 +381,6 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
     vr = new Buffer(v.As<v8::TypedArray>());
 
     return 0;
-}
-
-// INTERIM (commit split): the 4-argument form is the existing conversion with
-// the default encoding; it goes away when the Buffer parameter family switches
-// to the strict conversion (the first caller of this form is generated code).
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
-{
-    return GetArgumentValue(isolate, v, vr, bStrict, "utf8");
 }
 
 // a binary option (key material, passphrase, header, ...) accepts a string as
@@ -553,21 +526,7 @@ void Buffer::proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    hr = pInst->indexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    hr = pInst->indexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_indexOf_v, 0);
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
@@ -584,21 +543,7 @@ void Buffer::proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, -1);
-
-    hr = pInst->lastIndexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, -1);
-
-    hr = pInst->lastIndexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_lastIndexOf_v, 0);
     OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
@@ -895,37 +840,21 @@ result_t Buffer_base::byteLength(exlib::string str, exlib::string codec, int32_t
     return 0;
 }
 
-result_t Buffer_base::byteLength(std::shared_ptr<v8::BackingStore> str, int32_t& retVal)
+result_t Buffer_base::byteLength(Union_byteLength_str str, int32_t& retVal)
 {
     obj_ptr<Buffer_base> buf;
 
-    result_t hr = from(str, 0, -1, buf);
-    if (hr < 0)
-        return hr;
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(str)) {
+        retVal = (int32_t)Buffer::Cast(std::get<obj_ptr<Buffer_base>>(str))->length();
 
-    retVal = (int32_t)Buffer::Cast(buf)->length();
+        return 0;
+    }
 
-    return 0;
-}
+    Union_from_datas datas = std::holds_alternative<v8::Local<v8::Uint8Array>>(str)
+        ? Union_from_datas(std::get<v8::Local<v8::Uint8Array>>(str))
+        : Union_from_datas(std::get<std::shared_ptr<v8::BackingStore>>(str));
 
-result_t Buffer_base::byteLength(v8::Local<v8::Uint8Array> str, int32_t& retVal)
-{
-    obj_ptr<Buffer_base> buf;
-
-    result_t hr = from(str, 0, -1, buf);
-    if (hr < 0)
-        return hr;
-
-    retVal = (int32_t)Buffer::Cast(buf)->length();
-
-    return 0;
-}
-
-result_t Buffer_base::byteLength(Buffer_base* str, int32_t& retVal)
-{
-    obj_ptr<Buffer_base> buf;
-
-    result_t hr = from(str, 0, -1, buf);
+    result_t hr = from(datas, 0, -1, buf);
     if (hr < 0)
         return hr;
 
@@ -989,13 +918,21 @@ result_t Buffer::write(exlib::string str, exlib::string codec, int32_t& retVal)
     return write(str, 0, -1, codec, retVal);
 }
 
-result_t Buffer::fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
+result_t Buffer::fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
-    result_t hr = generateEnd((int32_t)length(), offset, end);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
+    if (std::holds_alternative<int32_t>(v)) {
+        result_t hr = generateEnd((int32_t)length(), offset, end);
+        if (hr < 0)
+            return CHECK_ERROR(hr);
 
-    memset(data() + offset, v & 255, end - offset);
+        memset(data() + offset, std::get<int32_t>(v) & 255, end - offset);
+    } else {
+        Buffer* v_data = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(v));
+
+        result_t hr = fill(v_data->data(), v_data->length(), offset, end);
+        if (hr < 0)
+            return hr;
+    }
 
     retVal = this;
     return 0;
@@ -1025,17 +962,6 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
         }
     }
 
-    return 0;
-}
-
-result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
-{
-    Buffer* v_data = Buffer::Cast(v);
-    result_t hr = fill(v_data->data(), v_data->length(), offset, end);
-    if (hr < 0)
-        return hr;
-
-    retVal = this;
     return 0;
 }
 
@@ -1518,6 +1444,17 @@ static result_t Buffer_indexOf(Buffer* buf, const uint8_t* v, int32_t v_len, int
     return 0;
 }
 
+result_t Buffer::indexOf(Union_indexOf_v v, int32_t offset, int32_t& retVal)
+{
+    if (std::holds_alternative<int32_t>(v))
+        return indexOf(std::get<int32_t>(v), offset, retVal);
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(v))
+        return indexOf(std::get<obj_ptr<Buffer_base>>(v).get(), offset, retVal);
+
+    return indexOf(std::get<exlib::string>(v), offset, retVal);
+}
+
 result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
 {
     int32_t buf_length = (int32_t)length();
@@ -1556,6 +1493,17 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
 result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
 {
     return Buffer_indexOf(this, (const uint8_t*)v.c_str(), v.length(), offset, retVal);
+}
+
+result_t Buffer::lastIndexOf(Union_lastIndexOf_v v, int32_t offset, int32_t& retVal)
+{
+    if (std::holds_alternative<int32_t>(v))
+        return lastIndexOf(std::get<int32_t>(v), offset, retVal);
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(v))
+        return lastIndexOf(std::get<obj_ptr<Buffer_base>>(v).get(), offset, retVal);
+
+    return lastIndexOf(std::get<exlib::string>(v), offset, retVal);
 }
 
 result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
@@ -1795,18 +1743,13 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     }
 }
 
-result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
+result_t Buffer::toArray(std::vector<int32_t>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)length());
     int32_t i;
     const uint8_t* _data = data();
 
     for (i = 0; i < (int32_t)length(); i++)
-        a->Set(context, i, v8::Number::New(isolate->m_isolate, _data[i])).IsJust();
-
-    retVal = a;
+        retVal.push_back(_data[i]);
 
     return 0;
 }

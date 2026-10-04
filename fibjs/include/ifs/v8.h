@@ -23,6 +23,9 @@ class v8_base : public object_base {
     DECLARE_CLASS(v8_base);
 
 public:
+    using Union_deserialize_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     enum {
         C_Node_Hidden = 0,
         C_Node_Array = 1,
@@ -48,17 +51,93 @@ public:
     };
 
 public:
+    class GetHeapSpaceStatisticsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("space_name"), GetReturnValue(isolate, space_name)).Check();
+            retVal->Set(context, isolate->NewString("space_size"), GetReturnValue(isolate, space_size)).Check();
+            retVal->Set(context, isolate->NewString("space_used_size"), GetReturnValue(isolate, space_used_size)).Check();
+            retVal->Set(context, isolate->NewString("space_available_size"), GetReturnValue(isolate, space_available_size)).Check();
+            retVal->Set(context, isolate->NewString("physical_space_size"), GetReturnValue(isolate, physical_space_size)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, space_name));
+            args.push_back(GetReturnValue(isolate, space_size));
+            args.push_back(GetReturnValue(isolate, space_used_size));
+            args.push_back(GetReturnValue(isolate, space_available_size));
+            args.push_back(GetReturnValue(isolate, physical_space_size));
+        }
+
+    public:
+        exlib::string space_name;
+        double space_size;
+        double space_used_size;
+        double space_available_size;
+        double physical_space_size;
+    };
+    class GetHeapStatisticsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("total_heap_size"), GetReturnValue(isolate, total_heap_size)).Check();
+            retVal->Set(context, isolate->NewString("total_heap_size_executable"), GetReturnValue(isolate, total_heap_size_executable)).Check();
+            retVal->Set(context, isolate->NewString("total_physical_size"), GetReturnValue(isolate, total_physical_size)).Check();
+            retVal->Set(context, isolate->NewString("total_available_size"), GetReturnValue(isolate, total_available_size)).Check();
+            retVal->Set(context, isolate->NewString("used_heap_size"), GetReturnValue(isolate, used_heap_size)).Check();
+            retVal->Set(context, isolate->NewString("heap_size_limit"), GetReturnValue(isolate, heap_size_limit)).Check();
+            retVal->Set(context, isolate->NewString("malloced_memory"), GetReturnValue(isolate, malloced_memory)).Check();
+            retVal->Set(context, isolate->NewString("external_memory"), GetReturnValue(isolate, external_memory)).Check();
+            retVal->Set(context, isolate->NewString("peak_malloced_memory"), GetReturnValue(isolate, peak_malloced_memory)).Check();
+            retVal->Set(context, isolate->NewString("number_of_native_contexts"), GetReturnValue(isolate, number_of_native_contexts)).Check();
+            retVal->Set(context, isolate->NewString("number_of_detached_contexts"), GetReturnValue(isolate, number_of_detached_contexts)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, total_heap_size));
+            args.push_back(GetReturnValue(isolate, total_heap_size_executable));
+            args.push_back(GetReturnValue(isolate, total_physical_size));
+            args.push_back(GetReturnValue(isolate, total_available_size));
+            args.push_back(GetReturnValue(isolate, used_heap_size));
+            args.push_back(GetReturnValue(isolate, heap_size_limit));
+            args.push_back(GetReturnValue(isolate, malloced_memory));
+            args.push_back(GetReturnValue(isolate, external_memory));
+            args.push_back(GetReturnValue(isolate, peak_malloced_memory));
+            args.push_back(GetReturnValue(isolate, number_of_native_contexts));
+            args.push_back(GetReturnValue(isolate, number_of_detached_contexts));
+        }
+
+    public:
+        double total_heap_size;
+        double total_heap_size_executable;
+        double total_physical_size;
+        double total_available_size;
+        double used_heap_size;
+        double heap_size_limit;
+        double malloced_memory;
+        double external_memory;
+        double peak_malloced_memory;
+        double number_of_native_contexts;
+        double number_of_detached_contexts;
+    };
+
+public:
     // v8_base
     static result_t getHeapCodeStatistics(v8::Local<v8::Object>& retVal);
-    static result_t getHeapSpaceStatistics(v8::Local<v8::Array>& retVal);
-    static result_t getHeapStatistics(v8::Local<v8::Object>& retVal);
+    static result_t getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatisticsType>>& retVal);
+    static result_t getHeapStatistics(obj_ptr<GetHeapStatisticsType>& retVal);
     static result_t saveSnapshot(exlib::string fname);
     static result_t loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
     static result_t start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal);
     static result_t serialize(v8::Local<v8::Value> value, obj_ptr<Buffer_base>& retVal);
-    static result_t deserialize(Buffer_base* data, v8::Local<v8::Value>& retVal);
+    static result_t deserialize(Union_deserialize_data data, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -155,7 +234,7 @@ inline void v8_base::s_static_getHeapCodeStatistics(const v8::FunctionCallbackIn
 
 inline void v8_base::s_static_getHeapSpaceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<obj_ptr<GetHeapSpaceStatisticsType>> vr;
 
     METHOD_ENTER();
 
@@ -168,7 +247,7 @@ inline void v8_base::s_static_getHeapSpaceStatistics(const v8::FunctionCallbackI
 
 inline void v8_base::s_static_getHeapStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<GetHeapStatisticsType> vr;
 
     METHOD_ENTER();
 
@@ -275,9 +354,9 @@ inline void v8_base::s_static_deserialize(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_deserialize_data, 0);
 
-    hr = deserialize(v0.get(), vr);
+    hr = deserialize(v0, vr);
 
     METHOD_RETURN();
 }

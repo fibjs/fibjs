@@ -59,7 +59,7 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      @return returns a function that takes a callback and executes it in the captured context
      *
      */
-    static snapshot(): (...args: any[])=>any;
+    static snapshot(): (callback: (...args: any[])=>any, ...args: any[])=>any;
 
     /**
      * @description Binds a function to the current asynchronous context

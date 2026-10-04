@@ -43,14 +43,14 @@ declare class Class_Blob extends Class_object {
     constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
 
     /**
-     * @description Blob object constructor
+     * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, can be a Buffer or another binary data type
+     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
-    constructor(blobData: Class_Buffer, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, options?: FIBJS.GeneralObject);
 
     /**
      * @description The type of the Blob object, returns the MIME type of the Blob (e.g. "text/plain", "image/png", etc.), read-only property.
@@ -152,14 +152,14 @@ declare class Class_BlobPromise extends Class_object {
     constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
 
     /**
-     * @description Blob object constructor
+     * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, can be a Buffer or another binary data type
+     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
-    constructor(blobData: Class_Buffer, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, options?: FIBJS.GeneralObject);
 
     /**
      * @description The type of the Blob object, returns the MIME type of the Blob (e.g. "text/plain", "image/png", etc.), read-only property.

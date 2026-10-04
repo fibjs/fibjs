@@ -186,6 +186,34 @@ describe('process', () => {
         assert.property(usage, 'unsharedStackSize');
     });
 
+    it("release", () => {
+        // the release metadata is an object with the three documented fields
+        assert.deepEqual(Object.keys(process.release), ['name', 'sourceUrl', 'venderUrl']);
+        assert.strictEqual(process.release.name, 'node');
+        assert.isString(process.release.sourceUrl);
+        assert.isString(process.release.venderUrl);
+    });
+
+    it("execArgv is a string array", () => {
+        assert.isTrue(Array.isArray(process.execArgv));
+        process.execArgv.forEach((v) => assert.isString(v));
+    });
+
+    it("kill signal forms", () => {
+        const pid = process.pid;
+
+        // the numeric form and the signal name form are both accepted
+        assert.isUndefined(process.kill(pid, 0));
+        assert.isUndefined(process.kill(pid, 'SIGCONT'));
+
+        // an unknown signal name reports the name, not a type error
+        assert.throws(() => process.kill(pid, 'M13_NO_SUCH_SIGNAL'),
+            { number: 20024, message: /Unknown signal: M13_NO_SUCH_SIGNAL/ });
+
+        // a value that is neither a number nor a signal name keeps the type error
+        assert.throws(() => process.kill(pid, {}), { number: 20005 });
+    });
+
     it("version", () => {
         assert.ok(process.version);
     });
@@ -366,6 +394,31 @@ describe('process', () => {
             assert.throws(() => {
                 process.kill(pid, 0);
             }, { name: 'Error', number: 20024 });
+        });
+    });
+
+    describe("umask", () => {
+        it("accepts an octal string and a number", () => {
+            const old = process.umask();
+            try {
+                process.umask('0700');
+                assert.strictEqual(process.umask() & 0o777, 0o700);
+
+                process.umask(0o644);
+                assert.strictEqual(process.umask() & 0o777, 0o644);
+            } finally {
+                process.umask(old);
+            }
+        });
+
+        it("rejects a mask that is not an octal string or a number", () => {
+            const old = process.umask();
+            try {
+                assert.throws(() => process.umask('nope'),
+                    { name: 'Error', number: 20024 });
+            } finally {
+                process.umask(old);
+            }
         });
     });
 

@@ -125,17 +125,12 @@ result_t process_base::set_argv(v8::Local<v8::Array> newVal)
     return 0;
 }
 
-result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
+result_t process_base::get_execArgv(std::vector<exlib::string>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_start_argv.size());
     int32_t i;
 
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_start_argv[i])).IsJust();
-
-    retVal = args;
+        retVal.push_back(s_start_argv[i]);
 
     return 0;
 }
@@ -164,27 +159,29 @@ result_t process_base::set_exitCode(int32_t newVal)
     return 0;
 }
 
-result_t process_base::umask(int32_t mask, int32_t& retVal)
+result_t process_base::umask(Union_umask_mask mask, int32_t& retVal)
 {
-    retVal = _umask(mask);
-    return 0;
-}
+    // a string mask is an octal number (e.g. "0664"), a numeric mask is the
+    // value itself
+    if (std::holds_alternative<exlib::string>(mask)) {
+        exlib::string str = std::get<exlib::string>(mask);
+        int oct = 0;
 
-result_t process_base::umask(exlib::string mask, int32_t& retVal)
-{
-    int oct = 0;
-    // Parse the octal string.
-    for (size_t i = 0; i < mask.length(); i++) {
-        char c = mask[i];
+        for (size_t i = 0; i < str.length(); i++) {
+            char c = str[i];
 
-        if (c > '7' || c < '0')
-            return CHECK_ERROR(Runtime::setError("process: invalid octal string"));
+            if (c > '7' || c < '0')
+                return CHECK_ERROR(Runtime::setError("process: invalid octal string"));
 
-        oct *= 8;
-        oct += c - '0';
+            oct *= 8;
+            oct += c - '0';
+        }
+
+        retVal = _umask(oct);
+        return 0;
     }
 
-    retVal = _umask(oct);
+    retVal = _umask(std::get<int32_t>(mask));
     return 0;
 }
 
@@ -245,17 +242,12 @@ result_t process_base::get_platform(exlib::string& retVal)
     return os_base::platform(retVal);
 }
 
-result_t process_base::get_release(v8::Local<v8::Object>& retVal)
+result_t process_base::get_release(obj_ptr<ReleaseType>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
-
-    obj->Set(context, isolate->NewString("name"), isolate->NewString("node")).IsJust();
-    obj->Set(context, isolate->NewString("sourceUrl"), isolate->NewString("https://github.com/fibjs/fibjs")).IsJust();
-    obj->Set(context, isolate->NewString("venderUrl"), isolate->NewString("https://github.com/fibjs/fibjs_vender")).IsJust();
-
-    retVal = obj;
+    retVal = new ReleaseType();
+    retVal->name = "node";
+    retVal->sourceUrl = "https://github.com/fibjs/fibjs";
+    retVal->venderUrl = "https://github.com/fibjs/fibjs_vender";
     return 0;
 }
 
@@ -345,7 +337,7 @@ result_t process_base::exit(int32_t code)
     return process_base::exit();
 }
 
-result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal)
+result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<CpuUsageType>& retVal)
 {
     uv_rusage_t rusage;
     double _user = 0, _system = 0;
@@ -355,8 +347,6 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
         return err;
 
     result_t hr;
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
 
     hr = GetConfigValue(previousValue, "user", _user, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
@@ -369,49 +359,38 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     _user = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec - _user;
     _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - _system;
 
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user)).IsJust();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system)).IsJust();
-
-    retVal = o;
+    retVal = new CpuUsageType();
+    retVal->user = _user;
+    retVal->system = _system;
 
     return 0;
 }
 
-result_t process_base::resourceUsage(v8::Local<v8::Object>& retVal)
+result_t process_base::resourceUsage(obj_ptr<ResourceUsageType>& retVal)
 {
     uv_rusage_t rusage;
-    double _user = 0, _system = 0;
 
     int err = uv_getrusage(&rusage);
     if (err)
         return err;
 
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("userCPUTime"),
-         v8::Number::New(isolate->m_isolate, (double)(MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec)))
-        .IsJust();
-    o->Set(context, isolate->NewString("systemCPUTime"),
-         v8::Number::New(isolate->m_isolate, (double)(MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec)))
-        .IsJust();
-    o->Set(context, isolate->NewString("maxRSS"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_maxrss)).IsJust();
-    o->Set(context, isolate->NewString("sharedMemorySize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_ixrss)).IsJust();
-    o->Set(context, isolate->NewString("unsharedDataSize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_idrss)).IsJust();
-    o->Set(context, isolate->NewString("unsharedStackSize"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_isrss)).IsJust();
-    o->Set(context, isolate->NewString("minorPageFault"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_minflt)).IsJust();
-    o->Set(context, isolate->NewString("majorPageFault"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_majflt)).IsJust();
-    o->Set(context, isolate->NewString("swappedOut"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nswap)).IsJust();
-    o->Set(context, isolate->NewString("fsRead"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_inblock)).IsJust();
-    o->Set(context, isolate->NewString("fsWrite"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_oublock)).IsJust();
-    o->Set(context, isolate->NewString("ipcSent"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_msgsnd)).IsJust();
-    o->Set(context, isolate->NewString("ipcReceived"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_msgrcv)).IsJust();
-    o->Set(context, isolate->NewString("signalsCount"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nsignals)).IsJust();
-    o->Set(context, isolate->NewString("voluntaryContextSwitches"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nvcsw)).IsJust();
-    o->Set(context, isolate->NewString("involuntaryContextSwitches"), v8::Number::New(isolate->m_isolate, (double)rusage.ru_nivcsw)).IsJust();
-    retVal = o;
+    retVal = new ResourceUsageType();
+    retVal->userCPUTime = (double)(MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec);
+    retVal->systemCPUTime = (double)(MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec);
+    retVal->maxRSS = (double)rusage.ru_maxrss;
+    retVal->sharedMemorySize = (double)rusage.ru_ixrss;
+    retVal->unsharedDataSize = (double)rusage.ru_idrss;
+    retVal->unsharedStackSize = (double)rusage.ru_isrss;
+    retVal->minorPageFault = (double)rusage.ru_minflt;
+    retVal->majorPageFault = (double)rusage.ru_majflt;
+    retVal->swappedOut = (double)rusage.ru_nswap;
+    retVal->fsRead = (double)rusage.ru_inblock;
+    retVal->fsWrite = (double)rusage.ru_oublock;
+    retVal->ipcSent = (double)rusage.ru_msgsnd;
+    retVal->ipcReceived = (double)rusage.ru_msgrcv;
+    retVal->signalsCount = (double)rusage.ru_nsignals;
+    retVal->voluntaryContextSwitches = (double)rusage.ru_nvcsw;
+    retVal->involuntaryContextSwitches = (double)rusage.ru_nivcsw;
 
     return 0;
 }
@@ -870,7 +849,9 @@ static int32_t sig_name_to_number(exlib::string signal)
     return -1;
 }
 
-result_t process_base::kill(int32_t pid, int32_t signal)
+// the numeric form: the merged entry dispatches here, and so does the signal
+// name form after parsing
+static result_t kill_numeric(int32_t pid, int32_t signal)
 {
     int err = uv_kill(pid, signal);
     if (err)
@@ -879,13 +860,17 @@ result_t process_base::kill(int32_t pid, int32_t signal)
     return 0;
 }
 
-result_t process_base::kill(int32_t pid, exlib::string signal)
+result_t process_base::kill(int32_t pid, Union_kill_signal signal)
 {
-    int32_t signo = sig_name_to_number(signal);
-    if (signo < 0)
-        return CHECK_ERROR(Runtime::setError("process: Unknown signal: " + signal));
+    if (std::holds_alternative<int32_t>(signal))
+        return kill_numeric(pid, std::get<int32_t>(signal));
 
-    return kill(pid, signo);
+    exlib::string name = std::get<exlib::string>(signal);
+    int32_t signo = sig_name_to_number(name);
+    if (signo < 0)
+        return CHECK_ERROR(Runtime::setError("process: Unknown signal: " + name));
+
+    return kill_numeric(pid, signo);
 }
 
 }

@@ -51,59 +51,30 @@ declare module 'vm' {
      * @description Runs the code specified by code within the given contextifiedObject and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextifiedObject specifies the context object at runtime
-     *      @param opts specifies the running options
+     *      @param opts specifies the running options, or the script file name
      *      @return returns the running result
      *
      */
-    function runInContext(code: string, contextifiedObject: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Runs the code specified by code within the given contextifiedObject and returns the result
-     *      @param code specifies the script code to compile and run
-     *      @param contextifiedObject specifies the context object at runtime
-     *      @param filename specifies the script file name
-     *      @return returns the running result
-     *
-     */
-    function runInContext(code: string, contextifiedObject: FIBJS.GeneralObject, filename: string): any;
+    function runInContext(code: string, contextifiedObject: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Uses the given contextObject to create a context, runs the code specified by code in it and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextObject specifies the object to be contextified
-     *      @param opts specifies the running options
+     *      @param opts specifies the running options, or the script file name
      *      @return returns the running result
      *
      */
-    function runInNewContext(code: string, contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Uses the given contextObject to create a context, runs the code specified by code in it and returns the result
-     *      @param code specifies the script code to compile and run
-     *      @param contextObject specifies the object to be contextified
-     *      @param filename specifies the script file name
-     *      @return returns the running result
-     *
-     */
-    function runInNewContext(code: string, contextObject?: FIBJS.GeneralObject, filename?: string): any;
+    function runInNewContext(code: string, contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Runs the code specified by code in the current context and returns the result
      *      @param code specifies the script code to compile and run
-     *      @param opts specifies the running options
+     *      @param opts specifies the running options, or the script file name
      *      @return returns the running result
      *
      */
-    function runInThisContext(code: string, opts?: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Runs the code specified by code in the current context and returns the result
-     *      @param code specifies the script code to compile and run
-     *      @param filename specifies the script file name
-     *      @return returns the running result
-     *
-     */
-    function runInThisContext(code: string, filename: string): any;
+    function runInThisContext(code: string, opts?: FIBJS.GeneralObject | string): any;
 
 }
 

@@ -335,21 +335,12 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
-                exlib::string k;
-                hr = GetArgumentValue(isolate, JSValue(arr->Get(context, j)), k);
-                if (hr < 0)
-                    return CHECK_ERROR(hr);
-
-                _map.insert(std::pair<exlib::string, bool>(k, true));
+                // a key is rendered, not converted: omit(['a', 'b'], 0) names
+                // the property '0'
+                _map.insert(std::pair<exlib::string, bool>(isolate->toString(JSValue(arr->Get(context, j))), true));
             }
-        } else {
-            exlib::string k;
-            hr = GetArgumentValue(isolate, o, k);
-            if (hr < 0)
-                return CHECK_ERROR(hr);
-
-            _map.insert(std::pair<exlib::string, bool>(k, true));
-        }
+        } else
+            _map.insert(std::pair<exlib::string, bool>(isolate->toString(o), true));
     }
 
     JSArray keys1 = obj->GetPropertyNames(context);

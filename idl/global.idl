@@ -190,7 +190,7 @@ module global
     @param args extra arguments passed to the callback, optional.
     @return the timer object
     */
-    static Timer setTimeout(Function callback, Number timeout = 1, ...args);
+    static Timer setTimeout(Function(...args) callback, Number timeout = 1, ...args);
 
     /*! @brief Clears the given timer
      @param t the timer to clear
@@ -203,7 +203,7 @@ module global
      @param args extra arguments passed to the callback, optional.
      @return the timer object
     */
-    static Timer setInterval(Function callback, Number timeout, ...args);
+    static Timer setInterval(Function(...args) callback, Number timeout, ...args);
 
     /*! @brief Clears the given timer
      @param t the timer to clear
@@ -230,7 +230,7 @@ module global
      @param args extra arguments passed to the callback, optional.
      @return the timer object
     */
-    static Timer setHrInterval(Function callback, Number timeout, ...args);
+    static Timer setHrInterval(Function(...args) callback, Number timeout, ...args);
 
     /*! @brief Clears the given timer
      @param t the timer to clear
@@ -242,7 +242,7 @@ module global
      @param args extra arguments passed to the callback, optional.
      @return the timer object
     */
-    static Timer setImmediate(Function callback, ...args);
+    static Timer setImmediate(Function(...args) callback, ...args);
 
     /*! @brief Clears the given timer
      @param t the timer to clear
@@ -250,16 +250,24 @@ module global
     static clearImmediate(Value t);
 
     /*! @brief Encodes data in base64
-	 @param data the data to encode
-	 @return the encoded string
-	 */
-    static String btoa(String data);
+
+         The value is converted to its string form first, as the DOM and node
+         do: btoa(123) encodes "123", btoa(null) encodes "null".
+
+         @param data the value to encode
+         @return the encoded string
+         */
+    static String btoa(Value data);
 
     /*! @brief Decodes a string into binary data in base64
-	 @param data the string to decode
-	 @return the decoded binary data
-	 */
-    static String atob(String data);
+
+         The value is converted to its string form first, as the DOM and node
+         do: atob(123) decodes "123".
+
+         @param data the value to decode
+         @return the decoded binary data
+         */
+    static String atob(Value data);
 
     /*! @brief Creates a deep copy of a value
      Creates a deep copy of the given value using the structured clone algorithm. Circular references are supported.
@@ -272,44 +280,19 @@ module global
      */
     static Value structuredClone(Value value, Object options = {});
 
-    /*! @brief Requests the given url and returns the result, the same as http.request(url, ...)
-     opts contains extra request options; the supported fields are:
-     ```JavaScript
-     {
-         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-         "protocol": "http",
-         "slashes": true,
-         "username": "",
-         "password": "",
-         "hostname": "",
-         "port": "",
-         "pathname": "",
-         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-         "query": {},
-         "body": SeekableStream | Buffer | String | {},
-         "json": {},
-         "pack": {},
-         "headers": {}
-     }
-     ```
-     body, json and pack must not be used together. The default is {}, with no extra information
-     @param url the url to request, which must be a complete url including the host
-     @param opts extra options
-     @return the server response
-     */
-    static HttpResponse fetch(String url, Object opts = {}) promise;
-
-    /*! @brief Sends a Fetch request given a Request object
-     @param request the Request object
+    /*! @brief Sends a Fetch request given a Request object or a URL string
+     Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
+     `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
+     @param request the Request object, or the target URL of the request
      @param opts request options (may override the fields of request)
      @return the server response object
     */
-    static HttpResponse fetch(HttpRequest request, Object opts = {}) promise;
+    static HttpResponse fetch(HttpRequest|String request, Object opts = {}) promise;
 
     /*! @brief Queues a micro-task for execution
      The callback runs after the current task completes and before the next task starts.
 
      @param callback the function to queue as a micro-task
      */
-    static queueMicrotask(Function callback);
+    static queueMicrotask(Function() callback);
 };

@@ -53,6 +53,26 @@ var parseDeep = (txt, depth) => {
     return parser.parseFromString(txt, "text/xml", { maxElementDepth: depth, maxNodeCount: depth * 4 });
 };
 
+// fibjs reports its own error codes (number), the DOM throws a DOMException
+// whose name identifies the same failure; each side asserts what it throws
+function assertDOMError(fn, domName, fibjsError) {
+    if (!isBrowser) {
+        assert.throws(fn, fibjsError);
+        return;
+    }
+
+    // err.name of a DOMException is a prototype getter, compare it directly
+    var err = null;
+    try {
+        fn();
+    } catch (e) {
+        err = e;
+    }
+
+    assert.ok(err, 'expected ' + domName + ' to be thrown');
+    assert.equal(err.name, domName);
+}
+
 // Helper function for testing CharacterData interface
 function test_CharacterData(fn) {
     describe('CharacterData', () => {
@@ -75,9 +95,9 @@ function test_CharacterData(fn) {
             assert.equal(e.substringData(3, 4), 'aabb');
             assert.equal(e.substringData(3, 10), 'aabbb');
             assert.equal(e.substringData(8, 10), '');
-            assert.throws(() => {
+            assertDOMError(() => {
                 e.substringData(10, 0);
-            }, { name: 'RangeError', number: 20012 });
+            }, 'IndexSizeError', { name: 'RangeError', number: 20012 });
         });
 
         it("insertData", () => {
@@ -90,9 +110,9 @@ function test_CharacterData(fn) {
             e.insertData(11, "ddd");
             assert.equal(e.data, 'aaacccaabbbddd');
 
-            assert.throws(() => {
+            assertDOMError(() => {
                 e.insertData(17, "ddd");
-            }, { name: 'RangeError', number: 20012 });
+            }, 'IndexSizeError', { name: 'RangeError', number: 20012 });
         });
 
         it("deleteData", () => {
@@ -105,9 +125,9 @@ function test_CharacterData(fn) {
             e.deleteData(3, 10);
             assert.equal(e.data, 'aaa');
 
-            assert.throws(() => {
+            assertDOMError(() => {
                 e.deleteData(4, 1);
-            }, { name: 'RangeError', number: 20012 });
+            }, 'IndexSizeError', { name: 'RangeError', number: 20012 });
         });
 
         it("replaceData", () => {
@@ -120,9 +140,9 @@ function test_CharacterData(fn) {
             e.replaceData(3, 3, '');
             assert.equal(e.data, 'aaabb');
 
-            assert.throws(() => {
+            assertDOMError(() => {
                 e.replaceData(7, 1);
-            }, { name: 'TypeError', number: 20002 });
+            }, 'TypeError', { name: 'TypeError', number: 20002 });
         });
     });
 }
@@ -135,9 +155,9 @@ function test_Child(xdoc, e, s) {
             assert.equal(e1.parentNode, e);
             assert.equal(e.lastChild, e1);
         } else {
-            assert.throws(() => {
+            assertDOMError(() => {
                 e.appendChild(e1)
-            }, { name: 'TypeError', number: 20004 });
+            }, 'HierarchyRequestError', { name: 'TypeError', number: 20004 });
         }
     }
 
@@ -179,14 +199,14 @@ describe('xml', () => {
 
                 xdoc.appendChild(e);
                 xdoc.appendChild(c);
-                assert.throws(() => {
+                assertDOMError(() => {
                     xdoc.appendChild(e1);
-                }, { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
 
                 xdoc.replaceChild(e1, e);
-                assert.throws(() => {
+                assertDOMError(() => {
                     xdoc.replaceChild(e, c);
-                }, { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
 
                 xdoc.removeChild(e1);
                 xdoc.appendChild(e);
@@ -845,9 +865,9 @@ describe('xml', () => {
                 e1.appendChild(e3);
                 assert.equal(e3.parentNode, e1);
 
-                assert.throws(() => {
+                assertDOMError(() => {
                     e3.appendChild(e);
-                }, { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
             });
 
             it("removeChild", () => {
@@ -1217,9 +1237,9 @@ describe('xml', () => {
                 var elem = xdoc.createElement("test");
 
                 // Test invalid insertBefore
-                assert.throws(() => {
+                assertDOMError(() => {
                     elem.insertBefore(xdoc, null);
-                }, { name: 'TypeError', number: 20005 });
+                }, 'HierarchyRequestError', { name: 'TypeError', number: 20005 });
 
                 // Test appendChild with wrong document
                 var otherDoc = newDoc();
@@ -1436,9 +1456,9 @@ describe('xml', () => {
                 var attr = e1.attributes[0];
 
                 // Modern browsers throw error when trying to move owned attribute
-                assert.throws(() => {
+                assertDOMError(() => {
                     e2.setAttributeNode(attr);
-                }, { name: 'Error', number: 20024 });
+                }, 'InUseAttributeError', { name: 'Error', number: 20024 });
             });
 
             it("setAttributeNode with cloned attribute", () => {
@@ -1575,9 +1595,9 @@ describe('xml', () => {
                 assert.equal(elem.getAttribute("testAttr"), null);
                 assert.equal(elem.attributes.length, 0);
 
-                assert.throws(() => {
+                assertDOMError(() => {
                     elem.removeAttributeNode(attrNode);
-                }, { name: 'Error', number: 20024 });
+                }, 'NotFoundError', { name: 'Error', number: 20024 });
             });
 
             it("getAttributeNodeNS", () => {
@@ -1773,9 +1793,9 @@ describe('xml', () => {
             it("rejection appendChild", () => {
                 var hdoc = newHtmlDoc();
                 var e = hdoc.createElement("aaa");
-                assert.throws(() => {
+                assertDOMError(() => {
                     hdoc.appendChild(e);
-                }, { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
             });
 
             it("clear after removeChild", () => {
@@ -1865,9 +1885,9 @@ describe('xml', () => {
                     assert.equal(xdoc.documentElement, root1);
 
                     // Adding second root element should throw error
-                    assert.throws(() => {
+                    assertDOMError(() => {
                         xdoc.appendChild(root2);
-                    }, { name: 'Error', number: 20024 });
+                    }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
 
                     // Document should still have only one root
                     assert.equal(xdoc.childNodes.length, 1);
@@ -2154,9 +2174,9 @@ describe('xml', () => {
                     var root = xdoc.createElement('root');
 
                     // Text nodes at document level should throw error (DOM standard)
-                    assert.throws(() => {
+                    assertDOMError(() => {
                         xdoc.appendChild(textNode);
-                    }, { name: 'TypeError', number: 20004 });
+                    }, 'HierarchyRequestError', { name: 'TypeError', number: 20004 });
 
                     // Should still be able to add root element
                     xdoc.appendChild(root);
@@ -2823,9 +2843,9 @@ describe('xml', () => {
                     var extraElement = hdoc.createElement('div');
 
                     // Should throw error when trying to append element to document
-                    assert.throws(() => {
+                    assertDOMError(() => {
                         hdoc.appendChild(extraElement);
-                    }, { name: 'Error', number: 20024 });
+                    }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
 
                     // Document may have DOCTYPE and HTML elements in browser
                     var initialChildCount = hdoc.childNodes.length;
@@ -3109,9 +3129,9 @@ describe('xml', () => {
         it("rejection appendChild", () => {
             var hdoc = newHtmlDoc();
             var e = hdoc.createElement("aaa");
-            assert.throws(() => {
+            assertDOMError(() => {
                 hdoc.appendChild(e);
-            }, { name: 'Error', number: 20024 });
+            }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
         });
 
         it("clear after removeChild", () => {
@@ -3173,15 +3193,14 @@ describe('xml', () => {
             // Per WHATWG HTML 8.5.5, the only throwing case is a parent that is
             // a Document (NoModificationAllowedError in browsers).
             var hdoc = parseHtml("<html><body></body></html>");
-            assert.throws(() => {
+            assertDOMError(() => {
                 hdoc.documentElement.outerHTML = "<p>new root</p>";
-            }, { name: 'Error', number: 20024 });
-
+            }, 'NoModificationAllowedError', { name: 'Error', number: 20024 });
             // Same for XML documents: the root element's parent is the document.
             var xdoc = parse("<root/>");
-            assert.throws(() => {
+            assertDOMError(() => {
                 xdoc.documentElement.outerHTML = "<other/>";
-            }, { name: 'Error', number: 20009 });
+            }, 'NoModificationAllowedError', { name: 'Error', number: 20009 });
         });
 
         it("textContent", () => {
@@ -3750,10 +3769,20 @@ describe('xml', () => {
                     assert.equal(input.name, "");
                 });
 
-                it("numeric assignment is coerced", () => {
+                it("numeric assignment is rejected", () => {
+                    // The DOM renders the assigned value (el.title = 123 sets
+                    // "123"); fibjs keeps the declared String type of the
+                    // attribute, so a number is a TypeError and the attribute
+                    // stays unset
                     var hdoc = parseHtml('<body></body>');
                     var el = hdoc.createElement("div");
-                    el.title = 123;
+
+                    assert.throws(() => {
+                        el.title = 123;
+                    }, { name: 'TypeError', number: 20005 });
+                    assert.equal(el.getAttribute("title"), null);
+
+                    el.title = "123";
                     assert.equal(el.getAttribute("title"), "123");
                     assert.equal(el.title, "123");
                 });
@@ -4934,16 +4963,16 @@ describe('xml', () => {
 
             it('should throw on invalid mimeType', () => {
                 const parser = new DOMParser();
-                assert.throws(() => {
+                assertDOMError(() => {
                     parser.parseFromString('<root/>', 'invalid/type');
-                }, { name: 'Error', number: 20024 });
+                }, 'TypeError', { name: 'Error', number: 20024 });
             });
 
             it('should throw on unsupported mimeType', () => {
                 const parser = new DOMParser();
-                assert.throws(() => {
+                assertDOMError(() => {
                     parser.parseFromString('<root/>', 'text/plain');
-                }, { name: 'Error', number: 20024 });
+                }, 'TypeError', { name: 'Error', number: 20024 });
             });
 
             it('should serialize void elements correctly in HTML mode', () => {
@@ -5276,7 +5305,7 @@ describe('xml', () => {
         // fibjs bounds the depth of a parse by default, so the deep tests raise
         // the limit explicitly -- that is the documented escape hatch of
         // maxElementDepth.
-        it('should query a 20000 level deep document without crashing', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should query a 20000 level deep document without crashing', () => {
             const depth = 20000;
             const doc = parseDeep('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>', depth + 2);
 
@@ -5301,7 +5330,7 @@ describe('xml', () => {
         // to recurse once per level, so each of the operations below killed the
         // process (SIGBUS/SIGSEGV, no JS exception) somewhere between 1200 and
         // 20000 levels.  A new recursive helper fails this test.
-        it('should run every traversal on a 20000 level document', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should run every traversal on a 20000 level document', () => {
             const depth = 20000;
             const text = '<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>';
             const doc = parseDeep(text, depth + 2);
@@ -5330,7 +5359,7 @@ describe('xml', () => {
             assert.equal(doc.getElementsByTagName('*').length, 0);
         });
 
-        it('should normalize a deep document without recursion', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should normalize a deep document without recursion', () => {
             const depth = 20000;
             const doc = parseDeep('<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>', depth + 2);
             const leaf = doc.getElementsByTagName('d').item(depth - 1);
@@ -5347,7 +5376,7 @@ describe('xml', () => {
             assert.equal(leaf.firstChild.data, 'ab');
         });
 
-        it('should move a deep subtree across documents without recursion', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should move a deep subtree across documents without recursion', () => {
             const depth = 20000;
             const src = parseDeep('<root>' + '<d>'.repeat(depth) + '<leaf/>' + '</d>'.repeat(depth) + '</root>', depth + 2);
             const dst = newDoc();
@@ -5364,7 +5393,7 @@ describe('xml', () => {
         // The tree builder is iterative (XmlTreeWalk.h), and the vendored
         // gumbo teardown is flattened too, so html now reaches the same deep
         // nesting as xml.  The default limit is still 1000.
-        it('should parse a deep html document without recursion', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should parse a deep html document without recursion', () => {
             const depth = 20000;
             const doc = xml.parse('<div>'.repeat(depth) + 'x' + '</div>'.repeat(depth), 'text/html', { maxElementDepth: depth + 10, maxNodeCount: depth * 4 });
 
@@ -5376,7 +5405,7 @@ describe('xml', () => {
         // goes back to recursive form, this path crashes the process outright.
         // Run it in a subprocess so the failure is reported as one red test
         // instead of killing the whole suite.
-        it('should parse and tear down a deep html document in a subprocess', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should parse and tear down a deep html document in a subprocess', () => {
             const output = runFibjsEval(`
                 const xml = require('xml');
                 const depth = 20000;
@@ -5393,7 +5422,7 @@ describe('xml', () => {
         // The default limits are what keeps an untrusted document from
         // allocating unbounded memory or nesting deeper than the traversals can
         // handle; both are reported as ordinary JS errors.
-        it('should reject a document deeper than maxElementDepth', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should reject a document deeper than maxElementDepth', () => {
             const depth = 5000;
             const text = '<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>';
 
@@ -5407,7 +5436,7 @@ describe('xml', () => {
             assert.equal(xml.parse(text, 'text/xml', { maxElementDepth: Infinity }).getElementsByTagName('*').length, depth + 1);
         });
 
-        it('should reject a document with more nodes than maxNodeCount', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should reject a document with more nodes than maxNodeCount', () => {
             const text = '<root>' + '<i/>'.repeat(5000) + '</root>';
 
             assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
@@ -5417,12 +5446,12 @@ describe('xml', () => {
             assert.equal(xml.parse(text, 'text/xml', {}).getElementsByTagName('*').length, 5001);
         });
 
-        it('should reject a non numeric limit', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should reject a non numeric limit', () => {
             assert.throws(() => xml.parse('<a/>', 'text/xml', { maxElementDepth: 'deep' }), { name: 'TypeError', number: 20004 });
             assert.throws(() => xml.parse('<a/>', 'text/xml', { maxNodeCount: 'many' }), { name: 'TypeError', number: 20004 });
         });
 
-        it('should apply the limits to the html parser and to load()', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should apply the limits to the html parser and to load()', () => {
             const html = '<div>'.repeat(2000) + '</div>'.repeat(2000);
             assert.throws(() => xml.parse(html, 'text/html'), { name: 'Error', number: 20024 });
             assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), { name: 'Error', number: 20024 });
@@ -5443,7 +5472,7 @@ describe('xml', () => {
             assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });
 
-        it('should apply maxNodeCount to the html parser too', { skip: isBrowser }, () => {
+        (isBrowser ? it.skip : it)('should apply maxNodeCount to the html parser too', () => {
             const html = '<div data-x="1"></div>'.repeat(2000);
 
             assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });

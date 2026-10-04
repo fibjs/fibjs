@@ -107,7 +107,7 @@ public:
         return open(root, path, sk, bWrite, bCreate);
     }
 
-    result_t listSubKey(obj_ptr<NArray>& retVal)
+    result_t listSubKey(std::vector<exlib::string>& retVal)
     {
         wchar_t achClass[MAX_PATH] = L"";
         DWORD cchClassName = MAX_PATH, cSubKeys = 0;
@@ -123,8 +123,6 @@ public:
 
         wchar_t achValue[MAX_KEY_LENGTH];
         DWORD cchValue;
-
-        obj_ptr<NArray> l = new NArray();
 
         if (cSubKeys)
             for (i = 0; i < cSubKeys; i++) {
@@ -132,15 +130,13 @@ public:
                 retCode = RegEnumKeyExW(hKey, i, achValue, &cchValue, NULL,
                     NULL, NULL, &ftLastWriteTime);
                 if (retCode == ERROR_SUCCESS)
-                    l->append(utf16to8String((const char16_t*)achValue, cchValue));
+                    retVal.push_back(utf16to8String((const char16_t*)achValue, cchValue));
             }
-
-        retVal = l;
 
         return 0;
     }
 
-    result_t listValue(obj_ptr<NArray>& retVal)
+    result_t listValue(std::vector<exlib::string>& retVal)
     {
         wchar_t achClass[MAX_PATH] = L"";
         DWORD cchClassName = MAX_PATH, cSubKeys = 0;
@@ -157,18 +153,14 @@ public:
         wchar_t achValue[MAX_KEY_LENGTH];
         DWORD cchValue;
 
-        obj_ptr<NArray> l = new NArray();
-
         if (cValues)
             for (i = 0; i < cValues; i++) {
                 cchValue = MAX_KEY_LENGTH;
                 retCode = RegEnumValueW(hKey, i, achValue, &cchValue, NULL,
                     NULL, NULL, NULL);
                 if (retCode == ERROR_SUCCESS)
-                    l->append(utf16to8String((const char16_t*)achValue, cchValue));
+                    retVal.push_back(utf16to8String((const char16_t*)achValue, cchValue));
             }
-
-        retVal = l;
 
         return 0;
     }
@@ -263,7 +255,7 @@ public:
     exlib::wstring skey;
 };
 
-result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
+result_t registry_base::listSubKey(int32_t root, exlib::string key, std::vector<exlib::string>& retVal)
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");
@@ -273,7 +265,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArr
     return r.listSubKey(retVal);
 }
 
-result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
+result_t registry_base::listValue(int32_t root, exlib::string key, std::vector<exlib::string>& retVal)
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");

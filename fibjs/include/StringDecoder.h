@@ -61,11 +61,10 @@ public:
     }
 
 public:
-    virtual result_t end(exlib::string& retVal);
-    virtual result_t end(Buffer_base* buf, exlib::string& retVal);
-    virtual result_t write(Buffer_base* buf, exlib::string& retVal);
-    virtual result_t text(Buffer_base* buf, int32_t i, exlib::string& retVal);
-    virtual result_t fillLast(Buffer_base* buf, exlib::string& retVal);
+    virtual result_t end(Union_end_buf buf, exlib::string& retVal);
+    virtual result_t write(Union_write_buf buf, exlib::string& retVal);
+    virtual result_t text(Union_text_buf buf, int32_t i, exlib::string& retVal);
+    virtual result_t fillLast(Union_fillLast_buf buf, exlib::string& retVal);
     virtual result_t get_lastNeed(int32_t& retVal);
     virtual result_t set_lastNeed(int32_t newVal);
     virtual result_t get_lastTotal(int32_t& retVal);

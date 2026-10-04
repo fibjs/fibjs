@@ -26,28 +26,28 @@ declare class Class_XmlNodeList extends Class_object {
      */
     [index: number]: Class_XmlNode;
 
-    "[Symbol.iterator]"(): Iterator<any>;
+    "[Symbol.iterator]"(): Iterator<Class_XmlNode>;
 
     /**
      * @description Calls the given callback function once for each node in the list
      *      @param callback the callback function called for each node, receiving three parameters: the current node, the index and the node list itself
      *
      */
-    forEach(callback: (...args: any[])=>any): void;
+    forEach(callback: (node: Class_XmlNode, index: number, list: Class_XmlNodeList)=>void): void;
 
     /**
      * @description Returns an iterator for traversing the index of each node in the node list
      *      @return returns the index iterator
      *
      */
-    keys(): Iterator<any>;
+    keys(): Iterator<number>;
 
     /**
      * @description Returns an iterator for traversing the value of each node in the node list
      *      @return returns the value iterator
      *
      */
-    values(): Iterator<any>;
+    values(): Iterator<Class_XmlNode>;
 
     /**
      * @description Returns an iterator for traversing the [index, value] pairs of each node in the node list

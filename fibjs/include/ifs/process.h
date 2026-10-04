@@ -24,17 +24,125 @@ class process_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_umask_mask = std::variant<exlib::string, int32_t>;
+    using Union_kill_signal = std::variant<exlib::string, int32_t>;
+
+public:
+    class ReleaseType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("name"), GetReturnValue(isolate, name)).Check();
+            retVal->Set(context, isolate->NewString("sourceUrl"), GetReturnValue(isolate, sourceUrl)).Check();
+            retVal->Set(context, isolate->NewString("venderUrl"), GetReturnValue(isolate, venderUrl)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, name));
+            args.push_back(GetReturnValue(isolate, sourceUrl));
+            args.push_back(GetReturnValue(isolate, venderUrl));
+        }
+
+    public:
+        exlib::string name;
+        exlib::string sourceUrl;
+        exlib::string venderUrl;
+    };
+    class CpuUsageType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("user"), GetReturnValue(isolate, user)).Check();
+            retVal->Set(context, isolate->NewString("system"), GetReturnValue(isolate, system)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, user));
+            args.push_back(GetReturnValue(isolate, system));
+        }
+
+    public:
+        double user;
+        double system;
+    };
+    class ResourceUsageType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("userCPUTime"), GetReturnValue(isolate, userCPUTime)).Check();
+            retVal->Set(context, isolate->NewString("systemCPUTime"), GetReturnValue(isolate, systemCPUTime)).Check();
+            retVal->Set(context, isolate->NewString("maxRSS"), GetReturnValue(isolate, maxRSS)).Check();
+            retVal->Set(context, isolate->NewString("sharedMemorySize"), GetReturnValue(isolate, sharedMemorySize)).Check();
+            retVal->Set(context, isolate->NewString("unsharedDataSize"), GetReturnValue(isolate, unsharedDataSize)).Check();
+            retVal->Set(context, isolate->NewString("unsharedStackSize"), GetReturnValue(isolate, unsharedStackSize)).Check();
+            retVal->Set(context, isolate->NewString("minorPageFault"), GetReturnValue(isolate, minorPageFault)).Check();
+            retVal->Set(context, isolate->NewString("majorPageFault"), GetReturnValue(isolate, majorPageFault)).Check();
+            retVal->Set(context, isolate->NewString("swappedOut"), GetReturnValue(isolate, swappedOut)).Check();
+            retVal->Set(context, isolate->NewString("fsRead"), GetReturnValue(isolate, fsRead)).Check();
+            retVal->Set(context, isolate->NewString("fsWrite"), GetReturnValue(isolate, fsWrite)).Check();
+            retVal->Set(context, isolate->NewString("ipcSent"), GetReturnValue(isolate, ipcSent)).Check();
+            retVal->Set(context, isolate->NewString("ipcReceived"), GetReturnValue(isolate, ipcReceived)).Check();
+            retVal->Set(context, isolate->NewString("signalsCount"), GetReturnValue(isolate, signalsCount)).Check();
+            retVal->Set(context, isolate->NewString("voluntaryContextSwitches"), GetReturnValue(isolate, voluntaryContextSwitches)).Check();
+            retVal->Set(context, isolate->NewString("involuntaryContextSwitches"), GetReturnValue(isolate, involuntaryContextSwitches)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, userCPUTime));
+            args.push_back(GetReturnValue(isolate, systemCPUTime));
+            args.push_back(GetReturnValue(isolate, maxRSS));
+            args.push_back(GetReturnValue(isolate, sharedMemorySize));
+            args.push_back(GetReturnValue(isolate, unsharedDataSize));
+            args.push_back(GetReturnValue(isolate, unsharedStackSize));
+            args.push_back(GetReturnValue(isolate, minorPageFault));
+            args.push_back(GetReturnValue(isolate, majorPageFault));
+            args.push_back(GetReturnValue(isolate, swappedOut));
+            args.push_back(GetReturnValue(isolate, fsRead));
+            args.push_back(GetReturnValue(isolate, fsWrite));
+            args.push_back(GetReturnValue(isolate, ipcSent));
+            args.push_back(GetReturnValue(isolate, ipcReceived));
+            args.push_back(GetReturnValue(isolate, signalsCount));
+            args.push_back(GetReturnValue(isolate, voluntaryContextSwitches));
+            args.push_back(GetReturnValue(isolate, involuntaryContextSwitches));
+        }
+
+    public:
+        double userCPUTime;
+        double systemCPUTime;
+        double maxRSS;
+        double sharedMemorySize;
+        double unsharedDataSize;
+        double unsharedStackSize;
+        double minorPageFault;
+        double majorPageFault;
+        double swappedOut;
+        double fsRead;
+        double fsWrite;
+        double ipcSent;
+        double ipcReceived;
+        double signalsCount;
+        double voluntaryContextSwitches;
+        double involuntaryContextSwitches;
+    };
+
+public:
     // process_base
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t set_argv(v8::Local<v8::Array> newVal);
-    static result_t get_execArgv(v8::Local<v8::Array>& retVal);
+    static result_t get_execArgv(std::vector<exlib::string>& retVal);
     static result_t get_version(exlib::string& retVal);
     static result_t get_versions(v8::Local<v8::Object>& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
     static result_t get_platform(exlib::string& retVal);
-    static result_t get_release(v8::Local<v8::Object>& retVal);
+    static result_t get_release(obj_ptr<ReleaseType>& retVal);
     static result_t get_pid(int32_t& retVal);
     static result_t get_ppid(int32_t& retVal);
     static result_t get_stdin(obj_ptr<Stream_base>& retVal);
@@ -42,8 +150,7 @@ public:
     static result_t get_stderr(obj_ptr<Stream_base>& retVal);
     static result_t get_exitCode(int32_t& retVal);
     static result_t set_exitCode(int32_t newVal);
-    static result_t umask(int32_t mask, int32_t& retVal);
-    static result_t umask(exlib::string mask, int32_t& retVal);
+    static result_t umask(Union_umask_mask mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
     static result_t hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal);
     static result_t exit();
@@ -53,9 +160,9 @@ public:
     static result_t chdir(exlib::string directory);
     static result_t loadEnvFile(exlib::string path);
     static result_t uptime(double& retVal);
-    static result_t cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal);
+    static result_t cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<CpuUsageType>& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-    static result_t resourceUsage(v8::Local<v8::Object>& retVal);
+    static result_t resourceUsage(obj_ptr<ResourceUsageType>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
     static result_t getBuiltinModule(exlib::string id, v8::Local<v8::Value>& retVal);
@@ -65,8 +172,7 @@ public:
     static result_t setuid(int32_t id);
     static result_t emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::Object> options);
     static result_t emitWarning(v8::Local<v8::Value> warning, exlib::string type, exlib::string code);
-    static result_t kill(int32_t pid, int32_t signal);
-    static result_t kill(int32_t pid, exlib::string signal);
+    static result_t kill(int32_t pid, Union_kill_signal signal);
     static result_t get_connected(bool& retVal);
     static result_t disconnect();
     static result_t send(v8::Local<v8::Value> msg);
@@ -218,7 +324,7 @@ inline void process_base::s_static_set_argv(const v8::FunctionCallbackInfo<v8::V
 
 inline void process_base::s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_ENTER();
 
@@ -309,7 +415,7 @@ inline void process_base::s_static_get_platform(const v8::FunctionCallbackInfo<v
 
 inline void process_base::s_static_get_release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<ReleaseType> vr;
 
     METHOD_ENTER();
 
@@ -419,13 +525,7 @@ inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
-
-    hr = umask(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_umask_mask, 0);
 
     hr = umask(v0, vr);
 
@@ -537,7 +637,7 @@ inline void process_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Val
 
 inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<CpuUsageType> vr;
 
     METHOD_ENTER();
 
@@ -565,7 +665,7 @@ inline void process_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8
 
 inline void process_base::s_static_resourceUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<ResourceUsageType> vr;
 
     METHOD_ENTER();
 
@@ -698,17 +798,10 @@ inline void process_base::s_static_kill(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
-
-    hr = kill(v0, v1);
-
     METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "SIGTERM");
+    OPT_ARG(Union_kill_signal, 1, exlib::string("SIGTERM"));
 
     hr = kill(v0, v1);
 

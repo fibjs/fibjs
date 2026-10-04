@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/HeapGraphEdge.d.ts" />
 /**
  * @description HeapGraphNode represents a node in the heap view
  */
@@ -47,7 +48,7 @@ declare class Class_HeapGraphNode extends Class_object {
     /**
      * @description Child node list, composed of HeapGraphEdge type objects
      */
-    readonly childs: any[];
+    readonly childs: Class_HeapGraphEdge[];
 
 }
 

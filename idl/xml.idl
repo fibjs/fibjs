@@ -82,25 +82,13 @@ module xml
     /*! @brief The DOMParser interface, used to parse a string into a DOM document, see the DOMParser object */
     static DOMParser;
 
-    /*! @brief Parses xml/html text and creates an XmlDocument object; multilingual text is not supported
-     @param source the xml/html text to parse
-     @param type the text type, default text/xml; can also be set to text/html
-     @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-      - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
-      - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
-    @return returns the created XmlDocument object
-    */
-    static XmlDocument parse(String source, String type = "text/xml", Object options = {});
-
     /*! @brief Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
-     @param source the xml/html binary data to parse
+     @param source the xml/html data to parse; a string is encoded as utf8
      @param type the text type, default text/xml; can also be set to text/html
      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-      - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
-      - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
      @return returns the created XmlDocument object
-    */
-    static XmlDocument parse(Buffer source, String type = "text/xml", Object options = {});
+     */
+    static XmlDocument parse(Buffer|String source, String type = "text/xml", Object options = {});
 
     /*! @brief Serializes an XmlNode to a string
      @param node the XmlNode to serialize

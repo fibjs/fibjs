@@ -22,21 +22,21 @@
  */
 declare module 'base58' {
     /**
-     * @description Encodes data in base58 format
-     * 	 @param data the data to encode
-     * 	 @return returns the encoded string
+     * @description Encodes data in base58 format; a string data is encoded as utf8
+     *      @param data the data to encode, a string is encoded as utf8
+     *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer): string;
+    function encode(data: Class_Buffer | string): string;
 
     /**
-     * @description Encodes data in base58check format
-     * 	 @param data the data to encode
-     * 	 @param chk_ver the check version to use
-     * 	 @return returns the encoded string
+     * @description Encodes data in base58check format; a string data is encoded as utf8
+     *      @param data the data to encode, a string is encoded as utf8
+     *      @param chk_ver the check version to use
+     *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer, chk_ver: number): string;
+    function encode(data: Class_Buffer | string, chk_ver: number): string;
 
     /**
      * @description Decodes a string into binary data in base58 format

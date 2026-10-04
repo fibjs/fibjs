@@ -189,115 +189,127 @@ declare class Class_Worker extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the postMessage message event, equivalent to on("message", func);
+     *      @param data the message sent by the worker thread
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (data: any)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (data: any)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (data: any)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (data: any)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (data: any)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (data: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (data: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (data: any)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (data: any)=>void): this;
 
     /**
      * @description Queries and binds the postMessage message event, equivalent to on("message", func);
+     *      @param data the message sent by the worker thread
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((data: any)=>void) | null;
 
     /**
      * @description Queries and binds the error message event, equivalent to on("error", func);
+     *      @param err the uncaught error of the worker thread
+     *
      */
-    on(event: "error", listener: ()=>void): this;
+    on(event: "error", listener: (err: any)=>void): this;
 
-    once(event: "error", listener: ()=>void): this;
+    once(event: "error", listener: (err: any)=>void): this;
 
-    off(event: "error", listener: ()=>void): this;
+    off(event: "error", listener: (err: any)=>void): this;
 
-    addListener(event: "error", listener: ()=>void): this;
+    addListener(event: "error", listener: (err: any)=>void): this;
 
-    removeListener(event: "error", listener: ()=>void): this;
+    removeListener(event: "error", listener: (err: any)=>void): this;
 
-    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "error", listener: (err: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "error", listener: (err: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "error", listener: ()=>void): this;
+    prependListener(event: "error", listener: (err: any)=>void): this;
 
-    prependOnceListener(event: "error", listener: ()=>void): this;
+    prependOnceListener(event: "error", listener: (err: any)=>void): this;
 
     /**
      * @description Queries and binds the error message event, equivalent to on("error", func);
+     *      @param err the uncaught error of the worker thread
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((err: any)=>void) | null;
 
     /**
      * @description Queries and binds the worker exit event, equivalent to on("exit", func);
+     *      @param code the exit code of the worker thread
+     *
      */
-    on(event: "exit", listener: ()=>void): this;
+    on(event: "exit", listener: (code: number)=>void): this;
 
-    once(event: "exit", listener: ()=>void): this;
+    once(event: "exit", listener: (code: number)=>void): this;
 
-    off(event: "exit", listener: ()=>void): this;
+    off(event: "exit", listener: (code: number)=>void): this;
 
-    addListener(event: "exit", listener: ()=>void): this;
+    addListener(event: "exit", listener: (code: number)=>void): this;
 
-    removeListener(event: "exit", listener: ()=>void): this;
+    removeListener(event: "exit", listener: (code: number)=>void): this;
 
-    addEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "exit", listener: (code: number)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "exit", listener: (code: number)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "exit", listener: ()=>void): this;
+    prependListener(event: "exit", listener: (code: number)=>void): this;
 
-    prependOnceListener(event: "exit", listener: ()=>void): this;
+    prependOnceListener(event: "exit", listener: (code: number)=>void): this;
 
     /**
      * @description Queries and binds the worker exit event, equivalent to on("exit", func);
+     *      @param code the exit code of the worker thread
+     *
      */
-    onexit: (()=>void) | null;
+    onexit: ((code: number)=>void) | null;
 
-    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
     off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
     removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -408,18 +420,24 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the postMessage message event, equivalent to on("message", func);
+     *      @param data the message sent by the worker thread
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((data: any)=>void) | null;
 
     /**
      * @description Queries and binds the error message event, equivalent to on("error", func);
+     *      @param err the uncaught error of the worker thread
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((err: any)=>void) | null;
 
     /**
      * @description Queries and binds the worker exit event, equivalent to on("exit", func);
+     *      @param code the exit code of the worker thread
+     *
      */
-    onexit: (()=>void) | null;
+    onexit: ((code: number)=>void) | null;
 
 }
 

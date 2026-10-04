@@ -3137,8 +3137,9 @@ Line 3 with special chars: áéíóú`;
     });
 
     describe("constructor and append argument validation", () => {
-        // the rejection of a non-source value (e.g. a number) moves with the
-        // strict String conversion (the Buffer/encoding family batch)
+        it("should reject a value that is not a form data source", () => {
+            assert.throws(() => new FormData(1), (e) => e.number === 20005);
+        });
 
         it("should accept an empty field name, like the Web FormData API", () => {
             const form = new FormData();

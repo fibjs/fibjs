@@ -573,23 +573,54 @@ result_t util_format_impl(Isolate* isolate, exlib::string fmt, OptArgs args, con
     return 0;
 }
 
-result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
-{
-    format_options options;
-    return util_format_impl(Isolate::current(), fmt, args, options, retVal);
-}
-
+// The format entry points take any values: a leading string argument is the
+// format template, every other value is formatted as-is. This lenient
+// rendering lives here instead of an IDL String conversion.
 result_t util_base::format(OptArgs args, exlib::string& retVal)
 {
     format_options options;
-    return util_format_impl(Isolate::current(), "", args, options, retVal);
+    Isolate* isolate = Isolate::current();
+
+    if (args.Length() > 0) {
+        v8::Local<v8::Value> first = args[0];
+
+        if (first->IsString() || first->IsStringObject()) {
+            exlib::string fmt;
+
+            GetArgumentValue(isolate, first, fmt);
+
+            std::vector<v8::Local<v8::Value>> datas;
+            args.GetData(datas);
+            datas.erase(datas.begin());
+
+            return util_format_impl(isolate, fmt, OptArgs(datas), options, retVal);
+        }
+    }
+
+    return util_format_impl(isolate, "", args, options, retVal);
 }
 
-result_t util_base::formatWithOptions(v8::Local<v8::Object> options, exlib::string fmt, OptArgs args, exlib::string& retVal)
+result_t util_base::formatWithOptions(v8::Local<v8::Object> options, v8::Local<v8::Value> fmt, OptArgs args, exlib::string& retVal)
 {
     format_options fmt_options;
     fmt_options.inspect_options = options;
-    return util_format_impl(Isolate::current(), fmt, args, fmt_options, retVal);
+
+    Isolate* isolate = Isolate::current();
+
+    if (fmt->IsString() || fmt->IsStringObject()) {
+        exlib::string s;
+
+        GetArgumentValue(isolate, fmt, s);
+
+        return util_format_impl(isolate, s, args, fmt_options, retVal);
+    }
+
+    // a non-string template takes part in the concatenation itself
+    std::vector<v8::Local<v8::Value>> datas;
+    args.GetData(datas);
+    datas.insert(datas.begin(), fmt);
+
+    return util_format_impl(isolate, "", OptArgs(datas), fmt_options, retVal);
 }
 
 result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)

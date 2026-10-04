@@ -24,9 +24,11 @@ class ChildProcess_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_kill_signal = std::variant<exlib::string, int32_t>;
+
+public:
     // ChildProcess_base
-    virtual result_t kill(int32_t signal) = 0;
-    virtual result_t kill(exlib::string signal) = 0;
+    virtual result_t kill(Union_kill_signal signal) = 0;
     virtual result_t join(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_connected(bool& retVal) = 0;
     virtual result_t disconnect() = 0;
@@ -138,15 +140,9 @@ inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    hr = pInst->kill(v0);
-
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "SIGTERM");
+    OPT_ARG(Union_kill_signal, 0, exlib::string("SIGTERM"));
 
     hr = pInst->kill(v0);
 

@@ -35,7 +35,10 @@ declare class Class_TextEncoder extends Class_object {
      * 	 @return returns an object containing the read and written properties
      *
      */
-    encodeInto(source: string, destination: Class_Buffer): FIBJS.GeneralObject;
+    encodeInto(source: string, destination: Class_Buffer): {
+        read: number;
+        written: number;
+    };
 
     /**
      * @description Queries the current encoding charset

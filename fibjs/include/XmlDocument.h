@@ -59,8 +59,7 @@ public:
 
 public:
     // XmlDocument_base
-    virtual result_t load(exlib::string source, v8::Local<v8::Object> options = v8::Local<v8::Object>());
-    virtual result_t load(Buffer_base* source, v8::Local<v8::Object> options = v8::Local<v8::Object>());
+    virtual result_t load(XmlDocument_base::Union_load_source source, v8::Local<v8::Object> options = v8::Local<v8::Object>());
     virtual result_t get_inputEncoding(exlib::string& retVal);
     virtual result_t get_xmlStandalone(bool& retVal);
     virtual result_t set_xmlStandalone(bool newVal);

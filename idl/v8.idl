@@ -130,12 +130,12 @@ module v8
     /*! @brief Gets the detailed usage of v8 heap memory
      @return returns the detailed usage of heap memory
      */
-    static Array getHeapSpaceStatistics();
+    static (String space_name, Number space_size, Number space_used_size, Number space_available_size, Number physical_space_size)[] getHeapSpaceStatistics();
 
     /*! @brief Gets statistics of v8 heap memory usage
      @return returns statistics of heap memory usage
      */
-    static Object getHeapStatistics();
+    static (Number total_heap_size, Number total_heap_size_executable, Number total_physical_size, Number total_available_size, Number used_heap_size, Number heap_size_limit, Number malloced_memory, Number external_memory, Number peak_malloced_memory, Number number_of_native_contexts, Number number_of_detached_contexts) getHeapStatistics();
 
     /*! @brief Saves a heap snapshot under the specified name
 	 @param fname the heap snapshot name
@@ -157,7 +157,7 @@ module v8
 	 @param test the function to test
 	 @return returns the comparison result
 	 */
-    static Object diff(Function test);
+    static Object diff(Function() test);
 
     /*! @brief Starts a runtime state sampling log
 	 @param fname the log storage file name
@@ -176,11 +176,11 @@ module v8
      */
     static Buffer serialize(Value value);
 
-    /*! @brief Deserializes a Buffer into a value
+    /*! @brief Deserializes a Buffer or a string into a value
      
      Restores binary data previously serialized by serialize back into a JavaScript value.
-     @param data the Buffer to deserialize
+     @param data the Buffer to deserialize; a string is encoded as utf8
      @return returns the deserialized value
      */
-    static Value deserialize(Buffer data);
+    static Value deserialize(Buffer|String data);
 };

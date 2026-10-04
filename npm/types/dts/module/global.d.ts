@@ -296,7 +296,7 @@ declare module 'global' {
      *     @return the timer object
      *
      */
-    function setTimeout(callback: (...args: any[])=>any, timeout?: number, ...args: any[]): Class_Timer;
+    function setTimeout(callback: (...args: any[])=>void, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the given timer
@@ -313,7 +313,7 @@ declare module 'global' {
      *      @return the timer object
      *
      */
-    function setInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
+    function setInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the given timer
@@ -344,7 +344,7 @@ declare module 'global' {
      *      @return the timer object
      *
      */
-    function setHrInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
+    function setHrInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the given timer
@@ -360,7 +360,7 @@ declare module 'global' {
      *      @return the timer object
      *
      */
-    function setImmediate(callback: (...args: any[])=>any, ...args: any[]): Class_Timer;
+    function setImmediate(callback: (...args: any[])=>void, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the given timer
@@ -371,19 +371,27 @@ declare module 'global' {
 
     /**
      * @description Encodes data in base64
-     * 	 @param data the data to encode
-     * 	 @return the encoded string
+     *
+     *          The value is converted to its string form first, as the DOM and node
+     *          do: btoa(123) encodes "123", btoa(null) encodes "null".
+     *
+     *          @param data the value to encode
+     *          @return the encoded string
      *
      */
-    function btoa(data: string): string;
+    function btoa(data: any): string;
 
     /**
      * @description Decodes a string into binary data in base64
-     * 	 @param data the string to decode
-     * 	 @return the decoded binary data
+     *
+     *          The value is converted to its string form first, as the DOM and node
+     *          do: atob(123) decodes "123".
+     *
+     *          @param data the value to decode
+     *          @return the decoded binary data
      *
      */
-    function atob(data: string): string;
+    function atob(data: any): string;
 
     /**
      * @description Creates a deep copy of a value
@@ -399,118 +407,37 @@ declare module 'global' {
     function structuredClone(value: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Requests the given url and returns the result, the same as http.request(url, ...)
-     *      opts contains extra request options; the supported fields are:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not be used together. The default is {}, with no extra information
-     *      @param url the url to request, which must be a complete url including the host
-     *      @param opts extra options
-     *      @return the server response
-     *
-     */
-    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
-
-    /**
-     * @description Requests the given url and returns the result, the same as http.request(url, ...)
-     *      opts contains extra request options; the supported fields are:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not be used together. The default is {}, with no extra information
-     *      @param url the url to request, which must be a complete url including the host
-     *      @param opts extra options
-     *      @return the server response
-     *
-     */
-    function fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Requests the given url and returns the result, the same as http.request(url, ...)
-     *      opts contains extra request options; the supported fields are:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not be used together. The default is {}, with no extra information
-     *      @param url the url to request, which must be a complete url including the host
-     *      @param opts extra options
-     *      @return the server response
-     *
-     */
-    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
-
-    /**
-     * @description Sends a Fetch request given a Request object
-     *      @param request the Request object
+     * @description Sends a Fetch request given a Request object or a URL string
+     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
+     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
+     *      @param request the Request object, or the target URL of the request
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
      */
-    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
-     * @description Sends a Fetch request given a Request object
-     *      @param request the Request object
+     * @description Sends a Fetch request given a Request object or a URL string
+     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
+     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
+     *      @param request the Request object, or the target URL of the request
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
      */
-    function fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    function fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description Sends a Fetch request given a Request object
-     *      @param request the Request object
+     * @description Sends a Fetch request given a Request object or a URL string
+     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
+     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
+     *      @param request the Request object, or the target URL of the request
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
      */
-    function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Queues a micro-task for execution
@@ -519,7 +446,7 @@ declare module 'global' {
      *      @param callback the function to queue as a micro-task
      *
      */
-    function queueMicrotask(callback: (...args: any[])=>any): void;
+    function queueMicrotask(callback: ()=>void): void;
 
 }
 

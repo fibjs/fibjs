@@ -77,14 +77,14 @@ module test
      @param name defines the item name
      @param block the test content
      */
-    static Function(String name, Function block);
+    static Function(String name, Function() block);
 
     /*! @brief Defines a test item (with options)
      @param name defines the item name
      @param options the test options, supporting: { skip, todo, only }
      @param block the test content
      */
-    static Function(String name, Object options, Function block);
+    static Function(String name, Object options, Function() block);
 
     /*! @brief Test framework module; points to this module and can be called as a function */
     static test;
@@ -105,50 +105,50 @@ module test
      @param name defines the module name
      @param block the module initialization code
      */
-    static xdescribe(String name, Function block);
+    static xdescribe(String name, Function() block);
 
     /*! @brief Independent test suite definition
      @param name defines the module name
      @param block the module initialization code
      */
-    static odescribe(String name, Function block);
+    static odescribe(String name, Function() block);
 
     /*! @brief Paused test item definition
      @param name defines the item name
      @param block the test content
      */
-    static xit(String name, Function block);
+    static xit(String name, Function() block);
 
     /*! @brief Paused test item definition
      @param name defines the item name
      @param block the test content
      */
-    static skip(String name, Function block);
+    static skip(String name, Function() block);
 
     /*! @brief Independent test item definition
      @param name defines the item name
      @param block the test content
      */
-    static oit(String name, Function block);
+    static oit(String name, Function() block);
 
     /*! @brief Independent test item definition
      @param name defines the item name
      @param block the test content
      */
-    static only(String name, Function block);
+    static only(String name, Function() block);
 
     /*! @brief Planned test item definition
      @param name defines the item name
      @param block the test content
      */
-    static todo(String name, Function block);
+    static todo(String name, Function() block);
 
     /*! @brief Planned test item definition (with options)
      @param name defines the item name
      @param options the test options, supporting: { skip, todo, only }
      @param block the test content
      */
-    static todo(String name, Object options, Function block);
+    static todo(String name, Object options, Function() block);
 
     /*! @brief Planned test item definition
      @param name defines the item name
@@ -158,39 +158,39 @@ module test
     /*! @brief Defines the enter event of the current test module
      @param func the event function
      */
-    static before(Function func);
+    static before(Function() func);
 
     /*! @brief Defines the exit event of the current test module
      @param func the event function
      */
-    static after(Function func);
+    static after(Function() func);
 
     /*! @brief Defines the test item enter event of the current test module
      @param func the event function
      */
-    static beforeEach(Function func);
+    static beforeEach(Function() func);
 
     /*! @brief Defines the test item exit event of the current test module
      @param func the event function
      */
-    static afterEach(Function func);
+    static afterEach(Function() func);
 
     /*! @brief Tests that a function must be called a specified number of times
      @param func the function to test
      @return returns the wrapped function
      */
-    static Function mustCall(Function func);
+    static Function(...args) => Value mustCall(Function(...args) => Value func);
 
     /*! @brief Tests that a function must not be called
      @param func the function to test
      @return returns the wrapped function
      */
-    static Function mustNotCall(Function func);
+    static Function(...args) => Value mustNotCall(Function(...args) => Value func);
 
     /*! @brief Tests that a function must not be called
      @return returns the wrapped function
     */
-    static Function mustNotCall();
+    static Function(...args) => Value mustNotCall();
 
     /*! @brief Sets and queries the slow test warning threshold, in ms, default 75
      */

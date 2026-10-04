@@ -163,10 +163,8 @@ describe('ECDH', () => {
                 () => ecdh.generateKeys('buffer', 'invalid'), { name: 'Error', number: 20024 });
 
             // node: TypeError [ERR_CRYPTO_ECDH_INVALID_FORMAT], "Invalid ECDH format: 10"
-            // INTERIM (commit split): the strict rejection (20005) returns with
-            // the Buffer/encoding batch; the lenient pass renders the format
             assert.throws(
-                () => ecdh.generateKeys('hex', 10), { name: 'Error', number: 20024 });
+                () => ecdh.generateKeys('hex', 10), { name: 'TypeError', number: 20005 });
         });
     });
 
@@ -251,8 +249,7 @@ describe('ECDH', () => {
             ecdh.generateKeys();
 
             assert.throws(
-                // INTERIM (commit split): see the generateKeys case above
-                () => ecdh.getPublicKey('buffer', 10), { name: 'Error', number: 20024 });
+                () => ecdh.getPublicKey('buffer', 10), { name: 'TypeError', number: 20005 });
         });
 
         it('should validate private key for curve', () => {
@@ -526,8 +523,7 @@ describe('ECDH', () => {
             const cafebabePubPtComp = '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
 
             assert.throws(
-                // INTERIM (commit split): see the generateKeys case above
-                () => ECDH.convertKey(cafebabePubPtComp, 'secp256k1', 'hex', 'hex', 10), { name: 'Error', number: 20024 });
+                () => ECDH.convertKey(cafebabePubPtComp, 'secp256k1', 'hex', 'hex', 10), { name: 'TypeError', number: 20005 });
         });
     });
 

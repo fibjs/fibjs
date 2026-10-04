@@ -21,8 +21,11 @@ class base32_base : public object_base {
     DECLARE_CLASS(base32_base);
 
 public:
+    using Union_encode_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // base32_base
-    static result_t encode(Buffer_base* data, exlib::string& retVal);
+    static result_t encode(Union_encode_data data, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -71,9 +74,9 @@ inline void base32_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_encode_data, 0);
 
-    hr = encode(v0.get(), vr);
+    hr = encode(v0, vr);
 
     METHOD_RETURN();
 }

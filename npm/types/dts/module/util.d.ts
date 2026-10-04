@@ -81,20 +81,12 @@ declare module 'util' {
     const colors: typeof import ('colors');
 
     /**
-     * @description Formats variables according to the specified format
-     *
-     *      @param fmt format string
-     *      @param args optional parameter list
-     *      @return returns the formatted string
-     *
-     */
-    function format(fmt: string, ...args: any[]): string;
-
-    /**
      * @description Formats variables
      *
      *      @param args optional parameter list
      *      @return returns the formatted string
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function format(...args: any[]): string;
@@ -103,12 +95,12 @@ declare module 'util' {
      * @description Formats variables according to the specified format and inspect options
      *
      *      @param options inspect options used for non-string values
-     *      @param fmt format string
+     *      @param fmt the format string; any other value is formatted as-is
      *      @param args optional parameter list
      *      @return returns the formatted string
      *
      */
-    function formatWithOptions(options: FIBJS.GeneralObject, fmt: string, ...args: any[]): string;
+    function formatWithOptions(options: FIBJS.GeneralObject, fmt: any, ...args: any[]): string;
 
     /**
      * @description Inherits prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
@@ -195,7 +187,7 @@ declare module 'util' {
      *      @return returns a ConsoleObject object
      *
      */
-    function debuglog(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
+    function debuglog(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
      * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
@@ -214,7 +206,7 @@ declare module 'util' {
      *      @return returns a ConsoleObject object
      *
      */
-    function debug(section: string, fn: (...args: any[])=>any): Class_ConsoleObject;
+    function debug(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
      * @description Wraps the given function. This function is for compatibility only and does not output a warning
@@ -777,7 +769,7 @@ declare module 'util' {
      *      @return returns list itself
      *
      */
-    function each(list: any, iterator: (...args: any[])=>any, context?: any): any;
+    function each(list: any, iterator: (element: any, index: any, list: any)=>void, context?: any): any;
 
     /**
      * @description Maps each value in list to a new array through the transform function (iterator). If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
@@ -788,7 +780,7 @@ declare module 'util' {
      *      @return returns the transformation result
      *
      */
-    function map(list: any, iterator: (...args: any[])=>any, context?: any): any[];
+    function map(list: any, iterator: (element: any, index: any, list: any)=>any, context?: any): any[];
 
     /**
      * @description Reduces the elements in list to a single value. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (memo, element, index, list)
@@ -800,7 +792,7 @@ declare module 'util' {
      *      @return returns the reduction result
      *
      */
-    function reduce(list: any, iterator: (...args: any[])=>any, memo: any, context?: any): any;
+    function reduce(list: any, iterator: (memo: any, element: any, index: any, list: any)=>any, memo: any, context?: any): any;
 
     /**
      * @description Parses a command line string and returns the parameter list
@@ -901,7 +893,7 @@ declare module 'util' {
      *      @return returns an async function
      *
      */
-    function promisify(func: (...args: any[])=>any): (...args: any[])=>any;
+    function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise;
 
     /**
      * @description Wraps an async function for callback invocation
@@ -928,7 +920,7 @@ declare module 'util' {
      *      @return returns a callback function
      *
      */
-    function callbackify(func: (...args: any[])=>any): (...args: any[])=>any;
+    function callbackify(func: (...args: any[])=>any): (...args: any[])=>void;
 
     /**
      * @description Queries the version information of the current engine and each component

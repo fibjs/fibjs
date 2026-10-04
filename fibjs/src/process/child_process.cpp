@@ -268,7 +268,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 if (input_val->IsString()) {
                     exlib::string input_str;
                     GetArgumentValue(isolate, input_val, input_str);
-                    Buffer_base::_new(input_str, "utf8", input_buf);
+                    Buffer_base::from(input_str, "utf8", input_buf);
                 } else {
                     GetArgumentValue(isolate, input_val, input_buf);
                 }
@@ -603,7 +603,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 if (input_val->IsString()) {
                     exlib::string input_str;
                     GetArgumentValue(isolate, input_val, input_str);
-                    Buffer_base::_new(input_str, "utf8", input_buf);
+                    Buffer_base::from(input_str, "utf8", input_buf);
                 } else {
                     GetArgumentValue(isolate, input_val, input_buf);
                 }

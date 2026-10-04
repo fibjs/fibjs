@@ -74,7 +74,7 @@ declare module 'coroutine' {
      *      @return returns the fiber object
      *
      */
-    function start(func: (...args: any[])=>any, ...args: any[]): Class_Fiber;
+    function start(func: (...args: any[])=>void, ...args: any[]): Class_Fiber;
 
     /**
      * @description Runs a set of functions in parallel and waits for the results
@@ -97,7 +97,7 @@ declare module 'coroutine' {
      *      @return returns an array of function results
      *
      */
-    function parallel(datas: any[], func: (...args: any[])=>any, fibers?: number): any[];
+    function parallel(datas: any[], func: (data: any)=>any, fibers?: number): any[];
 
     /**
      * @description Runs a function in parallel multiple times and waits for the results
@@ -109,7 +109,7 @@ declare module 'coroutine' {
      *      @return returns an array of function results
      *
      */
-    function parallel(func: (...args: any[])=>any, num: number, fibers?: number): any[];
+    function parallel(func: (index: number)=>any, num: number, fibers?: number): any[];
 
     /**
      * @description Runs a set of functions in parallel and waits for the results

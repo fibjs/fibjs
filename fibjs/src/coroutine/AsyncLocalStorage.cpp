@@ -34,8 +34,9 @@ result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<Asy
     if (opts->defaultValue.has_value())
         als->m_defaultValue.Reset(isolate->m_isolate, opts->defaultValue.value());
     if (opts->name.has_value()) {
+        // the name is rendered as a DOM string, so a number is "123"
         exlib::string name;
-        hr = GetArgumentValue(isolate, opts->name.value(), name);
+        hr = GetDOMStringValue(opts->name.value(), name);
         if (hr < 0)
             return hr;
         als->m_name = name;

@@ -64,29 +64,23 @@ module util
     /*! @brief The colors module provides a set of color constants for setting console output colors.*/
     static colors;
 
-    /*! @brief Formats variables according to the specified format
-
-     @param fmt format string
-     @param args optional parameter list
-     @return returns the formatted string
-     */
-    static String format(String fmt, ...args);
-
     /*! @brief Formats variables
 
      @param args optional parameter list
      @return returns the formatted string
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     static String format(...args);
 
     /*! @brief Formats variables according to the specified format and inspect options
 
      @param options inspect options used for non-string values
-     @param fmt format string
+     @param fmt the format string; any other value is formatted as-is
      @param args optional parameter list
      @return returns the formatted string
      */
-    static String formatWithOptions(Object options, String fmt, ...args);
+    static String formatWithOptions(Object options, Value fmt, ...args);
 
     /*! @brief Inherits prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
 
@@ -159,7 +153,7 @@ module util
      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
      @return returns a ConsoleObject object
      */
-    static ConsoleObject debuglog(String section, Function fn);
+    static ConsoleObject debuglog(String section, Function(ConsoleObject log) fn);
 
     /*! @brief Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
      
@@ -174,7 +168,7 @@ module util
      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
      @return returns a ConsoleObject object
      */
-    static ConsoleObject debug(String section, Function fn);
+    static ConsoleObject debug(String section, Function(ConsoleObject log) fn);
 
     /*! @brief Wraps the given function. This function is for compatibility only and does not output a warning
 
@@ -183,7 +177,7 @@ module util
      @param code the warning code
      @return returns the wrapped result
      */
-    static Function deprecate(Function fn, String msg, String code = "");
+    static Function(...args) => Value deprecate(Function(...args) => Value fn, String msg, String code = "");
 
     /*! @brief Checks whether the given variable contains no value (no enumerable properties)
 
@@ -615,7 +609,7 @@ module util
      @param context the context object to bind when calling iterator
      @return returns list itself
      */
-    static Value each(Value list, Function iterator, Value context = undefined);
+    static Value each(Value list, Function(Value element, Value index, Value list) iterator, Value context = undefined);
 
     /*! @brief Maps each value in list to a new array through the transform function (iterator). If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
 
@@ -624,7 +618,7 @@ module util
      @param context the context object to bind when calling iterator
      @return returns the transformation result
      */
-    static Array map(Value list, Function iterator, Value context = undefined);
+    static Array map(Value list, Function(Value element, Value index, Value list) => Value iterator, Value context = undefined);
 
     /*! @brief Reduces the elements in list to a single value. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (memo, element, index, list)
 
@@ -634,7 +628,7 @@ module util
      @param context the context object to bind when calling iterator
      @return returns the reduction result
      */
-    static Value reduce(Value list, Function iterator, Value memo, Value context = undefined);
+    static Value reduce(Value list, Function(Value memo, Value element, Value index, Value list) => Value iterator, Value memo, Value context = undefined);
 
     /*! @brief Parses a command line string and returns the parameter list
      @param command the command line string to parse
@@ -703,7 +697,7 @@ module util
      @param async_func whether to process func as an async function; if false, it is determined automatically
      @return returns a function that runs synchronously
      */
-    static Function sync(Function func, Boolean async_func = false);
+    static Function(...args) => Value sync(Function(...args) => Value func, Boolean async_func = false);
 
     /*! @brief Wraps a callback function for async invocation
 
@@ -727,7 +721,7 @@ module util
      @param func the function to wrap
      @return returns an async function
      */
-    static Function promisify(Function func);
+    static Function(...args) => Promise promisify(Function(...args) => Value func);
 
     /*! @brief Wraps an async function for callback invocation
 
@@ -752,7 +746,7 @@ module util
      @param func the function to wrap
      @return returns a callback function
      */
-    static Function callbackify(Function func);
+    static Function(...args) callbackify(Function(...args) => Value func);
 
     /*! @brief Queries the version information of the current engine and each component
 

@@ -31,13 +31,11 @@ result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
-result_t v8_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
+result_t v8_base::getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatisticsType>>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     size_t sz = isolate->m_isolate->NumberOfHeapSpaces();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate);
 
     for (size_t i = 0; i < sz; i++) {
         v8::HeapSpaceStatistics hss;
@@ -45,45 +43,40 @@ result_t v8_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
         if (!isolate->m_isolate->GetHeapSpaceStatistics(&hss, i))
             return CHECK_ERROR(CALL_E_INTERNAL);
 
-        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+        obj_ptr<GetHeapSpaceStatisticsType> item = new GetHeapSpaceStatisticsType();
 
-        o->Set(context, isolate->NewString("space_name"), isolate->NewString(hss.space_name())).IsJust();
-        o->Set(context, isolate->NewString("space_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_size())).IsJust();
-        o->Set(context, isolate->NewString("space_used_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_used_size())).IsJust();
-        o->Set(context, isolate->NewString("space_available_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_available_size())).IsJust();
-        o->Set(context, isolate->NewString("physical_space_size"), v8::Number::New(isolate->m_isolate, (double)hss.physical_space_size())).IsJust();
+        item->space_name = hss.space_name();
+        item->space_size = (double)hss.space_size();
+        item->space_used_size = (double)hss.space_used_size();
+        item->space_available_size = (double)hss.space_available_size();
+        item->physical_space_size = (double)hss.physical_space_size();
 
-        a->Set(context, (uint32_t)i, o).IsJust();
+        retVal.push_back(item);
     }
-
-    retVal = a;
 
     return 0;
 }
 
-result_t v8_base::getHeapStatistics(v8::Local<v8::Object>& retVal)
+result_t v8_base::getHeapStatistics(obj_ptr<GetHeapStatisticsType>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
     v8::HeapStatistics hs;
 
     isolate->m_isolate->GetHeapStatistics(&hs);
 
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+    retVal = new GetHeapStatisticsType();
 
-    o->Set(context, isolate->NewString("total_heap_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_heap_size())).IsJust();
-    o->Set(context, isolate->NewString("total_heap_size_executable"), v8::Number::New(isolate->m_isolate, (double)hs.total_heap_size_executable())).IsJust();
-    o->Set(context, isolate->NewString("total_physical_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_physical_size())).IsJust();
-    o->Set(context, isolate->NewString("total_available_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_available_size())).IsJust();
-    o->Set(context, isolate->NewString("used_heap_size"), v8::Number::New(isolate->m_isolate, (double)hs.used_heap_size())).IsJust();
-    o->Set(context, isolate->NewString("heap_size_limit"), v8::Number::New(isolate->m_isolate, (double)hs.heap_size_limit())).IsJust();
-    o->Set(context, isolate->NewString("malloced_memory"), v8::Number::New(isolate->m_isolate, (double)hs.malloced_memory())).IsJust();
-    o->Set(context, isolate->NewString("external_memory"), v8::Number::New(isolate->m_isolate, (double)hs.external_memory())).IsJust();
-    o->Set(context, isolate->NewString("peak_malloced_memory"), v8::Number::New(isolate->m_isolate, (double)hs.peak_malloced_memory())).IsJust();
-    o->Set(context, isolate->NewString("number_of_native_contexts"), v8::Number::New(isolate->m_isolate, (double)hs.number_of_native_contexts())).IsJust();
-    o->Set(context, isolate->NewString("number_of_detached_contexts"), v8::Number::New(isolate->m_isolate, (double)hs.number_of_detached_contexts())).IsJust();
-
-    retVal = o;
+    retVal->total_heap_size = (double)hs.total_heap_size();
+    retVal->total_heap_size_executable = (double)hs.total_heap_size_executable();
+    retVal->total_physical_size = (double)hs.total_physical_size();
+    retVal->total_available_size = (double)hs.total_available_size();
+    retVal->used_heap_size = (double)hs.used_heap_size();
+    retVal->heap_size_limit = (double)hs.heap_size_limit();
+    retVal->malloced_memory = (double)hs.malloced_memory();
+    retVal->external_memory = (double)hs.external_memory();
+    retVal->peak_malloced_memory = (double)hs.peak_malloced_memory();
+    retVal->number_of_native_contexts = (double)hs.number_of_native_contexts();
+    retVal->number_of_detached_contexts = (double)hs.number_of_detached_contexts();
 
     return 0;
 }

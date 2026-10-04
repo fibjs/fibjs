@@ -21,9 +21,12 @@ class Blob_base : public object_base {
     DECLARE_CLASS(Blob_base);
 
 public:
+    using Union_Blob_blobData = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Blob_base
     static result_t _new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Buffer_base* blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_Blob_blobData blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal) = 0;
@@ -96,10 +99,10 @@ inline void Blob_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_Blob_blobData, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = _new(v0.get(), v1, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -119,10 +122,10 @@ inline result_t Blob_base::load(v8::Local<v8::Value> v, obj_ptr<Blob_base>& retV
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_Blob_blobData, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = _new(v0.get(), v1, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     LOAD_RETURN();
 }

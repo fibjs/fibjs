@@ -18,19 +18,11 @@ typedef std::set<int32_t> idset;
 
 inline void buildIDSet(idset* seen, HeapSnapshot_base* snapshot, intptr_t& s)
 {
-    obj_ptr<NArray> nodes;
-    int32_t _count;
+    std::vector<obj_ptr<HeapGraphNode_base>> nodes;
 
     snapshot->get_nodes(nodes);
-    _count = nodes->length();
 
-    for (int32_t i = 0; i < _count; i++) {
-        Variant v;
-        obj_ptr<HeapGraphNode_base> cur;
-
-        nodes->_indexed_getter(i, v);
-        cur = HeapGraphNode_base::getInstance(v.object());
-
+    for (auto& cur : nodes) {
         int32_t _id;
         int32_t _size;
 
@@ -155,7 +147,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
     intptr_t s, diffBytes;
-    obj_ptr<NArray> nodes;
+    std::vector<obj_ptr<HeapGraphNode_base>> nodes;
     int32_t _count;
     date_t d;
 
@@ -163,7 +155,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     v8::Local<v8::Object> b = v8::Object::New(isolate->m_isolate);
     before->get_nodes(nodes);
-    _count = nodes->length();
+    _count = (int32_t)nodes.size();
     b->Set(context, isolate->NewString("nodes"),
          v8::Integer::New(isolate->m_isolate, _count))
         .IsJust();
@@ -174,7 +166,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
     after->get_nodes(nodes);
-    _count = nodes->length();
+    _count = (int32_t)nodes.size();
     a->Set(context, isolate->NewString("nodes"),
          v8::Integer::New(isolate->m_isolate, _count))
         .IsJust();

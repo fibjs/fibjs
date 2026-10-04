@@ -32,13 +32,17 @@ result_t v8_base::serialize(v8::Local<v8::Value> value, obj_ptr<Buffer_base>& re
     return 0;
 }
 
-result_t v8_base::deserialize(Buffer_base* data, v8::Local<v8::Value>& retVal)
+result_t v8_base::deserialize(Union_deserialize_data data, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
     exlib::string buf;
-    data->toString(buf);
+
+    if (std::holds_alternative<exlib::string>(data))
+        buf = std::get<exlib::string>(data);
+    else
+        std::get<obj_ptr<Buffer_base>>(data)->toString(buf);
 
     v8::ValueDeserializer deserializer(isolate->m_isolate,
         (const uint8_t*)buf.c_str(), buf.length());
@@ -55,5 +59,6 @@ result_t v8_base::deserialize(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
     return 0;
 }
+
 
 }

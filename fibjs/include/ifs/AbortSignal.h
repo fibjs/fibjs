@@ -23,9 +23,11 @@ class AbortSignal_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_abort_reason = std::variant<exlib::string, v8::Local<v8::Value>>;
+
+public:
     // AbortSignal_base
-    static result_t abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal);
-    static result_t abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal);
+    static result_t abort(Union_abort_reason reason, obj_ptr<AbortSignal_base>& retVal);
     static result_t timeout(double ms, obj_ptr<AbortSignal_base>& retVal);
     static result_t any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal_base>& retVal);
     virtual result_t throwIfAborted() = 0;
@@ -90,13 +92,7 @@ inline void AbortSignal_base::s_static_abort(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "AbortError");
-
-    hr = abort(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(Union_abort_reason, 0, exlib::string("AbortError"));
 
     hr = abort(v0, vr);
 

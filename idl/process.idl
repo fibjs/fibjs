@@ -65,7 +65,7 @@ module process : EventEmitter
     static Array argv;
 
     /*! @brief Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment */
-    static readonly Array execArgv;
+    static readonly String[] execArgv;
 
     /*! @brief Returns the fibjs version string */
     static readonly String version;
@@ -86,7 +86,7 @@ module process : EventEmitter
     static readonly String platform;
 
     /*! @brief Returns the release metadata of the current build; name is set to 'node' */
-    static readonly Object release;
+    static readonly (String name, String sourceUrl, String venderUrl) release;
 
     /*! @brief Title of the current process, fixed to 'fibjs' */
     const title = "fibjs";
@@ -110,16 +110,10 @@ module process : EventEmitter
     static Integer exitCode;
 
     /*! @brief Changes the current umask; not supported on Windows
-     @param mask specifies the new mask
+     @param mask the new mask: a number, or an octal string (e.g: "0664")
      @return returns the previous mask
     */
-    static Integer umask(Integer mask);
-
-    /*! @brief Changes the current umask; not supported on Windows
-     @param mask specifies the new mask as an octal string (e.g: "0664")
-     @return returns the previous mask
-    */
-    static Integer umask(String mask);
+    static Integer umask(String|Integer mask);
 
     /*! @brief Returns the current umask; not supported on Windows
      @return returns the current mask value
@@ -193,7 +187,7 @@ module process : EventEmitter
      @param previousValue specifies the time of the previous query
      @return returns the time report
      */
-    static Object cpuUsage(Object previousValue = {});
+    static (Number user, Number system) cpuUsage(Object previousValue = {});
 
     /*! @brief Queries the memory usage report of the current process
 
@@ -238,7 +232,7 @@ module process : EventEmitter
      ```
      @return returns an object containing the resource usage report
      */
-    static Object resourceUsage();
+    static (Number userCPUTime, Number systemCPUTime, Number maxRSS, Number sharedMemorySize, Number unsharedDataSize, Number unsharedStackSize, Number minorPageFault, Number majorPageFault, Number swappedOut, Number fsRead, Number fsWrite, Number ipcSent, Number ipcReceived, Number signalsCount, Number voluntaryContextSwitches, Number involuntaryContextSwitches) resourceUsage();
 
     /*! @brief Starts a fiber to execute the specified function
 
@@ -246,7 +240,7 @@ module process : EventEmitter
      @param func specifies the function executed by the fiber
      @param args variable argument sequence, passed to the function inside the fiber
      */
-    static nextTick(Function func, ...args);
+    static nextTick(Function(...args) func, ...args);
 
     /*! @brief Gets the internal module with the specified name
      @param name specifies the name of the internal module to query
@@ -322,15 +316,9 @@ module process : EventEmitter
 
     /*! @brief Sends a signal to the specified process
      @param pid specifies the process id
-     @param signal specifies the signal number to send
+     @param signal specifies the signal to send: a number, or a name such as "SIGTERM"; the default is SIGTERM
     */
-    static kill(Integer pid, Integer signal);
-
-    /*! @brief Sends a signal to the specified process
-     @param pid specifies the process id
-     @param signal specifies the signal name to send, the default is SIGTERM
-    */
-    static kill(Integer pid, String signal = "SIGTERM");
+    static kill(Integer pid, String|Integer signal = "SIGTERM");
 
     /*! @brief Queries whether the pipe to the parent process is properly connected */
     static readonly Boolean connected;

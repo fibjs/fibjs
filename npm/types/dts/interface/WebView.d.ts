@@ -646,55 +646,63 @@ declare class Class_WebView extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the window load start event, equivalent to on("loading", func);
+     *      @param ev the event object, carrying the loading url in its url property
+     *
      */
-    on(event: "loading", listener: ()=>void): this;
+    on(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "loading", listener: ()=>void): this;
+    once(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "loading", listener: ()=>void): this;
+    off(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "loading", listener: ()=>void): this;
+    addListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "loading", listener: ()=>void): this;
+    removeListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "loading", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "loading", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "loading", listener: ()=>void): this;
+    prependListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "loading", listener: ()=>void): this;
+    prependOnceListener(event: "loading", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window load start event, equivalent to on("loading", func);
+     *      @param ev the event object, carrying the loading url in its url property
+     *
      */
-    onloading: (()=>void) | null;
+    onloading: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window load completed event, equivalent to on("load", func);
+     *      @param ev the event object, carrying the loaded url in its url property
+     *
      */
-    on(event: "load", listener: ()=>void): this;
+    on(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "load", listener: ()=>void): this;
+    once(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "load", listener: ()=>void): this;
+    off(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "load", listener: ()=>void): this;
+    addListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "load", listener: ()=>void): this;
+    removeListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "load", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "load", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "load", listener: ()=>void): this;
+    prependListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "load", listener: ()=>void): this;
+    prependOnceListener(event: "load", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window load completed event, equivalent to on("load", func);
+     *      @param ev the event object, carrying the loaded url in its url property
+     *
      */
-    onload: (()=>void) | null;
+    onload: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window move event, equivalent to on("move", func);
@@ -706,25 +714,26 @@ declare class Class_WebView extends Class_EventEmitter {
      *
      * 	 webview.onmove = evt => console.log(evt.left, evt.top);
      * 	 ```
+     *          @param ev the event object, carrying the position of the window
      *
      */
-    on(event: "move", listener: ()=>void): this;
+    on(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "move", listener: ()=>void): this;
+    once(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "move", listener: ()=>void): this;
+    off(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "move", listener: ()=>void): this;
+    addListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "move", listener: ()=>void): this;
+    removeListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "move", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "move", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "move", listener: ()=>void): this;
+    prependListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "move", listener: ()=>void): this;
+    prependOnceListener(event: "move", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window move event, equivalent to on("move", func);
@@ -736,9 +745,10 @@ declare class Class_WebView extends Class_EventEmitter {
      *
      * 	 webview.onmove = evt => console.log(evt.left, evt.top);
      * 	 ```
+     *          @param ev the event object, carrying the position of the window
      *
      */
-    onmove: (()=>void) | null;
+    onmove: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window size change event, equivalent to on("size", func);
@@ -750,25 +760,26 @@ declare class Class_WebView extends Class_EventEmitter {
      *
      *      webview.onresize = evt => console.log(evt.width, evt.height);
      *      ```
+     *      @param ev the event object, carrying the size of the window
      *
      */
-    on(event: "resize", listener: ()=>void): this;
+    on(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "resize", listener: ()=>void): this;
+    once(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "resize", listener: ()=>void): this;
+    off(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "resize", listener: ()=>void): this;
+    addListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "resize", listener: ()=>void): this;
+    removeListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "resize", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "resize", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "resize", listener: ()=>void): this;
+    prependListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "resize", listener: ()=>void): this;
+    prependOnceListener(event: "resize", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window size change event, equivalent to on("size", func);
@@ -780,61 +791,70 @@ declare class Class_WebView extends Class_EventEmitter {
      *
      *      webview.onresize = evt => console.log(evt.width, evt.height);
      *      ```
+     *      @param ev the event object, carrying the size of the window
      *
      */
-    onresize: (()=>void) | null;
+    onresize: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window focus event, equivalent to on("focus", func);
+     *      @param ev the event object
+     *
      */
-    on(event: "focus", listener: ()=>void): this;
+    on(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "focus", listener: ()=>void): this;
+    once(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "focus", listener: ()=>void): this;
+    off(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "focus", listener: ()=>void): this;
+    addListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "focus", listener: ()=>void): this;
+    removeListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "focus", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "focus", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "focus", listener: ()=>void): this;
+    prependListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "focus", listener: ()=>void): this;
+    prependOnceListener(event: "focus", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window focus event, equivalent to on("focus", func);
+     *      @param ev the event object
+     *
      */
-    onfocus: (()=>void) | null;
+    onfocus: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window blur event, equivalent to on("blur", func);
+     *      @param ev the event object
+     *
      */
-    on(event: "blur", listener: ()=>void): this;
+    on(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "blur", listener: ()=>void): this;
+    once(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "blur", listener: ()=>void): this;
+    off(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "blur", listener: ()=>void): this;
+    addListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "blur", listener: ()=>void): this;
+    removeListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "blur", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "blur", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "blur", listener: ()=>void): this;
+    prependListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "blur", listener: ()=>void): this;
+    prependOnceListener(event: "blur", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the window blur event, equivalent to on("blur", func);
+     *      @param ev the event object
+     *
      */
-    onblur: (()=>void) | null;
+    onblur: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window close event, which fires after the WebView is closed, equivalent to on("closed", func);
@@ -864,29 +884,33 @@ declare class Class_WebView extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func);
+     *      @param ev the event object, carrying the received message in its data property
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func);
+     *      @param ev the event object, carrying the received message in its data property
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
@@ -902,39 +926,39 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     unref(): Class_WebView;
 
-    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
     off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
     removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -1462,13 +1486,17 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the window load start event, equivalent to on("loading", func);
+     *      @param ev the event object, carrying the loading url in its url property
+     *
      */
-    onloading: (()=>void) | null;
+    onloading: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window load completed event, equivalent to on("load", func);
+     *      @param ev the event object, carrying the loaded url in its url property
+     *
      */
-    onload: (()=>void) | null;
+    onload: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window move event, equivalent to on("move", func);
@@ -1480,9 +1508,10 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *
      * 	 webview.onmove = evt => console.log(evt.left, evt.top);
      * 	 ```
+     *          @param ev the event object, carrying the position of the window
      *
      */
-    onmove: (()=>void) | null;
+    onmove: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window size change event, equivalent to on("size", func);
@@ -1494,19 +1523,24 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *
      *      webview.onresize = evt => console.log(evt.width, evt.height);
      *      ```
+     *      @param ev the event object, carrying the size of the window
      *
      */
-    onresize: (()=>void) | null;
+    onresize: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window focus event, equivalent to on("focus", func);
+     *      @param ev the event object
+     *
      */
-    onfocus: (()=>void) | null;
+    onfocus: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window blur event, equivalent to on("blur", func);
+     *      @param ev the event object
+     *
      */
-    onblur: (()=>void) | null;
+    onblur: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Queries and binds the window close event, which fires after the WebView is closed, equivalent to on("closed", func);
@@ -1515,8 +1549,10 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func);
+     *      @param ev the event object, carrying the received message in its data property
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound

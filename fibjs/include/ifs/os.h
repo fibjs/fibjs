@@ -31,7 +31,7 @@ public:
     static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
     static result_t get_EOL(exlib::string& retVal);
-    static result_t loadavg(v8::Local<v8::Array>& retVal);
+    static result_t loadavg(std::vector<double>& retVal);
     static result_t totalmem(int64_t& retVal);
     static result_t freemem(int64_t& retVal);
     static result_t cpus(v8::Local<v8::Array>& retVal);
@@ -230,7 +230,7 @@ inline void os_base::s_static_get_EOL(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void os_base::s_static_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<double> vr;
 
     METHOD_ENTER();
 

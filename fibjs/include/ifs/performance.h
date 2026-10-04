@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class PerformanceEntry_base;
+
 class performance_base : public object_base {
     DECLARE_CLASS(performance_base);
 
@@ -23,11 +25,11 @@ public:
     static result_t clearMarks(exlib::string name);
     static result_t clearMeasures(exlib::string name);
     static result_t mark(exlib::string name, v8::Local<v8::Object> options);
-    static result_t measure(exlib::string name, exlib::string startMark, exlib::string endMark);
     static result_t measure(exlib::string name, v8::Local<v8::Object> options);
-    static result_t getEntries(obj_ptr<NArray>& retVal);
-    static result_t getEntriesByType(exlib::string type, obj_ptr<NArray>& retVal);
-    static result_t getEntriesByName(exlib::string name, exlib::string type, obj_ptr<NArray>& retVal);
+    static result_t measure(exlib::string name, exlib::string startMark, exlib::string endMark);
+    static result_t getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
+    static result_t getEntriesByType(exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
+    static result_t getEntriesByName(exlib::string name, exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
     static result_t markResourceTiming(v8::Local<v8::Value> timingInfo, exlib::string requestedUrl, exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState, v8::Local<v8::Value> bodyInfo, int32_t responseStatus);
     static result_t now(double& retVal);
 
@@ -54,6 +56,8 @@ public:
     static void s_static_now(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/PerformanceEntry.h"
 
 namespace fibjs {
 inline ClassInfo& performance_base::class_info()
@@ -125,6 +129,13 @@ inline void performance_base::s_static_measure(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = measure(v0, v1);
+
     METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
@@ -133,19 +144,12 @@ inline void performance_base::s_static_measure(const v8::FunctionCallbackInfo<v8
 
     hr = measure(v0, v1, v2);
 
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = measure(v0, v1);
-
     METHOD_VOID();
 }
 
 inline void performance_base::s_static_getEntries(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_ENTER();
 
@@ -158,7 +162,7 @@ inline void performance_base::s_static_getEntries(const v8::FunctionCallbackInfo
 
 inline void performance_base::s_static_getEntriesByType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_ENTER();
 
@@ -173,7 +177,7 @@ inline void performance_base::s_static_getEntriesByType(const v8::FunctionCallba
 
 inline void performance_base::s_static_getEntriesByName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_ENTER();
 

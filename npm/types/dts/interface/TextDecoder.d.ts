@@ -20,13 +20,13 @@ declare class Class_TextDecoder extends Class_object {
     constructor(codec?: string, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description Converts binary data to text
-     * 	 @param data the binary to convert
-     *  	 @param opts decoding options
-     * 	 @return returns the decoded text
+     * @description Converts binary data to text; a string data is encoded as utf8
+     *      @param data the binary to convert, a string is encoded as utf8
+     *      @param opts decoding options
+     *      @return returns the decoded text
      *
      */
-    decode(data: Class_Buffer, opts?: FIBJS.GeneralObject): string;
+    decode(data: Class_Buffer | string, opts?: FIBJS.GeneralObject): string;
 
     /**
      * @description Converts binary data to text

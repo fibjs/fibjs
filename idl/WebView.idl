@@ -201,11 +201,15 @@ interface WebView : EventEmitter
 	*/
     postMessage(String msg) async;
 
-    /*! @brief Queries and binds the window load start event, equivalent to on("loading", func); */
-    event loading();
+    /*! @brief Queries and binds the window load start event, equivalent to on("loading", func);
+     @param ev the event object, carrying the loading url in its url property
+     */
+    event loading(Object ev);
 
-    /*! @brief Queries and binds the window load completed event, equivalent to on("load", func); */
-    event load();
+    /*! @brief Queries and binds the window load completed event, equivalent to on("load", func);
+     @param ev the event object, carrying the loaded url in its url property
+     */
+    event load(Object ev);
 
     /*! @brief Queries and binds the window move event, equivalent to on("move", func); 
 
@@ -216,8 +220,9 @@ interface WebView : EventEmitter
 
 	 webview.onmove = evt => console.log(evt.left, evt.top);
 	 ```
-	*/
-    event move();
+         @param ev the event object, carrying the position of the window
+        */
+    event move(Object ev);
 
     /*! @brief Queries and binds the window size change event, equivalent to on("size", func);
 
@@ -228,20 +233,27 @@ interface WebView : EventEmitter
 
      webview.onresize = evt => console.log(evt.width, evt.height);
      ```
-	*/
-    event resize();
+     @param ev the event object, carrying the size of the window
+        */
+    event resize(Object ev);
 
-    /*! @brief Queries and binds the window focus event, equivalent to on("focus", func); */
-    event focus();
+    /*! @brief Queries and binds the window focus event, equivalent to on("focus", func);
+     @param ev the event object
+     */
+    event focus(Object ev);
 
-    /*! @brief Queries and binds the window blur event, equivalent to on("blur", func); */
-    event blur();
+    /*! @brief Queries and binds the window blur event, equivalent to on("blur", func);
+     @param ev the event object
+     */
+    event blur(Object ev);
 
     /*! @brief Queries and binds the window close event, which fires after the WebView is closed, equivalent to on("closed", func); */
     event close();
 
-    /*! @brief Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func); */
-    event message();
+    /*! @brief Queries and binds the event for receiving postMessage messages from inside the webview, equivalent to on("message", func);
+     @param ev the event object, carrying the received message in its data property
+     */
+    event message(Object ev);
 
     /*! @brief Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
      @return returns the current object

@@ -87,16 +87,12 @@ result_t PerformanceObserver::disconnect()
     return 0;
 }
 
-result_t PerformanceObserver::takeRecords(obj_ptr<NArray>& retVal)
+result_t PerformanceObserver::takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
     Isolate* isolate = holder();
 
-    retVal = new NArray();
-
     isolate->m_perfLock.lock();
-    for (auto& entry : m_entries)
-        retVal->append(entry);
-    m_entries.clear();
+    retVal = std::move(m_entries);
     isolate->m_perfLock.unlock();
 
     return 0;
@@ -141,48 +137,42 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
     });
 }
 
-result_t PerformanceObserverEntryList::getEntries(obj_ptr<NArray>& retVal)
+result_t PerformanceObserverEntryList::getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
-    retVal = new NArray();
-
     for (auto& entry : m_entries)
-        retVal->append(entry);
+        retVal.push_back(entry);
 
     return 0;
 }
 
-result_t PerformanceObserverEntryList::getEntriesByName(exlib::string name, exlib::string entryType, obj_ptr<NArray>& retVal)
+result_t PerformanceObserverEntryList::getEntriesByName(exlib::string name, exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
-    retVal = new NArray();
-
     for (auto& entry : m_entries) {
         exlib::string _name;
         entry->get_name(_name);
         if (_name == name) {
             if (entryType.empty()) {
-                retVal->append(entry);
+                retVal.push_back(entry);
                 continue;
             }
 
             exlib::string _entryType;
             entry->get_entryType(_entryType);
             if (_entryType == entryType)
-                retVal->append(entry);
+                retVal.push_back(entry);
         }
     }
 
     return 0;
 }
 
-result_t PerformanceObserverEntryList::getEntriesByType(exlib::string entryType, obj_ptr<NArray>& retVal)
+result_t PerformanceObserverEntryList::getEntriesByType(exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
-    retVal = new NArray();
-
     for (auto& entry : m_entries) {
         exlib::string _entryType;
         entry->get_entryType(_entryType);
         if (_entryType == entryType)
-            retVal->append(entry);
+            retVal.push_back(entry);
     }
 
     return 0;
@@ -363,43 +353,37 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     return 0;
 }
 
-result_t performance_base::getEntries(obj_ptr<NArray>& retVal)
+result_t performance_base::getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    retVal = new NArray();
-
     isolate->m_perfLock.lock();
     for (auto& entry : isolate->m_markEntries)
-        retVal->append(entry.second);
+        retVal.push_back(entry.second);
     isolate->m_perfLock.unlock();
 
     return 0;
 }
 
-result_t performance_base::getEntriesByType(exlib::string type, obj_ptr<NArray>& retVal)
+result_t performance_base::getEntriesByType(exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
     Isolate* isolate = Isolate::current();
-
-    retVal = new NArray();
 
     isolate->m_perfLock.lock();
     for (auto& entry : isolate->m_markEntries) {
         exlib::string _type;
         entry.second->get_entryType(_type);
         if (_type == type)
-            retVal->append(entry.second);
+            retVal.push_back(entry.second);
     }
     isolate->m_perfLock.unlock();
 
     return 0;
 }
 
-result_t performance_base::getEntriesByName(exlib::string name, exlib::string type, obj_ptr<NArray>& retVal)
+result_t performance_base::getEntriesByName(exlib::string name, exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
 {
     Isolate* isolate = Isolate::current();
-
-    retVal = new NArray();
 
     isolate->m_perfLock.lock();
     for (auto& entry : isolate->m_markEntries) {
@@ -407,14 +391,14 @@ result_t performance_base::getEntriesByName(exlib::string name, exlib::string ty
         entry.second->get_name(_name);
         if (_name == name) {
             if (type.empty()) {
-                retVal->append(entry.second);
+                retVal.push_back(entry.second);
                 continue;
             }
 
             exlib::string _type;
             entry.second->get_entryType(_type);
             if (_type == type)
-                retVal->append(entry.second);
+                retVal.push_back(entry.second);
         }
     }
     isolate->m_perfLock.unlock();

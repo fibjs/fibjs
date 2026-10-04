@@ -43,12 +43,12 @@ module encoding
     */
     static Boolean isEncoding(String codec);
 
-    /*! @brief Encodes the Buffer as a string
-     @param data the initial string, written in utf-8 format
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+    /*! @brief Encodes the Buffer as a string; a string data is encoded as utf8
+     @param data the initial string, written in utf-8 format, a string is encoded as utf8
+     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8", a string is encoded as utf8
      @return returns the encoded string
-    */
-    static String encode(Buffer data, String codec = "utf8");
+     */
+    static String encode(Buffer|String data, String codec = "utf8");
 
     /*! @brief Decodes the string as a Buffer
      @param str the initial string, written in utf-8 format

@@ -15,14 +15,16 @@
 
 namespace fibjs {
 
+class PerformanceEntry_base;
+
 class PerformanceObserverEntryList_base : public object_base {
     DECLARE_CLASS(PerformanceObserverEntryList_base);
 
 public:
     // PerformanceObserverEntryList_base
-    virtual result_t getEntries(obj_ptr<NArray>& retVal) = 0;
-    virtual result_t getEntriesByName(exlib::string name, exlib::string entryType, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t getEntriesByType(exlib::string entryType, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal) = 0;
+    virtual result_t getEntriesByName(exlib::string name, exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal) = 0;
+    virtual result_t getEntriesByType(exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -41,6 +43,8 @@ public:
     static void s_getEntriesByType(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/PerformanceEntry.h"
 
 namespace fibjs {
 inline ClassInfo& PerformanceObserverEntryList_base::class_info()
@@ -64,7 +68,7 @@ inline ClassInfo& PerformanceObserverEntryList_base::class_info()
 
 inline void PerformanceObserverEntryList_base::s_getEntries(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_INSTANCE(PerformanceObserverEntryList_base);
     METHOD_ENTER();
@@ -78,7 +82,7 @@ inline void PerformanceObserverEntryList_base::s_getEntries(const v8::FunctionCa
 
 inline void PerformanceObserverEntryList_base::s_getEntriesByName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_INSTANCE(PerformanceObserverEntryList_base);
     METHOD_ENTER();
@@ -95,7 +99,7 @@ inline void PerformanceObserverEntryList_base::s_getEntriesByName(const v8::Func
 
 inline void PerformanceObserverEntryList_base::s_getEntriesByType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_INSTANCE(PerformanceObserverEntryList_base);
     METHOD_ENTER();

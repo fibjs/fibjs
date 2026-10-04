@@ -1236,6 +1236,30 @@ describe("child_process", () => {
         ]);
     });
 
+    it("argument rendering", () => {
+        // every argument is rendered with its string form
+        var argv = json.decode(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            42,
+            null,
+            { a: 1 }
+        ]).stdout);
+
+        assert.strictEqual(argv[2], "42");
+        assert.strictEqual(argv[3], "null");
+        assert.strictEqual(argv[4], "[object Object]");
+    });
+
+    it("environment rendering", () => {
+        // every environment value is rendered with its string form
+        var script = 'console.log([process.env.M13_NUM, process.env.M13_BOOL, process.env.M13_OBJ].join("|"))';
+        var r = child_process.execFile(cmd, ['-e', script], {
+            env: { M13_NUM: 500, M13_BOOL: true, M13_OBJ: { a: 1 } }
+        });
+
+        assert.strictEqual(String(r.stdout).trim(), "500|true|[object Object]");
+    });
+
     it("spawnSync", () => {
         var result = child_process.spawnSync(cmd, [
             path.join(__dirname, "process", "exec2.js"),

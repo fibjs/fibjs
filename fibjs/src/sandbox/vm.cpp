@@ -51,64 +51,58 @@ result_t vm_base::isContext(v8::Local<v8::Object> contextObject, bool& retVal)
     return 0;
 }
 
-result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject,
-    v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal)
+// the filename form of the vm options: the string is carried as the script file
+// name, the way the options object spells it
+static v8::Local<v8::Object> vm_filename_options(Isolate* isolate, exlib::string filename)
 {
-    obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, opts, script);
-    if (hr < 0)
-        return hr;
-
-    return script->runInContext(contextifiedObject, opts, retVal);
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
+    return opts;
 }
 
 result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject,
-    exlib::string filename, v8::Local<v8::Value>& retVal)
+    Union_runInContext_opts opts, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::current(contextifiedObject);
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
-    return runInContext(code, contextifiedObject, opts, retVal);
-}
+    v8::Local<v8::Object> o = std::holds_alternative<exlib::string>(opts)
+        ? vm_filename_options(Isolate::current(contextifiedObject), std::get<exlib::string>(opts))
+        : std::get<v8::Local<v8::Object>>(opts);
 
-result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject,
-    v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal)
-{
     obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, opts, script);
+    result_t hr = Script_base::_new(code, o, script);
     if (hr < 0)
         return hr;
 
-    return script->runInNewContext(contextObject, opts, retVal);
+    return script->runInContext(contextifiedObject, o, retVal);
 }
 
 result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject,
-    exlib::string filename, v8::Local<v8::Value>& retVal)
+    Union_runInNewContext_opts opts, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::current(contextObject);
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
-    return runInNewContext(code, contextObject, opts, retVal);
-}
+    v8::Local<v8::Object> o = std::holds_alternative<exlib::string>(opts)
+        ? vm_filename_options(Isolate::current(contextObject), std::get<exlib::string>(opts))
+        : std::get<v8::Local<v8::Object>>(opts);
 
-result_t vm_base::runInThisContext(exlib::string code, v8::Local<v8::Object> opts,
-    v8::Local<v8::Value>& retVal)
-{
     obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, opts, script);
+    result_t hr = Script_base::_new(code, o, script);
     if (hr < 0)
         return hr;
 
-    return script->runInThisContext(opts, retVal);
+    return script->runInNewContext(contextObject, o, retVal);
 }
 
-result_t vm_base::runInThisContext(exlib::string code, exlib::string filename,
+result_t vm_base::runInThisContext(exlib::string code, Union_runInThisContext_opts opts,
     v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-    opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromMaybe(false);
-    return runInThisContext(code, opts, retVal);
+    v8::Local<v8::Object> o = std::holds_alternative<exlib::string>(opts)
+        ? vm_filename_options(Isolate::current(), std::get<exlib::string>(opts))
+        : std::get<v8::Local<v8::Object>>(opts);
+
+    obj_ptr<Script_base> script;
+    result_t hr = Script_base::_new(code, o, script);
+    if (hr < 0)
+        return hr;
+
+    return script->runInThisContext(o, retVal);
 }
 
 }

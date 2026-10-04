@@ -7,35 +7,30 @@ interface StringDecoder : object
      */
     StringDecoder(String encoding = "utf8");
 
-    /*! @brief Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
+    /*! @brief Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible
+     @param buf optional; a Buffer or a string to decode first. When it is omitted, only the internally retained bytes are returned
      @return the decoded string.
      */
-    String end();
+    String end(Buffer|String buf = "");
 
-    /*! @brief Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
-     @param buf the Buffer to decode. Before end is executed, write is called first to write the buffer.
+    /*! @brief Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call
+     @param buf the Buffer to decode, or a string encoded as utf8
      @return the decoded string.
      */
-    String end(Buffer buf);
-
-    /*! @brief Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call.
-     @param  buf the Buffer to decode.
-     @return the decoded string.
-     */
-    String write(Buffer buf);
+    String write(Buffer|String buf);
 
     /*! @brief Internal use.
-     @param buf the Buffer to decode.
+     @param buf the Buffer to decode, or a string encoded as utf8
      @param offset the decoding offset
      @return the decoded string.
      */
-    String text(Buffer buf, Integer offset);
+    String text(Buffer|String buf, Integer offset);
 
     /*! @brief Internal use.
-     @param buf the Buffer containing the bytes to decode.
+     @param buf the Buffer containing the bytes to decode, or a string encoded as utf8
      @return the decoded string.
      */
-    String fillLast(Buffer buf);
+    String fillLast(Buffer|String buf);
 
     /*! @brief Internal use. */
     Integer lastNeed;

@@ -32,5 +32,5 @@ interface HeapGraphNode : object
     readonly Integer shallowSize;
 
     /*! @brief Child node list, composed of HeapGraphEdge type objects */
-    readonly NArray childs;
+    readonly HeapGraphEdge[] childs;
 };

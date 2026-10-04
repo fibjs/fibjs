@@ -6,7 +6,7 @@ interface Service : EventEmitter
      @param worker service run function
      @param event service event handling
      */
-    Service(String name, Function worker, Object event = {});
+    Service(String name, Function() worker, Object event = {});
 
     /*! @brief Starts running the service entity */
     run() async;

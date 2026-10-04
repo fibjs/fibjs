@@ -45,8 +45,10 @@ interface MessagePort : EventEmitter
     /*! @brief Mark the port as inactive so it doesn't keep the event loop alive */
     unref();
 
-    /*! @brief Queries and binds the message reception event, equivalent to on("message", func); start() is called automatically once it is set. */
-    event message();
+    /*! @brief Queries and binds the message reception event, equivalent to on("message", func); start() is called automatically once it is set.
+     @param data the received message: the deserialized value in raw message mode, a MessageEvent otherwise
+     */
+    event message(Value data);
 
     /*! @brief Queries and binds the message deserialization error event, equivalent to on("messageerror", func); */
     event messageerror();

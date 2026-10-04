@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class PerformanceEntry_base;
+
 class PerformanceObserver_base : public object_base {
     DECLARE_CLASS(PerformanceObserver_base);
 
@@ -23,7 +25,7 @@ public:
     static result_t _new(v8::Local<v8::Function> callback, obj_ptr<PerformanceObserver_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t observe(v8::Local<v8::Object> options) = 0;
     virtual result_t disconnect() = 0;
-    virtual result_t takeRecords(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -36,6 +38,8 @@ public:
     static void s_takeRecords(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/PerformanceEntry.h"
 
 namespace fibjs {
 inline ClassInfo& PerformanceObserver_base::class_info()
@@ -121,7 +125,7 @@ inline void PerformanceObserver_base::s_disconnect(const v8::FunctionCallbackInf
 
 inline void PerformanceObserver_base::s_takeRecords(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<PerformanceEntry_base>> vr;
 
     METHOD_INSTANCE(PerformanceObserver_base);
     METHOD_ENTER();

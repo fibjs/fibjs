@@ -13,12 +13,12 @@ interface TextDecoder : object
      */
     TextDecoder(String codec = "utf8", Object opts = {});
 
-    /*! @brief Converts binary data to text
-	 @param data the binary to convert
- 	 @param opts decoding options
-	 @return returns the decoded text
-	 */
-    String decode(Buffer data, Object opts = {});
+    /*! @brief Converts binary data to text; a string data is encoded as utf8
+     @param data the binary to convert, a string is encoded as utf8
+     @param opts decoding options
+     @return returns the decoded text
+     */
+    String decode(Buffer|String data, Object opts = {});
 
     /*! @brief Converts binary data to text
 	 @return returns the decoded text

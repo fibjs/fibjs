@@ -23,8 +23,9 @@ result_t HeapSnapshotProxy::diff(HeapSnapshot_base* before,
 
 void HeapSnapshotProxy::fill_nodes()
 {
-    if (m_nodes == 0) {
-        m_nodes = new NArray();
+    if (!m_nodes_filled) {
+        m_nodes_filled = true;
+
         int32_t cnt = m_snapshot->GetNodesCount();
 
         for (int32_t i = 0; i < cnt; i++) {
@@ -32,7 +33,7 @@ void HeapSnapshotProxy::fill_nodes()
 
             _node = m_snapshot->GetNode(i);
             _nodes.insert(std::pair<int32_t, int32_t>(_node->GetId(), i));
-            m_nodes->append(new HeapGraphNodeProxy(this, _node));
+            m_nodes.push_back(new HeapGraphNodeProxy(this, _node));
         }
     }
 }
@@ -47,10 +48,7 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
     if (it == _nodes.end())
         return CALL_RETURN_NULL;
 
-    Variant v;
-
-    m_nodes->_indexed_getter(it->second, v);
-    retVal = (HeapGraphNode_base*)v.object();
+    retVal = m_nodes[it->second];
 
     return 0;
 }
@@ -97,7 +95,7 @@ result_t HeapSnapshotProxy::get_root(obj_ptr<HeapGraphNode_base>& retVal)
     return 0;
 }
 
-result_t HeapSnapshotProxy::get_nodes(obj_ptr<NArray>& retVal)
+result_t HeapSnapshotProxy::get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal)
 {
     fill_nodes();
     retVal = m_nodes;
@@ -145,17 +143,18 @@ result_t HeapGraphNodeProxy::get_shallowSize(int32_t& retVal)
     return 0;
 }
 
-result_t HeapGraphNodeProxy::get_childs(obj_ptr<NArray>& retVal)
+result_t HeapGraphNodeProxy::get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>& retVal)
 {
     if (m_snapshot == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (m_childs == 0) {
-        m_childs = new NArray();
+    if (!m_childs_filled) {
+        m_childs_filled = true;
+
         int32_t cnt = m_node->GetChildrenCount();
 
         for (int32_t i = 0; i < cnt; i++)
-            m_childs->append(new HeapGraphEdgeProxy(m_snapshot, m_node->GetChild(i)));
+            m_childs.push_back(new HeapGraphEdgeProxy(m_snapshot, m_node->GetChild(i)));
     }
 
     retVal = m_childs;

@@ -72,12 +72,12 @@ declare module 'uuid' {
 
     /**
      * @description Converts a binary array to a uuid string
-     *      @param arr the array or Buffer containing the uuid binary data; its length must be at least 16 bytes
+     *      @param arr the array, Buffer or binary string containing the uuid binary data; its length must be at least 16 bytes
      *      @param offset optional; the starting offset of the uuid data in the array, default 0
      *      @return returns the converted uuid string
      *
      */
-    function stringify(arr: Class_Buffer, offset?: number): string;
+    function stringify(arr: Class_Buffer | string, offset?: number): string;
 
     /**
      * @description Creates a uuid using a timestamp
@@ -88,23 +88,12 @@ declare module 'uuid' {
     function v1(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description Creates a uuid with an MD5 namespace (binary namespace format)
+     * @description Creates a uuid with an MD5 namespace
      *      @param name the name to use
-     *      @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
      *      @return returns a generated uuid string
      *
      */
-    function v3(name: string, ns: Class_Buffer): string;
-
-    /**
-     * @description Creates a uuid with an MD5 namespace (string format)
-     *      @param name the name to use
-     *      @param ns the namespace UUID string, or use a predefined namespace
-     *      @return returns a generated uuid string
-     *
-     */
-    function v3(name: string, ns: string): string;
-
     function v3(name: string, ns: Class_Buffer | string): string;
 
     /**
@@ -116,23 +105,12 @@ declare module 'uuid' {
     function v4(options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description Creates a uuid with a SHA1 namespace (binary namespace format)
+     * @description Creates a uuid with a SHA1 namespace
      *      @param name the name to use
-     *      @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
      *      @return returns a generated uuid string
      *
      */
-    function v5(name: string, ns: Class_Buffer): string;
-
-    /**
-     * @description Creates a uuid with a SHA1 namespace (string format)
-     *      @param name the name to use
-     *      @param ns the namespace UUID string, or use a predefined namespace
-     *      @return returns a generated uuid string
-     *
-     */
-    function v5(name: string, ns: string): string;
-
     function v5(name: string, ns: Class_Buffer | string): string;
 
     /**

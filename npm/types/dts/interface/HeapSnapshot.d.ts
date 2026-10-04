@@ -57,7 +57,7 @@ declare class Class_HeapSnapshot extends Class_object {
     /**
      * @description List composed of heap view nodes
      */
-    readonly nodes: any[];
+    readonly nodes: Class_HeapGraphNode[];
 
 }
 
@@ -119,7 +119,7 @@ declare class Class_HeapSnapshotPromise extends Class_object {
     /**
      * @description List composed of heap view nodes
      */
-    readonly nodes: any[];
+    readonly nodes: Class_HeapGraphNode[];
 
 }
 

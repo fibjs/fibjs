@@ -181,14 +181,32 @@ declare module 'v8' {
      *      @return returns the detailed usage of heap memory
      *
      */
-    function getHeapSpaceStatistics(): any[];
+    function getHeapSpaceStatistics(): {
+        space_name: string;
+        space_size: number;
+        space_used_size: number;
+        space_available_size: number;
+        physical_space_size: number;
+    }[];
 
     /**
      * @description Gets statistics of v8 heap memory usage
      *      @return returns statistics of heap memory usage
      *
      */
-    function getHeapStatistics(): FIBJS.GeneralObject;
+    function getHeapStatistics(): {
+        total_heap_size: number;
+        total_heap_size_executable: number;
+        total_physical_size: number;
+        total_available_size: number;
+        used_heap_size: number;
+        heap_size_limit: number;
+        malloced_memory: number;
+        external_memory: number;
+        peak_malloced_memory: number;
+        number_of_native_contexts: number;
+        number_of_detached_contexts: number;
+    };
 
     /**
      * @description Saves a heap snapshot under the specified name
@@ -218,7 +236,7 @@ declare module 'v8' {
      * 	 @return returns the comparison result
      *
      */
-    function diff(test: (...args: any[])=>any): FIBJS.GeneralObject;
+    function diff(test: ()=>void): FIBJS.GeneralObject;
 
     /**
      * @description Starts a runtime state sampling log
@@ -242,14 +260,14 @@ declare module 'v8' {
     function serialize(value: any): Class_Buffer;
 
     /**
-     * @description Deserializes a Buffer into a value
+     * @description Deserializes a Buffer or a string into a value
      *
      *      Restores binary data previously serialized by serialize back into a JavaScript value.
-     *      @param data the Buffer to deserialize
+     *      @param data the Buffer to deserialize; a string is encoded as utf8
      *      @return returns the deserialized value
      *
      */
-    function deserialize(data: Class_Buffer): any;
+    function deserialize(data: Class_Buffer | string): any;
 
 }
 

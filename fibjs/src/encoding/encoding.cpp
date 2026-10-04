@@ -42,9 +42,15 @@ static void hexEncode(exlib::string data, bool upper, exlib::string& retVal)
     return hexEncode(data.c_str(), data.length(), upper, retVal);
 }
 
-result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
+result_t hex_base::encode(Union_encode_data data, exlib::string& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string str = std::get<exlib::string>(data);
+        hexEncode(str.c_str(), str.length(), false, retVal);
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
     hexEncode((const char*)buf->data(), buf->length(), false, retVal);
     return 0;
 }
@@ -179,9 +185,15 @@ static void base32Encode(const char* data, size_t sz, bool upper, bool padding, 
         5, data, sz, retVal, padding);
 }
 
-result_t base32_base::encode(Buffer_base* data, exlib::string& retVal)
+result_t base32_base::encode(Union_encode_data data, exlib::string& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string str = std::get<exlib::string>(data);
+        base32Encode(str.c_str(), str.length(), false, false, retVal);
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
     base32Encode((const char*)buf->data(), buf->length(), false, false, retVal);
     return 0;
 }
@@ -249,9 +261,15 @@ static void base64Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retV
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
 }
 
-result_t base64_base::encode(Buffer_base* data, bool url, exlib::string& retVal)
+result_t base64_base::encode(Union_encode_data data, bool url, exlib::string& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string str = std::get<exlib::string>(data);
+        base64Encode(str.c_str(), str.length(), url, !url, retVal);
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
     base64Encode((const char*)buf->data(), buf->length(), url, !url, retVal);
     return 0;
 }
@@ -280,16 +298,33 @@ static void base58Encode(const char* data, size_t sz, exlib::string& retVal)
     retVal.resize(b58sz - 1);
 }
 
-result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
+result_t base58_base::encode(Union_encode_data data, exlib::string& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string str = std::get<exlib::string>(data);
+        base58Encode(str.c_str(), str.length(), retVal);
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
     base58Encode((const char*)buf->data(), buf->length(), retVal);
     return 0;
 }
 
-result_t base58_base::encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal)
+result_t base58_base::encode(Union_encode_data data, int32_t chk_ver, exlib::string& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string str = std::get<exlib::string>(data);
+        size_t b58sz = (size_t)((str.length() + 5) * 8 / log2l(58) + 2);
+
+        retVal.resize(b58sz);
+        b58check_enc(retVal.data(), &b58sz, chk_ver, (const unsigned char*)str.c_str(), str.length());
+        retVal.resize(b58sz - 1);
+
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
 
     size_t b58sz = (size_t)((buf->length() + 5) * 8 / log2l(58) + 2);
 
@@ -471,7 +506,26 @@ result_t encoding_base::isEncoding(exlib::string codec, bool& retVal)
     return 0;
 }
 
-result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
+// the buffer form of the merged families below
+static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal);
+static result_t multibase_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal);
+
+result_t encoding_base::encode(Union_encode_data data, exlib::string codec, exlib::string& retVal)
+{
+    if (std::holds_alternative<exlib::string>(data)) {
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return encoding_encode_buffer(buf, codec, retVal);
+    }
+
+    return encoding_encode_buffer(std::get<obj_ptr<Buffer_base>>(data), codec, retVal);
+}
+
+static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     if (!static_is_safe_codec(codec))
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "encoding: Unknown codec: '%s'.", codec.c_str()));
@@ -568,7 +622,22 @@ result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<B
     return 0;
 }
 
-result_t multibase_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
+result_t multibase_base::encode(Union_encode_data data, exlib::string codec, exlib::string& retVal)
+{
+    if (std::holds_alternative<exlib::string>(data)) {
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return multibase_encode_buffer(buf, codec, retVal);
+    }
+
+    return multibase_encode_buffer(std::get<obj_ptr<Buffer_base>>(data), codec, retVal);
+}
+
+static result_t multibase_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     exlib::string strBuffer;
     Buffer* data_buf = Buffer::Cast(data);

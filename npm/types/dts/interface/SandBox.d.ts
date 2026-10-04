@@ -38,15 +38,7 @@ declare class Class_SandBox extends Class_object {
      *      @param require a custom require function; when a module does not exist, the custom function is called first, and if it returns nothing the module is loaded from files
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any);
-
-    /**
-     * @description Constructs a new isolated sandbox object with an independent Global and initializes the basic modules
-     *      @param mods the module object dictionary to add
-     *      @param global the initial Global properties to set
-     *
-     */
-    constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any);
 
     /**
      * @description Constructs a new isolated sandbox object with an independent Global and initializes the basic modules
@@ -55,7 +47,15 @@ declare class Class_SandBox extends Class_object {
      *      @param global the initial Global properties to set
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any, global: FIBJS.GeneralObject);
+
+    /**
+     * @description Constructs a new isolated sandbox object with an independent Global and initializes the basic modules
+     *      @param mods the module object dictionary to add
+     *      @param global the initial Global properties to set
+     *
+     */
+    constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
 
     /**
      * @description Adds the built-in basic modules to the sandbox
@@ -78,13 +78,13 @@ declare class Class_SandBox extends Class_object {
     add(mods: FIBJS.GeneralObject): void;
 
     /**
-     * @description Adds a script module to the sandbox
+     * @description Adds a script module to the sandbox; a string script is encoded as utf8
      *      @param srcname the script name to add; srcname must include an extension, such as json, js or jsc
-     *      @param script the binary code to add
+     *      @param script the binary code to add, a Buffer or a string encoded as utf8
      *      @return returns the loaded module object
      *
      */
-    addScript(srcname: string, script: Class_Buffer): any;
+    addScript(srcname: string, script: Class_Buffer | string): any;
 
     /**
      * @description Removes the specified basic module from the sandbox
@@ -180,7 +180,7 @@ declare class Class_SandBox extends Class_object {
      *      @param compiler the compile callback; files with this extname are required only once. The callback format is `compiler(buf, requireInfo)`, where buf is the read file Buffer and requireInfo has the structure `{filename: string}`.
      *
      */
-    setModuleCompiler(extname: string, compiler: (...args: any[])=>any): void;
+    setModuleCompiler(extname: string, compiler: (buf: Class_Buffer, requireInfo: FIBJS.GeneralObject)=>any): void;
 
     /**
      * @description Queries the global object of the sandbox

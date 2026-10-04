@@ -40,10 +40,10 @@ inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>&
             int32_t len = keys->Length();
             for (int32_t i = 0; i < len; i++) {
                 JSValue k = keys->Get(_context, i);
-                exlib::string key;
 
-                GetArgumentValue(isolate, k, key);
-                props.append(key);
+                // a property name is rendered, not converted: the index keys
+                // of an array come out of GetPropertyNames as numbers
+                props.append(isolate->toString(k));
             }
         }
     }
@@ -288,9 +288,8 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
         int32_t len = fields->Length();
         for (int32_t i = 0; i < len; i++) {
             JSValue k = fields->Get(_context, i);
-            exlib::string row_key;
 
-            GetArgumentValue(isolate, k, row_key);
+            exlib::string row_key = isolate->toString(k);
 
             auto it = prop_cols.find(row_key);
             if (it == prop_cols.end()) {
@@ -309,11 +308,9 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
         if (isSimpleValue(v)) {
             if (!b_has_prop) {
                 value_cols.resize(i);
-                if (!encode_string && (v->IsString() || v->IsStringObject())) {
-                    exlib::string val;
-                    GetArgumentValue(isolate, v, val);
-                    value_cols.append(val);
-                } else
+                if (!encode_string && (v->IsString() || v->IsStringObject()))
+                    value_cols.append(isolate->toString(v));
+                else
                     value_cols.append(json_format(isolate, v, color));
             }
         } else {
@@ -338,7 +335,7 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
                 exlib::string row_value;
                 if (isSimpleValue(rv)) {
                     if (!encode_string && (rv->IsString() || rv->IsStringObject()))
-                        GetArgumentValue(isolate, rv, row_value);
+                        row_value = isolate->toString(rv);
                     else
                         row_value = json_format(isolate, rv, color);
                 } else

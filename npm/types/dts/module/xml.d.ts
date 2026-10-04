@@ -117,30 +117,14 @@ declare module 'xml' {
     const DOMParser: typeof Class_DOMParser;
 
     /**
-     * @description Parses xml/html text and creates an XmlDocument object; multilingual text is not supported
-     *      @param source the xml/html text to parse
-     *      @param type the text type, default text/xml; can also be set to text/html
-     *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *       - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
-     *       - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
-     *     @return returns the created XmlDocument object
-     *
-     */
-    function parse(source: string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
-
-    /**
      * @description Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
-     *      @param source the xml/html binary data to parse
+     *      @param source the xml/html data to parse; a string is encoded as utf8
      *      @param type the text type, default text/xml; can also be set to text/html
      *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *       - maxElementDepth: maximum element nesting depth, the root element is 1, an error is reported when exceeded; 0 or a negative number means no limit
-     *       - maxNodeCount: maximum number of nodes, including elements, attributes, texts, comments, CDATA, processing instructions and document types, an error is reported when exceeded; 0 or a negative number means no limit
      *      @return returns the created XmlDocument object
      *
      */
-    function parse(source: Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
-
-    function parse(source: string | Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
+    function parse(source: Class_Buffer | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
      * @description Serializes an XmlNode to a string

@@ -212,8 +212,7 @@ public:
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal);
     virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal);
     virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal);
-    virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
-    virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
+    virtual result_t fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>& retVal);
@@ -259,18 +258,22 @@ public:
     virtual result_t writeFloatBE(double value, int32_t offset, int32_t& retVal);
     virtual result_t writeDoubleLE(double value, int32_t offset, int32_t& retVal);
     virtual result_t writeDoubleBE(double value, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal);
-    virtual result_t lastIndexOf(int32_t v, int32_t offset, int32_t& retVal);
-    virtual result_t lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
-    virtual result_t lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal);
+    virtual result_t indexOf(Union_indexOf_v v, int32_t offset, int32_t& retVal);
+    // the merged entry dispatches to the per-type implementations: a number
+    // is a byte, a string its utf8 bytes, a Buffer a byte sequence
+    result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
+    result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
+    result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal);
+    virtual result_t lastIndexOf(Union_lastIndexOf_v v, int32_t offset, int32_t& retVal);
+    result_t lastIndexOf(int32_t v, int32_t offset, int32_t& retVal);
+    result_t lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
+    result_t lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal);
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal);
     virtual result_t toString(exlib::string& retVal);
-    virtual result_t toArray(v8::Local<v8::Array>& retVal);
+    virtual result_t toArray(std::vector<int32_t>& retVal);
     virtual result_t hex(exlib::string& retVal);
     virtual result_t base32(exlib::string& retVal);
     virtual result_t base58(exlib::string& retVal);

@@ -14,12 +14,7 @@ interface AbortController : object
     readonly AbortSignal signal;
 
     /*! @brief Aborts one or more Web requests
-     @param reason an optional string describing the reason for aborting the request
+     @param reason the reason for aborting the request: a string, or a value of any type
     */
-    abort(String reason = "AbortError");
-
-    /*! @brief Aborts one or more Web requests
-     @param reason a value of any type describing the reason for aborting the request
-    */
-    abort(Value reason);
+    abort(String|Value reason = "AbortError");
 };

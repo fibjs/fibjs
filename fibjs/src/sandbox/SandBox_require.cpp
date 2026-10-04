@@ -86,6 +86,15 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     return 0;
 }
 
+result_t SandBox::addScript(exlib::string srcname, Union_addScript_script script,
+    v8::Local<v8::Value>& retVal)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(script))
+        return addScript(srcname, std::get<obj_ptr<Buffer_base>>(script).get(), retVal);
+
+    return addScript(srcname, std::get<exlib::string>(script), retVal);
+}
+
 result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
 {
@@ -102,6 +111,18 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
         return hr;
 
     return wait_module(mod, retVal);
+}
+
+result_t SandBox::addScript(exlib::string srcname, exlib::string script,
+    v8::Local<v8::Value>& retVal)
+{
+    obj_ptr<Buffer_base> buf;
+
+    result_t hr = Buffer_base::from(script, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return addScript(srcname, buf.get(), retVal);
 }
 
 result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs)

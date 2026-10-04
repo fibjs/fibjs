@@ -83,7 +83,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, block: (...args: any[])=>any): void;
+    function Function(name: string, block: ()=>void): void;
 
     /**
      * @description Defines a test item (with options)
@@ -92,7 +92,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
+    function Function(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
     /**
      * @description Test framework module; points to this module and can be called as a function
@@ -125,7 +125,7 @@ declare module 'test' {
      *      @param block the module initialization code
      *
      */
-    function xdescribe(name: string, block: (...args: any[])=>any): void;
+    function xdescribe(name: string, block: ()=>void): void;
 
     /**
      * @description Independent test suite definition
@@ -133,7 +133,7 @@ declare module 'test' {
      *      @param block the module initialization code
      *
      */
-    function odescribe(name: string, block: (...args: any[])=>any): void;
+    function odescribe(name: string, block: ()=>void): void;
 
     /**
      * @description Paused test item definition
@@ -141,7 +141,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function xit(name: string, block: (...args: any[])=>any): void;
+    function xit(name: string, block: ()=>void): void;
 
     /**
      * @description Paused test item definition
@@ -149,7 +149,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function skip(name: string, block: (...args: any[])=>any): void;
+    function skip(name: string, block: ()=>void): void;
 
     /**
      * @description Independent test item definition
@@ -157,7 +157,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function oit(name: string, block: (...args: any[])=>any): void;
+    function oit(name: string, block: ()=>void): void;
 
     /**
      * @description Independent test item definition
@@ -165,7 +165,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function only(name: string, block: (...args: any[])=>any): void;
+    function only(name: string, block: ()=>void): void;
 
     /**
      * @description Planned test item definition
@@ -173,7 +173,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function todo(name: string, block: (...args: any[])=>any): void;
+    function todo(name: string, block: ()=>void): void;
 
     /**
      * @description Planned test item definition (with options)
@@ -182,7 +182,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function todo(name: string, options: FIBJS.GeneralObject, block: (...args: any[])=>any): void;
+    function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
     /**
      * @description Planned test item definition
@@ -196,28 +196,28 @@ declare module 'test' {
      *      @param func the event function
      *
      */
-    function before(func: (...args: any[])=>any): void;
+    function before(func: ()=>void): void;
 
     /**
      * @description Defines the exit event of the current test module
      *      @param func the event function
      *
      */
-    function after(func: (...args: any[])=>any): void;
+    function after(func: ()=>void): void;
 
     /**
      * @description Defines the test item enter event of the current test module
      *      @param func the event function
      *
      */
-    function beforeEach(func: (...args: any[])=>any): void;
+    function beforeEach(func: ()=>void): void;
 
     /**
      * @description Defines the test item exit event of the current test module
      *      @param func the event function
      *
      */
-    function afterEach(func: (...args: any[])=>any): void;
+    function afterEach(func: ()=>void): void;
 
     /**
      * @description Tests that a function must be called a specified number of times

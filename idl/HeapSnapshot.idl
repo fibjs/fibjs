@@ -25,5 +25,5 @@ interface HeapSnapshot : object
     readonly HeapGraphNode root;
 
     /*! @brief List composed of heap view nodes */
-    readonly NArray nodes;
+    readonly HeapGraphNode[] nodes;
 };

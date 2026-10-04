@@ -969,4 +969,26 @@ describe('assert', () => {
         assert.equal(strict1, strict3);
         assert.equal(strict1, strict4);
     });
+
+    // A String parameter converts a real string, a String object, a Date (its
+    // ISO form), a Buffer (its utf8 bytes) and an object that brings its own
+    // toString(); everything else has no string form and reports the type error.
+    describe('String argument conversion', () => {
+        it('renders the accepted value forms', () => {
+            assert.match('abc', /^abc$/);
+            assert.match(new String('abc'), /^abc$/);
+            assert.match(Buffer.from('abc'), /^abc$/);
+            assert.match(new Date(0), /^1970-01-01T00:00:00\.000Z$/);
+            assert.match({ toString: () => 'own' }, /^own$/);
+        });
+
+        it('rejects the values that have no string form', () => {
+            var rejects = [123, 1.5, true, false, null, undefined, [1, 2],
+                { a: 1 }, function () { }, Symbol('s'), /re/, new Map()];
+
+            rejects.forEach((v) => {
+                assert.throws(() => assert.match(v, /x/), { number: 20005 });
+            });
+        });
+    });
 });

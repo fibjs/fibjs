@@ -45,6 +45,26 @@ if (typeof window === 'undefined') {
     };
 }
 
+// fibjs reports its own error codes (number), the DOM throws a DOMException
+// whose name identifies the same failure; each side asserts what it throws
+function assertDOMError(fn, domName, fibjsError) {
+    if (!isBrowser) {
+        assert.throws(fn, fibjsError);
+        return;
+    }
+
+    // err.name of a DOMException is a prototype getter, compare it directly
+    var err = null;
+    try {
+        fn();
+    } catch (e) {
+        err = e;
+    }
+
+    assert.ok(err, 'expected ' + domName + ' to be thrown');
+    assert.equal(err.name, domName);
+}
+
 describe('querySelector', () => {
     let testDoc;
     let rootElement;
@@ -556,13 +576,13 @@ describe('querySelector', () => {
             ];
 
             selectorsThatShouldThrow.forEach(selector => {
-                assert.throws(() => {
+                assertDOMError(() => {
                     rootElement.querySelector(selector);
-                }, { name: 'Error', number: 20024 });
+                }, 'SyntaxError', { name: 'Error', number: 20024 });
 
-                assert.throws(() => {
+                assertDOMError(() => {
                     rootElement.querySelectorAll(selector);
-                }, { name: 'Error', number: 20024 });
+                }, 'SyntaxError', { name: 'Error', number: 20024 });
             });
 
             // Test selectors that might throw or return null/empty depending on implementation
@@ -851,14 +871,14 @@ describe('querySelector', () => {
             createTestStructure();
 
             // Test selector list with empty parts - should throw error according to CSS spec
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelectorAll('header, , footer');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
 
             // Test selector list with whitespace-only selector - should throw error
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelectorAll('header,    , footer');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
         });
 
         it("should handle escaped characters in CSS identifiers", () => {
@@ -949,9 +969,9 @@ describe('querySelector', () => {
             createTestStructure();
 
             // Test empty selector - should always throw in all implementations
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelector('');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
 
             // Test potentially malformed selectors - different implementations may handle these differently
             // Some might throw errors, others might return null or handle gracefully
@@ -1132,18 +1152,18 @@ describe('querySelector', () => {
             createTestStructure();
 
             // Test selector list with extra commas at start/end - should throw
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelectorAll(',header, footer');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
 
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelectorAll('header, footer,');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
 
             // Test selector list with multiple consecutive commas - should throw
-            assert.throws(() => {
+            assertDOMError(() => {
                 rootElement.querySelectorAll('header,, footer');
-            }, { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'Error', number: 20024 });
 
             // Test selector with complex spacing around commas
             const complexSpacing = rootElement.querySelectorAll('header    ,     footer    ,     main');
@@ -1729,26 +1749,38 @@ describe('querySelector', () => {
             container.appendChild(undefinedElem);
             rootElement.appendChild(container);
 
+            // The DOM renders a selector with String(selector) -- false ->
+            // "false", null -> "null"; fibjs keeps the declared String type of
+            // matches(String selector), so a non string selector is a
+            // TypeError. The helper asserts whichever behavior applies.
+            function matchesSelector(element, selector) {
+                if (isBrowser)
+                    return element.matches(selector);
+
+                assert.throws(() => element.matches(selector), { name: 'TypeError', number: 20005 });
+                return true;
+            }
+
             // Test boolean false
             const falseElement = container.querySelector('false');
             assert.notEqual(falseElement, null);
-            assert.equal(falseElement.matches(false), true);  // false -> "false"
-            assert.equal(falseElement.matches(['false']), true);  // array -> "false"
+            assert.equal(matchesSelector(falseElement, false), true);  // false -> "false"
+            assert.equal(matchesSelector(falseElement, ['false']), true);  // array -> "false"
 
             // Test boolean true
             const trueElement = container.querySelector('true');
             assert.notEqual(trueElement, null);
-            assert.equal(trueElement.matches(true), true);  // true -> "true"
+            assert.equal(matchesSelector(trueElement, true), true);  // true -> "true"
 
             // Test null
             const nullElement = container.querySelector('null');
             assert.notEqual(nullElement, null);
-            assert.equal(nullElement.matches(null), true);  // null -> "null"
+            assert.equal(matchesSelector(nullElement, null), true);  // null -> "null"
 
             // Test undefined
             const undefinedElement = container.querySelector('undefined');
             assert.notEqual(undefinedElement, null);
-            assert.equal(undefinedElement.matches(undefined), true);  // undefined -> "undefined"
+            assert.equal(matchesSelector(undefinedElement, undefined), true);  // undefined -> "undefined"
         });
 
         it('should return true when element matches selector', () => {

@@ -48,13 +48,7 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
     return isolate->m_topSandbox->require(id, s_root, retVal, true);
 }
 
-result_t global_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return http_base::fetch(url, opts, retVal, ac);
-}
-
-result_t global_base::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
+result_t global_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return http_base::fetch(request, opts, retVal, ac);

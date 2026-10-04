@@ -8,7 +8,7 @@ interface PerformanceObserver : object
 
      @param callback the callback function called when a new performance entry is added to the performance buffer of the browser
     */
-    PerformanceObserver(Function callback);
+    PerformanceObserver(Function(PerformanceObserverEntryList list) callback);
 
     /*! @brief Registers the observed resource types 
 
@@ -26,5 +26,5 @@ interface PerformanceObserver : object
     /*! @brief Gets the entries of the observed resource types
      @return returns the entries of the observed resource types
     */
-    NArray takeRecords();
+    PerformanceEntry[] takeRecords();
 };

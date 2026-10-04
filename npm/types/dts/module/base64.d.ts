@@ -24,13 +24,13 @@
  */
 declare module 'base64' {
     /**
-     * @description Encodes data in base64 format
-     * 	 @param data the data to encode
-     * 	 @param url specifies whether to use url-safe character encoding
-     * 	 @return returns the encoded string
+     * @description Encodes data in base64 format; a string data is encoded as utf8
+     *      @param data the data to encode, a string is encoded as utf8
+     *      @param url specifies whether to use url-safe character encoding
+     *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer, url?: boolean): string;
+    function encode(data: Class_Buffer | string, url?: boolean): string;
 
     /**
      * @description Decodes a string into binary data in base64 format

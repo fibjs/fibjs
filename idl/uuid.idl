@@ -50,11 +50,11 @@ module uuid
     static Buffer parse(String uuid);
 
     /*! @brief Converts a binary array to a uuid string
-     @param arr the array or Buffer containing the uuid binary data; its length must be at least 16 bytes
+     @param arr the array, Buffer or binary string containing the uuid binary data; its length must be at least 16 bytes
      @param offset optional; the starting offset of the uuid data in the array, default 0
      @return returns the converted uuid string
      */
-    static String stringify(Buffer arr, Integer offset = 0);
+    static String stringify(Buffer|String arr, Integer offset = 0);
 
     /*! @brief Creates a uuid using a timestamp
      @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
@@ -62,19 +62,12 @@ module uuid
      */
     static String v1(Object options = {});
 
-    /*! @brief Creates a uuid with an MD5 namespace (binary namespace format)
+    /*! @brief Creates a uuid with an MD5 namespace
      @param name the name to use
-     @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
      @return returns a generated uuid string
      */
-    static String v3(String name, Buffer ns);
-
-    /*! @brief Creates a uuid with an MD5 namespace (string format)
-     @param name the name to use
-     @param ns the namespace UUID string, or use a predefined namespace
-     @return returns a generated uuid string
-     */
-    static String v3(String name, String ns);
+    static String v3(String name, Buffer|String ns);
 
     /*! @brief Creates a uuid using random numbers
      @param options optional parameter object; supports the following properties: random (Buffer, random numbers), rng (Function, random number generator)
@@ -82,19 +75,12 @@ module uuid
      */
     static String v4(Object options = {});
 
-    /*! @brief Creates a uuid with a SHA1 namespace (binary namespace format)
+    /*! @brief Creates a uuid with a SHA1 namespace
      @param name the name to use
-     @param ns the binary representation of the namespace UUID; its length must be 16 bytes
+     @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
      @return returns a generated uuid string
      */
-    static String v5(String name, Buffer ns);
-
-    /*! @brief Creates a uuid with a SHA1 namespace (string format)
-     @param name the name to use
-     @param ns the namespace UUID string, or use a predefined namespace
-     @return returns a generated uuid string
-     */
-    static String v5(String name, String ns);
+    static String v5(String name, Buffer|String ns);
 
     /*! @brief Gets the version number of the uuid
      @param uuid the uuid string to check

@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/PerformanceEntry.d.ts" />
 /**
  * @description performance basic performance monitoring module
  *
@@ -38,15 +39,6 @@ declare module 'performance' {
 
     /**
      * @description Creates a performance measure
-     *      @param name the measure name
-     *      @param startMark the start mark name; if empty, uses the process start time
-     *      @param endMark the end mark name; if empty, uses the current time
-     *
-     */
-    function measure(name: string, startMark?: string, endMark?: string): void;
-
-    /**
-     * @description Creates a performance measure
      *
      *      options is an object containing the following properties:
      *       - detail: additional information
@@ -61,17 +53,26 @@ declare module 'performance' {
     function measure(name: string, options?: FIBJS.GeneralObject): void;
 
     /**
+     * @description Creates a performance measure
+     *      @param name the measure name
+     *      @param startMark the start mark name; if empty, uses the process start time
+     *      @param endMark the end mark name; if empty, uses the current time
+     *
+     */
+    function measure(name: string, startMark?: string, endMark?: string): void;
+
+    /**
      * @description Gets all performance entries
      *      @return returns all performance entries
      */
-    function getEntries(): any[];
+    function getEntries(): Class_PerformanceEntry[];
 
     /**
      * @description Gets all performance entries
      *      @param type the entry type
      *      @return returns all performance entries
      */
-    function getEntriesByType(type: string): any[];
+    function getEntriesByType(type: string): Class_PerformanceEntry[];
 
     /**
      * @description Gets all performance entries
@@ -79,7 +80,7 @@ declare module 'performance' {
      *      @param type the entry type
      *      @return returns all performance entries
      */
-    function getEntriesByName(name: string, type?: string): any[];
+    function getEntriesByName(name: string, type?: string): Class_PerformanceEntry[];
 
     /**
      * @description Marks resource timing (compatibility no-op)

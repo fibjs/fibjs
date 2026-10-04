@@ -48,22 +48,12 @@ declare class Class_XmlDocument extends Class_XmlNode {
     constructor(type?: string);
 
     /**
-     * @description Forms the document by parsing an XML/HTML string; multilingual text is not supported
-     *      @param source the XML/HTML text to parse, depending on the type when the document was created
+     * @description Forms the document by parsing XML/HTML data
+     *      @param source the XML/HTML data to parse, depending on the type when the document was created; a string is encoded as utf8
      *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
-    load(source: string, options?: FIBJS.GeneralObject): void;
-
-    /**
-     * @description Forms the document by parsing binary XML/HTML data and converts automatically according to the language
-     *      @param source the XML/HTML text to parse, depending on the type when the document was created
-     *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *
-     */
-    load(source: Class_Buffer, options?: FIBJS.GeneralObject): void;
-
-    load(source: string | Class_Buffer, options?: FIBJS.GeneralObject): void;
+    load(source: Class_Buffer | string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Returns the encoding used for the document (at parse time)

@@ -23,63 +23,63 @@ class assert_strict_base : public object_base {
 public:
     // assert_strict_base
     static result_t get_AssertionError(v8::Local<v8::Function>& retVal);
-    static result_t _function(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t notOk(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t equal(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t strictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t deepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t deepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t match(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg);
-    static result_t doesNotMatch(exlib::string actual, v8::Local<v8::RegExp> expected, exlib::string msg);
-    static result_t closeTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, exlib::string msg);
-    static result_t notCloseTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, exlib::string msg);
-    static result_t lessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notLessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t greaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t notGreaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
-    static result_t exist(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t notExist(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isTrue(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotTrue(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isFalse(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotFalse(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNull(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotNull(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isUndefined(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isDefined(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isFunction(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotFunction(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isObject(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotObject(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isArray(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotArray(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isString(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotString(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNumber(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotNumber(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isBoolean(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t isNotBoolean(v8::Local<v8::Value> actual, exlib::string msg);
-    static result_t typeOf(v8::Local<v8::Value> actual, exlib::string type, exlib::string msg);
-    static result_t notTypeOf(v8::Local<v8::Value> actual, exlib::string type, exlib::string msg);
-    static result_t property(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, exlib::string msg);
-    static result_t notProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, exlib::string msg);
-    static result_t deepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, exlib::string msg);
-    static result_t notDeepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, exlib::string msg);
-    static result_t propertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
-    static result_t propertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
-    static result_t deepPropertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
-    static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
-    static result_t throws(v8::Local<v8::Function> block, exlib::string msg);
-    static result_t throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg);
-    static result_t doesNotThrow(v8::Local<v8::Function> block, exlib::string msg);
-    static result_t rejects(v8::Local<v8::Function> block, exlib::string msg, v8::Local<v8::Promise>& retVal);
-    static result_t rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg, v8::Local<v8::Promise>& retVal);
-    static result_t rejects(v8::Local<v8::Promise> result, exlib::string msg, v8::Local<v8::Promise>& retVal);
-    static result_t rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> error, exlib::string msg, v8::Local<v8::Promise>& retVal);
+    static result_t _function(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t notOk(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t equal(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t strictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t deepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t deepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t match(exlib::string actual, v8::Local<v8::RegExp> expected, v8::Local<v8::Value> msg);
+    static result_t doesNotMatch(exlib::string actual, v8::Local<v8::RegExp> expected, v8::Local<v8::Value> msg);
+    static result_t closeTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, v8::Local<v8::Value> msg);
+    static result_t notCloseTo(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> delta, v8::Local<v8::Value> msg);
+    static result_t lessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notLessThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t greaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t notGreaterThan(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
+    static result_t exist(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t notExist(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isTrue(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotTrue(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isFalse(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotFalse(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNull(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotNull(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isUndefined(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isDefined(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isFunction(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotFunction(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isObject(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotObject(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isArray(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotArray(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isString(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotString(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNumber(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotNumber(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isBoolean(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t isNotBoolean(v8::Local<v8::Value> actual, v8::Local<v8::Value> msg);
+    static result_t typeOf(v8::Local<v8::Value> actual, exlib::string type, v8::Local<v8::Value> msg);
+    static result_t notTypeOf(v8::Local<v8::Value> actual, exlib::string type, v8::Local<v8::Value> msg);
+    static result_t property(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> msg);
+    static result_t notProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> msg);
+    static result_t deepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> msg);
+    static result_t notDeepProperty(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> msg);
+    static result_t propertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, v8::Local<v8::Value> msg);
+    static result_t propertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, v8::Local<v8::Value> msg);
+    static result_t deepPropertyVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, v8::Local<v8::Value> msg);
+    static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, v8::Local<v8::Value> msg);
+    static result_t throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg);
+    static result_t throws(v8::Local<v8::Function> block, v8::Local<v8::Value> msg);
+    static result_t doesNotThrow(v8::Local<v8::Function> block, v8::Local<v8::Value> msg);
+    static result_t rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
     static result_t ifError(v8::Local<v8::Value> object);
 
 public:
@@ -247,7 +247,7 @@ inline void assert_strict_base::s__function(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(2, 0);
 
     OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = _function(v0, v1);
 
@@ -261,7 +261,7 @@ inline void assert_strict_base::s_static_notOk(const v8::FunctionCallbackInfo<v8
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = notOk(v0, v1);
 
@@ -276,7 +276,7 @@ inline void assert_strict_base::s_static_equal(const v8::FunctionCallbackInfo<v8
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = equal(v0, v1, v2);
 
@@ -291,7 +291,7 @@ inline void assert_strict_base::s_static_notEqual(const v8::FunctionCallbackInfo
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notEqual(v0, v1, v2);
 
@@ -306,7 +306,7 @@ inline void assert_strict_base::s_static_strictEqual(const v8::FunctionCallbackI
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = strictEqual(v0, v1, v2);
 
@@ -321,7 +321,7 @@ inline void assert_strict_base::s_static_notStrictEqual(const v8::FunctionCallba
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notStrictEqual(v0, v1, v2);
 
@@ -336,7 +336,7 @@ inline void assert_strict_base::s_static_deepEqual(const v8::FunctionCallbackInf
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = deepEqual(v0, v1, v2);
 
@@ -351,7 +351,7 @@ inline void assert_strict_base::s_static_notDeepEqual(const v8::FunctionCallback
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notDeepEqual(v0, v1, v2);
 
@@ -366,7 +366,7 @@ inline void assert_strict_base::s_static_deepStrictEqual(const v8::FunctionCallb
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = deepStrictEqual(v0, v1, v2);
 
@@ -381,7 +381,7 @@ inline void assert_strict_base::s_static_notDeepStrictEqual(const v8::FunctionCa
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notDeepStrictEqual(v0, v1, v2);
 
@@ -396,7 +396,7 @@ inline void assert_strict_base::s_static_match(const v8::FunctionCallbackInfo<v8
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::RegExp>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = match(v0, v1, v2);
 
@@ -411,7 +411,7 @@ inline void assert_strict_base::s_static_doesNotMatch(const v8::FunctionCallback
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::RegExp>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = doesNotMatch(v0, v1, v2);
 
@@ -427,7 +427,7 @@ inline void assert_strict_base::s_static_closeTo(const v8::FunctionCallbackInfo<
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = closeTo(v0, v1, v2, v3);
 
@@ -443,7 +443,7 @@ inline void assert_strict_base::s_static_notCloseTo(const v8::FunctionCallbackIn
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = notCloseTo(v0, v1, v2, v3);
 
@@ -458,7 +458,7 @@ inline void assert_strict_base::s_static_lessThan(const v8::FunctionCallbackInfo
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = lessThan(v0, v1, v2);
 
@@ -473,7 +473,7 @@ inline void assert_strict_base::s_static_notLessThan(const v8::FunctionCallbackI
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notLessThan(v0, v1, v2);
 
@@ -488,7 +488,7 @@ inline void assert_strict_base::s_static_greaterThan(const v8::FunctionCallbackI
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = greaterThan(v0, v1, v2);
 
@@ -503,7 +503,7 @@ inline void assert_strict_base::s_static_notGreaterThan(const v8::FunctionCallba
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notGreaterThan(v0, v1, v2);
 
@@ -517,7 +517,7 @@ inline void assert_strict_base::s_static_exist(const v8::FunctionCallbackInfo<v8
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = exist(v0, v1);
 
@@ -531,7 +531,7 @@ inline void assert_strict_base::s_static_notExist(const v8::FunctionCallbackInfo
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = notExist(v0, v1);
 
@@ -545,7 +545,7 @@ inline void assert_strict_base::s_static_isTrue(const v8::FunctionCallbackInfo<v
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isTrue(v0, v1);
 
@@ -559,7 +559,7 @@ inline void assert_strict_base::s_static_isNotTrue(const v8::FunctionCallbackInf
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotTrue(v0, v1);
 
@@ -573,7 +573,7 @@ inline void assert_strict_base::s_static_isFalse(const v8::FunctionCallbackInfo<
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isFalse(v0, v1);
 
@@ -587,7 +587,7 @@ inline void assert_strict_base::s_static_isNotFalse(const v8::FunctionCallbackIn
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotFalse(v0, v1);
 
@@ -601,7 +601,7 @@ inline void assert_strict_base::s_static_isNull(const v8::FunctionCallbackInfo<v
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNull(v0, v1);
 
@@ -615,7 +615,7 @@ inline void assert_strict_base::s_static_isNotNull(const v8::FunctionCallbackInf
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotNull(v0, v1);
 
@@ -629,7 +629,7 @@ inline void assert_strict_base::s_static_isUndefined(const v8::FunctionCallbackI
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isUndefined(v0, v1);
 
@@ -643,7 +643,7 @@ inline void assert_strict_base::s_static_isDefined(const v8::FunctionCallbackInf
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isDefined(v0, v1);
 
@@ -657,7 +657,7 @@ inline void assert_strict_base::s_static_isFunction(const v8::FunctionCallbackIn
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isFunction(v0, v1);
 
@@ -671,7 +671,7 @@ inline void assert_strict_base::s_static_isNotFunction(const v8::FunctionCallbac
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotFunction(v0, v1);
 
@@ -685,7 +685,7 @@ inline void assert_strict_base::s_static_isObject(const v8::FunctionCallbackInfo
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isObject(v0, v1);
 
@@ -699,7 +699,7 @@ inline void assert_strict_base::s_static_isNotObject(const v8::FunctionCallbackI
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotObject(v0, v1);
 
@@ -713,7 +713,7 @@ inline void assert_strict_base::s_static_isArray(const v8::FunctionCallbackInfo<
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isArray(v0, v1);
 
@@ -727,7 +727,7 @@ inline void assert_strict_base::s_static_isNotArray(const v8::FunctionCallbackIn
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotArray(v0, v1);
 
@@ -741,7 +741,7 @@ inline void assert_strict_base::s_static_isString(const v8::FunctionCallbackInfo
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isString(v0, v1);
 
@@ -755,7 +755,7 @@ inline void assert_strict_base::s_static_isNotString(const v8::FunctionCallbackI
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotString(v0, v1);
 
@@ -769,7 +769,7 @@ inline void assert_strict_base::s_static_isNumber(const v8::FunctionCallbackInfo
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNumber(v0, v1);
 
@@ -783,7 +783,7 @@ inline void assert_strict_base::s_static_isNotNumber(const v8::FunctionCallbackI
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotNumber(v0, v1);
 
@@ -797,7 +797,7 @@ inline void assert_strict_base::s_static_isBoolean(const v8::FunctionCallbackInf
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isBoolean(v0, v1);
 
@@ -811,7 +811,7 @@ inline void assert_strict_base::s_static_isNotBoolean(const v8::FunctionCallback
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = isNotBoolean(v0, v1);
 
@@ -826,7 +826,7 @@ inline void assert_strict_base::s_static_typeOf(const v8::FunctionCallbackInfo<v
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = typeOf(v0, v1, v2);
 
@@ -841,7 +841,7 @@ inline void assert_strict_base::s_static_notTypeOf(const v8::FunctionCallbackInf
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notTypeOf(v0, v1, v2);
 
@@ -856,7 +856,7 @@ inline void assert_strict_base::s_static_property(const v8::FunctionCallbackInfo
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = property(v0, v1, v2);
 
@@ -871,7 +871,7 @@ inline void assert_strict_base::s_static_notProperty(const v8::FunctionCallbackI
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notProperty(v0, v1, v2);
 
@@ -886,7 +886,7 @@ inline void assert_strict_base::s_static_deepProperty(const v8::FunctionCallback
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = deepProperty(v0, v1, v2);
 
@@ -901,7 +901,7 @@ inline void assert_strict_base::s_static_notDeepProperty(const v8::FunctionCallb
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = notDeepProperty(v0, v1, v2);
 
@@ -917,7 +917,7 @@ inline void assert_strict_base::s_static_propertyVal(const v8::FunctionCallbackI
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = propertyVal(v0, v1, v2, v3);
 
@@ -933,7 +933,7 @@ inline void assert_strict_base::s_static_propertyNotVal(const v8::FunctionCallba
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = propertyNotVal(v0, v1, v2, v3);
 
@@ -949,7 +949,7 @@ inline void assert_strict_base::s_static_deepPropertyVal(const v8::FunctionCallb
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = deepPropertyVal(v0, v1, v2, v3);
 
@@ -965,7 +965,7 @@ inline void assert_strict_base::s_static_deepPropertyNotVal(const v8::FunctionCa
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Value>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(exlib::string, 3, "");
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = deepPropertyNotVal(v0, v1, v2, v3);
 
@@ -976,20 +976,20 @@ inline void assert_strict_base::s_static_throws(const v8::FunctionCallbackInfo<v
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = throws(v0, v1);
-
     METHOD_OVER(3, 2);
 
     ARG(v8::Local<v8::Function>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = throws(v0, v1, v2);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+
+    hr = throws(v0, v1);
 
     METHOD_VOID();
 }
@@ -1001,7 +1001,7 @@ inline void assert_strict_base::s_static_doesNotThrow(const v8::FunctionCallback
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = doesNotThrow(v0, v1);
 
@@ -1014,25 +1014,18 @@ inline void assert_strict_base::s_static_rejects(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = rejects(v0, v1, vr);
-
     METHOD_OVER(3, 2);
 
     ARG(v8::Local<v8::Function>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = rejects(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Promise>, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
     hr = rejects(v0, v1, vr);
 
@@ -1040,9 +1033,16 @@ inline void assert_strict_base::s_static_rejects(const v8::FunctionCallbackInfo<
 
     ARG(v8::Local<v8::Promise>, 0);
     ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = rejects(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Promise>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+
+    hr = rejects(v0, v1, vr);
 
     METHOD_RETURN();
 }

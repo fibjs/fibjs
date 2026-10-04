@@ -36,7 +36,7 @@ public:
     virtual result_t save(exlib::string fname, AsyncEvent* ac);
     virtual result_t get_time(date_t& retVal);
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal);
-    virtual result_t get_nodes(obj_ptr<NArray>& retVal);
+    virtual result_t get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal);
 
 private:
     void fill_nodes();
@@ -45,7 +45,8 @@ private:
     const v8::HeapSnapshot* m_snapshot;
     date_t m_d;
     std::unordered_map<int32_t, int32_t> _nodes;
-    obj_ptr<NArray> m_nodes;
+    std::vector<obj_ptr<HeapGraphNode_base>> m_nodes;
+    bool m_nodes_filled = false;
 };
 
 class HeapGraphNodeProxy : public HeapGraphNode_base {
@@ -63,12 +64,13 @@ public:
     virtual result_t get_description(exlib::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
-    virtual result_t get_childs(obj_ptr<NArray>& retVal);
+    virtual result_t get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>& retVal);
 
 private:
     weak_ptr<HeapSnapshotProxy> m_snapshot;
     const v8::HeapGraphNode* m_node;
-    obj_ptr<NArray> m_childs;
+    std::vector<obj_ptr<HeapGraphEdge_base>> m_childs;
+    bool m_childs_filled = false;
 };
 
 class HeapGraphEdgeProxy : public HeapGraphEdge_base {

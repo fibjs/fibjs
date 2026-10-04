@@ -13,17 +13,10 @@
 declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver
+     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
      *
      */
-    kill(signal: number): void;
-
-    /**
-     * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver
-     *
-     */
-    kill(signal?: string): void;
+    kill(signal?: string | number): void;
 
     /**
      * @description Waits for the process this object refers to to exit and returns the exit code
@@ -148,55 +141,65 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the process exit event, equivalent to on("exit", func);
+     *      @param code the exit code, null when the process was killed by a signal
+     *      @param signal the signal name, null when the process exited normally
+     *
      */
-    on(event: "exit", listener: ()=>void): this;
+    on(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    once(event: "exit", listener: ()=>void): this;
+    once(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    off(event: "exit", listener: ()=>void): this;
+    off(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    addListener(event: "exit", listener: ()=>void): this;
+    addListener(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    removeListener(event: "exit", listener: ()=>void): this;
+    removeListener(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    addEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "exit", listener: (code: any, signal: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "exit", listener: (code: any, signal: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "exit", listener: ()=>void): this;
+    prependListener(event: "exit", listener: (code: any, signal: any)=>void): this;
 
-    prependOnceListener(event: "exit", listener: ()=>void): this;
+    prependOnceListener(event: "exit", listener: (code: any, signal: any)=>void): this;
 
     /**
      * @description Queries and binds the process exit event, equivalent to on("exit", func);
+     *      @param code the exit code, null when the process was killed by a signal
+     *      @param signal the signal name, null when the process exited normally
+     *
      */
-    onexit: (()=>void) | null;
+    onexit: ((code: any, signal: any)=>void) | null;
 
     /**
      * @description Queries and binds the child process message event, equivalent to on("message", func);
+     *      @param msg the decoded message sent by the child process
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (msg: any)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (msg: any)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (msg: any)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (msg: any)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (msg: any)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (msg: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (msg: any)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (msg: any)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (msg: any)=>void): this;
 
     /**
      * @description Queries and binds the child process message event, equivalent to on("message", func);
+     *      @param msg the decoded message sent by the child process
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((msg: any)=>void) | null;
 
     /**
      * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);
@@ -264,39 +267,39 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      */
     unref(): Class_ChildProcess;
 
-    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
     off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
     removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -312,17 +315,10 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver
+     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
      *
      */
-    kill(signal: number): void;
-
-    /**
-     * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver
-     *
-     */
-    kill(signal?: string): void;
+    kill(signal?: string | number): void;
 
     /**
      * @description Waits for the process this object refers to to exit and returns the exit code
@@ -445,13 +441,18 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the process exit event, equivalent to on("exit", func);
+     *      @param code the exit code, null when the process was killed by a signal
+     *      @param signal the signal name, null when the process exited normally
+     *
      */
-    onexit: (()=>void) | null;
+    onexit: ((code: any, signal: any)=>void) | null;
 
     /**
      * @description Queries and binds the child process message event, equivalent to on("message", func);
+     *      @param msg the decoded message sent by the child process
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((msg: any)=>void) | null;
 
     /**
      * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);

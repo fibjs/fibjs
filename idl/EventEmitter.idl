@@ -54,7 +54,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object on(Value ev, Function func);
+    Object on(Value ev, Function(...args) func);
 
     /*! @brief Binds an event handler to the object
     @param map the event mapping; object property names are used as event names and property values as event handler functions
@@ -67,7 +67,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object addListener(Value ev, Function func);
+    Object addListener(Value ev, Function(...args) func);
 
     /*! @brief Binds an event handler to the object
     @param map the event mapping; object property names are used as event names and property values as event handler functions
@@ -85,14 +85,14 @@ interface EventEmitter : object
     @param options the options of the event handler
     @return returns the event object itself for chaining
     */
-    Object addEventListener(Value ev, Function func, Object options = {});
+    Object addEventListener(Value ev, Function(...args) func, Object options = {});
 
     /*! @brief Binds an event handler to the start of the object's handler queue
     @param ev the event name to bind
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object prependListener(Value ev, Function func);
+    Object prependListener(Value ev, Function(...args) func);
 
     /*! @brief Binds an event handler to the start of the object's handler queue
     @param map the event mapping; object property names are used as event names and property values as event handler functions
@@ -105,7 +105,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object once(Value ev, Function func);
+    Object once(Value ev, Function(...args) func);
 
     /*! @brief Binds a one-time event handler to the object; the one-time handler is triggered only once
     @param map the event mapping; object property names are used as event names and property values as event handler functions
@@ -118,7 +118,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object prependOnceListener(Value ev, Function func);
+    Object prependOnceListener(Value ev, Function(...args) func);
 
     /*! @brief Binds an event handler to the start of the object's handler queue
     @param map the event mapping; object property names are used as event names and property values as event handler functions
@@ -131,7 +131,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object off(Value ev, Function func);
+    Object off(Value ev, Function(...args) func);
 
     /*! @brief Removes all functions from the object's handler queue
     @param ev the event name to unbind
@@ -150,7 +150,7 @@ interface EventEmitter : object
     @param func the event handler function
     @return returns the event object itself for chaining
    */
-    Object removeListener(Value ev, Function func);
+    Object removeListener(Value ev, Function(...args) func);
 
     /*! @brief Removes all functions from the object's handler queue
     @param ev the event name to unbind
@@ -170,7 +170,7 @@ interface EventEmitter : object
     @param options the options of the event handler
     @return returns the event object itself for chaining
     */
-    Object removeEventListener(Value ev, Function func, Object options = {});
+    Object removeEventListener(Value ev, Function(...args) func, Object options = {});
 
     /*! @brief Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
     @param ev the event name to remove
@@ -239,7 +239,7 @@ interface EventEmitter : object
     @param func the handler for the abort event
     @return returns a Disposable object containing a `[Symbol.dispose]` method
    */
-    static Object addAbortListener(EventEmitter signal, Function func);
+    static Object addAbortListener(EventEmitter signal, Function(Object ev) func);
 
     /*! @brief Creates a Promise that resolves after the specified event is triggered once
 

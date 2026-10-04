@@ -854,6 +854,35 @@ describe("vm", () => {
             assert.equal(global.a, 100);
         });
 
+        it("runInContext rejects a context that is not a context", () => {
+            // the object alternative reports the invalid parameter type
+            assert.throws(() => vm.runInContext("1 + 1", {}), { number: 20003 });
+        });
+
+        it("runInThisContext takes a file name or an options object", () => {
+            assert.strictEqual(vm.runInThisContext("1 + 1", "union.js"), 2);
+            assert.strictEqual(vm.runInThisContext("1 + 1", { filename: "union.js" }), 2);
+        });
+
+        it("runInContext and runInNewContext take a file name or an options object", () => {
+            const ctx = vm.createContext({ a: 1 });
+
+            assert.strictEqual(vm.runInContext("a + 1", ctx, "union-ctx.js"), 2);
+            assert.strictEqual(vm.runInContext("a + 1", ctx, { filename: "union-ctx.js" }), 2);
+            assert.strictEqual(vm.runInNewContext("a + 1", { a: 2 }, "union-new.js"), 3);
+            assert.strictEqual(vm.runInNewContext("a + 1", { a: 2 }, { filename: "union-new.js" }), 3);
+        });
+
+        it("rejects a running option that is neither an object nor a file name", () => {
+            const ctx = vm.createContext({});
+
+            [123, [1], true].forEach((opts) => {
+                assert.throws(() => vm.runInContext("1", ctx, opts), { number: 20005 });
+                assert.throws(() => vm.runInNewContext("1", {}, opts), { number: 20005 });
+                assert.throws(() => vm.runInThisContext("1", opts), { number: 20005 });
+            });
+        });
+
         it("runInNewContext", () => {
             const o = {
                 a: 100,

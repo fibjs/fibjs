@@ -1,5 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/PerformanceObserverEntryList.d.ts" />
+/// <reference path="../interface/PerformanceEntry.d.ts" />
 /**
  * @description The PerformanceObserver interface is an interface for observing performance entries
  *
@@ -13,7 +15,7 @@ declare class Class_PerformanceObserver extends Class_object {
      *      @param callback the callback function called when a new performance entry is added to the performance buffer of the browser
      *
      */
-    constructor(callback: (...args: any[])=>any);
+    constructor(callback: (list: Class_PerformanceObserverEntryList)=>void);
 
     /**
      * @description Registers the observed resource types
@@ -37,7 +39,7 @@ declare class Class_PerformanceObserver extends Class_object {
      *      @return returns the entries of the observed resource types
      *
      */
-    takeRecords(): any[];
+    takeRecords(): Class_PerformanceEntry[];
 
 }
 

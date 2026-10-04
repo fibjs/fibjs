@@ -23,17 +23,10 @@ declare class Class_AbortController extends Class_object {
 
     /**
      * @description Aborts one or more Web requests
-     *      @param reason an optional string describing the reason for aborting the request
+     *      @param reason the reason for aborting the request: a string, or a value of any type
      *
      */
-    abort(reason?: string): void;
-
-    /**
-     * @description Aborts one or more Web requests
-     *      @param reason a value of any type describing the reason for aborting the request
-     *
-     */
-    abort(reason: any): void;
+    abort(reason?: string | any): void;
 
 }
 

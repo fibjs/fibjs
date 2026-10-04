@@ -403,7 +403,9 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         if (IsEmpty(v))
             continue;
 
-        hr = GetArgumentValue(isolate, v, vs);
+        // node renders every environment value (and name) as its string form:
+        // spawn(cmd, [], { env: { COUNT_LEN: 500 } }) passes "500"
+        hr = GetDOMStringValue(v, vs);
         if (hr < 0)
             return hr;
 
@@ -461,9 +463,13 @@ result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
 
     _args[0] = (char*)m_command.c_str();
     for (i = 0; i < len; i++) {
-        hr = GetArgumentValue(isolate, JSValue(args->Get(context, i)), argStr[i]);
-        if (hr < 0)
-            return hr;
+        JSValue v = args->Get(context, i);
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        // node renders every argument with String(): spawn(cmd, ['-e', 42])
+        // passes "42", null passes "null"
+        argStr[i] = isolate->toString(v);
 
         _args[i + 1] = (char*)argStr[i].c_str();
     }
@@ -602,17 +608,25 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     if (abortSignal) {
         AbortSignal* signal = abortSignal.As<AbortSignal>();
         if (signal->is_aborted()) {
-            kill("SIGTERM");
+            kill(exlib::string("SIGTERM"));
         } else {
             this->Ref();
             signal->addAbortCallback([this]() {
-                kill("SIGTERM");
+                kill(exlib::string("SIGTERM"));
                 Unref();
             });
         }
     }
 
     return hr;
+}
+
+result_t ChildProcess::kill(Union_kill_signal signal)
+{
+    if (std::holds_alternative<int32_t>(signal))
+        return kill(std::get<int32_t>(signal));
+
+    return kill(std::get<exlib::string>(signal));
 }
 
 result_t ChildProcess::kill(int32_t signal)

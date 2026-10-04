@@ -57,7 +57,7 @@ module coroutine
      @param args variable argument sequence, passed to the function inside the fiber
      @return returns the fiber object
      */
-    static Fiber start(Function func, ...args);
+    static Fiber start(Function(...args) func, ...args);
 
     /*! @brief Runs a set of functions in parallel and waits for the results
 
@@ -76,7 +76,7 @@ module coroutine
      @param fibers limits the number of concurrent fibers; the default is -1, which uses as many fibers as there are datas
      @return returns an array of function results
      */
-    static Array parallel(Array datas, Function func, Integer fibers = -1);
+    static Array parallel(Array datas, Function(Value data) => Value func, Integer fibers = -1);
 
     /*! @brief Runs a function in parallel multiple times and waits for the results
 
@@ -86,7 +86,7 @@ module coroutine
      @param fibers limits the number of concurrent fibers; the default is -1, which uses as many fibers as there are functions
      @return returns an array of function results
      */
-    static Array parallel(Function func, Integer num, Integer fibers = -1);
+    static Array parallel(Function(Integer index) => Value func, Integer num, Integer fibers = -1);
 
     /*! @brief Runs a set of functions in parallel and waits for the results
 

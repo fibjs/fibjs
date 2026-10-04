@@ -23,7 +23,7 @@ public:
 public:
     // TextEncoder_base
     virtual result_t encode(exlib::string data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal);
-    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, v8::Local<v8::Object>& retVal);
+    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, obj_ptr<TextEncoder_base::EncodeIntoType>& retVal);
     virtual result_t get_encoding(exlib::string& retVal);
 
 private:
@@ -49,7 +49,7 @@ public:
 
 public:
     // TextDecoder_base
-    virtual result_t decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal);
+    virtual result_t decode(Union_decode_data data, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t decode(exlib::string& retVal);
     virtual result_t get_encoding(exlib::string& retVal);
     virtual result_t get_fatal(bool& retVal);

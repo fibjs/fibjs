@@ -1588,4 +1588,47 @@ describe('Buffer', () => {
             assert.strictEqual(buf.hexSlice(0, 3), '616263');
         });
     });
+
+    describe('value and fill argument dispatch', () => {
+        it('indexOf/lastIndexOf take a number, a string, a buffer and a Uint8Array', () => {
+            const buf = Buffer.from([0x61, 0x62, 0x63, 0x61]);
+
+            assert.strictEqual(buf.indexOf(0x61), 0);
+            assert.strictEqual(buf.lastIndexOf(0x61), 3);
+            assert.strictEqual(buf.indexOf('bc'), 1);
+            assert.strictEqual(buf.indexOf(Buffer.from('ca')), 2);
+            assert.strictEqual(buf.indexOf(new Uint8Array([0x63])), 2);
+            assert.strictEqual(buf.lastIndexOf(new Uint8Array([0x61])), 3);
+            assert.strictEqual(buf.indexOf(0x7a), -1);
+
+            // an array is not one of the accepted value types, as in node
+            assert.throws(() => buf.indexOf([0x63]), (e) => e.code === 'ERR_INVALID_ARG_TYPE');
+        });
+
+        it('the native entries take the same value forms', () => {
+            const buf = Buffer.from('abc');
+
+            // the native entries are internal, non-enumerable statics
+            assert.strictEqual(Buffer.native_indexOf.call(buf, 0x62), 1);
+            assert.strictEqual(Buffer.native_lastIndexOf.call(buf, 'c'), 2);
+            assert.strictEqual(Buffer.native_indexOf.call(buf, Buffer.from('bc')), 1);
+            assert.strictEqual(Buffer.native_indexOf.call(buf, new Uint8Array([0x62])), 1);
+        });
+
+        it('fill takes a string, a buffer and an integer', () => {
+            assert.strictEqual(Buffer.alloc(4).fill('a').toString(), 'aaaa');
+            assert.strictEqual(Buffer.alloc(4).fill(Buffer.from('xy')).toString(), 'xyxy');
+            assert.strictEqual(Buffer.alloc(4).fill(new Uint8Array([1, 2])).toString('hex'),
+                '01020102');
+            assert.strictEqual(Buffer.alloc(4).fill(5, 1, 3).toString('hex'), '00050500');
+            assert.strictEqual(Buffer.alloc(4).fill('ab', 'hex').toString('hex'), 'abababab');
+        });
+
+        it('alloc takes the same fill forms', () => {
+            assert.strictEqual(Buffer.alloc(4).toString('hex'), '00000000');
+            assert.strictEqual(Buffer.alloc(4, 5).toString('hex'), '05050505');
+            assert.strictEqual(Buffer.alloc(4, Buffer.from('xy')).toString('hex'), '78797879');
+            assert.strictEqual(Buffer.alloc(4, 'ab').toString('hex'), '61626162');
+        });
+    });
 });

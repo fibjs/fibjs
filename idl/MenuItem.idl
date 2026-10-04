@@ -25,6 +25,8 @@ interface MenuItem : EventEmitter
     /*! @brief Submenu. */
     readonly Menu submenu;
 
-    /*! @brief Click event handler of the menu item. */
-    event click();
+    /*! @brief Click event handler of the menu item.
+     @param ev the event object, carrying the clicked menu item
+     */
+    event click(Object ev);
 };

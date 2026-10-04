@@ -27,9 +27,8 @@ class util_base : public object_base {
 
 public:
     // util_base
-    static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t format(OptArgs args, exlib::string& retVal);
-    static result_t formatWithOptions(v8::Local<v8::Object> options, exlib::string fmt, OptArgs args, exlib::string& retVal);
+    static result_t formatWithOptions(v8::Local<v8::Object> options, v8::Local<v8::Value> fmt, OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t parseEnv(exlib::string content, v8::Local<v8::Object>& retVal);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
@@ -320,13 +319,6 @@ inline void util_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = format(v0, v1, vr);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -345,7 +337,7 @@ inline void util_base::s_static_formatWithOptions(const v8::FunctionCallbackInfo
     METHOD_OVER(-1, 2);
 
     ARG(v8::Local<v8::Object>, 0);
-    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Value>, 1);
     ARG_LIST(2);
 
     hr = formatWithOptions(v0, v1, v2, vr);

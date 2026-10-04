@@ -52,12 +52,12 @@ declare module 'msgpack' {
     function encode(data: any): Class_Buffer;
 
     /**
-     * @description Decodes a string into a variable using msgpack
-     * 	 @param data the binary data to decode
-     * 	 @return returns the decoded variable
+     * @description Decodes a string into a variable using msgpack; a string data is encoded as utf8
+     *      @param data the binary data to decode, a string is encoded as utf8
+     *      @return returns the decoded variable
      *
      */
-    function decode(data: Class_Buffer): any;
+    function decode(data: Class_Buffer | string): any;
 
 }
 

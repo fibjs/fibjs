@@ -52,6 +52,9 @@ class global_base : public object_base {
     DECLARE_CLASS(global_base);
 
 public:
+    using Union_fetch_request = std::variant<obj_ptr<HttpRequest_base>, exlib::string>;
+
+public:
     // global_base
     static result_t get_global(v8::Local<v8::Object>& retVal);
     static result_t get_globalThis(v8::Local<v8::Object>& retVal);
@@ -65,11 +68,10 @@ public:
     static result_t clearHrInterval(v8::Local<v8::Value> t);
     static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
     static result_t clearImmediate(v8::Local<v8::Value> t);
-    static result_t btoa(exlib::string data, exlib::string& retVal);
-    static result_t atob(exlib::string data, exlib::string& retVal);
+    static result_t btoa(v8::Local<v8::Value> data, exlib::string& retVal);
+    static result_t atob(v8::Local<v8::Value> data, exlib::string& retVal);
     static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
-    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    static result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t queueMicrotask(v8::Local<v8::Function> callback);
 
 public:
@@ -103,8 +105,7 @@ public:
     static void s_static_queueMicrotask(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(global_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE3(global_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(global_base, fetch, Union_fetch_request, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -393,7 +394,7 @@ inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = btoa(v0, vr);
 
@@ -408,7 +409,7 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = atob(v0, vr);
 
@@ -439,23 +440,13 @@ inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_fetch_request, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_fetch(v0, v1, cb, args);
     else
         hr = ac_fetch(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<HttpRequest_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_fetch(v0.get(), v1, cb, args);
-    else
-        hr = ac_fetch(v0.get(), v1, vr);
 
     ASYNC_METHOD_RETURN();
 }

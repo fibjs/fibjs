@@ -21,9 +21,12 @@ class msgpack_base : public object_base {
     DECLARE_CLASS(msgpack_base);
 
 public:
+    using Union_decode_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // msgpack_base
     static result_t encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& retVal);
-    static result_t decode(Buffer_base* data, v8::Local<v8::Value>& retVal);
+    static result_t decode(Union_decode_data data, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -86,9 +89,9 @@ inline void msgpack_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_decode_data, 0);
 
-    hr = decode(v0.get(), vr);
+    hr = decode(v0, vr);
 
     METHOD_RETURN();
 }

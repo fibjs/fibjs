@@ -28,12 +28,12 @@
  */
 declare module 'hex' {
     /**
-     * @description Encodes data in hex format
-     * 	 @param data the data to encode
-     * 	 @return returns the encoded string
+     * @description Encodes data in hex format; a string data is encoded as utf8
+     *      @param data the data to encode, a string is encoded as utf8
+     *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer): string;
+    function encode(data: Class_Buffer | string): string;
 
     /**
      * @description Decodes a string into binary data in hex format

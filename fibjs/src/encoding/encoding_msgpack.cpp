@@ -197,7 +197,25 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
     return 0;
 }
 
-result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
+// the buffer form of the merged decode below
+static result_t msgpack_decode_buffer(Buffer_base* data, v8::Local<v8::Value>& retVal);
+
+result_t msgpack_base::decode(Union_decode_data data, v8::Local<v8::Value>& retVal)
+{
+    if (std::holds_alternative<exlib::string>(data)) {
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return msgpack_decode_buffer(buf, retVal);
+    }
+
+    return msgpack_decode_buffer(std::get<obj_ptr<Buffer_base>>(data), retVal);
+}
+
+static result_t msgpack_decode_buffer(Buffer_base* data, v8::Local<v8::Value>& retVal)
 {
     class MsgpackUnPacker {
     public:

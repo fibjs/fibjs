@@ -50,7 +50,7 @@ interface AsyncLocalStorage : object
 
      @return returns a function that takes a callback and executes it in the captured context
     */
-    static Function snapshot();
+    static Function(Function(...args) => Value callback, ...args) => Value snapshot();
 
     /*! @brief Binds a function to the current asynchronous context
 
@@ -70,7 +70,7 @@ interface AsyncLocalStorage : object
      @param fn the function to bind
      @return returns a new function bound to the current context
     */
-    static Function bind(Function fn);
+    static Function(...args) => Value bind(Function(...args) => Value fn);
 
     /*! @brief Disables the current AsyncLocalStorage instance
 
@@ -126,7 +126,7 @@ interface AsyncLocalStorage : object
      @param args the parameters passed to the callback function
      @return returns the return value of the callback function
     */
-    Value run(Value store, Function callback, ...args);
+    Value run(Value store, Function(...args) => Value callback, ...args);
 
     /*! @brief Temporarily exits the current asynchronous context to execute a callback function
 
@@ -148,5 +148,5 @@ interface AsyncLocalStorage : object
      @param args the parameters passed to the callback function
      @return returns the return value of the callback function
     */
-    Value exit(Function callback, ...args);
+    Value exit(Function(...args) => Value callback, ...args);
 };

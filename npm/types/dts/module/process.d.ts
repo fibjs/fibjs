@@ -73,7 +73,7 @@ declare module 'process' {
     /**
      * @description Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment
      */
-    const execArgv: any[];
+    const execArgv: string[];
 
     /**
      * @description Returns the fibjs version string
@@ -108,7 +108,11 @@ declare module 'process' {
     /**
      * @description Returns the release metadata of the current build; name is set to 'node'
      */
-    const release: FIBJS.GeneralObject;
+    const release: {
+        name: string;
+        sourceUrl: string;
+        venderUrl: string;
+    };
 
     /**
      * @description Title of the current process, fixed to 'fibjs'
@@ -147,19 +151,11 @@ declare module 'process' {
 
     /**
      * @description Changes the current umask; not supported on Windows
-     *      @param mask specifies the new mask
+     *      @param mask the new mask: a number, or an octal string (e.g: "0664")
      *      @return returns the previous mask
      *
      */
-    function umask(mask: number): number;
-
-    /**
-     * @description Changes the current umask; not supported on Windows
-     *      @param mask specifies the new mask as an octal string (e.g: "0664")
-     *      @return returns the previous mask
-     *
-     */
-    function umask(mask: string): number;
+    function umask(mask: string | number): number;
 
     /**
      * @description Returns the current umask; not supported on Windows
@@ -253,7 +249,10 @@ declare module 'process' {
      *      @return returns the time report
      *
      */
-    function cpuUsage(previousValue?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function cpuUsage(previousValue?: FIBJS.GeneralObject): {
+        user: number;
+        system: number;
+    };
 
     /**
      * @description Queries the memory usage report of the current process
@@ -302,7 +301,24 @@ declare module 'process' {
      *      @return returns an object containing the resource usage report
      *
      */
-    function resourceUsage(): FIBJS.GeneralObject;
+    function resourceUsage(): {
+        userCPUTime: number;
+        systemCPUTime: number;
+        maxRSS: number;
+        sharedMemorySize: number;
+        unsharedDataSize: number;
+        unsharedStackSize: number;
+        minorPageFault: number;
+        majorPageFault: number;
+        swappedOut: number;
+        fsRead: number;
+        fsWrite: number;
+        ipcSent: number;
+        ipcReceived: number;
+        signalsCount: number;
+        voluntaryContextSwitches: number;
+        involuntaryContextSwitches: number;
+    };
 
     /**
      * @description Starts a fiber to execute the specified function
@@ -312,7 +328,7 @@ declare module 'process' {
      *      @param args variable argument sequence, passed to the function inside the fiber
      *
      */
-    function nextTick(func: (...args: any[])=>any, ...args: any[]): void;
+    function nextTick(func: (...args: any[])=>void, ...args: any[]): void;
 
     /**
      * @description Gets the internal module with the specified name
@@ -405,18 +421,10 @@ declare module 'process' {
     /**
      * @description Sends a signal to the specified process
      *      @param pid specifies the process id
-     *      @param signal specifies the signal number to send
+     *      @param signal specifies the signal to send: a number, or a name such as "SIGTERM"; the default is SIGTERM
      *
      */
-    function kill(pid: number, signal: number): void;
-
-    /**
-     * @description Sends a signal to the specified process
-     *      @param pid specifies the process id
-     *      @param signal specifies the signal name to send, the default is SIGTERM
-     *
-     */
-    function kill(pid: number, signal?: string): void;
+    function kill(pid: number, signal?: string | number): void;
 
     /**
      * @description Queries whether the pipe to the parent process is properly connected
@@ -439,41 +447,41 @@ declare module 'process' {
 
     const defaultMaxListeners: number;
 
-    function on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function off(ev: any): FIBJS.GeneralObject;
 
     function off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function removeListener(ev: any): FIBJS.GeneralObject;
 
     function removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
-    function removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     function removeAllListeners(ev: any): FIBJS.GeneralObject;
 
@@ -495,7 +503,7 @@ declare module 'process' {
 
     function emit(ev: any, ...args: any[]): boolean;
 
-    function addAbortListener(signal: Class_EventEmitter, func: (...args: any[])=>any): FIBJS.GeneralObject;
+    function addAbortListener(signal: Class_EventEmitter, func: (ev: FIBJS.GeneralObject)=>void): FIBJS.GeneralObject;
 
     function once(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 

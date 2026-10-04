@@ -9,14 +9,14 @@ declare module 'module' {
      *      @return returns a module require function
      *
      */
-    function createRequire(base: string): (...args: any[])=>any;
+    function createRequire(base: string): (id: string)=>any;
 
     /**
      * !@description Built-in module name list
      *      The built-in module name list. Contains all fibjs built-in module names, and the versions with the node: prefix.
      *
      */
-    const builtinModules: any[];
+    const builtinModules: string[];
 
     /**
      * !@description Enables module compile cache

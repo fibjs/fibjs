@@ -8,6 +8,8 @@
 #pragma once
 
 #include "ifs/HeapGraphNode.h"
+#include "ifs/HeapGraphEdge.h"
+#include <vector>
 #include <v8-profiler.h>
 
 namespace fibjs {
@@ -16,7 +18,7 @@ class HeapSnapshot;
 class HeapGraphNode : public HeapGraphNode_base {
 public:
     HeapGraphNode(int32_t _type, exlib::string& _name, int32_t _id,
-        int32_t _size, NArray* _childs)
+        int32_t _size, std::vector<obj_ptr<HeapGraphEdge_base>> _childs)
         : m_type(_type)
         , m_name(_name)
         , m_id(_id)
@@ -32,7 +34,7 @@ public:
     virtual result_t get_description(exlib::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
-    virtual result_t get_childs(obj_ptr<NArray>& retVal);
+    virtual result_t get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>& retVal);
 
 public:
     static void get_description(HeapGraphNode_base* node, exlib::string& retVal)
@@ -73,6 +75,6 @@ private:
     exlib::string m_name;
     int32_t m_id;
     int32_t m_shallowSize;
-    obj_ptr<NArray> m_childs;
+    std::vector<obj_ptr<HeapGraphEdge_base>> m_childs;
 };
 }

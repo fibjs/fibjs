@@ -87,7 +87,7 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
     return 0;
 }
 
-result_t xml_base::parse(exlib::string source, exlib::string type, v8::Local<v8::Object> options,
+result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Local<v8::Object> options,
     obj_ptr<XmlDocument_base>& retVal)
 {
     bool isXml = type == "text/xml";
@@ -105,26 +105,10 @@ result_t xml_base::parse(exlib::string source, exlib::string type, v8::Local<v8:
     obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
     retVal = doc;
 
-    return doc->load(source, limits);
-}
+    if (std::holds_alternative<exlib::string>(source))
+        return doc->load(std::get<exlib::string>(source), limits);
 
-result_t xml_base::parse(Buffer_base* source, exlib::string type, v8::Local<v8::Object> options,
-    obj_ptr<XmlDocument_base>& retVal)
-{
-    bool isXml = type == "text/xml";
-
-    if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
-
-    XmlParseLimits limits;
-    result_t hr = getParseLimits(options, limits);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
-    retVal = doc;
-
-    return doc->load(source, limits);
+    return doc->load(std::get<obj_ptr<Buffer_base>>(source), limits);
 }
 
 result_t xml_base::serialize(XmlNode_base* node, exlib::string& retVal)
@@ -284,14 +268,17 @@ result_t XmlDocument::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::cloneNode(doc, deep, retVal);
 }
 
-result_t XmlDocument::load(exlib::string source, v8::Local<v8::Object> options)
+result_t XmlDocument::load(Union_load_source source, v8::Local<v8::Object> options)
 {
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);
     if (hr < 0)
         return hr;
 
-    return load(source, limits);
+    if (std::holds_alternative<exlib::string>(source))
+        return load(std::get<exlib::string>(source), limits);
+
+    return load(std::get<obj_ptr<Buffer_base>>(source), limits);
 }
 
 result_t XmlDocument::load(exlib::string source, const XmlParseLimits& limits)
@@ -305,15 +292,6 @@ result_t XmlDocument::load(exlib::string source, const XmlParseLimits& limits)
     return XmlParser::parseHtml(this, source, limits);
 }
 
-result_t XmlDocument::load(Buffer_base* source, v8::Local<v8::Object> options)
-{
-    XmlParseLimits limits;
-    result_t hr = getParseLimits(options, limits);
-    if (hr < 0)
-        return hr;
-
-    return load(source, limits);
-}
 
 result_t XmlDocument::load(Buffer_base* source, const XmlParseLimits& limits)
 {

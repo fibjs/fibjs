@@ -98,7 +98,7 @@ declare module 'registry' {
      *      @return returns all sub keys under the key
      *
      */
-    function listSubKey(root: number, key: string): any[];
+    function listSubKey(root: number, key: string): string[];
 
     /**
      * @description Returns the keys of all data under the specified key
@@ -107,7 +107,7 @@ declare module 'registry' {
      *      @return returns the keys of all data under the key
      *
      */
-    function listValue(root: number, key: string): any[];
+    function listValue(root: number, key: string): string[];
 
     /**
      * @description Queries the value of the specified key
@@ -139,16 +139,6 @@ declare module 'registry' {
     function set(root: number, key: string, value: number, type?: number): void;
 
     /**
-     * @description Sets the specified key to a string
-     *      @param root the registry root to use
-     *      @param key the key to use
-     *      @param value the string to set
-     *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
-     *
-     */
-    function set(root: number, key: string, value: string, type?: number): void;
-
-    /**
      * @description Sets the specified key to a multi-string
      *      @param root the registry root to use
      *      @param key the key to use
@@ -167,6 +157,16 @@ declare module 'registry' {
     function set(root: number, key: string, value: Class_Buffer): void;
 
     /**
+     * @description Sets the specified key to a string
+     *      @param root the registry root to use
+     *      @param key the key to use
+     *      @param value the string to set
+     *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     *
+     */
+    function set(root: number, key: string, value: string, type?: number): void;
+
+    /**
      * @description Sets the specified key to a number
      *      @param root the registry root to use
      *      @param key the key to use
@@ -176,17 +176,6 @@ declare module 'registry' {
      *
      */
     function set(root: number, key: string, name: string, value: number, type?: number): void;
-
-    /**
-     * @description Sets the specified key to a string
-     *      @param root the registry root to use
-     *      @param key the key to use
-     *      @param name the value name to use
-     *      @param value the string to set
-     *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
-     *
-     */
-    function set(root: number, key: string, name: string, value: string, type?: number): void;
 
     /**
      * @description Sets the specified key to a multi-string
@@ -207,6 +196,17 @@ declare module 'registry' {
      *
      */
     function set(root: number, key: string, name: string, value: Class_Buffer): void;
+
+    /**
+     * @description Sets the specified key to a string
+     *      @param root the registry root to use
+     *      @param key the key to use
+     *      @param name the value name to use
+     *      @param value the string to set
+     *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     *
+     */
+    function set(root: number, key: string, name: string, value: string, type?: number): void;
 
     /**
      * @description Checks whether the specified key exists

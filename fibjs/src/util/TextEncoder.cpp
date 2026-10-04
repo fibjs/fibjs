@@ -51,11 +51,8 @@ result_t TextEncoder::encode(exlib::string data, v8::Local<v8::Object> opts, obj
     return encoding_conv(m_codec).encode(data, retVal);
 }
 
-result_t TextEncoder::encodeInto(exlib::string source, Buffer_base* destination, v8::Local<v8::Object>& retVal)
+result_t TextEncoder::encodeInto(exlib::string source, Buffer_base* destination, obj_ptr<TextEncoder_base::EncodeIntoType>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
     Buffer* buf = Buffer::Cast(destination);
     uint8_t* dest = buf->data();
     size_t destLen = buf->length();
@@ -106,11 +103,9 @@ result_t TextEncoder::encodeInto(exlib::string source, Buffer_base* destination,
             read += 1;
     }
 
-    v8::Local<v8::Object> result = v8::Object::New(isolate->m_isolate);
-    result->Set(context, isolate->NewString("read"), v8::Number::New(isolate->m_isolate, (double)read)).IsJust();
-    result->Set(context, isolate->NewString("written"), v8::Number::New(isolate->m_isolate, (double)written)).IsJust();
-
-    retVal = result;
+    retVal = new TextEncoder_base::EncodeIntoType();
+    retVal->read = (double)read;
+    retVal->written = (double)written;
     return 0;
 }
 
@@ -163,12 +158,23 @@ result_t TextDecoder::ensureConverter()
     return 0;
 }
 
-result_t TextDecoder::decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t TextDecoder::decode(Union_decode_data data, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
     // Parse stream option and delegate to C++ API
     bool stream = false;
     GetConfigValue(opts, "stream", stream);
-    return decode(data, !stream, retVal);
+
+    if (std::holds_alternative<exlib::string>(data)) {
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return decode(buf, !stream, retVal);
+    }
+
+    return decode(std::get<obj_ptr<Buffer_base>>(data), !stream, retVal);
 }
 
 result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVal)

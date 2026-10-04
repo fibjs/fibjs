@@ -22,15 +22,17 @@ class vm_base : public object_base {
     DECLARE_CLASS(vm_base);
 
 public:
+    using Union_runInContext_opts = std::variant<v8::Local<v8::Object>, exlib::string>;
+    using Union_runInNewContext_opts = std::variant<v8::Local<v8::Object>, exlib::string>;
+    using Union_runInThisContext_opts = std::variant<v8::Local<v8::Object>, exlib::string>;
+
+public:
     // vm_base
     static result_t createContext(v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal);
     static result_t isContext(v8::Local<v8::Object> contextObject, bool& retVal);
-    static result_t runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal);
-    static result_t runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject, exlib::string filename, v8::Local<v8::Value>& retVal);
-    static result_t runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal);
-    static result_t runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject, exlib::string filename, v8::Local<v8::Value>& retVal);
-    static result_t runInThisContext(exlib::string code, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal);
-    static result_t runInThisContext(exlib::string code, exlib::string filename, v8::Local<v8::Value>& retVal);
+    static result_t runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject, Union_runInContext_opts opts, v8::Local<v8::Value>& retVal);
+    static result_t runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject, Union_runInNewContext_opts opts, v8::Local<v8::Value>& retVal);
+    static result_t runInThisContext(exlib::string code, Union_runInThisContext_opts opts, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -123,15 +125,7 @@ inline void vm_base::s_static_runInContext(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Object>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = runInContext(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 3);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(exlib::string, 2);
+    OPT_ARG(Union_runInContext_opts, 2, v8::Object::New(isolate->m_isolate));
 
     hr = runInContext(v0, v1, v2, vr);
 
@@ -148,15 +142,7 @@ inline void vm_base::s_static_runInNewContext(const v8::FunctionCallbackInfo<v8:
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = runInNewContext(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-    ARG(exlib::string, 2);
+    OPT_ARG(Union_runInNewContext_opts, 2, v8::Object::New(isolate->m_isolate));
 
     hr = runInNewContext(v0, v1, v2, vr);
 
@@ -172,14 +158,7 @@ inline void vm_base::s_static_runInThisContext(const v8::FunctionCallbackInfo<v8
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = runInThisContext(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    OPT_ARG(Union_runInThisContext_opts, 1, v8::Object::New(isolate->m_isolate));
 
     hr = runInThisContext(v0, v1, vr);
 

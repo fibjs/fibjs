@@ -26,12 +26,12 @@ As can be seen, with multibase we encoded the original binary data as a base32 s
  */
 module multibase
 {
-    /*! @brief Encodes data in multibase format
-	 @param data the data to encode
-	 @param codec the encoding to use
-	 @return returns the encoded string
-	 */
-    static String encode(Buffer data, String codec);
+    /*! @brief Encodes data in multibase format; a string data is encoded as utf8
+     @param data the data to encode, a string is encoded as utf8
+     @param codec the encoding to use, a string is encoded as utf8
+     @return returns the encoded string
+     */
+    static String encode(Buffer|String data, String codec);
 
     /*! @brief Decodes a string into binary data in multibase format
 	 @param data the string to decode

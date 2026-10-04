@@ -182,11 +182,22 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
     return ToString(isolate, str);
 }
 
-// INTERIM (commit split): the strict String conversion (an object converts
-// only through a toString() of its own, a primitive has no string form)
-// switches with the Buffer/encoding family, whose corpus carries the callers
-// that hand a real string form. Until then the lenient pass keeps rendering
-// through ToString().
+// an object converts to a string only through a toString() of its own: the
+// generic Object.prototype / Array.prototype rendering ("[object Object]",
+// "1,2") is a tag rather than a conversion, and a native object carries none
+// (its generic toString reports an error, see object_base::toString)
+static bool has_own_toString(Isolate* isolate, v8::Local<v8::Value> v)
+{
+    v8::Local<v8::Object> o = v.As<v8::Object>();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::String> key = isolate->NewString("toString");
+
+    v8::Local<v8::Value> fn;
+    if (!o->Get(context, key).ToLocal(&fn) || !fn->IsFunction())
+        return false;
+
+    return o->HasOwnProperty(context, key).FromMaybe(false);
+}
 
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
 {
@@ -199,18 +210,48 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
         str = v.As<v8::String>();
     else if (v->IsStringObject())
         str = v.As<v8::StringObject>()->ValueOf();
-    else if (!bStrict) {
+    else {
+        // the first pass takes real strings only. The second pass renders a
+        // value through a toString() of its own: a JS object that brings one
+        // (`{toString: () => "x"}`) and a native object whose class implements
+        // one (a URL renders its href, a Buffer its bytes, an element its
+        // markup) convert through it, which is what a string argument means in
+        // JavaScript.
+        //
+        // everything else is not a string: primitives (1 is not "1", null is
+        // not "null"), objects that only inherit the generic Object.prototype /
+        // Array.prototype rendering ("[object Object]", "1,2"), and native
+        // objects whose class implements no toString -- the generic
+        // object_base::toString reports an error instead of turning into a
+        // plausible looking "[object Name]", so those have no string form
+        if (bStrict || !v->IsObject())
+            return CALL_E_TYPEMISMATCH;
+
+        // a read that fails inside the object -- a getter that throws -- is the
+        // JavaScript error of that getter, not a type error of the argument
+        v8::TryCatch trycatch(isolate->m_isolate);
+
         if (v->IsDate())
             str = v.As<v8::Date>()->ToISOString();
-        else if (IsNativeObject(v))
-            // a native object renders through the DOMString form: its own
-            // toString(), or its class tag when the class implements none
-            // (object_base::toString reports an error now)
-            return GetDOMStringValue(v, n);
-        else
+        else if (IsJSBuffer(v) || has_own_toString(isolate, v))
+            // a buffer renders its bytes as utf8, which is what handing a
+            // buffer to a string parameter has always meant here
             str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
-    } else
-        return CALL_E_TYPEMISMATCH;
+        else if (IsNativeObject(v)) {
+            str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
+
+            if (trycatch.HasCaught() || str.IsEmpty())
+                return CALL_E_TYPEMISMATCH;
+        } else {
+            if (trycatch.HasCaught()) {
+                trycatch.ReThrow();
+
+                return CALL_E_JAVASCRIPT;
+            }
+
+            return CALL_E_TYPEMISMATCH;
+        }
+    }
 
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;

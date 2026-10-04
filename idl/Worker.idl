@@ -113,12 +113,18 @@ interface Worker : EventEmitter
     /*! @brief Queries and binds the worker ready event, equivalent to on("online", func); */
     event online();
 
-    /*! @brief Queries and binds the postMessage message event, equivalent to on("message", func); */
-    event message();
+    /*! @brief Queries and binds the postMessage message event, equivalent to on("message", func);
+     @param data the message sent by the worker thread
+     */
+    event message(Value data);
 
-    /*! @brief Queries and binds the error message event, equivalent to on("error", func); */
-    event error();
+    /*! @brief Queries and binds the error message event, equivalent to on("error", func);
+     @param err the uncaught error of the worker thread
+     */
+    event error(Value err);
 
-    /*! @brief Queries and binds the worker exit event, equivalent to on("exit", func); */
-    event exit();
+    /*! @brief Queries and binds the worker exit event, equivalent to on("exit", func);
+     @param code the exit code of the worker thread
+     */
+    event exit(Integer code);
 };

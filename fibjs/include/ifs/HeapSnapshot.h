@@ -27,7 +27,7 @@ public:
     virtual result_t save(exlib::string fname, AsyncEvent* ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t get_nodes(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -160,7 +160,7 @@ inline void HeapSnapshot_base::s_get_root(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HeapSnapshot_base::s_get_nodes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<HeapGraphNode_base>> vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
     METHOD_ENTER();

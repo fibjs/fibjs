@@ -148,8 +148,11 @@ public:
 public:
     // AbortController_base
     virtual result_t get_signal(obj_ptr<AbortSignal_base>& retVal);
-    virtual result_t abort(exlib::string reason);
-    virtual result_t abort(v8::Local<v8::Value> reason);
+    virtual result_t abort(Union_abort_reason reason);
+    // the merged entry dispatches to the per-type implementations: a string is
+    // the reason text, any other value is taken as it is
+    result_t abort(exlib::string reason);
+    result_t abort(v8::Local<v8::Value> reason);
 
 private:
     obj_ptr<AbortSignal> m_signal;

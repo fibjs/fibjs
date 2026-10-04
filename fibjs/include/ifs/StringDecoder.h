@@ -21,13 +21,18 @@ class StringDecoder_base : public object_base {
     DECLARE_CLASS(StringDecoder_base);
 
 public:
+    using Union_end_buf = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_write_buf = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_text_buf = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_fillLast_buf = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // StringDecoder_base
     static result_t _new(exlib::string encoding, obj_ptr<StringDecoder_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t end(exlib::string& retVal) = 0;
-    virtual result_t end(Buffer_base* buf, exlib::string& retVal) = 0;
-    virtual result_t write(Buffer_base* buf, exlib::string& retVal) = 0;
-    virtual result_t text(Buffer_base* buf, int32_t offset, exlib::string& retVal) = 0;
-    virtual result_t fillLast(Buffer_base* buf, exlib::string& retVal) = 0;
+    virtual result_t end(Union_end_buf buf, exlib::string& retVal) = 0;
+    virtual result_t write(Union_write_buf buf, exlib::string& retVal) = 0;
+    virtual result_t text(Union_text_buf buf, int32_t offset, exlib::string& retVal) = 0;
+    virtual result_t fillLast(Union_fillLast_buf buf, exlib::string& retVal) = 0;
     virtual result_t get_lastNeed(int32_t& retVal) = 0;
     virtual result_t set_lastNeed(int32_t newVal) = 0;
     virtual result_t get_lastTotal(int32_t& retVal) = 0;
@@ -131,15 +136,11 @@ inline void StringDecoder_base::s_end(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = pInst->end(vr);
+    OPT_ARG(Union_end_buf, 0, exlib::string(""));
 
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->end(v0.get(), vr);
+    hr = pInst->end(v0, vr);
 
     METHOD_RETURN();
 }
@@ -153,9 +154,9 @@ inline void StringDecoder_base::s_write(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_write_buf, 0);
 
-    hr = pInst->write(v0.get(), vr);
+    hr = pInst->write(v0, vr);
 
     METHOD_RETURN();
 }
@@ -169,10 +170,10 @@ inline void StringDecoder_base::s_text(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_text_buf, 0);
     ARG(int32_t, 1);
 
-    hr = pInst->text(v0.get(), v1, vr);
+    hr = pInst->text(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -186,9 +187,9 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_fillLast_buf, 0);
 
-    hr = pInst->fillLast(v0.get(), vr);
+    hr = pInst->fillLast(v0, vr);
 
     METHOD_RETURN();
 }

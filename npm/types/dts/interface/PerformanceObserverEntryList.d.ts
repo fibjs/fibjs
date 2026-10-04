@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/PerformanceEntry.d.ts" />
 /**
  * @description The PerformanceObserverEntryList object contains the detailed information of the performance entries observed by the PerformanceObserver
  */
@@ -9,7 +10,7 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
      *      @return an array of PerformanceEntry objects
      *
      */
-    getEntries(): any[];
+    getEntries(): Class_PerformanceEntry[];
 
     /**
      * @description Queries the detailed information of performance entries by name
@@ -18,7 +19,7 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
      *      @return an array of PerformanceEntry objects
      *
      */
-    getEntriesByName(name: string, entryType?: string): any[];
+    getEntriesByName(name: string, entryType?: string): Class_PerformanceEntry[];
 
     /**
      * @description Queries the detailed information of performance entries by type
@@ -26,7 +27,7 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
      *      @return an array of PerformanceEntry objects
      *
      */
-    getEntriesByType(entryType: string): any[];
+    getEntriesByType(entryType: string): Class_PerformanceEntry[];
 
 }
 

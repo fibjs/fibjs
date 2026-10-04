@@ -21,42 +21,12 @@ interface Buffer : object
     /*! @brief Binary data buffer object, used for io read/write data handling */
     static Buffer;
 
-    /*! @brief Buffer constructor
-     @param datas the initial data array
-     */
-    Buffer(Array datas);
-
-    /*! @brief Buffer constructor
-     @param datas the initial data array
-     @param byteOffset the data start position, starting from 0
-     @param length the data length, default -1, meaning all remaining data
-     */
-    Buffer(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
-
-    /*! @brief Buffer constructor
-     @param datas the initial data array
-     @param byteOffset the data start position, starting from 0
-     @param length the data length, default -1, meaning all remaining data
-     */
-    Buffer(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
-
-    /*! @brief Buffer constructor
-     @param str the initial string, written in utf-8 format; if omitted, an empty object is created
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
-     */
-    Buffer(String str, String codec = "utf8");
-
-    /*! @brief Buffer constructor
-     @param size the initial buffer size
-     */
-    Buffer(Integer size = 0);
-
     /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
      @param size the required length of the buffer
-     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
+     @param fill the value to pre-fill the new buffer with: an integer byte, or a Buffer pattern. Default: 0
      @return the filled new Buffer object
     */
-    static Buffer alloc(Integer size, Integer fill = 0);
+    static Buffer alloc(Integer size, Buffer|Integer fill = 0);
 
     /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
      @param size the required length of the buffer
@@ -65,13 +35,6 @@ interface Buffer : object
      @return the filled new Buffer object
     */
     static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
-
-    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
-     @param size the required length of the buffer
-     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
-     @return the filled new Buffer object
-    */
-    static Buffer alloc(Integer size, Buffer fill);
 
     /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
      @param size the required length of the buffer
@@ -105,15 +68,7 @@ interface Buffer : object
      @param length the data length, default -1, meaning all remaining data
      @return returns a Buffer instance
      */
-    static Buffer from(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
-
-    /*! @brief Creates a Buffer object from another Buffer
-     @param datas the initial data array
-     @param byteOffset the data start position, starting from 0
-     @param length the data length, default -1, meaning all remaining data
-     @return returns a Buffer instance
-     */
-    static Buffer from(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
+    static Buffer from(ArrayBuffer|Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
 
     /*! @brief Creates a Buffer object from a string
      @param str the initial string, written in utf-8 format; if omitted, an empty object is created
@@ -143,28 +98,16 @@ interface Buffer : object
 
     /*! @brief Returns the actual byte length of the string
      @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+     @return returns the actual byte length
+     */
+    static Integer byteLength(ArrayBuffer|Uint8Array|Buffer str);
+
+    /*! @brief Returns the actual byte length of the string
+     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
      @return returns the actual byte length
      */
     static Integer byteLength(String str, String codec = "utf8");
-
-    /*! @brief Returns the actual byte length of the string
-     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
-     @return returns the actual byte length
-     */
-    static Integer byteLength(ArrayBuffer str);
-
-    /*! @brief Returns the actual byte length of the string
-     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
-     @return returns the actual byte length
-     */
-    static Integer byteLength(Uint8Array str);
-
-    /*! @brief Returns the actual byte length of the string
-     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
-     @return returns the actual byte length
-     */
-    static Integer byteLength(Buffer str);
 
     /*! @brief Compares buf1 and buf2, often used for sorting between Buffer instances. Equivalent to buf1.compare(buf2).
     @param buf1 the buf to compare
@@ -201,20 +144,12 @@ interface Buffer : object
     Integer write(String str, String codec = "utf8");
 
     /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+     @param v the data to fill with: a number is a byte value, a Buffer is a byte pattern to repeat; if offset and end are not specified, the whole buffer is filled
      @param offset the fill start position
      @param end the fill end position
      @return returns the current Buffer object
      */
-    Buffer fill(Integer v, Integer offset = 0, Integer end = -1);
-
-    /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
-     @param offset the fill start position
-     @param end the fill end position
-     @return returns the current Buffer object
-     */
-    Buffer fill(Buffer v, Integer offset = 0, Integer end = -1);
+    Buffer fill(Buffer|Integer v, Integer offset = 0, Integer end = -1);
 
     /*! @brief Fills the Buffer object with the specified data
      @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
@@ -525,46 +460,18 @@ interface Buffer : object
     Integer writeDoubleBE(Number value, Integer offset);
 
     /*! @brief Returns the first position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param v the data to find: a number is a byte value, a string is searched as its utf8 bytes, and a Buffer is a byte sequence; if offset is not specified, the search starts from the beginning
      @param offset the start search position
      @return returns the position found, or -1 if not found
      */
-    Integer indexOf(Integer v, Integer offset = 0);
-
-    /*! @brief Returns the first position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
-     @param offset the start search position
-     @return returns the position found, or -1 if not found
-     */
-    Integer indexOf(Buffer v, Integer offset = 0);
-
-    /*! @brief Returns the first position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
-     @param offset the start search position
-     @return returns the position found, or -1 if not found
-     */
-    Integer indexOf(String v, Integer offset = 0);
+    Integer indexOf(Buffer|String|Integer v, Integer offset = 0);
 
     /*! @brief Returns the last position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
+     @param v the data to find: a number is a byte value, a string is searched as its utf8 bytes, and a Buffer is a byte sequence; if offset is not specified, the search starts from the beginning
      @param offset the start search position
      @return returns the position found, or -1 if not found
      */
-    Integer lastIndexOf(Integer v, Integer offset = -1);
-
-    /*! @brief Returns the last position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
-     @param offset the start search position
-     @return returns the position found, or -1 if not found
-     */
-    Integer lastIndexOf(Buffer v, Integer offset = -1);
-
-    /*! @brief Returns the last position of the specified data in the Buffer
-     @param v the data to find; if offset is not specified, the search starts from the beginning
-     @param offset the start search position
-     @return returns the position found, or -1 if not found
-     */
-    Integer lastIndexOf(String v, Integer offset = -1);
+    Integer lastIndexOf(Buffer|String|Integer v, Integer offset = -1);
 
     /*! @brief Returns a new buffer object containing data from the specified start to the end of the buffer
 
@@ -613,7 +520,7 @@ interface Buffer : object
     /*! @brief Returns an array of all binary data
      @return returns an array containing the object data
     */
-    Array toArray();
+    Integer[] toArray();
 
     /*! @brief Encodes the buffer object content using 16-base (hex) encoding
      @return returns the encoded string

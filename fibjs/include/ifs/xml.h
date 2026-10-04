@@ -24,6 +24,9 @@ class xml_base : public object_base {
     DECLARE_CLASS(xml_base);
 
 public:
+    using Union_parse_source = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     enum {
         C_ELEMENT_NODE = 1,
         C_ATTRIBUTE_NODE = 2,
@@ -41,8 +44,7 @@ public:
 
 public:
     // xml_base
-    static result_t parse(exlib::string source, exlib::string type, v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal);
-    static result_t parse(Buffer_base* source, exlib::string type, v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal);
+    static result_t parse(Union_parse_source source, exlib::string type, v8::Local<v8::Object> options, obj_ptr<XmlDocument_base>& retVal);
     static result_t serialize(XmlNode_base* node, exlib::string& retVal);
 
 public:
@@ -114,19 +116,11 @@ inline void xml_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(3, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_parse_source, 0);
     OPT_ARG(exlib::string, 1, "text/xml");
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     hr = parse(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(exlib::string, 1, "text/xml");
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = parse(v0.get(), v1, v2, vr);
 
     METHOD_RETURN();
 }

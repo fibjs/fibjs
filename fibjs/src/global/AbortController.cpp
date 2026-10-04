@@ -76,6 +76,14 @@ result_t AbortController::get_signal(obj_ptr<AbortSignal_base>& retVal)
     return 0;
 }
 
+result_t AbortController::abort(Union_abort_reason reason)
+{
+    if (std::holds_alternative<exlib::string>(reason))
+        return abort(std::get<exlib::string>(reason));
+
+    return abort(std::get<v8::Local<v8::Value>>(reason));
+}
+
 result_t AbortController::abort(exlib::string reason)
 {
     obj_ptr<AbortSignal_base> retVal;
@@ -88,7 +96,7 @@ result_t AbortController::abort(v8::Local<v8::Value> reason)
     return m_signal->do_abort(reason, retVal);
 }
 
-result_t AbortSignal_base::abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal)
+static result_t abort_signal_string(exlib::string reason, obj_ptr<AbortSignal_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<AbortSignal> signal = new AbortSignal();
@@ -96,12 +104,20 @@ result_t AbortSignal_base::abort(exlib::string reason, obj_ptr<AbortSignal_base>
     return signal->do_abort(reason, retVal);
 }
 
-result_t AbortSignal_base::abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal)
+static result_t abort_signal_value(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<AbortSignal> signal = new AbortSignal();
     signal->holder(isolate);
     return signal->do_abort(reason, retVal);
+}
+
+result_t AbortSignal_base::abort(Union_abort_reason reason, obj_ptr<AbortSignal_base>& retVal)
+{
+    if (std::holds_alternative<exlib::string>(reason))
+        return abort_signal_string(std::get<exlib::string>(reason), retVal);
+
+    return abort_signal_value(std::get<v8::Local<v8::Value>>(reason), retVal);
 }
 
 result_t AbortSignal::do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& retVal)

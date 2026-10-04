@@ -2,16 +2,10 @@
 interface AbortSignal : EventEmitter
 {
     /*! @brief Aborts one or more Web requests
-     @param reason an optional string describing the reason for aborting the request
+     @param reason the reason for aborting the request: a string, or a value of any type
      @return returns an AbortSignal object
     */
-    static AbortSignal abort(String reason = "AbortError");
-
-    /*! @brief Aborts one or more Web requests
-     @param reason a value of any type describing the reason for aborting the request
-     @return returns an AbortSignal object
-    */
-    static AbortSignal abort(Value reason);
+    static AbortSignal abort(String|Value reason = "AbortError");
 
     /*! @brief Creates an AbortSignal that automatically aborts after a timeout
      @param ms timeout in milliseconds
@@ -34,6 +28,8 @@ interface AbortSignal : EventEmitter
     /*! @brief Gets the reason for aborting the request */
     readonly Value reason;
 
-    /*! @brief Event handler triggered when the request is aborted */
-    event abort();
+    /*! @brief Event handler triggered when the request is aborted
+     @param ev the event object, carrying the abort reason
+     */
+    event abort(Object ev);
 };

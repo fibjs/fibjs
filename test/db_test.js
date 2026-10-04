@@ -2545,9 +2545,19 @@ describe("db", () => {
                 clear_db();
             });
 
-            // the rejection of a value that is neither a string nor a buffer
-            // moves with the strict String conversion (the Buffer/encoding
-            // family batch): the lenient pass still renders it through ToString
+            it('rejects a value that is neither a string nor a buffer', () => {
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                assert.throws(() => ldb.has(123), { number: 20005 });
+                assert.throws(() => ldb.has(null), { number: 20005 });
+                assert.throws(() => ldb.has({}), { number: 20005 });
+                assert.throws(() => ldb.set("k", {}), { number: 20005 });
+                assert.throws(() => ldb.get(123), { number: 20005 });
+                assert.throws(() => ldb.remove({}), { number: 20005 });
+
+                ldb.close();
+                clear_db();
+            });
         });
 
         it('break', () => {

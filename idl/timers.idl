@@ -55,7 +55,7 @@ module timers
      @param args additional arguments passed to the callback function, optional
      @return returns a timer object
      */
-    static Timer setTimeout(Function callback, Number timeout = 1, ...args);
+    static Timer setTimeout(Function(...args) callback, Number timeout = 1, ...args);
 
     /*! @brief Clears the specified timer
 
@@ -72,7 +72,7 @@ module timers
      @param args additional arguments passed to the callback function, optional
      @return returns a timer object
     */
-    static Timer setInterval(Function callback, Number timeout, ...args);
+    static Timer setInterval(Function(...args) callback, Number timeout, ...args);
 
     /*! @brief Clears the specified timer
 
@@ -107,7 +107,7 @@ module timers
      @param args additional arguments passed to the callback function, optional
      @return returns a timer object
     */
-    static Timer setHrInterval(Function callback, Number timeout, ...args);
+    static Timer setHrInterval(Function(...args) callback, Number timeout, ...args);
 
     /*! @brief Clears the specified timer
 
@@ -123,7 +123,7 @@ module timers
      @param args additional arguments passed to the callback function, optional
      @return returns a timer object
     */
-    static Timer setImmediate(Function callback, ...args);
+    static Timer setImmediate(Function(...args) callback, ...args);
 
     /*! @brief Clears the specified timer
 
@@ -156,5 +156,5 @@ module timers
      @param args additional arguments passed to the function, optional
      @return returns the execution result of the function
     */
-    static Value call(Function func, Number timeout, ...args);
+    static Value call(Function(...args) => Value func, Number timeout, ...args);
 };

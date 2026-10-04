@@ -21,7 +21,7 @@ class module_base : public object_base {
 public:
     // module_base
     static result_t createRequire(exlib::string base, v8::Local<v8::Function>& retVal);
-    static result_t get_builtinModules(v8::Local<v8::Array>& retVal);
+    static result_t get_builtinModules(std::vector<exlib::string>& retVal);
     static result_t enableCompileCache(exlib::string cacheDir, v8::Local<v8::Object>& retVal);
 
 public:
@@ -82,7 +82,7 @@ inline void module_base::s_static_createRequire(const v8::FunctionCallbackInfo<v
 
 inline void module_base::s_static_get_builtinModules(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_ENTER();
 

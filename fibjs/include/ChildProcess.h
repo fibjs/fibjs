@@ -63,8 +63,11 @@ public:
 
 public:
     // ChildProcess_base
-    virtual result_t kill(int32_t signal);
-    virtual result_t kill(exlib::string signal);
+    virtual result_t kill(Union_kill_signal signal);
+    // the merged entry dispatches to the per-type implementations: a string is
+    // a signal name (SIGTERM), a number the signal number
+    result_t kill(int32_t signal);
+    result_t kill(exlib::string signal);
     virtual result_t join(int32_t& retVal, AsyncEvent* ac);
     virtual result_t get_connected(bool& retVal);
     virtual result_t disconnect();

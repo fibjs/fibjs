@@ -46,9 +46,9 @@ module msgpack
 	 */
     static Buffer encode(Value data);
 
-    /*! @brief Decodes a string into a variable using msgpack
-	 @param data the binary data to decode
-	 @return returns the decoded variable
-	 */
-    static Value decode(Buffer data);
+    /*! @brief Decodes a string into a variable using msgpack; a string data is encoded as utf8
+     @param data the binary data to decode, a string is encoded as utf8
+     @return returns the decoded variable
+     */
+    static Value decode(Buffer|String data);
 };

@@ -342,9 +342,9 @@ describe('crypto', () => {
         });
 
         it("rejects a number, an array, a typed array and a plain object", () => {
-            // INTERIM (commit split): under the lenient String conversion these
-            // render to "1" / "" and fail on the algorithm lookup (20024); the
-            // strict rejection (20005) returns with the Buffer/encoding batch
+            [1, [], new Uint8Array([1]), {}].forEach((v) => {
+                assert.throws(() => crypto.createHash(v), { name: 'TypeError', number: 20005 });
+            });
         });
 
         it("converts a Date to its ISO text before the lookup", () => {
@@ -467,13 +467,10 @@ describe('crypto', () => {
                     const publicKey1 = crypto.createPublicKey(publicKey);
                 }
 
-                // INTERIM (commit split): the strict rejection returns with
-                // the Buffer/encoding batch; the lenient pass renders the key
-                // object and the lookup raises the error below
-                assert.throws(() => crypto.createPrivateKey(crypto.createPublicKey(privatePem)), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createPrivateKey(crypto.createPublicKey(privatePem)), { name: 'TypeError', number: 20005 });
 
                 const privateKey = crypto.createPrivateKey(privatePem);
-                assert.throws(() => crypto.createPrivateKey(privateKey), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createPrivateKey(privateKey), { name: 'TypeError', number: 20005 });
 
                 for (const key of ['', 'foo', null, undefined, true, Boolean]) {
                     assert.throws(() => createPublicKey({ key, format: 'jwk' }), { name: 'ReferenceError' });
@@ -1761,10 +1758,8 @@ describe('crypto', () => {
 
                 [1, [], {}, undefined, null, true, Infinity].forEach((input) => {
                     // node: TypeError, the algorithm must be of type string
-                    // INTERIM (commit split): the strict rejection (20005)
-                    // returns with the Buffer/encoding batch
-                    assert.throws(() => crypto.createSign(input), { name: 'Error', number: 20024 });
-                    assert.throws(() => crypto.createVerify(input), { name: 'Error', number: 20024 });
+                    assert.throws(() => crypto.createSign(input), { name: 'TypeError', number: 20005 });
+                    assert.throws(() => crypto.createVerify(input), { name: 'TypeError', number: 20005 });
                     // assert.throws(() => sign.update(input));
                     // assert.throws(() => verify.update(input));
                     assert.throws(() => sign._write(input, 'utf8', () => { }), { name: 'TypeError' });
@@ -1787,9 +1782,7 @@ describe('crypto', () => {
                 [1, {}, Infinity].forEach((input) => {
                     // node: the signature must be a string or a buffer, an
                     // invalid signature reports the argument error
-                    // INTERIM (commit split): the strict rejection (20005)
-                    // returns with the Buffer/encoding batch
-                    assert.throws(() => verify.verify('test', input), { name: 'Error', number: 20024 });
+                    assert.throws(() => verify.verify('test', input), { name: 'TypeError', number: 20005 });
                 });
 
                 // an array is a valid buffer source, so an empty array is an
@@ -1799,10 +1792,7 @@ describe('crypto', () => {
                 assert.throws(() => crypto.createSign('sha8'), { name: 'Error', number: 20024 });
                 assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem), { name: 'Error', number: 20024 });
 
-                assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'),
-                    // INTERIM (commit split): the strict rejection (20005)
-                    // returns with the Buffer/encoding batch
-                    { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'), { name: 'TypeError', number: 20005 });
 
                 [1, {}, [], true, Infinity].forEach((input) => {
                     const data = Buffer.alloc(1);
@@ -2549,16 +2539,14 @@ describe('crypto', () => {
 
             it("check arguments", () => {
                 // node: TypeError, the algorithm must be of type string
-                // INTERIM (commit split): the strict rejection (20005) returns
-                // with the Buffer/encoding batch
-                assert.throws(() => crypto.createCipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'Error', number: 20024 });
-                assert.throws(() => crypto.createCipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'Error', number: 20024 });
-                assert.throws(() => crypto.createCipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAAD(null), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createCipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createCipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createCipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAAD(null), { name: 'TypeError', number: 20005 });
 
                 // node: TypeError, the algorithm must be of type string
-                assert.throws(() => crypto.createDecipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'Error', number: 20024 });
-                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAuthTag(null), { name: 'Error', number: 20024 });
-                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createDecipheriv(null, Buffer.alloc(32), Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', Buffer.alloc(32), Buffer.alloc(16)).setAuthTag(null), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createDecipheriv('aes-256-cbc', null, Buffer.alloc(16)), { name: 'TypeError', number: 20005 });
             });
 
             it("base64 padding regression", () => {
@@ -2579,12 +2567,9 @@ describe('crypto', () => {
                 assert.throws(() => c.final('xxx'), { name: 'Error', number: 20024 });
 
                 const d = crypto.createDecipheriv('aes-256-cbc', key, iv);
-                // INTERIM (commit split): the OpenSSL reason of the repeated
-                // final() follows the error queue; the final expectation lands
-                // with the Buffer/encoding batch
-                assert.throws(() => d.final('xxx'), (err) => /^ERR_OSSL_/.test(err.code));
-                assert.throws(() => d.final('xxx'), (err) => /^ERR_OSSL_/.test(err.code));
-                assert.throws(() => d.final('xxx'), (err) => /^ERR_OSSL_/.test(err.code));
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
+                assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
             });
 
             it("utf8 encoding", () => {
@@ -2749,10 +2734,8 @@ describe('crypto', () => {
             });
 
             it("invalid cipher name", () => {
-                // INTERIM (commit split): the strict rejection (20005) returns
-                // with the Buffer/encoding batch
-                assert.throws(() => crypto.createCipheriv('aes-127', Buffer.alloc(16), null), { name: 'Error', number: 20024 });
-                assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(17), null), { name: 'Error', number: 20024 });
+                assert.throws(() => crypto.createCipheriv('aes-127', Buffer.alloc(16), null), { name: 'TypeError', number: 20005 });
+                assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(17), null), { name: 'TypeError', number: 20005 });
             });
         });
 
@@ -2851,10 +2834,7 @@ describe('crypto', () => {
                             assert.equal(msg, test.plain);
                         } else {
                             // Assert that final throws if input data could not be verified!
-                            // INTERIM (commit split): the OpenSSL reason follows the
-                            // error queue; the final expectation lands with the
-                            // Buffer/encoding batch
-                            assert.throws(function () { decrypt.final('ascii'); }, (err) => /^ERR_OSSL_/.test(err.code));
+                            assert.throws(function () { decrypt.final('ascii'); }, { code: 'ERR_OSSL_DIGEST_NOT_ALLOWED' });
                         }
                     }
 
@@ -4554,12 +4534,9 @@ describe('crypto', () => {
     });
 
     it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf2 to crash", () => {
-        // INTERIM (commit split): the strict rejection (20005) returns with the
-        // Buffer/encoding batch; the null arguments render to strings here and
-        // the parameter check below reports the invalid size
         assert.throws(() => {
             crypto.pbkdf2(null, null, 0, -1, 1);
-        }, { name: 'TypeError', number: 20004 })
+        }, { name: 'TypeError', number: 20005 })
     });
 
     it("timingSafeEqual", () => {
@@ -4772,10 +4749,7 @@ describe('crypto', () => {
                     ciphertext.toString('base64')).toString(),
                 'hello');
             assert.throws(() => crypto.privateDecrypt(crypto.createPrivateKey(key), ciphertext.toString('base64')),
-                // INTERIM (commit split): the string reaches the Buffer
-                // parameter while the conversion is lenient; the strict
-                // rejection (20005) returns with the Buffer/encoding batch
-                { name: 'Error', number: 20024 });
+                { name: 'TypeError', number: 20005 });
         });
 
         if (isFibjs) it('bbs key and message unions accept buffers, key objects and strings', () => {

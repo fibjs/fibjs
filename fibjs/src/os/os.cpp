@@ -348,18 +348,15 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     }
 }
 
-result_t os_base::loadavg(v8::Local<v8::Array>& retVal)
+result_t os_base::loadavg(std::vector<double>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
     double avg[3] = { 0, 0, 0 };
 
     uv_loadavg(avg);
 
-    retVal = v8::Array::New(isolate->m_isolate, 3);
-    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0])).IsJust();
-    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1])).IsJust();
-    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2])).IsJust();
+    retVal.push_back(avg[0]);
+    retVal.push_back(avg[1]);
+    retVal.push_back(avg[2]);
 
     return 0;
 }

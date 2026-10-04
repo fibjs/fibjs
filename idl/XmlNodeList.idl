@@ -19,22 +19,22 @@ interface XmlNodeList : object
     /*! @brief Queries the iterator of the elements of the current object
      @return returns the iterator of the elements of the current object
     */
-    Iterator @iterator();
+    Iterator<XmlNode> @iterator();
 
     /*! @brief Calls the given callback function once for each node in the list
      @param callback the callback function called for each node, receiving three parameters: the current node, the index and the node list itself
     */
-    forEach(Function callback);
+    forEach(Function(XmlNode node, Integer index, XmlNodeList list) callback);
 
     /*! @brief Returns an iterator for traversing the index of each node in the node list
      @return returns the index iterator
     */
-    Iterator keys();
+    Iterator<Number> keys();
 
     /*! @brief Returns an iterator for traversing the value of each node in the node list
      @return returns the value iterator
     */
-    Iterator values();
+    Iterator<XmlNode> values();
 
     /*! @brief Returns an iterator for traversing the [index, value] pairs of each node in the node list
      @return returns the key-value pair iterator

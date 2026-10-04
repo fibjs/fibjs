@@ -25,29 +25,65 @@ result_t StringDecoder_base::_new(exlib::string encoding,
     return 0;
 }
 
-result_t StringDecoder::end(exlib::string& retVal)
+
+result_t StringDecoder::end(Union_end_buf buf, exlib::string& retVal)
 {
-    return (this->*m_end1)(retVal);
+    if (std::holds_alternative<exlib::string>(buf)) {
+        obj_ptr<Buffer_base> data;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
+        if (hr < 0)
+            return hr;
+
+        return (this->*m_end2)(data, retVal);
+    }
+
+    return (this->*m_end2)(std::get<obj_ptr<Buffer_base>>(buf), retVal);
 }
 
-result_t StringDecoder::end(Buffer_base* buf, exlib::string& retVal)
+result_t StringDecoder::write(Union_write_buf buf, exlib::string& retVal)
 {
-    return (this->*m_end2)(buf, retVal);
+    if (std::holds_alternative<exlib::string>(buf)) {
+        obj_ptr<Buffer_base> data;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
+        if (hr < 0)
+            return hr;
+
+        return (this->*m_write)(data, retVal);
+    }
+
+    return (this->*m_write)(std::get<obj_ptr<Buffer_base>>(buf), retVal);
 }
 
-result_t StringDecoder::write(Buffer_base* buf, exlib::string& retVal)
+result_t StringDecoder::text(Union_text_buf buf, int32_t i, exlib::string& retVal)
 {
-    return (this->*m_write)(buf, retVal);
+    if (std::holds_alternative<exlib::string>(buf)) {
+        obj_ptr<Buffer_base> data;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
+        if (hr < 0)
+            return hr;
+
+        return (this->*m_text)(data, i, retVal);
+    }
+
+    return (this->*m_text)(std::get<obj_ptr<Buffer_base>>(buf), i, retVal);
 }
 
-result_t StringDecoder::text(Buffer_base* buf, int32_t i, exlib::string& retVal)
+result_t StringDecoder::fillLast(Union_fillLast_buf buf, exlib::string& retVal)
 {
-    return (this->*m_text)(buf, i, retVal);
-}
+    if (std::holds_alternative<exlib::string>(buf)) {
+        obj_ptr<Buffer_base> data;
 
-result_t StringDecoder::fillLast(Buffer_base* buf, exlib::string& retVal)
-{
-    return (this->*m_fillLast)(buf, retVal);
+        result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
+        if (hr < 0)
+            return hr;
+
+        return (this->*m_fillLast)(data, retVal);
+    }
+
+    return (this->*m_fillLast)(std::get<obj_ptr<Buffer_base>>(buf), retVal);
 }
 
 result_t StringDecoder::get_lastNeed(int32_t& retVal)

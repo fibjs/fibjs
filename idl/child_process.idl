@@ -459,5 +459,5 @@ module child_process
     @param options specifies the ssh connection parameters
     @return returns the child process object
    */
-    static Function ssh(String host, Object options = {});
+    static Function(...args) => Value ssh(String host, Object options = {});
 };

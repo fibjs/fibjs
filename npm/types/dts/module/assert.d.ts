@@ -30,7 +30,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function Function(actual?: any, msg?: string): void;
+    function Function(actual?: any, msg?: any): void;
 
     /**
      * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
@@ -47,7 +47,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function fail(msg?: string): void;
+    function fail(msg?: any): void;
 
     /**
      * @description Tests that the value is falsy; the assertion fails if it is true
@@ -55,7 +55,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notOk(actual: any, msg?: string): void;
+    function notOk(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value equals the expected value; the assertion fails if they are not equal
@@ -64,7 +64,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function equal(actual: any, expected: any, msg?: string): void;
+    function equal(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
@@ -73,7 +73,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notEqual(actual: any, expected: any, msg?: string): void;
+    function notEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
@@ -82,7 +82,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function strictEqual(actual: any, expected: any, msg?: string): void;
+    function strictEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
@@ -91,7 +91,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notStrictEqual(actual: any, expected: any, msg?: string): void;
+    function notStrictEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
@@ -100,7 +100,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function deepEqual(actual: any, expected: any, msg?: string): void;
+    function deepEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
@@ -109,7 +109,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notDeepEqual(actual: any, expected: any, msg?: string): void;
+    function notDeepEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
@@ -118,7 +118,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function deepStrictEqual(actual: any, expected: any, msg?: string): void;
+    function deepStrictEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
@@ -127,7 +127,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notDeepStrictEqual(actual: any, expected: any, msg?: string): void;
+    function notDeepStrictEqual(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the string contains the expected string, otherwise the assertion fails
@@ -136,7 +136,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function match(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
+    function match(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
     /**
      * @description Tests that the string does not contain the expected string, otherwise the assertion fails
@@ -145,7 +145,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: string): void;
+    function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
     /**
      * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
@@ -155,7 +155,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function closeTo(actual: any, expected: any, delta: any, msg?: string): void;
+    function closeTo(actual: any, expected: any, delta: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
@@ -165,7 +165,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notCloseTo(actual: any, expected: any, delta: any, msg?: string): void;
+    function notCloseTo(actual: any, expected: any, delta: any, msg?: any): void;
 
     /**
      * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
@@ -174,7 +174,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function lessThan(actual: any, expected: any, msg?: string): void;
+    function lessThan(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not less than the expected value; the assertion fails if it is less
@@ -183,7 +183,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notLessThan(actual: any, expected: any, msg?: string): void;
+    function notLessThan(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
@@ -192,7 +192,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function greaterThan(actual: any, expected: any, msg?: string): void;
+    function greaterThan(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
@@ -201,7 +201,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notGreaterThan(actual: any, expected: any, msg?: string): void;
+    function notGreaterThan(actual: any, expected: any, msg?: any): void;
 
     /**
      * @description Tests that the variable exists; the assertion fails if it is false
@@ -209,7 +209,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function exist(actual: any, msg?: string): void;
+    function exist(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the variable does not exist; the assertion fails if it is true
@@ -217,7 +217,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notExist(actual: any, msg?: string): void;
+    function notExist(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is boolean true, otherwise the assertion fails
@@ -225,7 +225,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isTrue(actual: any, msg?: string): void;
+    function isTrue(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not boolean true, otherwise the assertion fails
@@ -233,7 +233,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotTrue(actual: any, msg?: string): void;
+    function isNotTrue(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is boolean false, otherwise the assertion fails
@@ -241,7 +241,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isFalse(actual: any, msg?: string): void;
+    function isFalse(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not boolean false, otherwise the assertion fails
@@ -249,7 +249,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotFalse(actual: any, msg?: string): void;
+    function isNotFalse(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is Null, otherwise the assertion fails
@@ -257,7 +257,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNull(actual: any, msg?: string): void;
+    function isNull(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not Null, otherwise the assertion fails
@@ -265,7 +265,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotNull(actual: any, msg?: string): void;
+    function isNotNull(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is undefined, otherwise the assertion fails
@@ -273,7 +273,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isUndefined(actual: any, msg?: string): void;
+    function isUndefined(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not undefined, otherwise the assertion fails
@@ -281,7 +281,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isDefined(actual: any, msg?: string): void;
+    function isDefined(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is a function, otherwise the assertion fails
@@ -289,7 +289,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isFunction(actual: any, msg?: string): void;
+    function isFunction(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not a function, otherwise the assertion fails
@@ -297,7 +297,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotFunction(actual: any, msg?: string): void;
+    function isNotFunction(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is an object, otherwise the assertion fails
@@ -305,7 +305,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isObject(actual: any, msg?: string): void;
+    function isObject(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not an object, otherwise the assertion fails
@@ -313,7 +313,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotObject(actual: any, msg?: string): void;
+    function isNotObject(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is an array, otherwise the assertion fails
@@ -321,7 +321,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isArray(actual: any, msg?: string): void;
+    function isArray(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not an array, otherwise the assertion fails
@@ -329,7 +329,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotArray(actual: any, msg?: string): void;
+    function isNotArray(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is a string, otherwise the assertion fails
@@ -337,7 +337,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isString(actual: any, msg?: string): void;
+    function isString(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not a string, otherwise the assertion fails
@@ -345,7 +345,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotString(actual: any, msg?: string): void;
+    function isNotString(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is a number, otherwise the assertion fails
@@ -353,7 +353,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNumber(actual: any, msg?: string): void;
+    function isNumber(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not a number, otherwise the assertion fails
@@ -361,7 +361,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotNumber(actual: any, msg?: string): void;
+    function isNotNumber(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is a boolean, otherwise the assertion fails
@@ -369,7 +369,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isBoolean(actual: any, msg?: string): void;
+    function isBoolean(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is not a boolean, otherwise the assertion fails
@@ -377,7 +377,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function isNotBoolean(actual: any, msg?: string): void;
+    function isNotBoolean(actual: any, msg?: any): void;
 
     /**
      * @description Tests that the value is of the given type, otherwise the assertion fails
@@ -386,7 +386,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function typeOf(actual: any, type: string, msg?: string): void;
+    function typeOf(actual: any, type: string, msg?: any): void;
 
     /**
      * @description Tests that the value is not of the given type, otherwise the assertion fails
@@ -395,7 +395,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notTypeOf(actual: any, type: string, msg?: string): void;
+    function notTypeOf(actual: any, type: string, msg?: any): void;
 
     /**
      * @description Tests that the object contains the specified property, otherwise the assertion fails
@@ -404,7 +404,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function property(object: any, prop: any, msg?: string): void;
+    function property(object: any, prop: any, msg?: any): void;
 
     /**
      * @description Tests that the object does not contain the specified property, otherwise the assertion fails
@@ -413,7 +413,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notProperty(object: any, prop: any, msg?: string): void;
+    function notProperty(object: any, prop: any, msg?: any): void;
 
     /**
      * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
@@ -422,7 +422,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function deepProperty(object: any, prop: any, msg?: string): void;
+    function deepProperty(object: any, prop: any, msg?: any): void;
 
     /**
      * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
@@ -431,7 +431,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function notDeepProperty(object: any, prop: any, msg?: string): void;
+    function notDeepProperty(object: any, prop: any, msg?: any): void;
 
     /**
      * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
@@ -441,7 +441,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function propertyVal(object: any, prop: any, value: any, msg?: string): void;
+    function propertyVal(object: any, prop: any, value: any, msg?: any): void;
 
     /**
      * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
@@ -451,7 +451,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function propertyNotVal(object: any, prop: any, value: any, msg?: string): void;
+    function propertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
     /**
      * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
@@ -461,7 +461,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function deepPropertyVal(object: any, prop: any, value: any, msg?: string): void;
+    function deepPropertyVal(object: any, prop: any, value: any, msg?: any): void;
 
     /**
      * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
@@ -471,15 +471,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function deepPropertyNotVal(object: any, prop: any, value: any, msg?: string): void;
-
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function throws(block: (...args: any[])=>any, msg?: string): void;
+    function deepPropertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
     /**
      * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
@@ -488,7 +480,15 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function throws(block: (...args: any[])=>any, error: any, msg?: string): void;
+    function throws(block: ()=>void, error: any, msg?: any): void;
+
+    /**
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param block the code to test, given as a function
+     *      @param msg the message when the assertion fails
+     *
+     */
+    function throws(block: ()=>void, msg?: any): void;
 
     /**
      * @description Tests that the given code does not throw an error; the assertion fails if it throws
@@ -496,16 +496,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    function doesNotThrow(block: (...args: any[])=>any, msg?: string): void;
-
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(block: (...args: any[])=>any, msg?: string): Promise;
+    function doesNotThrow(block: ()=>void, msg?: any): void;
 
     /**
      * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
@@ -515,16 +506,16 @@ declare module 'assert' {
      *      @return returns a Promise
      *
      */
-    function rejects(block: (...args: any[])=>any, error: any, msg?: string): Promise;
+    function rejects(block: ()=>void, error: any, msg?: any): Promise;
 
     /**
      * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param result the code to test, given as a Promise
+     *      @param block the code to test, given as a function
      *      @param msg the message when the assertion fails
      *      @return returns a Promise
      *
      */
-    function rejects(result: Promise, msg?: string): Promise;
+    function rejects(block: ()=>void, msg?: any): Promise;
 
     /**
      * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
@@ -534,7 +525,16 @@ declare module 'assert' {
      *      @return returns a Promise
      *
      */
-    function rejects(result: Promise, error: any, msg?: string): Promise;
+    function rejects(result: Promise, error: any, msg?: any): Promise;
+
+    /**
+     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+     *      @param result the code to test, given as a Promise
+     *      @param msg the message when the assertion fails
+     *      @return returns a Promise
+     *
+     */
+    function rejects(result: Promise, msg?: any): Promise;
 
     /**
      * @description Throws if the argument is true

@@ -75,8 +75,16 @@ v8::Local<v8::Value> AssertionError(exlib::string operator_, v8::Local<v8::Value
     return e;
 }
 
-static v8::Local<v8::Value> check_error(v8::Local<v8::Value> exp, v8::Local<v8::Value> error, exlib::string operator_, exlib::string message)
+// The message renders any value (assertion messages are output text); an
+// undefined message means "no message". This lenient rendering lives here
+// instead of an IDL String conversion.
+static v8::Local<v8::Value> check_error(v8::Local<v8::Value> exp, v8::Local<v8::Value> error, exlib::string operator_, v8::Local<v8::Value> msg)
 {
+    exlib::string message;
+
+    if (!msg.IsEmpty() && !msg->IsUndefined())
+        GetArgumentValue(Isolate::current(), msg, message);
+
     if (exp.IsEmpty())
         return AssertionError(operator_, v8::Local<v8::Value>(), v8::Local<v8::Value>(), message);
 
@@ -155,7 +163,7 @@ static v8::Local<v8::Value> check_error(v8::Local<v8::Value> exp, v8::Local<v8::
     return v8::Local<v8::Value>();
 }
 
-result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg)
+result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg)
 {
     Isolate* isolate = Isolate::current(block);
     v8::Local<v8::Context> _context = isolate->context();
@@ -181,12 +189,12 @@ result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value>
     return CALL_E_JAVASCRIPT;
 }
 
-result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
+result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value> msg)
 {
     return throws(block, v8::Local<v8::Value>(), msg);
 }
 
-result_t assert_base::doesNotThrow(v8::Local<v8::Function> block, exlib::string msg)
+result_t assert_base::doesNotThrow(v8::Local<v8::Function> block, v8::Local<v8::Value> msg)
 {
     Isolate* isolate = Isolate::current(block);
     bool err;
@@ -223,7 +231,7 @@ static void OnReject(const v8::FunctionCallbackInfo<v8::Value>& args)
     CallbackData* data = static_cast<CallbackData*>(v8::External::Cast(*args.Data())->Value());
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::Value> result = check_error(args[0], data->errorCheck.Get(isolate->m_isolate), "rejects", "");
+    v8::Local<v8::Value> result = check_error(args[0], data->errorCheck.Get(isolate->m_isolate), "rejects", v8::Local<v8::Value>());
     if (result.IsEmpty()) {
         data->resolver.Get(isolate->m_isolate)->Resolve(context, v8::Undefined(isolate->m_isolate));
     } else {
@@ -256,7 +264,7 @@ static void OnReject(const v8::FunctionCallbackInfo<v8::Value>& args)
     delete data;
 }
 
-result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> error, exlib::string msg, v8::Local<v8::Promise>& retVal)
+result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
 {
     Isolate* isolate = Isolate::current(result);
     v8::Local<v8::Context> context = isolate->context();
@@ -264,10 +272,15 @@ result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value
     v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
     retVal = resolver->GetPromise();
 
+    exlib::string message;
+
+    if (!msg.IsEmpty() && !msg->IsUndefined())
+        GetArgumentValue(isolate, msg, message);
+
     auto callbackData = new CallbackData {
         v8::Persistent<v8::Promise::Resolver>(isolate->m_isolate, resolver),
         v8::Persistent<v8::Value>(isolate->m_isolate, error),
-        v8::Persistent<v8::Value>(isolate->m_isolate, AssertionError("rejects", v8::Local<v8::Value>(), v8::Local<v8::Value>(), msg))
+        v8::Persistent<v8::Value>(isolate->m_isolate, AssertionError("rejects", v8::Local<v8::Value>(), v8::Local<v8::Value>(), message))
     };
 
     v8::Local<v8::External> external = v8::External::New(isolate->m_isolate, callbackData);
@@ -279,12 +292,12 @@ result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value
     return 0;
 }
 
-result_t assert_base::rejects(v8::Local<v8::Promise> result, exlib::string msg, v8::Local<v8::Promise>& retVal)
+result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
 {
     return rejects(result, v8::Local<v8::Value>(), msg, retVal);
 }
 
-result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> error, exlib::string msg, v8::Local<v8::Promise>& retVal)
+result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
 {
     Isolate* isolate = Isolate::current(block);
     v8::Local<v8::Context> context = isolate->context();
@@ -309,7 +322,7 @@ result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value
     return rejects(result, error, msg, retVal);
 }
 
-result_t assert_base::rejects(v8::Local<v8::Function> block, exlib::string msg, v8::Local<v8::Promise>& retVal)
+result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
 {
     return rejects(block, v8::Local<v8::Value>(), msg, retVal);
 }

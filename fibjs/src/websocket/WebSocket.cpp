@@ -843,11 +843,7 @@ result_t WebSocket::send(v8::Local<v8::Value> data)
     Isolate* isolate = holder();
     obj_ptr<Buffer_base> buf;
 
-    // INTERIM (commit split): a real string is text; the binary probe below
-    // relies on the strict Buffer conversion that rejects strings, which lands
-    // with the Buffer/encoding batch
-    if (!data->IsString() && !data->IsStringObject()
-        && !data->IsArray() && GetArgumentValue(isolate, data, buf) == 0)
+    if (!data->IsArray() && GetArgumentValue(isolate, data, buf) == 0)
         return send_binary(buf.get());
 
     // a value that is not binary data is sent as its string form

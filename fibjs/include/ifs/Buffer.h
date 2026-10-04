@@ -19,39 +19,37 @@ class Buffer_base : public object_base {
     DECLARE_CLASS(Buffer_base);
 
 public:
+    using Union_alloc_fill = std::variant<obj_ptr<Buffer_base>, int32_t>;
+    using Union_from_datas = std::variant<std::shared_ptr<v8::BackingStore>, v8::Local<v8::Uint8Array>>;
+    using Union_byteLength_str = std::variant<std::shared_ptr<v8::BackingStore>, v8::Local<v8::Uint8Array>, obj_ptr<Buffer_base>>;
+    using Union_fill_v = std::variant<obj_ptr<Buffer_base>, int32_t>;
+    using Union_indexOf_v = std::variant<obj_ptr<Buffer_base>, exlib::string, int32_t>;
+    using Union_lastIndexOf_v = std::variant<obj_ptr<Buffer_base>, exlib::string, int32_t>;
+
+public:
     using object_base::toString;
 
 public:
     // Buffer_base
-    static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& retVal);
+    static result_t alloc(int32_t size, Union_alloc_fill fill, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
-    static result_t alloc(int32_t size, Buffer_base* fill, obj_ptr<Buffer_base>& retVal);
     static result_t allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
     static result_t from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
-    static result_t from(std::shared_ptr<v8::BackingStore> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
-    static result_t from(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
+    static result_t from(Union_from_datas datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t isEncoding(exlib::string codec, bool& retVal);
+    static result_t byteLength(Union_byteLength_str str, int32_t& retVal);
     static result_t byteLength(exlib::string str, exlib::string codec, int32_t& retVal);
-    static result_t byteLength(std::shared_ptr<v8::BackingStore> str, int32_t& retVal);
-    static result_t byteLength(v8::Local<v8::Uint8Array> str, int32_t& retVal);
-    static result_t byteLength(Buffer_base* str, int32_t& retVal);
     static result_t compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal) = 0;
-    virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
@@ -97,30 +95,32 @@ public:
     virtual result_t writeFloatBE(double value, int32_t offset, int32_t& retVal) = 0;
     virtual result_t writeDoubleLE(double value, int32_t offset, int32_t& retVal) = 0;
     virtual result_t writeDoubleBE(double value, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t lastIndexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t indexOf(Union_indexOf_v v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t lastIndexOf(Union_lastIndexOf_v v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal) = 0;
-    virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t toArray(std::vector<int32_t>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base32(exlib::string& retVal) = 0;
     virtual result_t base58(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
 
 public:
-    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t load(v8::Local<v8::Value> v, obj_ptr<Buffer_base>& retVal);
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        ThrowTypeError("not a constructor");
+    }
+
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<Buffer_base>& retVal)
+    { return CALL_E_TYPEMISMATCH; }
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_alloc(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -278,100 +278,6 @@ inline ClassInfo& Buffer_base::class_info()
     return s_ci;
 }
 
-inline void Buffer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    CONSTRUCT_INIT();
-    __new(args);
-}
-
-inline void Buffer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    CONSTRUCT_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(3, 1);
-
-    ARG(std::shared_ptr<v8::BackingStore>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
-    METHOD_OVER(3, 1);
-
-    ARG(v8::Local<v8::Uint8Array>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
-
-    hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(int32_t, 0, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    CONSTRUCT_RETURN();
-}
-
-inline result_t Buffer_base::load(v8::Local<v8::Value> v, obj_ptr<Buffer_base>& retVal)
-{
-    obj_ptr<Buffer_base> vr;
-
-    LOAD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(3, 1);
-
-    ARG(std::shared_ptr<v8::BackingStore>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
-    METHOD_OVER(3, 1);
-
-    ARG(v8::Local<v8::Uint8Array>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
-
-    hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(int32_t, 0, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    LOAD_RETURN();
-}
-
 inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
@@ -381,7 +287,7 @@ inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(Union_alloc_fill, 1, 0);
 
     hr = alloc(v0, v1, vr);
 
@@ -392,13 +298,6 @@ inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(exlib::string, 2, "utf8");
 
     hr = alloc(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = alloc(v0, v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -455,15 +354,7 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(3, 1);
 
-    ARG(std::shared_ptr<v8::BackingStore>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = from(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(v8::Local<v8::Uint8Array>, 0);
+    ARG(Union_from_datas, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
@@ -531,30 +422,18 @@ inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
+    METHOD_OVER(1, 1);
+
+    ARG(Union_byteLength_str, 0);
+
+    hr = byteLength(v0, vr);
+
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = byteLength(v0, v1, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(std::shared_ptr<v8::BackingStore>, 0);
-
-    hr = byteLength(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Uint8Array>, 0);
-
-    hr = byteLength(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = byteLength(v0.get(), vr);
 
     METHOD_RETURN();
 }
@@ -632,19 +511,11 @@ inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_fill_v, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
     hr = pInst->fill(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-
-    hr = pInst->fill(v0.get(), v1, v2, vr);
 
     METHOD_OVER(4, 1);
 
@@ -1386,21 +1257,7 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    hr = pInst->indexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    hr = pInst->indexOf(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_indexOf_v, 0);
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
@@ -1417,21 +1274,7 @@ inline void Buffer_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, -1);
-
-    hr = pInst->lastIndexOf(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, -1);
-
-    hr = pInst->lastIndexOf(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_lastIndexOf_v, 0);
     OPT_ARG(int32_t, 1, -1);
 
     hr = pInst->lastIndexOf(v0, v1, vr);
@@ -1525,7 +1368,7 @@ inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Buffer_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<int32_t> vr;
 
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();

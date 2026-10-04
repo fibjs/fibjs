@@ -29,13 +29,6 @@ module performance
     static mark(String name, Object options = {});
 
     /*! @brief Creates a performance measure
-     @param name the measure name
-     @param startMark the start mark name; if empty, uses the process start time
-     @param endMark the end mark name; if empty, uses the current time
-    */
-    static measure(String name, String startMark = "", String endMark = "");
-
-    /*! @brief Creates a performance measure
 
      options is an object containing the following properties:
       - detail: additional information
@@ -48,20 +41,27 @@ module performance
     */
     static measure(String name, Object options = {});
 
+    /*! @brief Creates a performance measure
+     @param name the measure name
+     @param startMark the start mark name; if empty, uses the process start time
+     @param endMark the end mark name; if empty, uses the current time
+    */
+    static measure(String name, String startMark = "", String endMark = "");
+
     /*! @brief Gets all performance entries
      @return returns all performance entries*/
-    static NArray getEntries();
+    static PerformanceEntry[] getEntries();
 
     /*! @brief Gets all performance entries
      @param type the entry type
      @return returns all performance entries*/
-    static NArray getEntriesByType(String type);
+    static PerformanceEntry[] getEntriesByType(String type);
 
     /*! @brief Gets all performance entries
      @param name the entry name
      @param type the entry type
      @return returns all performance entries*/
-    static NArray getEntriesByName(String name, String type = "");
+    static PerformanceEntry[] getEntriesByName(String name, String type = "");
 
     /*! @brief Marks resource timing (compatibility no-op)
      @param timingInfo the timing information object

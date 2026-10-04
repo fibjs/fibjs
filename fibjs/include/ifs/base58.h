@@ -21,9 +21,12 @@ class base58_base : public object_base {
     DECLARE_CLASS(base58_base);
 
 public:
+    using Union_encode_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // base58_base
-    static result_t encode(Buffer_base* data, exlib::string& retVal);
-    static result_t encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal);
+    static result_t encode(Union_encode_data data, exlib::string& retVal);
+    static result_t encode(Union_encode_data data, int32_t chk_ver, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
     static result_t decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer_base>& retVal);
 
@@ -73,16 +76,16 @@ inline void base58_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_encode_data, 0);
 
-    hr = encode(v0.get(), vr);
+    hr = encode(v0, vr);
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_encode_data, 0);
     ARG(int32_t, 1);
 
-    hr = encode(v0.get(), v1, vr);
+    hr = encode(v0, v1, vr);
 
     METHOD_RETURN();
 }

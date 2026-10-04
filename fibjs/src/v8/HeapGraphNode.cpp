@@ -42,7 +42,7 @@ result_t HeapGraphNode::get_shallowSize(int32_t& retVal)
     return 0;
 }
 
-result_t HeapGraphNode::get_childs(obj_ptr<NArray>& retVal)
+result_t HeapGraphNode::get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>& retVal)
 {
     retVal = m_childs;
     return 0;

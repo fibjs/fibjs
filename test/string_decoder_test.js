@@ -11,6 +11,16 @@ describe('string_decoder', () => {
         assert.strictEqual(decoder.encoding, 'utf8');
     });
 
+    it('string input is its utf8 bytes', () => {
+        decoder = new StringDecoder('utf8');
+
+        assert.strictEqual(decoder.write('hello'), 'hello');
+        assert.strictEqual(decoder.write('€'), '€');
+        assert.strictEqual(decoder.text('abc', 1), 'bc');
+        assert.strictEqual(decoder.fillLast('abc'), '\ufffd');
+        assert.strictEqual(decoder.end('!'), '!');
+    });
+
     it('utf8', () => {
         test('utf-8', Buffer.from('$', 'utf-8'), '$');
         test('utf-8', Buffer.from('¢', 'utf-8'), '¢');
@@ -108,9 +118,10 @@ describe('string_decoder', () => {
     });
 
     it('should throws', () => {
+        // node: TypeError [ERR_UNKNOWN_ENCODING], a non-string input is rejected by the type check
         assert.throws(() => {
             new StringDecoder(1);
-        }, { number: 20024 });
+        }, { name: 'TypeError', number: 20005 });
 
         assert.throws(() => {
             new StringDecoder('test');

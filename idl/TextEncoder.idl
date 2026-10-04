@@ -25,7 +25,7 @@ interface TextEncoder : object
 	 @param destination the destination buffer to write into
 	 @return returns an object containing the read and written properties
 	 */
-    Object encodeInto(String source, Buffer destination);
+    (Number read, Number written) encodeInto(String source, Buffer destination);
 
     /*! @brief Queries the current encoding charset */
     readonly String encoding;

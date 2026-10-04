@@ -21,10 +21,31 @@ class TextEncoder_base : public object_base {
     DECLARE_CLASS(TextEncoder_base);
 
 public:
+    class EncodeIntoType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("read"), GetReturnValue(isolate, read)).Check();
+            retVal->Set(context, isolate->NewString("written"), GetReturnValue(isolate, written)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, read));
+            args.push_back(GetReturnValue(isolate, written));
+        }
+
+    public:
+        double read;
+        double written;
+    };
+
+public:
     // TextEncoder_base
     static result_t _new(exlib::string codec, v8::Local<v8::Object> opts, obj_ptr<TextEncoder_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t encode(exlib::string data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t encodeInto(exlib::string source, Buffer_base* destination, obj_ptr<EncodeIntoType>& retVal) = 0;
     virtual result_t get_encoding(exlib::string& retVal) = 0;
 
 public:
@@ -121,7 +142,7 @@ inline void TextEncoder_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void TextEncoder_base::s_encodeInto(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<EncodeIntoType> vr;
 
     METHOD_INSTANCE(TextEncoder_base);
     METHOD_ENTER();

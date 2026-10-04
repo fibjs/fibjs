@@ -75,14 +75,14 @@ module registry
      @param key the key to use
      @return returns all sub keys under the key
      */
-    static NArray listSubKey(Integer root, String key);
+    static String[] listSubKey(Integer root, String key);
 
     /*! @brief Returns the keys of all data under the specified key
      @param root the registry root to use
      @param key the key to use
      @return returns the keys of all data under the key
      */
-    static NArray listValue(Integer root, String key);
+    static String[] listValue(Integer root, String key);
 
     /*! @brief Queries the value of the specified key
      @param root the registry root to use
@@ -107,14 +107,6 @@ module registry
      */
     static set(Integer root, String key, Number value, Integer type = DWORD);
 
-    /*! @brief Sets the specified key to a string
-     @param root the registry root to use
-     @param key the key to use
-     @param value the string to set
-     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
-     */
-    static set(Integer root, String key, String value, Integer type = SZ);
-
     /*! @brief Sets the specified key to a multi-string
      @param root the registry root to use
      @param key the key to use
@@ -129,6 +121,14 @@ module registry
      */
     static set(Integer root, String key, Buffer value);
 
+    /*! @brief Sets the specified key to a string
+     @param root the registry root to use
+     @param key the key to use
+     @param value the string to set
+     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     */
+    static set(Integer root, String key, String value, Integer type = SZ);
+
     /*! @brief Sets the specified key to a number
      @param root the registry root to use
      @param key the key to use
@@ -137,15 +137,6 @@ module registry
      @param type the type to use; allowed types are DWORD and QWORD, default DWORD
      */
     static set(Integer root, String key, String name, Number value, Integer type = DWORD);
-
-    /*! @brief Sets the specified key to a string
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @param value the string to set
-     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
-     */
-    static set(Integer root, String key, String name, String value, Integer type = SZ);
 
     /*! @brief Sets the specified key to a multi-string
      @param root the registry root to use
@@ -162,6 +153,15 @@ module registry
      @param value the binary data to set
      */
     static set(Integer root, String key, String name, Buffer value);
+
+    /*! @brief Sets the specified key to a string
+     @param root the registry root to use
+     @param key the key to use
+     @param name the value name to use
+     @param value the string to set
+     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+     */
+    static set(Integer root, String key, String name, String value, Integer type = SZ);
 
     /*! @brief Checks whether the specified key exists
      @param root the registry root to use

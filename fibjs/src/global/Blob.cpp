@@ -14,12 +14,16 @@ result_t Blob_base::_new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> o
     return blob->m_impl.initialize(blobParts, options);
 }
 
-result_t Blob_base::_new(Buffer_base* blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
+result_t Blob_base::_new(Union_Blob_blobData blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
 
     v8::Local<v8::Array> blobParts = v8::Array::New(isolate->m_isolate, 1);
-    blobParts->Set(isolate->context(), 0, blobData->wrap());
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(blobData))
+        blobParts->Set(isolate->context(), 0, std::get<obj_ptr<Buffer_base>>(blobData)->wrap());
+    else
+        blobParts->Set(isolate->context(), 0, isolate->NewString(std::get<exlib::string>(blobData)));
 
     return _new(blobParts, options, retVal, This);
 }
@@ -43,8 +47,6 @@ result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     return file->m_impl.initialize(blobParts, options);
 }
 
-// INTERIM (commit split): File takes Buffer|String parts here; the rest of the
-// final Blob surface (Blob parameters) moves in the Buffer/encoding batch.
 result_t File_base::_new(Union_File_blobData blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
@@ -216,19 +218,25 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
             }
 
             if (!buffer) {
-                hr = GetArgumentValue(isolate, part, buffer, false, "utf8");
+                hr = GetArgumentValue(isolate, part, buffer);
                 if (hr < 0 && hr != CALL_E_TYPEMISMATCH) {
                     return hr;
                 }
             }
 
             if (!buffer) {
-                v8::Local<v8::String> partStr;
-                if (!part->ToString(isolate->context()).ToLocal(&partStr)) {
-                    return CALL_E_TYPEMISMATCH;
-                }
-                v8::String::Utf8Value str(isolate->m_isolate, partStr);
-                hr = Buffer_base::from(*str, "utf8", buffer);
+                // every other part is its DOM string form: the blob renders the
+                // value itself (null becomes "null", 0 becomes "0"), which is
+                // what USVString conversion means in the spec
+                exlib::string partStr;
+
+                hr = GetDOMStringValue(part, partStr);
+                if (hr < 0)
+                    return hr;
+
+                hr = Buffer_base::from(partStr, "utf8", buffer);
+                if (hr < 0)
+                    return hr;
             }
 
             int32_t bufferSize;

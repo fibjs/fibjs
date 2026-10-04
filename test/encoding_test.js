@@ -202,6 +202,15 @@ describe('encoding', () => {
         }
     });
 
+    it('string data arguments are their utf8 bytes', () => {
+        // the Buffer|String parameters of the encoders take the String
+        // alternative as the utf8 bytes of the string
+        assert.equal(base64.encode('abc'), base64.encode(Buffer.from('abc')));
+        assert.equal(hex.encode('abc'), hex.encode(Buffer.from('abc')));
+        assert.equal(base58.encode('abc'), base58.encode(Buffer.from('abc')));
+        assert.equal(encoding.encode('abc', 'hex'), '616263');
+    });
+
     describe('multibase', () => {
         const encoded = [
             {
@@ -848,6 +857,13 @@ describe('encoding', () => {
             var obj1 = { 's1': 'abcd' };
             var obj2 = { 's1': new String('abcd') };
             assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
+        });
+
+        it('decode accepts a string payload as its utf8 bytes', () => {
+            // the String alternative of Buffer|String is read as the utf8
+            // bytes of the string, so a one-byte payload round-trips
+            assert.equal(msgpack.decode('\u0001'), 1);
+            assert.deepEqual(msgpack.decode('\u0001'), msgpack.decode(msgpack.encode(1)));
         });
     });
 });

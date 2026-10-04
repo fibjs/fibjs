@@ -28,9 +28,12 @@ class encoding_base : public object_base {
     DECLARE_CLASS(encoding_base);
 
 public:
+    using Union_encode_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // encoding_base
     static result_t isEncoding(exlib::string codec, bool& retVal);
-    static result_t encode(Buffer_base* data, exlib::string codec, exlib::string& retVal);
+    static result_t encode(Union_encode_data data, exlib::string codec, exlib::string& retVal);
     static result_t decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t jsstr(exlib::string str, bool json, exlib::string& retVal);
     static result_t encodeURI(exlib::string url, exlib::string& retVal);
@@ -125,10 +128,10 @@ inline void encoding_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_encode_data, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
-    hr = encode(v0.get(), v1, vr);
+    hr = encode(v0, v1, vr);
 
     METHOD_RETURN();
 }

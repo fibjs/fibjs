@@ -146,7 +146,7 @@ module os
     /*! @brief Queries the 1-minute, 5-minute and 15-minute average load of the runtime environment
      @return returns an array containing three load values
     */
-    static Array loadavg();
+    static Number[] loadavg();
 
     /*! @brief Queries the total memory of the runtime environment, in bytes
      @return returns the memory value

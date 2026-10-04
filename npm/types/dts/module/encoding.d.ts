@@ -66,13 +66,13 @@ declare module 'encoding' {
     function isEncoding(codec: string): boolean;
 
     /**
-     * @description Encodes the Buffer as a string
-     *      @param data the initial string, written in utf-8 format
-     *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8"
+     * @description Encodes the Buffer as a string; a string data is encoded as utf8
+     *      @param data the initial string, written in utf-8 format, a string is encoded as utf8
+     *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8", a string is encoded as utf8
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer, codec?: string): string;
+    function encode(data: Class_Buffer | string, codec?: string): string;
 
     /**
      * @description Decodes the string as a Buffer

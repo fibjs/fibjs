@@ -259,11 +259,15 @@ void SandBox::initModule()
     _mod->Set(context, isolate->NewString("enableCompileCache"), isolate->NewFunction("enableCompileCache", _enableCompileCache)).IsJust();
 
     // Build builtinModules array
-    v8::Local<v8::Array> builtinModules;
+    std::vector<exlib::string> builtinModules;
     module_base::get_builtinModules(builtinModules);
 
+    v8::Local<v8::Array> builtinModulesArray = v8::Array::New(isolate->m_isolate, (int32_t)builtinModules.size());
+    for (int32_t i = 0; i < (int32_t)builtinModules.size(); i++)
+        builtinModulesArray->Set(context, i, isolate->NewString(builtinModules[i])).IsJust();
+
     // Set builtinModules as a read-only property
-    _mod->DefineOwnProperty(context, isolate->NewString("builtinModules"), builtinModules,
+    _mod->DefineOwnProperty(context, isolate->NewString("builtinModules"), builtinModulesArray,
         (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
 

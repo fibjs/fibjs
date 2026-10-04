@@ -61,7 +61,7 @@ interface AsyncResource : object
      @param args additional parameters passed to the callback
      @return returns the return value of the callback function
     */
-    Value runInAsyncScope(Function fn, Value thisArg = undefined, ...args);
+    Value runInAsyncScope(Function(...args) => Value fn, Value thisArg = undefined, ...args);
 
     /*! @brief Marks this resource as destroyed
 
@@ -79,7 +79,7 @@ interface AsyncResource : object
      @param thisArg optional `this` value of the function
      @return returns the bound function
     */
-    Function bind(Function fn, Value thisArg = undefined);
+    Function(...args) => Value bind(Function(...args) => Value fn, Value thisArg = undefined);
 
     /*! @brief Static method that binds a function to the current asynchronous context
 
@@ -90,5 +90,5 @@ interface AsyncResource : object
      @param thisArg optional `this` value of the function
      @return returns the bound function
     */
-    static Function bind(Function fn, String type = "bound-anonymous-fn", Value thisArg = undefined);
+    static Function(...args) => Value bind(Function(...args) => Value fn, String type = "bound-anonymous-fn", Value thisArg = undefined);
 };

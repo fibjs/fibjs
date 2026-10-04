@@ -60,7 +60,7 @@ declare module 'timers' {
      *      @return returns a timer object
      *
      */
-    function setTimeout(callback: (...args: any[])=>any, timeout?: number, ...args: any[]): Class_Timer;
+    function setTimeout(callback: (...args: any[])=>void, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer
@@ -81,7 +81,7 @@ declare module 'timers' {
      *      @return returns a timer object
      *
      */
-    function setInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
+    function setInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer
@@ -120,7 +120,7 @@ declare module 'timers' {
      *      @return returns a timer object
      *
      */
-    function setHrInterval(callback: (...args: any[])=>any, timeout: number, ...args: any[]): Class_Timer;
+    function setHrInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer
@@ -140,7 +140,7 @@ declare module 'timers' {
      *      @return returns a timer object
      *
      */
-    function setImmediate(callback: (...args: any[])=>any, ...args: any[]): Class_Timer;
+    function setImmediate(callback: (...args: any[])=>void, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer

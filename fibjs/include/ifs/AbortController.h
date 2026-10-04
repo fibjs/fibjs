@@ -21,11 +21,13 @@ class AbortController_base : public object_base {
     DECLARE_CLASS(AbortController_base);
 
 public:
+    using Union_abort_reason = std::variant<exlib::string, v8::Local<v8::Value>>;
+
+public:
     // AbortController_base
     static result_t _new(obj_ptr<AbortController_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_signal(obj_ptr<AbortSignal_base>& retVal) = 0;
-    virtual result_t abort(exlib::string reason) = 0;
-    virtual result_t abort(v8::Local<v8::Value> reason) = 0;
+    virtual result_t abort(Union_abort_reason reason) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -107,13 +109,7 @@ inline void AbortController_base::s_abort(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "AbortError");
-
-    hr = pInst->abort(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(Union_abort_reason, 0, exlib::string("AbortError"));
 
     hr = pInst->abort(v0);
 

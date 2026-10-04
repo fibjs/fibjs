@@ -14,44 +14,37 @@ declare class Class_StringDecoder extends Class_object {
     constructor(encoding?: string);
 
     /**
-     * @description Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
+     * @description Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible
+     *      @param buf optional; a Buffer or a string to decode first. When it is omitted, only the internally retained bytes are returned
      *      @return the decoded string.
      *
      */
-    end(): string;
+    end(buf?: Class_Buffer | string): string;
 
     /**
-     * @description Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible.
-     *      @param buf the Buffer to decode. Before end is executed, write is called first to write the buffer.
+     * @description Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call
+     *      @param buf the Buffer to decode, or a string encoded as utf8
      *      @return the decoded string.
      *
      */
-    end(buf: Class_Buffer): string;
-
-    /**
-     * @description Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call.
-     *      @param  buf the Buffer to decode.
-     *      @return the decoded string.
-     *
-     */
-    write(buf: Class_Buffer): string;
+    write(buf: Class_Buffer | string): string;
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer to decode.
+     *      @param buf the Buffer to decode, or a string encoded as utf8
      *      @param offset the decoding offset
      *      @return the decoded string.
      *
      */
-    text(buf: Class_Buffer, offset: number): string;
+    text(buf: Class_Buffer | string, offset: number): string;
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer containing the bytes to decode.
+     *      @param buf the Buffer containing the bytes to decode, or a string encoded as utf8
      *      @return the decoded string.
      *
      */
-    fillLast(buf: Class_Buffer): string;
+    fillLast(buf: Class_Buffer | string): string;
 
     /**
      * @description Internal use.

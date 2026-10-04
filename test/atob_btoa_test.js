@@ -702,4 +702,22 @@ describe("atob/btoa API", () => {
             assert.strictEqual(atobDecoded, latin1String);
         });
     });
+
+    // btoa converts its argument as a DOMString (GetDOMStringValue in
+    // fibjs/src/base/string.cpp): the value's own string form, the class tag
+    // for a native object without a toString(), and the engine TypeError for
+    // a symbol.
+    describe("btoa - DOMString conversion", () => {
+        it("renders a plain object as its Object tag", () => {
+            assert.strictEqual(btoa({}), 'W29iamVjdCBPYmplY3Rd'); // "[object Object]"
+        });
+
+        it("renders a number as its text", () => {
+            assert.strictEqual(btoa(1), 'MQ==');
+        });
+
+        it("throws the engine TypeError for a symbol", () => {
+            assert.throws(() => btoa(Symbol()), TypeError);
+        });
+    });
 });
