@@ -31,14 +31,14 @@ interface TLSSocket : Stream
      @param socket the given underlying connection
      @param connectListener specifies the once connect event listener
     */
-    connect(Stream socket, Function connectListener) async;
+    connect(Stream socket, Function(Object ev) connectListener) async;
 
     /*! @brief establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
      @param socket the given underlying connection
      @param server_name the server name, used to verify the server certificate
      @param connectListener specifies the once connect event listener
     */
-    connect(Stream socket, String server_name, Function connectListener) async;
+    connect(Stream socket, String server_name, Function(Object ev) connectListener) async;
 
     /*! @brief establishes a tls/ssl connection on the given connection, server mode
      @param socket the given underlying connection

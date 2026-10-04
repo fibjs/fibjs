@@ -88,21 +88,11 @@ module net
     static Stream connect(Object options) async;
 
     /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param options specifies the connection options object, which can contain the following properties:
-      - port: specifies the remote port
-      - host: specifies the remote address or host name
-      - timeout: specifies the timeout in milliseconds, default is 0
+     @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(Object options, Function connectListener) async;
-
-    /*! @brief creates a Socket or SslSocket object and establishes a connection
-     @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
-     @param timeout specifies the timeout in milliseconds, default is 0
-     @return returns the connected Socket or SslSocket object
-     */
-    static Stream connect(String url, Integer timeout = 0) async;
+    static Stream connect(Object|String|Integer options, Function(Object ev) connectListener) async;
 
     /*! @brief creates a Socket object and establishes a connection
      @param port specifies the remote port
@@ -112,12 +102,12 @@ module net
      */
     static Stream connect(Integer port, String host = "localhost", Integer timeout = 0) async;
 
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param port specifies the remote port
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
+    /*! @brief creates a Socket or SslSocket object and establishes a connection
+     @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @return returns the connected Socket or SslSocket object
      */
-    static Stream connect(Integer port, Function connectListener) async;
+    static Stream connect(String url, Integer timeout = 0) async;
 
     /*! @brief establishes a connection and triggers the connect event after the connection is established
      @param port specifies the remote port
@@ -125,7 +115,7 @@ module net
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(Integer port, String host, Function connectListener) async;
+    static Stream connect(Integer port, String host, Function(Object ev) connectListener) async;
 
     /*! @brief establishes a connection and triggers the connect event after the connection is established
      @param port specifies the remote port
@@ -134,14 +124,7 @@ module net
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(Integer port, String host, Integer timeout, Function connectListener) async;
-
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param path specifies the unix socket or Windows pipe path
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(String path, Function connectListener) async;
+    static Stream connect(Integer port, String host, Integer timeout, Function(Object ev) connectListener) async;
 
     /*! @brief establishes a connection and triggers the connect event after the connection is established
      @param path specifies the unix socket or Windows pipe path
@@ -149,7 +132,7 @@ module net
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(String path, Integer timeout, Function connectListener) async;
+    static Stream connect(String path, Integer timeout, Function(Object ev) connectListener) async;
 
     /*! @brief creates a Smtp object, see Smtp */
     static Smtp;
@@ -188,22 +171,22 @@ module net
     static String backend();
 
     /*! @brief detects whether the input is an IP address
-     @param ip specifies the string to detect
+     @param ip the value to detect; a non-string value is not an IP address
      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
     */
-    static Integer isIP(String ip = "");
+    static Integer isIP(Value ip = undefined);
 
     /*! @brief detects whether the input is an IPv4 address
-     @param ip specifies the string to detect
+     @param ip the value to detect; a non-string value is not an IP address
      @return returns true if it is IPv4, otherwise returns false
     */
-    static Boolean isIPv4(String ip = "");
+    static Boolean isIPv4(Value ip = undefined);
 
     /*! @brief detects whether the input is an IPv6 address
-     @param ip specifies the string to detect
+     @param ip the value to detect; a non-string value is not an IP address
      @return returns true if it is IPv6, otherwise returns false
     */
-    static Boolean isIPv6(String ip = "");
+    static Boolean isIPv6(Value ip = undefined);
 
     /*! @brief queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
      @return returns the current default value, default is true

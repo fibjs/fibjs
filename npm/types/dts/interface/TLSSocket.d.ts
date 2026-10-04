@@ -64,7 +64,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connect(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): void;
+    connect(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -72,7 +72,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectSync(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): void;
+    connectSync(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -80,16 +80,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectAsync(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): Promise<void>;
-
-    /**
-     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
-     *      @param socket the given underlying connection
-     *      @param server_name the server name, used to verify the server certificate
-     *      @param connectListener specifies the once connect event listener
-     *
-     */
-    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): void;
+    connectAsync(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -98,7 +89,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectSync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): void;
+    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -107,7 +98,16 @@ declare class Class_TLSSocket extends Class_Stream {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectAsync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): Promise<void>;
+    connectSync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
+
+    /**
+     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
+     *      @param connectListener specifies the once connect event listener
+     *
+     */
+    connectAsync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, server mode
@@ -249,7 +249,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connect(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): Promise<void>;
+    connect(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -257,7 +257,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectSync(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): void;
+    connectSync(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -265,16 +265,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectAsync(socket: Class_Stream | Class_StreamPromise, connectListener: (...args: any[])=>any): Promise<void>;
-
-    /**
-     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
-     *      @param socket the given underlying connection
-     *      @param server_name the server name, used to verify the server certificate
-     *      @param connectListener specifies the once connect event listener
-     *
-     */
-    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): Promise<void>;
+    connectAsync(socket: Class_Stream | Class_StreamPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -283,7 +274,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectSync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): void;
+    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
@@ -292,7 +283,16 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      @param connectListener specifies the once connect event listener
      *
      */
-    connectAsync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (...args: any[])=>any): Promise<void>;
+    connectSync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): void;
+
+    /**
+     * @description establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+     *      @param socket the given underlying connection
+     *      @param server_name the server name, used to verify the server certificate
+     *      @param connectListener specifies the once connect event listener
+     *
+     */
+    connectAsync(socket: Class_Stream | Class_StreamPromise, server_name: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<void>;
 
     /**
      * @description establishes a tls/ssl connection on the given connection, server mode

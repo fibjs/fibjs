@@ -9,7 +9,7 @@ declare module 'dns/promises' {
      *      @return returns the array of queried ip strings
      *
      */
-    function resolve(name: string): Promise<any[]>;
+    function resolve(name: string): Promise<string[]>;
 
     /**
      * @description queries the address of the given hostname
@@ -17,7 +17,7 @@ declare module 'dns/promises' {
      *      @return returns the array of queried ip strings
      *
      */
-    function resolveSync(name: string): any[];
+    function resolveSync(name: string): string[];
 
     /**
      * @description queries the address of the given hostname
@@ -25,7 +25,7 @@ declare module 'dns/promises' {
      *      @return returns the array of queried ip strings
      *
      */
-    function resolveAsync(name: string): Promise<any[]>;
+    function resolveAsync(name: string): Promise<string[]>;
 
     /**
      * @description queries the address of the given hostname

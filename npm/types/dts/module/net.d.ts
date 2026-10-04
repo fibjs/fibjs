@@ -209,68 +209,30 @@ declare module 'net' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+    function connectSync(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description creates a Socket or SslSocket object and establishes a connection
-     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @return returns the connected Socket or SslSocket object
-     *
-     */
-    function connect(url: string, timeout?: number): Class_Stream;
-
-    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description creates a Socket or SslSocket object and establishes a connection
-     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @return returns the connected Socket or SslSocket object
-     *
-     */
-    function connectSync(url: string, timeout?: number): Class_Stream;
-
-    /**
-     * @description creates a Socket or SslSocket object and establishes a connection
-     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @return returns the connected Socket or SslSocket object
-     *
-     */
-    function connectAsync(url: string, timeout?: number): Promise<Class_StreamPromise>;
+    function connectAsync(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a Socket object and establishes a connection
@@ -305,72 +267,63 @@ declare module 'net' {
     function connectAsync(port: number, host?: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
      *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
+     *
+     */
+    function connect(url: string, timeout?: number): Class_Stream;
+
+    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
+     *
+     */
+    function connectSync(url: string, timeout?: number): Class_Stream;
+
+    /**
+     * @description creates a Socket or SslSocket object and establishes a connection
+     *      @param url specifies the connection protocol, which can be: tcp://host:port or ssl://host:port, or unix:/usr/local/proc1 or pipe://./pipe/proc1; when connecting to a pipe, replace `\` with `/`
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @return returns the connected Socket or SslSocket object
+     *
+     */
+    function connectAsync(url: string, timeout?: number): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -381,7 +334,7 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectSync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -392,34 +345,18 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    function connectSync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param path specifies the unix socket or Windows pipe path
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param path specifies the unix socket or Windows pipe path
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectSync(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param path specifies the unix socket or Windows pipe path
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectAsync(path: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    function connectAsync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -429,7 +366,7 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -439,7 +376,7 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectSync(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    function connectSync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -449,7 +386,7 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    function connectAsync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a Smtp object, see Smtp
@@ -523,27 +460,27 @@ declare module 'net' {
 
     /**
      * @description detects whether the input is an IP address
-     *      @param ip specifies the string to detect
+     *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
      *
      */
-    function isIP(ip?: string): number;
+    function isIP(ip?: any): number;
 
     /**
      * @description detects whether the input is an IPv4 address
-     *      @param ip specifies the string to detect
+     *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns true if it is IPv4, otherwise returns false
      *
      */
-    function isIPv4(ip?: string): boolean;
+    function isIPv4(ip?: any): boolean;
 
     /**
      * @description detects whether the input is an IPv6 address
-     *      @param ip specifies the string to detect
+     *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns true if it is IPv6, otherwise returns false
      *
      */
-    function isIPv6(ip?: string): boolean;
+    function isIPv6(ip?: any): boolean;
 
     /**
      * @description queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13

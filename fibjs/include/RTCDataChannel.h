@@ -28,8 +28,7 @@ public:
     }
 
     // RTCDataChannel_base
-    virtual result_t send(Buffer_base* data);
-    virtual result_t send(exlib::string data);
+    virtual result_t send(Union_send_data data);
     virtual result_t close();
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_label(exlib::string& retVal);

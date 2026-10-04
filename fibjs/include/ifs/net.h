@@ -26,6 +26,9 @@ class net_base : public object_base {
     DECLARE_CLASS(net_base);
 
 public:
+    using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
+
+public:
     enum {
         C_AF_UNIX = 1,
         C_AF_PIPE = 1,
@@ -42,21 +45,19 @@ public:
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
     static result_t createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
     static result_t backend(exlib::string& retVal);
-    static result_t isIP(exlib::string ip, int32_t& retVal);
-    static result_t isIPv4(exlib::string ip, bool& retVal);
-    static result_t isIPv6(exlib::string ip, bool& retVal);
+    static result_t isIP(v8::Local<v8::Value> ip, int32_t& retVal);
+    static result_t isIPv4(v8::Local<v8::Value> ip, bool& retVal);
+    static result_t isIPv6(v8::Local<v8::Value> ip, bool& retVal);
     static result_t getDefaultAutoSelectFamily(bool& retVal);
     static result_t setDefaultAutoSelectFamily(bool enabled);
     static result_t getDefaultAutoSelectFamilyAttemptTimeout(int32_t& retVal);
@@ -97,13 +98,11 @@ public:
     ASYNC_STATICVALUE2(net_base, ip, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(net_base, ipv6, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(net_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(net_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, Union_connect_options, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(net_base, connect, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE5(net_base, connect, int32_t, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(net_base, connect, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, connect, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, openSmtp, exlib::string, int32_t, obj_ptr<Smtp_base>);
 };
@@ -277,18 +276,8 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 2);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_connect_options, 0);
     ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, cb, args);
-    else
-        hr = ac_connect(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
@@ -306,10 +295,10 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_connect(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
@@ -338,16 +327,6 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, v1, v2, v3, cb, args);
     else
         hr = ac_connect(v0, v1, v2, v3, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, cb, args);
-    else
-        hr = ac_connect(v0, v1, vr);
 
     METHOD_OVER(3, 3);
 
@@ -425,7 +404,7 @@ inline void net_base::s_static_isIP(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = isIP(v0, vr);
 
@@ -440,7 +419,7 @@ inline void net_base::s_static_isIPv4(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = isIPv4(v0, vr);
 
@@ -455,7 +434,7 @@ inline void net_base::s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = isIPv6(v0, vr);
 

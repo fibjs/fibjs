@@ -15,18 +15,18 @@ namespace fibjs {
 
 DECLARE_MODULE(dns);
 
-result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncEvent* ac)
 {
     class resolve_data : public uv_getaddrinfo_t {
     public:
-        resolve_data(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+        resolve_data(std::vector<exlib::string>& retVal, AsyncEvent* ac)
             : _retVal(retVal)
             , _ac(ac)
         {
         }
 
     public:
-        obj_ptr<NArray>& _retVal;
+        std::vector<exlib::string>& _retVal;
         AsyncEvent* _ac;
     };
 
@@ -51,14 +51,12 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
                 return;
             }
 
-            obj_ptr<NArray> arr = new NArray();
             for (struct addrinfo* ptr = res; ptr != NULL; ptr = ptr->ai_next) {
                 inetAddr addr_info;
                 addr_info.init(ptr->ai_addr);
-                arr->append(addr_info.str());
+                resolver->_retVal.push_back(addr_info.str());
             }
 
-            resolver->_retVal = arr;
             resolver->_ac->post(0);
 
             uv_freeaddrinfo(res);

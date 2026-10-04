@@ -112,10 +112,15 @@ result_t tls_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
     return connect(options, v8::Local<v8::Function>(), retVal, ac);
 }
 
-result_t tls_base::connect(exlib::string url, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+// the three forms of the merged arity-2 entry: the url, the port and the
+// options object, each with a once connect listener
+static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener,
+    obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+
+static result_t connect_by_url(exlib::string url, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     Isolate* isolate = ac->isolate();
-    return connect(url, isolate->m_ctx, 0, connectListener, retVal, ac);
+    return tls_base::connect(url, isolate->m_ctx, 0, connectListener, retVal, ac);
 }
 
 result_t tls_base::connect(exlib::string url, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
@@ -206,9 +211,9 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
     return connect(url, nullptr, timeout, connectListener, retVal, ac);
 }
 
-result_t tls_base::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_port(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    return connect(port, "localhost", connectListener, retVal, ac);
+    return tls_base::connect(port, "localhost", connectListener, retVal, ac);
 }
 
 result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
@@ -261,14 +266,14 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         ->post(0);
 }
 
-result_t tls_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
         ac->m_ctx.resize(2);
 
         obj_ptr<SecureContext_base> ctx;
-        result_t hr = createSecureContext(options, false, ctx);
+        result_t hr = tls_base::createSecureContext(options, false, ctx);
         if (hr < 0)
             return hr;
 
@@ -301,17 +306,25 @@ result_t tls_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
         ->post(0);
 }
 
-result_t tls_base::createServer(SecureContext_base* context, Handler_base* listener,
-    obj_ptr<TLSServer_base>& retVal)
+result_t tls_base::connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    return TLSServer_base::_new(context, listener, retVal);
+    if (std::holds_alternative<v8::Local<v8::Object>>(options))
+        return connect_by_options(std::get<v8::Local<v8::Object>>(options), connectListener, retVal, ac);
+
+    if (std::holds_alternative<exlib::string>(options))
+        return connect_by_url(std::get<exlib::string>(options), connectListener, retVal, ac);
+
+    return connect_by_port(std::get<int32_t>(options), connectListener, retVal, ac);
 }
 
-result_t tls_base::createServer(v8::Local<v8::Object> options, Handler_base* listener,
+result_t tls_base::createServer(Union_createServer_options options, Handler_base* listener,
     obj_ptr<TLSServer_base>& retVal)
 {
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
+        return TLSServer_base::_new(std::get<obj_ptr<SecureContext_base>>(options).get(), listener, retVal);
+
     obj_ptr<SecureContext_base> ctx;
-    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    result_t hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
     if (hr < 0)
         return hr;
     return TLSServer_base::_new(ctx, listener, retVal);

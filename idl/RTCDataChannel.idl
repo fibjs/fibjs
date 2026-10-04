@@ -1,17 +1,10 @@
 /*! @brief the RTCDataChannel interface defines a bidirectional data channel */
 interface RTCDataChannel : EventEmitter
 {
-    /*! @brief sends binary data; this method is used to send data to the remote end
-
-     @param data the binary data to send
-    */
-    send(Buffer data);
-
-    /*! @brief sends text data; this method is used to send data to the remote end
-
-     @param data the text data to send
-    */
-    send(String data);
+    /*! @brief sends data to the remote end; a Buffer is sent as binary data and a string as text data
+     @param data the data to send; a string is encoded as utf8
+     */
+    send(Buffer|String data);
 
     /*! @brief closes the channel; this method is used to close the channel */
     close();
@@ -31,14 +24,18 @@ interface RTCDataChannel : EventEmitter
     /*! @brief channel open event, emitted when the channel is opened */
     event open();
 
-    /*! @brief channel message event, emitted when a message is received */
-    event message();
+    /*! @brief channel message event, emitted when a message is received
+     @param ev the event object, carrying the received data in its data property
+     */
+    event message(Object ev);
 
     /*! @brief channel close event, emitted when the channel is closed */
     event close();
 
-    /*! @brief channel error event, emitted when an error occurs on the channel */
-    event error();
+    /*! @brief channel error event, emitted when an error occurs on the channel
+     @param ev the event object, carrying the error message in its error property
+     */
+    event error(Object ev);
 
     /*! @brief channel buffered amount low event, emitted when the channel buffered amount is low */
     event bufferedamountlow();

@@ -24,9 +24,11 @@ class RTCDataChannel_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_send_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // RTCDataChannel_base
-    virtual result_t send(Buffer_base* data) = 0;
-    virtual result_t send(exlib::string data) = 0;
+    virtual result_t send(Union_send_data data) = 0;
     virtual result_t close() = 0;
     virtual result_t get_id(int32_t& retVal) = 0;
     virtual result_t get_label(exlib::string& retVal) = 0;
@@ -104,13 +106,7 @@ inline void RTCDataChannel_base::s_send(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->send(v0.get());
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_send_data, 0);
 
     hr = pInst->send(v0);
 

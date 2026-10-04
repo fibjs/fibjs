@@ -311,185 +311,213 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    on(event: "connectionstatechange", listener: ()=>void): this;
+    on(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "connectionstatechange", listener: ()=>void): this;
+    once(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "connectionstatechange", listener: ()=>void): this;
+    off(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "connectionstatechange", listener: ()=>void): this;
+    addListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "connectionstatechange", listener: ()=>void): this;
+    removeListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "connectionstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "connectionstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "connectionstatechange", listener: ()=>void): this;
+    prependListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "connectionstatechange", listener: ()=>void): this;
+    prependOnceListener(event: "connectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onconnectionstatechange: (()=>void) | null;
+    onconnectionstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description data channel event
+     *      @param ev the event object, carrying the data channel in its channel property
+     *
      */
-    on(event: "datachannel", listener: ()=>void): this;
+    on(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "datachannel", listener: ()=>void): this;
+    once(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "datachannel", listener: ()=>void): this;
+    off(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "datachannel", listener: ()=>void): this;
+    addListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "datachannel", listener: ()=>void): this;
+    removeListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "datachannel", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "datachannel", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "datachannel", listener: ()=>void): this;
+    prependListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "datachannel", listener: ()=>void): this;
+    prependOnceListener(event: "datachannel", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description data channel event
+     *      @param ev the event object, carrying the data channel in its channel property
+     *
      */
-    ondatachannel: (()=>void) | null;
+    ondatachannel: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE candidate event
+     *      @param ev the event object, carrying the candidate
+     *
      */
-    on(event: "icecandidate", listener: ()=>void): this;
+    on(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "icecandidate", listener: ()=>void): this;
+    once(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "icecandidate", listener: ()=>void): this;
+    off(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "icecandidate", listener: ()=>void): this;
+    addListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "icecandidate", listener: ()=>void): this;
+    removeListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "icecandidate", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "icecandidate", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "icecandidate", listener: ()=>void): this;
+    prependListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "icecandidate", listener: ()=>void): this;
+    prependOnceListener(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description ICE candidate event
+     *      @param ev the event object, carrying the candidate
+     *
      */
-    onicecandidate: (()=>void) | null;
+    onicecandidate: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    on(event: "iceconnectionstatechange", listener: ()=>void): this;
+    on(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "iceconnectionstatechange", listener: ()=>void): this;
+    once(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "iceconnectionstatechange", listener: ()=>void): this;
+    off(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "iceconnectionstatechange", listener: ()=>void): this;
+    addListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "iceconnectionstatechange", listener: ()=>void): this;
+    removeListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "iceconnectionstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "iceconnectionstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "iceconnectionstatechange", listener: ()=>void): this;
+    prependListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "iceconnectionstatechange", listener: ()=>void): this;
+    prependOnceListener(event: "iceconnectionstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description ICE connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    oniceconnectionstatechange: (()=>void) | null;
+    oniceconnectionstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE gathering state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    on(event: "icegatheringstatechange", listener: ()=>void): this;
+    on(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "icegatheringstatechange", listener: ()=>void): this;
+    once(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "icegatheringstatechange", listener: ()=>void): this;
+    off(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "icegatheringstatechange", listener: ()=>void): this;
+    addListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "icegatheringstatechange", listener: ()=>void): this;
+    removeListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "icegatheringstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "icegatheringstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "icegatheringstatechange", listener: ()=>void): this;
+    prependListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "icegatheringstatechange", listener: ()=>void): this;
+    prependOnceListener(event: "icegatheringstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description ICE gathering state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onicegatheringstatechange: (()=>void) | null;
+    onicegatheringstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description local description change event
+     *      @param ev the event object, carrying the local description
+     *
      */
-    on(event: "localdescription", listener: ()=>void): this;
+    on(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "localdescription", listener: ()=>void): this;
+    once(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "localdescription", listener: ()=>void): this;
+    off(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "localdescription", listener: ()=>void): this;
+    addListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "localdescription", listener: ()=>void): this;
+    removeListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "localdescription", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "localdescription", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "localdescription", listener: ()=>void): this;
+    prependListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "localdescription", listener: ()=>void): this;
+    prependOnceListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description local description change event
+     *      @param ev the event object, carrying the local description
+     *
      */
-    onlocaldescription: (()=>void) | null;
+    onlocaldescription: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description signaling state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    on(event: "signalingstatechange", listener: ()=>void): this;
+    on(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "signalingstatechange", listener: ()=>void): this;
+    once(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "signalingstatechange", listener: ()=>void): this;
+    off(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "signalingstatechange", listener: ()=>void): this;
+    addListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "signalingstatechange", listener: ()=>void): this;
+    removeListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "signalingstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "signalingstatechange", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "signalingstatechange", listener: ()=>void): this;
+    prependListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "signalingstatechange", listener: ()=>void): this;
+    prependOnceListener(event: "signalingstatechange", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description signaling state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onsignalingstatechange: (()=>void) | null;
+    onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description media track event
@@ -860,38 +888,52 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onconnectionstatechange: (()=>void) | null;
+    onconnectionstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description data channel event
+     *      @param ev the event object, carrying the data channel in its channel property
+     *
      */
-    ondatachannel: (()=>void) | null;
+    ondatachannel: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE candidate event
+     *      @param ev the event object, carrying the candidate
+     *
      */
-    onicecandidate: (()=>void) | null;
+    onicecandidate: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE connection state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    oniceconnectionstatechange: (()=>void) | null;
+    oniceconnectionstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description ICE gathering state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onicegatheringstatechange: (()=>void) | null;
+    onicegatheringstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description local description change event
+     *      @param ev the event object, carrying the local description
+     *
      */
-    onlocaldescription: (()=>void) | null;
+    onlocaldescription: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description signaling state change event
+     *      @param ev the event object, carrying the new state in its state property
+     *
      */
-    onsignalingstatechange: (()=>void) | null;
+    onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description media track event

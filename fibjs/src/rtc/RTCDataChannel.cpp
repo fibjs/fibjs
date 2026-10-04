@@ -56,23 +56,22 @@ RTCDataChannel::~RTCDataChannel()
     close();
 }
 
-result_t RTCDataChannel::send(Buffer_base* data)
+result_t RTCDataChannel::send(Union_send_data data)
 {
-    Buffer* buffer = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        try {
+            m_dataChannel->send(std::string(std::get<exlib::string>(data)));
+        } catch (std::exception& e) {
+            return Runtime::setError(e.what());
+        }
+
+        return 0;
+    }
+
+    Buffer* buffer = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
 
     try {
         m_dataChannel->send((const rtc::byte*)buffer->data(), buffer->length());
-    } catch (std::exception& e) {
-        return Runtime::setError(e.what());
-    }
-
-    return 0;
-}
-
-result_t RTCDataChannel::send(exlib::string data)
-{
-    try {
-        m_dataChannel->send(std::string(data));
     } catch (std::exception& e) {
         return Runtime::setError(e.what());
     }

@@ -238,8 +238,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, ob
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    bool is_ipv6 = false;
-    isIPv6(host, is_ipv6);
+    bool is_ipv6 = Url::isIPv6(host);
     int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
     obj_ptr<Socket_base> socket;
@@ -269,9 +268,14 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
     return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
 }
 
-result_t net_base::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+// the three forms of the merged arity-2 entry: an options object, a port and a
+// unix socket path, each with a once connect listener
+static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener,
+    obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+
+static result_t connect_by_port(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    return connect(port, "localhost", 0, connectListener, retVal, ac);
+    return net_base::connect(port, "localhost", 0, connectListener, retVal, ac);
 }
 
 result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
@@ -282,8 +286,7 @@ result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Funct
 result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        bool is_ipv6 = false;
-        isIPv6(host, is_ipv6);
+        bool is_ipv6 = Url::isIPv6(host);
         int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
         obj_ptr<Socket_base> socket;
@@ -304,9 +307,20 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
     return socket->connect(port, host, timeout, retVal, ac);
 }
 
-result_t net_base::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_path(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    return connect(0, path, 0, connectListener, retVal, ac);
+    return net_base::connect(0, path, 0, connectListener, retVal, ac);
+}
+
+result_t net_base::connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<v8::Local<v8::Object>>(options))
+        return connect_by_options(std::get<v8::Local<v8::Object>>(options), connectListener, retVal, ac);
+
+    if (std::holds_alternative<exlib::string>(options))
+        return connect_by_path(std::get<exlib::string>(options), connectListener, retVal, ac);
+
+    return connect_by_port(std::get<int32_t>(options), connectListener, retVal, ac);
 }
 
 result_t net_base::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
@@ -314,7 +328,7 @@ result_t net_base::connect(exlib::string path, int32_t timeout, v8::Local<v8::Fu
     return connect(0, path, timeout, connectListener, retVal, ac);
 }
 
-result_t net_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         obj_ptr<ConnectOptions> opts;
@@ -326,8 +340,7 @@ result_t net_base::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
         ac->m_ctx.resize(2);
         ac->m_ctx[0] = opts;
 
-        bool is_ipv6 = false;
-        isIPv6(opts->host.value(), is_ipv6);
+        bool is_ipv6 = Url::isIPv6(opts->host.value());
         int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
         obj_ptr<Socket_base> socket;
@@ -365,35 +378,52 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
     return retVal->connect(url, ac);
 }
 
-result_t net_base::isIP(exlib::string ip, int32_t& retVal)
+// the detection functions take any value and render it first (an object with
+// a toString() is a valid input); this lenient rendering lives here instead of
+// an IDL String conversion. Every value is rendered as the DOM renders it, so
+// isIP(123) checks "123".
+static bool is_ip_string(v8::Local<v8::Value> ip, exlib::string& s)
 {
+    if (ip.IsEmpty())
+        return false;
+
+    GetDOMStringValue(ip, s);
+    return true;
+}
+
+result_t net_base::isIP(v8::Local<v8::Value> ip, int32_t& retVal)
+{
+    exlib::string s;
+
     retVal = 0;
-    bool is = false;
 
-    isIPv4(ip, is);
+    if (!is_ip_string(ip, s))
+        return 0;
 
-    if (is) {
+    if (Url::isIPv4(s)) {
         retVal = 4;
         return 0;
     }
 
-    isIPv6(ip, is);
-
-    if (is)
+    if (Url::isIPv6(s))
         retVal = 6;
 
     return 0;
 }
 
-result_t net_base::isIPv4(exlib::string ip, bool& retVal)
+result_t net_base::isIPv4(v8::Local<v8::Value> ip, bool& retVal)
 {
-    retVal = Url::isIPv4(ip);
+    exlib::string s;
+
+    retVal = is_ip_string(ip, s) && Url::isIPv4(s);
     return 0;
 }
 
-result_t net_base::isIPv6(exlib::string ip, bool& retVal)
+result_t net_base::isIPv6(v8::Local<v8::Value> ip, bool& retVal)
 {
-    retVal = Url::isIPv6(ip);
+    exlib::string s;
+
+    retVal = is_ip_string(ip, s) && Url::isIPv6(s);
     return 0;
 }
 

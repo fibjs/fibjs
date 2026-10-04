@@ -168,6 +168,33 @@ describe('tls', () => {
                     assert.isUndefined(ctx.cert);
                 });
 
+                it('invalid PEM material is rejected instead of crashing', () => {
+                    // a bad cert used to reach a null X509 and segfault
+                    assert.throws(() => tls.createSecureContext({ cert: 'not-a-pem' }),
+                        (e) => e.number === 20024 && /valid X509Certificate/.test(e.message));
+                    assert.throws(() => tls.createSecureContext({ key: 'not-a-pem' }),
+                        (e) => e.number === 20024);
+                    assert.throws(() => tls.createSecureContext({ ca: 'not-a-pem' }),
+                        (e) => e.number === 20024);
+                });
+
+                it('invalid server material is rejected by createServer', () => {
+                    const hdlr = (req) => req.response.write('ok');
+                    assert.throws(() => tls.createServer({ cert: 'not-a-pem' }, hdlr),
+                        (e) => e.number === 20024);
+                });
+
+                it('accepts an empty options object and a SecureContext', () => {
+                    var byOptions = tls.createServer({}, (req) => req.response.write('ok'));
+                    assert.equal(byOptions.constructor.name, 'TLSServer');
+                    byOptions.stop();
+
+                    var byContext = tls.createServer(
+                        tls.createSecureContext({}), (req) => req.response.write('ok'));
+                    assert.equal(byContext.constructor.name, 'TLSServer');
+                    byContext.stop();
+                });
+
                 it('requestCert/rejectUnauthorized', () => {
                     var ctx = tls.createSecureContext({
                         requestCert: false,

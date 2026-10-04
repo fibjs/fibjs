@@ -20,7 +20,7 @@ class dns_base : public object_base {
 
 public:
     // dns_base
-    static result_t resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    static result_t resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncEvent* ac);
     static result_t lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
 
 public:
@@ -39,7 +39,7 @@ public:
     static void s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(dns_base, resolve, exlib::string, obj_ptr<NArray>);
+    ASYNC_STATICVALUE2(dns_base, resolve, exlib::string, std::vector<exlib::string>);
     ASYNC_STATICVALUE3(dns_base, lookup, exlib::string, v8::Local<v8::Object>, Variant);
 };
 }
@@ -65,7 +65,7 @@ inline ClassInfo& dns_base::class_info()
 
 inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     ASYNC_METHOD_ENTER("dns.resolve");
 

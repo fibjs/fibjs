@@ -64,81 +64,85 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    send(msg: Class_Buffer, port: number, address?: string): number;
+    send(msg: Class_Buffer | string, port: number, address?: string): number;
 
-    send(msg: Class_Buffer, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendSync(msg: Class_Buffer, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendAsync(msg: Class_Buffer, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
-    send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendSync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendAsync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description returns an object containing the socket address information. For UDP sockets, the object will contain the address, family and port properties.
      *      @return returns the object bound address
      *
      */
-    address(): FIBJS.GeneralObject;
+    address(): {
+        family: string;
+        address: string;
+        port: number;
+    };
 
     /**
      * @description closes the current socket
@@ -150,7 +154,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param callback the callback function after closing completes, which is equivalent to adding a listener for the `close` event
      *
      */
-    close(callback: (...args: any[])=>any): void;
+    close(callback: ()=>void): void;
 
     /**
      * @description queries the socket receive buffer size
@@ -426,77 +430,81 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    send(msg: Class_Buffer, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendSync(msg: Class_Buffer, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendAsync(msg: Class_Buffer, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    send(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendSync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket
-     *      @param msg specifies the data to send
+     * @description sends a datagram on the socket; a string msg is encoded as utf8
+     *      @param msg specifies the data to send, a string is encoded as utf8
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
-     *      @param address specifies the destination address to send to
+     *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
      *
      */
-    sendAsync(msg: Class_Buffer, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description returns an object containing the socket address information. For UDP sockets, the object will contain the address, family and port properties.
      *      @return returns the object bound address
      *
      */
-    address(): FIBJS.GeneralObject;
+    address(): {
+        family: string;
+        address: string;
+        port: number;
+    };
 
     /**
      * @description closes the current socket
@@ -508,7 +516,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param callback the callback function after closing completes, which is equivalent to adding a listener for the `close` event
      *
      */
-    close(callback: (...args: any[])=>any): void;
+    close(callback: ()=>void): void;
 
     /**
      * @description queries the socket receive buffer size

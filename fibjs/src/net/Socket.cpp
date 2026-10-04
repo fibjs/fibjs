@@ -558,10 +558,32 @@ result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     return m_aio.accept(retVal, ac);
 }
 
+result_t Socket::send(Union_send_data data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return send(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+
+    return send(std::get<exlib::string>(data), retVal, ac);
+}
+
 result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     retVal = Buffer::Cast(data)->length();
     return m_aio.write(data, ac, m_timeout);
+}
+
+result_t Socket::send(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(data, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    retVal = (int32_t)data.length();
+    return m_aio.write(buf, ac, m_timeout);
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,

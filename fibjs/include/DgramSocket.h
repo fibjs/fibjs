@@ -50,9 +50,15 @@ public:
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, AsyncEvent* ac);
     virtual result_t bind(v8::Local<v8::Object> opts, AsyncEvent* ac);
-    virtual result_t send(Buffer_base* msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t address(obj_ptr<NObject>& retVal);
+    virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    // the merged entries dispatch to the per-type implementations: a string is
+    // encoded as utf8
+    result_t send(Buffer_base* msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    result_t send(exlib::string msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    result_t send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    result_t send(exlib::string msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t address(obj_ptr<AddressType>& retVal);
     virtual result_t close();
     virtual result_t close(v8::Local<v8::Function> callback);
     virtual result_t getRecvBufferSize(int32_t& retVal);

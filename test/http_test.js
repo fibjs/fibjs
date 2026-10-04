@@ -1954,21 +1954,12 @@ describe("http", () => {
 
             var byOptions = http.createServer({}, hdlr);
             assert.strictEqual(byOptions.constructor.name, "HttpServer");
-            // INTERIM (commit split): closing a server that never listened
-            // becomes a no-op with the net family batch
-            try {
-                assert.strictEqual(byOptions.stop(), undefined);
-            } catch (e) {
-            }
+            // closing a server that never listened is a no-op, like node
+            assert.strictEqual(byOptions.stop(), undefined);
 
             var byContext = http.createServer(tls.createSecureContext({}), hdlr);
             assert.strictEqual(byContext.constructor.name, "HttpsServer");
-            // INTERIM (commit split): closing a server that never listened
-            // becomes a no-op with the net family batch
-            try {
-                byContext.stop();
-            } catch (e) {
-            }
+            byContext.stop();
         });
 
         it("should reject an invalid certificate", () => {

@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DgramSocket.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description one of the dgram basic modules, mainly used to encapsulate UDP datagram sockets.
  *
@@ -47,7 +48,7 @@ declare module 'dgram' {
     /**
      * @description creates a dgram.Socket object
      *
-     *      The allowed options of opts are:
+     *      opts is the socket family, 'udp4' or 'udp6', or an options object:
      *      ```JavaScript
      *      {
      *          "type": "udp4" | "udp6",   // socket type
@@ -57,16 +58,16 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      ```
-     *      @param opts
+     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
      *      @return returns the created Socket object
      *
      */
-    function createSocket(opts: FIBJS.GeneralObject): Class_DgramSocket;
+    function createSocket(opts: FIBJS.GeneralObject | string): Class_DgramSocket;
 
     /**
      * @description creates a dgram.Socket object
      *
-     *      The allowed options of opts are:
+     *      opts is the socket family, 'udp4' or 'udp6', or an options object:
      *      ```JavaScript
      *      {
      *          "type": "udp4" | "udp6",   // socket type
@@ -76,29 +77,12 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      ```
-     *      @param opts
+     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
      *      @param callback adds a listener for the 'message' event.
      *      @return returns the created Socket object
      *
      */
-    function createSocket(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_DgramSocket;
-
-    /**
-     * @description creates a dgram.Socket object
-     *      @param type socket family, 'udp4' or 'udp6'.
-     *      @return returns the created Socket object
-     *
-     */
-    function createSocket(type: string): Class_DgramSocket;
-
-    /**
-     * @description creates a dgram.Socket object
-     *      @param type socket family, 'udp4' or 'udp6'.
-     *      @param callback adds a listener for the 'message' event.
-     *      @return returns the created Socket object
-     *
-     */
-    function createSocket(type: string, callback: (...args: any[])=>any): Class_DgramSocket;
+    function createSocket(opts: FIBJS.GeneralObject | string, callback: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): Class_DgramSocket;
 
 }
 

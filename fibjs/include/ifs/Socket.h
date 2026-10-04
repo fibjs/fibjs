@@ -24,6 +24,9 @@ class Socket_base : public Stream_base {
     DECLARE_CLASS(Socket_base);
 
 public:
+    using Union_send_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Socket_base
     static result_t _new(int32_t family, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_family(int32_t& retVal) = 0;
@@ -33,15 +36,15 @@ public:
     virtual result_t get_localPort(int32_t& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
-    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog) = 0;
@@ -50,7 +53,7 @@ public:
     virtual result_t setNoDelay(bool noDelay) = 0;
     virtual result_t isAlive(bool& retVal) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t send(Union_send_data data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t abort() = 0;
     virtual result_t setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal) = 0;
@@ -81,18 +84,18 @@ public:
     static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE4(Socket_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
-    ASYNC_MEMBERVALUE3(Socket_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE2(Socket_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
+    ASYNC_MEMBERVALUE3(Socket_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE3(Socket_base, connect, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE4(Socket_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE5(Socket_base, connect, int32_t, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_MEMBERVALUE4(Socket_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
+    ASYNC_MEMBERVALUE3(Socket_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE3(Socket_base, connect, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE4(Socket_base, connect, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_MEMBERVALUE3(Socket_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Socket_base, send, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE2(Socket_base, send, Union_send_data, int32_t);
 };
 }
 
@@ -277,27 +280,6 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(Socket_base);
     ASYNC_METHOD_ENTER_FUNC("Socket.connect");
 
-    METHOD_OVER(3, 1);
-
-    ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "localhost");
-    OPT_ARG(int32_t, 2, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, v1, v2, cb, args);
-    else
-        hr = pInst->ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, v1, cb, args);
-    else
-        hr = pInst->ac_connect(v0, v1, vr);
-
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
@@ -306,6 +288,16 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
         hr = pInst->acb_connect(v0, cb, args);
     else
         hr = pInst->ac_connect(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1, vr);
 
     METHOD_OVER(2, 2);
 
@@ -340,6 +332,27 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     else
         hr = pInst->ac_connect(v0, v1, v2, v3, vr);
 
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "localhost");
+    OPT_ARG(int32_t, 2, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1, vr);
+
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
@@ -360,16 +373,6 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
         hr = pInst->acb_connect(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, v1, cb, args);
-    else
-        hr = pInst->ac_connect(v0, v1, vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -499,12 +502,12 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_send_data, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_send(v0.get(), cb, args);
+        hr = pInst->acb_send(v0, cb, args);
     else
-        hr = pInst->ac_send(v0.get(), vr);
+        hr = pInst->ac_send(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }

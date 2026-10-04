@@ -16,7 +16,7 @@ module dns
      @param name specifies the hostname
      @return returns the array of queried ip strings
      */
-    static NArray resolve(String name) async;
+    static String[] resolve(String name) async;
 
     /*! @brief queries the address of the given hostname
 

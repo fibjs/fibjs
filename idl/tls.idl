@@ -24,18 +24,11 @@ module tls
     static Server = TLSServer;
 
     /*! @brief creates a TLS server
-     @param context specifies the secure context
+     @param options specifies the secure context object, or the options for creating the secure context
      @param listener the connection handling function
      @return returns a TLSServer object with no port bound, which needs listen() to start
      */
-    static TLSServer createServer(SecureContext context, Handler listener);
-
-    /*! @brief creates a TLS server
-     @param options the options for creating the secure context
-     @param listener the connection handling function
-     @return returns a TLSServer object with no port bound, which needs listen() to start
-     */
-    static TLSServer createServer(Object options, Handler listener);
+    static TLSServer createServer(Object|SecureContext options, Handler listener);
 
     /*! @brief creates a SecureContext object, used to maintain secure contexts in the tls module
 
@@ -77,12 +70,45 @@ module tls
      */
     static Stream connect(Object options) async;
 
+    /*! @brief creates a tls/ssl connection and triggers the connect event after the connection is established
+     @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Object|String|Integer options, Function(Object ev) connectListener) async;
+
     /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     @param port specifies the port number to connect
      @param options specifies the connection options
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(Object options, Function connectListener) async;
+    static Stream connect(Integer port, Object options, Function(Object ev) connectListener) async;
+
+    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     @param port specifies the port number to connect
+     @param host specifies the hostname to connect
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Function(Object ev) connectListener) async;
+
+    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     @param port specifies the port number to connect
+     @param host specifies the hostname to connect
+     @param options specifies the connection options
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    static Stream connect(Integer port, String host, Object options, Function(Object ev) connectListener) async;
+
+    /*! @brief creates a tls/ssl connection based on the hostname and port number
+     @param port specifies the port number to connect
+     @param host specifies the hostname to connect, default is "localhost"
+     @param options specifies the connection options
+     @return returns the tls/ssl connection object
+     */
+    static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
 
     /*! @brief creates a tls/ssl connection based on the url
      @param url specifies the URL to connect
@@ -106,28 +132,13 @@ module tls
      */
     static Stream connect(String url, Object options) async;
 
-    /*! @brief creates a tls/ssl connection based on the hostname and port number
-     @param port specifies the port number to connect
-     @param host specifies the hostname to connect, default is "localhost"
-     @param options specifies the connection options
-     @return returns the tls/ssl connection object
-     */
-    static Stream connect(Integer port, String host = "localhost", Object options = {}) async;
-
-    /*! @brief creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
-     @param url specifies the URL to connect
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(String url, Function connectListener) async;
-
     /*! @brief creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
      @param url specifies the URL to connect
      @param timeout specifies the connection timeout, default is 0
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(String url, Integer timeout, Function connectListener) async;
+    static Stream connect(String url, Integer timeout, Function(Object ev) connectListener) async;
 
     /*! @brief creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
      @param url specifies the URL to connect
@@ -135,7 +146,7 @@ module tls
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(String url, SecureContext secureContext, Function connectListener) async;
+    static Stream connect(String url, SecureContext secureContext, Function(Object ev) connectListener) async;
 
     /*! @brief creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
      @param url specifies the URL to connect
@@ -144,7 +155,7 @@ module tls
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(String url, SecureContext secureContext, Integer timeout, Function connectListener) async;
+    static Stream connect(String url, SecureContext secureContext, Integer timeout, Function(Object ev) connectListener) async;
 
     /*! @brief creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
      @param url specifies the URL to connect
@@ -152,37 +163,5 @@ module tls
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    static Stream connect(String url, Object options, Function connectListener) async;
-
-    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
-     @param port specifies the port number to connect
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(Integer port, Function connectListener) async;
-
-    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
-     @param port specifies the port number to connect
-     @param host specifies the hostname to connect
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(Integer port, String host, Function connectListener) async;
-
-    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
-     @param port specifies the port number to connect
-     @param options specifies the connection options
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(Integer port, Object options, Function connectListener) async;
-
-    /*! @brief creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
-     @param port specifies the port number to connect
-     @param host specifies the hostname to connect
-     @param options specifies the connection options
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    static Stream connect(Integer port, String host, Object options, Function connectListener) async;
+    static Stream connect(String url, Object options, Function(Object ev) connectListener) async;
 };

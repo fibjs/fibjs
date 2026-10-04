@@ -21,28 +21,28 @@ interface DgramSocket : EventEmitter
     */
     bind(Object opts) async;
 
-    /*! @brief sends a datagram on the socket
-     @param msg specifies the data to send
+    /*! @brief sends a datagram on the socket; a string msg is encoded as utf8
+     @param msg specifies the data to send, a string is encoded as utf8
      @param port specifies the destination port to send to
-     @param address specifies the destination address to send to
+     @param address specifies the destination address to send to, a string is encoded as utf8
      @return returns the number of bytes sent
-    */
-    Integer send(Buffer msg, Integer port, String address = "") async;
+     */
+    Integer send(Buffer|String msg, Integer port, String address = "") async;
 
-    /*! @brief sends a datagram on the socket
-     @param msg specifies the data to send
+    /*! @brief sends a datagram on the socket; a string msg is encoded as utf8
+     @param msg specifies the data to send, a string is encoded as utf8
      @param offset starts sending from the specified offset
      @param length sends the specified length
      @param port specifies the destination port to send to
-     @param address specifies the destination address to send to
+     @param address specifies the destination address to send to, a string is encoded as utf8
      @return returns the number of bytes sent
-    */
-    Integer send(Buffer msg, Integer offset, Integer length, Integer port, String address = "") async;
+     */
+    Integer send(Buffer|String msg, Integer offset, Integer length, Integer port, String address = "") async;
 
     /*! @brief returns an object containing the socket address information. For UDP sockets, the object will contain the address, family and port properties. 
      @return returns the object bound address
     */
-    NObject address();
+    (String family, String address, Integer port) address();
 
     /*! @brief closes the current socket */
     close();
@@ -50,7 +50,7 @@ interface DgramSocket : EventEmitter
     /*! @brief closes the current socket
      @param callback the callback function after closing completes, which is equivalent to adding a listener for the `close` event
     */
-    close(Function callback);
+    close(Function() callback);
 
     /*! @brief queries the socket receive buffer size 
      @return returns the query result

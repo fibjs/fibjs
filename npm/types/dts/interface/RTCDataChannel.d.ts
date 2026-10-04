@@ -6,21 +6,10 @@
  */
 declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
-     * @description sends binary data; this method is used to send data to the remote end
-     *
-     *      @param data the binary data to send
-     *
-     */
-    send(data: Class_Buffer): void;
-
-    /**
-     * @description sends text data; this method is used to send data to the remote end
-     *
-     *      @param data the text data to send
+     * @description sends data to the remote end; a Buffer is sent as binary data and a string as text data
+     *      @param data the data to send; a string is encoded as utf8
      *
      */
-    send(data: string): void;
-
     send(data: Class_Buffer | string): void;
 
     /**
@@ -76,29 +65,33 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel message event, emitted when a message is received
+     *      @param ev the event object, carrying the received data in its data property
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description channel message event, emitted when a message is received
+     *      @param ev the event object, carrying the received data in its data property
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description channel close event, emitted when the channel is closed
@@ -128,29 +121,33 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel error event, emitted when an error occurs on the channel
+     *      @param ev the event object, carrying the error message in its error property
+     *
      */
-    on(event: "error", listener: ()=>void): this;
+    on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "error", listener: ()=>void): this;
+    once(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "error", listener: ()=>void): this;
+    off(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "error", listener: ()=>void): this;
+    addListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "error", listener: ()=>void): this;
+    removeListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "error", listener: ()=>void): this;
+    prependListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "error", listener: ()=>void): this;
+    prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description channel error event, emitted when an error occurs on the channel
+     *      @param ev the event object, carrying the error message in its error property
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description channel buffered amount low event, emitted when the channel buffered amount is low

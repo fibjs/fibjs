@@ -9,6 +9,7 @@
 #include "TcpServer.h"
 #include "ifs/mq.h"
 #include "ifs/console.h"
+#include "Url.h"
 
 namespace fibjs {
 
@@ -100,9 +101,9 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     if (addr.empty())
         ipv4 = true;
     else
-        net_base::isIPv4(addr, ipv4);
+        ipv4 = Url::isIPv4(addr);
     if (!ipv4)
-        net_base::isIPv6(addr, ipv6);
+        ipv6 = Url::isIPv6(addr);
 
     hr = Socket_base::_new(ipv6 ? net_base::C_AF_INET6 : ipv4 ? net_base::C_AF_INET
                                                               : net_base::C_AF_UNIX,
@@ -269,8 +270,10 @@ result_t TcpServer::start()
 
 result_t TcpServer::stop(AsyncEvent* ac)
 {
+    // a server that never listened has nothing to close; node treats close()
+    // on a non-listening server as a no-op instead of failing
     if (!m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return 0;
 
     // emit 'close' immediately when m_running transitions to false,
     // so JS listeners fire on next yield regardless of asyncAccept timing

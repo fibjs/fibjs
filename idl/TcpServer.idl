@@ -99,8 +99,10 @@ interface TcpServer : EventEmitter
     */
     event connection(Socket socket);
 
-    /*! @brief emitted when an error occurs */
-    event error();
+    /*! @brief emitted when an error occurs
+     @param msg the error message
+    */
+    event error(String msg);
 
     /*! @brief emitted after the server is closed */
     event close();

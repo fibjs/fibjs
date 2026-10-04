@@ -56,6 +56,167 @@ declare class Class_Socket extends Class_Stream {
     timeout: number;
 
     /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(options: FIBJS.GeneralObject): Class_Stream;
+
+    connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
      * @description establishes a tcp connection
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
@@ -117,138 +278,13 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(path: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(options: FIBJS.GeneralObject): Class_Stream;
-
-    connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
-
-    /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
-
-    /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
+     *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connect(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -257,7 +293,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(path: string, connectListener: (...args: any[])=>any): Class_Stream;
+    connectSync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -266,16 +302,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param path specifies the unix socket or Windows pipe path
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(path: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connectAsync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -285,7 +312,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    connect(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -295,7 +322,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    connectSync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -305,34 +332,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connectAsync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description binds the current Socket to the specified port on all local addresses
@@ -433,30 +433,30 @@ declare class Class_Socket extends Class_Stream {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    send(data: Class_Buffer): number;
+    send(data: Class_Buffer | string): number;
 
-    send(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
-     *      @return returns the number of bytes actually written
-     *
-     */
-    sendSync(data: Class_Buffer): number;
+    send(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    sendAsync(data: Class_Buffer): Promise<number>;
+    sendSync(data: Class_Buffer | string): number;
+
+    /**
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
+     *      @return returns the number of bytes actually written
+     *
+     */
+    sendAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
      * @description aborts all ongoing operations on the current socket
@@ -482,7 +482,7 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the current Socket object
      *
      */
-    setTimeout(timeout: number, callback: (...args: any[])=>any): Class_Socket;
+    setTimeout(timeout: number, callback: ()=>void): Class_Socket;
 
 }
 
@@ -530,6 +530,165 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      * @description queries and sets the timeout in milliseconds
      */
     timeout: number;
+
+    /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description establishes a connection
+     *
+     *      The options parameter can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param options specifies the connection options object, which can contain the following properties:
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connect(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectSync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+
+    /**
+     * @description establishes a connection and triggers the connect event after the connection is established
+     *      @param port specifies the remote port
+     *      @param host specifies the remote address or host name, default is localhost
+     *      @param timeout specifies the timeout in milliseconds, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a tcp connection
@@ -589,136 +748,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(path: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
-
-    /**
-     * @description establishes a connection
-     *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
-
-    /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
+     *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    connect(port: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param port specifies the remote port
-     *      @param host specifies the remote address or host name, default is localhost
-     *      @param timeout specifies the timeout in milliseconds, default is 0
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(port: number, host: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connect(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -727,7 +763,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(path: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connectSync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -736,16 +772,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(path: string, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param path specifies the unix socket or Windows pipe path
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(path: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connectAsync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -755,7 +782,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connect(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -765,7 +792,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(path: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    connectSync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
@@ -775,34 +802,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(path: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
-
-    /**
-     * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object, which can contain the following properties:
-     *      @param connectListener specifies the once connect event listener
-     *      @return returns the connected Socket object
-     *
-     */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+    connectAsync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description binds the current Socket to the specified port on all local addresses
@@ -899,28 +899,28 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    send(data: Class_Buffer): Promise<number>;
+    send(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    sendSync(data: Class_Buffer): number;
+    sendSync(data: Class_Buffer | string): number;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method
-     *      @param data the data to write
+     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    sendAsync(data: Class_Buffer): Promise<number>;
+    sendAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
      * @description aborts all ongoing operations on the current socket
@@ -946,7 +946,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the current Socket object
      *
      */
-    setTimeout(timeout: number, callback: (...args: any[])=>any): Class_Socket;
+    setTimeout(timeout: number, callback: ()=>void): Class_Socket;
 
 }
 

@@ -129,26 +129,40 @@ interface RTCPeerConnection : EventEmitter
     /*! @brief gets the signaling state, returns a signaling state string, possible values are: 'stable', 'have-local-offer', 'have-remote-offer', 'have-local-pranswer', 'have-remote-pranswer', 'closed' */
     readonly String signalingState;
 
-    /*! @brief connection state change event */
-    event connectionstatechange();
+    /*! @brief connection state change event
+     @param ev the event object, carrying the new state in its state property
+     */
+    event connectionstatechange(Object ev);
 
-    /*! @brief data channel event */
-    event datachannel();
+    /*! @brief data channel event
+     @param ev the event object, carrying the data channel in its channel property
+     */
+    event datachannel(Object ev);
 
-    /*! @brief ICE candidate event */
-    event icecandidate();
+    /*! @brief ICE candidate event
+     @param ev the event object, carrying the candidate
+     */
+    event icecandidate(Object ev);
 
-    /*! @brief ICE connection state change event */
-    event iceconnectionstatechange();
+    /*! @brief ICE connection state change event
+     @param ev the event object, carrying the new state in its state property
+     */
+    event iceconnectionstatechange(Object ev);
 
-    /*! @brief ICE gathering state change event */
-    event icegatheringstatechange();
+    /*! @brief ICE gathering state change event
+     @param ev the event object, carrying the new state in its state property
+     */
+    event icegatheringstatechange(Object ev);
 
-    /*! @brief local description change event */
-    event localdescription();
+    /*! @brief local description change event
+     @param ev the event object, carrying the local description
+     */
+    event localdescription(Object ev);
 
-    /*! @brief signaling state change event */
-    event signalingstatechange();
+    /*! @brief signaling state change event
+     @param ev the event object, carrying the new state in its state property
+     */
+    event signalingstatechange(Object ev);
 
     /*! @brief media track event */
     event track();

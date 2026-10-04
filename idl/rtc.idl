@@ -104,7 +104,7 @@ module rtc
      @param local_port local port
      @param cb callback function
     */
-    static listen(String bind_address, Integer local_port, Function cb);
+    static listen(String bind_address, Integer local_port, Function(Object info) cb);
 
     /*! @brief binds a WebRTC listening service on the specified port
 
@@ -113,7 +113,7 @@ module rtc
      @param local_port local port
      @param cb callback function
     */
-    static listen(Integer local_port, Function cb);
+    static listen(Integer local_port, Function(Object info) cb);
 
     /*! @brief unbinds the WebRTC listening service
      @param bind_address binding address

@@ -28,7 +28,12 @@ int32_t get_family(exlib::string type)
     return -1;
 }
 
-result_t dgram_base::createSocket(exlib::string type, obj_ptr<DgramSocket_base>& retVal)
+// the two forms of the merged createSocket entry: the socket family and the
+// options object
+static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_base>& retVal);
+static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal);
+
+static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_base>& retVal)
 {
     int32_t family = get_family(type);
     if (family < 0)
@@ -43,10 +48,18 @@ result_t dgram_base::createSocket(exlib::string type, obj_ptr<DgramSocket_base>&
     return 0;
 }
 
-result_t dgram_base::createSocket(exlib::string type, v8::Local<v8::Function> callback,
+result_t dgram_base::createSocket(Union_createSocket_opts opts, obj_ptr<DgramSocket_base>& retVal)
+{
+    if (std::holds_alternative<exlib::string>(opts))
+        return create_socket_by_type(std::get<exlib::string>(opts), retVal);
+
+    return create_socket_by_options(std::get<v8::Local<v8::Object>>(opts), retVal);
+}
+
+result_t dgram_base::createSocket(Union_createSocket_opts opts, v8::Local<v8::Function> callback,
     obj_ptr<DgramSocket_base>& retVal)
 {
-    result_t hr = createSocket(type, retVal);
+    result_t hr = createSocket(opts, retVal);
     if (hr < 0)
         return hr;
 
@@ -56,7 +69,7 @@ result_t dgram_base::createSocket(exlib::string type, v8::Local<v8::Function> ca
     return 0;
 }
 
-result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal)
+static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal)
 {
     result_t hr;
 
@@ -93,19 +106,6 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocke
         return hr;
 
     retVal = s;
-
-    return 0;
-}
-
-result_t dgram_base::createSocket(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
-    obj_ptr<DgramSocket_base>& retVal)
-{
-    result_t hr = createSocket(opts, retVal);
-    if (hr < 0)
-        return hr;
-
-    v8::Local<v8::Object> r;
-    retVal->on(retVal->holder()->NewString("message"), callback, r);
 
     return 0;
 }
@@ -232,6 +232,29 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return bind(port, addr, ac);
 }
 
+result_t DgramSocket::send(Union_send_msg msg, int32_t port, exlib::string address,
+    int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(msg))
+        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), port, address, retVal, ac);
+
+    return send(std::get<exlib::string>(msg), port, address, retVal, ac);
+}
+
+result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string address,
+    int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(msg, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return send(buf.get(), port, address, retVal, ac);
+}
+
 result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address,
     int32_t& retVal, AsyncEvent* ac)
 {
@@ -310,6 +333,35 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     });
 }
 
+result_t DgramSocket::send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port,
+    exlib::string address, int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(msg))
+        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), offset, length, port, address, retVal, ac);
+
+    return send(std::get<exlib::string>(msg), offset, length, port, address, retVal, ac);
+}
+
+result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, int32_t port,
+    exlib::string address, int32_t& retVal, AsyncEvent* ac)
+{
+    if (offset < 0 || length <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(msg, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> msg1;
+    buf->slice(offset, offset + length, msg1);
+
+    return send(msg1.get(), port, address, retVal, ac);
+}
+
 result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
     exlib::string address, int32_t& retVal, AsyncEvent* ac)
 {
@@ -329,10 +381,10 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     obj_ptr<Buffer_base> msg1;
     msg->slice(offset, offset + length, msg1);
 
-    return send(msg1, port, address, retVal, ac);
+    return send(msg1.get(), port, address, retVal, ac);
 }
 
-result_t DgramSocket::address(obj_ptr<NObject>& retVal)
+result_t DgramSocket::address(obj_ptr<AddressType>& retVal)
 {
     inetAddr addr_info;
     int32_t sz = (int32_t)sizeof(addr_info);
@@ -341,11 +393,11 @@ result_t DgramSocket::address(obj_ptr<NObject>& retVal)
     if (ret < 0)
         return CHECK_ERROR(ret);
 
-    retVal = new NObject();
+    retVal = new AddressType();
 
-    retVal->add("family", addr_info.family() == net_base::C_AF_INET6 ? "IPv6" : "IPv4");
-    retVal->add("address", addr_info.str());
-    retVal->add("port", addr_info.port());
+    retVal->family = addr_info.family() == net_base::C_AF_INET6 ? "IPv6" : "IPv4";
+    retVal->address = addr_info.str();
+    retVal->port = addr_info.port();
 
     return 0;
 }

@@ -117,7 +117,7 @@ declare module 'rtc' {
      *      @param cb callback function
      *
      */
-    function listen(bind_address: string, local_port: number, cb: (...args: any[])=>any): void;
+    function listen(bind_address: string, local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description binds a WebRTC listening service on the specified port
@@ -128,7 +128,7 @@ declare module 'rtc' {
      *      @param cb callback function
      *
      */
-    function listen(local_port: number, cb: (...args: any[])=>any): void;
+    function listen(local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description unbinds the WebRTC listening service

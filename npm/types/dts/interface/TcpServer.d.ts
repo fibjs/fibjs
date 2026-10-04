@@ -228,29 +228,33 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
     /**
      * @description emitted when an error occurs
+     *      @param msg the error message
+     *
      */
-    on(event: "error", listener: ()=>void): this;
+    on(event: "error", listener: (msg: string)=>void): this;
 
-    once(event: "error", listener: ()=>void): this;
+    once(event: "error", listener: (msg: string)=>void): this;
 
-    off(event: "error", listener: ()=>void): this;
+    off(event: "error", listener: (msg: string)=>void): this;
 
-    addListener(event: "error", listener: ()=>void): this;
+    addListener(event: "error", listener: (msg: string)=>void): this;
 
-    removeListener(event: "error", listener: ()=>void): this;
+    removeListener(event: "error", listener: (msg: string)=>void): this;
 
-    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "error", listener: (msg: string)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "error", listener: (msg: string)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "error", listener: ()=>void): this;
+    prependListener(event: "error", listener: (msg: string)=>void): this;
 
-    prependOnceListener(event: "error", listener: ()=>void): this;
+    prependOnceListener(event: "error", listener: (msg: string)=>void): this;
 
     /**
      * @description emitted when an error occurs
+     *      @param msg the error message
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((msg: string)=>void) | null;
 
     /**
      * @description emitted after the server is closed
@@ -472,8 +476,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
 
     /**
      * @description emitted when an error occurs
+     *      @param msg the error message
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((msg: string)=>void) | null;
 
     /**
      * @description emitted after the server is closed

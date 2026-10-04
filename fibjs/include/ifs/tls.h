@@ -26,27 +26,28 @@ class tls_base : public object_base {
     DECLARE_CLASS(tls_base);
 
 public:
+    using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
+    using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
+
+public:
     // tls_base
-    static result_t createServer(SecureContext_base* context, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
-    static result_t createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
     static result_t createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t createSecureContext(bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
     static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string url, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, SecureContext_base* secureContext, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -67,20 +68,18 @@ public:
 
 public:
     ASYNC_STATICVALUE2(tls_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(tls_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(tls_base, connect, Union_connect_options, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(tls_base, connect, int32_t, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE5(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(tls_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(tls_base, connect, exlib::string, SecureContext_base*, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(tls_base, connect, exlib::string, v8::Local<v8::Object>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(tls_base, connect, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(tls_base, connect, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(tls_base, connect, exlib::string, SecureContext_base*, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE5(tls_base, connect, exlib::string, SecureContext_base*, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(tls_base, connect, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE3(tls_base, connect, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE4(tls_base, connect, int32_t, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE5(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
 };
 }
 
@@ -129,14 +128,7 @@ inline void tls_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = createServer(v0.get(), v1.get(), vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_createServer_options, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
     hr = createServer(v0, v1.get(), vr);
@@ -196,13 +188,58 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 2);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_connect_options, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
     else
         hr = ac_connect(v0, v1, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(int32_t, 0);
+    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
+
+    METHOD_OVER(4, 4);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Object>, 2);
+    ARG(v8::Local<v8::Function>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "localhost");
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
@@ -229,27 +266,6 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Object>, 1);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, cb, args);
-    else
-        hr = ac_connect(v0, v1, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "localhost");
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, v2, cb, args);
-    else
-        hr = ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
@@ -300,50 +316,6 @@ inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, v1, v2, cb, args);
     else
         hr = ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, cb, args);
-    else
-        hr = ac_connect(v0, v1, vr);
-
-    METHOD_OVER(3, 3);
-
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, v2, cb, args);
-    else
-        hr = ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 3);
-
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, v2, cb, args);
-    else
-        hr = ac_connect(v0, v1, v2, vr);
-
-    METHOD_OVER(4, 4);
-
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Object>, 2);
-    ARG(v8::Local<v8::Function>, 3);
-
-    if (!cb.IsEmpty())
-        hr = acb_connect(v0, v1, v2, v3, cb, args);
-    else
-        hr = ac_connect(v0, v1, v2, v3, vr);
 
     ASYNC_METHOD_RETURN();
 }

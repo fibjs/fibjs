@@ -24,12 +24,39 @@ class DgramSocket_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_send_msg = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
+    class AddressType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("family"), GetReturnValue(isolate, family)).Check();
+            retVal->Set(context, isolate->NewString("address"), GetReturnValue(isolate, address)).Check();
+            retVal->Set(context, isolate->NewString("port"), GetReturnValue(isolate, port)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, family));
+            args.push_back(GetReturnValue(isolate, address));
+            args.push_back(GetReturnValue(isolate, port));
+        }
+
+    public:
+        exlib::string family;
+        exlib::string address;
+        int32_t port;
+    };
+
+public:
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, AsyncEvent* ac) = 0;
     virtual result_t bind(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
-    virtual result_t send(Buffer_base* msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t address(obj_ptr<NObject>& retVal) = 0;
+    virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
     virtual result_t close() = 0;
     virtual result_t close(v8::Local<v8::Function> callback) = 0;
     virtual result_t getRecvBufferSize(int32_t& retVal) = 0;
@@ -81,8 +108,8 @@ public:
 public:
     ASYNC_MEMBER2(DgramSocket_base, bind, int32_t, exlib::string);
     ASYNC_MEMBER1(DgramSocket_base, bind, v8::Local<v8::Object>);
-    ASYNC_MEMBERVALUE4(DgramSocket_base, send, Buffer_base*, int32_t, exlib::string, int32_t);
-    ASYNC_MEMBERVALUE6(DgramSocket_base, send, Buffer_base*, int32_t, int32_t, int32_t, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE4(DgramSocket_base, send, Union_send_msg, int32_t, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE6(DgramSocket_base, send, Union_send_msg, int32_t, int32_t, int32_t, exlib::string, int32_t);
 };
 }
 
@@ -162,34 +189,34 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_send_msg, 0);
     ARG(int32_t, 1);
     OPT_ARG(exlib::string, 2, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_send(v0.get(), v1, v2, cb, args);
+        hr = pInst->acb_send(v0, v1, v2, cb, args);
     else
-        hr = pInst->ac_send(v0.get(), v1, v2, vr);
+        hr = pInst->ac_send(v0, v1, v2, vr);
 
     METHOD_OVER(5, 4);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_send_msg, 0);
     ARG(int32_t, 1);
     ARG(int32_t, 2);
     ARG(int32_t, 3);
     OPT_ARG(exlib::string, 4, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_send(v0.get(), v1, v2, v3, v4, cb, args);
+        hr = pInst->acb_send(v0, v1, v2, v3, v4, cb, args);
     else
-        hr = pInst->ac_send(v0.get(), v1, v2, v3, v4, vr);
+        hr = pInst->ac_send(v0, v1, v2, v3, v4, vr);
 
     ASYNC_METHOD_RETURN();
 }
 
 inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NObject> vr;
+    obj_ptr<AddressType> vr;
 
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();

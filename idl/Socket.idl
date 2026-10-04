@@ -37,6 +37,49 @@ interface Socket : Stream
     /*! @brief queries and sets the timeout in milliseconds */
     Integer timeout;
 
+    /*! @brief establishes a connection
+
+     The options parameter can contain the following properties:
+      - port: specifies the remote port
+      - host: specifies the remote address or host name
+      - timeout: specifies the timeout in milliseconds, default is 0
+
+     @param options specifies the connection options object
+     @return returns the connected Socket object
+    */
+    Stream connect(Object options) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param options specifies the connection options object, which can contain the following properties:
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Object options, Function(Object ev) connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, Function(Object ev) connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, String host, Function(Object ev) connectListener) async;
+
+    /*! @brief establishes a connection and triggers the connect event after the connection is established
+     @param port specifies the remote port
+     @param host specifies the remote address or host name, default is localhost
+     @param timeout specifies the timeout in milliseconds, default is 0
+     @param connectListener specifies the once connect event listener
+     @return returns the connected Socket object
+     */
+    Stream connect(Integer port, String host, Integer timeout, Function(Object ev) connectListener) async;
+
     /*! @brief establishes a tcp connection
      @param port specifies the remote port
      @param host specifies the remote address or host name, default is localhost
@@ -52,48 +95,12 @@ interface Socket : Stream
      */
     Stream connect(String path, Integer timeout = 0) async;
 
-    /*! @brief establishes a connection
-
-     The options parameter can contain the following properties:
-      - port: specifies the remote port
-      - host: specifies the remote address or host name
-      - timeout: specifies the timeout in milliseconds, default is 0
-
-     @param options specifies the connection options object
-     @return returns the connected Socket object
-    */
-    Stream connect(Object options) async;
-
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param port specifies the remote port
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    Stream connect(Integer port, Function connectListener) async;
-
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param port specifies the remote port
-     @param host specifies the remote address or host name, default is localhost
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    Stream connect(Integer port, String host, Function connectListener) async;
-
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param port specifies the remote port
-     @param host specifies the remote address or host name, default is localhost
-     @param timeout specifies the timeout in milliseconds, default is 0
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    Stream connect(Integer port, String host, Integer timeout, Function connectListener) async;
-
     /*! @brief establishes a connection and triggers the connect event after the connection is established
      @param path specifies the unix socket or Windows pipe path
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    Stream connect(String path, Function connectListener) async;
+    Stream connect(String path, Function(Object ev) connectListener) async;
 
     /*! @brief establishes a connection and triggers the connect event after the connection is established
      @param path specifies the unix socket or Windows pipe path
@@ -101,14 +108,7 @@ interface Socket : Stream
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    Stream connect(String path, Integer timeout, Function connectListener) async;
-
-    /*! @brief establishes a connection and triggers the connect event after the connection is established
-     @param options specifies the connection options object, which can contain the following properties:
-     @param connectListener specifies the once connect event listener
-     @return returns the connected Socket object
-     */
-    Stream connect(Object options, Function connectListener) async;
+    Stream connect(String path, Integer timeout, Function(Object ev) connectListener) async;
 
     /*! @brief binds the current Socket to the specified port on all local addresses
      @param port specifies the port to bind
@@ -158,11 +158,11 @@ interface Socket : Stream
      */
     Buffer recv(Integer bytes = -1) async;
 
-    /*! @brief writes the given data to the connection, equivalent to the write method
-     @param data the data to write
+    /*! @brief writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     @param data the data to write, a string is encoded as utf8
      @return returns the number of bytes actually written
      */
-    Integer send(Buffer data) async;
+    Integer send(Buffer|String data) async;
 
     /*! @brief aborts all ongoing operations on the current socket
      
@@ -182,5 +182,5 @@ interface Socket : Stream
      @param callback the callback function, called once when the socket times out
      @return returns the current Socket object
     */
-    Socket setTimeout(Integer timeout, Function callback);
+    Socket setTimeout(Integer timeout, Function() callback);
 };

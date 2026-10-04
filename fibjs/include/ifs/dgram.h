@@ -21,11 +21,12 @@ class dgram_base : public object_base {
     DECLARE_CLASS(dgram_base);
 
 public:
+    using Union_createSocket_opts = std::variant<v8::Local<v8::Object>, exlib::string>;
+
+public:
     // dgram_base
-    static result_t createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal);
-    static result_t createSocket(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<DgramSocket_base>& retVal);
-    static result_t createSocket(exlib::string type, obj_ptr<DgramSocket_base>& retVal);
-    static result_t createSocket(exlib::string type, v8::Local<v8::Function> callback, obj_ptr<DgramSocket_base>& retVal);
+    static result_t createSocket(Union_createSocket_opts opts, obj_ptr<DgramSocket_base>& retVal);
+    static result_t createSocket(Union_createSocket_opts opts, v8::Local<v8::Function> callback, obj_ptr<DgramSocket_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -75,26 +76,13 @@ inline void dgram_base::s_static_createSocket(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_createSocket_opts, 0);
 
     hr = createSocket(v0, vr);
 
     METHOD_OVER(2, 2);
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = createSocket(v0, v1, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = createSocket(v0, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
+    ARG(Union_createSocket_opts, 0);
     ARG(v8::Local<v8::Function>, 1);
 
     hr = createSocket(v0, v1, vr);

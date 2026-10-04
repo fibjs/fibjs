@@ -20,17 +20,9 @@ declare module 'dns' {
      *      @return returns the array of queried ip strings
      *
      */
-    function resolve(name: string): any[];
+    function resolve(name: string): string[];
 
-    function resolve(name: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description queries the address of the given hostname
-     *      @param name specifies the hostname
-     *      @return returns the array of queried ip strings
-     *
-     */
-    function resolveSync(name: string): any[];
+    function resolve(name: string, callback: (err: Error | undefined | null, retVal: string[])=>any): void;
 
     /**
      * @description queries the address of the given hostname
@@ -38,7 +30,15 @@ declare module 'dns' {
      *      @return returns the array of queried ip strings
      *
      */
-    function resolveAsync(name: string): Promise<any[]>;
+    function resolveSync(name: string): string[];
+
+    /**
+     * @description queries the address of the given hostname
+     *      @param name specifies the hostname
+     *      @return returns the array of queried ip strings
+     *
+     */
+    function resolveAsync(name: string): Promise<string[]>;
 
     /**
      * @description queries the address of the given hostname
