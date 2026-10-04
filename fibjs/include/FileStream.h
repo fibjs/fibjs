@@ -312,19 +312,14 @@ public:
     virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
-    virtual result_t readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac);
-    virtual result_t readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
-    virtual result_t writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncEvent* ac);
+    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac);
     virtual result_t utimes(Variant atime, Variant mtime, AsyncEvent* ac);
     virtual result_t chown(int32_t uid, int32_t gid, AsyncEvent* ac);
     virtual result_t sync(AsyncEvent* ac);
     virtual result_t datasync(AsyncEvent* ac);
     virtual result_t truncate(int32_t len, AsyncEvent* ac);
-    virtual result_t appendFile(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t appendFile(exlib::string data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t appendFile(Union_appendFile_data data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
 
 private:

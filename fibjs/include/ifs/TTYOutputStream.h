@@ -23,9 +23,11 @@ class TTYOutputStream_base : public Stream_base {
     DECLARE_CLASS(TTYOutputStream_base);
 
 public:
+    using Union_TTYOutputStream_fd = std::variant<int32_t, obj_ptr<FileHandle_base>>;
+
+public:
     // TTYOutputStream_base
-    static result_t _new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_TTYOutputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_isTTY(bool& retVal) = 0;
     virtual result_t get_columns(int32_t& retVal) = 0;
     virtual result_t get_rows(int32_t& retVal) = 0;
@@ -33,7 +35,7 @@ public:
     virtual result_t clearScreenDown() = 0;
     virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac) = 0;
     virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac) = 0;
-    virtual result_t getWindowSize(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t getWindowSize(std::vector<double>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -103,17 +105,10 @@ inline void TTYOutputStream_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_TTYOutputStream_fd, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<FileHandle_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0.get(), v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -126,17 +121,10 @@ inline result_t TTYOutputStream_base::load(v8::Local<v8::Value> v, obj_ptr<TTYOu
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_TTYOutputStream_fd, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<FileHandle_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0.get(), v1, vr, args.This());
 
     LOAD_RETURN();
 }
@@ -247,7 +235,7 @@ inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8
 
 inline void TTYOutputStream_base::s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<double> vr;
 
     METHOD_INSTANCE(TTYOutputStream_base);
     METHOD_ENTER();

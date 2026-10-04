@@ -166,6 +166,39 @@ static result_t check_encoding(const exlib::string& encoding)
     return setInvalidArgValue("encoding", "is invalid encoding", "'" + encoding + "'");
 }
 
+// appends through an open descriptor: the flag and mode of an options object
+// do not apply, a descriptor writes where it is positioned
+static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t _fd;
+    result_t hr = fd->get_fd(_fd);
+    if (hr < 0)
+        return hr;
+
+    if (_fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t n = Buffer::Cast(data)->length();
+
+    size_t pos = 0;
+    const uint8_t* p = (const uint8_t*)Buffer::Cast(data)->data();
+
+    while (pos < (size_t)n) {
+        int32_t len = (int32_t)::_write(_fd, p + pos, (size_t)n - pos);
+        if (len < 0)
+            return CHECK_ERROR(LastError("write"));
+        pos += len;
+    }
+
+    retVal = n;
+
+    return 0;
+}
+
+
 // fs-side wrapper around the shared encoder: validates the label first.
 static result_t fs_common_encode(exlib::string codec, exlib::string data, exlib::string& retVal)
 {
@@ -383,8 +416,34 @@ result_t FileHandle::write(exlib::string string, int32_t position, exlib::string
     return write(buf, 0, -1, position, retVal, ac);
 }
 
-result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+
+result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, AsyncEvent* ac)
 {
+    exlib::string encoding;
+
+    if (std::holds_alternative<exlib::string>(options))
+        encoding = std::get<exlib::string>(options);
+    else {
+        // the options object is readable in the synchronous phase only: the
+        // callback phase receives an empty handle
+        if (ac->isSync()) {
+            ac->m_ctx.resize(1);
+
+            GetConfigValue(std::get<v8::Local<v8::Object>>(options), "encoding", encoding);
+            ac->m_ctx[0] = encoding;
+
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        // the object form is carried in ctx[0]; an entry that never ran the
+        // sync phase (the async-only compile cache one) must report that
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        encoding = ac->m_ctx[0].string();
+    }
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -423,30 +482,64 @@ result_t FileHandle::readFile(exlib::string encoding, Variant& retVal, AsyncEven
     return 0;
 }
 
-result_t FileHandle::readFile(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+
+result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
+    exlib::string encoding;
 
-        exlib::string encoding;
-        GetConfigValue(options, "encoding", encoding);
-        ac->m_ctx[0] = encoding;
+    if (std::holds_alternative<exlib::string>(opt))
+        encoding = std::get<exlib::string>(opt);
+    else {
+        // the options object is readable in the synchronous phase only: the
+        // callback phase receives an empty handle. A Buffer only validates the
+        // empty label, a string takes its encoding from the options.
+        if (ac->isSync()) {
+            ac->m_ctx.resize(1);
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+            if (!bBuffer) {
+                encoding = "utf8";
+
+                result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(opt), "encoding", encoding, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            ac->m_ctx[0] = encoding;
+
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        encoding = ac->m_ctx[0].string();
     }
 
-    return readFile(ac->m_ctx[0].string(), retVal, ac);
-}
-
-result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
-{
     // Node.js validates the encoding even when the data is a Buffer.
-    result_t _e = check_encoding(opt);
-    if (_e < 0)
-        return _e;
+    {
+        result_t _e = check_encoding(encoding);
+        if (_e < 0)
+            return _e;
+    }
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+
+    if (bBuffer)
+        buf = std::get<obj_ptr<Buffer_base>>(data);
+    else {
+        // the string is encoded before the handle is touched
+        exlib::string strData = std::get<exlib::string>(data);
+        result_t hr = fs_common_encode(encoding, strData, strData);
+        if (hr < 0)
+            return hr;
+
+        buf = new Buffer(strData.c_str(), strData.length());
+    }
 
     if (m_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -455,7 +548,7 @@ result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& re
         return CHECK_ERROR(LastError("write"));
 
     exlib::string strBuf;
-    Buffer::Cast(data)->toString(strBuf);
+    Buffer::Cast(buf)->toString(strBuf);
 
     const char* p = strBuf.c_str();
     int32_t sz = (int32_t)strBuf.length();
@@ -474,43 +567,6 @@ result_t FileHandle::writeFile(Buffer_base* data, exlib::string opt, int32_t& re
     return 0;
 }
 
-result_t FileHandle::writeFile(exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    result_t hr = fs_common_encode(opt, data, data);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
-    return writeFile(buf, "", retVal, ac);
-}
-
-result_t FileHandle::writeFile(Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    return writeFile(data, "", retVal, ac);
-}
-
-result_t FileHandle::writeFile(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
-
-        exlib::string encoding = "utf8";
-        result_t hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-        ac->m_ctx[0] = encoding;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    return writeFile(data, ac->m_ctx[0].string(), retVal, ac);
-}
 
 result_t FileHandle::utimes(Variant atime, Variant mtime, AsyncEvent* ac)
 {
@@ -537,15 +593,24 @@ result_t FileHandle::truncate(int32_t len, AsyncEvent* ac)
     return fs_base::ftruncate(this, len, ac);
 }
 
-result_t FileHandle::appendFile(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+
+result_t FileHandle::appendFile(Union_appendFile_data data, int32_t& retVal, AsyncEvent* ac)
 {
-    return fs_base::appendFile(this, data, retVal, ac);
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        buf = std::get<obj_ptr<Buffer_base>>(data);
+    else {
+        exlib::string strData = std::get<exlib::string>(data);
+        buf = new Buffer(strData.c_str(), strData.length());
+    }
+
+    return append_file_fd(this, buf, retVal, ac);
 }
 
-result_t FileHandle::appendFile(exlib::string data, int32_t& retVal, AsyncEvent* ac)
-{
-    return fs_base::appendFile(this, data, retVal, ac);
-}
 
 result_t FileHandle::close(AsyncEvent* ac)
 {
@@ -742,34 +807,9 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
     return 0;
 }
 
-result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
-    Variant& retVal, AsyncEvent* ac)
-{
-    return setSystemErrorPayload(read_file_ext(fname, "r", encoding, retVal, ac), "open", fname);
-}
-
-result_t fs_base::readFile(exlib::string fname, v8::Local<v8::Object> options,
-    Variant& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
-
-        exlib::string encoding;
-        GetConfigValue(options, "encoding", encoding);
-        ac->m_ctx[0] = encoding;
-
-        exlib::string flag = "r";
-        GetConfigValue(options, "flag", flag);
-        ac->m_ctx[1] = flag;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    return read_file_ext(fname, ac->m_ctx[1].string(), ac->m_ctx[0].string(), retVal, ac);
-}
 
 result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
-    v8::Local<v8::Array>& retVal)
+    std::vector<exlib::string>& retVal)
 {
     obj_ptr<BufferedStream_base> pFile;
     result_t hr;
@@ -855,92 +895,6 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t&
     return write_text_file_ext(fname, txt, "w", 0666, retVal, ac);
 }
 
-result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, exlib::string opt, int32_t& retVal,
-    AsyncEvent* ac)
-{
-    // Node.js validates the encoding even when the data is a Buffer.
-    result_t _e = check_encoding(opt);
-    if (_e < 0)
-        return _e;
-
-    return setSystemErrorPayload(write_file_ext(fname, data, "w", 0666, retVal, ac), "open", fname);
-}
-
-result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal,
-    AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
-
-        // Node.js validates the encoding even when the data is a Buffer.
-        exlib::string encoding;
-        GetConfigValue(options, "encoding", encoding, true);
-        result_t _e = check_encoding(encoding);
-        if (_e < 0)
-            return _e;
-
-        exlib::string flag = "w";
-        GetConfigValue(options, "flag", flag);
-        ac->m_ctx[0] = flag;
-
-        int32_t mode = 0666;
-        GetConfigValue(options, "mode", mode);
-        if (mode < 0)
-            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
-        ac->m_ctx[1] = mode;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    return write_file_ext(fname, data, ac->m_ctx[0].string(), ac->m_ctx[1].intVal(), retVal, ac);
-}
-
-result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    result_t hr = fs_common_encode(opt, data, data);
-    if (hr < 0)
-        return hr;
-
-    return setSystemErrorPayload(write_text_file_ext(fname, data, "w", 0666, retVal, ac), "open", fname);
-}
-
-result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal,
-    AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        result_t hr;
-
-        ac->m_ctx.resize(3);
-
-        exlib::string encoding = "utf8";
-        hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-        ac->m_ctx[0] = encoding;
-
-        exlib::string flag = "w";
-        GetConfigValue(options, "flag", flag);
-        ac->m_ctx[1] = flag;
-
-        int32_t mode = 0666;
-        GetConfigValue(options, "mode", mode);
-        if (mode < 0)
-            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
-        ac->m_ctx[2] = mode;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string strData = data;
-    result_t hr = fs_common_encode(ac->m_ctx[0].string(), strData, strData);
-    if (hr < 0)
-        return hr;
-
-    return write_text_file_ext(fname, strData, ac->m_ctx[1].string(), ac->m_ctx[2].intVal(), retVal, ac);
-}
 
 static result_t append_file_ext(exlib::string fname, exlib::string flag, int32_t mode, Buffer_base* data,
     int32_t& retVal, AsyncEvent* ac)
@@ -1038,201 +992,247 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
     return 0;
 }
 
-result_t fs_base::readFile(FileHandle_base* fd, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+
+result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options options,
+    Variant& retVal, AsyncEvent* ac)
 {
-    return read_file_fd(fd, encoding, retVal, ac);
-}
+    bool bFd = std::holds_alternative<obj_ptr<FileHandle_base>>(fname);
+    exlib::string encoding;
+    exlib::string flag = "r";
 
-result_t fs_base::readFile(FileHandle_base* fd, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (std::holds_alternative<exlib::string>(options)) {
+        encoding = std::get<exlib::string>(options);
 
-        exlib::string encoding = "utf8";
-        GetConfigValue(options, "encoding", encoding);
-        ac->m_ctx[0] = encoding;
+        // Node.js reports an unknown encoding before the file is opened; the
+        // descriptor form leaves the label to the conversion
+        if (!bFd) {
+            result_t hr = check_encoding(encoding);
+            if (hr < 0)
+                return hr;
+        }
+    } else {
+        // the options object is readable in the synchronous phase only: the
+        // callback phase receives an empty handle
+        if (ac->isSync()) {
+            ac->m_ctx.resize(2);
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+            v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
+
+            // a descriptor decodes as utf8 by default, a name returns a Buffer
+            if (bFd)
+                encoding = "utf8";
+
+            GetConfigValue(opts, "encoding", encoding);
+            ac->m_ctx[0] = encoding;
+
+            if (!bFd) {
+                GetConfigValue(opts, "flag", flag);
+                ac->m_ctx[1] = flag;
+            }
+
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        encoding = ac->m_ctx[0].string();
+
+        if (!bFd) {
+            ctx_hr = ac->ctx(1);
+            if (ctx_hr < 0)
+                return ctx_hr;
+
+            flag = ac->m_ctx[1].string();
+        }
     }
 
-    return read_file_fd(fd, ac->m_ctx[0].string(), retVal, ac);
-}
-
-result_t fs_base::writeFile(FileHandle_base* fd, Buffer_base* data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
-{
-    // Node.js validates the encoding even when the data is a Buffer.
-    result_t _e = check_encoding(opt);
-    if (_e < 0)
-        return _e;
-
-    return write_file_fd(fd, data, retVal, ac);
-}
-
-result_t fs_base::writeFile(FileHandle_base* fd, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    return write_file_fd(fd, data, retVal, ac);
-}
-
-result_t fs_base::writeFile(FileHandle_base* fd, exlib::string data, exlib::string opt, int32_t& retVal, AsyncEvent* ac)
-{
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr = fs_common_encode(opt, data, data);
-    if (hr < 0)
-        return hr;
+    // Node.js: the descriptor is neither closed nor repositioned
+    if (bFd)
+        return read_file_fd(std::get<obj_ptr<FileHandle_base>>(fname), encoding, retVal, ac);
 
-    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
+    exlib::string strName = std::get<exlib::string>(fname);
 
-    return write_file_fd(fd, buf, retVal, ac);
+    return setSystemErrorPayload(read_file_ext(strName, flag, encoding, retVal, ac), "open", strName);
 }
 
-result_t fs_base::writeFile(FileHandle_base* fd, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+
+result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data data,
+    Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        result_t hr;
+    bool bFd = std::holds_alternative<obj_ptr<FileHandle_base>>(fname);
+    bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
+    exlib::string encoding;
+    exlib::string flag = "w";
+    int32_t mode = 0666;
 
-        ac->m_ctx.resize(1);
+    if (std::holds_alternative<exlib::string>(opt)) {
+        encoding = std::get<exlib::string>(opt);
 
-        exlib::string encoding = "utf8";
-        hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-        ac->m_ctx[0] = encoding;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string strData = data;
-    result_t hr = fs_common_encode(ac->m_ctx[0].string(), strData, strData);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<Buffer_base> buf = new Buffer(strData.c_str(), strData.length());
-
-    return write_file_fd(fd, buf, retVal, ac);
-}
-
-result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
-{
-    return setSystemErrorPayload(append_file_ext(fname, "a", 0666, data, retVal, ac), "open", fname);
-}
-
-result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
-
-        // Node.js validates the encoding even when the data is a Buffer.
-        exlib::string encoding;
-        GetConfigValue(options, "encoding", encoding, true);
+        // Node.js validates the encoding even when the data is a Buffer
         result_t _e = check_encoding(encoding);
         if (_e < 0)
             return _e;
+    } else if (!bFd) {
+        // the name form takes the encoding, flag and mode from the options
+        // object, which is readable in the synchronous phase only: the callback
+        // phase receives an empty handle
+        if (ac->isSync()) {
+            ac->m_ctx.resize(3);
 
-        exlib::string flag = "a";
-        GetConfigValue(options, "flag", flag);
-        ac->m_ctx[0] = flag;
+            v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(opt);
 
-        int32_t mode = 0666;
-        GetConfigValue(options, "mode", mode);
-        if (mode < 0)
-            return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
-        ac->m_ctx[1] = mode;
+            // Node.js validates the encoding even when the data is a Buffer; a
+            // value of another type is reported for a text write only, a binary
+            // write ignores it
+            if (!bBuffer)
+                encoding = "utf8";
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+            result_t hr = GetConfigValue(options, "encoding", encoding, true);
+            if (!bBuffer && hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+
+            result_t _e = check_encoding(encoding);
+            if (_e < 0)
+                return _e;
+            ac->m_ctx[0] = encoding;
+
+            GetConfigValue(options, "flag", flag);
+            ac->m_ctx[1] = flag;
+
+            GetConfigValue(options, "mode", mode);
+            if (mode < 0)
+                return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
+            ac->m_ctx[2] = mode;
+
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        // the sync phase filled the three slots together
+        result_t ctx_hr = ac->ctx(2);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        encoding = ac->m_ctx[0].string();
+        flag = ac->m_ctx[1].string();
+        mode = ac->m_ctx[2].intVal();
     }
 
-    return append_file_ext(fname, ac->m_ctx[0].string(), ac->m_ctx[1].intVal(), data, retVal, ac);
-}
-
-result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
-{
-    // Node.js validates the encoding even when the data is a Buffer.
-    result_t _e = check_encoding(encoding);
-    if (_e < 0)
-        return _e;
+    // the descriptor form ignores the options object: the encoding stays empty
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return append_file_ext(fname, "a", 0666, data, retVal, ac);
-}
+    obj_ptr<Buffer_base> buf;
 
-result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    if (bBuffer)
+        buf = std::get<obj_ptr<Buffer_base>>(data);
+    else {
+        exlib::string strData = std::get<exlib::string>(data);
+        result_t hr = fs_common_encode(encoding, strData, strData);
+        if (hr < 0)
+            return hr;
 
-    int32_t _fd;
-    result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
-        return hr;
-
-    if (_fd < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    int32_t n = Buffer::Cast(data)->length();
-
-    size_t pos = 0;
-    const uint8_t* p = (const uint8_t*)Buffer::Cast(data)->data();
-
-    while (pos < (size_t)n) {
-        int32_t len = (int32_t)::_write(_fd, p + pos, (size_t)n - pos);
-        if (len < 0)
-            return CHECK_ERROR(LastError("write"));
-        pos += len;
+        buf = new Buffer(strData.c_str(), strData.length());
     }
 
-    retVal = n;
+    if (bFd)
+        return write_file_fd(std::get<obj_ptr<FileHandle_base>>(fname), buf, retVal, ac);
 
-    return 0;
+    exlib::string strName = std::get<exlib::string>(fname);
+
+    return setSystemErrorPayload(write_file_ext(strName, buf, flag, mode, retVal, ac), "open", strName);
 }
 
-result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    return appendFile(fd, data, retVal, ac);
-}
 
-result_t fs_base::appendFile(FileHandle_base* fd, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data data,
+    Union_appendFile_options options, int32_t& retVal, AsyncEvent* ac)
 {
-    // Node.js validates the encoding even when the data is a Buffer.
-    result_t _e = check_encoding(encoding);
-    if (_e < 0)
-        return _e;
+    bool bFd = std::holds_alternative<obj_ptr<FileHandle_base>>(fname);
+    bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
+    exlib::string encoding;
+    exlib::string flag = "a";
+    int32_t mode = 0666;
 
-    return appendFile(fd, data, retVal, ac);
-}
+    if (std::holds_alternative<exlib::string>(options)) {
+        encoding = std::get<exlib::string>(options);
 
-result_t fs_base::appendFile(FileHandle_base* fd, exlib::string data, int32_t& retVal, AsyncEvent* ac)
-{
+        // Node.js validates the encoding even when the data is a Buffer
+        result_t _e = check_encoding(encoding);
+        if (_e < 0)
+            return _e;
+    } else if (!bFd) {
+        // the name form takes flag and mode from the options object; the
+        // encoding of the object only validates the label, the data itself is
+        // appended as it is. The object is readable in the synchronous phase
+        // only: the callback phase receives an empty handle.
+        if (ac->isSync()) {
+            ac->m_ctx.resize(3);
+
+            v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
+
+            // Node.js validates the encoding even when the data is a Buffer
+            GetConfigValue(opts, "encoding", encoding, true);
+            result_t _e = check_encoding(encoding);
+            if (_e < 0)
+                return _e;
+            ac->m_ctx[0] = encoding;
+
+            GetConfigValue(opts, "flag", flag);
+            ac->m_ctx[1] = flag;
+
+            GetConfigValue(opts, "mode", mode);
+            if (mode < 0)
+                return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
+            ac->m_ctx[2] = mode;
+
+            return CHECK_ERROR(CALL_E_NOSYNC);
+        }
+
+        // the sync phase filled the three slots together
+        result_t ctx_hr = ac->ctx(2);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        encoding.clear();
+        flag = ac->m_ctx[1].string();
+        mode = ac->m_ctx[2].intVal();
+    }
+
+    // the descriptor form ignores the options object: the encoding stays empty
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
+    obj_ptr<Buffer_base> buf;
 
-    return appendFile(fd, buf, retVal, ac);
+    if (bBuffer)
+        buf = std::get<obj_ptr<Buffer_base>>(data);
+    else {
+        // the encoding string encodes the data, the options object does not
+        exlib::string strData = std::get<exlib::string>(data);
+
+        if (!encoding.empty()) {
+            result_t hr = fs_common_encode(encoding, strData, strData);
+            if (hr < 0)
+                return hr;
+        }
+
+        buf = new Buffer(strData.c_str(), strData.length());
+    }
+
+    if (bFd)
+        return append_file_fd(std::get<obj_ptr<FileHandle_base>>(fname), buf, retVal, ac);
+
+    exlib::string strName = std::get<exlib::string>(fname);
+
+    return setSystemErrorPayload(append_file_ext(strName, flag, mode, buf, retVal, ac), "open", strName);
 }
 
-result_t fs_base::appendFile(FileHandle_base* fd, exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
-{
-    return appendFile(fd, data, retVal, ac);
-}
-
-result_t fs_base::appendFile(FileHandle_base* fd, exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    exlib::string strData = data;
-    result_t hr = fs_common_encode(encoding, strData, strData);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<Buffer_base> buf = new Buffer(strData.c_str(), strData.length());
-
-    return appendFile(fd, buf, retVal, ac);
-}
 
 result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset, int32_t length,
     int32_t position, int32_t& retVal, AsyncEvent* ac)
@@ -1545,7 +1545,11 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::readlink(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+
+// the options form: the encoding is read in the sync phase and travels to the
+// async phase through m_ctx
+static result_t readlink_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
@@ -1557,20 +1561,29 @@ result_t fs_base::readlink(exlib::string path, v8::Local<v8::Object> options, Va
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return readlink(path, ac->m_ctx[0].string(), retVal, ac);
+    return readlink_encoding(path, ac->m_ctx[0].string(), retVal, ac);
 }
 
-result_t fs_base::readlink(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+// the encoding form
+static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     Variant link;
-    result_t hr = readlink(path, link, ac);
+    result_t hr = fs_base::readlink(path, link, ac);
     if (hr < 0)
         return hr;
 
     return path_to_variant(link.string(), encoding, retVal);
+}
+
+result_t fs_base::readlink(exlib::string path, Union_readlink_options options, Variant& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<exlib::string>(options))
+        return readlink_encoding(path, std::get<exlib::string>(options), retVal, ac);
+
+    return readlink_options(path, std::get<v8::Local<v8::Object>>(options), retVal, ac);
 }
 
 result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
@@ -1714,7 +1727,11 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::realpath(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+
+// the options form: the encoding is read in the sync phase and travels to the
+// async phase through m_ctx
+static result_t realpath_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
@@ -1726,23 +1743,34 @@ result_t fs_base::realpath(exlib::string path, v8::Local<v8::Object> options, Va
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return realpath(path, ac->m_ctx[0].string(), retVal, ac);
+    return realpath_encoding(path, ac->m_ctx[0].string(), retVal, ac);
 }
 
-result_t fs_base::realpath(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+// the encoding form
+static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     Variant resolved;
-    result_t hr = realpath(path, resolved, ac);
+    result_t hr = fs_base::realpath(path, resolved, ac);
     if (hr < 0)
         return hr;
 
     return path_to_variant(resolved.string(), encoding, retVal);
 }
 
-result_t fs_base::mkdir(exlib::string path, int32_t mode, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::realpath(exlib::string path, Union_realpath_options options, Variant& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<exlib::string>(options))
+        return realpath_encoding(path, std::get<exlib::string>(options), retVal, ac);
+
+    return realpath_options(path, std::get<v8::Local<v8::Object>>(options), retVal, ac);
+}
+
+// the numeric form; the merged entry dispatches here, and so does the octal
+// string form after parsing
+static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal, AsyncEvent* ac)
 {
     // Node.js validates a numeric mode as an unsigned 32-bit integer; the IDL
     // binding types it as int32_t, so only the lower bound can be violated.
@@ -1760,7 +1788,9 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, Variant& retVal, Async
     return setSystemErrorPayload(uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL), "mkdir", path);
 }
 
-result_t fs_base::mkdir(exlib::string path, Variant mode, Variant& retVal, AsyncEvent* ac)
+// the octal string form: parsed in the sync phase, the number travels to the
+// async phase through m_ctx
+static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
@@ -1775,10 +1805,25 @@ result_t fs_base::mkdir(exlib::string path, Variant mode, Variant& retVal, Async
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return mkdir(path, ac->m_ctx[0].intVal(), retVal, ac);
+    return mkdir_numeric(path, ac->m_ctx[0].intVal(), retVal, ac);
 }
 
-result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac)
+// the options form (recursive/mode), defined below: it reads its config in the
+// sync phase
+static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac);
+
+result_t fs_base::mkdir(exlib::string path, Union_mkdir_mode mode, Variant& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<int32_t>(mode))
+        return mkdir_numeric(path, std::get<int32_t>(mode), retVal, ac);
+
+    if (std::holds_alternative<v8::Local<v8::Object>>(mode))
+        return mkdir_options(path, std::get<v8::Local<v8::Object>>(mode), retVal, ac);
+
+    return mkdir_variant(path, std::get<Variant>(mode), retVal, ac);
+}
+
+static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac)
 {
     class AsyncUVMKDir : public uv_fs_t {
     public:
@@ -1907,7 +1952,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, Variant& 
         return hr;
 
     if (!recursive)
-        return mkdir(path, mode, retVal, ac);
+        return mkdir_numeric(path, mode, retVal, ac);
 
     os_resolve(path);
 
@@ -2284,7 +2329,7 @@ result_t fs_base::ftruncate(FileHandle_base* fd, int32_t len, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_ftruncate(NULL, &req, _fd, len, NULL), "ftruncate");
 }
 
-result_t fs_base::statfs(exlib::string path, obj_ptr<NObject>& retVal, AsyncEvent* ac)
+result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -2300,21 +2345,21 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<NObject>& retVal, AsyncEven
 
     uv_statfs_t* st = (uv_statfs_t*)req.ptr;
 
-    obj_ptr<NObject> obj = new NObject();
-    obj->add("type", (double)st->f_type);
-    obj->add("bsize", (double)st->f_bsize);
-    obj->add("blocks", (double)st->f_blocks);
-    obj->add("bfree", (double)st->f_bfree);
-    obj->add("bavail", (double)st->f_bavail);
-    obj->add("files", (double)st->f_files);
-    obj->add("ffree", (double)st->f_ffree);
-
-    retVal = obj;
+    retVal = new StatfsType();
+    retVal->type = (double)st->f_type;
+    retVal->bsize = (double)st->f_bsize;
+    retVal->blocks = (double)st->f_blocks;
+    retVal->bfree = (double)st->f_bfree;
+    retVal->bavail = (double)st->f_bavail;
+    retVal->files = (double)st->f_files;
+    retVal->ffree = (double)st->f_ffree;
 
     return 0;
 }
 
-result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+// the numeric form; the merged entry dispatches here, and so does the string
+// form's async phase (which carries the parsed mode through m_ctx)
+static result_t chmod_numeric(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     // Node.js validates a numeric mode as an unsigned 32-bit integer.
     if (mode < 0)
@@ -2327,13 +2372,20 @@ result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL), "chmod", path);
 }
 
-result_t fs_base::chmod(exlib::string path, Variant mode, AsyncEvent* ac)
+result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncEvent* ac)
 {
+    if (std::holds_alternative<int32_t>(mode))
+        return chmod_numeric(path, std::get<int32_t>(mode), ac);
+
+    // a string mode (or any other value) is parsed in the sync phase; the
+    // number travels to the async phase through m_ctx
+    Variant mode_value = std::get<Variant>(mode);
+
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
 
         int32_t _mode;
-        result_t hr = to_mode_value(mode, _mode);
+        result_t hr = to_mode_value(mode_value, _mode);
         if (hr < 0)
             return hr;
 
@@ -2342,16 +2394,28 @@ result_t fs_base::chmod(exlib::string path, Variant mode, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return chmod(path, ac->m_ctx[0].intVal(), ac);
+    return chmod_numeric(path, ac->m_ctx[0].intVal(), ac);
 }
 
-result_t fs_base::lchmod(exlib::string path, Variant mode, AsyncEvent* ac)
+// the platform-specific numeric lchmod: fs_posix.cpp implements it, fs_win32.cpp
+// reports that it is unsupported; the merged entry below and the string form's
+// async phase both dispatch here
+result_t lchmod_platform(exlib::string path, int32_t mode, AsyncEvent* ac);
+
+result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncEvent* ac)
 {
+    if (std::holds_alternative<int32_t>(mode))
+        return lchmod_platform(path, std::get<int32_t>(mode), ac);
+
+    // a string mode (or any other value) is parsed in the sync phase; the
+    // number travels to the async phase through m_ctx
+    Variant mode_value = std::get<Variant>(mode);
+
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
 
         int32_t _mode;
-        result_t hr = to_mode_value(mode, _mode);
+        result_t hr = to_mode_value(mode_value, _mode);
         if (hr < 0)
             return hr;
 
@@ -2360,7 +2424,7 @@ result_t fs_base::lchmod(exlib::string path, Variant mode, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return lchmod(path, ac->m_ctx[0].intVal(), ac);
+    return lchmod_platform(path, ac->m_ctx[0].intVal(), ac);
 }
 
 result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -2870,7 +2934,9 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
 static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTypes, exlib::string encoding,
     obj_ptr<NArray>& retVal, AsyncEvent* ac);
 
-result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+// the options form: recursive/withFileTypes/encoding are read in the sync
+// phase and travel to the async phase through m_ctx
+static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(3);
@@ -2894,12 +2960,20 @@ result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_pt
 }
 
 // Node.js: readdir(path, encoding) - names are returned in the given encoding
-result_t fs_base::readdir(exlib::string path, exlib::string encoding, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+static result_t readdir_encoding(exlib::string path, exlib::string encoding, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return readdir_ext(path, false, false, encoding, retVal, ac);
+}
+
+result_t fs_base::readdir(exlib::string path, Union_readdir_opts opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<exlib::string>(opts))
+        return readdir_encoding(path, std::get<exlib::string>(opts), retVal, ac);
+
+    return readdir_options(path, std::get<v8::Local<v8::Object>>(opts), retVal, ac);
 }
 
 // shared readdir implementation

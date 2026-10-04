@@ -22,18 +22,116 @@ class ZipFile_base : public object_base {
     DECLARE_CLASS(ZipFile_base);
 
 public:
+    class InfolistType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("filename"), GetReturnValue(isolate, filename)).Check();
+            retVal->Set(context, isolate->NewString("date"), GetReturnValue(isolate, date)).Check();
+            retVal->Set(context, isolate->NewString("compress_type"), GetReturnValue(isolate, compress_type)).Check();
+            retVal->Set(context, isolate->NewString("compress_size"), GetReturnValue(isolate, compress_size)).Check();
+            retVal->Set(context, isolate->NewString("file_size"), GetReturnValue(isolate, file_size)).Check();
+            retVal->Set(context, isolate->NewString("password"), GetReturnValue(isolate, password)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, filename));
+            args.push_back(GetReturnValue(isolate, date));
+            args.push_back(GetReturnValue(isolate, compress_type));
+            args.push_back(GetReturnValue(isolate, compress_size));
+            args.push_back(GetReturnValue(isolate, file_size));
+            args.push_back(GetReturnValue(isolate, password));
+        }
+
+    public:
+        exlib::string filename;
+        date_t date;
+        exlib::string compress_type;
+        int64_t compress_size;
+        int64_t file_size;
+        bool password;
+    };
+    class GetinfoType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("filename"), GetReturnValue(isolate, filename)).Check();
+            retVal->Set(context, isolate->NewString("date"), GetReturnValue(isolate, date)).Check();
+            retVal->Set(context, isolate->NewString("compress_type"), GetReturnValue(isolate, compress_type)).Check();
+            retVal->Set(context, isolate->NewString("compress_size"), GetReturnValue(isolate, compress_size)).Check();
+            retVal->Set(context, isolate->NewString("file_size"), GetReturnValue(isolate, file_size)).Check();
+            retVal->Set(context, isolate->NewString("password"), GetReturnValue(isolate, password)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, filename));
+            args.push_back(GetReturnValue(isolate, date));
+            args.push_back(GetReturnValue(isolate, compress_type));
+            args.push_back(GetReturnValue(isolate, compress_size));
+            args.push_back(GetReturnValue(isolate, file_size));
+            args.push_back(GetReturnValue(isolate, password));
+        }
+
+    public:
+        exlib::string filename;
+        date_t date;
+        exlib::string compress_type;
+        int64_t compress_size;
+        int64_t file_size;
+        bool password;
+    };
+    class ReadAllType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("filename"), GetReturnValue(isolate, filename)).Check();
+            retVal->Set(context, isolate->NewString("date"), GetReturnValue(isolate, date)).Check();
+            retVal->Set(context, isolate->NewString("compress_type"), GetReturnValue(isolate, compress_type)).Check();
+            retVal->Set(context, isolate->NewString("compress_size"), GetReturnValue(isolate, compress_size)).Check();
+            retVal->Set(context, isolate->NewString("file_size"), GetReturnValue(isolate, file_size)).Check();
+            retVal->Set(context, isolate->NewString("password"), GetReturnValue(isolate, password)).Check();
+            retVal->Set(context, isolate->NewString("data"), GetReturnValue(isolate, data)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, filename));
+            args.push_back(GetReturnValue(isolate, date));
+            args.push_back(GetReturnValue(isolate, compress_type));
+            args.push_back(GetReturnValue(isolate, compress_size));
+            args.push_back(GetReturnValue(isolate, file_size));
+            args.push_back(GetReturnValue(isolate, password));
+            args.push_back(GetReturnValue(isolate, data));
+        }
+
+    public:
+        exlib::string filename;
+        date_t date;
+        exlib::string compress_type;
+        int64_t compress_size;
+        int64_t file_size;
+        bool password;
+        obj_ptr<Buffer_base> data;
+    };
+
+public:
     // ZipFile_base
-    virtual result_t namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t namelist(std::vector<exlib::string>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t infolist(std::vector<obj_ptr<InfolistType>>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getinfo(exlib::string member, obj_ptr<GetinfoType>& retVal, AsyncEvent* ac) = 0;
     virtual result_t read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readAll(exlib::string password, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t readAll(exlib::string password, std::vector<obj_ptr<ReadAllType>>& retVal, AsyncEvent* ac) = 0;
     virtual result_t extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t extractAll(exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -59,17 +157,17 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE1(ZipFile_base, namelist, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE1(ZipFile_base, infolist, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<NObject>);
+    ASYNC_MEMBERVALUE1(ZipFile_base, namelist, std::vector<exlib::string>);
+    ASYNC_MEMBERVALUE1(ZipFile_base, infolist, std::vector<obj_ptr<InfolistType>>);
+    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<GetinfoType>);
     ASYNC_MEMBERVALUE3(ZipFile_base, read, exlib::string, exlib::string, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, readAll, exlib::string, obj_ptr<NArray>);
-    ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, exlib::string, exlib::string);
+    ASYNC_MEMBERVALUE2(ZipFile_base, readAll, exlib::string, std::vector<obj_ptr<ReadAllType>>);
     ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, SeekableStream_base*, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER2(ZipFile_base, extractAll, exlib::string, exlib::string);
-    ASYNC_MEMBER3(ZipFile_base, write, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER3(ZipFile_base, write, Buffer_base*, exlib::string, exlib::string);
     ASYNC_MEMBER3(ZipFile_base, write, SeekableStream_base*, exlib::string, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, write, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER0(ZipFile_base, close);
 };
 }
@@ -105,7 +203,7 @@ inline ClassInfo& ZipFile_base::class_info()
 
 inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.namelist");
@@ -122,7 +220,7 @@ inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<InfolistType>> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.infolist");
@@ -139,7 +237,7 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NObject> vr;
+    obj_ptr<GetinfoType> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.getinfo");
@@ -178,7 +276,7 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<ReadAllType>> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.readAll");
@@ -203,17 +301,6 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_extract(v0, v1, v2, cb, args);
-    else
-        hr = pInst->ac_extract(v0, v1, v2);
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
     ARG(obj_ptr<SeekableStream_base>, 1);
     OPT_ARG(exlib::string, 2, "");
 
@@ -221,6 +308,17 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->acb_extract(v0, v1.get(), v2, cb, args);
     else
         hr = pInst->ac_extract(v0, v1.get(), v2);
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_extract(v0, v1, v2, cb, args);
+    else
+        hr = pInst->ac_extract(v0, v1, v2);
 
     ASYNC_METHOD_VOID();
 }
@@ -250,17 +348,6 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(3, 2);
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0, v1, v2, cb, args);
-    else
-        hr = pInst->ac_write(v0, v1, v2);
-
-    METHOD_OVER(3, 2);
-
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(exlib::string, 1);
     OPT_ARG(exlib::string, 2, "");
@@ -280,6 +367,17 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
     else
         hr = pInst->ac_write(v0.get(), v1, v2);
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_write(v0, v1, v2, cb, args);
+    else
+        hr = pInst->ac_write(v0, v1, v2);
 
     ASYNC_METHOD_VOID();
 }

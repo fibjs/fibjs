@@ -9,17 +9,11 @@
  */
 interface TTYOutputStream : Stream
 {
-    /*! @brief Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor
-     @param fd the underlying file descriptor, which must be a tty device
+    /*! @brief Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor or file object
+     @param fd the underlying file descriptor or file handle object, which must be a tty device
      @param opts options object passed to the Stream constructor
      */
-    TTYOutputStream(Integer fd, Object opts = {});
-
-    /*! @brief Creates a new TTYOutputStream object; the fd parameter specifies the underlying file object
-     @param fd the underlying file object, which must be a tty device
-     @param opts options object passed to the Stream constructor
-     */
-    TTYOutputStream(FileHandle fd, Object opts = {});
+    TTYOutputStream(Integer|FileHandle fd, Object opts = {});
 
     /*! @brief Always true
     */
@@ -63,7 +57,7 @@ interface TTYOutputStream : Stream
     /*! @brief Returns the size of the terminal corresponding to this TTYOutputStream
      @return returns the array [numColumns, numRows], where numColumns and numRows are the number of columns and rows in the corresponding terminal
      */
-    NArray getWindowSize();
+    Number[] getWindowSize();
 
     /*! @brief Emitted when the terminal size changes */
     event resize();

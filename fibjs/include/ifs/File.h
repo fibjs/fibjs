@@ -23,9 +23,12 @@ class File_base : public Blob_base {
     DECLARE_CLASS(File_base);
 
 public:
+    using Union_File_blobData = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // File_base
     static result_t _new(v8::Local<v8::Array> blobParts, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Buffer_base* blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_File_blobData blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_lastModified(double& retVal) = 0;
@@ -84,11 +87,11 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_File_blobData, 0);
     ARG(exlib::string, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
-    hr = _new(v0.get(), v1, v2, vr, args.This());
+    hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(1, 0);
 

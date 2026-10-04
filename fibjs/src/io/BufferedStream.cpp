@@ -222,14 +222,10 @@ result_t BufferedStream::readLine(int32_t maxlen, exlib::string& retVal,
     return readUntil(m_eol, maxlen, retVal, ac);
 }
 
-result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array>& retVal)
+result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>& retVal)
 {
     result_t hr = 0;
     exlib::string str;
-    int32_t n = 0;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Array::New(isolate->m_isolate);
 
     if (maxlines == 0)
         return 0;
@@ -242,7 +238,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array>& retVa
         if (hr > 0)
             return 0;
 
-        retVal->Set(context, n++, isolate->NewString(str)).IsJust();
+        retVal.push_back(str);
         if (maxlines > 0) {
             maxlines--;
             if (maxlines == 0)

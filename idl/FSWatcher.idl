@@ -26,23 +26,26 @@ interface FSWatcher : EventEmitter
     /*! @brief Queries and binds the "file change" event, equivalent to on("change", func);
      
      Triggered when any change to the file occurs (content modification or rename).
-     Callback signature: (eventType: 'change' | 'rename', filename: string | Buffer) => void
+     @param eventType the event type, either 'change' or 'rename'
+     @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      */
-    event change();
+    event change(String eventType, String|Buffer filename);
 
     /*! @brief Queries and binds the "content change only" event, equivalent to on("changeonly", func);
      
      Triggered only when the file content is modified (excluding renames).
-     Callback signature: (eventType: 'change', filename: string | Buffer) => void
+     @param eventType the event type, always 'change'
+     @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      */
-    event changeonly();
+    event changeonly(String eventType, String|Buffer filename);
 
     /*! @brief Queries and binds the "rename only" event, equivalent to on("renameonly", func);
      
      Triggered only when the file is renamed (excluding content modifications).
-     Callback signature: (eventType: 'rename', filename: string | Buffer) => void
+     @param eventType the event type, always 'rename'
+     @param filename the renamed file name, a Buffer when the watcher was created with the 'buffer' encoding
      */
-    event renameonly();
+    event renameonly(String eventType, String|Buffer filename);
 
     /*! @brief Queries and binds the "watcher closed" event, equivalent to on("close", func); */
     event close();

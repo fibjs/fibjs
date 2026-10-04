@@ -39,26 +39,12 @@ module zip
     static Boolean isZipFile(String filename) async;
 
     /*! @brief Opens a zip file
-	 @param path file path
-	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
-	 @param codec sets the encoding of the zip file, default "utf8"
-	 @return returns the zip file object
-	 */
-    static ZipFile open(String path, String mod = "r", String codec = "utf8") async;
-
-    /*! @brief Opens a zip file
 	 @param data zip file data
 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
 	 @param codec sets the encoding of the zip file, default "utf8"
 	 @return returns the zip file object
 	 */
-    static ZipFile open(Buffer data, String mod = "r", String codec = "utf8") async;
+    static ZipFile open(Buffer|SeekableStream|String data, String mod = "r", String codec = "utf8") async;
 
-    /*! @brief Opens a zip file
-	 @param strm zip file stream
-	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
-	 @param codec sets the encoding of the zip file, default "utf8"
-	 @return returns the zip file object
-	 */
-    static ZipFile open(SeekableStream strm, String mod = "r", String codec = "utf8") async;
+
 };

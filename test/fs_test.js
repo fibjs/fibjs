@@ -470,6 +470,49 @@ describe('fs', () => {
         assert.equal(fs.exists(pathname2), false);
     });
 
+    it("mkdir accepts an octal string and an options object", () => {
+        var d1 = path.join(homedir, 'mkdir_octal' + vmid);
+        var d2 = path.join(homedir, 'mkdir_recursive' + vmid, 'a', 'b');
+
+        try {
+            fs.mkdir(d1, '0700');
+            assert.equal(fs.exists(d1), true);
+            if (!win)
+                assert.equal(fs.stat(d1).mode & 0o777, 0o700);
+
+            fs.mkdir(d2, { recursive: true, mode: 0o700 });
+            assert.equal(fs.exists(d2), true);
+            if (!win)
+                assert.equal(fs.stat(d2).mode & 0o777, 0o700);
+
+            assert.throws(() => fs.mkdir(path.join(homedir, 'mkdir_bad' + vmid), 'not-octal'),
+                { name: 'TypeError', number: 20004 });
+        } finally {
+            fs.rmdir(path.join(homedir, 'mkdir_recursive' + vmid), { recursive: true });
+            fs.rmdir(d1);
+        }
+    });
+
+    it("readdir/realpath take an encoding or an options object", () => {
+        var base = path.join(__dirname, 'dir_test');
+
+        assert.ok(fs.readdir(base, 'utf8').length > 0);
+        assert.ok(fs.readdir(base, {}).length > 0);
+        assert.strictEqual(fs.realpath(base, 'utf8'), fs.realpath(base, {}));
+    });
+
+    it("openFile takes a flag string or an integer", () => {
+        var f1 = fs.openFile(__filename, 'r');
+        var s1 = f1.read(4).toString();
+        f1.close();
+
+        var f2 = fs.openFile(__filename, fs.constants.O_RDONLY);
+        var s2 = f2.read(4).toString();
+        f2.close();
+
+        assert.strictEqual(s2, s1);
+    });
+
     it("rename", () => {
         fs.rename(pathname, pathname1);
         assert.equal(fs.exists(pathname), false);
@@ -1266,6 +1309,42 @@ describe('fs', () => {
         assert.deepEqual(s, d.toString());
 
         f.close();
+    });
+
+    it("readFile/writeFile/appendFile with a FileHandle", () => {
+        var target = path.join(__dirname, 'fs_test.fd' + vmid + '.txt');
+        var fd = fs.open(target, 'w+');
+
+        // writeFile(fd) seeks to 0 and truncates first (a fibjs behavior that
+        // predates the union merge; node v23 writes at the current position
+        // instead). appendFile(fd) writes where the descriptor is positioned.
+        fs.writeFile(fd, 'hello');
+        assert.equal(fs.readFile(target, 'utf8'), 'hello');
+
+        fs.writeFile(fd, Buffer.from('hello world'));
+        assert.equal(fs.readFile(target, 'utf8'), 'hello world');
+
+        fs.appendFile(fd, '!');
+        fd.close();
+        assert.equal(fs.readFile(target, 'utf8'), 'hello world!');
+
+        // readFile forms: a descriptor returns a Buffer, while an empty
+        // options object decodes utf8 (a path returns a Buffer for it)
+        var rd = fs.open(target, 'r');
+        assert.ok(Buffer.isBuffer(fs.readFile(rd)));
+        rd.close();
+
+        rd = fs.open(target, 'r');
+        assert.equal(fs.readFile(rd, {}), 'hello world!');
+        rd.close();
+
+        rd = fs.open(target, 'r');
+        assert.equal(fs.readFile(rd, 'utf8'), 'hello world!');
+        rd.close();
+
+        assert.ok(Buffer.isBuffer(fs.readFile(target, {})));
+
+        fs.unlink(target);
     });
 
     it("FileStream write on readonly handle keeps syscall/path", () => {

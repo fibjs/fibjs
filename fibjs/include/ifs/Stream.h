@@ -36,6 +36,7 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t writeBuffer(exlib::string data, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
@@ -102,6 +103,7 @@ public:
     ASYNC_MEMBERVALUE2(Stream_base, readBuffer, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Stream_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Stream_base, writeBuffer, Buffer_base*);
+    ASYNC_MEMBER1(Stream_base, writeBuffer, exlib::string);
     ASYNC_MEMBERVALUE2(Stream_base, write, Buffer_base*, bool);
     ASYNC_MEMBERVALUE3(Stream_base, write, Buffer_base*, exlib::string, bool);
     ASYNC_MEMBERVALUE3(Stream_base, write, exlib::string, exlib::string, bool);
@@ -319,6 +321,15 @@ inline void Stream_base::s_writeBuffer(const v8::FunctionCallbackInfo<v8::Value>
         hr = pInst->acb_writeBuffer(v0.get(), cb, args);
     else
         hr = pInst->ac_writeBuffer(v0.get());
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_writeBuffer(v0, cb, args);
+    else
+        hr = pInst->ac_writeBuffer(v0);
 
     ASYNC_METHOD_VOID();
 }

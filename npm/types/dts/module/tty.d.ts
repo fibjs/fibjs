@@ -24,19 +24,11 @@ declare module 'tty' {
 
     /**
      * @description Queries whether it is a command interactive window
-     *     @param fd file descriptor
-     *      @return returns true if the file descriptor is associated with a terminal window, otherwise returns false
+     *     @param fd the file descriptor or file handle object
+     *      @return returns true if it is associated with a terminal window, otherwise returns false
      *
      */
-    function isatty(fd: number): boolean;
-
-    /**
-     * @description Queries whether it is a command interactive window
-     *     @param fd file handle object
-     *      @return returns true if the file handle is associated with a terminal window, otherwise returns false
-     *
-     */
-    function isatty(fd: Class_FileHandle | Class_FileHandlePromise): boolean;
+    function isatty(fd: number | Class_FileHandle | Class_FileHandlePromise): boolean;
 
 }
 

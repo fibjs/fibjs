@@ -83,7 +83,7 @@ public:
     virtual result_t clearScreenDown();
     virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac);
     virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac);
-    virtual result_t getWindowSize(obj_ptr<NArray>& retVal);
+    virtual result_t getWindowSize(std::vector<double>& retVal);
 
 public:
     static const char* kClearToLineBeginning;

@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+result_t lchmod_platform(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

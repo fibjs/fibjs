@@ -38,7 +38,7 @@ result_t path_posix_base::format(v8::Local<v8::Object> pathObject, exlib::string
     return _universal_format(sep, pathObject, retVal);
 }
 
-result_t path_posix_base::parse(exlib::string path, obj_ptr<NObject>& retVal)
+result_t path_posix_base::parse(exlib::string path, obj_ptr<ParseType>& retVal)
 {
     return _parse(path, retVal);
 }

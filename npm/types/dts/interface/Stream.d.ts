@@ -151,6 +151,37 @@ declare class Class_Stream extends Class_EventEmitter {
     writeBufferAsync(data: Class_Buffer): Promise<void>;
 
     /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBuffer(data: string): void;
+
+    writeBuffer(data: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferSync(data: string): void;
+
+    /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferAsync(data: string): Promise<void>;
+
+    writeBuffer(data: Class_Buffer | string): void;
+
+    writeBuffer(data: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
+
+    writeBufferSync(data: Class_Buffer | string): void;
+
+    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
+
+    /**
      * @description Writes the given data to the stream
      *      @param data the data to write
      *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
@@ -739,6 +770,33 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      */
     writeBufferAsync(data: Class_Buffer): Promise<void>;
+
+    /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBuffer(data: string): Promise<void>;
+
+    /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferSync(data: string): void;
+
+    /**
+     * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferAsync(data: string): Promise<void>;
+
+    writeBuffer(data: Class_Buffer | string): Promise<void>;
+
+    writeBufferSync(data: Class_Buffer | string): void;
+
+    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
 
     /**
      * @description Writes the given data to the stream

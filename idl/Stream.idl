@@ -57,6 +57,11 @@ interface Stream : EventEmitter
      */
     writeBuffer(Buffer data) async;
 
+    /*! @brief Writes the given binary data to the stream; a string data is encoded as utf8
+     @param data the Buffer data to write
+     */
+    writeBuffer(String data) async;
+
     /*! @brief Writes the given data to the stream
      @param data the data to write
      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false

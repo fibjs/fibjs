@@ -184,7 +184,16 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
     return ifZipFile(filename, retVal);
 }
 
-result_t zip_base::open(exlib::string path, exlib::string mod, exlib::string codec,
+// the three forms of the merged open entry: a file path, the file data and an
+// already opened stream
+static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::string codec,
+    obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+static result_t zip_open_data(Buffer_base* data, exlib::string mod, exlib::string codec,
+    obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+static result_t zip_open_strm(SeekableStream_base* strm, exlib::string mod, exlib::string codec,
+    obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+
+static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -213,10 +222,10 @@ result_t zip_base::open(exlib::string path, exlib::string mod, exlib::string cod
     if (hr < 0)
         return hr;
 
-    return open(file, mod, codec, retVal, ac);
+    return zip_open_strm(file.get(), mod, codec, retVal, ac);
 }
 
-result_t zip_base::open(Buffer_base* data, exlib::string mod, exlib::string codec,
+static result_t zip_open_data(Buffer_base* data, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -227,10 +236,10 @@ result_t zip_base::open(Buffer_base* data, exlib::string mod, exlib::string code
     data->toString(strData);
     obj_ptr<SeekableStream_base> strm = new MemoryStream::CloneStream(strData, 0);
 
-    return open(strm, mod, codec, retVal, ac);
+    return zip_open_strm(strm.get(), mod, codec, retVal, ac);
 }
 
-result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, exlib::string codec,
+static result_t zip_open_strm(SeekableStream_base* strm, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -238,6 +247,18 @@ result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, exlib::str
 
     retVal = new ZipFile(strm, mod, codec);
     return 0;
+}
+
+result_t zip_base::open(Union_open_data data, exlib::string mod, exlib::string codec,
+    obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return zip_open_data(std::get<obj_ptr<Buffer_base>>(data).get(), mod, codec, retVal, ac);
+
+    if (std::holds_alternative<obj_ptr<SeekableStream_base>>(data))
+        return zip_open_strm(std::get<obj_ptr<SeekableStream_base>>(data).get(), mod, codec, retVal, ac);
+
+    return zip_open_path(std::get<exlib::string>(data), mod, codec, retVal, ac);
 }
 
 ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, exlib::string codec)
@@ -256,7 +277,8 @@ ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, exlib::string cod
         m_zip = zipOpen2_64("", APPEND_STATUS_ADDINZIP, NULL, &sio);
 }
 
-result_t ZipFile::get_info(obj_ptr<Info>& retVal)
+template <class T>
+result_t ZipFile::get_info(obj_ptr<T>& retVal)
 {
     if (!m_unz)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
@@ -274,11 +296,26 @@ result_t ZipFile::get_info(obj_ptr<Info>& retVal)
     if (hr < 0)
         return hr;
 
-    retVal = new Info(_filename, file_info);
+    retVal = new T();
+    retVal->filename = _filename;
+    retVal->date.fromDosTime(file_info.dosDate);
+
+    if (file_info.compression_method == 0)
+        retVal->compress_type = "Stored";
+    else if (file_info.compression_method == Z_DEFLATED)
+        retVal->compress_type = "Deflate";
+    else if (file_info.compression_method == Z_BZIP2ED)
+        retVal->compress_type = "BZip2";
+    else
+        retVal->compress_type = "Unknown";
+
+    retVal->file_size = file_info.uncompressed_size;
+    retVal->compress_size = file_info.compressed_size;
+    retVal->password = file_info.flag & 1;
     return 0;
 }
 
-result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
@@ -290,7 +327,6 @@ result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
         return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
@@ -304,13 +340,13 @@ result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
-        obj_ptr<Info> info;
+        obj_ptr<ZipFile_base::GetinfoType> info;
 
         hr = get_info(info);
         if (hr < 0)
             return hr;
 
-        names->append(info->m_name);
+        retVal.push_back(info->filename);
 
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
@@ -319,11 +355,10 @@ result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
         }
     }
 
-    retVal = names;
     return 0;
 }
 
-result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
@@ -335,7 +370,6 @@ result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
         return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
@@ -349,13 +383,13 @@ result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
-        obj_ptr<Info> info;
+        obj_ptr<ZipFile_base::InfolistType> item;
 
-        hr = get_info(info);
+        hr = get_info(item);
         if (hr < 0)
             return hr;
 
-        names->append(info);
+        retVal.push_back(item);
 
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
@@ -364,11 +398,10 @@ result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
         }
     }
 
-    retVal = names;
     return 0;
 }
 
-result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncEvent* ac)
+result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoType>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
@@ -390,13 +423,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncE
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-    obj_ptr<Info> info;
-    hr = get_info(info);
-    if (hr < 0)
-        return hr;
-
-    retVal = info;
-    return 0;
+    return get_info(retVal);
 }
 
 #define BUF_SIZE 8192
@@ -583,7 +610,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
-        obj_ptr<Info> info;
+        obj_ptr<ZipFile_base::GetinfoType> info;
 
         hr = get_info(info);
         if (hr < 0)
@@ -591,7 +618,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
 
         fpath1 = path;
         fpath1 += PATH_SLASH;
-        path_base::normalize(fpath1 + info->m_name, fpath1);
+        path_base::normalize(fpath1 + info->filename, fpath1);
         checkGuard(fpath1);
 
         do {
@@ -619,7 +646,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
     return 0;
 }
 
-result_t ZipFile::readAll(exlib::string password, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
@@ -631,7 +658,6 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<NArray>& retVal, Async
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<NArray> datas = new NArray();
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
@@ -642,17 +668,17 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<NArray>& retVal, Async
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
-        obj_ptr<Info> info;
+        obj_ptr<ZipFile_base::ReadAllType> info;
 
         hr = get_info(info);
         if (hr < 0)
             return hr;
 
-        hr = read(password, info->m_data);
+        hr = read(password, info->data);
         if (hr < 0)
             return hr;
 
-        datas->append(info);
+        retVal.push_back(info);
 
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
@@ -660,8 +686,6 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<NArray>& retVal, Async
                 return CHECK_ERROR(Runtime::setError(zip_error(err)));
         }
     }
-
-    retVal = datas;
 
     return 0;
 }

@@ -730,20 +730,18 @@ inline result_t castPathObject(obj_ptr<NObject> po, obj_ptr<NObject>& retVal)
     return 0;
 }
 
-inline result_t _parse(exlib::string path, obj_ptr<NObject>& retVal)
+template <class T>
+inline result_t _parse(exlib::string path, obj_ptr<T>& retVal)
 {
-    obj_ptr<NObject> ret = new NObject();
-    fillPathObject(ret);
+    retVal = new T();
 
-    if (!path.length()) {
-        retVal = ret;
+    if (!path.length())
         return 0;
-    }
 
     bool isAbsolute = path[0] == CHAR_FORWARD_SLASH;
     int start;
     if (isAbsolute) {
-        ret->add("root", "/");
+        retVal->root = "/";
         start = 1;
     } else
         start = 0;
@@ -781,33 +779,30 @@ inline result_t _parse(exlib::string path, obj_ptr<NObject>& retVal)
         int start = startPart == 0 && isAbsolute ? 1 : startPart;
         if (startDot == -1 || preDotState == 0 || (preDotState == 1 && startDot == end - 1 && startDot == startPart + 1)) {
             exlib::string tmp = path.substr(start, end - start);
-            ret->add("base", tmp);
-            ret->add("name", tmp);
+            retVal->base = tmp;
+            retVal->name = tmp;
         } else {
-            ret->add("name", path.substr(start, startDot - start));
-            ret->add("base", path.substr(start, end - start));
-            ret->add("ext", path.substr(startDot, end - startDot));
+            retVal->name = path.substr(start, startDot - start);
+            retVal->base = path.substr(start, end - start);
+            retVal->ext = path.substr(startDot, end - startDot);
         }
     }
 
     if (startPart > 0)
-        ret->add("dir", path.substr(0, startPart - 1));
+        retVal->dir = path.substr(0, startPart - 1);
     else if (isAbsolute)
-        ret->add("dir", "/");
+        retVal->dir = "/";
 
-    retVal = ret;
     return 0;
 }
 
-inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
+template <class T>
+inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
 {
-    obj_ptr<NObject> ret = new NObject();
-    fillPathObject(ret);
+    retVal = new T();
 
-    if (!path.length()) {
-        retVal = ret;
+    if (!path.length())
         return 0;
-    }
 
     // Remove trailing path separators except for UNC paths and root paths
     int originalLen = (int)path.length();
@@ -830,14 +825,13 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
 
     if (len == 1) {
         if (isPathSeparator(code)) {
-            ret->add("root", path);
-            ret->add("dir", path);
+            retVal->root = path;
+            retVal->dir = path;
         } else {
-            ret->add("base", path);
-            ret->add("name", path);
+            retVal->base = path;
+            retVal->name = path;
         }
 
-        retVal = ret;
         return 0;
     }
     if (isPathSeparator(code)) {
@@ -864,26 +858,24 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
         }
     } else if (isWindowsDeviceRoot(code) && path[1] == CHAR_COLON) {
         if (len <= 2) {
-            ret->add("root", path);
-            ret->add("dir", path);
+            retVal->root = path;
+            retVal->dir = path;
 
-            retVal = ret;
             return 0;
         }
         rootEnd = 2;
         if (isPathSeparator(path[2])) {
             if (len == 3) {
-                ret->add("root", path);
-                ret->add("dir", path);
+                retVal->root = path;
+                retVal->dir = path;
 
-                retVal = ret;
                 return 0;
             }
             rootEnd = 3;
         }
     }
     if (rootEnd > 0)
-        ret->add("root", path.substr(0, rootEnd));
+        retVal->root = path.substr(0, rootEnd);
 
     int startDot = -1;
     int startPart = rootEnd;
@@ -919,24 +911,20 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
         if (startDot == -1 || preDotState == 0 || (preDotState == 1 && startDot == end - 1 && startDot == startPart + 1)) {
 
             exlib::string tmp = path.substr(startPart, end - startPart);
-            ret->add("base", tmp);
-            ret->add("name", tmp);
+            retVal->base = tmp;
+            retVal->name = tmp;
         } else {
-            ret->add("name", path.substr(startPart, startDot - startPart));
-            ret->add("base", path.substr(startPart, end - startPart));
-            ret->add("ext", path.substr(startDot, end - startDot));
+            retVal->name = path.substr(startPart, startDot - startPart);
+            retVal->base = path.substr(startPart, end - startPart);
+            retVal->ext = path.substr(startDot, end - startDot);
         }
     }
 
     if (startPart > 0 && startPart != rootEnd)
-        ret->add("dir", path.substr(0, startPart - 1));
-    else {
-        Variant v;
-        ret->get("root", v);
-        ret->add("dir", v.string());
-    }
+        retVal->dir = path.substr(0, startPart - 1);
+    else
+        retVal->dir = retVal->root;
 
-    retVal = ret;
     return 0;
 }
 

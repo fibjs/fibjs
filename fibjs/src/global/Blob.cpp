@@ -43,12 +43,18 @@ result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     return file->m_impl.initialize(blobParts, options);
 }
 
-result_t File_base::_new(Buffer_base* blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+// INTERIM (commit split): File takes Buffer|String parts here; the rest of the
+// final Blob surface (Blob parameters) moves in the Buffer/encoding batch.
+result_t File_base::_new(Union_File_blobData blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
 
     v8::Local<v8::Array> blobParts = v8::Array::New(isolate->m_isolate, 1);
-    blobParts->Set(isolate->context(), 0, blobData->wrap());
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(blobData))
+        blobParts->Set(isolate->context(), 0, std::get<obj_ptr<Buffer_base>>(blobData)->wrap());
+    else
+        blobParts->Set(isolate->context(), 0, isolate->NewString(std::get<exlib::string>(blobData)));
 
     return _new(blobParts, name, options, retVal, This);
 }

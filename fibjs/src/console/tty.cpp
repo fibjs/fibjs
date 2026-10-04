@@ -12,24 +12,33 @@ namespace fibjs {
 
 DECLARE_MODULE(tty);
 
-result_t tty_base::isatty(int32_t fd, bool& retVal)
+result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
 {
+    int32_t _fd;
+
+    if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
+        result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
+        if (hr < 0)
+            return hr;
+    } else
+        _fd = std::get<int32_t>(fd);
+
 #ifndef _WIN32
-    if (fd < 0)
+    if (_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int32_t hr = ::isatty(fd);
+    int32_t hr = ::isatty(_fd);
 #else
-    if (fd == -2) {
+    if (_fd == -2) {
         retVal = true;
         return 0;
     }
 
-    if (fd < 0)
+    if (_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int32_t hr = _isatty(fd);
-    if (hr == FALSE && _lseek(fd, 0, SEEK_CUR) < 0)
+    int32_t hr = _isatty(_fd);
+    if (hr == FALSE && _lseek(_fd, 0, SEEK_CUR) < 0)
         hr = TRUE;
 #endif
     if (hr < 0)
@@ -39,40 +48,28 @@ result_t tty_base::isatty(int32_t fd, bool& retVal)
     return 0;
 }
 
-result_t tty_base::isatty(FileHandle_base* fd, bool& retVal)
-{
-    int32_t _fd;
-    result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
-        return hr;
-
-    return isatty(_fd, retVal);
-}
-
-result_t TTYInputStream_base::_new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
+result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    int32_t _fd;
+
+    if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
+        result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
+        if (hr < 0)
+            return hr;
+    } else
+        _fd = std::get<int32_t>(fd);
+
     bool _tty;
-    result_t hr = tty_base::isatty(fd, _tty);
+    result_t hr = tty_base::isatty(_fd, _tty);
     if (hr < 0)
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", fd));
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", _fd));
 
-    retVal = new TTYInputStream(fd);
+    retVal = new TTYInputStream(_fd);
     return 0;
-}
-
-result_t TTYInputStream_base::_new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    int32_t _fd;
-    result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
-        return hr;
-
-    return _new(_fd, opts, retVal, This);
 }
 
 result_t TTYInputStream::get_isRaw(bool& retVal)
@@ -93,30 +90,28 @@ result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>
     return 0;
 }
 
-result_t TTYOutputStream_base::_new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
+result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    int32_t _fd;
+
+    if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
+        result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
+        if (hr < 0)
+            return hr;
+    } else
+        _fd = std::get<int32_t>(fd);
+
     bool _tty;
-    result_t hr = tty_base::isatty(fd, _tty);
+    result_t hr = tty_base::isatty(_fd, _tty);
     if (hr < 0)
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", fd));
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", _fd));
 
-    retVal = new TTYOutputStream(fd);
+    retVal = new TTYOutputStream(_fd);
     return 0;
-}
-
-result_t TTYOutputStream_base::_new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    int32_t _fd;
-    result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
-        return hr;
-
-    return _new(_fd, opts, retVal, This);
 }
 
 const char* TTYOutputStream::kClearToLineBeginning = "\x1b[1K";
@@ -193,14 +188,13 @@ result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac)
     return 0;
 }
 
-result_t TTYOutputStream::getWindowSize(obj_ptr<NArray>& retVal)
+result_t TTYOutputStream::getWindowSize(std::vector<double>& retVal)
 {
     int32_t width, height;
     uv_tty_get_winsize(&m_tty, &width, &height);
 
-    retVal = new NArray();
-    retVal->append(width);
-    retVal->append(height);
+    retVal.push_back(width);
+    retVal.push_back(height);
 
     return 0;
 }

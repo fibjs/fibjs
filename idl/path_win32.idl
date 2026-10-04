@@ -51,7 +51,7 @@ module path_win32
      @param path the path to parse
      @return the parsed path object
      */
-    static NObject parse(String path);
+    static (String root, String dir, String base, String ext, String name) parse(String path);
 
     /*! @brief Returns the directory name of a path
 

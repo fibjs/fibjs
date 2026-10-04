@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description File system watcher object
  *
@@ -30,103 +31,109 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      Triggered when any change to the file occurs (content modification or rename).
-     *      Callback signature: (eventType: 'change' | 'rename', filename: string | Buffer) => void
+     *      @param eventType the event type, either 'change' or 'rename'
+     *      @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    on(event: "change", listener: ()=>void): this;
+    on(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    once(event: "change", listener: ()=>void): this;
+    once(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    off(event: "change", listener: ()=>void): this;
+    off(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addListener(event: "change", listener: ()=>void): this;
+    addListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    removeListener(event: "change", listener: ()=>void): this;
+    removeListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addEventListener(event: "change", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "change", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "change", listener: ()=>void): this;
+    prependListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    prependOnceListener(event: "change", listener: ()=>void): this;
+    prependOnceListener(event: "change", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
     /**
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      Triggered when any change to the file occurs (content modification or rename).
-     *      Callback signature: (eventType: 'change' | 'rename', filename: string | Buffer) => void
+     *      @param eventType the event type, either 'change' or 'rename'
+     *      @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    onchange: (()=>void) | null;
+    onchange: ((eventType: string, filename: string | Class_Buffer)=>void) | null;
 
     /**
      * @description Queries and binds the "content change only" event, equivalent to on("changeonly", func);
      *
      *      Triggered only when the file content is modified (excluding renames).
-     *      Callback signature: (eventType: 'change', filename: string | Buffer) => void
+     *      @param eventType the event type, always 'change'
+     *      @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    on(event: "changeonly", listener: ()=>void): this;
+    on(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    once(event: "changeonly", listener: ()=>void): this;
+    once(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    off(event: "changeonly", listener: ()=>void): this;
+    off(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addListener(event: "changeonly", listener: ()=>void): this;
+    addListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    removeListener(event: "changeonly", listener: ()=>void): this;
+    removeListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addEventListener(event: "changeonly", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "changeonly", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "changeonly", listener: ()=>void): this;
+    prependListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    prependOnceListener(event: "changeonly", listener: ()=>void): this;
+    prependOnceListener(event: "changeonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
     /**
      * @description Queries and binds the "content change only" event, equivalent to on("changeonly", func);
      *
      *      Triggered only when the file content is modified (excluding renames).
-     *      Callback signature: (eventType: 'change', filename: string | Buffer) => void
+     *      @param eventType the event type, always 'change'
+     *      @param filename the changed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    onchangeonly: (()=>void) | null;
+    onchangeonly: ((eventType: string, filename: string | Class_Buffer)=>void) | null;
 
     /**
      * @description Queries and binds the "rename only" event, equivalent to on("renameonly", func);
      *
      *      Triggered only when the file is renamed (excluding content modifications).
-     *      Callback signature: (eventType: 'rename', filename: string | Buffer) => void
+     *      @param eventType the event type, always 'rename'
+     *      @param filename the renamed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    on(event: "renameonly", listener: ()=>void): this;
+    on(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    once(event: "renameonly", listener: ()=>void): this;
+    once(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    off(event: "renameonly", listener: ()=>void): this;
+    off(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addListener(event: "renameonly", listener: ()=>void): this;
+    addListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    removeListener(event: "renameonly", listener: ()=>void): this;
+    removeListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    addEventListener(event: "renameonly", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "renameonly", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "renameonly", listener: ()=>void): this;
+    prependListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
-    prependOnceListener(event: "renameonly", listener: ()=>void): this;
+    prependOnceListener(event: "renameonly", listener: (eventType: string, filename: string | Class_Buffer)=>void): this;
 
     /**
      * @description Queries and binds the "rename only" event, equivalent to on("renameonly", func);
      *
      *      Triggered only when the file is renamed (excluding content modifications).
-     *      Callback signature: (eventType: 'rename', filename: string | Buffer) => void
+     *      @param eventType the event type, always 'rename'
+     *      @param filename the renamed file name, a Buffer when the watcher was created with the 'buffer' encoding
      *
      */
-    onrenameonly: (()=>void) | null;
+    onrenameonly: ((eventType: string, filename: string | Class_Buffer)=>void) | null;
 
     /**
      * @description Queries and binds the "watcher closed" event, equivalent to on("close", func);

@@ -23,11 +23,12 @@ class zip_base : public object_base {
     DECLARE_CLASS(zip_base);
 
 public:
+    using Union_open_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<SeekableStream_base>, exlib::string>;
+
+public:
     // zip_base
     static result_t isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac);
-    static result_t open(exlib::string path, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(Buffer_base* data, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(SeekableStream_base* strm, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(Union_open_data data, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -46,9 +47,7 @@ public:
 
 public:
     ASYNC_STATICVALUE2(zip_base, isZipFile, exlib::string, bool);
-    ASYNC_STATICVALUE4(zip_base, open, exlib::string, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, Union_open_data, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
 };
 }
 
@@ -101,7 +100,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(3, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_open_data, 0);
     OPT_ARG(exlib::string, 1, "r");
     OPT_ARG(exlib::string, 2, "utf8");
 
@@ -109,28 +108,6 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = acb_open(v0, v1, v2, cb, args);
     else
         hr = ac_open(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf8");
-
-    if (!cb.IsEmpty())
-        hr = acb_open(v0.get(), v1, v2, cb, args);
-    else
-        hr = ac_open(v0.get(), v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf8");
-
-    if (!cb.IsEmpty())
-        hr = acb_open(v0.get(), v1, v2, cb, args);
-    else
-        hr = ac_open(v0.get(), v1, v2, vr);
 
     ASYNC_METHOD_RETURN();
 }

@@ -63,7 +63,13 @@ declare module 'path_posix' {
      *      @return the parsed path object
      *
      */
-    function parse(path: string): FIBJS.GeneralObject;
+    function parse(path: string): {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    };
 
     /**
      * @description Returns the directory name of a path

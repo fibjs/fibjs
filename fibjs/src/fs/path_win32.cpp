@@ -38,7 +38,7 @@ result_t path_win32_base::format(v8::Local<v8::Object> pathObject, exlib::string
     return _universal_format(sep, pathObject, retVal);
 }
 
-result_t path_win32_base::parse(exlib::string path, obj_ptr<NObject>& retVal)
+result_t path_win32_base::parse(exlib::string path, obj_ptr<ParseType>& retVal)
 {
     return _parse_win32(path, retVal);
 }

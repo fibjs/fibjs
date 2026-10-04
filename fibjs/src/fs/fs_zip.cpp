@@ -20,7 +20,7 @@ namespace fibjs {
 
 class cache_node : public obj_base {
 public:
-    void init(exlib::string name, obj_ptr<NArray> list, date_t date = INFINITY);
+    void init(exlib::string name, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& list, date_t date = INFINITY);
     static cache_node* lookup(exlib::string name);
     static void erase(exlib::string name);
 
@@ -28,7 +28,7 @@ public:
     exlib::string m_name;
     date_t m_date;
     date_t m_mtime;
-    std::unordered_map<exlib::string, obj_ptr<ZipFile::Info>> m_map;
+    std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>> m_map;
 };
 
 static std::unordered_map<exlib::string, obj_ptr<cache_node>> s_cache_map;
@@ -67,28 +67,17 @@ cache_node* cache_node::lookup(exlib::string name)
     return _node;
 }
 
-void cache_node::init(exlib::string name, obj_ptr<NArray> list, date_t date)
+void cache_node::init(exlib::string name, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& list, date_t date)
 {
     m_name = name;
     m_date = date;
     m_mtime.now();
 
-    obj_ptr<ZipFile::Info> zi;
-    int32_t len = list->length();
+    for (auto& zi : list) {
+        if (zi->date.empty())
+            zi->date = date;
 
-    for (int32_t i = 0; i < len; i++) {
-        Variant v;
-        exlib::string s;
-
-        list->_indexed_getter(i, v);
-
-        zi = (ZipFile::Info*)v.object();
-        if (zi->m_date.empty())
-            zi->m_date = date;
-
-        zi->get_filename(s);
-
-        m_map.insert_or_assign(s, zi);
+        m_map.insert_or_assign(zi->filename, zi);
     }
 
     s_cachelock.lock();
@@ -96,7 +85,23 @@ void cache_node::init(exlib::string name, obj_ptr<NArray> list, date_t date)
     s_cachelock.unlock();
 }
 
-result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
+static result_t set_zip_fs(exlib::string fname, Buffer_base* data);
+
+result_t fs_base::setZipFS(exlib::string fname, Union_setZipFS_data data)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return set_zip_fs(fname, std::get<obj_ptr<Buffer_base>>(data).get());
+
+    // a string is the zip data itself, encoded as utf8
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return set_zip_fs(fname, buf.get());
+}
+
+static result_t set_zip_fs(exlib::string fname, Buffer_base* data)
 {
     result_t hr;
     obj_ptr<ZipFile_base> zfile;
@@ -106,7 +111,7 @@ result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
     if (hr < 0)
         return hr;
 
-    obj_ptr<NArray> list;
+    std::vector<obj_ptr<ZipFile_base::ReadAllType>> list;
     hr = zfile->cc_readAll("", list);
     if (hr < 0)
         return hr;
@@ -126,7 +131,7 @@ result_t fs_base::clearZipFS(exlib::string fname)
     return 0;
 }
 
-static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& retVal, AsyncEvent* ac)
+static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncEvent* ac)
 {
     size_t pos = fname.find('$');
     if (pos != exlib::string::npos && fname[pos + 1] == PATH_SLASH) {
@@ -201,7 +206,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
             if (hr < 0)
                 return hr;
 
-            obj_ptr<NArray> list;
+            std::vector<obj_ptr<ZipFile_base::ReadAllType>> list;
             hr = zfile->readAll("", list, ac);
             if (hr < 0)
                 return hr;
@@ -211,7 +216,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
             stat->get_mtime(_node->m_mtime);
         }
 
-        std::unordered_map<exlib::string, obj_ptr<ZipFile::Info>>::iterator it;
+        std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>>::iterator it;
 
         it = _node->m_map.find(member);
 #ifdef _WIN32
@@ -231,7 +236,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
 
 static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    obj_ptr<ZipFile::Info> zi;
+    obj_ptr<ZipFile_base::ReadAllType> zi;
     result_t hr = resolve_zip_file(path, zi, ac);
     if (hr >= 0) {
         obj_ptr<Stat> pStat = new Stat();
@@ -240,8 +245,8 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEv
         path_base::basename(path, "", pStat->name);
 
         pStat->m_mode = S_IRUSR;
-        pStat->size = zi->m_file_size;
-        pStat->mtime = pStat->atime = pStat->ctime = pStat->birthtime = zi->m_date;
+        pStat->size = zi->file_size;
+        pStat->mtime = pStat->atime = pStat->ctime = pStat->birthtime = zi->date;
         pStat->m_isMemory = true;
 
         retVal = pStat;
@@ -356,7 +361,22 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
     return hr;
 }
 
-result_t fs_base::openFile(exlib::string fname, exlib::string flags,
+// the flags forms: a string mode name, or the integer fs.constants flags
+static result_t open_file_string(exlib::string fname, exlib::string flags,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+static result_t open_file_int(exlib::string fname, int32_t flags,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+
+result_t fs_base::openFile(exlib::string fname, Union_openFile_flags flags,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<int32_t>(flags))
+        return open_file_int(fname, std::get<int32_t>(flags), retVal, ac);
+
+    return open_file_string(fname, std::get<exlib::string>(flags), retVal, ac);
+}
+
+static result_t open_file_string(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -367,18 +387,18 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     if (hr < 0)
         return hr;
 
-    obj_ptr<ZipFile::Info> zi;
+    obj_ptr<ZipFile_base::ReadAllType> zi;
     hr = resolve_zip_file(safe_name, zi, ac);
     if (hr >= 0) {
         obj_ptr<Buffer_base> data;
         exlib::string strData;
         date_t _d;
 
-        zi->get_data(data);
+        data = zi->data;
         if (data)
             data->toString(strData);
 
-        zi->get_date(_d);
+        _d = zi->date;
         retVal = new MemoryStream::CloneStream(strData, _d);
         return 0;
     }
@@ -396,7 +416,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     return 0;
 }
 
-result_t fs_base::openFile(exlib::string fname, int32_t flags,
+static result_t open_file_int(exlib::string fname, int32_t flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())

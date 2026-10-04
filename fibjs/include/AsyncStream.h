@@ -611,6 +611,23 @@ public:
         return static_cast<T*>(this)->writeBuffer(data, ac);
     }
 
+    // String form of writeBuffer(): the string is decoded as utf8 once, in the
+    // async phase, and the Buffer implementation does the write (every write
+    // implementation keeps the buffer alive through its own async state).
+    virtual result_t writeBuffer(exlib::string data, AsyncEvent* ac)
+    {
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(data, "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return static_cast<T*>(this)->writeBuffer(buf, ac);
+    }
+
     // Enqueue buffer into write queue during sync phase
     result_t enqueueWrite(Buffer_base* data, bool& retVal, AsyncEvent* ac)
     {

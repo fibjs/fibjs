@@ -8,17 +8,11 @@
  */
 interface TTYInputStream : Stream
 {
-    /*! @brief Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor
-     @param fd the underlying file descriptor, which must be a tty device
+    /*! @brief Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
+     @param fd the underlying file descriptor or file handle object, which must be a tty device
      @param opts options object passed to the Stream constructor
      */
-    TTYInputStream(Integer fd, Object opts = {});
-
-    /*! @brief Creates a new TTYInputStream object; the fd parameter specifies the underlying file object
-     @param fd the underlying file object, which must be a tty device
-     @param opts options object passed to the Stream constructor
-     */
-    TTYInputStream(FileHandle fd, Object opts = {});
+    TTYInputStream(Integer|FileHandle fd, Object opts = {});
 
     /*! @brief Always true
     */

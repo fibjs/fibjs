@@ -67,37 +67,18 @@ interface FileHandle : object
     (Integer bytesWritten, Buffer buffer) write(String string, Integer position = -1, String encoding = "utf8") async;
 
     /*! @brief Reads the entire content of the file
-     @param encoding the decoding method; by default no decoding is performed
+
+     options supports the following options:
+     ```JavaScript
+     {
+         "encoding": "utf8" // the encoding to use, default is utf8.
+     }
+     ```
+     An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     @param options the decoding method, or the read options
      @return returns the file content
      */
-    Variant readFile(String encoding = "") async;
-
-    /*! @brief Reads the entire content of the file
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // the encoding to use, default is utf8.
-     }
-     ```
-     @param options the read options
-     @return returns the file content
-     */
-    Variant readFile(Object options) async;
-
-    /*! @brief Writes data to the file, replacing its content
-     @param data the data to write
-     @param opt the write options; ignored
-     @return the number of bytes actually written
-     */
-    Integer writeFile(Buffer data, String opt = "binary") async;
-
-    /*! @brief Writes data to the file, replacing its content
-     @param data the data to write
-     @param opt the write options
-     @return the number of bytes actually written
-     */
-    Integer writeFile(String data, String opt = "utf8") async;
+    Variant readFile(Object|String options = "") async;
 
     /*! @brief Writes data to the file, replacing its content
 
@@ -107,25 +88,12 @@ interface FileHandle : object
          "encoding": "utf8" // the encoding to use, default is utf8.
      }
      ```
+     opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      @param data the data to write
-     @param options the write options
+     @param opt the encoding of string data, or the write options
      @return the number of bytes actually written
      */
-    Integer writeFile(Buffer data, Object options) async;
-
-    /*! @brief Writes data to the file, replacing its content
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // the encoding to use, default is utf8.
-     }
-     ```
-     @param data the data to write
-     @param options the write options
-     @return the number of bytes actually written
-     */
-    Integer writeFile(String data, Object options) async;
+    Integer writeFile(Buffer|String data, Object|String opt = "utf8") async;
 
     /*! @brief Modifies the access and modification times of the file
 
@@ -162,13 +130,7 @@ interface FileHandle : object
      @param data the data to write
      @return the number of bytes actually written
      */
-    Integer appendFile(Buffer data) async;
-
-    /*! @brief Appends content
-     @param data the data to write
-     @return the number of bytes actually written
-     */
-    Integer appendFile(String data) async;
+    Integer appendFile(Buffer|String data) async;
 
     /*! @brief Closes the current file handle */
     close() async;

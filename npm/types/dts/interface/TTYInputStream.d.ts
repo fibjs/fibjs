@@ -13,20 +13,12 @@
  */
 declare class Class_TTYInputStream extends Class_Stream {
     /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor
-     *      @param fd the underlying file descriptor, which must be a tty device
+     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
+     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
-    constructor(fd: number, opts?: FIBJS.GeneralObject);
-
-    /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file object
-     *      @param fd the underlying file object, which must be a tty device
-     *      @param opts options object passed to the Stream constructor
-     *
-     */
-    constructor(fd: Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
+    constructor(fd: number | Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
 
     /**
      * @description Always true
@@ -65,20 +57,12 @@ declare class Class_TTYInputStream extends Class_Stream {
  */
 declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor
-     *      @param fd the underlying file descriptor, which must be a tty device
+     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
+     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
-    constructor(fd: number, opts?: FIBJS.GeneralObject);
-
-    /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file object
-     *      @param fd the underlying file object, which must be a tty device
-     *      @param opts options object passed to the Stream constructor
-     *
-     */
-    constructor(fd: Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
+    constructor(fd: number | Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
 
     /**
      * @description Always true

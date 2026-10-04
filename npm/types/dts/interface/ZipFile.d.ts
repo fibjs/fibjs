@@ -16,10 +16,10 @@
  *
  * Commonly used instance functions and methods of the ZipFile object are:
  *
- * - NArray ZipFile.namelist(): gets the file name list
- * - NObject ZipFile.getinfo(String member): gets file information
+ * - String[] ZipFile.namelist(): gets the file name list
+ * - (String filename, Date date, String compress_type, Long compress_size, Long file_size, Boolean password) ZipFile.getinfo(String member): gets file information
  * - Buffer ZipFile.read(String member, String password = ""): reads the specified file
- * - NArray ZipFile.readAll(String password = ""): reads all files
+ * - (String filename, Date date, String compress_type, Long compress_size, Long file_size, Boolean password, Buffer data)[] ZipFile.readAll(String password = ""): reads all files
  * - void ZipFile.extract(String member, String path, String password = ""): extracts a file to the specified path
  * - void ZipFile.extract(String member, SeekableStream strm, String password = ""): extracts a file to a stream
  * - void ZipFile.extractAll(String path, String password = ""): extracts all files to the specified path
@@ -54,78 +54,134 @@ declare class Class_ZipFile extends Class_object {
      * 	 @return returns a list object containing the file names
      *
      */
-    namelist(): any[];
+    namelist(): string[];
 
-    namelist(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Gets the file name list
-     * 	 @return returns a list object containing the file names
-     *
-     */
-    namelistSync(): any[];
+    namelist(callback: (err: Error | undefined | null, retVal: string[])=>any): void;
 
     /**
      * @description Gets the file name list
      * 	 @return returns a list object containing the file names
      *
      */
-    namelistAsync(): Promise<any[]>;
+    namelistSync(): string[];
+
+    /**
+     * @description Gets the file name list
+     * 	 @return returns a list object containing the file names
+     *
+     */
+    namelistAsync(): Promise<string[]>;
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolist(): any[];
+    infolist(): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[];
 
-    infolist(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    infolist(callback: (err: Error | undefined | null, retVal: {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[])=>any): void;
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolistSync(): any[];
+    infolistSync(): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[];
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolistAsync(): Promise<any[]>;
+    infolistAsync(): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[]>;
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfo(member: string): FIBJS.GeneralObject;
+    getinfo(member: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    };
 
-    getinfo(member: string, callback: (err: Error | undefined | null, retVal: FIBJS.GeneralObject)=>any): void;
+    getinfo(member: string, callback: (err: Error | undefined | null, retVal: {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    })=>any): void;
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfoSync(member: string): FIBJS.GeneralObject;
+    getinfoSync(member: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    };
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfoAsync(member: string): Promise<FIBJS.GeneralObject>;
+    getinfoAsync(member: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }>;
 
     /**
      * @description Returns the data read from the zip file
@@ -158,58 +214,64 @@ declare class Class_ZipFile extends Class_object {
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAll(password?: string): any[];
+    readAll(password?: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[];
 
-    readAll(password?: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    readAll(password?: string, callback: (err: Error | undefined | null, retVal: {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[])=>any): void;
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAllSync(password?: string): any[];
+    readAllSync(password?: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[];
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAllAsync(password?: string): Promise<any[]>;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extract(member: string, path: string, password?: string): void;
-
-    extract(member: string, path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extractSync(member: string, path: string, password?: string): void;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extractAsync(member: string, path: string, password?: string): Promise<void>;
+    readAllAsync(password?: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[]>;
 
     /**
      * @description Decompresses the specified file to a stream
@@ -241,6 +303,35 @@ declare class Class_ZipFile extends Class_object {
     extractAsync(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string): Promise<void>;
 
     /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extract(member: string, path: string, password?: string): void;
+
+    extract(member: string, path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extractSync(member: string, path: string, password?: string): void;
+
+    /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extractAsync(member: string, path: string, password?: string): Promise<void>;
+
+    /**
      * @description Decompresses all files to the specified path
      * 	 @param path the path to decompress to
      * 	 @param password decompression password, no password by default
@@ -265,35 +356,6 @@ declare class Class_ZipFile extends Class_object {
      *
      */
     extractAllAsync(path: string, password?: string): Promise<void>;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    write(filename: string, inZipName: string, password?: string): void;
-
-    write(filename: string, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    writeSync(filename: string, inZipName: string, password?: string): void;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    writeAsync(filename: string, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes the specified file to the zip file
@@ -354,6 +416,38 @@ declare class Class_ZipFile extends Class_object {
     writeAsync(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string): Promise<void>;
 
     /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    write(filename: string, inZipName: string, password?: string): void;
+
+    write(filename: string, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    writeSync(filename: string, inZipName: string, password?: string): void;
+
+    /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    writeAsync(filename: string, inZipName: string, password?: string): Promise<void>;
+
+    /**
      * @description Closes the opened zip file
      */
     close(): void;
@@ -386,72 +480,114 @@ declare class Class_ZipFilePromise extends Class_object {
      * 	 @return returns a list object containing the file names
      *
      */
-    namelist(): Promise<any[]>;
+    namelist(): Promise<string[]>;
 
     /**
      * @description Gets the file name list
      * 	 @return returns a list object containing the file names
      *
      */
-    namelistSync(): any[];
+    namelistSync(): string[];
 
     /**
      * @description Gets the file name list
      * 	 @return returns a list object containing the file names
      *
      */
-    namelistAsync(): Promise<any[]>;
+    namelistAsync(): Promise<string[]>;
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolist(): Promise<any[]>;
+    infolist(): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[]>;
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolistSync(): any[];
+    infolistSync(): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[];
 
     /**
      * @description Gets the file information list
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @return returns a list object containing the file information
      *
      */
-    infolistAsync(): Promise<any[]>;
+    infolistAsync(): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }[]>;
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfo(member: string): Promise<FIBJS.GeneralObject>;
+    getinfo(member: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }>;
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfoSync(member: string): FIBJS.GeneralObject;
+    getinfoSync(member: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    };
 
     /**
      * @description Gets file information
-     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password
      * 	 @param member the name of the file whose information is to be obtained
      * 	 @return returns the file information object
      *
      */
-    getinfoAsync(member: string): Promise<FIBJS.GeneralObject>;
+    getinfoAsync(member: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+    }>;
 
     /**
      * @description Returns the data read from the zip file
@@ -482,54 +618,54 @@ declare class Class_ZipFilePromise extends Class_object {
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAll(password?: string): Promise<any[]>;
+    readAll(password?: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[]>;
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAllSync(password?: string): any[];
+    readAllSync(password?: string): {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[];
 
     /**
      * @description Decompresses all files
+     * 	 The file information contains the fields: filename, date, compress_type, compress_size, file_size, password, data
      * 	 @param password decompression password, no password by default
      * 	 @return a list containing the data and information of all files
      *
      */
-    readAllAsync(password?: string): Promise<any[]>;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extract(member: string, path: string, password?: string): Promise<void>;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extractSync(member: string, path: string, password?: string): void;
-
-    /**
-     * @description Decompresses the specified file
-     * 	 @param member the name of the file to decompress
-     * 	 @param path the path to decompress to
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    extractAsync(member: string, path: string, password?: string): Promise<void>;
+    readAllAsync(password?: string): Promise<{
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[]>;
 
     /**
      * @description Decompresses the specified file to a stream
@@ -559,6 +695,33 @@ declare class Class_ZipFilePromise extends Class_object {
     extractAsync(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string): Promise<void>;
 
     /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extract(member: string, path: string, password?: string): Promise<void>;
+
+    /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extractSync(member: string, path: string, password?: string): void;
+
+    /**
+     * @description Decompresses the specified file
+     * 	 @param member the name of the file to decompress
+     * 	 @param path the path to decompress to
+     * 	 @param password decompression password, no password by default
+     *
+     */
+    extractAsync(member: string, path: string, password?: string): Promise<void>;
+
+    /**
      * @description Decompresses all files to the specified path
      * 	 @param path the path to decompress to
      * 	 @param password decompression password, no password by default
@@ -581,33 +744,6 @@ declare class Class_ZipFilePromise extends Class_object {
      *
      */
     extractAllAsync(path: string, password?: string): Promise<void>;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    write(filename: string, inZipName: string, password?: string): Promise<void>;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    writeSync(filename: string, inZipName: string, password?: string): void;
-
-    /**
-     * @description Writes the specified file to the zip file
-     * 	 @param filename the file to write
-     * 	 @param inZipName the file name inside the zip file
-     * 	 @param password decompression password, no password by default
-     *
-     */
-    writeAsync(filename: string, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes the specified file to the zip file
@@ -662,6 +798,36 @@ declare class Class_ZipFilePromise extends Class_object {
      *
      */
     writeAsync(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string): Promise<void>;
+
+    /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    write(filename: string, inZipName: string, password?: string): Promise<void>;
+
+    /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    writeSync(filename: string, inZipName: string, password?: string): void;
+
+    /**
+     * @description Writes the specified file to the zip file
+     * 	 @param filename the file to write
+     * 	 @param inZipName the file name inside the zip file
+     * 	 @param password decompression password, no password by default
+     * 	 @param data the file data to write
+     *
+     */
+    writeAsync(filename: string, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Closes the opened zip file

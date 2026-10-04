@@ -26,7 +26,7 @@ public:
     static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t readLines(int32_t maxlines, std::vector<exlib::string>& retVal) = 0;
     virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -168,7 +168,7 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
 
 inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();

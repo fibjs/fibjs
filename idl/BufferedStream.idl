@@ -59,7 +59,7 @@ interface BufferedStream : Stream
      @param maxlines the maximum number of lines to read this time; by default all text lines are read
      @return returns the array of text lines read; an empty array if there is no data to read, or the connection is interrupted
      */
-    Array readLines(Integer maxlines = -1);
+    String[] readLines(Integer maxlines = -1);
 
     /*! @brief Reads a text string ending with the specified bytes
      @param mk the ending string

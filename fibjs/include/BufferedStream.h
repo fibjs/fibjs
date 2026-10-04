@@ -36,7 +36,7 @@ public:
     // BufferedStream_base
     virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal);
+    virtual result_t readLines(int32_t maxlines, std::vector<exlib::string>& retVal);
     virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac);
     virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac);

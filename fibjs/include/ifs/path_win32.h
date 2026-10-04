@@ -19,12 +19,42 @@ class path_win32_base : public object_base {
     DECLARE_CLASS(path_win32_base);
 
 public:
+    class ParseType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("root"), GetReturnValue(isolate, root)).Check();
+            retVal->Set(context, isolate->NewString("dir"), GetReturnValue(isolate, dir)).Check();
+            retVal->Set(context, isolate->NewString("base"), GetReturnValue(isolate, base)).Check();
+            retVal->Set(context, isolate->NewString("ext"), GetReturnValue(isolate, ext)).Check();
+            retVal->Set(context, isolate->NewString("name"), GetReturnValue(isolate, name)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, root));
+            args.push_back(GetReturnValue(isolate, dir));
+            args.push_back(GetReturnValue(isolate, base));
+            args.push_back(GetReturnValue(isolate, ext));
+            args.push_back(GetReturnValue(isolate, name));
+        }
+
+    public:
+        exlib::string root;
+        exlib::string dir;
+        exlib::string base;
+        exlib::string ext;
+        exlib::string name;
+    };
+
+public:
     // path_win32_base
     static result_t normalize(exlib::string path, exlib::string& retVal);
     static result_t basename(exlib::string path, exlib::string ext, exlib::string& retVal);
     static result_t extname(exlib::string path, exlib::string& retVal);
     static result_t format(v8::Local<v8::Object> pathObject, exlib::string& retVal);
-    static result_t parse(exlib::string path, obj_ptr<NObject>& retVal);
+    static result_t parse(exlib::string path, obj_ptr<ParseType>& retVal);
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
     static result_t matchesGlob(exlib::string path, exlib::string pattern, bool& retVal);
@@ -169,7 +199,7 @@ inline void path_win32_base::s_static_format(const v8::FunctionCallbackInfo<v8::
 
 inline void path_win32_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NObject> vr;
+    obj_ptr<ParseType> vr;
 
     METHOD_ENTER();
 

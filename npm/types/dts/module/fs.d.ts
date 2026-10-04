@@ -287,39 +287,9 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories.
-     *      @param path the directory to create
-     *      @param mode the file mode, ignored on Windows, default: 0777
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
      *
-     */
-    function mkdir(path: string, mode?: number): any;
-
-    function mkdir(path: string, mode?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Creates a directory
-     *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories.
-     *      @param path the directory to create
-     *      @param mode the file mode, ignored on Windows, default: 0777
-     *
-     */
-    function mkdirSync(path: string, mode?: number): any;
-
-    /**
-     * @description Creates a directory
-     *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories.
-     *      @param path the directory to create
-     *      @param mode the file mode, ignored on Windows, default: 0777
-     *
-     */
-    function mkdirAsync(path: string, mode?: number): Promise<any>;
-
-    /**
-     * @description Creates a directory
-     *
-     *      The options may contain:
+     *      The options object may contain:
      *      ```JavaScript
      *      {
      *          recursive: false, // specify whether parent directories should be created. Default: false
@@ -329,18 +299,20 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param opt the creation options
+     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
-    function mkdir(path: string, opt: FIBJS.GeneralObject): any;
+    function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any): any;
 
-    function mkdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Creates a directory
      *
-     *      The options may contain:
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *
+     *      The options object may contain:
      *      ```JavaScript
      *      {
      *          recursive: false, // specify whether parent directories should be created. Default: false
@@ -350,16 +322,18 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param opt the creation options
+     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
-    function mkdirSync(path: string, opt: FIBJS.GeneralObject): any;
+    function mkdirSync(path: string, mode?: number | FIBJS.GeneralObject | any): any;
 
     /**
      * @description Creates a directory
      *
-     *      The options may contain:
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *
+     *      The options object may contain:
      *      ```JavaScript
      *      {
      *          recursive: false, // specify whether parent directories should be created. Default: false
@@ -369,46 +343,11 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param opt the creation options
+     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
-    function mkdirAsync(path: string, opt: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Creates a directory
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the directory to create
-     *      @param mode the file mode, a number or an octal string
-     *      @return the path of the first created directory when parent directories were actually created
-     *
-     */
-    function mkdir(path: string, mode: any): any;
-
-    function mkdir(path: string, mode: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Creates a directory
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the directory to create
-     *      @param mode the file mode, a number or an octal string
-     *      @return the path of the first created directory when parent directories were actually created
-     *
-     */
-    function mkdirSync(path: string, mode: any): any;
-
-    /**
-     * @description Creates a directory
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the directory to create
-     *      @param mode the file mode, a number or an octal string
-     *      @return the path of the first created directory when parent directories were actually created
-     *
-     */
-    function mkdirAsync(path: string, mode: any): Promise<any>;
+    function mkdirAsync(path: string, mode?: number | FIBJS.GeneralObject | any): Promise<any>;
 
     /**
      * @description Creates a unique temporary directory
@@ -690,123 +629,59 @@ declare module 'fs' {
      * @description Sets the access permissions of the given file; not supported on Windows
      *
      *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function chmod(path: string, mode: number): void;
+    function chmod(path: string, mode: number | any): void;
 
-    function chmod(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function chmod(path: string, mode: number | any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
      *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function chmodSync(path: string, mode: number): void;
+    function chmodSync(path: string, mode: number | any): void;
 
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
      *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function chmodAsync(path: string, mode: number): Promise<void>;
-
-    /**
-     * @description Sets the access permissions of the given file; not supported on Windows
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function chmod(path: string, mode: any): void;
-
-    function chmod(path: string, mode: any, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Sets the access permissions of the given file; not supported on Windows
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function chmodSync(path: string, mode: any): void;
-
-    /**
-     * @description Sets the access permissions of the given file; not supported on Windows
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function chmodAsync(path: string, mode: any): Promise<void>;
+    function chmodAsync(path: string, mode: number | any): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function lchmod(path: string, mode: number): void;
+    function lchmod(path: string, mode: number | any): void;
 
-    function lchmod(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function lchmod(path: string, mode: number | any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function lchmodSync(path: string, mode: number): void;
+    function lchmodSync(path: string, mode: number | any): void;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *      @param path the file to operate on
+     *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions to set
      *
      */
-    function lchmodAsync(path: string, mode: number): Promise<void>;
-
-    /**
-     * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function lchmod(path: string, mode: any): void;
-
-    function lchmod(path: string, mode: any, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function lchmodSync(path: string, mode: any): void;
-
-    /**
-     * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     *      @param path the file to operate on
-     *      @param mode the access permissions to set, a number or an octal string
-     *
-     */
-    function lchmodAsync(path: string, mode: any): Promise<void>;
+    function lchmodAsync(path: string, mode: number | any): Promise<void>;
 
     /**
      * @description Sets the owner of the given file; not supported on Windows
@@ -1196,81 +1071,52 @@ declare module 'fs' {
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the symbolic link to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function readlink(path: string, options: FIBJS.GeneralObject): any;
+    function readlink(path: string, options: FIBJS.GeneralObject | string): any;
 
-    function readlink(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readlink(path: string, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the symbolic link to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function readlinkSync(path: string, options: FIBJS.GeneralObject): any;
+    function readlinkSync(path: string, options: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the symbolic link to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function readlinkAsync(path: string, options: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
-     *      @param path the symbolic link to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function readlink(path: string, encoding: string): any;
-
-    function readlink(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
-     *      @param path the symbolic link to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function readlinkSync(path: string, encoding: string): any;
-
-    /**
-     * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
-     *      @param path the symbolic link to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function readlinkAsync(path: string, encoding: string): Promise<any>;
+    function readlinkAsync(path: string, options: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
@@ -1301,81 +1147,52 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the path to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function realpath(path: string, options: FIBJS.GeneralObject): any;
+    function realpath(path: string, options: FIBJS.GeneralObject | string): any;
 
-    function realpath(path: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function realpath(path: string, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the path to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function realpathSync(path: string, options: FIBJS.GeneralObject): any;
+    function realpathSync(path: string, options: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options:
+     *      options supports the following options, or a string is used as the encoding directly:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      *      }
      *      ```
      *      @param path the path to read
-     *      @param options the read options
+     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
-    function realpathAsync(path: string, options: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
-     *      @param path the path to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function realpath(path: string, encoding: string): any;
-
-    function realpath(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
-     *      @param path the path to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function realpathSync(path: string, encoding: string): any;
-
-    /**
-     * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
-     *      @param path the path to read
-     *      @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     *
-     */
-    function realpathAsync(path: string, encoding: string): Promise<any>;
+    function realpathAsync(path: string, options: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Creates a symbolic link
@@ -1664,9 +1481,25 @@ declare module 'fs' {
      *      @return the file system information object
      *
      */
-    function statfs(path: string): FIBJS.GeneralObject;
+    function statfs(path: string): {
+        type: number;
+        bsize: number;
+        blocks: number;
+        bfree: number;
+        bavail: number;
+        files: number;
+        ffree: number;
+    };
 
-    function statfs(path: string, callback: (err: Error | undefined | null, retVal: FIBJS.GeneralObject)=>any): void;
+    function statfs(path: string, callback: (err: Error | undefined | null, retVal: {
+        type: number;
+        bsize: number;
+        blocks: number;
+        bfree: number;
+        bavail: number;
+        files: number;
+        ffree: number;
+    })=>any): void;
 
     /**
      * @description Queries the information of the file system
@@ -1676,7 +1509,15 @@ declare module 'fs' {
      *      @return the file system information object
      *
      */
-    function statfsSync(path: string): FIBJS.GeneralObject;
+    function statfsSync(path: string): {
+        type: number;
+        bsize: number;
+        blocks: number;
+        bfree: number;
+        bavail: number;
+        files: number;
+        ffree: number;
+    };
 
     /**
      * @description Queries the information of the file system
@@ -1686,7 +1527,15 @@ declare module 'fs' {
      *      @return the file system information object
      *
      */
-    function statfsAsync(path: string): Promise<FIBJS.GeneralObject>;
+    function statfsAsync(path: string): Promise<{
+        type: number;
+        bsize: number;
+        blocks: number;
+        bfree: number;
+        bavail: number;
+        files: number;
+        ffree: number;
+    }>;
 
     /**
      * @description Reads the entries of the given directory
@@ -1755,7 +1604,7 @@ declare module 'fs' {
     /**
      * @description Reads the entries of the given directory
      *
-     *      The opts parameter supports the following options:
+     *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
@@ -1764,20 +1613,20 @@ declare module 'fs' {
      *      }
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options
+     *      @param opts the options, or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
-    function readdir(path: string, opts?: FIBJS.GeneralObject): any[];
+    function readdir(path: string, opts?: FIBJS.GeneralObject | string): any[];
 
-    function readdir(path: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function readdir(path: string, opts?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Reads the entries of the given directory
      *
-     *      The opts parameter supports the following options:
+     *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
@@ -1786,18 +1635,18 @@ declare module 'fs' {
      *      }
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options
+     *      @param opts the options, or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
-    function readdirSync(path: string, opts?: FIBJS.GeneralObject): any[];
+    function readdirSync(path: string, opts?: FIBJS.GeneralObject | string): any[];
 
     /**
      * @description Reads the entries of the given directory
      *
-     *      The opts parameter supports the following options:
+     *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
      *      {
      *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
@@ -1806,48 +1655,13 @@ declare module 'fs' {
      *      }
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options
+     *      @param opts the options, or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
-    function readdirAsync(path: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
-
-    /**
-     * @description Reads the entries of the given directory
-     *
-     *      encoding specifies the encoding of the returned file names; 'buffer' returns an array of Buffer objects, consistent with Node.js.
-     *      @param path the directory to query
-     *      @param encoding the encoding of the returned file names
-     *      @return the array of directory entries
-     *
-     */
-    function readdir(path: string, encoding: string): any[];
-
-    function readdir(path: string, encoding: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Reads the entries of the given directory
-     *
-     *      encoding specifies the encoding of the returned file names; 'buffer' returns an array of Buffer objects, consistent with Node.js.
-     *      @param path the directory to query
-     *      @param encoding the encoding of the returned file names
-     *      @return the array of directory entries
-     *
-     */
-    function readdirSync(path: string, encoding: string): any[];
-
-    /**
-     * @description Reads the entries of the given directory
-     *
-     *      encoding specifies the encoding of the returned file names; 'buffer' returns an array of Buffer objects, consistent with Node.js.
-     *      @param path the directory to query
-     *      @param encoding the encoding of the returned file names
-     *      @return the array of directory entries
-     *
-     */
-    function readdirAsync(path: string, encoding: string): Promise<any[]>;
+    function readdirAsync(path: string, opts?: FIBJS.GeneralObject | string): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -2061,7 +1875,7 @@ declare module 'fs' {
     /**
      * @description Opens a file for reading, writing, or both
      *
-     *      The flags parameter supports:
+     *      The flags parameter supports integer fs.constants flags (a combination of values such as fs.constants.O_WRONLY | fs.constants.O_CREAT), or one of the following strings:
      *      - 'r' read only; throws when the file does not exist.
      *      - 'r+' read and write; throws when the file does not exist.
      *      - 'w' write only; the file is created when missing and truncated when existing.
@@ -2071,18 +1885,18 @@ declare module 'fs' {
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
      *      @param fname the file name
-     *      @param flags the open mode, "r" (read only) by default
+     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
      *      @return the opened file object
      *
      */
-    function openFile(fname: string, flags?: string): Class_SeekableStream;
+    function openFile(fname: string, flags?: string | number): Class_SeekableStream;
 
-    function openFile(fname: string, flags?: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function openFile(fname: string, flags?: string | number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file for reading, writing, or both
      *
-     *      The flags parameter supports:
+     *      The flags parameter supports integer fs.constants flags (a combination of values such as fs.constants.O_WRONLY | fs.constants.O_CREAT), or one of the following strings:
      *      - 'r' read only; throws when the file does not exist.
      *      - 'r+' read and write; throws when the file does not exist.
      *      - 'w' write only; the file is created when missing and truncated when existing.
@@ -2092,16 +1906,16 @@ declare module 'fs' {
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
      *      @param fname the file name
-     *      @param flags the open mode, "r" (read only) by default
+     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
      *      @return the opened file object
      *
      */
-    function openFileSync(fname: string, flags?: string): Class_SeekableStream;
+    function openFileSync(fname: string, flags?: string | number): Class_SeekableStream;
 
     /**
      * @description Opens a file for reading, writing, or both
      *
-     *      The flags parameter supports:
+     *      The flags parameter supports integer fs.constants flags (a combination of values such as fs.constants.O_WRONLY | fs.constants.O_CREAT), or one of the following strings:
      *      - 'r' read only; throws when the file does not exist.
      *      - 'r+' read and write; throws when the file does not exist.
      *      - 'w' write only; the file is created when missing and truncated when existing.
@@ -2111,43 +1925,84 @@ declare module 'fs' {
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
      *      @param fname the file name
-     *      @param flags the open mode, "r" (read only) by default
+     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
      *      @return the opened file object
      *
      */
-    function openFileAsync(fname: string, flags?: string): Promise<Class_SeekableStreamPromise>;
+    function openFileAsync(fname: string, flags?: string | number): Promise<Class_SeekableStreamPromise>;
 
     /**
-     * @description Opens a file for reading, writing, or both, using integer fs.constants flags
+     * @description Opens a file descriptor, using integer fs.constants flags
      *
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @return the opened file object
+     *      @param mode the file mode when the file is created, 0666 by default
+     *      @return the opened file descriptor
      *
      */
-    function openFile(fname: string, flags: number): Class_SeekableStream;
+    function open(fname: string, flags: number, mode?: number): Class_FileHandle;
 
-    function openFile(fname: string, flags: number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function open(fname: string, flags: number, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
-     * @description Opens a file for reading, writing, or both, using integer fs.constants flags
+     * @description Opens a file descriptor, using integer fs.constants flags
      *
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @return the opened file object
+     *      @param mode the file mode when the file is created, 0666 by default
+     *      @return the opened file descriptor
      *
      */
-    function openFileSync(fname: string, flags: number): Class_SeekableStream;
+    function openSync(fname: string, flags: number, mode?: number): Class_FileHandle;
 
     /**
-     * @description Opens a file for reading, writing, or both, using integer fs.constants flags
+     * @description Opens a file descriptor, using integer fs.constants flags
      *
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @return the opened file object
+     *      @param mode the file mode when the file is created, 0666 by default
+     *      @return the opened file descriptor
      *
      */
-    function openFileAsync(fname: string, flags: number): Promise<Class_SeekableStreamPromise>;
+    function openAsync(fname: string, flags: number, mode?: number): Promise<Class_FileHandlePromise>;
+
+    /**
+     * @description Opens a file
+     *
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      @param fname the file name
+     *      @param flags the open mode
+     *      @param mode the file permissions, a number or an octal string
+     *      @return the file handle object
+     *
+     */
+    function open(fname: string, flags: string, mode: any): Class_FileHandle;
+
+    function open(fname: string, flags: string, mode: any, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    /**
+     * @description Opens a file
+     *
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      @param fname the file name
+     *      @param flags the open mode
+     *      @param mode the file permissions, a number or an octal string
+     *      @return the file handle object
+     *
+     */
+    function openSync(fname: string, flags: string, mode: any): Class_FileHandle;
+
+    /**
+     * @description Opens a file
+     *
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      @param fname the file name
+     *      @param flags the open mode
+     *      @param mode the file permissions, a number or an octal string
+     *      @return the file handle object
+     *
+     */
+    function openAsync(fname: string, flags: string, mode: any): Promise<Class_FileHandlePromise>;
 
     /**
      * @description Opens a file descriptor
@@ -2210,79 +2065,6 @@ declare module 'fs' {
      *
      */
     function openAsync(fname: string, flags?: string, mode?: number): Promise<Class_FileHandlePromise>;
-
-    /**
-     * @description Opens a file
-     *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
-     *      @param fname the file name
-     *      @param flags the open mode
-     *      @param mode the file permissions, a number or an octal string
-     *      @return the file handle object
-     *
-     */
-    function open(fname: string, flags: string, mode: any): Class_FileHandle;
-
-    function open(fname: string, flags: string, mode: any, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
-
-    /**
-     * @description Opens a file
-     *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
-     *      @param fname the file name
-     *      @param flags the open mode
-     *      @param mode the file permissions, a number or an octal string
-     *      @return the file handle object
-     *
-     */
-    function openSync(fname: string, flags: string, mode: any): Class_FileHandle;
-
-    /**
-     * @description Opens a file
-     *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
-     *      @param fname the file name
-     *      @param flags the open mode
-     *      @param mode the file permissions, a number or an octal string
-     *      @return the file handle object
-     *
-     */
-    function openAsync(fname: string, flags: string, mode: any): Promise<Class_FileHandlePromise>;
-
-    /**
-     * @description Opens a file descriptor, using integer fs.constants flags
-     *
-     *      @param fname the file name
-     *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @param mode the file mode when the file is created, 0666 by default
-     *      @return the opened file descriptor
-     *
-     */
-    function open(fname: string, flags: number, mode?: number): Class_FileHandle;
-
-    function open(fname: string, flags: number, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
-
-    /**
-     * @description Opens a file descriptor, using integer fs.constants flags
-     *
-     *      @param fname the file name
-     *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @param mode the file mode when the file is created, 0666 by default
-     *      @return the opened file descriptor
-     *
-     */
-    function openSync(fname: string, flags: number, mode?: number): Class_FileHandle;
-
-    /**
-     * @description Opens a file descriptor, using integer fs.constants flags
-     *
-     *      @param fname the file name
-     *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     *      @param mode the file mode when the file is created, 0666 by default
-     *      @return the opened file descriptor
-     *
-     */
-    function openAsync(fname: string, flags: number, mode?: number): Promise<Class_FileHandlePromise>;
 
     /**
      * @description Closes the file descriptor
@@ -2399,42 +2181,7 @@ declare module 'fs' {
     function readTextFileAsync(fname: string): Promise<string>;
 
     /**
-     * @description Opens a file and reads its content
-     *
-     *      encoding is empty by default and a Buffer object is returned; when an encoding is given, the decoded string is returned.
-     *      @param fname the file name
-     *      @param encoding the decoding, none by default
-     *      @return the text content of the file
-     *
-     */
-    function readFile(fname: string, encoding?: string): any;
-
-    function readFile(fname: string, encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Opens a file and reads its content
-     *
-     *      encoding is empty by default and a Buffer object is returned; when an encoding is given, the decoded string is returned.
-     *      @param fname the file name
-     *      @param encoding the decoding, none by default
-     *      @return the text content of the file
-     *
-     */
-    function readFileSync(fname: string, encoding?: string): any;
-
-    /**
-     * @description Opens a file and reads its content
-     *
-     *      encoding is empty by default and a Buffer object is returned; when an encoding is given, the decoded string is returned.
-     *      @param fname the file name
-     *      @param encoding the decoding, none by default
-     *      @return the text content of the file
-     *
-     */
-    function readFileAsync(fname: string, encoding?: string): Promise<any>;
-
-    /**
-     * @description Opens a file and reads its content
+     * @description Reads the whole content of a file, by its file descriptor or by its name
      *
      *      options supports the following options:
      *      ```JavaScript
@@ -2442,17 +2189,19 @@ declare module 'fs' {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     *      @param fname the file name
-     *      @param options the read options
-     *      @return the text content of the file
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      @param fname the file name, or the file descriptor object
+     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *      @return the file content
      *
      */
-    function readFile(fname: string, options: FIBJS.GeneralObject): any;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): any;
 
-    function readFile(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description Opens a file and reads its content
+     * @description Reads the whole content of a file, by its file descriptor or by its name
      *
      *      options supports the following options:
      *      ```JavaScript
@@ -2460,15 +2209,17 @@ declare module 'fs' {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     *      @param fname the file name
-     *      @param options the read options
-     *      @return the text content of the file
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      @param fname the file name, or the file descriptor object
+     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *      @return the file content
      *
      */
-    function readFileSync(fname: string, options: FIBJS.GeneralObject): any;
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): any;
 
     /**
-     * @description Opens a file and reads its content
+     * @description Reads the whole content of a file, by its file descriptor or by its name
      *
      *      options supports the following options:
      *      ```JavaScript
@@ -2476,97 +2227,14 @@ declare module 'fs' {
      *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
-     *      @param fname the file name
-     *      @param options the read options
-     *      @return the text content of the file
      *
-     */
-    function readFileAsync(fname: string, options: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      Consistent with Node.js: the file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fd the file descriptor object
-     *      @param encoding the decoding, none by default
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      @param fname the file name, or the file descriptor object
+     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
      *      @return the file content
      *
      */
-    function readFile(fd: Class_FileHandle | Class_FileHandlePromise, encoding?: string): any;
-
-    function readFile(fd: Class_FileHandle | Class_FileHandlePromise, encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      Consistent with Node.js: the file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fd the file descriptor object
-     *      @param encoding the decoding, none by default
-     *      @return the file content
-     *
-     */
-    function readFileSync(fd: Class_FileHandle | Class_FileHandlePromise, encoding?: string): any;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      Consistent with Node.js: the file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fd the file descriptor object
-     *      @param encoding the decoding, none by default
-     *      @return the file content
-     *
-     */
-    function readFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, encoding?: string): Promise<any>;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param options the read options
-     *      @return the file content
-     *
-     */
-    function readFile(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): any;
-
-    function readFile(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param options the read options
-     *      @return the file content
-     *
-     */
-    function readFileSync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Reads the whole content of a file by its file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param options the read options
-     *      @return the file content
-     *
-     */
-    function readFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<any>;
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\n" on posix and "\r\n" on windows by default
@@ -2575,7 +2243,7 @@ declare module 'fs' {
      *      @return the array of text lines read; an empty array when the file is empty or has no readable data
      *
      */
-    function readLines(fname: string, maxlines?: number): any[];
+    function readLines(fname: string, maxlines?: number): string[];
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -2698,390 +2366,74 @@ declare module 'fs' {
     function writeTextFileAsync(fname: string, txt: string): Promise<number>;
 
     /**
-     * @description Creates a binary file and writes content into it
+     * @description Writes content into a file, by its file descriptor or by its name
      *
-     *      The opt parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fname: string, data: Class_Buffer, opt?: string): number;
-
-    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Creates a binary file and writes content into it
-     *
-     *      The opt parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fname: string, data: Class_Buffer, opt?: string): number;
-
-    /**
-     * @description Creates a binary file and writes content into it
-     *
-     *      The opt parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fname: string, data: Class_Buffer, opt?: string): Promise<number>;
-
-    /**
-     * @description Creates a binary file and writes content into it
-     *
-     *      The options parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param options the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Creates a binary file and writes content into it
-     *
-     *      The options parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param options the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Creates a binary file and writes content into it
-     *
-     *      The options parameter is ignored; the file is opened for overwriting.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @param options the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Creates a file and writes content into it
-     *
-     *      opt specifies the encoding of the written text, utf8 by default.
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fname: string, data: string, opt?: string): number;
-
-    function writeFile(fname: string, data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Creates a file and writes content into it
-     *
-     *      opt specifies the encoding of the written text, utf8 by default.
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fname: string, data: string, opt?: string): number;
-
-    /**
-     * @description Creates a file and writes content into it
-     *
-     *      opt specifies the encoding of the written text, utf8 by default.
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fname: string, data: string, opt?: string): Promise<number>;
-
-    /**
-     * @description Creates a file and writes content into it
-     *
-     *      options supports the following options:
+     *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "w" // specify the open flag. Default: w
      *      }
      *      ```
      *
-     *      @param fname the file name
+     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of text data, utf8 by default, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Creates a file and writes content into it
+     * @description Writes content into a file, by its file descriptor or by its name
      *
-     *      options supports the following options:
+     *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "w" // specify the open flag. Default: w
      *      }
      *      ```
      *
-     *      @param fname the file name
+     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of text data, utf8 by default, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: string, data: string, options: FIBJS.GeneralObject): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
-     * @description Creates a file and writes content into it
+     * @description Writes content into a file, by its file descriptor or by its name
      *
-     *      options supports the following options:
+     *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
+     *          "mode": 0666, // specify the file mode. Default: 0666
+     *          "flag": "w" // specify the open flag. Default: w
      *      }
      *      ```
      *
-     *      @param fname the file name
+     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of text data, utf8 by default, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: string, data: string, options: FIBJS.GeneralObject): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Writes content by the file descriptor
+     * @description Appends content to a file, by its file descriptor or by its name
      *
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, opt?: string): number;
-
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, opt?: string): number;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param opt the write options, ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the binary data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, opt?: string): number;
-
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, opt?: string): number;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): number;
-
-    function writeFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Writes content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Creates a binary file and appends content to it
-     *
-     *      The file is created when it does not exist.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fname: string, data: Class_Buffer): number;
-
-    function appendFile(fname: string, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Creates a binary file and appends content to it
-     *
-     *      The file is created when it does not exist.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fname: string, data: Class_Buffer): number;
-
-    /**
-     * @description Creates a binary file and appends content to it
-     *
-     *      The file is created when it does not exist.
-     *      @param fname the file name
-     *      @param data the binary data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fname: string, data: Class_Buffer): Promise<number>;
-
-    /**
-     * @description Creates a file and appends content to it
-     *
-     *      options supports the following options:
+     *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
@@ -3089,21 +2441,21 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      }
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on.
-     *      @param fname the file name
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param options the encoding of the data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
-    function appendFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Creates a file and appends content to it
+     * @description Appends content to a file, by its file descriptor or by its name
      *
-     *      options supports the following options:
+     *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
@@ -3111,19 +2463,19 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      }
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on.
-     *      @param fname the file name
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param options the encoding of the data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
     /**
-     * @description Creates a file and appends content to it
+     * @description Appends content to a file, by its file descriptor or by its name
      *
-     *      options supports the following options:
+     *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
      *      {
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
@@ -3131,284 +2483,24 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      }
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on.
-     *      @param fname the file name
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      @param fname the file name, or the file descriptor object
      *      @param data the data to write
-     *      @param options the write options
+     *      @param options the encoding of the data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Creates a file and appends content to it
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fname: string, data: Class_Buffer, encoding: string): number;
-
-    function appendFile(fname: string, data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Creates a file and appends content to it
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fname: string, data: Class_Buffer, encoding: string): number;
-
-    /**
-     * @description Creates a file and appends content to it
-     *      @param fname the file name
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fname: string, data: Class_Buffer, encoding: string): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, encoding: string): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, encoding: string): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: Class_Buffer, encoding: string): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: string): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: string): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     *      }
-     *      ```
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, encoding: string): number;
-
-    function appendFile(fd: Class_FileHandle | Class_FileHandlePromise, data: string, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileSync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, encoding: string): number;
-
-    /**
-     * @description Appends content by the file descriptor
-     *      @param fd the file descriptor object
-     *      @param data the data to write
-     *      @param encoding the encoding, 'utf8' and others
-     *      @return the number of bytes actually written
-     *
-     */
-    function appendFileAsync(fd: Class_FileHandle | Class_FileHandlePromise, data: string, encoding: string): Promise<number>;
-
-    /**
-     * @description Sets a zip virtual file mapping
+     * @description Sets a zip virtual file mapping; a string data is encoded as utf8
      *
      *      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip.
-     *      @param fname the mapping path
-     *      @param data the zip data to map
+     *      @param fname the mapping path, a string is encoded as utf8
+     *      @param data the zip data to map, a string is encoded as utf8
      *
      */
-    function setZipFS(fname: string, data: Class_Buffer): void;
+    function setZipFS(fname: string, data: Class_Buffer | string): void;
 
     /**
      * @description Clears zip virtual file mappings
@@ -3432,7 +2524,7 @@ declare module 'fs' {
      *      @return the FSWatcher object
      *
      */
-    function watch(fname: string, callback: (...args: any[])=>any): Class_FSWatcher;
+    function watch(fname: string, callback: (eventType: string, filename: string | Class_Buffer)=>void): Class_FSWatcher;
 
     /**
      * @description Watches a file and returns the corresponding watcher object
@@ -3469,7 +2561,7 @@ declare module 'fs' {
      *      @return the FSWatcher object
      *
      */
-    function watch(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_FSWatcher;
+    function watch(fname: string, options: FIBJS.GeneralObject, callback: (eventType: string, filename: string | Class_Buffer)=>void): Class_FSWatcher;
 
     /**
      * @description Watches a file and returns the corresponding StatsWatcher object
@@ -3480,7 +2572,7 @@ declare module 'fs' {
      *      @return the StatsWatcher object
      *
      */
-    function watchFile(fname: string, callback: (...args: any[])=>any): Class_StatsWatcher;
+    function watchFile(fname: string, callback: (curStats: Class_Stat, prevStats: Class_Stat)=>void): Class_StatsWatcher;
 
     /**
      * @description Watches a file and returns the corresponding StatsWatcher object
@@ -3499,7 +2591,7 @@ declare module 'fs' {
      *      @return the StatsWatcher object
      *
      */
-    function watchFile(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_StatsWatcher;
+    function watchFile(fname: string, options: FIBJS.GeneralObject, callback: (curStats: Class_Stat, prevStats: Class_Stat)=>void): Class_StatsWatcher;
 
     /**
      * @description Removes all watch event handlers from the StatsWatcher watching fname
@@ -3518,7 +2610,7 @@ declare module 'fs' {
      *      @param callback the handler to remove
      *
      */
-    function unwatchFile(fname: string, callback: (...args: any[])=>any): void;
+    function unwatchFile(fname: string, callback: (curStats: Class_Stat, prevStats: Class_Stat)=>void): void;
 
 }
 

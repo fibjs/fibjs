@@ -49,18 +49,17 @@ declare class Class_File extends Class_Blob {
     constructor(blobParts: any[], name: string, options?: FIBJS.GeneralObject);
 
     /**
-     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types; a string blobData is encoded as utf8
      *
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *
-     *      @param blobData the initial binary data, can be a Buffer or another binary data type.
+     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer, name: string, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, name: string, options?: FIBJS.GeneralObject);
 
     /**
      * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
@@ -117,18 +116,17 @@ declare class Class_FilePromise extends Class_BlobPromise {
     constructor(blobParts: any[], name: string, options?: FIBJS.GeneralObject);
 
     /**
-     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types; a string blobData is encoded as utf8
      *
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *
-     *      @param blobData the initial binary data, can be a Buffer or another binary data type.
+     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer, name: string, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, name: string, options?: FIBJS.GeneralObject);
 
     /**
      * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.

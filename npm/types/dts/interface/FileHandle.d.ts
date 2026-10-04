@@ -277,29 +277,21 @@ declare class Class_FileHandle extends Class_object {
 
     /**
      * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
+     *      }
+     *      ```
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFile(encoding?: string): any;
+    readFile(options?: FIBJS.GeneralObject | string): any;
 
-    readFile(encoding?: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
-     *      @return returns the file content
-     *
-     */
-    readFileSync(encoding?: string): any;
-
-    /**
-     * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
-     *      @return returns the file content
-     *
-     */
-    readFileAsync(encoding?: string): Promise<any>;
+    readFile(options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the entire content of the file
@@ -310,13 +302,12 @@ declare class Class_FileHandle extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options the read options
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFile(options: FIBJS.GeneralObject): any;
-
-    readFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    readFileSync(options?: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Reads the entire content of the file
@@ -327,84 +318,12 @@ declare class Class_FileHandle extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options the read options
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFileSync(options: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Reads the entire content of the file
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param options the read options
-     *      @return returns the file content
-     *
-     */
-    readFileAsync(options: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: Class_Buffer, opt?: string): number;
-
-    writeFile(data: Class_Buffer, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: Class_Buffer, opt?: string): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: Class_Buffer, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: string, opt?: string): number;
-
-    writeFile(data: string, opt?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: string, opt?: string): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: string, opt?: string): Promise<number>;
+    readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -415,14 +334,15 @@ declare class Class_FileHandle extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer, options: FIBJS.GeneralObject): number;
+    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    writeFile(data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -433,12 +353,13 @@ declare class Class_FileHandle extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer, options: FIBJS.GeneralObject): number;
+    writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -449,62 +370,13 @@ declare class Class_FileHandle extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: string, options: FIBJS.GeneralObject): number;
-
-    writeFile(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: string, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: string, options: FIBJS.GeneralObject): Promise<number>;
+    writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Modifies the access and modification times of the file
@@ -645,58 +517,24 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer): number;
-
-    appendFile(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: Class_Buffer): number;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileAsync(data: Class_Buffer): Promise<number>;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFile(data: string): number;
-
-    appendFile(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: string): number;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileAsync(data: string): Promise<number>;
-
     appendFile(data: Class_Buffer | string): number;
 
     appendFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
+    /**
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
     appendFileSync(data: Class_Buffer | string): number;
 
+    /**
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
     appendFileAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
@@ -969,27 +807,19 @@ declare class Class_FileHandlePromise extends Class_object {
 
     /**
      * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // the encoding to use, default is utf8.
+     *      }
+     *      ```
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFile(encoding?: string): Promise<any>;
-
-    /**
-     * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
-     *      @return returns the file content
-     *
-     */
-    readFileSync(encoding?: string): any;
-
-    /**
-     * @description Reads the entire content of the file
-     *      @param encoding the decoding method; by default no decoding is performed
-     *      @return returns the file content
-     *
-     */
-    readFileAsync(encoding?: string): Promise<any>;
+    readFile(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Reads the entire content of the file
@@ -1000,11 +830,12 @@ declare class Class_FileHandlePromise extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options the read options
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFile(options: FIBJS.GeneralObject): Promise<any>;
+    readFileSync(options?: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Reads the entire content of the file
@@ -1015,80 +846,12 @@ declare class Class_FileHandlePromise extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
-     *      @param options the read options
+     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
+     *      @param options the decoding method, or the read options
      *      @return returns the file content
      *
      */
-    readFileSync(options: FIBJS.GeneralObject): any;
-
-    /**
-     * @description Reads the entire content of the file
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param options the read options
-     *      @return returns the file content
-     *
-     */
-    readFileAsync(options: FIBJS.GeneralObject): Promise<any>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: Class_Buffer, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: Class_Buffer, opt?: string): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options; ignored
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: Class_Buffer, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: string, opt?: string): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: string, opt?: string): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *      @param data the data to write
-     *      @param opt the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: string, opt?: string): Promise<number>;
+    readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -1099,12 +862,13 @@ declare class Class_FileHandlePromise extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
+    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -1115,12 +879,13 @@ declare class Class_FileHandlePromise extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer, options: FIBJS.GeneralObject): number;
+    writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Writes data to the file, replacing its content
@@ -1131,60 +896,13 @@ declare class Class_FileHandlePromise extends Class_object {
      *          "encoding": "utf8" // the encoding to use, default is utf8.
      *      }
      *      ```
+     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param options the write options
+     *      @param opt the encoding of string data, or the write options
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFile(data: string, options: FIBJS.GeneralObject): Promise<number>;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: string, options: FIBJS.GeneralObject): number;
-
-    /**
-     * @description Writes data to the file, replacing its content
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
-     *      ```
-     *      @param data the data to write
-     *      @param options the write options
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileAsync(data: string, options: FIBJS.GeneralObject): Promise<number>;
+    writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Modifies the access and modification times of the file
@@ -1315,52 +1033,22 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer): Promise<number>;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: Class_Buffer): number;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileAsync(data: Class_Buffer): Promise<number>;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFile(data: string): Promise<number>;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: string): number;
-
-    /**
-     * @description Appends content
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileAsync(data: string): Promise<number>;
-
     appendFile(data: Class_Buffer | string): Promise<number>;
 
+    /**
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
     appendFileSync(data: Class_Buffer | string): number;
 
+    /**
+     * @description Appends content
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
     appendFileAsync(data: Class_Buffer | string): Promise<number>;
 
     /**

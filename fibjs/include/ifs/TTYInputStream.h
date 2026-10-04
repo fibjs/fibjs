@@ -23,9 +23,11 @@ class TTYInputStream_base : public Stream_base {
     DECLARE_CLASS(TTYInputStream_base);
 
 public:
+    using Union_TTYInputStream_fd = std::variant<int32_t, obj_ptr<FileHandle_base>>;
+
+public:
     // TTYInputStream_base
-    static result_t _new(int32_t fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(FileHandle_base* fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_TTYInputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_isTTY(bool& retVal) = 0;
     virtual result_t get_readable(bool& retVal) = 0;
     virtual result_t get_isRaw(bool& retVal) = 0;
@@ -84,17 +86,10 @@ inline void TTYInputStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_TTYInputStream_fd, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<FileHandle_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0.get(), v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -107,17 +102,10 @@ inline result_t TTYInputStream_base::load(v8::Local<v8::Value> v, obj_ptr<TTYInp
 
     METHOD_OVER(2, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_TTYInputStream_fd, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<FileHandle_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0.get(), v1, vr, args.This());
 
     LOAD_RETURN();
 }

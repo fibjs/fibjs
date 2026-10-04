@@ -28,7 +28,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+result_t lchmod_platform(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);

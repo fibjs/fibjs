@@ -106,7 +106,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return returns the array of text lines read; an empty array if there is no data to read, or the connection is interrupted
      *
      */
-    readLines(maxlines?: number): any[];
+    readLines(maxlines?: number): string[];
 
     /**
      * @description Reads a text string ending with the specified bytes
@@ -274,7 +274,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      @return returns the array of text lines read; an empty array if there is no data to read, or the connection is interrupted
      *
      */
-    readLines(maxlines?: number): any[];
+    readLines(maxlines?: number): string[];
 
     /**
      * @description Reads a text string ending with the specified bytes

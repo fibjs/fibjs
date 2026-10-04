@@ -136,15 +136,9 @@ module fs
 
     /*! @brief Creates a directory
 
-     mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories.
-     @param path the directory to create
-     @param mode the file mode, ignored on Windows, default: 0777
-     */
-    static Variant mkdir(String path, Integer mode = 0777) async;
+     mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
 
-    /*! @brief Creates a directory
-
-     The options may contain:
+     The options object may contain:
      ```JavaScript
      {
          recursive: false, // specify whether parent directories should be created. Default: false
@@ -154,19 +148,10 @@ module fs
 
      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      @param path the directory to create
-     @param opt the creation options
+     @param mode the file mode or the creation options: a number, an octal string, or an options object
      @return the path of the first created directory when recursive is true and a directory was actually created
      */
-    static Variant mkdir(String path, Object opt) async;
-
-    /*! @brief Creates a directory
-
-     mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     @param path the directory to create
-     @param mode the file mode, a number or an octal string
-     @return the path of the first created directory when parent directories were actually created
-     */
-    static Variant mkdir(String path, Variant mode) async;
+    static Variant mkdir(String path, Integer|Object|Variant mode = 0777) async;
 
     /*! @brief Creates a unique temporary directory
 
@@ -247,32 +232,16 @@ module fs
     /*! @brief Sets the access permissions of the given file; not supported on Windows
 
      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
-     @param path the file to operate on
+     @param path the file to operate on, a string is encoded as utf8
      @param mode the access permissions to set
      */
-    static chmod(String path, Integer mode) async;
-
-    /*! @brief Sets the access permissions of the given file; not supported on Windows
-
-     mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     @param path the file to operate on
-     @param mode the access permissions to set, a number or an octal string
-     */
-    static chmod(String path, Variant mode) async;
+    static chmod(String path, Integer|Variant mode) async;
 
     /*! @brief Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-     @param path the file to operate on
+     @param path the file to operate on, a string is encoded as utf8
      @param mode the access permissions to set
      */
-    static lchmod(String path, Integer mode) async;
-
-    /*! @brief Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
-
-     mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
-     @param path the file to operate on
-     @param mode the access permissions to set, a number or an octal string
-     */
-    static lchmod(String path, Variant mode) async;
+    static lchmod(String path, Integer|Variant mode) async;
 
     /*! @brief Sets the owner of the given file; not supported on Windows
      @param path the file to set
@@ -375,24 +344,17 @@ module fs
 
     /*! @brief Reads the given symbolic link and returns the target path it points to; not supported on Windows
 
-     options supports the following options:
+     options supports the following options, or a string is used as the encoding directly:
      ```JavaScript
      {
          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      }
      ```
      @param path the symbolic link to read
-     @param options the read options
+     @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      */
-    static Variant readlink(String path, Object options) async;
-
-    /*! @brief Reads the given symbolic link and returns the target path it points to; not supported on Windows
-     @param path the symbolic link to read
-     @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     */
-    static Variant readlink(String path, String encoding) async;
+    static Variant readlink(String path, Object|String options) async;
 
     /*! @brief Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      @param path the path to read
@@ -402,24 +364,17 @@ module fs
 
     /*! @brief Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
 
-     options supports the following options:
+     options supports the following options, or a string is used as the encoding directly:
      ```JavaScript
      {
          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
      }
      ```
      @param path the path to read
-     @param options the read options
+     @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      */
-    static Variant realpath(String path, Object options) async;
-
-    /*! @brief Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
-     @param path the path to read
-     @param encoding the encoding of the returned value; 'buffer' returns a Buffer
-     @return the decoded string when an encoding is given, or a Buffer for 'buffer'
-     */
-    static Variant realpath(String path, String encoding) async;
+    static Variant realpath(String path, Object|String options) async;
 
     /*! @brief Creates a symbolic link
      @param target the target, which may be a file, a directory or a nonexistent path
@@ -496,7 +451,7 @@ module fs
      @param path the path to query
      @return the file system information object
      */
-    static NObject statfs(String path) async;
+    static (Number type, Number bsize, Number blocks, Number bfree, Number bavail, Number files, Number ffree) statfs(String path) async;
 
     /*! @brief Reads the entries of the given directory
 
@@ -516,7 +471,7 @@ module fs
 
     /*! @brief Reads the entries of the given directory
 
-     The opts parameter supports the following options:
+     The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      ```JavaScript
      {
          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
@@ -525,21 +480,12 @@ module fs
      }
      ```
 
-     When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names.
+     When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      @param path the directory to query
-     @param opts the options
+     @param opts the options, or the encoding of the returned file names
      @return the array of directory entries
      */
-    static NArray readdir(String path, Object opts = {}) async;
-
-    /*! @brief Reads the entries of the given directory
-
-     encoding specifies the encoding of the returned file names; 'buffer' returns an array of Buffer objects, consistent with Node.js.
-     @param path the directory to query
-     @param encoding the encoding of the returned file names
-     @return the array of directory entries
-     */
-    static NArray readdir(String path, String encoding) async;
+    static NArray readdir(String path, Object|String opts = {}) async;
 
     /*! @brief Searches the given directory for files matching a name pattern
 
@@ -602,7 +548,7 @@ module fs
 
     /*! @brief Opens a file for reading, writing, or both
 
-     The flags parameter supports:
+     The flags parameter supports integer fs.constants flags (a combination of values such as fs.constants.O_WRONLY | fs.constants.O_CREAT), or one of the following strings:
      - 'r' read only; throws when the file does not exist.
      - 'r+' read and write; throws when the file does not exist.
      - 'w' write only; the file is created when missing and truncated when existing.
@@ -612,18 +558,29 @@ module fs
 
      The returned file stream supports positioning operations such as seek, tell and rewind.
      @param fname the file name
-     @param flags the open mode, "r" (read only) by default
+     @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
      @return the opened file object
      */
-    static SeekableStream openFile(String fname, String flags = "r") async;
+    static SeekableStream openFile(String fname, String|Integer flags = "r") async;
 
-    /*! @brief Opens a file for reading, writing, or both, using integer fs.constants flags
+    /*! @brief Opens a file descriptor, using integer fs.constants flags
 
      @param fname the file name
      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     @return the opened file object
+     @param mode the file mode when the file is created, 0666 by default
+     @return the opened file descriptor
      */
-    static SeekableStream openFile(String fname, Integer flags) async;
+    static FileHandle open(String fname, Integer flags, Integer mode = 0666) async;
+
+    /*! @brief Opens a file
+
+     mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     @param fname the file name
+     @param flags the open mode
+     @param mode the file permissions, a number or an octal string
+     @return the file handle object
+     */
+    static FileHandle open(String fname, String flags, Variant mode) async;
 
     /*! @brief Opens a file descriptor
 
@@ -642,25 +599,6 @@ module fs
      @return the opened file descriptor
      */
     static FileHandle open(String fname, String flags = "r", Integer mode = 0666) async;
-
-    /*! @brief Opens a file
-
-     mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
-     @param fname the file name
-     @param flags the open mode
-     @param mode the file permissions, a number or an octal string
-     @return the file handle object
-     */
-    static FileHandle open(String fname, String flags, Variant mode) async;
-
-    /*! @brief Opens a file descriptor, using integer fs.constants flags
-
-     @param fname the file name
-     @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
-     @param mode the file mode when the file is created, 0666 by default
-     @return the opened file descriptor
-     */
-    static FileHandle open(String fname, Integer flags, Integer mode = 0666) async;
 
     /*! @brief Closes the file descriptor
      @param fd the file descriptor object
@@ -692,16 +630,7 @@ module fs
      */
     static String readTextFile(String fname) async;
 
-    /*! @brief Opens a file and reads its content
-
-     encoding is empty by default and a Buffer object is returned; when an encoding is given, the decoded string is returned.
-     @param fname the file name
-     @param encoding the decoding, none by default
-     @return the text content of the file
-     */
-    static Variant readFile(String fname, String encoding = "") async;
-
-    /*! @brief Opens a file and reads its content
+    /*! @brief Reads the whole content of a file, by its file descriptor or by its name
 
      options supports the following options:
      ```JavaScript
@@ -709,41 +638,20 @@ module fs
          "encoding": "utf8" // specify the encoding, default is utf8.
      }
      ```
-     @param fname the file name
-     @param options the read options
-     @return the text content of the file
-     */
-    static Variant readFile(String fname, Object options) async;
 
-    /*! @brief Reads the whole content of a file by its file descriptor
-
-     Consistent with Node.js: the file descriptor is not closed after reading and the current file position is not changed.
-     @param fd the file descriptor object
-     @param encoding the decoding, none by default
+     An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     @param fname the file name, or the file descriptor object
+     @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
      @return the file content
      */
-    static Variant readFile(FileHandle fd, String encoding = "") async;
-
-    /*! @brief Reads the whole content of a file by its file descriptor
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // specify the encoding, default is utf8.
-     }
-     ```
-     @param fd the file descriptor object
-     @param options the read options
-     @return the file content
-     */
-    static Variant readFile(FileHandle fd, Object options) async;
+    static Variant readFile(FileHandle|String fname, Object|String options = "") async;
 
     /*! @brief Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\n" on posix and "\r\n" on windows by default
      @param fname the file name
      @param maxlines the maximum number of lines to read, all lines by default
      @return the array of text lines read; an empty array when the file is empty or has no readable data
      */
-    static Array readLines(String fname, Integer maxlines = -1);
+    static String[] readLines(String fname, Integer maxlines = -1);
 
     /*! @brief Writes content into a file by its file descriptor
 
@@ -777,112 +685,28 @@ module fs
      */
     static Integer writeTextFile(String fname, String txt) async;
 
-    /*! @brief Creates a binary file and writes content into it
+    /*! @brief Writes content into a file, by its file descriptor or by its name
 
-     The opt parameter is ignored; the file is opened for overwriting.
-     @param fname the file name
-     @param data the binary data to write
-     @param opt the write options, ignored
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(String fname, Buffer data, String opt = "binary") async;
-
-    /*! @brief Creates a binary file and writes content into it
-
-     The options parameter is ignored; the file is opened for overwriting.
-     @param fname the file name
-     @param data the binary data to write
-     @param options the write options, ignored
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(String fname, Buffer data, Object options) async;
-
-    /*! @brief Creates a file and writes content into it
-
-     opt specifies the encoding of the written text, utf8 by default.
-     @param fname the file name
-     @param data the data to write
-     @param opt the write options
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(String fname, String data, String opt = "utf8") async;
-
-    /*! @brief Creates a file and writes content into it
-
-     options supports the following options:
+     The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      ```JavaScript
      {
-         "encoding": "utf8" // specify the encoding, default is utf8.
+         "encoding": "utf8", // specify the encoding, default is utf8.
+         "mode": 0666, // specify the file mode. Default: 0666
+         "flag": "w" // specify the open flag. Default: w
      }
      ```
 
-     @param fname the file name
+     A file descriptor ignores the options object and encodes text data as utf8.
+     @param fname the file name, or the file descriptor object
      @param data the data to write
-     @param options the write options
+     @param opt the encoding of text data, utf8 by default, or the write options
      @return the number of bytes actually written
      */
-    static Integer writeFile(String fname, String data, Object options) async;
+    static Integer writeFile(FileHandle|String fname, Buffer|String data, Object|String opt = "utf8") async;
 
-    /*! @brief Writes content by the file descriptor
+    /*! @brief Appends content to a file, by its file descriptor or by its name
 
-     @param fd the file descriptor object
-     @param data the binary data to write
-     @param opt the write options, ignored
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(FileHandle fd, Buffer data, String opt = "binary") async;
-
-    /*! @brief Writes content by the file descriptor
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // specify the encoding, default is utf8.
-     }
-     ```
-     @param fd the file descriptor object
-     @param data the binary data to write
-     @param options the write options
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(FileHandle fd, Buffer data, Object options) async;
-
-    /*! @brief Writes content by the file descriptor
-
-     @param fd the file descriptor object
-     @param data the data to write
-     @param opt the write options
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(FileHandle fd, String data, String opt = "utf8") async;
-
-    /*! @brief Writes content by the file descriptor
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // specify the encoding, default is utf8.
-     }
-     ```
-     @param fd the file descriptor object
-     @param data the data to write
-     @param options the write options
-     @return the number of bytes actually written
-     */
-    static Integer writeFile(FileHandle fd, String data, Object options) async;
-
-    /*! @brief Creates a binary file and appends content to it
-
-     The file is created when it does not exist.
-     @param fname the file name
-     @param data the binary data to write
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(String fname, Buffer data) async;
-
-    /*! @brief Creates a file and appends content to it
-
-     options supports the following options:
+     The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      ```JavaScript
      {
          "encoding": "utf8", // specify the encoding of string data. Default: utf8
@@ -890,89 +714,21 @@ module fs
          "flag": "a" // specify the open flag. Default: a
      }
      ```
-     Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on.
-     @param fname the file name
+     Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     @param fname the file name, or the file descriptor object
      @param data the data to write
-     @param options the write options
+     @param options the encoding of the data, or the write options
      @return the number of bytes actually written
      */
-    static Integer appendFile(String fname, Buffer data, Object options) async;
+    static Integer appendFile(FileHandle|String fname, Buffer|String data, Object|String options = "") async;
 
-    /*! @brief Creates a file and appends content to it
-     @param fname the file name
-     @param data the data to write
-     @param encoding the encoding, 'utf8' and others
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(String fname, Buffer data, String encoding) async;
-
-    /*! @brief Appends content by the file descriptor
-     @param fd the file descriptor object
-     @param data the data to write
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, Buffer data) async;
-
-    /*! @brief Appends content by the file descriptor
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     }
-     ```
-     @param fd the file descriptor object
-     @param data the data to write
-     @param options the write options
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, Buffer data, Object options) async;
-
-    /*! @brief Appends content by the file descriptor
-     @param fd the file descriptor object
-     @param data the data to write
-     @param encoding the encoding, 'utf8' and others
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, Buffer data, String encoding) async;
-
-    /*! @brief Appends content by the file descriptor
-     @param fd the file descriptor object
-     @param data the data to write
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, String data) async;
-
-    /*! @brief Appends content by the file descriptor
-
-     options supports the following options:
-     ```JavaScript
-     {
-         "encoding": "utf8" // specify the encoding of string data. Default: utf8
-     }
-     ```
-     @param fd the file descriptor object
-     @param data the data to write
-     @param options the write options
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, String data, Object options) async;
-
-    /*! @brief Appends content by the file descriptor
-     @param fd the file descriptor object
-     @param data the data to write
-     @param encoding the encoding, 'utf8' and others
-     @return the number of bytes actually written
-     */
-    static Integer appendFile(FileHandle fd, String data, String encoding) async;
-
-    /*! @brief Sets a zip virtual file mapping
+    /*! @brief Sets a zip virtual file mapping; a string data is encoded as utf8
 
      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip.
-     @param fname the mapping path
-     @param data the zip data to map
+     @param fname the mapping path, a string is encoded as utf8
+     @param data the zip data to map, a string is encoded as utf8
      */
-    static setZipFS(String fname, Buffer data);
+    static setZipFS(String fname, Buffer|String data);
 
     /*! @brief Clears zip virtual file mappings
      @param fname the mapping path, all caches are cleared by default
@@ -990,7 +746,7 @@ module fs
      @param callback `(evtType: 'change' | 'rename', filename: string) => any` the handler called when the file changes
      @return the FSWatcher object
      */
-    static FSWatcher watch(String fname, Function callback);
+    static FSWatcher watch(String fname, Function(String eventType, String|Buffer filename) callback);
 
     /*! @brief Watches a file and returns the corresponding watcher object
      
@@ -1023,7 +779,7 @@ module fs
      @param callback `(evtType: 'change' | 'rename', filename: string) => any` the handler called when the file changes
      @return the FSWatcher object
      */
-    static FSWatcher watch(String fname, Object options, Function callback);
+    static FSWatcher watch(String fname, Object options, Function(String eventType, String|Buffer filename) callback);
 
     /*! @brief Watches a file and returns the corresponding StatsWatcher object
 
@@ -1032,7 +788,7 @@ module fs
      @param callback `(curStats: Stats, prevStats: Stats) => any` the handler called when the stats of the file change
      @return the StatsWatcher object
      */
-    static StatsWatcher watchFile(String fname, Function callback);
+    static StatsWatcher watchFile(String fname, Function(Stat curStats, Stat prevStats) callback);
 
     /*! @brief Watches a file and returns the corresponding StatsWatcher object
 
@@ -1049,7 +805,7 @@ module fs
      @param callback `(curStats: Stats, prevStats: Stats) => any` the handler called when the stats of the file change
      @return the StatsWatcher object
      */
-    static StatsWatcher watchFile(String fname, Object options, Function callback);
+    static StatsWatcher watchFile(String fname, Object options, Function(Stat curStats, Stat prevStats) callback);
 
     /*! @brief Removes all watch event handlers from the StatsWatcher watching fname
 
@@ -1064,5 +820,5 @@ module fs
      @param fname the file to watch
      @param callback the handler to remove
      */
-    static unwatchFile(String fname, Function callback);
+    static unwatchFile(String fname, Function(Stat curStats, Stat prevStats) callback);
 };

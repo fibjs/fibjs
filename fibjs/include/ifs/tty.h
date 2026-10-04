@@ -23,9 +23,11 @@ class tty_base : public object_base {
     DECLARE_CLASS(tty_base);
 
 public:
+    using Union_isatty_fd = std::variant<int32_t, obj_ptr<FileHandle_base>>;
+
+public:
     // tty_base
-    static result_t isatty(int32_t fd, bool& retVal);
-    static result_t isatty(FileHandle_base* fd, bool& retVal);
+    static result_t isatty(Union_isatty_fd fd, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -78,15 +80,9 @@ inline void tty_base::s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG(Union_isatty_fd, 0);
 
     hr = isatty(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<FileHandle_base>, 0);
-
-    hr = isatty(v0.get(), vr);
 
     METHOD_RETURN();
 }
