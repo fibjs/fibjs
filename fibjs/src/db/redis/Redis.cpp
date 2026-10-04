@@ -293,7 +293,7 @@ result_t Redis::command(exlib::string cmd, OptArgs args,
     return doCommand(cmd, args, retVal);
 }
 
-result_t Redis::set(Buffer_base* key, Buffer_base* value, int64_t ttl)
+result_t Redis::set(Union_set_key key, Union_set_value value, int64_t ttl)
 {
     Variant v;
 
@@ -303,7 +303,7 @@ result_t Redis::set(Buffer_base* key, Buffer_base* value, int64_t ttl)
         return doCommand("SET", key, value, v);
 }
 
-result_t Redis::setNX(Buffer_base* key, Buffer_base* value, int64_t ttl)
+result_t Redis::setNX(Union_setNX_key key, Union_setNX_value value, int64_t ttl)
 {
     Variant v;
 
@@ -313,7 +313,7 @@ result_t Redis::setNX(Buffer_base* key, Buffer_base* value, int64_t ttl)
         return doCommand("SET", key, value, "NX", v);
 }
 
-result_t Redis::setXX(Buffer_base* key, Buffer_base* value, int64_t ttl)
+result_t Redis::setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl)
 {
     Variant v;
 
@@ -347,32 +347,32 @@ result_t Redis::msetNX(OptArgs kvs)
     return doCommand("MSETNX", kvs, v);
 }
 
-result_t Redis::append(Buffer_base* key, Buffer_base* value, int32_t& retVal)
+result_t Redis::append(Union_append_key key, Union_append_value value, int32_t& retVal)
 {
     return doCommand("APPEND", key, value, retVal);
 }
 
-result_t Redis::setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal)
+result_t Redis::setRange(Union_setRange_key key, int32_t offset, Union_setRange_value value, int32_t& retVal)
 {
     return doCommand("SETRANGE", key, offset, value, retVal);
 }
 
-result_t Redis::getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
+result_t Redis::getRange(Union_getRange_key key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     return doCommand("GETRANGE", key, start, end, retVal);
 }
 
-result_t Redis::strlen(Buffer_base* key, int32_t& retVal)
+result_t Redis::strlen(Union_strlen_key key, int32_t& retVal)
 {
     return doCommand("STRLEN", key, retVal);
 }
 
-result_t Redis::bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal)
+result_t Redis::bitcount(Union_bitcount_key key, int32_t start, int32_t end, int32_t& retVal)
 {
     return doCommand("BITCOUNT", key, start, end, retVal);
 }
 
-result_t Redis::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal)
+result_t Redis::get(Union_get_key key, obj_ptr<Buffer_base>& retVal)
 {
     return doCommand("GET", key, retVal);
 }
@@ -387,12 +387,12 @@ result_t Redis::mget(OptArgs keys, obj_ptr<NArray>& retVal)
     return doCommand("MGET", keys, retVal);
 }
 
-result_t Redis::getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal)
+result_t Redis::getset(Union_getset_key key, Union_getset_value value, obj_ptr<Buffer_base>& retVal)
 {
     return doCommand("GETSET", key, value, retVal);
 }
 
-result_t Redis::decr(Buffer_base* key, int64_t num, int64_t& retVal)
+result_t Redis::decr(Union_decr_key key, int64_t num, int64_t& retVal)
 {
     if (num == 1)
         return doCommand("DECR", key, retVal);
@@ -400,7 +400,7 @@ result_t Redis::decr(Buffer_base* key, int64_t num, int64_t& retVal)
         return doCommand("DECRBY", key, num, retVal);
 }
 
-result_t Redis::incr(Buffer_base* key, int64_t num, int64_t& retVal)
+result_t Redis::incr(Union_incr_key key, int64_t num, int64_t& retVal)
 {
     if (num == 1)
         return doCommand("INCR", key, retVal);
@@ -408,22 +408,22 @@ result_t Redis::incr(Buffer_base* key, int64_t num, int64_t& retVal)
         return doCommand("INCRBY", key, num, retVal);
 }
 
-result_t Redis::setBit(Buffer_base* key, int32_t offset, int32_t value, int32_t& retVal)
+result_t Redis::setBit(Union_setBit_key key, int32_t offset, int32_t value, int32_t& retVal)
 {
     return doCommand("SETBIT", key, offset, value, retVal);
 }
 
-result_t Redis::getBit(Buffer_base* key, int32_t offset, int32_t& retVal)
+result_t Redis::getBit(Union_getBit_key key, int32_t offset, int32_t& retVal)
 {
     return doCommand("GETBIT", key, offset, retVal);
 }
 
-result_t Redis::exists(Buffer_base* key, bool& retVal)
+result_t Redis::exists(Union_exists_key key, bool& retVal)
 {
     return doCommand("EXISTS", key, retVal);
 }
 
-result_t Redis::type(Buffer_base* key, exlib::string& retVal)
+result_t Redis::type(Union_type_key key, exlib::string& retVal)
 {
     return doCommand("TYPE", key, retVal);
 }
@@ -443,68 +443,78 @@ result_t Redis::del(OptArgs keys, int32_t& retVal)
     return doCommand("DEL", keys, retVal);
 }
 
-result_t Redis::expire(Buffer_base* key, int64_t ttl, bool& retVal)
+result_t Redis::expire(Union_expire_key key, int64_t ttl, bool& retVal)
 {
     return doCommand("PEXPIRE", key, ttl, retVal);
 }
 
-result_t Redis::ttl(Buffer_base* key, int64_t& retVal)
+result_t Redis::ttl(Union_ttl_key key, int64_t& retVal)
 {
     return doCommand("PTTL", key, retVal);
 }
 
-result_t Redis::persist(Buffer_base* key, bool& retVal)
+result_t Redis::persist(Union_persist_key key, bool& retVal)
 {
     return doCommand("PERSIST", key, retVal);
 }
 
-result_t Redis::rename(Buffer_base* key, Buffer_base* newkey)
+result_t Redis::rename(Union_rename_key key, Union_rename_newkey newkey)
 {
     Variant v;
     return doCommand("RENAME", key, newkey, v);
 }
 
-result_t Redis::renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal)
+result_t Redis::renameNX(Union_renameNX_key key, Union_renameNX_newkey newkey, bool& retVal)
 {
     return doCommand("RENAMENX", key, newkey, retVal);
 }
 
-result_t Redis::getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal)
+result_t Redis::getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal)
 {
-    retVal = new RedisHash(key, this);
+    exlib::string k;
+
+    unionToString(key, k);
+    retVal = new RedisHash(k, this);
     return 0;
 }
 
-result_t Redis::getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal)
+result_t Redis::getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal)
 {
-    retVal = new RedisList(key, this);
+    exlib::string k;
+
+    unionToString(key, k);
+    retVal = new RedisList(k, this);
     return 0;
 }
 
-result_t Redis::getSet(Buffer_base* key, obj_ptr<RedisSet_base>& retVal)
+result_t Redis::getSet(Union_getSet_key key, obj_ptr<RedisSet_base>& retVal)
 {
-    retVal = new RedisSet(key, this);
+    exlib::string k;
+
+    unionToString(key, k);
+    retVal = new RedisSet(k, this);
     return 0;
 }
 
-result_t Redis::getSortedSet(Buffer_base* key, obj_ptr<RedisSortedSet_base>& retVal)
+result_t Redis::getSortedSet(Union_getSortedSet_key key, obj_ptr<RedisSortedSet_base>& retVal)
 {
-    retVal = new RedisSortedSet(key, this);
+    exlib::string k;
+
+    unionToString(key, k);
+    retVal = new RedisSortedSet(k, this);
     return 0;
 }
 
-result_t Redis::dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal)
+result_t Redis::dump(Union_dump_key key, obj_ptr<Buffer_base>& retVal)
 {
     return doCommand("DUMP", key, retVal);
 }
 
-result_t Redis::restore(Buffer_base* key, Buffer_base* data, int64_t ttl)
+result_t Redis::restore(Union_restore_key key, Union_restore_data data, int64_t ttl)
 {
-    exlib::string strBuf;
     Variant v;
 
-    data->toString(strBuf);
-    return doCommand("RESTORE", key, ttl, strBuf, v);
+    return doCommand("RESTORE", key, ttl, data, v);
 }
 
 result_t Redis::close()
@@ -519,4 +529,5 @@ result_t Redis::close()
 
     return 0;
 }
+
 }

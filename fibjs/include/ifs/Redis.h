@@ -25,42 +25,84 @@ class Redis_base : public object_base {
     DECLARE_CLASS(Redis_base);
 
 public:
+    using Union_set_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_set_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setNX_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setNX_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setXX_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setXX_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_append_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_append_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setRange_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setRange_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getRange_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_strlen_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_bitcount_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_get_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getset_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getset_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_decr_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_incr_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setBit_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getBit_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_exists_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_type_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_expire_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_ttl_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_persist_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_rename_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_rename_newkey = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_renameNX_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_renameNX_newkey = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_sub_channel = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_unsub_channel = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_pub_channel = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_pub_message = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getHash_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getList_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getSet_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_getSortedSet_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_dump_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_restore_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_restore_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Redis_base
     virtual result_t command(exlib::string cmd, OptArgs args, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
-    virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
-    virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
+    virtual result_t set(Union_set_key key, Union_set_value value, int64_t ttl) = 0;
+    virtual result_t setNX(Union_setNX_key key, Union_setNX_value value, int64_t ttl) = 0;
+    virtual result_t setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl) = 0;
     virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
     virtual result_t mset(OptArgs kvs) = 0;
     virtual result_t msetNX(v8::Local<v8::Object> kvs) = 0;
     virtual result_t msetNX(OptArgs kvs) = 0;
-    virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal) = 0;
-    virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal) = 0;
-    virtual result_t getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t strlen(Buffer_base* key, int32_t& retVal) = 0;
-    virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal) = 0;
-    virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t append(Union_append_key key, Union_append_value value, int32_t& retVal) = 0;
+    virtual result_t setRange(Union_setRange_key key, int32_t offset, Union_setRange_value value, int32_t& retVal) = 0;
+    virtual result_t getRange(Union_getRange_key key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t strlen(Union_strlen_key key, int32_t& retVal) = 0;
+    virtual result_t bitcount(Union_bitcount_key key, int32_t start, int32_t end, int32_t& retVal) = 0;
+    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
     virtual result_t mget(OptArgs keys, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
-    virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
-    virtual result_t setBit(Buffer_base* key, int32_t offset, int32_t value, int32_t& retVal) = 0;
-    virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t exists(Buffer_base* key, bool& retVal) = 0;
-    virtual result_t type(Buffer_base* key, exlib::string& retVal) = 0;
+    virtual result_t getset(Union_getset_key key, Union_getset_value value, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t decr(Union_decr_key key, int64_t num, int64_t& retVal) = 0;
+    virtual result_t incr(Union_incr_key key, int64_t num, int64_t& retVal) = 0;
+    virtual result_t setBit(Union_setBit_key key, int32_t offset, int32_t value, int32_t& retVal) = 0;
+    virtual result_t getBit(Union_getBit_key key, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t exists(Union_exists_key key, bool& retVal) = 0;
+    virtual result_t type(Union_type_key key, exlib::string& retVal) = 0;
     virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
     virtual result_t del(OptArgs keys, int32_t& retVal) = 0;
-    virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal) = 0;
-    virtual result_t ttl(Buffer_base* key, int64_t& retVal) = 0;
-    virtual result_t persist(Buffer_base* key, bool& retVal) = 0;
-    virtual result_t rename(Buffer_base* key, Buffer_base* newkey) = 0;
-    virtual result_t renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal) = 0;
-    virtual result_t sub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
+    virtual result_t expire(Union_expire_key key, int64_t ttl, bool& retVal) = 0;
+    virtual result_t ttl(Union_ttl_key key, int64_t& retVal) = 0;
+    virtual result_t persist(Union_persist_key key, bool& retVal) = 0;
+    virtual result_t rename(Union_rename_key key, Union_rename_newkey newkey) = 0;
+    virtual result_t renameNX(Union_renameNX_key key, Union_renameNX_newkey newkey, bool& retVal) = 0;
+    virtual result_t sub(Union_sub_channel channel, v8::Local<v8::Function> func) = 0;
     virtual result_t sub(v8::Local<v8::Object> map) = 0;
-    virtual result_t unsub(Buffer_base* channel) = 0;
-    virtual result_t unsub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
+    virtual result_t unsub(Union_unsub_channel channel) = 0;
+    virtual result_t unsub(Union_unsub_channel channel, v8::Local<v8::Function> func) = 0;
     virtual result_t unsub(v8::Local<v8::Array> channels) = 0;
     virtual result_t unsub(v8::Local<v8::Object> map) = 0;
     virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
@@ -69,13 +111,13 @@ public:
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
     virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
-    virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
-    virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
-    virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
-    virtual result_t getSet(Buffer_base* key, obj_ptr<RedisSet_base>& retVal) = 0;
-    virtual result_t getSortedSet(Buffer_base* key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
-    virtual result_t dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t restore(Buffer_base* key, Buffer_base* data, int64_t ttl) = 0;
+    virtual result_t pub(Union_pub_channel channel, Union_pub_message message, int32_t& retVal) = 0;
+    virtual result_t getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal) = 0;
+    virtual result_t getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal) = 0;
+    virtual result_t getSet(Union_getSet_key key, obj_ptr<RedisSet_base>& retVal) = 0;
+    virtual result_t getSortedSet(Union_getSortedSet_key key, obj_ptr<RedisSortedSet_base>& retVal) = 0;
+    virtual result_t dump(Union_dump_key key, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t restore(Union_restore_key key, Union_restore_data data, int64_t ttl) = 0;
     virtual result_t close() = 0;
 
 public:
@@ -224,11 +266,11 @@ inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_set_key, 0);
+    ARG(Union_set_value, 1);
     OPT_ARG(int64_t, 2, 0);
 
-    hr = pInst->set(v0.get(), v1.get(), v2);
+    hr = pInst->set(v0, v1, v2);
 
     METHOD_VOID();
 }
@@ -240,11 +282,11 @@ inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_setNX_key, 0);
+    ARG(Union_setNX_value, 1);
     OPT_ARG(int64_t, 2, 0);
 
-    hr = pInst->setNX(v0.get(), v1.get(), v2);
+    hr = pInst->setNX(v0, v1, v2);
 
     METHOD_VOID();
 }
@@ -256,11 +298,11 @@ inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_setXX_key, 0);
+    ARG(Union_setXX_value, 1);
     OPT_ARG(int64_t, 2, 0);
 
-    hr = pInst->setXX(v0.get(), v1.get(), v2);
+    hr = pInst->setXX(v0, v1, v2);
 
     METHOD_VOID();
 }
@@ -314,10 +356,10 @@ inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_append_key, 0);
+    ARG(Union_append_value, 1);
 
-    hr = pInst->append(v0.get(), v1.get(), vr);
+    hr = pInst->append(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -331,11 +373,11 @@ inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(3, 3);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_setRange_key, 0);
     ARG(int32_t, 1);
-    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(Union_setRange_value, 2);
 
-    hr = pInst->setRange(v0.get(), v1, v2.get(), vr);
+    hr = pInst->setRange(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -349,11 +391,11 @@ inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(3, 3);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getRange_key, 0);
     ARG(int32_t, 1);
     ARG(int32_t, 2);
 
-    hr = pInst->getRange(v0.get(), v1, v2, vr);
+    hr = pInst->getRange(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -367,9 +409,9 @@ inline void Redis_base::s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_strlen_key, 0);
 
-    hr = pInst->strlen(v0.get(), vr);
+    hr = pInst->strlen(v0, vr);
 
     METHOD_RETURN();
 }
@@ -383,11 +425,11 @@ inline void Redis_base::s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(3, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_bitcount_key, 0);
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(int32_t, 2, -1);
 
-    hr = pInst->bitcount(v0.get(), v1, v2, vr);
+    hr = pInst->bitcount(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -401,9 +443,9 @@ inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_get_key, 0);
 
-    hr = pInst->get(v0.get(), vr);
+    hr = pInst->get(v0, vr);
 
     METHOD_RETURN();
 }
@@ -439,10 +481,10 @@ inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_getset_key, 0);
+    ARG(Union_getset_value, 1);
 
-    hr = pInst->getset(v0.get(), v1.get(), vr);
+    hr = pInst->getset(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -456,10 +498,10 @@ inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_decr_key, 0);
     OPT_ARG(int64_t, 1, 1);
 
-    hr = pInst->decr(v0.get(), v1, vr);
+    hr = pInst->decr(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -473,10 +515,10 @@ inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_incr_key, 0);
     OPT_ARG(int64_t, 1, 1);
 
-    hr = pInst->incr(v0.get(), v1, vr);
+    hr = pInst->incr(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -490,11 +532,11 @@ inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(3, 3);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_setBit_key, 0);
     ARG(int32_t, 1);
     ARG(int32_t, 2);
 
-    hr = pInst->setBit(v0.get(), v1, v2, vr);
+    hr = pInst->setBit(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -508,10 +550,10 @@ inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getBit_key, 0);
     ARG(int32_t, 1);
 
-    hr = pInst->getBit(v0.get(), v1, vr);
+    hr = pInst->getBit(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -525,9 +567,9 @@ inline void Redis_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_exists_key, 0);
 
-    hr = pInst->exists(v0.get(), vr);
+    hr = pInst->exists(v0, vr);
 
     METHOD_RETURN();
 }
@@ -541,9 +583,9 @@ inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_type_key, 0);
 
-    hr = pInst->type(v0.get(), vr);
+    hr = pInst->type(v0, vr);
 
     METHOD_RETURN();
 }
@@ -595,10 +637,10 @@ inline void Redis_base::s_expire(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_expire_key, 0);
     ARG(int64_t, 1);
 
-    hr = pInst->expire(v0.get(), v1, vr);
+    hr = pInst->expire(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -612,9 +654,9 @@ inline void Redis_base::s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_ttl_key, 0);
 
-    hr = pInst->ttl(v0.get(), vr);
+    hr = pInst->ttl(v0, vr);
 
     METHOD_RETURN();
 }
@@ -628,9 +670,9 @@ inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_persist_key, 0);
 
-    hr = pInst->persist(v0.get(), vr);
+    hr = pInst->persist(v0, vr);
 
     METHOD_RETURN();
 }
@@ -642,10 +684,10 @@ inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_rename_key, 0);
+    ARG(Union_rename_newkey, 1);
 
-    hr = pInst->rename(v0.get(), v1.get());
+    hr = pInst->rename(v0, v1);
 
     METHOD_VOID();
 }
@@ -659,10 +701,10 @@ inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_renameNX_key, 0);
+    ARG(Union_renameNX_newkey, 1);
 
-    hr = pInst->renameNX(v0.get(), v1.get(), vr);
+    hr = pInst->renameNX(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -674,10 +716,10 @@ inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_sub_channel, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = pInst->sub(v0.get(), v1);
+    hr = pInst->sub(v0, v1);
 
     METHOD_OVER(1, 1);
 
@@ -695,16 +737,16 @@ inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_unsub_channel, 0);
 
-    hr = pInst->unsub(v0.get());
+    hr = pInst->unsub(v0);
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_unsub_channel, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = pInst->unsub(v0.get(), v1);
+    hr = pInst->unsub(v0, v1);
 
     METHOD_OVER(1, 1);
 
@@ -812,10 +854,10 @@ inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_pub_channel, 0);
+    ARG(Union_pub_message, 1);
 
-    hr = pInst->pub(v0.get(), v1.get(), vr);
+    hr = pInst->pub(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -829,9 +871,9 @@ inline void Redis_base::s_getHash(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getHash_key, 0);
 
-    hr = pInst->getHash(v0.get(), vr);
+    hr = pInst->getHash(v0, vr);
 
     METHOD_RETURN();
 }
@@ -845,9 +887,9 @@ inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getList_key, 0);
 
-    hr = pInst->getList(v0.get(), vr);
+    hr = pInst->getList(v0, vr);
 
     METHOD_RETURN();
 }
@@ -861,9 +903,9 @@ inline void Redis_base::s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getSet_key, 0);
 
-    hr = pInst->getSet(v0.get(), vr);
+    hr = pInst->getSet(v0, vr);
 
     METHOD_RETURN();
 }
@@ -877,9 +919,9 @@ inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_getSortedSet_key, 0);
 
-    hr = pInst->getSortedSet(v0.get(), vr);
+    hr = pInst->getSortedSet(v0, vr);
 
     METHOD_RETURN();
 }
@@ -893,9 +935,9 @@ inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_dump_key, 0);
 
-    hr = pInst->dump(v0.get(), vr);
+    hr = pInst->dump(v0, vr);
 
     METHOD_RETURN();
 }
@@ -907,11 +949,11 @@ inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_restore_key, 0);
+    ARG(Union_restore_data, 1);
     OPT_ARG(int64_t, 2, 0);
 
-    hr = pInst->restore(v0.get(), v1.get(), v2);
+    hr = pInst->restore(v0, v1, v2);
 
     METHOD_VOID();
 }

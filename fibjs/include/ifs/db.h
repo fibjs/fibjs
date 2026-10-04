@@ -15,9 +15,9 @@
 
 namespace fibjs {
 
+class DbConnection_base;
 class MySQL_base;
 class SQLite_base;
-class DbConnection_base;
 class LevelDB_base;
 class Redis_base;
 
@@ -26,7 +26,7 @@ class db_base : public object_base {
 
 public:
     // db_base
-    static result_t open(exlib::string connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
     static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
     static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
     static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
@@ -59,7 +59,7 @@ public:
     static void s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
+    ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openMySQL, exlib::string, obj_ptr<MySQL_base>);
     ASYNC_STATICVALUE2(db_base, openSQLite, exlib::string, obj_ptr<SQLite_base>);
     ASYNC_STATICVALUE2(db_base, openOdbc, exlib::string, obj_ptr<DbConnection_base>);
@@ -71,9 +71,9 @@ public:
 };
 }
 
+#include "ifs/DbConnection.h"
 #include "ifs/MySQL.h"
 #include "ifs/SQLite.h"
-#include "ifs/DbConnection.h"
 #include "ifs/LevelDB.h"
 #include "ifs/Redis.h"
 
@@ -105,7 +105,7 @@ inline ClassInfo& db_base::class_info()
 
 inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<object_base> vr;
+    obj_ptr<DbConnection_base> vr;
 
     ASYNC_METHOD_ENTER("db.open");
 

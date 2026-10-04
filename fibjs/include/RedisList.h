@@ -13,10 +13,10 @@ namespace fibjs {
 
 class RedisList : public RedisList_base {
 public:
-    RedisList(Buffer_base* key, Redis* rdb)
+    RedisList(exlib::string key, Redis* rdb)
         : m_rdb(rdb)
+        , m_key(key)
     {
-        key->toString(m_key);
     }
 
 public:
@@ -43,14 +43,15 @@ public:
     virtual result_t rpush(v8::Local<v8::Array> values, int32_t& retVal);
     virtual result_t rpush(OptArgs values, int32_t& retVal);
     virtual result_t rpop(obj_ptr<Buffer_base>& retVal);
-    virtual result_t set(int32_t index, Buffer_base* value);
+    virtual result_t set(int32_t index, Union_set_value value);
     virtual result_t get(int32_t index, obj_ptr<Buffer_base>& retVal);
-    virtual result_t insertBefore(Buffer_base* pivot, Buffer_base* value, int32_t& retVal);
-    virtual result_t insertAfter(Buffer_base* pivot, Buffer_base* value, int32_t& retVal);
-    virtual result_t remove(int32_t count, Buffer_base* value, int32_t& retVal);
+    virtual result_t insertBefore(Union_insertBefore_pivot pivot, Union_insertBefore_value value, int32_t& retVal);
+    virtual result_t insertAfter(Union_insertAfter_pivot pivot, Union_insertAfter_value value, int32_t& retVal);
+    virtual result_t remove(int32_t count, Union_remove_value value, int32_t& retVal);
     virtual result_t trim(int32_t start, int32_t stop);
     virtual result_t len(int32_t& retVal);
     virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal);
+
 
 private:
     exlib::string m_key;

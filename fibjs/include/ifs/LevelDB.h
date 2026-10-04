@@ -21,22 +21,31 @@ class LevelDB_base : public object_base {
     DECLARE_CLASS(LevelDB_base);
 
 public:
+    using Union_has_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_get_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_set_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_set_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_remove_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_forEach_from = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_forEach_to = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // LevelDB_base
-    virtual result_t has(Buffer_base* key, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t has(Union_has_key key, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac) = 0;
+    virtual result_t set(Union_set_key key, Union_set_value value, AsyncEvent* ac) = 0;
     virtual result_t mset(v8::Local<v8::Object> map) = 0;
     virtual result_t mremove(v8::Local<v8::Array> keys) = 0;
-    virtual result_t remove(Buffer_base* key, AsyncEvent* ac) = 0;
+    virtual result_t remove(Union_remove_key key, AsyncEvent* ac) = 0;
     virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t forEach(v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Function> func) = 0;
     virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
     virtual result_t commit() = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
@@ -68,10 +77,10 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE2(LevelDB_base, has, Buffer_base*, bool);
-    ASYNC_MEMBERVALUE2(LevelDB_base, get, Buffer_base*, obj_ptr<Buffer_base>);
-    ASYNC_MEMBER2(LevelDB_base, set, Buffer_base*, Buffer_base*);
-    ASYNC_MEMBER1(LevelDB_base, remove, Buffer_base*);
+    ASYNC_MEMBERVALUE2(LevelDB_base, has, Union_has_key, bool);
+    ASYNC_MEMBERVALUE2(LevelDB_base, get, Union_get_key, obj_ptr<Buffer_base>);
+    ASYNC_MEMBER2(LevelDB_base, set, Union_set_key, Union_set_value);
+    ASYNC_MEMBER1(LevelDB_base, remove, Union_remove_key);
     ASYNC_MEMBERVALUE1(LevelDB_base, firstKey, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(LevelDB_base, lastKey, obj_ptr<Buffer_base>);
     ASYNC_MEMBER0(LevelDB_base, close);
@@ -119,12 +128,12 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_has_key, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_has(v0.get(), cb, args);
+        hr = pInst->acb_has(v0, cb, args);
     else
-        hr = pInst->ac_has(v0.get(), vr);
+        hr = pInst->ac_has(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -138,12 +147,12 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_get_key, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_get(v0.get(), cb, args);
+        hr = pInst->acb_get(v0, cb, args);
     else
-        hr = pInst->ac_get(v0.get(), vr);
+        hr = pInst->ac_get(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -171,13 +180,13 @@ inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_set_key, 0);
+    ARG(Union_set_value, 1);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_set(v0.get(), v1.get(), cb, args);
+        hr = pInst->acb_set(v0, v1, cb, args);
     else
-        hr = pInst->ac_set(v0.get(), v1.get());
+        hr = pInst->ac_set(v0, v1);
 
     ASYNC_METHOD_VOID();
 }
@@ -217,12 +226,12 @@ inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_remove_key, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_remove(v0.get(), cb, args);
+        hr = pInst->acb_remove(v0, cb, args);
     else
-        hr = pInst->ac_remove(v0.get());
+        hr = pInst->ac_remove(v0);
 
     ASYNC_METHOD_VOID();
 }
@@ -274,18 +283,10 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_forEach_from, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = pInst->forEach(v0.get(), v1);
-
-    METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    ARG(v8::Local<v8::Function>, 2);
-
-    hr = pInst->forEach(v0.get(), v1.get(), v2);
+    hr = pInst->forEach(v0, v1);
 
     METHOD_OVER(2, 2);
 
@@ -296,20 +297,28 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(3, 3);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_forEach_from, 0);
     ARG(v8::Local<v8::Object>, 1);
     ARG(v8::Local<v8::Function>, 2);
 
-    hr = pInst->forEach(v0.get(), v1, v2);
+    hr = pInst->forEach(v0, v1, v2);
+
+    METHOD_OVER(3, 3);
+
+    ARG(Union_forEach_from, 0);
+    ARG(Union_forEach_to, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    hr = pInst->forEach(v0, v1, v2);
 
     METHOD_OVER(4, 4);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_forEach_from, 0);
+    ARG(Union_forEach_to, 1);
     ARG(v8::Local<v8::Object>, 2);
     ARG(v8::Local<v8::Function>, 3);
 
-    hr = pInst->forEach(v0.get(), v1.get(), v2, v3);
+    hr = pInst->forEach(v0, v1, v2, v3);
 
     METHOD_VOID();
 }

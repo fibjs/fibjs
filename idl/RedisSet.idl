@@ -33,10 +33,11 @@ interface RedisSet : object
      @return returns the length of the set */
     Integer len();
 
-    /*! @brief Checks whether member is a member of the set
-     @param member the member to check
-     @return returns true if member is a member of the set */
-    Boolean exists(Buffer member);
+    /*! @brief Checks whether member is a member of the set; a string member is encoded as utf8
+     @param member the member to check, a string is encoded as utf8
+     @return returns true if member is a member of the set
+     */
+    Boolean exists(Buffer|String member);
 
     /*! @brief Returns all members of the set
      @return the list of all members of the set */

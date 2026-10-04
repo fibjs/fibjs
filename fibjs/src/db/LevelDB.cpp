@@ -67,7 +67,21 @@ LevelDB::~LevelDB()
         });
 }
 
-result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
+// The merged Buffer|String overloads (plans/idl-union-types-2026-10-02.md
+// §3.4): a string is decoded as utf8 once, then the original Buffer logic runs.
+static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib::string>& v, obj_ptr<Buffer_base>& buf)
+{
+    if (std::holds_alternative<exlib::string>(v)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
+        if (hr < 0)
+            return hr;
+    } else
+        buf = std::get<obj_ptr<Buffer_base>>(v);
+
+    return 0;
+}
+
+result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
@@ -75,7 +89,13 @@ result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Buffer* buf = (Buffer*)key;
+    obj_ptr<Buffer_base> keyBuf;
+
+    result_t hr = leveldb_to_buffer(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = (Buffer*)keyBuf.get();
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
@@ -92,7 +112,7 @@ result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
@@ -100,7 +120,13 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Buffer* buf = (Buffer*)key;
+    obj_ptr<Buffer_base> keyBuf;
+
+    result_t hr = leveldb_to_buffer(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = (Buffer*)keyBuf.get();
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
@@ -167,14 +193,16 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 
     for (i = 0; i < len; i++) {
         JSValue v = keys->Get(context, i);
-        obj_ptr<Buffer_base> buf;
 
-        hr = GetArgumentValue(isolate, v, buf);
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        // a key is its string form: a string, or a buffer rendered as utf8
+        exlib::string s;
+
+        hr = GetArgumentValue(isolate, v, s);
         if (hr < 0)
             return CHECK_ERROR(hr);
-
-        exlib::string s;
-        buf->toString(s);
 
         ks[i] = s;
     }
@@ -194,7 +222,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac)
+result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
@@ -202,8 +230,20 @@ result_t LevelDB::set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Buffer* buf_key = (Buffer*)key;
-    Buffer* buf_val = (Buffer*)value;
+    obj_ptr<Buffer_base> keyBuf;
+
+    result_t hr = leveldb_to_buffer(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> valBuf;
+
+    hr = leveldb_to_buffer(value, valBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf_key = (Buffer*)keyBuf.get();
+    Buffer* buf_val = (Buffer*)valBuf.get();
 
     leveldb::Status s = Set(leveldb::Slice((const char*)buf_key->data(), buf_key->length()),
         leveldb::Slice((const char*)buf_val->data(), buf_val->length()));
@@ -276,7 +316,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     return ac__commit(&batch);
 }
 
-result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
+result_t LevelDB::remove(Union_remove_key key, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
@@ -284,7 +324,13 @@ result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Buffer* buf = (Buffer*)key;
+    obj_ptr<Buffer_base> keyBuf;
+
+    result_t hr = leveldb_to_buffer(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = (Buffer*)keyBuf.get();
 
     exlib::string value;
     leveldb::Status s = Delete(leveldb::Slice((const char*)buf->data(), buf->length()));
@@ -450,27 +496,68 @@ result_t LevelDB::forEach(v8::Local<v8::Function> func)
     return Iter(db()).iter(holder(), func);
 }
 
-result_t LevelDB::forEach(Buffer_base* from, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Function> func)
 {
-    return forEach(from, NULL, v8::Local<v8::Object>(), func);
+    obj_ptr<Buffer_base> buf;
+
+    result_t hr = leveldb_to_buffer(from, buf);
+    if (hr < 0)
+        return hr;
+
+    return forEachCore(buf, NULL, v8::Local<v8::Object>(), func);
 }
 
-result_t LevelDB::forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func)
 {
-    return forEach(from, to, v8::Local<v8::Object>(), func);
+    obj_ptr<Buffer_base> fromBuf;
+
+    result_t hr = leveldb_to_buffer(from, fromBuf);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> toBuf;
+
+    hr = leveldb_to_buffer(to, toBuf);
+    if (hr < 0)
+        return hr;
+
+    return forEachCore(fromBuf, toBuf, v8::Local<v8::Object>(), func);
 }
 
 result_t LevelDB::forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
 {
-    return forEach(NULL, NULL, opt, func);
+    return forEachCore(NULL, NULL, opt, func);
 }
 
-result_t LevelDB::forEach(Buffer_base* from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
 {
-    return forEach(from, NULL, opt, func);
+    obj_ptr<Buffer_base> buf;
+
+    result_t hr = leveldb_to_buffer(from, buf);
+    if (hr < 0)
+        return hr;
+
+    return forEachCore(buf, NULL, opt, func);
 }
 
-result_t LevelDB::forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+{
+    obj_ptr<Buffer_base> fromBuf;
+
+    result_t hr = leveldb_to_buffer(from, fromBuf);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> toBuf;
+
+    hr = leveldb_to_buffer(to, toBuf);
+    if (hr < 0)
+        return hr;
+
+    return forEachCore(fromBuf, toBuf, opt, func);
+}
+
+result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
 {
     obj_ptr<Iter> it = new Iter(db());
 
@@ -545,4 +632,12 @@ result_t LevelDB::close(AsyncEvent* ac)
 
     return 0;
 }
+
+
+
+
+
+
+
+
 }

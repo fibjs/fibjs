@@ -28,7 +28,7 @@ describe("redis", () => {
     var rdb;
 
     before(() => {
-        rdb = db.open(dbs);
+        rdb = db.openRedis(dbs);
         var keys = rdb.command("keys", "*");
         if (keys.length)
             rdb.del(keys);
@@ -545,7 +545,7 @@ describe("redis", () => {
         var rdb1;
 
         before(() => {
-            rdb1 = db.open(dbs);
+            rdb1 = db.openRedis(dbs);
         });
 
         it("pub", () => {
@@ -676,7 +676,7 @@ describe("redis", () => {
             var no1 = test_util.countObject('Redis');
             var no2 = test_util.countObject('Socket');
 
-            rdb = db.open(dbs);
+            rdb = db.openRedis(dbs);
 
             assert.equal(no1 + 1, test_util.countObject('Redis'));
             assert.equal(no2 + 1, test_util.countObject('Socket'));

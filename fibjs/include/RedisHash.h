@@ -13,10 +13,10 @@ namespace fibjs {
 
 class RedisHash : public RedisHash_base {
 public:
-    RedisHash(Buffer_base* key, Redis* rdb)
+    RedisHash(exlib::string key, Redis* rdb)
         : m_rdb(rdb)
+        , m_key(key)
     {
-        key->toString(m_key);
     }
 
 public:
@@ -37,20 +37,21 @@ public:
 
 public:
     // RedisHash_base
-    virtual result_t set(Buffer_base* field, Buffer_base* value);
-    virtual result_t setNX(Buffer_base* field, Buffer_base* value);
+    virtual result_t set(Union_set_field field, Union_set_value value);
+    virtual result_t setNX(Union_setNX_field field, Union_setNX_value value);
     virtual result_t mset(v8::Local<v8::Object> kvs);
     virtual result_t mset(OptArgs kvs);
-    virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal);
+    virtual result_t get(Union_get_field field, obj_ptr<Buffer_base>& retVal);
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal);
     virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal);
-    virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal);
+    virtual result_t incr(Union_incr_field field, int64_t num, int64_t& retVal);
     virtual result_t getAll(obj_ptr<NArray>& retVal);
     virtual result_t keys(obj_ptr<NArray>& retVal);
     virtual result_t len(int32_t& retVal);
-    virtual result_t exists(Buffer_base* field, bool& retVal);
+    virtual result_t exists(Union_exists_field field, bool& retVal);
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal);
     virtual result_t del(OptArgs fields, int32_t& retVal);
+
 
 private:
     exlib::string m_key;

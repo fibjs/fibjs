@@ -54,11 +54,12 @@ declare class Class_RedisList extends Class_object {
     rpop(): Class_Buffer;
 
     /**
-     * @description Sets the element at the given index of the list to value
+     * @description Sets the element at the given index of the list to value; a string value is encoded as utf8
      *      @param index the index to modify
-     *      @param value the value to modify
+     *      @param value the value to modify, a string is encoded as utf8
+     *
      */
-    set(index: number, value: Class_Buffer): void;
+    set(index: number, value: Class_Buffer | string): void;
 
     /**
      * @description Returns the element at the given index of the list
@@ -68,28 +69,31 @@ declare class Class_RedisList extends Class_object {
     get(index: number): Class_Buffer;
 
     /**
-     * @description Inserts value into the list before the pivot value
-     *      @param pivot the value to search for on insertion
-     *      @param value the value to insert
+     * @description Inserts value into the list before the pivot value; strings are encoded as utf8
+     *      @param pivot the value to search for on insertion, a string is encoded as utf8
+     *      @param value the value to insert, a string is encoded as utf8
      *      @return the length of the list after insertion
+     *
      */
-    insertBefore(pivot: Class_Buffer, value: Class_Buffer): number;
+    insertBefore(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Inserts value into the list after the pivot value
-     *      @param pivot the value to search for on insertion
-     *      @param value the value to insert
+     * @description Inserts value into the list after the pivot value; strings are encoded as utf8
+     *      @param pivot the value to search for on insertion, a string is encoded as utf8
+     *      @param value the value to insert, a string is encoded as utf8
      *      @return the length of the list after insertion
+     *
      */
-    insertAfter(pivot: Class_Buffer, value: Class_Buffer): number;
+    insertAfter(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Removes elements equal to the value parameter from the list according to the count parameter
+     * @description Removes elements equal to the value parameter from the list according to the count parameter; a string value is encoded as utf8
      *      @param count the number of elements to remove
-     *      @param value the value to remove
+     *      @param value the value to remove, a string is encoded as utf8
      *      @return the number of elements removed
+     *
      */
-    remove(count: number, value: Class_Buffer): number;
+    remove(count: number, value: Class_Buffer | string): number;
 
     /**
      * @description Trims a list so that it keeps only the elements in the given range; elements outside the range are removed

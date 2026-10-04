@@ -21,19 +21,28 @@ class RedisHash_base : public object_base {
     DECLARE_CLASS(RedisHash_base);
 
 public:
+    using Union_set_field = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_set_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setNX_field = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setNX_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_get_field = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_incr_field = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_exists_field = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // RedisHash_base
-    virtual result_t set(Buffer_base* field, Buffer_base* value) = 0;
-    virtual result_t setNX(Buffer_base* field, Buffer_base* value) = 0;
+    virtual result_t set(Union_set_field field, Union_set_value value) = 0;
+    virtual result_t setNX(Union_setNX_field field, Union_setNX_value value) = 0;
     virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
     virtual result_t mset(OptArgs kvs) = 0;
-    virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t get(Union_get_field field, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal) = 0;
     virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal) = 0;
+    virtual result_t incr(Union_incr_field field, int64_t num, int64_t& retVal) = 0;
     virtual result_t getAll(obj_ptr<NArray>& retVal) = 0;
     virtual result_t keys(obj_ptr<NArray>& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
-    virtual result_t exists(Buffer_base* field, bool& retVal) = 0;
+    virtual result_t exists(Union_exists_field field, bool& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
     virtual result_t del(OptArgs fields, int32_t& retVal) = 0;
 
@@ -100,10 +109,10 @@ inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_set_field, 0);
+    ARG(Union_set_value, 1);
 
-    hr = pInst->set(v0.get(), v1.get());
+    hr = pInst->set(v0, v1);
 
     METHOD_VOID();
 }
@@ -115,10 +124,10 @@ inline void RedisHash_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_setNX_field, 0);
+    ARG(Union_setNX_value, 1);
 
-    hr = pInst->setNX(v0.get(), v1.get());
+    hr = pInst->setNX(v0, v1);
 
     METHOD_VOID();
 }
@@ -152,9 +161,9 @@ inline void RedisHash_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_get_field, 0);
 
-    hr = pInst->get(v0.get(), vr);
+    hr = pInst->get(v0, vr);
 
     METHOD_RETURN();
 }
@@ -190,10 +199,10 @@ inline void RedisHash_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_incr_field, 0);
     OPT_ARG(int64_t, 1, 1);
 
-    hr = pInst->incr(v0.get(), v1, vr);
+    hr = pInst->incr(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -249,9 +258,9 @@ inline void RedisHash_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_exists_field, 0);
 
-    hr = pInst->exists(v0.get(), vr);
+    hr = pInst->exists(v0, vr);
 
     METHOD_RETURN();
 }

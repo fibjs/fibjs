@@ -27,21 +27,21 @@ public:
 
 public:
     // LevelDB_base
-    virtual result_t has(Buffer_base* key, bool& retVal, AsyncEvent* ac);
-    virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t has(Union_has_key key, bool& retVal, AsyncEvent* ac);
+    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal);
-    virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac);
+    virtual result_t set(Union_set_key key, Union_set_value value, AsyncEvent* ac);
     virtual result_t mset(v8::Local<v8::Object> map);
     virtual result_t mremove(v8::Local<v8::Array> keys);
-    virtual result_t remove(Buffer_base* key, AsyncEvent* ac);
+    virtual result_t remove(Union_remove_key key, AsyncEvent* ac);
     virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
-    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Function> func);
-    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func);
     virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
-    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
-    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal);
     virtual result_t commit();
     virtual result_t close(AsyncEvent* ac);
@@ -59,6 +59,10 @@ public:
     }
 
 private:
+    // Shared body of the merged forEach overloads: `from` / `to` are NULL when
+    // the overload does not pass a bound.
+    result_t forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+
     result_t _commit(leveldb::WriteBatch* batch, AsyncEvent* ac);
     ASYNC_MEMBER1_AC(LevelDB, _commit, leveldb::WriteBatch*);
 

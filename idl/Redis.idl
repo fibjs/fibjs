@@ -14,23 +14,26 @@ interface Redis : object
      @return returns the result returned by the server */
     Value command(String cmd, ...args);
 
-    /*! @brief Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
-     @param key the key to associate
-     @param value the data to associate
-     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
-    set(Buffer key, Buffer value, Long ttl = 0);
+    /*! @brief Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type; strings are encoded as utf8
+     @param key the key to associate, a string is encoded as utf8
+     @param value the data to associate, a string is encoded as utf8
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     */
+    set(Buffer|String key, Buffer|String value, Long ttl = 0);
 
-    /*! @brief Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
-     @param key the key to associate
-     @param value the data to associate
-     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
-    setNX(Buffer key, Buffer value, Long ttl = 0);
+    /*! @brief Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.; strings are encoded as utf8
+     @param key the key to associate, a string is encoded as utf8
+     @param value the data to associate, a string is encoded as utf8
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     */
+    setNX(Buffer|String key, Buffer|String value, Long ttl = 0);
 
-    /*! @brief Sets the key to value only when the key already exists.
-     @param key the key to associate
-     @param value the data to associate
-     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set */
-    setXX(Buffer key, Buffer value, Long ttl = 0);
+    /*! @brief Sets the key to value only when the key already exists.; strings are encoded as utf8
+     @param key the key to associate, a string is encoded as utf8
+     @param value the data to associate, a string is encoded as utf8
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     */
+    setXX(Buffer|String key, Buffer|String value, Long ttl = 0);
 
     /*! @brief Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
      @param kvs the key/value object to set*/
@@ -48,42 +51,48 @@ interface Redis : object
      @param kvs the key/value list to set*/
     msetNX(...kvs);
 
-    /*! @brief If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
-     @param key the key to append to
-     @param value the data to append
-     @return the length of the string in key after appending value */
-    Integer append(Buffer key, Buffer value);
+    /*! @brief If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value; strings are encoded as utf8
+     @param key the key to append to, a string is encoded as utf8
+     @param value the data to append, a string is encoded as utf8
+     @return the length of the string in key after appending value
+     */
+    Integer append(Buffer|String key, Buffer|String value);
 
-    /*! @brief Overwrites the string value stored at key with the value parameter, starting from the offset
-     @param key the key to modify
+    /*! @brief Overwrites the string value stored at key with the value parameter, starting from the offset; strings are encoded as utf8
+     @param key the key to modify, a string is encoded as utf8
      @param offset the byte offset to modify
-     @param value the data to overwrite
-     @return the length of the string after the modification */
-    Integer setRange(Buffer key, Integer offset, Buffer value);
+     @param value the data to overwrite, a string is encoded as utf8
+     @return the length of the string after the modification
+     */
+    Integer setRange(Buffer|String key, Integer offset, Buffer|String value);
 
-    /*! @brief Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
-     @param key the key to query
+    /*! @brief Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end); a string key is encoded as utf8
+     @param key the key to query, a string is encoded as utf8
      @param start the start byte offset of the query
      @param end the end byte offset of the query
-     @return the extracted substring */
-    Buffer getRange(Buffer key, Integer start, Integer end);
+     @return the extracted substring
+     */
+    Buffer getRange(Buffer|String key, Integer start, Integer end);
 
-    /*! @brief Returns the length of the string value stored at key. An error is returned when key does not hold a string value
-     @param key the key to count
-     @return the length of the string value, or 0 when key does not exist */
-    Integer strlen(Buffer key);
+    /*! @brief Returns the length of the string value stored at key. An error is returned when key does not hold a string value; a string key is encoded as utf8
+     @param key the key to count, a string is encoded as utf8
+     @return the length of the string value, or 0 when key does not exist
+     */
+    Integer strlen(Buffer|String key);
 
-    /*! @brief Counts the number of bits set to 1 in the given string
-     @param key the key to count
+    /*! @brief Counts the number of bits set to 1 in the given string; a string key is encoded as utf8
+     @param key the key to count, a string is encoded as utf8
      @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
      @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
-     @return the number of bits set to 1 */
-    Integer bitcount(Buffer key, Integer start = 0, Integer end = -1);
+     @return the number of bits set to 1
+     */
+    Integer bitcount(Buffer|String key, Integer start = 0, Integer end = -1);
 
-    /*! @brief Returns the string value associated with key; if key does not exist, the special value Null is returned
-     @param key the key to associate
-     @return returns Null when key does not exist, otherwise returns the value of key */
-    Buffer get(Buffer key);
+    /*! @brief Returns the string value associated with key; if key does not exist, the special value Null is returned; a string key is encoded as utf8
+     @param key the key to associate, a string is encoded as utf8
+     @return returns Null when key does not exist, otherwise returns the value of key
+     */
+    Buffer get(Buffer|String key);
 
     /*! @brief Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
      @param keys the array of keys to query
@@ -95,46 +104,53 @@ interface Redis : object
      @return a list containing the values of all the given keys */
     NArray mget(...keys);
 
-    /*! @brief Sets the given key to value and returns the old value of key
-     @param key the key to query and modify
-     @param value the value to set
-     @return returns the old value of the given key */
-    Buffer getset(Buffer key, Buffer value);
+    /*! @brief Sets the given key to value and returns the old value of key; strings are encoded as utf8
+     @param key the key to query and modify, a string is encoded as utf8
+     @param value the value to set, a string is encoded as utf8
+     @return returns the old value of the given key
+     */
+    Buffer getset(Buffer|String key, Buffer|String value);
 
-    /*! @brief Subtracts the decrement from the value stored at key
-     @param key the key to modify
+    /*! @brief Subtracts the decrement from the value stored at key; a string key is encoded as utf8
+     @param key the key to modify, a string is encoded as utf8
      @param num the number to subtract
-     @return the value of key after subtracting num */
-    Long decr(Buffer key, Long num = 1);
+     @return the value of key after subtracting num
+     */
+    Long decr(Buffer|String key, Long num = 1);
 
-    /*! @brief Adds the increment to the value stored at key
-     @param key the key to modify
+    /*! @brief Adds the increment to the value stored at key; a string key is encoded as utf8
+     @param key the key to modify, a string is encoded as utf8
      @param num the number to add
-     @return the value of key after adding num */
-    Long incr(Buffer key, Long num = 1);
+     @return the value of key after adding num
+     */
+    Long incr(Buffer|String key, Long num = 1);
 
-    /*! @brief Sets or clears the bit at the given offset in the string value stored at key
-     @param key the key to modify
+    /*! @brief Sets or clears the bit at the given offset in the string value stored at key; a string key is encoded as utf8
+     @param key the key to modify, a string is encoded as utf8
      @param offset the bit offset to modify
      @param value the value to set or clear, either 0 or 1
-     @return the bit originally stored at the offset */
-    Integer setBit(Buffer key, Integer offset, Integer value);
+     @return the bit originally stored at the offset
+     */
+    Integer setBit(Buffer|String key, Integer offset, Integer value);
 
-    /*! @brief Gets the bit at the given offset in the string value stored at key
-     @param key the key to query
+    /*! @brief Gets the bit at the given offset in the string value stored at key; a string key is encoded as utf8
+     @param key the key to query, a string is encoded as utf8
      @param offset the bit offset to query
-     @return the bit at the given offset of the string value */
-    Integer getBit(Buffer key, Integer offset);
+     @return the bit at the given offset of the string value
+     */
+    Integer getBit(Buffer|String key, Integer offset);
 
-    /*! @brief Checks whether the given key exists
-     @param key the key to associate
-     @return returns True if key exists, otherwise returns False */
-    Boolean exists(Buffer key);
+    /*! @brief Checks whether the given key exists; a string key is encoded as utf8
+     @param key the key to associate, a string is encoded as utf8
+     @return returns True if key exists, otherwise returns False
+     */
+    Boolean exists(Buffer|String key);
 
-    /*! @brief Returns the type of the value stored at key
-     @param key the key to query
-     @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash */
-    String type(Buffer key);
+    /*! @brief Returns the type of the value stored at key; a string key is encoded as utf8
+     @param key the key to query, a string is encoded as utf8
+     @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash
+     */
+    String type(Buffer|String key);
 
     /*! @brief Finds all keys matching the given pattern
      @param pattern the pattern to query
@@ -151,54 +167,59 @@ interface Redis : object
      @return the number of keys deleted */
     Integer del(...keys);
 
-    /*! @brief Sets a time to live for the given key; when the key expires it is automatically deleted
-     @param key the key to set
+    /*! @brief Sets a time to live for the given key; when the key expires it is automatically deleted; a string key is encoded as utf8
+     @param key the key to set, a string is encoded as utf8
      @param ttl the time to live for key in milliseconds
-     @return returns True if key exists, otherwise returns False */
-    Boolean expire(Buffer key, Long ttl);
+     @return returns True if key exists, otherwise returns False
+     */
+    Boolean expire(Buffer|String key, Long ttl);
 
-    /*! @brief Returns the remaining time to live of the given key
-     @param key the key to query
-     @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set */
-    Long ttl(Buffer key);
+    /*! @brief Returns the remaining time to live of the given key; a string key is encoded as utf8
+     @param key the key to query, a string is encoded as utf8
+     @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set
+     */
+    Long ttl(Buffer|String key);
 
-    /*! @brief Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
-     @param key the key to set
-     @return returns True if key exists, otherwise returns False */
-    Boolean persist(Buffer key);
+    /*! @brief Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires); a string key is encoded as utf8
+     @param key the key to set, a string is encoded as utf8
+     @return returns True if key exists, otherwise returns False
+     */
+    Boolean persist(Buffer|String key);
 
-    /*! @brief Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
-     @param key the key to rename
-     @param newkey the destination key to rename to */
-    rename(Buffer key, Buffer newkey);
+    /*! @brief Renames key to newkey; an error is returned when key and newkey are the same or key does not exist; strings are encoded as utf8
+     @param key the key to rename, a string is encoded as utf8
+     @param newkey the destination key to rename to, a string is encoded as utf8
+     */
+    rename(Buffer|String key, Buffer|String newkey);
 
-    /*! @brief Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
-     @param key the key to rename
-     @param newkey the destination key to rename to
-     @return returns True when the rename succeeds, and False if newkey already exists */
-    Boolean renameNX(Buffer key, Buffer newkey);
+    /*! @brief Renames key to newkey only when newkey does not exist; an error is returned when key does not exist; strings are encoded as utf8
+     @param key the key to rename, a string is encoded as utf8
+     @param newkey the destination key to rename to, a string is encoded as utf8
+     @return returns True when the rename succeeds, and False if newkey already exists
+     */
+    Boolean renameNX(Buffer|String key, Buffer|String newkey);
 
-    /*! @brief Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
-     @param channel the name of the channel to subscribe to
+    /*! @brief Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel; a string channel is encoded as utf8
+     @param channel the name of the channel to subscribe to, a string is encoded as utf8
      @param func the callback function
      */
-    sub(Buffer channel, Function func);
+    sub(Buffer|String channel, Function(Buffer channel, Buffer message) func);
 
     /*! @brief Subscribes to the given set of channels; the corresponding callback function is called automatically when a message arrives; the same function is called back only once for the same channel
      @param map the channel mapping; object property names are used as channel names and property values as callback functions
      */
     sub(Object map);
 
-    /*! @brief Unsubscribes all callbacks of the given channel
-     @param channel the name of the channel to unsubscribe from
-    */
-    unsub(Buffer channel);
+    /*! @brief Unsubscribes all callbacks of the given channel; a string channel is encoded as utf8
+     @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
+     */
+    unsub(Buffer|String channel);
 
-    /*! @brief Unsubscribes the given callback function of the given channel
-     @param channel the name of the channel to unsubscribe from
+    /*! @brief Unsubscribes the given callback function of the given channel; a string channel is encoded as utf8
+     @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
      @param func the callback function to unsubscribe
-    */
-    unsub(Buffer channel, Function func);
+     */
+    unsub(Buffer|String channel, Function(Buffer channel, Buffer message) func);
 
     /*! @brief Unsubscribes all callbacks of the given set of channels
      @param channels the array of channels to unsubscribe from
@@ -214,7 +235,7 @@ interface Redis : object
      @param pattern the channel pattern to subscribe to
      @param func the callback function
      */
-    psub(String pattern, Function func);
+    psub(String pattern, Function(Buffer channel, Buffer message, Buffer pattern) func);
 
     /*! @brief Subscribes to the given set of channel patterns; the corresponding func is called automatically when a message arrives; the same function is called back only once for the same channel
      @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
@@ -230,7 +251,7 @@ interface Redis : object
      @param pattern the channel pattern to unsubscribe from
      @param func the callback function to unsubscribe
     */
-    unpsub(String pattern, Function func);
+    unpsub(String pattern, Function(Buffer channel, Buffer message, Buffer pattern) func);
 
     /*! @brief Unsubscribes all callbacks of the given set of patterns
      @param patterns the array of channel patterns to publish
@@ -246,43 +267,49 @@ interface Redis : object
      */
     event suberror();
 
-    /*! @brief Sends the message to the given channel
-     @param channel the channel to publish to
-     @param message the message to publish
+    /*! @brief Sends the message to the given channel; strings are encoded as utf8
+     @param channel the channel to publish to, a string is encoded as utf8
+     @param message the message to publish, a string is encoded as utf8
      @return the number of clients that received this message
-    */
-    Integer pub(Buffer channel, Buffer message);
+     */
+    Integer pub(Buffer|String channel, Buffer|String message);
 
-    /*! @brief Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
-     @param key the key to get
-     @return returns the Hash object bound to the given key */
-    RedisHash getHash(Buffer key);
+    /*! @brief Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
+     @param key the key to get, a string is encoded as utf8
+     @return returns the Hash object bound to the given key
+     */
+    RedisHash getHash(Buffer|String key);
 
-    /*! @brief Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
-     @param key the key to get
-     @return returns the List object bound to the given key */
-    RedisList getList(Buffer key);
+    /*! @brief Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
+     @param key the key to get, a string is encoded as utf8
+     @return returns the List object bound to the given key
+     */
+    RedisList getList(Buffer|String key);
 
-    /*! @brief Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
-     @param key the key to get
-     @return returns the Set object bound to the given key */
-    RedisSet getSet(Buffer key);
+    /*! @brief Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
+     @param key the key to get, a string is encoded as utf8
+     @return returns the Set object bound to the given key
+     */
+    RedisSet getSet(Buffer|String key);
 
-    /*! @brief Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
-     @param key the key to get
-     @return returns the SortedSet object bound to the given key */
-    RedisSortedSet getSortedSet(Buffer key);
+    /*! @brief Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
+     @param key the key to get, a string is encoded as utf8
+     @return returns the SortedSet object bound to the given key
+     */
+    RedisSortedSet getSortedSet(Buffer|String key);
 
-    /*! @brief Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command
-     @param key the key to serialize
-     @return returns the serialized value, or null if key does not exist */
-    Buffer dump(Buffer key);
+    /*! @brief Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command; a string key is encoded as utf8
+     @param key the key to serialize, a string is encoded as utf8
+     @return returns the serialized value, or null if key does not exist
+     */
+    Buffer dump(Buffer|String key);
 
-    /*! @brief Deserializes the given serialized value and associates it with the given key
-     @param key the key to deserialize to
-     @param data the data to deserialize
-     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set*/
-    restore(Buffer key, Buffer data, Long ttl = 0);
+    /*! @brief Deserializes the given serialized value and associates it with the given key; strings are encoded as utf8
+     @param key the key to deserialize to, a string is encoded as utf8
+     @param data the data to deserialize, a string is encoded as utf8
+     @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     */
+    restore(Buffer|String key, Buffer|String data, Long ttl = 0);
 
     /*! @brief Closes the current database connection or transaction */
     close();

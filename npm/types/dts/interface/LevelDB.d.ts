@@ -49,56 +49,56 @@
  */
 declare class Class_LevelDB extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    has(key: Class_Buffer): boolean;
+    has(key: Class_Buffer | string): boolean;
 
-    has(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    has(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    hasSync(key: Class_Buffer): boolean;
+    hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    hasAsync(key: Class_Buffer): Promise<boolean>;
+    hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    get(key: Class_Buffer): Class_Buffer;
+    get(key: Class_Buffer | string): Class_Buffer;
 
-    get(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    get(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    getSync(key: Class_Buffer): Class_Buffer;
+    getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    getAsync(key: Class_Buffer): Promise<Class_Buffer>;
+    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
 
     /**
      * @description Queries the values of the given keys
@@ -109,30 +109,30 @@ declare class Class_LevelDB extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
      *
      */
-    set(key: Class_Buffer, value: Class_Buffer): void;
+    set(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
-    set(key: Class_Buffer, value: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
-     *
-     */
-    setSync(key: Class_Buffer, value: Class_Buffer): void;
+    set(key: Class_Buffer | string, value: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
      *
      */
-    setAsync(key: Class_Buffer, value: Class_Buffer): Promise<void>;
+    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
+
+    /**
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
+     *
+     */
+    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
 
     /**
      * @description Sets a group of key-value pairs; inserts new data if the keys do not exist
@@ -149,27 +149,27 @@ declare class Class_LevelDB extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
      *
      */
-    remove(key: Class_Buffer): void;
+    remove(key: Class_Buffer | string): void;
 
-    remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
-     *
-     */
-    removeSync(key: Class_Buffer): void;
+    remove(key: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
      *
      */
-    removeAsync(key: Class_Buffer): Promise<void>;
+    removeSync(key: Class_Buffer | string): void;
+
+    /**
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
+     *
+     */
+    removeAsync(key: Class_Buffer | string): Promise<void>;
 
     /**
      *  @description Queries the smallest key
@@ -230,10 +230,10 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(func: (...args: any[])=>any): void;
+    forEach(func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; a string from is encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -249,27 +249,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, func: (...args: any[])=>any): void;
-
-    /**
-     * @description Enumerates all key-value pairs in the database
-     *
-     *      The callback function takes two parameters, (value, key)
-     *
-     *      ```JavaScript
-     *      var db = require("db");
-     *      var test = new db.openLevelDB("test.db");
-     *
-     *      test.forEach("aaa", "bbb", function(value, key){
-     *         ...
-     *      });
-     *      ```
-     *      @param from the smallest key to enumerate; this key is included in the enumeration
-     *      @param to the largest key to enumerate; this key is not included in the enumeration
-     *      @param func the enumeration callback function
-     *
-     */
-    forEach(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates all key-value pairs in the database
@@ -288,10 +268,10 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; a string from is encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -308,10 +288,30 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; strings are encoded as utf8
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database; strings are encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -329,7 +329,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, to: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a transaction on the current database
@@ -370,52 +370,52 @@ declare class Class_LevelDB extends Class_object {
  */
 declare class Class_LevelDBPromise extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    has(key: Class_Buffer): Promise<boolean>;
+    has(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    hasSync(key: Class_Buffer): boolean;
+    hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database
-     *      @param key the key to check
+     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
+     *      @param key the key to check, a string is encoded as utf8
      *      @return returns whether the key exists
      *
      */
-    hasAsync(key: Class_Buffer): Promise<boolean>;
+    hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    get(key: Class_Buffer): Promise<Class_Buffer>;
+    get(key: Class_Buffer | string): Promise<Class_Buffer>;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    getSync(key: Class_Buffer): Class_Buffer;
+    getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key
-     *      @param key the key to query
+     * @description Queries the value of the given key; a string key is encoded as utf8
+     *      @param key the key to query, a string is encoded as utf8
      *      @return returns the value of the key, or null if it does not exist
      *
      */
-    getAsync(key: Class_Buffer): Promise<Class_Buffer>;
+    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
 
     /**
      * @description Queries the values of the given keys
@@ -426,28 +426,28 @@ declare class Class_LevelDBPromise extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
      *
      */
-    set(key: Class_Buffer, value: Class_Buffer): Promise<void>;
+    set(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
      *
      */
-    setSync(key: Class_Buffer, value: Class_Buffer): void;
+    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist
-     *      @param key the key to set
-     *      @param value the value to set
+     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
+     *      @param key the key to set, a string is encoded as utf8
+     *      @param value the value to set, a string is encoded as utf8
      *
      */
-    setAsync(key: Class_Buffer, value: Class_Buffer): Promise<void>;
+    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
 
     /**
      * @description Sets a group of key-value pairs; inserts new data if the keys do not exist
@@ -464,25 +464,25 @@ declare class Class_LevelDBPromise extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
      *
      */
-    remove(key: Class_Buffer): Promise<void>;
+    remove(key: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
      *
      */
-    removeSync(key: Class_Buffer): void;
+    removeSync(key: Class_Buffer | string): void;
 
     /**
-     * @description Removes all values of the given key
-     *      @param key the key to remove
+     * @description Removes all values of the given key; a string key is encoded as utf8
+     *      @param key the key to remove, a string is encoded as utf8
      *
      */
-    removeAsync(key: Class_Buffer): Promise<void>;
+    removeAsync(key: Class_Buffer | string): Promise<void>;
 
     /**
      *  @description Queries the smallest key
@@ -539,10 +539,10 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(func: (...args: any[])=>any): void;
+    forEach(func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; a string from is encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -558,27 +558,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, func: (...args: any[])=>any): void;
-
-    /**
-     * @description Enumerates all key-value pairs in the database
-     *
-     *      The callback function takes two parameters, (value, key)
-     *
-     *      ```JavaScript
-     *      var db = require("db");
-     *      var test = new db.openLevelDB("test.db");
-     *
-     *      test.forEach("aaa", "bbb", function(value, key){
-     *         ...
-     *      });
-     *      ```
-     *      @param from the smallest key to enumerate; this key is included in the enumeration
-     *      @param to the largest key to enumerate; this key is not included in the enumeration
-     *      @param func the enumeration callback function
-     *
-     */
-    forEach(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates all key-value pairs in the database
@@ -597,10 +577,10 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; a string from is encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -617,10 +597,30 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
-     * @description Enumerates all key-value pairs in the database
+     * @description Enumerates all key-value pairs in the database; strings are encoded as utf8
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database; strings are encoded as utf8
      *
      *      The callback function takes two parameters, (value, key)
      *
@@ -638,7 +638,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the enumeration callback function
      *
      */
-    forEach(from: Class_Buffer, to: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a transaction on the current database

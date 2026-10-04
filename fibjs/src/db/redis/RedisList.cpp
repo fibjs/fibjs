@@ -40,7 +40,7 @@ result_t RedisList::rpop(obj_ptr<Buffer_base>& retVal)
     return m_rdb->doCommand("RPOP", m_key, retVal);
 }
 
-result_t RedisList::set(int32_t index, Buffer_base* value)
+result_t RedisList::set(int32_t index, Union_set_value value)
 {
     Variant v;
     return m_rdb->doCommand("LSET", m_key, index, value, v);
@@ -51,17 +51,17 @@ result_t RedisList::get(int32_t index, obj_ptr<Buffer_base>& retVal)
     return m_rdb->doCommand("LINDEX", m_key, index, retVal);
 }
 
-result_t RedisList::insertBefore(Buffer_base* pivot, Buffer_base* value, int32_t& retVal)
+result_t RedisList::insertBefore(Union_insertBefore_pivot pivot, Union_insertBefore_value value, int32_t& retVal)
 {
     return m_rdb->doCommand("LINSERT", m_key, "BEFORE", pivot, value, retVal);
 }
 
-result_t RedisList::insertAfter(Buffer_base* pivot, Buffer_base* value, int32_t& retVal)
+result_t RedisList::insertAfter(Union_insertAfter_pivot pivot, Union_insertAfter_value value, int32_t& retVal)
 {
     return m_rdb->doCommand("LINSERT", m_key, "AFTER", pivot, value, retVal);
 }
 
-result_t RedisList::remove(int32_t count, Buffer_base* value, int32_t& retVal)
+result_t RedisList::remove(int32_t count, Union_remove_value value, int32_t& retVal)
 {
     return m_rdb->doCommand("LREM", m_key, count, value, retVal);
 }
@@ -81,4 +81,5 @@ result_t RedisList::range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("LRANGE", m_key, start, stop, retVal);
 }
+
 }

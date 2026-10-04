@@ -10,13 +10,13 @@
 
 namespace fibjs {
 
-result_t RedisHash::set(Buffer_base* field, Buffer_base* value)
+result_t RedisHash::set(Union_set_field field, Union_set_value value)
 {
     Variant v;
     return m_rdb->doCommand("HSET", m_key, field, value, v);
 }
 
-result_t RedisHash::setNX(Buffer_base* field, Buffer_base* value)
+result_t RedisHash::setNX(Union_setNX_field field, Union_setNX_value value)
 {
     Variant v;
     return m_rdb->doCommand("HSETNX", m_key, field, value, v);
@@ -33,7 +33,7 @@ result_t RedisHash::mset(OptArgs kvs)
     return m_rdb->doCommand("HMSET", m_key, kvs, v);
 }
 
-result_t RedisHash::get(Buffer_base* field, obj_ptr<Buffer_base>& retVal)
+result_t RedisHash::get(Union_get_field field, obj_ptr<Buffer_base>& retVal)
 {
     return m_rdb->doCommand("HGET", m_key, field, retVal);
 }
@@ -48,7 +48,7 @@ result_t RedisHash::mget(OptArgs fields, obj_ptr<NArray>& retVal)
     return m_rdb->doCommand("HMGET", m_key, fields, retVal);
 }
 
-result_t RedisHash::incr(Buffer_base* field, int64_t num, int64_t& retVal)
+result_t RedisHash::incr(Union_incr_field field, int64_t num, int64_t& retVal)
 {
     return m_rdb->doCommand("HINCRBY", m_key, field, num, retVal);
 }
@@ -78,8 +78,9 @@ result_t RedisHash::del(OptArgs fields, int32_t& retVal)
     return m_rdb->doCommand("HDEL", m_key, fields, retVal);
 }
 
-result_t RedisHash::exists(Buffer_base* field, bool& retVal)
+result_t RedisHash::exists(Union_exists_field field, bool& retVal)
 {
     return m_rdb->doCommand("HEXISTS", m_key, field, retVal);
 }
+
 }

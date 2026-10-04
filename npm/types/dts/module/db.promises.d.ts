@@ -1,8 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/DbConnection.d.ts" />
 /// <reference path="../interface/MySQL.d.ts" />
 /// <reference path="../interface/SQLite.d.ts" />
-/// <reference path="../interface/DbConnection.d.ts" />
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
 /**
@@ -10,28 +9,34 @@
  */
 declare module 'db/promises' {
     /**
-     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     * @description Opens an SQL database; this method is the generic entry point and calls different engines depending on the given connString
+     *
+     *      The engine is selected by the protocol prefix of connString; supported protocols are sqlite:, mysql:, odbc:, mssql:, psql: and dm:. Non-SQL engines have dedicated methods: use db.openRedis for redis:// connections and db.openLevelDB for leveldb: connections.
      *      @param connString the database description, such as: mysql://user:pass@host/db
      *      @return returns the database connection object
      *
      */
-    function open(connString: string): Promise<Class_object>;
+    function open(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
-     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     * @description Opens an SQL database; this method is the generic entry point and calls different engines depending on the given connString
+     *
+     *      The engine is selected by the protocol prefix of connString; supported protocols are sqlite:, mysql:, odbc:, mssql:, psql: and dm:. Non-SQL engines have dedicated methods: use db.openRedis for redis:// connections and db.openLevelDB for leveldb: connections.
      *      @param connString the database description, such as: mysql://user:pass@host/db
      *      @return returns the database connection object
      *
      */
-    function openSync(connString: string): Class_object;
+    function openSync(connString: string): Class_DbConnection;
 
     /**
-     * @description Opens a database; this method is the generic entry point and calls different engines depending on the given connString
+     * @description Opens an SQL database; this method is the generic entry point and calls different engines depending on the given connString
+     *
+     *      The engine is selected by the protocol prefix of connString; supported protocols are sqlite:, mysql:, odbc:, mssql:, psql: and dm:. Non-SQL engines have dedicated methods: use db.openRedis for redis:// connections and db.openLevelDB for leveldb: connections.
      *      @param connString the database description, such as: mysql://user:pass@host/db
      *      @return returns the database connection object
      *
      */
-    function openAsync(connString: string): Promise<Class_object>;
+    function openAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens a mysql database

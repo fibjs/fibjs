@@ -68,17 +68,19 @@ result_t Redis::_single(exlib::string key, v8::Local<v8::Function> func, int32_t
     return doCommand(s_cmd[cmd][0], key, v);
 }
 
-result_t Redis::sub(Buffer_base* channel, v8::Local<v8::Function> func)
+result_t Redis::sub(Union_sub_channel channel, v8::Local<v8::Function> func)
 {
     exlib::string key;
-    channel->toString(key);
+
+    unionToString(channel, key);
     return _single(key, func, SUBSCRIBE);
 }
 
-result_t Redis::unsub(Buffer_base* channel, v8::Local<v8::Function> func)
+result_t Redis::unsub(Union_unsub_channel channel, v8::Local<v8::Function> func)
 {
     exlib::string key;
-    channel->toString(key);
+
+    unionToString(channel, key);
     return _single(key, func, UNSUBSCRIBE);
 }
 
@@ -161,11 +163,11 @@ result_t Redis::unsub(exlib::string key, int32_t cmd)
     return doCommand(s_cmd[cmd][0], key, v);
 }
 
-result_t Redis::unsub(Buffer_base* channel)
+result_t Redis::unsub(Union_unsub_channel channel)
 {
     exlib::string key;
 
-    channel->toString(key);
+    unionToString(channel, key);
     return unsub(key, UNSUBSCRIBE);
 }
 
@@ -207,8 +209,9 @@ result_t Redis::unpsub(v8::Local<v8::Array> patterns)
     return unsub(patterns, PUNSUBSCRIBE);
 }
 
-result_t Redis::pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal)
+result_t Redis::pub(Union_pub_channel channel, Union_pub_message message, int32_t& retVal)
 {
     return doCommand("PUBLISH", channel, message, retVal);
 }
+
 }

@@ -9,15 +9,17 @@
  */
 interface RedisHash : object
 {
-    /*! @brief Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten
-     @param field the field to modify
-     @param value the value to modify */
-    set(Buffer field, Buffer value);
+    /*! @brief Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten; strings are encoded as utf8
+     @param field the field to modify, a string is encoded as utf8
+     @param value the value to modify, a string is encoded as utf8
+     */
+    set(Buffer|String field, Buffer|String value);
 
-    /*! @brief Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect
-     @param field the field to modify
-     @param value the value to modify */
-    setNX(Buffer field, Buffer value);
+    /*! @brief Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect; strings are encoded as utf8
+     @param field the field to modify, a string is encoded as utf8
+     @param value the value to modify, a string is encoded as utf8
+     */
+    setNX(Buffer|String field, Buffer|String value);
 
     /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
      @param kvs the field/value object to set*/
@@ -27,10 +29,11 @@ interface RedisHash : object
      @param kvs the field/value list to set*/
     mset(...kvs);
 
-    /*! @brief Returns the value of the given field in the hash table
-     @param field the field to query
-     @return the value of the given field; returns null when the given field does not exist or the given key does not exist */
-    Buffer get(Buffer field);
+    /*! @brief Returns the value of the given field in the hash table; a string field is encoded as utf8
+     @param field the field to query, a string is encoded as utf8
+     @return the value of the given field; returns null when the given field does not exist or the given key does not exist
+     */
+    Buffer get(Buffer|String field);
 
     /*! @brief Returns the values of one or more given fields in the hash table
      @param fields the array of fields to query
@@ -42,11 +45,12 @@ interface RedisHash : object
      @return a list containing the values of all the given fields */
     NArray mget(...fields);
 
-    /*! @brief Adds the increment to the value stored in the field
-     @param field the field to modify
+    /*! @brief Adds the increment to the value stored in the field; a string field is encoded as utf8
+     @param field the field to modify, a string is encoded as utf8
      @param num the number to add
-     @return the value of the field after adding num */
-    Long incr(Buffer field, Long num = 1);
+     @return the value of the field after adding num
+     */
+    Long incr(Buffer|String field, Long num = 1);
 
     /*! @brief Returns all fields and values in the hash table
      @return returns a list containing all fields in the hash table */
@@ -60,10 +64,11 @@ interface RedisHash : object
      @return returns the number of fields in the hash table */
     Integer len();
 
-    /*! @brief Checks whether the given field exists in the hash table
-     @param field the field to query
-     @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist */
-    Boolean exists(Buffer field);
+    /*! @brief Checks whether the given field exists in the hash table; a string field is encoded as utf8
+     @param field the field to query, a string is encoded as utf8
+     @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist
+     */
+    Boolean exists(Buffer|String field);
 
     /*! @brief Removes one or more given fields from the hash table; non-existing fields are ignored
      @param fields the array of fields to remove

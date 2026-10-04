@@ -18,44 +18,66 @@
 
 namespace fibjs {
 
+// The alternatives of a command argument (a key, a value, a channel, a
+// message) reach the server as one bulk string: the string alternative is
+// taken as-is and a Buffer renders its bytes as utf8.
+inline void unionToString(exlib::string& v, exlib::string& out)
+{
+    out = v;
+}
+
+inline void unionToString(obj_ptr<Buffer_base>& v, exlib::string& out)
+{
+    v->toString(out);
+}
+
+template <typename... Ts>
+void unionToString(std::variant<Ts...>& v, exlib::string& out)
+{
+    std::visit([&out](auto& val) { unionToString(val, out); }, v);
+}
+
 class Redis : public Redis_base {
 public:
-    // Redis_base
+    // Redis_base. A key, a value, a channel or a message is a param-position
+    // union (Buffer|String): the argument travels to the server as a bulk
+    // string, so the string alternative is written as-is, and a Buffer renders
+    // its bytes (plans/idl-union-types-2026-10-02.md).
     virtual result_t command(exlib::string cmd, OptArgs args, v8::Local<v8::Value>& retVal);
-    virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl);
-    virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl);
-    virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl);
+    virtual result_t set(Union_set_key key, Union_set_value value, int64_t ttl);
+    virtual result_t setNX(Union_setNX_key key, Union_setNX_value value, int64_t ttl);
+    virtual result_t setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl);
     virtual result_t mset(v8::Local<v8::Object> kvs);
     virtual result_t mset(OptArgs kvs);
     virtual result_t msetNX(v8::Local<v8::Object> kvs);
     virtual result_t msetNX(OptArgs kvs);
-    virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal);
-    virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal);
-    virtual result_t getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
-    virtual result_t strlen(Buffer_base* key, int32_t& retVal);
-    virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal);
-    virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal);
+    virtual result_t append(Union_append_key key, Union_append_value value, int32_t& retVal);
+    virtual result_t setRange(Union_setRange_key key, int32_t offset, Union_setRange_value value, int32_t& retVal);
+    virtual result_t getRange(Union_getRange_key key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
+    virtual result_t strlen(Union_strlen_key key, int32_t& retVal);
+    virtual result_t bitcount(Union_bitcount_key key, int32_t start, int32_t end, int32_t& retVal);
+    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal);
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal);
     virtual result_t mget(OptArgs keys, obj_ptr<NArray>& retVal);
-    virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal);
-    virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal);
-    virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal);
-    virtual result_t setBit(Buffer_base* key, int32_t offset, int32_t value, int32_t& retVal);
-    virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal);
-    virtual result_t exists(Buffer_base* key, bool& retVal);
-    virtual result_t type(Buffer_base* key, exlib::string& retVal);
+    virtual result_t getset(Union_getset_key key, Union_getset_value value, obj_ptr<Buffer_base>& retVal);
+    virtual result_t decr(Union_decr_key key, int64_t num, int64_t& retVal);
+    virtual result_t incr(Union_incr_key key, int64_t num, int64_t& retVal);
+    virtual result_t setBit(Union_setBit_key key, int32_t offset, int32_t value, int32_t& retVal);
+    virtual result_t getBit(Union_getBit_key key, int32_t offset, int32_t& retVal);
+    virtual result_t exists(Union_exists_key key, bool& retVal);
+    virtual result_t type(Union_type_key key, exlib::string& retVal);
     virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal);
     virtual result_t del(OptArgs keys, int32_t& retVal);
-    virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal);
-    virtual result_t ttl(Buffer_base* key, int64_t& retVal);
-    virtual result_t persist(Buffer_base* key, bool& retVal);
-    virtual result_t rename(Buffer_base* key, Buffer_base* newkey);
-    virtual result_t renameNX(Buffer_base* key, Buffer_base* newkey, bool& retVal);
-    virtual result_t sub(Buffer_base* channel, v8::Local<v8::Function> func);
+    virtual result_t expire(Union_expire_key key, int64_t ttl, bool& retVal);
+    virtual result_t ttl(Union_ttl_key key, int64_t& retVal);
+    virtual result_t persist(Union_persist_key key, bool& retVal);
+    virtual result_t rename(Union_rename_key key, Union_rename_newkey newkey);
+    virtual result_t renameNX(Union_renameNX_key key, Union_renameNX_newkey newkey, bool& retVal);
+    virtual result_t sub(Union_sub_channel channel, v8::Local<v8::Function> func);
     virtual result_t sub(v8::Local<v8::Object> map);
-    virtual result_t unsub(Buffer_base* channel);
-    virtual result_t unsub(Buffer_base* channel, v8::Local<v8::Function> func);
+    virtual result_t unsub(Union_unsub_channel channel);
+    virtual result_t unsub(Union_unsub_channel channel, v8::Local<v8::Function> func);
     virtual result_t unsub(v8::Local<v8::Array> channels);
     virtual result_t unsub(v8::Local<v8::Object> map);
     virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func);
@@ -64,13 +86,13 @@ public:
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func);
     virtual result_t unpsub(v8::Local<v8::Array> patterns);
     virtual result_t unpsub(v8::Local<v8::Object> map);
-    virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal);
-    virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal);
-    virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal);
-    virtual result_t getSet(Buffer_base* key, obj_ptr<RedisSet_base>& retVal);
-    virtual result_t getSortedSet(Buffer_base* key, obj_ptr<RedisSortedSet_base>& retVal);
-    virtual result_t dump(Buffer_base* key, obj_ptr<Buffer_base>& retVal);
-    virtual result_t restore(Buffer_base* key, Buffer_base* data, int64_t ttl);
+    virtual result_t pub(Union_pub_channel channel, Union_pub_message message, int32_t& retVal);
+    virtual result_t getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal);
+    virtual result_t getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal);
+    virtual result_t getSet(Union_getSet_key key, obj_ptr<RedisSet_base>& retVal);
+    virtual result_t getSortedSet(Union_getSortedSet_key key, obj_ptr<RedisSortedSet_base>& retVal);
+    virtual result_t dump(Union_dump_key key, obj_ptr<Buffer_base>& retVal);
+    virtual result_t restore(Union_restore_key key, Union_restore_data data, int64_t ttl);
     virtual result_t close();
 
 public:
@@ -206,6 +228,19 @@ public:
             if (hr < 0)
                 return CHECK_ERROR(hr);
             return add(str);
+        }
+
+        template <typename... Ts>
+        result_t add(std::variant<Ts...>& v)
+        {
+            result_t hr = 0;
+
+            std::visit([&hr, this](auto& val) {
+                if (hr >= 0)
+                    hr = add(val);
+            }, v);
+
+            return hr;
         }
 
         exlib::string str()

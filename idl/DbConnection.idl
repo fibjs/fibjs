@@ -62,7 +62,7 @@ interface DbConnection : object
      @param func the function to execute in a transaction
      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
     */
-    Boolean trans(Function func);
+    Boolean trans(Function(DbConnection conn) => Value func);
 
     /*! @brief Enters a transaction to execute a function, and commits or rolls back depending on the function result 
      The execution of func has three outcomes:
@@ -74,7 +74,7 @@ interface DbConnection : object
      @param func the function to execute in a transaction
      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
     */
-    Boolean trans(String point, Function func);
+    Boolean trans(String point, Function(DbConnection conn) => Value func);
 
     /*! @brief Executes an sql command and returns the execution result
 

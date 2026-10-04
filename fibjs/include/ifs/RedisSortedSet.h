@@ -21,19 +21,25 @@ class RedisSortedSet_base : public object_base {
     DECLARE_CLASS(RedisSortedSet_base);
 
 public:
+    using Union_score_member = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_incr_member = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_rank_member = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_rankRev_member = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // RedisSortedSet_base
     virtual result_t add(v8::Local<v8::Object> sms, int32_t& retVal) = 0;
     virtual result_t add(OptArgs sms, int32_t& retVal) = 0;
-    virtual result_t score(Buffer_base* member, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t incr(Buffer_base* member, int64_t num, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t score(Union_score_member member, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t incr(Union_incr_member member, int64_t num, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
     virtual result_t remove(OptArgs members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t count(int32_t min, int32_t max, int32_t& retVal) = 0;
     virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
     virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t rank(Buffer_base* member, int32_t& retVal) = 0;
-    virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
+    virtual result_t rank(Union_rank_member member, int32_t& retVal) = 0;
+    virtual result_t rankRev(Union_rankRev_member member, int32_t& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -120,9 +126,9 @@ inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_score_member, 0);
 
-    hr = pInst->score(v0.get(), vr);
+    hr = pInst->score(v0, vr);
 
     METHOD_RETURN();
 }
@@ -136,10 +142,10 @@ inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_incr_member, 0);
     OPT_ARG(int64_t, 1, 1);
 
-    hr = pInst->incr(v0.get(), v1, vr);
+    hr = pInst->incr(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -242,9 +248,9 @@ inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_rank_member, 0);
 
-    hr = pInst->rank(v0.get(), vr);
+    hr = pInst->rank(v0, vr);
 
     METHOD_RETURN();
 }
@@ -258,9 +264,9 @@ inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_rankRev_member, 0);
 
-    hr = pInst->rankRev(v0.get(), vr);
+    hr = pInst->rankRev(v0, vr);
 
     METHOD_RETURN();
 }

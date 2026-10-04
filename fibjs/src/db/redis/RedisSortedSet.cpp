@@ -52,12 +52,12 @@ result_t RedisSortedSet::add(OptArgs sms, int32_t& retVal)
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);
 }
 
-result_t RedisSortedSet::score(Buffer_base* member, obj_ptr<Buffer_base>& retVal)
+result_t RedisSortedSet::score(Union_score_member member, obj_ptr<Buffer_base>& retVal)
 {
     return m_rdb->doCommand("ZSCORE", m_key, member, retVal);
 }
 
-result_t RedisSortedSet::incr(Buffer_base* member, int64_t num, obj_ptr<Buffer_base>& retVal)
+result_t RedisSortedSet::incr(Union_incr_member member, int64_t num, obj_ptr<Buffer_base>& retVal)
 {
     return m_rdb->doCommand("ZINCRBY", m_key, num, member, retVal);
 }
@@ -100,13 +100,14 @@ result_t RedisSortedSet::rangeRev(int32_t start, int32_t stop, bool withScores,
         return m_rdb->doCommand("ZREVRANGE", m_key, start, stop, retVal);
 }
 
-result_t RedisSortedSet::rank(Buffer_base* member, int32_t& retVal)
+result_t RedisSortedSet::rank(Union_rank_member member, int32_t& retVal)
 {
     return m_rdb->doCommand("ZRANK", m_key, member, retVal);
 }
 
-result_t RedisSortedSet::rankRev(Buffer_base* member, int32_t& retVal)
+result_t RedisSortedSet::rankRev(Union_rankRev_member member, int32_t& retVal)
 {
     return m_rdb->doCommand("ZREVRANK", m_key, member, retVal);
 }
+
 }

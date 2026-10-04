@@ -204,7 +204,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
-    trans(func: (...args: any[])=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
 
     /**
      * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
@@ -218,7 +218,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
-    trans(point: string, func: (...args: any[])=>any): boolean;
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
 
     /**
      * @description Executes an sql command and returns the execution result
@@ -569,7 +569,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
-    trans(func: (...args: any[])=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
 
     /**
      * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
@@ -583,7 +583,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
      *
      */
-    trans(point: string, func: (...args: any[])=>any): boolean;
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
 
     /**
      * @description Executes an sql command and returns the execution result

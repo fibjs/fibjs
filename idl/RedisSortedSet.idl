@@ -19,16 +19,18 @@ interface RedisSortedSet : object
      @return the number of new members successfully added, excluding updated existing members */
     Integer add(...sms);
 
-    /*! @brief Returns the score of the member in the sorted set
-     @param member the member to query
-     @return the score of member as a string */
-    Buffer score(Buffer member);
+    /*! @brief Returns the score of the member in the sorted set; a string member is encoded as utf8
+     @param member the member to query, a string is encoded as utf8
+     @return the score of member as a string
+     */
+    Buffer score(Buffer|String member);
 
-    /*! @brief Adds the increment num to the score of the member in the sorted set
-     @param member the member to modify
+    /*! @brief Adds the increment num to the score of the member in the sorted set; a string member is encoded as utf8
+     @param member the member to modify, a string is encoded as utf8
      @param num the number to add
-     @return the new score of member as a string */
-    Buffer incr(Buffer member, Long num = 1);
+     @return the new score of member as a string
+     */
+    Buffer incr(Buffer|String member, Long num = 1);
 
     /*! @brief Removes one or more member elements from the sorted set
      @param members the array of elements to remove
@@ -64,13 +66,15 @@ interface RedisSortedSet : object
      @return the list of sorted set members in the given range, with scores (optional) */
     NArray rangeRev(Integer start, Integer stop, Boolean withScores = false);
 
-    /*! @brief Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest)
-     @param member the member to query
-     @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key */
-    Integer rank(Buffer member);
+    /*! @brief Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest); a string member is encoded as utf8
+     @param member the member to query, a string is encoded as utf8
+     @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
+     */
+    Integer rank(Buffer|String member);
 
-    /*! @brief Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest)
-     @param member the member to query
-     @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key */
-    Integer rankRev(Buffer member);
+    /*! @brief Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest); a string member is encoded as utf8
+     @param member the member to query, a string is encoded as utf8
+     @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
+     */
+    Integer rankRev(Buffer|String member);
 };

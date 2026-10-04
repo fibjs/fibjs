@@ -35,7 +35,7 @@ result_t RedisSet::len(int32_t& retVal)
     return m_rdb->doCommand("SCARD", m_key, retVal);
 }
 
-result_t RedisSet::exists(Buffer_base* member, bool& retVal)
+result_t RedisSet::exists(Union_exists_member member, bool& retVal)
 {
     return m_rdb->doCommand("SISMEMBER", m_key, member, retVal);
 }
@@ -77,4 +77,5 @@ result_t RedisSet::randMember(int32_t count, v8::Local<v8::Value>& retVal)
 
     return 0;
 }
+
 }

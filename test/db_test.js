@@ -1738,6 +1738,30 @@ describe("db", () => {
         }
     }
 
+    describe("open", () => {
+        it("returns a db connection for sql protocol", () => {
+            var conn = db.open('sqlite:' + path.join(__dirname, 'test.db' + vmid));
+            assert.equal(typeof conn.execute, 'function');
+            assert.equal(typeof conn.begin, 'function');
+            assert.equal(conn.type, 'SQLite');
+            conn.close();
+        });
+
+        it("rejects non-sql protocols", () => {
+            assert.throws(() => {
+                db.open("redis://127.0.0.1");
+            }, /unknown protocol/);
+
+            assert.throws(() => {
+                db.open("leveldb:test.db");
+            }, /unknown protocol/);
+
+            assert.throws(() => {
+                db.open("unknown:test.db");
+            }, /unknown protocol/);
+        });
+    });
+
     describe("sqlite", () => {
         var conn_str = 'sqlite:' + path.join(__dirname, 'test.db' + vmid);
         after(() => {
@@ -2440,6 +2464,90 @@ describe("db", () => {
                 ldb.close();
                 clear_db();
             });
+        });
+
+        describe('union keys (Buffer|String)', () => {
+            it('accepts a string and a buffer as the same key', () => {
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                ldb.set("str", "v1");
+                assert.isTrue(ldb.has(Buffer.from("str")));
+                assert.equal(ldb.get(Buffer.from("str")).toString(), "v1");
+
+                ldb.set(Buffer.from("buf"), Buffer.from("v2"));
+                assert.isTrue(ldb.has("buf"));
+                assert.equal(ldb.get("buf").toString(), "v2");
+
+                ldb.remove("str");
+                assert.isFalse(ldb.has(Buffer.from("str")));
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('keeps a binary or a multibyte key intact', () => {
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var key = Buffer.from([0xff, 0x00, 0xfe]);
+                var value = Buffer.from([0x01, 0xff, 0x02]);
+                ldb.set(key, value);
+
+                var got = ldb.get(key);
+                assert.equal(got.length, 3);
+                assert.equal(got[0], 1);
+                assert.equal(got[1], 255);
+                assert.equal(got[2], 2);
+                assert.isTrue(ldb.has(key));
+
+                ldb.set("中文键", "中文值");
+                assert.equal(ldb.get("中文键").toString(), "中文值");
+                assert.isTrue(ldb.has(Buffer.from("中文键")));
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('mget takes a string or a buffer per element', () => {
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                ldb.mset({ "aaa": "aaa value", "bbb": "bbb value" });
+                var values = ldb.mget(['aaa', Buffer.from('bbb'), 'missing']);
+                assert.equal(values[0].toString(), "aaa value");
+                assert.equal(values[1].toString(), "bbb value");
+                assert.isNull(values[2]);
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('forEach takes buffer bounds and the four-argument form', () => {
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                ldb.mset({ "aaa": "1", "bbb": "2", "ccc": "3", "ddd": "4" });
+
+                var fromBuffer = [];
+                ldb.forEach(Buffer.from("bbb"), (v, k) => { fromBuffer.push(k.toString()); });
+                assert.deepEqual(fromBuffer, ['bbb', 'ccc', 'ddd']);
+
+                var range = [];
+                ldb.forEach(Buffer.from("bbb"), Buffer.from("ddd"), (v, k) => { range.push(k.toString()); });
+                assert.deepEqual(range, ['bbb', 'ccc']);
+
+                var skipped = [];
+                ldb.forEach("bbb", "ddd", { skip: 1 }, (v, k) => { skipped.push(k.toString()); });
+                assert.deepEqual(skipped, ['ccc']);
+
+                var limited = [];
+                ldb.forEach(Buffer.from("bbb"), Buffer.from("ddd"), { limit: 1 }, (v, k) => { limited.push(k.toString()); });
+                assert.deepEqual(limited, ['bbb']);
+
+                ldb.close();
+                clear_db();
+            });
+
+            // the rejection of a value that is neither a string nor a buffer
+            // moves with the strict String conversion (the Buffer/encoding
+            // family batch): the lenient pass still renders it through ToString
         });
 
         it('break', () => {

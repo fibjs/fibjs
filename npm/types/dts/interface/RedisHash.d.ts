@@ -14,18 +14,20 @@
  */
 declare class Class_RedisHash extends Class_object {
     /**
-     * @description Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten
-     *      @param field the field to modify
-     *      @param value the value to modify
+     * @description Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten; strings are encoded as utf8
+     *      @param field the field to modify, a string is encoded as utf8
+     *      @param value the value to modify, a string is encoded as utf8
+     *
      */
-    set(field: Class_Buffer, value: Class_Buffer): void;
+    set(field: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect
-     *      @param field the field to modify
-     *      @param value the value to modify
+     * @description Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect; strings are encoded as utf8
+     *      @param field the field to modify, a string is encoded as utf8
+     *      @param value the value to modify, a string is encoded as utf8
+     *
      */
-    setNX(field: Class_Buffer, value: Class_Buffer): void;
+    setNX(field: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
      * @description Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
@@ -40,11 +42,12 @@ declare class Class_RedisHash extends Class_object {
     mset(...kvs: any[]): void;
 
     /**
-     * @description Returns the value of the given field in the hash table
-     *      @param field the field to query
+     * @description Returns the value of the given field in the hash table; a string field is encoded as utf8
+     *      @param field the field to query, a string is encoded as utf8
      *      @return the value of the given field; returns null when the given field does not exist or the given key does not exist
+     *
      */
-    get(field: Class_Buffer): Class_Buffer;
+    get(field: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Returns the values of one or more given fields in the hash table
@@ -61,12 +64,13 @@ declare class Class_RedisHash extends Class_object {
     mget(...fields: any[]): any[];
 
     /**
-     * @description Adds the increment to the value stored in the field
-     *      @param field the field to modify
+     * @description Adds the increment to the value stored in the field; a string field is encoded as utf8
+     *      @param field the field to modify, a string is encoded as utf8
      *      @param num the number to add
      *      @return the value of the field after adding num
+     *
      */
-    incr(field: Class_Buffer, num?: number): number;
+    incr(field: Class_Buffer | string, num?: number): number;
 
     /**
      * @description Returns all fields and values in the hash table
@@ -87,11 +91,12 @@ declare class Class_RedisHash extends Class_object {
     len(): number;
 
     /**
-     * @description Checks whether the given field exists in the hash table
-     *      @param field the field to query
+     * @description Checks whether the given field exists in the hash table; a string field is encoded as utf8
+     *      @param field the field to query, a string is encoded as utf8
      *      @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist
+     *
      */
-    exists(field: Class_Buffer): boolean;
+    exists(field: Class_Buffer | string): boolean;
 
     /**
      * @description Removes one or more given fields from the hash table; non-existing fields are ignored

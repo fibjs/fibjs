@@ -21,6 +21,14 @@ class RedisList_base : public object_base {
     DECLARE_CLASS(RedisList_base);
 
 public:
+    using Union_set_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_insertBefore_pivot = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_insertBefore_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_insertAfter_pivot = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_insertAfter_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_remove_value = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // RedisList_base
     virtual result_t push(v8::Local<v8::Array> values, int32_t& retVal) = 0;
     virtual result_t push(OptArgs values, int32_t& retVal) = 0;
@@ -28,11 +36,11 @@ public:
     virtual result_t rpush(v8::Local<v8::Array> values, int32_t& retVal) = 0;
     virtual result_t rpush(OptArgs values, int32_t& retVal) = 0;
     virtual result_t rpop(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t set(int32_t index, Buffer_base* value) = 0;
+    virtual result_t set(int32_t index, Union_set_value value) = 0;
     virtual result_t get(int32_t index, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t insertBefore(Buffer_base* pivot, Buffer_base* value, int32_t& retVal) = 0;
-    virtual result_t insertAfter(Buffer_base* pivot, Buffer_base* value, int32_t& retVal) = 0;
-    virtual result_t remove(int32_t count, Buffer_base* value, int32_t& retVal) = 0;
+    virtual result_t insertBefore(Union_insertBefore_pivot pivot, Union_insertBefore_value value, int32_t& retVal) = 0;
+    virtual result_t insertAfter(Union_insertAfter_pivot pivot, Union_insertAfter_value value, int32_t& retVal) = 0;
+    virtual result_t remove(int32_t count, Union_remove_value value, int32_t& retVal) = 0;
     virtual result_t trim(int32_t start, int32_t stop) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal) = 0;
@@ -175,9 +183,9 @@ inline void RedisList_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_set_value, 1);
 
-    hr = pInst->set(v0, v1.get());
+    hr = pInst->set(v0, v1);
 
     METHOD_VOID();
 }
@@ -207,10 +215,10 @@ inline void RedisList_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_insertBefore_pivot, 0);
+    ARG(Union_insertBefore_value, 1);
 
-    hr = pInst->insertBefore(v0.get(), v1.get(), vr);
+    hr = pInst->insertBefore(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -224,10 +232,10 @@ inline void RedisList_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_insertAfter_pivot, 0);
+    ARG(Union_insertAfter_value, 1);
 
-    hr = pInst->insertAfter(v0.get(), v1.get(), vr);
+    hr = pInst->insertAfter(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -242,9 +250,9 @@ inline void RedisList_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(Union_remove_value, 1);
 
-    hr = pInst->remove(v0, v1.get(), vr);
+    hr = pInst->remove(v0, v1, vr);
 
     METHOD_RETURN();
 }

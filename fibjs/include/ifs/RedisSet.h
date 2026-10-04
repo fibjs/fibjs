@@ -21,13 +21,16 @@ class RedisSet_base : public object_base {
     DECLARE_CLASS(RedisSet_base);
 
 public:
+    using Union_exists_member = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // RedisSet_base
     virtual result_t add(v8::Local<v8::Array> members, int32_t& retVal) = 0;
     virtual result_t add(OptArgs members, int32_t& retVal) = 0;
     virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
     virtual result_t remove(OptArgs members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
-    virtual result_t exists(Buffer_base* member, bool& retVal) = 0;
+    virtual result_t exists(Union_exists_member member, bool& retVal) = 0;
     virtual result_t members(obj_ptr<NArray>& retVal) = 0;
     virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t randMember(v8::Local<v8::Value>& retVal) = 0;
@@ -148,9 +151,9 @@ inline void RedisSet_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_exists_member, 0);
 
-    hr = pInst->exists(v0.get(), vr);
+    hr = pInst->exists(v0, vr);
 
     METHOD_RETURN();
 }
