@@ -144,28 +144,10 @@ declare module 'console/promises' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      ```
-     *
      *      @param cfg output configuration
      *
      */
-    function add(cfg: FIBJS.GeneralObject): void;
-
-    /**
-     * @description Adds console output systems in batch; supported devices are console, syslog, event and file; up to 10 outputs can be added
-     *
-     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
-     *
-     *      ```JavaScript
-     *      console.add(["console", {
-     *         type: "syslog",
-     *         levels: [console.INFO, console.ERROR]
-     *      }]);
-     *      ```
-     *
-     *      @param cfg output configuration array
-     *
-     */
-    function add(cfg: any[]): void;
+    function add(cfg: FIBJS.GeneralObject | any[]): void;
 
     /**
      * @description Adds a console output system; supported devices are console, syslog, event; up to 10 outputs can be added
@@ -240,28 +222,10 @@ declare module 'console/promises' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      ```
-     *
      *      @param cfg output configuration
      *
      */
-    function use(cfg: FIBJS.GeneralObject): void;
-
-    /**
-     * @description Adds console output systems in batch; supported devices are console, syslog, event and file; up to 10 outputs can be added
-     *
-     *      By configuring console, program output and system errors can be sent to different devices for runtime environment information collection.
-     *
-     *      ```JavaScript
-     *      console.use(["console", {
-     *         type: "syslog",
-     *         levels: [console.INFO, console.ERROR]
-     *      }]);
-     *      ```
-     *
-     *      @param cfg output configuration array
-     *
-     */
-    function use(cfg: any[]): void;
+    function use(cfg: FIBJS.GeneralObject | any[]): void;
 
     /**
      * @description Resets to the default settings, outputting information only to console
@@ -272,17 +236,9 @@ declare module 'console/promises' {
      * @description Records general log information, same as info
      *
      *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function log(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records general log information, same as info
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function log(...args: any[]): void;
@@ -291,17 +247,9 @@ declare module 'console/promises' {
      * @description Records debug log information
      *
      *      Records debug log information. Usually used to output debug information. Not important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function debug(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records debug log information
-     *
-     *      Records debug log information. Usually used to output debug information. Not important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function debug(...args: any[]): void;
@@ -310,17 +258,9 @@ declare module 'console/promises' {
      * @description Records general log information, same as log
      *
      *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function info(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records general log information, same as log
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function info(...args: any[]): void;
@@ -329,17 +269,9 @@ declare module 'console/promises' {
      * @description Records notice log information
      *
      *      Records notice log information. Usually used to output prompt debug information. Moderately important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function notice(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records notice log information
-     *
-     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function notice(...args: any[]): void;
@@ -348,17 +280,9 @@ declare module 'console/promises' {
      * @description Records warning log information, same as warning
      *
      *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function warn(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records warning log information, same as warning
-     *
-     *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function warn(...args: any[]): void;
@@ -367,17 +291,9 @@ declare module 'console/promises' {
      * @description Records warning log information
      *
      *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function warning(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records warning log information
-     *
-     *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function warning(...args: any[]): void;
@@ -386,17 +302,9 @@ declare module 'console/promises' {
      * @description Records error log information
      *
      *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function error(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records error log information
-     *
-     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function error(...args: any[]): void;
@@ -405,17 +313,9 @@ declare module 'console/promises' {
      * @description Records critical error log information, same as critical
      *
      *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function crit(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records critical error log information, same as critical
-     *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function crit(...args: any[]): void;
@@ -424,17 +324,9 @@ declare module 'console/promises' {
      * @description Records critical error log information
      *
      *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function critical(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records critical error log information
-     *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function critical(...args: any[]): void;
@@ -443,17 +335,9 @@ declare module 'console/promises' {
      * @description Records alert error log information
      *
      *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function alert(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records alert error log information
-     *
-     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function alert(...args: any[]): void;
@@ -462,17 +346,9 @@ declare module 'console/promises' {
      * @description Outputs the current call stack
      *
      *      Outputs the current call stack through logging.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function trace(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Outputs the current call stack
-     *
-     *      Outputs the current call stack through logging.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function trace(...args: any[]): void;
@@ -515,15 +391,9 @@ declare module 'console/promises' {
 
     /**
      * @description Outputs formatted text to the console; the output is not recorded in the logging system and no newline is appended, so it can be output continuously
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    function print(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Outputs formatted text to the console; the output is not recorded in the logging system and no newline is appended, so it can be output continuously
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     function print(...args: any[]): void;

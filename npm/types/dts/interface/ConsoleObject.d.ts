@@ -82,17 +82,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records general log information, same as info
      *
      *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    Function(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records general log information, same as info
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     Function(...args: any[]): void;
@@ -111,17 +103,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records general log information, same as info
      *
      *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    log(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records general log information, same as info
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     log(...args: any[]): void;
@@ -130,17 +114,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records debug log information
      *
      *      Records debug log information. Usually used to output debug information. Not important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    debug(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records debug log information
-     *
-     *      Records debug log information. Usually used to output debug information. Not important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     debug(...args: any[]): void;
@@ -149,17 +125,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records general log information, same as log
      *
      *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    info(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records general log information, same as log
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     info(...args: any[]): void;
@@ -168,17 +136,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records notice log information
      *
      *      Records notice log information. Usually used to output prompt debug information. Moderately important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    notice(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records notice log information
-     *
-     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     notice(...args: any[]): void;
@@ -187,17 +147,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records warning log information, same as warning
      *
      *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    warn(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records warning log information, same as warning
-     *
-     *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     warn(...args: any[]): void;
@@ -206,17 +158,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records warning log information
      *
      *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    warning(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records warning log information
-     *
-     *      Records warning log information. Usually used to output warning debug information. Important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     warning(...args: any[]): void;
@@ -225,17 +169,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records error log information
      *
      *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    error(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records error log information
-     *
-     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     error(...args: any[]): void;
@@ -244,17 +180,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records critical error log information, same as critical
      *
      *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    crit(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records critical error log information, same as critical
-     *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     crit(...args: any[]): void;
@@ -263,17 +191,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records critical error log information
      *
      *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    critical(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records critical error log information
-     *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     critical(...args: any[]): void;
@@ -282,17 +202,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Records alert error log information
      *
      *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    alert(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Records alert error log information
-     *
-     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     alert(...args: any[]): void;
@@ -301,17 +213,9 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Outputs the current call stack
      *
      *      Outputs the current call stack through logging.
-     *      @param fmt format string
      *      @param args optional argument list
-     *
-     */
-    trace(fmt: string, ...args: any[]): void;
-
-    /**
-     * @description Outputs the current call stack
-     *
-     *      Outputs the current call stack through logging.
-     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
      *
      */
     trace(...args: any[]): void;

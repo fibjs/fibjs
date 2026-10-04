@@ -25,9 +25,73 @@ class Http2Session_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    class RemoteSettingsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("headerTableSize"), GetReturnValue(isolate, headerTableSize)).Check();
+            retVal->Set(context, isolate->NewString("enablePush"), GetReturnValue(isolate, enablePush)).Check();
+            retVal->Set(context, isolate->NewString("maxConcurrentStreams"), GetReturnValue(isolate, maxConcurrentStreams)).Check();
+            retVal->Set(context, isolate->NewString("initialWindowSize"), GetReturnValue(isolate, initialWindowSize)).Check();
+            retVal->Set(context, isolate->NewString("maxFrameSize"), GetReturnValue(isolate, maxFrameSize)).Check();
+            retVal->Set(context, isolate->NewString("maxHeaderListSize"), GetReturnValue(isolate, maxHeaderListSize)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, headerTableSize));
+            args.push_back(GetReturnValue(isolate, enablePush));
+            args.push_back(GetReturnValue(isolate, maxConcurrentStreams));
+            args.push_back(GetReturnValue(isolate, initialWindowSize));
+            args.push_back(GetReturnValue(isolate, maxFrameSize));
+            args.push_back(GetReturnValue(isolate, maxHeaderListSize));
+        }
+
+    public:
+        double headerTableSize;
+        bool enablePush;
+        double maxConcurrentStreams;
+        double initialWindowSize;
+        double maxFrameSize;
+        double maxHeaderListSize;
+    };
+    class LocalSettingsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("headerTableSize"), GetReturnValue(isolate, headerTableSize)).Check();
+            retVal->Set(context, isolate->NewString("enablePush"), GetReturnValue(isolate, enablePush)).Check();
+            retVal->Set(context, isolate->NewString("maxConcurrentStreams"), GetReturnValue(isolate, maxConcurrentStreams)).Check();
+            retVal->Set(context, isolate->NewString("initialWindowSize"), GetReturnValue(isolate, initialWindowSize)).Check();
+            retVal->Set(context, isolate->NewString("maxFrameSize"), GetReturnValue(isolate, maxFrameSize)).Check();
+            retVal->Set(context, isolate->NewString("maxHeaderListSize"), GetReturnValue(isolate, maxHeaderListSize)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, headerTableSize));
+            args.push_back(GetReturnValue(isolate, enablePush));
+            args.push_back(GetReturnValue(isolate, maxConcurrentStreams));
+            args.push_back(GetReturnValue(isolate, initialWindowSize));
+            args.push_back(GetReturnValue(isolate, maxFrameSize));
+            args.push_back(GetReturnValue(isolate, maxHeaderListSize));
+        }
+
+    public:
+        double headerTableSize;
+        bool enablePush;
+        double maxConcurrentStreams;
+        double initialWindowSize;
+        double maxFrameSize;
+        double maxHeaderListSize;
+    };
+
+public:
     // Http2Session_base
-    virtual result_t get_remoteSettings(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t get_localSettings(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal) = 0;
+    virtual result_t get_localSettings(obj_ptr<LocalSettingsType>& retVal) = 0;
     virtual result_t get_destroyed(bool& retVal) = 0;
     virtual result_t get_closed(bool& retVal) = 0;
     virtual result_t get_alpnProtocol(exlib::string& retVal) = 0;
@@ -116,7 +180,7 @@ inline ClassInfo& Http2Session_base::class_info()
 
 inline void Http2Session_base::s_get_remoteSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<RemoteSettingsType> vr;
 
     METHOD_INSTANCE(Http2Session_base);
     METHOD_ENTER();
@@ -130,7 +194,7 @@ inline void Http2Session_base::s_get_remoteSettings(const v8::FunctionCallbackIn
 
 inline void Http2Session_base::s_get_localSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<LocalSettingsType> vr;
 
     METHOD_INSTANCE(Http2Session_base);
     METHOD_ENTER();

@@ -22,7 +22,7 @@ public:
 public:
     // HttpRepeater_base
     virtual result_t load(std::vector<exlib::string>& urls);
-    virtual result_t get_urls(obj_ptr<NArray>& retVal);
+    virtual result_t get_urls(std::vector<exlib::string>& retVal);
     virtual result_t get_client(obj_ptr<HttpClient_base>& retVal);
 
 public:

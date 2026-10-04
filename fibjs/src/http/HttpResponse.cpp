@@ -120,9 +120,30 @@ result_t HttpResponse::setEncoding(exlib::string encoding, obj_ptr<Message_base>
     return 0;
 }
 
+result_t HttpResponse::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+
+    return write(std::get<exlib::string>(data), retVal, ac);
+}
+
 result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return m_message->write(data, retVal, ac);
+}
+
+result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(data, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return m_message->write(buf.get(), retVal, ac);
 }
 
 result_t HttpResponse::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
@@ -318,8 +339,6 @@ result_t HttpResponse::appendHeader(Headers_base* headers)
     return m_message->appendHeader(headers);
 }
 
-// INTERIM (commit split): HttpMessage takes the Variant value here; the final
-// HttpResponse moves to the union/typed-return surface in the http batch.
 result_t HttpResponse::appendHeader(exlib::string name, Variant value)
 {
     return m_message->appendHeader(name, value);
@@ -340,7 +359,6 @@ result_t HttpResponse::setHeader(Headers_base* headers)
     return m_message->setHeader(headers);
 }
 
-// INTERIM (commit split): see appendHeader above.
 result_t HttpResponse::setHeader(exlib::string name, Variant value)
 {
     return m_message->setHeader(name, value);
@@ -450,7 +468,8 @@ result_t HttpResponse::clear()
 {
     m_message->clear();
 
-    m_cookies.Release();
+    m_cookies.clear();
+    m_cookies_filled = false;
     m_statusCode = 200;
 
     return 0;
@@ -523,18 +542,9 @@ result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
 
 exlib::string HttpResponse::prepareHeaders()
 {
-    if (m_cookies) {
-        int32_t len, i;
-
-        len = m_cookies->length();
-
-        for (i = 0; i < len; i++) {
-            Variant v;
-            obj_ptr<object_base> cookie;
+    if (m_cookies_filled) {
+        for (auto& cookie : m_cookies) {
             exlib::string str;
-
-            m_cookies->_indexed_getter(i, v);
-            cookie = v.object();
 
             if (cookie) {
                 cookie->toString(str);
@@ -542,7 +552,8 @@ exlib::string HttpResponse::prepareHeaders()
             }
         }
 
-        m_cookies.Release();
+        m_cookies.clear();
+        m_cookies_filled = false;
     }
 
     exlib::string strCommand;
@@ -776,11 +787,9 @@ result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> heade
     return 0;
 }
 
-result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
+result_t HttpResponse::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
 {
-    if (!m_cookies) {
-        obj_ptr<NArray> cookies = new NArray();
-
+    if (!m_cookies_filled) {
         int32_t len, i;
         obj_ptr<NArray> headers;
 
@@ -801,10 +810,10 @@ result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
             // and %XX in Set-Cookie (e.g. better-auth's base64 session token)
             // must be stored and sent back verbatim.
             if (cookie->parseRaw(str) >= 0)
-                cookies->append(cookie);
+                m_cookies.push_back(cookie);
         }
 
-        m_cookies = cookies;
+        m_cookies_filled = true;
     }
 
     retVal = m_cookies;
@@ -813,12 +822,14 @@ result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
 
 result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 {
-    obj_ptr<NArray> cookies;
-    Variant v;
+    std::vector<obj_ptr<HttpCookie_base>> cookies;
+    result_t hr;
 
-    v = cookie;
-    get_cookies(cookies);
-    cookies->append(v);
+    hr = get_cookies(cookies);
+    if (hr < 0)
+        return hr;
+
+    m_cookies.push_back(cookie);
 
     return 0;
 }
@@ -950,15 +961,10 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
     resp->m_fetchType = m_fetchType;
 
     // Clone cookies array
-    if (m_cookies) {
-        resp->m_cookies = new NArray();
-        int32_t len = m_cookies->length();
-        for (int32_t i = 0; i < len; i++) {
-            Variant v;
-            m_cookies->_indexed_getter(i, v);
-            // Cookies are HttpCookie objects, add directly (shallow copy)
-            resp->m_cookies->append(v);
-        }
+    if (m_cookies_filled) {
+        // Cookies are HttpCookie objects; share them (shallow copy)
+        resp->m_cookies = m_cookies;
+        resp->m_cookies_filled = true;
     }
 
     retVal = resp;

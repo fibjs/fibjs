@@ -217,7 +217,10 @@ void ConsoleObject::_out(int32_t type, exlib::string& msg)
     }
 }
 
-void ConsoleObject::_log(int32_t type, exlib::string fmt, OptArgs args)
+// The text sinks take any values: a leading string argument is the format
+// template, every other value is printed as-is. This lenient rendering lives
+// here instead of an IDL String conversion.
+void ConsoleObject::_log(int32_t type, OptArgs args)
 {
     if (!first_call() && type > console_base::C_WARN)
         return;
@@ -230,8 +233,28 @@ void ConsoleObject::_log(int32_t type, exlib::string fmt, OptArgs args)
         Isolate* isolate = holder();
         exlib::string str;
         bool is_color = colors(isolate, type);
+        bool formatted = false;
 
-        util_format(isolate, fmt, args, is_color, str);
+        if (args.Length() > 0) {
+            v8::Local<v8::Value> first = args[0];
+
+            if (first->IsString() || first->IsStringObject()) {
+                exlib::string fmt;
+
+                GetArgumentValue(isolate, first, fmt);
+
+                std::vector<v8::Local<v8::Value>> datas;
+                args.GetData(datas);
+                datas.erase(datas.begin());
+
+                util_format(isolate, fmt, OptArgs(datas), is_color, str);
+                formatted = true;
+            }
+        }
+
+        if (!formatted)
+            util_format(isolate, "", args, is_color, str);
+
         str = (is_color ? m_prefix_color : m_prefix) + str;
         _out(type, str);
     }
@@ -264,142 +287,97 @@ result_t ConsoleObject::get_enabled(bool& retVal)
     return 0;
 }
 
-result_t ConsoleObject::_function(exlib::string fmt, OptArgs args)
-{
-    return debug(fmt, args);
-}
-
 result_t ConsoleObject::_function(OptArgs args)
 {
     return debug(args);
 }
 
-result_t ConsoleObject::log(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_INFO, fmt, args);
-    return 0;
-}
-
 result_t ConsoleObject::log(OptArgs args)
 {
-    _log(console_base::C_INFO, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::debug(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_DEBUG, fmt, args);
+    _log(console_base::C_INFO, args);
     return 0;
 }
 
 result_t ConsoleObject::debug(OptArgs args)
 {
-    _log(console_base::C_DEBUG, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::info(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_INFO, fmt, args);
+    _log(console_base::C_DEBUG, args);
     return 0;
 }
 
 result_t ConsoleObject::info(OptArgs args)
 {
-    _log(console_base::C_INFO, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::notice(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_NOTICE, fmt, args);
+    _log(console_base::C_INFO, args);
     return 0;
 }
 
 result_t ConsoleObject::notice(OptArgs args)
 {
-    _log(console_base::C_NOTICE, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::warn(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_WARN, fmt, args);
+    _log(console_base::C_NOTICE, args);
     return 0;
 }
 
 result_t ConsoleObject::warn(OptArgs args)
 {
-    _log(console_base::C_WARN, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::warning(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_WARN, fmt, args);
+    _log(console_base::C_WARN, args);
     return 0;
 }
 
 result_t ConsoleObject::warning(OptArgs args)
 {
-    _log(console_base::C_WARN, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::error(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_ERROR, fmt, args);
+    _log(console_base::C_WARN, args);
     return 0;
 }
 
 result_t ConsoleObject::error(OptArgs args)
 {
-    _log(console_base::C_ERROR, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::crit(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_CRIT, fmt, args);
+    _log(console_base::C_ERROR, args);
     return 0;
 }
 
 result_t ConsoleObject::crit(OptArgs args)
 {
-    _log(console_base::C_CRIT, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::critical(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_CRIT, fmt, args);
+    _log(console_base::C_CRIT, args);
     return 0;
 }
 
 result_t ConsoleObject::critical(OptArgs args)
 {
-    _log(console_base::C_CRIT, "", args);
-    return 0;
-}
-
-result_t ConsoleObject::alert(exlib::string fmt, OptArgs args)
-{
-    _log(console_base::C_ALERT, fmt, args);
+    _log(console_base::C_CRIT, args);
     return 0;
 }
 
 result_t ConsoleObject::alert(OptArgs args)
 {
-    _log(console_base::C_ALERT, "", args);
+    _log(console_base::C_ALERT, args);
     return 0;
 }
 
-result_t ConsoleObject::trace(exlib::string fmt, OptArgs args)
+result_t ConsoleObject::trace(OptArgs args)
 {
     Isolate* isolate = holder();
     exlib::string str;
+    bool formatted = false;
 
-    util_format(isolate, fmt, args, colors(isolate, console_base::C_WARN), str);
+    if (args.Length() > 0) {
+        v8::Local<v8::Value> first = args[0];
+
+        if (first->IsString() || first->IsStringObject()) {
+            exlib::string fmt;
+
+            GetArgumentValue(isolate, first, fmt);
+
+            std::vector<v8::Local<v8::Value>> datas;
+            args.GetData(datas);
+            datas.erase(datas.begin());
+
+            util_format(isolate, fmt, OptArgs(datas), colors(isolate, console_base::C_WARN), str);
+            formatted = true;
+        }
+    }
+
+    if (!formatted)
+        util_format(isolate, "", args, colors(isolate, console_base::C_WARN), str);
+
     if (str.empty())
         str = "Trace";
     else
@@ -411,11 +389,6 @@ result_t ConsoleObject::trace(exlib::string fmt, OptArgs args)
     _log(console_base::C_WARN, str);
 
     return 0;
-}
-
-result_t ConsoleObject::trace(OptArgs args)
-{
-    return trace("", args);
 }
 
 result_t ConsoleObject::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)

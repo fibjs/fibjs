@@ -73,10 +73,14 @@ public:
     virtual result_t get_origin(exlib::string& retVal);
     virtual result_t get_readyState(int32_t& retVal);
     virtual result_t close(int32_t code, exlib::string reason);
-    virtual result_t send(exlib::string data);
-    virtual result_t send(Buffer_base* data);
+    virtual result_t send(v8::Local<v8::Value> data);
     virtual result_t ref(obj_ptr<WebSocket_base>& retVal);
     virtual result_t unref(obj_ptr<WebSocket_base>& retVal);
+
+public:
+    // the two transports of send: a text frame and a binary frame
+    result_t send_text(exlib::string data);
+    result_t send_binary(Buffer_base* data);
 
 public:
     void startRecv(Isolate* isolate);

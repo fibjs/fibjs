@@ -53,6 +53,12 @@ interface HttpResponse : HttpMessage
     /*! @brief queries whether the current response is ok */
     readonly Boolean ok;
 
+    /*! @brief sets the return status of the response message and adds response headers
+     @param statusCode specifies the return status of the response message
+     @param headers specifies the response headers to add to the response message
+     */
+    writeHead(Integer statusCode, Object headers = {});
+
     /*! @brief sets the return status and return message of the response message, and adds response headers
      @param statusCode specifies the return status of the response message
      @param statusMessage specifies the return message of the response message
@@ -60,14 +66,8 @@ interface HttpResponse : HttpMessage
      */
     writeHead(Integer statusCode, String statusMessage, Object headers = {});
 
-    /*! @brief sets the return status of the response message and adds response headers
-     @param statusCode specifies the return status of the response message
-     @param headers specifies the response headers to add to the response message
-     */
-    writeHead(Integer statusCode, Object headers = {});
-
     /*! @brief returns the list of HttpCookie objects of the current message */
-    readonly NArray cookies;
+    readonly HttpCookie[] cookies;
 
     /*! @brief adds an HttpCookie object to cookies
      @param cookie specifies the HttpCookie object to add

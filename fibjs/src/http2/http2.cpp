@@ -20,18 +20,25 @@ namespace fibjs {
 
 DECLARE_MODULE(http2);
 
-result_t http2_base::createServer(v8::Local<v8::Object> options, Handler_base* hdlr,
+// the context form of the merged createServer entry
+static result_t create_server_by_context(SecureContext_base* context, Handler_base* hdlr,
+    obj_ptr<Http2Server_base>& retVal);
+
+result_t http2_base::createServer(Union_createServer_options options, Handler_base* hdlr,
     obj_ptr<Http2Server_base>& retVal)
 {
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
+        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), hdlr, retVal);
+
     obj_ptr<SecureContext_base> ctx;
-    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    result_t hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
     if (hr < 0)
         return hr;
 
-    return createServer(ctx, hdlr, retVal);
+    return create_server_by_context(ctx.get(), hdlr, retVal);
 }
 
-result_t http2_base::createServer(SecureContext_base* context, Handler_base* hdlr,
+static result_t create_server_by_context(SecureContext_base* context, Handler_base* hdlr,
     obj_ptr<Http2Server_base>& retVal)
 {
     obj_ptr<Http2Server> svr = new Http2Server();
@@ -181,32 +188,17 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
     return (new asyncConnect(ssl_sock, hostname, port, ipv6, session, retVal, ac))->post(0);
 }
 
-result_t http2_base::getDefaultSettings(v8::Local<v8::Object>& retVal)
+result_t http2_base::getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+    retVal = new GetDefaultSettingsType();
 
-    obj->Set(context, isolate->NewString("headerTableSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate, 4096))
-        .IsJust();
-    obj->Set(context, isolate->NewString("enablePush"),
-        v8::Boolean::New(isolate->m_isolate, true))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxConcurrentStreams"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate, 100))
-        .IsJust();
-    obj->Set(context, isolate->NewString("initialWindowSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate, 65535))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxFrameSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate, 16384))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxHeaderListSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate, 65535))
-        .IsJust();
+    retVal->headerTableSize = 4096;
+    retVal->enablePush = true;
+    retVal->maxConcurrentStreams = 100;
+    retVal->initialWindowSize = 65535;
+    retVal->maxFrameSize = 16384;
+    retVal->maxHeaderListSize = 65535;
 
-    retVal = obj;
     return 0;
 }
 

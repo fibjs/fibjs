@@ -35,20 +35,20 @@ declare class Class_HttpRequest extends Class_HttpMessage {
     constructor();
 
     /**
-     * @description HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
-     *      @param url the request URL
-     *      @param options the request options, which can contain fields such as method, headers and body
-     *
-     */
-    constructor(url: string, options?: FIBJS.GeneralObject);
-
-    /**
      * @description HttpRequest constructor, copies from an existing Request object and can override options (Fetch API)
      *      @param request the existing HttpRequest object
      *      @param options the override options, which can contain fields such as method, headers and body
      *
      */
     constructor(request: Class_HttpRequest | Class_HttpRequestPromise, options?: FIBJS.GeneralObject);
+
+    /**
+     * @description HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
+     *      @param url the request URL
+     *      @param options the request options, which can contain fields such as method, headers and body
+     *
+     */
+    constructor(url: string, options?: FIBJS.GeneralObject);
 
     /**
      * @description gets the response message object
@@ -119,20 +119,20 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
     constructor();
 
     /**
-     * @description HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
-     *      @param url the request URL
-     *      @param options the request options, which can contain fields such as method, headers and body
-     *
-     */
-    constructor(url: string, options?: FIBJS.GeneralObject);
-
-    /**
      * @description HttpRequest constructor, copies from an existing Request object and can override options (Fetch API)
      *      @param request the existing HttpRequest object
      *      @param options the override options, which can contain fields such as method, headers and body
      *
      */
     constructor(request: Class_HttpRequest | Class_HttpRequestPromise, options?: FIBJS.GeneralObject);
+
+    /**
+     * @description HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
+     *      @param url the request URL
+     *      @param options the request options, which can contain fields such as method, headers and body
+     *
+     */
+    constructor(url: string, options?: FIBJS.GeneralObject);
 
     /**
      * @description gets the response message object

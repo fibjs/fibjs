@@ -27,7 +27,7 @@ public:
     static result_t _new(exlib::string url, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(std::vector<exlib::string>& urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(std::vector<exlib::string>& urls) = 0;
-    virtual result_t get_urls(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t get_urls(std::vector<exlib::string>& retVal) = 0;
     virtual result_t get_client(obj_ptr<HttpClient_base>& retVal) = 0;
 
 public:
@@ -131,7 +131,7 @@ inline void HttpRepeater_base::s_load(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void HttpRepeater_base::s_get_urls(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_INSTANCE(HttpRepeater_base);
     METHOD_ENTER();

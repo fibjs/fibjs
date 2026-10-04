@@ -305,18 +305,17 @@ result_t HttpClient_base::_new(obj_ptr<HttpClient_base>& retVal, v8::Local<v8::O
     return _new(isolate->m_ctx, retVal, This);
 }
 
-result_t HttpClient_base::_new(SecureContext_base* context, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
+result_t HttpClient_base::_new(Union_HttpClient_options options, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new HttpClient(context);
-    return 0;
-}
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options)) {
+        retVal = new HttpClient(std::get<obj_ptr<SecureContext_base>>(options).get());
+        return 0;
+    }
 
-result_t HttpClient_base::_new(v8::Local<v8::Object> options, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
-{
     obj_ptr<HttpClient> hc = new HttpClient(nullptr);
     hc->wrap(This);
 
-    result_t hr = hc->init(options);
+    result_t hr = hc->init(std::get<v8::Local<v8::Object>>(options));
     if (hr < 0)
         return hr;
 
@@ -503,7 +502,7 @@ result_t HttpClient::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t HttpClient::get_cookies(obj_ptr<NArray>& retVal)
+result_t HttpClient::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
 {
     retVal = m_cookies;
     return 0;
@@ -932,23 +931,14 @@ result_t HttpClient::destroy()
 
 result_t HttpClient::update(HttpCookie_base* cookie)
 {
-    int32_t length, i;
     exlib::string str, str1;
     bool b = false, b1 = false;
     date_t t, t1;
 
-    length = m_cookies->length();
-    if (length == 0)
+    if (m_cookies.empty())
         return 0;
 
-    for (i = 0; i < length; i++) {
-        Variant v;
-
-        m_cookies->_indexed_getter(i, v);
-        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
-        if (!hc)
-            continue;
-
+    for (auto& hc : m_cookies) {
         hc->get_name(str);
         cookie->get_name(str1);
         if (str != str1)
@@ -989,10 +979,9 @@ result_t HttpClient::update(HttpCookie_base* cookie)
     return 0;
 }
 
-result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
+result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpCookie_base>>& cookies)
 {
     result_t hr;
-    int32_t length, i;
     bool match = false;
     exlib::string domain;
 
@@ -1003,20 +992,12 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
 
     m_lock.lock();
 
-    length = cookies->length();
-    if (length == 0) {
+    if (cookies.empty()) {
         m_lock.unlock();
         return 0;
     }
 
-    for (i = 0; i < length; i++) {
-        Variant v;
-
-        cookies->_indexed_getter(i, v);
-        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
-        if (!hc)
-            continue;
-
+    for (auto& hc : cookies) {
         hc->match(url, match);
         if (!match)
             continue;
@@ -1026,7 +1007,7 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
             hc->set_domain(u->hostname());
 
         if (update(hc) == 0)
-            m_cookies->append(hc);
+            m_cookies.push_back(hc);
     }
 
     m_lock.unlock();
@@ -1036,7 +1017,6 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
 result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 {
     result_t hr;
-    int32_t length, i;
     bool match = false, secure = false;
     exlib::string s;
     exlib::string s1;
@@ -1049,22 +1029,15 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
         return hr;
 
     m_lock.lock();
-    length = m_cookies->length();
-    if (length == 0) {
+    if (m_cookies.empty()) {
         m_lock.unlock();
         return 0;
     }
 
     now.now();
 
-    for (i = 0; i < length; i++) {
-        Variant v;
+    for (auto& hc : m_cookies) {
         date_t date;
-
-        m_cookies->_indexed_getter(i, v);
-        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
-        if (!hc)
-            continue;
 
         hc->get_expires(date);
         if (!date.empty() && date.diff(now) < 0)
@@ -2078,7 +2051,7 @@ public:
         bool enableCookie;
         m_hc->get_enableCookie(enableCookie);
         if (enableCookie) {
-            obj_ptr<NArray> cookies;
+            std::vector<obj_ptr<HttpCookie_base>> cookies;
             resp->get_cookies(cookies);
             m_hc->update_cookies(m_url, cookies);
         }
@@ -3250,37 +3223,58 @@ private:
     obj_ptr<HttpResponse_base>& m_retVal;
 };
 
-result_t HttpClient::fetch(exlib::string url, v8::Local<v8::Object> opts,
+result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    // Sync phase: parse v8::Local opts into ac->m_ctx as a single Options object.
-    // fetch follows the WHATWG defaults (string body -> text/plain;charset=UTF-8),
-    // http.request keeps the historical urlencoded default.
-    if (ac->isSync())
-        return get_request_opts("GET", url, opts, ac, v8::Local<v8::Function>(), false, false);
-
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return (new asyncFetch(o, retVal, ac))->post(0);
-}
-
-result_t HttpClient::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    // Sync phase: extract url/method from the request, apply opts overrides.
+    // Sync phase: parse v8::Local opts (and the request source) into ac->m_ctx as
+    // a single Options object. fetch follows the Fetch standard: init overrides a
+    // request source (init.headers replaces its headers, init.body its body), a
+    // GET/HEAD request must not carry a body, and a string body is sent as
+    // text/plain;charset=UTF-8 (http.request keeps the historical urlencoded default).
     if (ac->isSync()) {
-        exlib::string req_method;
-        request->get_method(req_method);
+        Isolate* isolate = Isolate::current();
 
         obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
         o->agent = this;
 
-        result_t hr = o->from_opts(req_method, "", opts, false, true);
-        if (hr < 0)
-            return hr;
+        result_t hr;
 
-        hr = o->apply_from_request(request);
-        if (hr < 0)
-            return hr;
+        if (std::holds_alternative<exlib::string>(request)) {
+            // the url form: the string is the url, init carries method/headers/body
+            hr = o->from_opts("GET", std::get<exlib::string>(request), opts, false, true);
+            if (hr < 0)
+                return hr;
+
+            // Object-only overload: build URL entirely from opts fields
+            if (!o->u) {
+                o->u = new Url();
+                o->u->format(opts);
+            }
+
+            o->req = new HttpRequest();
+        } else {
+            // the request form: the request keeps its method/url/body, init overrides
+            HttpRequest_base* req = std::get<obj_ptr<HttpRequest_base>>(request);
+
+            exlib::string req_method;
+            req->get_method(req_method);
+
+            hr = o->from_opts(req_method, "", opts, false, true);
+            if (hr < 0)
+                return hr;
+
+            // an explicit init.headers replaces the headers of the request;
+            // WebIDL: a member whose value is undefined is not present
+            v8::Local<v8::Value> headers_val;
+            if (!opts.IsEmpty()
+                && !opts->Get(isolate->context(), isolate->NewString("headers", 7)).ToLocal(&headers_val))
+                return CALL_E_JAVASCRIPT;
+            bool replace_headers = !headers_val.IsEmpty() && !headers_val->IsUndefined();
+
+            hr = o->apply_from_request(req, replace_headers);
+            if (hr < 0)
+                return hr;
+        }
 
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = o;

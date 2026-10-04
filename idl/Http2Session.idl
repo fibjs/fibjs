@@ -5,10 +5,10 @@ Http2Session instances should not be constructed directly by users. The server c
 interface Http2Session : EventEmitter
 {
     /*! @brief queries the remote settings of this session */
-    readonly Object remoteSettings;
+    readonly (Number headerTableSize, Boolean enablePush, Number maxConcurrentStreams, Number initialWindowSize, Number maxFrameSize, Number maxHeaderListSize) remoteSettings;
 
     /*! @brief queries the local settings of this session */
-    readonly Object localSettings;
+    readonly (Number headerTableSize, Boolean enablePush, Number maxConcurrentStreams, Number initialWindowSize, Number maxFrameSize, Number maxHeaderListSize) localSettings;
 
     /*! @brief queries whether the session is destroyed */
     readonly Boolean destroyed;

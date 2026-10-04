@@ -35,13 +35,6 @@ interface WebSocket : EventEmitter
 {
     /*! @brief WebSocket constructor
      @param url specifies the server to connect
-     @param protocol specifies the handshake protocol, default is ""
-     @param origin specifies the origin to simulate during the handshake, default is ""
-    */
-    WebSocket(String url, String protocol = "", String origin = "");
-
-    /*! @brief WebSocket constructor
-     @param url specifies the server to connect
      @param protocols specifies the list of candidate sub-protocols for the handshake
      @param origin specifies the origin to simulate during the handshake, default is ""
     */
@@ -64,6 +57,13 @@ interface WebSocket : EventEmitter
      @param opts connection options, default is {}
     */
     WebSocket(String url, Object opts);
+
+    /*! @brief WebSocket constructor
+     @param url specifies the server to connect
+     @param protocol specifies the handshake protocol, default is ""
+     @param origin specifies the origin to simulate during the handshake, default is ""
+    */
+    WebSocket(String url, String protocol = "", String origin = "");
 
     /*! @brief specifies WebSocket message type 0, representing a continuation frame */
     const CONTINUE = 0;
@@ -113,27 +113,35 @@ interface WebSocket : EventEmitter
     */
     close(Integer code = 1000, String reason = "");
 
-    /*! @brief sends a piece of text to the peer
-     @param data specifies the text to send
-    */
-    send(String data);
+    /*! @brief sends data to the peer
 
-    /*! @brief sends a piece of binary data to the peer
-     @param data specifies the binary data to send
-    */
-    send(Buffer data);
+     Binary data (a Buffer, a typed array, an ArrayBuffer or a blob) is sent as
+     a binary frame; every other value is sent as a text frame of its string
+     form, the way the DOM WebSocket and the ws module of node render it:
+     send(123) sends the text "123", send(null) sends "null".
 
-    /*! @brief queries and binds the connection success event, equivalent to on("open", func); */
+     @param data specifies the data to send
+     */
+    send(Value data);
+
+    /*! @brief queries and binds the connection success event, equivalent to on("open", func); the listener receives no argument
+    */
     event open();
 
-    /*! @brief queries and binds the event of receiving a message from the peer, equivalent to on("message", func); */
-    event message();
+    /*! @brief queries and binds the event of receiving a message from the peer, equivalent to on("message", func); the listener receives the WebSocketMessage of the peer
+     @param msg the received message
+    */
+    event message(WebSocketMessage msg);
 
-    /*! @brief queries and binds the connection close event, equivalent to on("close", func); */
-    event close();
+    /*! @brief queries and binds the connection close event, equivalent to on("close", func); the listener receives the event object carrying the close code and reason
+     @param ev the event object
+    */
+    event close(Object ev);
 
-    /*! @brief queries and binds the error event, equivalent to on("error", func); */
-    event error();
+    /*! @brief queries and binds the error event, equivalent to on("error", func); the listener receives the event object carrying the error code and reason
+     @param ev the event object
+    */
+    event error(Object ev);
 
     /*! @brief keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
      @return returns the current object
@@ -152,7 +160,7 @@ interface WebSocket : EventEmitter
      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      */
-    static Handler upgrade(Function accept);
+    static Handler upgrade(Function(WebSocket conn, HttpRequest req) accept);
 
     /*! @brief creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
      opts supports using `protocol` or `protocols` to specify the sub-protocols acceptable to the server, and writes back `Sec-WebSocket-Protocol` when the handshake succeeds, for example:
@@ -167,5 +175,5 @@ interface WebSocket : EventEmitter
      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      */
-    static Handler upgrade(Object opts, Function accept);
+    static Handler upgrade(Object opts, Function(WebSocket conn, HttpRequest req) accept);
 };

@@ -16,8 +16,8 @@
 namespace fibjs {
 
 class Http2Server_base;
-class Handler_base;
 class SecureContext_base;
+class Handler_base;
 class Http2Session_base;
 class Http2Stream_base;
 class http2_constants_base;
@@ -26,11 +26,46 @@ class http2_base : public object_base {
     DECLARE_CLASS(http2_base);
 
 public:
+    using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
+
+public:
+    class GetDefaultSettingsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("headerTableSize"), GetReturnValue(isolate, headerTableSize)).Check();
+            retVal->Set(context, isolate->NewString("enablePush"), GetReturnValue(isolate, enablePush)).Check();
+            retVal->Set(context, isolate->NewString("maxConcurrentStreams"), GetReturnValue(isolate, maxConcurrentStreams)).Check();
+            retVal->Set(context, isolate->NewString("initialWindowSize"), GetReturnValue(isolate, initialWindowSize)).Check();
+            retVal->Set(context, isolate->NewString("maxFrameSize"), GetReturnValue(isolate, maxFrameSize)).Check();
+            retVal->Set(context, isolate->NewString("maxHeaderListSize"), GetReturnValue(isolate, maxHeaderListSize)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, headerTableSize));
+            args.push_back(GetReturnValue(isolate, enablePush));
+            args.push_back(GetReturnValue(isolate, maxConcurrentStreams));
+            args.push_back(GetReturnValue(isolate, initialWindowSize));
+            args.push_back(GetReturnValue(isolate, maxFrameSize));
+            args.push_back(GetReturnValue(isolate, maxHeaderListSize));
+        }
+
+    public:
+        double headerTableSize;
+        bool enablePush;
+        double maxConcurrentStreams;
+        double initialWindowSize;
+        double maxFrameSize;
+        double maxHeaderListSize;
+    };
+
+public:
     // http2_base
-    static result_t createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal);
-    static result_t createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal);
     static result_t connect(exlib::string authority, v8::Local<v8::Object> options, obj_ptr<Http2Session_base>& retVal, AsyncEvent* ac);
-    static result_t getDefaultSettings(v8::Local<v8::Object>& retVal);
+    static result_t getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -54,8 +89,8 @@ public:
 }
 
 #include "ifs/Http2Server.h"
-#include "ifs/Handler.h"
 #include "ifs/SecureContext.h"
+#include "ifs/Handler.h"
 #include "ifs/Http2Session.h"
 #include "ifs/Http2Stream.h"
 #include "ifs/http2_constants.h"
@@ -95,17 +130,10 @@ inline void http2_base::s_static_createServer(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(2, 2);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_createServer_options, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
     hr = createServer(v0, v1.get(), vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = createServer(v0.get(), v1.get(), vr);
 
     METHOD_RETURN();
 }
@@ -131,7 +159,7 @@ inline void http2_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void http2_base::s_static_getDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<GetDefaultSettingsType> vr;
 
     METHOD_ENTER();
 

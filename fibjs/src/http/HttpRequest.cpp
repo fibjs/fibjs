@@ -176,7 +176,7 @@ result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Obje
     return 0;
 }
 
-result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req)
+result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool replace_headers)
 {
     // Parse URL from request's address
     exlib::string url;
@@ -196,7 +196,11 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req)
         }
     }
 
-    // Headers: request's headers as base, opts headers override
+    // Headers: an explicit init.headers replaces the request's headers (the Fetch
+    // standard), otherwise the request's headers are the base and opts override.
+    if (replace_headers)
+        return 0;
+
     obj_ptr<Headers_base> req_hdrs;
     req->get_headers(req_hdrs);
     if (req_hdrs) {
@@ -214,13 +218,28 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req)
     return 0;
 }
 
-void HttpRequest::set_options(const Options& o)
+void HttpRequest::set_options(const Options& o, bool replace_headers)
 {
     set_method(o.method);
     if (o.u)
         set_address(o.u->href());
-    if (o.headers)
-        appendHeader(o.headers.get());
+    if (o.headers) {
+        // Fetch standard: `new Request(request, init)` with an explicit init.headers
+        // replaces the headers of the request being copied
+        if (replace_headers)
+            setHeader(o.headers.get());
+        else {
+            // a replaced body owns the content-type: the one carried by the copied
+            // request must not survive as a duplicate (the standard keeps one)
+            if (o.body) {
+                Variant ct;
+                if (o.headers->first("Content-Type", ct) != CALL_RETURN_NULL)
+                    removeHeader("Content-Type");
+            }
+
+            appendHeader(o.headers.get());
+        }
+    }
     if (o.body)
         set_body(o.body);
     if (o.has_keepAlive)
@@ -261,7 +280,29 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     if (hr < 0)
         return hr;
 
-    req->set_options(o);
+    // an explicit init.headers replaces the headers of the copied request;
+    // WebIDL: a member whose value is undefined is not present
+    v8::Local<v8::Context> context = Isolate::current()->context();
+    v8::Local<v8::Value> headers_val;
+    if (!options.IsEmpty()
+        && !options->Get(context, Isolate::current()->NewString("headers", 7)).ToLocal(&headers_val))
+        return CALL_E_JAVASCRIPT;
+    bool replace_headers = !headers_val.IsEmpty() && !headers_val->IsUndefined();
+
+    req->set_options(o, replace_headers);
+
+    // Fetch standard: a GET/HEAD request must not carry a body, and the body of
+    // the copied request counts as well (init.body was already checked)
+    exlib::string method = o.method;
+    for (char& c : method)
+        c = toupper((unsigned char)c);
+
+    if (method == "GET" || method == "HEAD") {
+        obj_ptr<Stream_base> body;
+        if (req->get_body(body) == 0 && body)
+            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                    .with_message("Request: GET/HEAD requests cannot have a body")));
+    }
 
     retVal = req;
     return 0;
@@ -317,9 +358,30 @@ result_t HttpRequest::setEncoding(exlib::string encoding, obj_ptr<Message_base>&
     return 0;
 }
 
+result_t HttpRequest::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+
+    return write(std::get<exlib::string>(data), retVal, ac);
+}
+
 result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return m_message->write(data, retVal, ac);
+}
+
+result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(data, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return m_message->write(buf.get(), retVal, ac);
 }
 
 result_t HttpRequest::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
@@ -472,8 +534,6 @@ result_t HttpRequest::appendHeader(Headers_base* headers)
     return 0;
 }
 
-// INTERIM (commit split): HttpMessage takes the Variant value here; the final
-// HttpRequest moves to the union/typed-return surface in the http batch.
 result_t HttpRequest::appendHeader(exlib::string name, Variant value)
 {
     return m_message->appendHeader(name, value);
@@ -494,7 +554,6 @@ result_t HttpRequest::setHeader(Headers_base* headers)
     return m_message->setHeader(headers);
 }
 
-// INTERIM (commit split): see appendHeader above.
 result_t HttpRequest::setHeader(exlib::string name, Variant value)
 {
     return m_message->setHeader(name, value);

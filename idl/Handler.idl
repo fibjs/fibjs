@@ -14,7 +14,7 @@ interface Handler : object
     /*! @brief Creates a JavaScript message handler
      @param hdlr JavaScript handler function
      */
-    Handler(Function hdlr);
+    Handler(Function(Value req, ...params) => Value hdlr);
 
     /*! @brief Constructs a fileHandler or HttpRepeater
      @param hdlr the address parameter of the handler

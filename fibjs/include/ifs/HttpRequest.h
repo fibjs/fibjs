@@ -28,8 +28,8 @@ class HttpRequest_base : public HttpMessage_base {
 public:
     // HttpRequest_base
     static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, v8::Local<v8::Object> options, obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(HttpRequest_base* request, v8::Local<v8::Object> options, obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, v8::Local<v8::Object> options, obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal) = 0;
     virtual result_t get_method(exlib::string& retVal) = 0;
     virtual result_t set_method(exlib::string newVal) = 0;
@@ -121,17 +121,17 @@ inline void HttpRequest_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 1);
-
     ARG(obj_ptr<HttpRequest_base>, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0.get(), v1, vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

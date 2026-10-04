@@ -68,15 +68,23 @@ interface EventSource : EventEmitter
     /*! @brief http response object */
     readonly HttpResponse response;
 
-    /*! @brief open event callback */
-    event open();
+    /*! @brief open event callback
+     @param ev the event object of the connection
+     */
+    event open(Object ev);
 
-    /*! @brief error event callback */
-    event error();
+    /*! @brief error event callback
+     @param ev the event object, carrying the error code and reason
+     */
+    event error(Object ev);
 
-    /*! @brief message event callback */
-    event message();
+    /*! @brief message event callback
+     @param ev the event object, carrying the message data, id and retry interval
+     */
+    event message(Object ev);
 
-    /*! @brief close event callback */
-    event close();
+    /*! @brief close event callback
+     @param ev the event object of the closed connection
+     */
+    event close(Object ev);
 };

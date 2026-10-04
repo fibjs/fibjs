@@ -38,13 +38,12 @@ public:
         , m_defaultPort(80)
         , m_protocol("http:")
     {
-        m_cookies = new NArray();
         m_userAgent = "curl/8.14.1";
     }
 
 public:
     // HttpClient_base
-    virtual result_t get_cookies(obj_ptr<NArray>& retVal);
+    virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     virtual result_t get_keepAlive(bool& retVal);
     virtual result_t set_keepAlive(bool newVal);
     virtual result_t get_timeout(int32_t& retVal);
@@ -156,8 +155,7 @@ public:
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac);
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac);
     virtual result_t head(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac);
-    virtual result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    virtual result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    virtual result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     result_t init(v8::Local<v8::Object> options);
@@ -177,7 +175,7 @@ public:
     result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac, bool streaming);
     result_t requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly);
 
-    result_t update_cookies(exlib::string url, NArray* cookies);
+    result_t update_cookies(exlib::string url, std::vector<obj_ptr<HttpCookie_base>>& cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
     void setEnvProxy();
@@ -245,7 +243,7 @@ private:
 
 public:
     obj_ptr<SecureContext_base> m_context;
-    obj_ptr<NArray> m_cookies;
+    std::vector<obj_ptr<HttpCookie_base>> m_cookies;
     exlib::spinlock m_lock;
     bool m_keepAlive;
     int32_t m_timeout;

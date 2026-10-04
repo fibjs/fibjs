@@ -126,6 +126,9 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
     Isolate* isolate = holder();
     obj_ptr<X509Certificate_base> ca;
     result_t hr = load_cert_option(options, "ca", ca);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         return set_ca(ca);
     else if (!isServer)
@@ -226,6 +229,8 @@ result_t SecureContext::set_cert(v8::Local<v8::Object> options)
     obj_ptr<X509Certificate_base> certs;
 
     result_t hr = load_cert_option(options, "cert", certs);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
 
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         X509Certificate* now = certs.As<X509Certificate>();

@@ -12,12 +12,26 @@ declare class Class_Http2Session extends Class_EventEmitter {
     /**
      * @description queries the remote settings of this session
      */
-    readonly remoteSettings: FIBJS.GeneralObject;
+    readonly remoteSettings: {
+        headerTableSize: number;
+        enablePush: boolean;
+        maxConcurrentStreams: number;
+        initialWindowSize: number;
+        maxFrameSize: number;
+        maxHeaderListSize: number;
+    };
 
     /**
      * @description queries the local settings of this session
      */
-    readonly localSettings: FIBJS.GeneralObject;
+    readonly localSettings: {
+        headerTableSize: number;
+        enablePush: boolean;
+        maxConcurrentStreams: number;
+        initialWindowSize: number;
+        maxFrameSize: number;
+        maxHeaderListSize: number;
+    };
 
     /**
      * @description queries whether the session is destroyed
@@ -246,12 +260,26 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
     /**
      * @description queries the remote settings of this session
      */
-    readonly remoteSettings: FIBJS.GeneralObject;
+    readonly remoteSettings: {
+        headerTableSize: number;
+        enablePush: boolean;
+        maxConcurrentStreams: number;
+        initialWindowSize: number;
+        maxFrameSize: number;
+        maxHeaderListSize: number;
+    };
 
     /**
      * @description queries the local settings of this session
      */
-    readonly localSettings: FIBJS.GeneralObject;
+    readonly localSettings: {
+        headerTableSize: number;
+        enablePush: boolean;
+        maxConcurrentStreams: number;
+        initialWindowSize: number;
+        maxFrameSize: number;
+        maxHeaderListSize: number;
+    };
 
     /**
      * @description queries whether the session is destroyed

@@ -284,8 +284,8 @@ public:
 
     // Http2Session_base
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func);
-    virtual result_t get_remoteSettings(v8::Local<v8::Object>& retVal);
-    virtual result_t get_localSettings(v8::Local<v8::Object>& retVal);
+    virtual result_t get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal);
+    virtual result_t get_localSettings(obj_ptr<LocalSettingsType>& retVal);
     virtual result_t get_destroyed(bool& retVal);
     virtual result_t get_closed(bool& retVal);
     virtual result_t get_alpnProtocol(exlib::string& retVal);

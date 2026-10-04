@@ -82,127 +82,108 @@ static void _log(int32_t type, exlib::string fmt, OptArgs args)
     }
 }
 
-result_t console_base::log(exlib::string fmt, OptArgs args)
+// The text sinks take any values: a leading string argument is the format
+// template, every other value is printed as-is. This lenient rendering lives
+// here instead of an IDL String conversion.
+static void _format_args(OptArgs args, int32_t type, exlib::string& str)
 {
-    _log(C_INFO, fmt, args);
-    return 0;
+    Isolate* isolate = Isolate::current();
+
+    if (args.Length() > 0) {
+        v8::Local<v8::Value> first = args[0];
+
+        if (first->IsString() || first->IsStringObject()) {
+            exlib::string fmt;
+
+            GetArgumentValue(isolate, first, fmt);
+
+            std::vector<v8::Local<v8::Value>> datas;
+            args.GetData(datas);
+            datas.erase(datas.begin());
+
+            util_format(isolate, fmt, OptArgs(datas), colors(type), str);
+            return;
+        }
+    }
+
+    util_format(isolate, "", args, colors(type), str);
+}
+
+static void _log_args(int32_t type, OptArgs args)
+{
+    int32_t level;
+
+    console_base::get_loglevel(level);
+
+    if (type <= level) {
+        exlib::string str;
+
+        _format_args(args, type, str);
+        outLog(type, str);
+    }
 }
 
 result_t console_base::log(OptArgs args)
 {
-    _log(C_INFO, "", args);
-    return 0;
-}
-
-result_t console_base::debug(exlib::string fmt, OptArgs args)
-{
-    _log(C_DEBUG, fmt, args);
+    _log_args(C_INFO, args);
     return 0;
 }
 
 result_t console_base::debug(OptArgs args)
 {
-    _log(C_DEBUG, "", args);
-    return 0;
-}
-
-result_t console_base::info(exlib::string fmt, OptArgs args)
-{
-    _log(C_INFO, fmt, args);
+    _log_args(C_DEBUG, args);
     return 0;
 }
 
 result_t console_base::info(OptArgs args)
 {
-    _log(C_INFO, "", args);
-    return 0;
-}
-
-result_t console_base::notice(exlib::string fmt, OptArgs args)
-{
-    _log(C_NOTICE, fmt, args);
+    _log_args(C_INFO, args);
     return 0;
 }
 
 result_t console_base::notice(OptArgs args)
 {
-    _log(C_NOTICE, "", args);
-    return 0;
-}
-
-result_t console_base::warn(exlib::string fmt, OptArgs args)
-{
-    _log(C_WARN, fmt, args);
+    _log_args(C_NOTICE, args);
     return 0;
 }
 
 result_t console_base::warn(OptArgs args)
 {
-    _log(C_WARN, "", args);
-    return 0;
-}
-
-result_t console_base::warning(exlib::string fmt, OptArgs args)
-{
-    _log(C_WARN, fmt, args);
+    _log_args(C_WARN, args);
     return 0;
 }
 
 result_t console_base::warning(OptArgs args)
 {
-    _log(C_WARN, "", args);
-    return 0;
-}
-
-result_t console_base::error(exlib::string fmt, OptArgs args)
-{
-    _log(C_ERROR, fmt, args);
+    _log_args(C_WARN, args);
     return 0;
 }
 
 result_t console_base::error(OptArgs args)
 {
-    _log(C_ERROR, "", args);
-    return 0;
-}
-
-result_t console_base::crit(exlib::string fmt, OptArgs args)
-{
-    _log(C_CRIT, fmt, args);
+    _log_args(C_ERROR, args);
     return 0;
 }
 
 result_t console_base::crit(OptArgs args)
 {
-    _log(C_CRIT, "", args);
-    return 0;
-}
-
-result_t console_base::critical(exlib::string fmt, OptArgs args)
-{
-    _log(C_CRIT, fmt, args);
+    _log_args(C_CRIT, args);
     return 0;
 }
 
 result_t console_base::critical(OptArgs args)
 {
-    _log(C_CRIT, "", args);
-    return 0;
-}
-
-result_t console_base::alert(exlib::string fmt, OptArgs args)
-{
-    _log(C_ALERT, fmt, args);
+    _log_args(C_CRIT, args);
     return 0;
 }
 
 result_t console_base::alert(OptArgs args)
 {
-    _log(C_ALERT, "", args);
+    _log_args(C_ALERT, args);
     return 0;
 }
 
-result_t console_base::trace(exlib::string fmt, OptArgs args)
+result_t console_base::trace(OptArgs args)
 {
     int32_t type = C_WARN;
     int32_t level;
@@ -212,7 +193,7 @@ result_t console_base::trace(exlib::string fmt, OptArgs args)
     if (type <= level) {
         exlib::string str;
 
-        util_format(Isolate::current(), fmt, args, colors(type), str);
+        _format_args(args, type, str);
         if (str.empty())
             str = "Trace";
         else
@@ -224,11 +205,6 @@ result_t console_base::trace(exlib::string fmt, OptArgs args)
     }
 
     return 0;
-}
-
-result_t console_base::trace(OptArgs args)
-{
-    return trace("", args);
 }
 
 result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)
@@ -252,15 +228,9 @@ result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fiel
     return 0;
 }
 
-result_t console_base::print(exlib::string fmt, OptArgs args)
-{
-    _log(C_PRINT, fmt, args);
-    return 0;
-}
-
 result_t console_base::print(OptArgs args)
 {
-    _log(C_PRINT, "", args);
+    _log_args(C_PRINT, args);
     return 0;
 }
 

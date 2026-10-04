@@ -74,9 +74,30 @@ result_t WebSocketMessage::setEncoding(exlib::string encoding, obj_ptr<Message_b
     return 0;
 }
 
+result_t WebSocketMessage::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+
+    return write(std::get<exlib::string>(data), retVal, ac);
+}
+
 result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
 {
     return m_message->write(data, retVal, ac);
+}
+
+result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(data, "utf8", buf);
+    if (hr < 0)
+        return hr;
+
+    return m_message->write(buf.get(), retVal, ac);
 }
 
 result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)

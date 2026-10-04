@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class EventEmitter_base;
-class Buffer_base;
 class WebSocketMessage_base;
 class Handler_base;
 
@@ -41,16 +40,15 @@ public:
 
 public:
     // WebSocket_base
-    static result_t _new(exlib::string url, exlib::string protocol, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string url, std::vector<exlib::string>& protocols, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, exlib::string protocol, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t get_origin(exlib::string& retVal) = 0;
     virtual result_t get_readyState(int32_t& retVal) = 0;
     virtual result_t close(int32_t code, exlib::string reason) = 0;
-    virtual result_t send(exlib::string data) = 0;
-    virtual result_t send(Buffer_base* data) = 0;
+    virtual result_t send(v8::Local<v8::Value> data) = 0;
     virtual result_t ref(obj_ptr<WebSocket_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<WebSocket_base>& retVal) = 0;
     static result_t upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
@@ -82,7 +80,6 @@ public:
 };
 }
 
-#include "ifs/Buffer.h"
 #include "ifs/WebSocketMessage.h"
 #include "ifs/Handler.h"
 
@@ -148,14 +145,6 @@ inline void WebSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-    OPT_ARG(exlib::string, 2, "");
-
-    hr = _new(v0, v1, v2, vr, args.This());
-
     METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
@@ -170,6 +159,14 @@ inline void WebSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(v8::Local<v8::Object>, 1);
 
     hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -269,15 +266,9 @@ inline void WebSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = pInst->send(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->send(v0.get());
 
     METHOD_VOID();
 }

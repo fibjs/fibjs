@@ -22,6 +22,10 @@ class console_base : public object_base {
     DECLARE_CLASS(console_base);
 
 public:
+    using Union_add_cfg = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>>;
+    using Union_use_cfg = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>>;
+
+public:
     enum {
         C_FATAL = 0,
         C_ALERT = 1,
@@ -42,38 +46,24 @@ public:
     static result_t get_width(int32_t& retVal);
     static result_t get_height(int32_t& retVal);
     static result_t add(exlib::string type);
-    static result_t add(v8::Local<v8::Object> cfg);
-    static result_t add(v8::Local<v8::Array> cfg);
+    static result_t add(Union_add_cfg cfg);
     static result_t use(exlib::string type);
-    static result_t use(v8::Local<v8::Object> cfg);
-    static result_t use(v8::Local<v8::Array> cfg);
+    static result_t use(Union_use_cfg cfg);
     static result_t reset();
-    static result_t log(exlib::string fmt, OptArgs args);
     static result_t log(OptArgs args);
-    static result_t debug(exlib::string fmt, OptArgs args);
     static result_t debug(OptArgs args);
-    static result_t info(exlib::string fmt, OptArgs args);
     static result_t info(OptArgs args);
-    static result_t notice(exlib::string fmt, OptArgs args);
     static result_t notice(OptArgs args);
-    static result_t warn(exlib::string fmt, OptArgs args);
     static result_t warn(OptArgs args);
-    static result_t warning(exlib::string fmt, OptArgs args);
     static result_t warning(OptArgs args);
-    static result_t error(exlib::string fmt, OptArgs args);
     static result_t error(OptArgs args);
-    static result_t crit(exlib::string fmt, OptArgs args);
     static result_t crit(OptArgs args);
-    static result_t critical(exlib::string fmt, OptArgs args);
     static result_t critical(OptArgs args);
-    static result_t alert(exlib::string fmt, OptArgs args);
     static result_t alert(OptArgs args);
-    static result_t trace(exlib::string fmt, OptArgs args);
     static result_t trace(OptArgs args);
     static result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options);
     static result_t table(v8::Local<v8::Value> obj);
     static result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
-    static result_t print(exlib::string fmt, OptArgs args);
     static result_t print(OptArgs args);
     static result_t moveTo(int32_t row, int32_t column);
     static result_t hideCursor();
@@ -268,13 +258,7 @@ inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
-
-    hr = add(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(Union_add_cfg, 0);
 
     hr = add(v0);
 
@@ -293,13 +277,7 @@ inline void console_base::s_static_use(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
-
-    hr = use(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(Union_use_cfg, 0);
 
     hr = use(v0);
 
@@ -321,13 +299,6 @@ inline void console_base::s_static_log(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = log(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -340,13 +311,6 @@ inline void console_base::s_static_log(const v8::FunctionCallbackInfo<v8::Value>
 inline void console_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = debug(v0, v1);
 
     METHOD_OVER(-1, 0);
 
@@ -361,13 +325,6 @@ inline void console_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = info(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -380,13 +337,6 @@ inline void console_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value
 inline void console_base::s_static_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = notice(v0, v1);
 
     METHOD_OVER(-1, 0);
 
@@ -401,13 +351,6 @@ inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = warn(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -420,13 +363,6 @@ inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value
 inline void console_base::s_static_warning(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = warning(v0, v1);
 
     METHOD_OVER(-1, 0);
 
@@ -441,13 +377,6 @@ inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = error(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -460,13 +389,6 @@ inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Valu
 inline void console_base::s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = crit(v0, v1);
 
     METHOD_OVER(-1, 0);
 
@@ -481,13 +403,6 @@ inline void console_base::s_static_critical(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = critical(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -501,13 +416,6 @@ inline void console_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = alert(v0, v1);
-
     METHOD_OVER(-1, 0);
 
     ARG_LIST(0);
@@ -520,13 +428,6 @@ inline void console_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Valu
 inline void console_base::s_static_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = trace(v0, v1);
 
     METHOD_OVER(-1, 0);
 
@@ -574,13 +475,6 @@ inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Valu
 inline void console_base::s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = print(v0, v1);
 
     METHOD_OVER(-1, 0);
 

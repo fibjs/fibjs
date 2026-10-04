@@ -50,7 +50,7 @@ result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib:
         return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
-result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
+result_t http_base::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
 {
     return get_httpClient()->get_cookies(retVal);
 }
@@ -508,7 +508,8 @@ result_t http_base::createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& r
     return HttpServer_base::_new(hdlr, retVal);
 }
 
-result_t http_base::createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+// the context form of the merged createServer entry: always an https server
+static result_t create_server_by_context(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
 {
     obj_ptr<HttpsServer_base> server;
     result_t hr = HttpsServer_base::_new(context, hdlr, server);
@@ -519,40 +520,38 @@ result_t http_base::createServer(SecureContext_base* context, Handler_base* hdlr
     return 0;
 }
 
-result_t http_base::createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+result_t http_base::createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(options);
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
+        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), hdlr, retVal);
+
+    v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
+    Isolate* isolate = Isolate::current(opts);
     v8::Local<v8::Context> context = isolate->context();
 
     // detect TLS-related fields to decide http vs https
-    bool hasCert = js_obj_has_value(options, context, "cert");
-    bool hasCa = js_obj_has_value(options, context, "ca");
+    bool hasCert = js_obj_has_value(opts, context, "cert");
+    bool hasCa = js_obj_has_value(opts, context, "ca");
 
     if (hasCert || hasCa) {
         obj_ptr<SecureContext_base> ctx;
-        result_t hr = tls_base::createSecureContext(options, true, ctx);
+        result_t hr = tls_base::createSecureContext(opts, true, ctx);
         if (hr < 0)
             return hr;
 
-        return createServer(ctx, hdlr, retVal);
+        return create_server_by_context(ctx.get(), hdlr, retVal);
     }
 
-    return createServer(hdlr, retVal);
+    return HttpServer_base::_new(hdlr, retVal);
 }
 
-result_t http_base::fetch(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return get_httpClient(ac->isolate())->fetch(url, opts, retVal, ac);
-}
-
-result_t http_base::fetch(HttpRequest_base* request, v8::Local<v8::Object> opts,
+result_t http_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return get_httpClient(ac->isolate())->fetch(request, opts, retVal, ac);
 }
 
-result_t http_base::get_METHODS(v8::Local<v8::Array>& retVal)
+result_t http_base::get_METHODS(std::vector<exlib::string>& retVal)
 {
     static const char* http_methods[] = {
         "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD",
@@ -563,14 +562,9 @@ result_t http_base::get_METHODS(v8::Local<v8::Array>& retVal)
     };
     static const int http_methods_count = sizeof(http_methods) / sizeof(http_methods[0]);
 
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, http_methods_count);
     for (int i = 0; i < http_methods_count; i++)
-        arr->Set(context, i, isolate->NewString(http_methods[i])).IsJust();
+        retVal.push_back(http_methods[i]);
 
-    retVal = arr;
     return 0;
 }
 }

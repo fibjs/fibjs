@@ -42,7 +42,7 @@ interface HttpRepeater : Handler
     load(String urls[]);
 
     /*! @brief queries the current list of backend server urls*/
-    readonly NArray urls;
+    readonly String[] urls;
 
     /*! @brief the HttpClient object used internally by the request forwarding handler*/
     readonly HttpClient client;

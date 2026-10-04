@@ -43,11 +43,6 @@ interface HttpClient : EventEmitter
     HttpClient();
 
     /*! @brief HttpClient constructor, creates a new HttpClient object
-     @param context the secure context used to create the HttpClient
-     */
-    HttpClient(SecureContext context);
-
-    /*! @brief HttpClient constructor, creates a new HttpClient object
 
      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      - keepAlive: specifies whether to keep the connection alive
@@ -63,12 +58,12 @@ interface HttpClient : EventEmitter
      - poolTimeout: specifies the keep-alive cached connection timeout
      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
 
-     @param options options required to create a secure context using tls.createSecureContext
+     @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
      */
-    HttpClient(Object options);
+    HttpClient(SecureContext|Object options);
 
     /*! @brief Returns the HttpCookie object list of the http client */
-    readonly NArray cookies;
+    readonly HttpCookie[] cookies;
 
     /*! @brief Queries and sets whether to keep the connection alive */
     Boolean keepAlive;
@@ -149,35 +144,6 @@ interface HttpClient : EventEmitter
      */
     HttpRequest request(Stream conn, HttpRequest req);
 
-    /*! @brief Requests the specified url and returns the result
-     opts contains additional request options; the supported contents are as follows:
-     ```JavaScript
-     {
-         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-         "protocol": "http",
-         "slashes": true,
-         "username": "",
-         "password": "",
-         "hostname": "",
-         "port": "",
-         "pathname": "",
-         "path": "", // alias of pathname, used for the request option.
-         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-         "query": {},
-         "body": SeekableStream | Buffer | String | {},
-         "json": {},
-         "pack": {},
-         "headers": {}
-     }
-     ```
-     body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     @param method the http request method: GET, POST, etc.
-     @param url the url to request; must be a complete url including the host
-     @param opts the additional information
-     @return returns the server response
-     */
-    HttpResponse requestSync(String method, String url, Object opts = {}) async;
-
     /*! @brief Requests the url specified by opts and returns the result
      opts contains additional request options; the supported contents are as follows:
      ```JavaScript
@@ -231,7 +197,7 @@ interface HttpClient : EventEmitter
      */
     HttpResponse requestSync(String url, Object opts = {}) async;
 
-    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+    /*! @brief Requests the specified url and returns the result
      opts contains additional request options; the supported contents are as follows:
      ```JavaScript
      {
@@ -245,22 +211,20 @@ interface HttpClient : EventEmitter
          "pathname": "",
          "path": "", // alias of pathname, used for the request option.
          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-         "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
          "pack": {},
-         "headers": {},
-         "signal": AbortSignal // AbortSignal object used to cancel the request
+         "headers": {}
      }
      ```
      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
      @param method the http request method: GET, POST, etc.
      @param url the url to request; must be a complete url including the host
      @param opts the additional information
-     @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     @return returns the server response
      */
-    HttpRequest request(String method, String url, Object opts = {});
+    HttpResponse requestSync(String method, String url, Object opts = {}) async;
 
     /*! @brief Requests the url specified by opts and returns an HttpRequest object
      opts contains additional request options; the supported contents are as follows:
@@ -289,6 +253,20 @@ interface HttpClient : EventEmitter
      @return returns an HttpRequest object (listen to the 'response' event to receive the response)
      */
     HttpRequest request(Object opts);
+
+    /*! @brief Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
+     @param opts the additional information
+     @param callback response callback function, receives HttpResponse as a parameter
+     @return returns an HttpRequest object
+     */
+    HttpRequest request(Object opts, Function(HttpResponse resp) callback);
+
+    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     @param url the url to request; must be a complete url including the host
+     @param callback response callback function, receives HttpResponse as a parameter
+     @return returns an HttpRequest object
+     */
+    HttpRequest request(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url and returns an HttpRequest object
      opts contains additional request options; the supported contents are as follows:
@@ -320,35 +298,12 @@ interface HttpClient : EventEmitter
     HttpRequest request(String url, Object opts = {});
 
     /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     @param method the http request method: GET, POST, etc.
      @param url the url to request; must be a complete url including the host
      @param opts the additional information
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest request(String method, String url, Object opts, Function callback);
-
-    /*! @brief Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
-     @param opts the additional information
-     @param callback response callback function, receives HttpResponse as a parameter
-     @return returns an HttpRequest object
-     */
-    HttpRequest request(Object opts, Function callback);
-
-    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     @param url the url to request; must be a complete url including the host
-     @param opts the additional information
-     @param callback response callback function, receives HttpResponse as a parameter
-     @return returns an HttpRequest object
-     */
-    HttpRequest request(String url, Object opts, Function callback);
-
-    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     @param url the url to request; must be a complete url including the host
-     @param callback response callback function, receives HttpResponse as a parameter
-     @return returns an HttpRequest object
-     */
-    HttpRequest request(String url, Function callback);
+    HttpRequest request(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
      @param method the http request method: GET, POST, etc.
@@ -356,7 +311,47 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest request(String method, String url, Function callback);
+    HttpRequest request(String method, String url, Function(HttpResponse resp) callback);
+
+    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     opts contains additional request options; the supported contents are as follows:
+     ```JavaScript
+     {
+         "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+         "protocol": "http",
+         "slashes": true,
+         "username": "",
+         "password": "",
+         "hostname": "",
+         "port": "",
+         "pathname": "",
+         "path": "", // alias of pathname, used for the request option.
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+         "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
+         "query": {},
+         "body": SeekableStream | Buffer | String | {},
+         "json": {},
+         "pack": {},
+         "headers": {},
+         "signal": AbortSignal // AbortSignal object used to cancel the request
+     }
+     ```
+     body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     @param method the http request method: GET, POST, etc.
+     @param url the url to request; must be a complete url including the host
+     @param opts the additional information
+     @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     */
+    HttpRequest request(String method, String url, Object opts = {});
+
+    /*! @brief Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     @param method the http request method: GET, POST, etc.
+     @param url the url to request; must be a complete url including the host
+     @param opts the additional information
+     @param callback response callback function, receives HttpResponse as a parameter
+     @return returns an HttpRequest object
+     */
+    HttpRequest request(String method, String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -416,14 +411,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest get(String url, Object opts, Function callback);
+    HttpRequest get(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest get(String url, Function callback);
+    HttpRequest get(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the POST method and returns the result, equivalent to request("POST", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -486,14 +481,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest post(String url, Object opts, Function callback);
+    HttpRequest post(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest post(String url, Function callback);
+    HttpRequest post(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the DELETE method and returns the result, equivalent to request("DELETE", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -553,14 +548,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest del(String url, Object opts, Function callback);
+    HttpRequest del(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest del(String url, Function callback);
+    HttpRequest del(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the PUT method and returns the result, equivalent to request("PUT", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -623,14 +618,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest put(String url, Object opts, Function callback);
+    HttpRequest put(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest put(String url, Function callback);
+    HttpRequest put(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the PATCH method and returns the result, equivalent to request("PATCH", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -693,14 +688,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest patch(String url, Object opts, Function callback);
+    HttpRequest patch(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest patch(String url, Function callback);
+    HttpRequest patch(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the HEAD method and returns the result, equivalent to request("PATCH", ...)
      opts contains additional request options; the supported contents are as follows:
@@ -760,21 +755,14 @@ interface HttpClient : EventEmitter
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest head(String url, Object opts, Function callback);
+    HttpRequest head(String url, Object opts, Function(HttpResponse resp) callback);
 
     /*! @brief Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
      @param url the url to request; must be a complete url including the host
      @param callback response callback function, receives HttpResponse as a parameter
      @return returns an HttpRequest object
      */
-    HttpRequest head(String url, Function callback);
-
-    /*! @brief Sends a request using the Web Fetch standard and returns an HttpResponse object
-     @param url the url to request; must be a complete url including the host
-     @param opts the additional information
-     @return returns an HttpResponse object
-     */
-    HttpResponse fetch(String url, Object opts = {}) async;
+    HttpRequest head(String url, Function(HttpResponse resp) callback);
 
     /*! @brief Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
      opts can override the request fields in request; the supported contents are as follows:
@@ -792,8 +780,10 @@ interface HttpClient : EventEmitter
      ```
      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      @param request request source object, provides basic information such as url, method, headers and body
-     @param opts the additional information, can override the corresponding fields in request
+     @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     and `headers` replaces the headers of the request source instead of merging them
      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      */
-    HttpResponse fetch(HttpRequest request, Object opts = {}) async;
+    HttpResponse fetch(HttpRequest|String request, Object opts = {}) async;
 };

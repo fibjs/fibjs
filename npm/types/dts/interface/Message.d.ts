@@ -120,30 +120,30 @@ declare class Class_Message extends Class_EventEmitter {
     setEncoding(encoding: string): Class_Message;
 
     /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    write(data: Class_Buffer): number;
+    write(data: Class_Buffer | string): number;
 
-    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
-     *      @return returns the number of bytes actually written
-     *
-     */
-    writeSync(data: Class_Buffer): number;
+    write(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    writeAsync(data: Class_Buffer): Promise<number>;
+    writeSync(data: Class_Buffer | string): number;
+
+    /**
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
+     *      @return returns the number of bytes actually written
+     *
+     */
+    writeAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
      * @description Writes the given text data
@@ -823,28 +823,28 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     setEncoding(encoding: string): Class_Message;
 
     /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    write(data: Class_Buffer): Promise<number>;
+    write(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    writeSync(data: Class_Buffer): number;
+    writeSync(data: Class_Buffer | string): number;
 
     /**
-     * @description Writes the given data; this method is an alias of the corresponding body method
-     *      @param data the data to write
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *      @param data the data to write, a string is encoded as utf8
      *      @return returns the number of bytes actually written
      *
      */
-    writeAsync(data: Class_Buffer): Promise<number>;
+    writeAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
      * @description Writes the given text data

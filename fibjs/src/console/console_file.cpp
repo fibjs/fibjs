@@ -26,6 +26,8 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
     exlib::string path;
     hr = GetConfigValue(o, "path", path);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return CHECK_ERROR(Runtime::setError("console: Missing path."));
     if (hr < 0)
         return hr;
 

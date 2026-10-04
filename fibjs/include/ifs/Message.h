@@ -26,6 +26,9 @@ class Message_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_write_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     enum {
         C_TEXT = 1,
         C_BINARY = 2
@@ -46,7 +49,7 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal) = 0;
-    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac) = 0;
@@ -123,7 +126,7 @@ public:
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Message_base, write, Buffer_base*, int32_t);
+    ASYNC_MEMBERVALUE2(Message_base, write, Union_write_data, int32_t);
     ASYNC_MEMBERVALUE2(Message_base, text, exlib::string, exlib::string);
     ASYNC_MEMBERVALUE1(Message_base, text, exlib::string);
     ASYNC_MEMBERVALUE1(Message_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
@@ -414,12 +417,12 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union_write_data, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0.get(), cb, args);
+        hr = pInst->acb_write(v0, cb, args);
     else
-        hr = pInst->ac_write(v0.get(), vr);
+        hr = pInst->ac_write(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }

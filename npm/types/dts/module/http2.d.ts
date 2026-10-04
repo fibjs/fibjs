@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Http2Server.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Http2Session.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
 /// <reference path="../module/http2_constants.d.ts" />
@@ -44,16 +44,7 @@ declare module 'http2' {
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
-
-    /**
-     * @description creates an Http2 server
-     *      @param context SecureContext object used for TLS configuration
-     *      @param hdlr the request handling function
-     *      @return returns an Http2Server object; call listen() then start() to start serving
-     *
-     */
-    function createServer(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -107,7 +98,14 @@ declare module 'http2' {
      *      @return returns an object containing the default settings
      *
      */
-    function getDefaultSettings(): FIBJS.GeneralObject;
+    function getDefaultSettings(): {
+        headerTableSize: number;
+        enablePush: boolean;
+        maxConcurrentStreams: number;
+        initialWindowSize: number;
+        maxFrameSize: number;
+        maxHeaderListSize: number;
+    };
 
     /**
      * @description Http2Stream object, see Http2Stream

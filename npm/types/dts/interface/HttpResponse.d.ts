@@ -72,6 +72,14 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     readonly ok: boolean;
 
     /**
+     * @description sets the return status of the response message and adds response headers
+     *      @param statusCode specifies the return status of the response message
+     *      @param headers specifies the response headers to add to the response message
+     *
+     */
+    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
+
+    /**
      * @description sets the return status and return message of the response message, and adds response headers
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
@@ -81,17 +89,9 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description sets the return status of the response message and adds response headers
-     *      @param statusCode specifies the return status of the response message
-     *      @param headers specifies the response headers to add to the response message
-     *
-     */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
-
-    /**
      * @description returns the list of HttpCookie objects of the current message
      */
-    readonly cookies: any[];
+    readonly cookies: Class_HttpCookie[];
 
     /**
      * @description adds an HttpCookie object to cookies
@@ -265,6 +265,14 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     readonly ok: boolean;
 
     /**
+     * @description sets the return status of the response message and adds response headers
+     *      @param statusCode specifies the return status of the response message
+     *      @param headers specifies the response headers to add to the response message
+     *
+     */
+    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
+
+    /**
      * @description sets the return status and return message of the response message, and adds response headers
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
@@ -274,17 +282,9 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description sets the return status of the response message and adds response headers
-     *      @param statusCode specifies the return status of the response message
-     *      @param headers specifies the response headers to add to the response message
-     *
-     */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
-
-    /**
      * @description returns the list of HttpCookie objects of the current message
      */
-    readonly cookies: any[];
+    readonly cookies: Class_HttpCookie[];
 
     /**
      * @description adds an HttpCookie object to cookies

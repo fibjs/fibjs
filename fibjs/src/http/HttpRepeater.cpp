@@ -91,19 +91,16 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
     return 0;
 }
 
-result_t HttpRepeater::get_urls(obj_ptr<NArray>& retVal)
+result_t HttpRepeater::get_urls(std::vector<exlib::string>& retVal)
 {
-    obj_ptr<NArray> a = new NArray();
     exlib::string s;
 
     m_lock.lock();
     for (int32_t i = 0; i < (int32_t)m_urls.size(); i++) {
         m_urls[i]->toString(s);
-        a->append(s);
+        retVal.push_back(s);
     }
     m_lock.unlock();
-
-    retVal = a;
 
     return 0;
 }

@@ -110,7 +110,7 @@ result_t console_base::add(exlib::string type)
     return add(o);
 }
 
-result_t console_base::add(v8::Local<v8::Object> cfg)
+static result_t console_add_object(v8::Local<v8::Object> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
@@ -164,7 +164,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
     return 0;
 }
 
-result_t console_base::add(v8::Local<v8::Array> cfg)
+static result_t console_add_array(v8::Local<v8::Array> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
@@ -177,16 +177,22 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
 
     for (i = 0; i < sz; i++) {
         JSValue v = cfg->Get(context, i);
+
+        // a failing element read -- a getter that throws -- is the JavaScript
+        // error of that getter, not a type error of the argument
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
         exlib::string s;
 
         hr = GetArgumentValue(isolate, v, s, true);
         if (hr != CALL_E_TYPEMISMATCH)
-            hr = add(s);
+            hr = console_base::add(s);
         else {
             v8::Local<v8::Object> o;
             hr = GetArgumentValue(isolate, v, o, true);
             if (hr != CALL_E_TYPEMISMATCH)
-                hr = add(o);
+                hr = console_base::add(o);
             else
                 return CALL_E_TYPEMISMATCH;
         }
@@ -202,12 +208,15 @@ result_t console_base::use(exlib::string type)
     return add(type);
 }
 
-result_t console_base::use(v8::Local<v8::Object> cfg)
+result_t console_base::add(Union_add_cfg cfg)
 {
-    return add(cfg);
+    if (std::holds_alternative<v8::Local<v8::Array>>(cfg))
+        return console_add_array(std::get<v8::Local<v8::Array>>(cfg));
+
+    return console_add_object(std::get<v8::Local<v8::Object>>(cfg));
 }
 
-result_t console_base::use(v8::Local<v8::Array> cfg)
+result_t console_base::use(Union_use_cfg cfg)
 {
     return add(cfg);
 }

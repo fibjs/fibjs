@@ -54,7 +54,7 @@ declare class Class_HttpRepeater extends Class_Handler {
     /**
      * @description queries the current list of backend server urls
      */
-    readonly urls: any[];
+    readonly urls: string[];
 
     /**
      * @description the HttpClient object used internally by the request forwarding handler
@@ -95,7 +95,7 @@ declare class Class_HttpRepeaterPromise extends Class_HandlerPromise {
     /**
      * @description queries the current list of backend server urls
      */
-    readonly urls: any[];
+    readonly urls: string[];
 
     /**
      * @description the HttpClient object used internally by the request forwarding handler

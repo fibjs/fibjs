@@ -32,14 +32,7 @@ module http2
      @param hdlr the request handling function
      @return returns an Http2Server object; call listen() then start() to start serving
     */
-    static Http2Server createServer(Object options, Handler hdlr);
-
-    /*! @brief creates an Http2 server
-     @param context SecureContext object used for TLS configuration
-     @param hdlr the request handling function
-     @return returns an Http2Server object; call listen() then start() to start serving
-    */
-    static Http2Server createServer(SecureContext context, Handler hdlr);
+    static Http2Server createServer(Object|SecureContext options, Handler hdlr);
 
     /*! @brief creates an HTTP/2 client session to the specified target
 
@@ -57,7 +50,7 @@ module http2
     /*! @brief returns the default HTTP/2 settings object
      @return returns an object containing the default settings
     */
-    static Object getDefaultSettings();
+    static (Number headerTableSize, Boolean enablePush, Number maxConcurrentStreams, Number initialWindowSize, Number maxFrameSize, Number maxHeaderListSize) getDefaultSettings();
 
     /*! @brief Http2Stream object, see Http2Stream */
     static Http2Stream;

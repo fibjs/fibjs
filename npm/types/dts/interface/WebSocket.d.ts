@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
-/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/WebSocketMessage.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description WebSocket is a full-duplex communication protocol based on TCP; it establishes a persistent connection between browser and server, enabling real-time bidirectional data transmission and supporting data in any format. In fibjs, the WebSocket support module provides corresponding API interfaces for developing WebSocket servers and clients
@@ -42,15 +42,6 @@ declare class Class_WebSocket extends Class_EventEmitter {
     /**
      * @description WebSocket constructor
      *      @param url specifies the server to connect
-     *      @param protocol specifies the handshake protocol, default is ""
-     *      @param origin specifies the origin to simulate during the handshake, default is ""
-     *
-     */
-    constructor(url: string, protocol?: string, origin?: string);
-
-    /**
-     * @description WebSocket constructor
-     *      @param url specifies the server to connect
      *      @param protocols specifies the list of candidate sub-protocols for the handshake
      *      @param origin specifies the origin to simulate during the handshake, default is ""
      *
@@ -76,6 +67,15 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *
      */
     constructor(url: string, opts: FIBJS.GeneralObject);
+
+    /**
+     * @description WebSocket constructor
+     *      @param url specifies the server to connect
+     *      @param protocol specifies the handshake protocol, default is ""
+     *      @param origin specifies the origin to simulate during the handshake, default is ""
+     *
+     */
+    constructor(url: string, protocol?: string, origin?: string);
 
     /**
      * @description specifies WebSocket message type 0, representing a continuation frame
@@ -156,23 +156,21 @@ declare class Class_WebSocket extends Class_EventEmitter {
     close(code?: number, reason?: string): void;
 
     /**
-     * @description sends a piece of text to the peer
-     *      @param data specifies the text to send
+     * @description sends data to the peer
+     *
+     *      Binary data (a Buffer, a typed array, an ArrayBuffer or a blob) is sent as
+     *      a binary frame; every other value is sent as a text frame of its string
+     *      form, the way the DOM WebSocket and the ws module of node render it:
+     *      send(123) sends the text "123", send(null) sends "null".
+     *
+     *      @param data specifies the data to send
      *
      */
-    send(data: string): void;
+    send(data: any): void;
 
     /**
-     * @description sends a piece of binary data to the peer
-     *      @param data specifies the binary data to send
+     * @description queries and binds the connection success event, equivalent to on("open", func); the listener receives no argument
      *
-     */
-    send(data: Class_Buffer): void;
-
-    send(data: string | Class_Buffer): void;
-
-    /**
-     * @description queries and binds the connection success event, equivalent to on("open", func);
      */
     on(event: "open", listener: ()=>void): this;
 
@@ -193,87 +191,100 @@ declare class Class_WebSocket extends Class_EventEmitter {
     prependOnceListener(event: "open", listener: ()=>void): this;
 
     /**
-     * @description queries and binds the connection success event, equivalent to on("open", func);
+     * @description queries and binds the connection success event, equivalent to on("open", func); the listener receives no argument
+     *
      */
     onopen: (()=>void) | null;
 
     /**
-     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func);
+     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func); the listener receives the WebSocketMessage of the peer
+     *      @param msg the received message
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
     /**
-     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func);
+     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func); the listener receives the WebSocketMessage of the peer
+     *      @param msg the received message
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((msg: Class_WebSocketMessage)=>void) | null;
 
     /**
-     * @description queries and binds the connection close event, equivalent to on("close", func);
+     * @description queries and binds the connection close event, equivalent to on("close", func); the listener receives the event object carrying the close code and reason
+     *      @param ev the event object
+     *
      */
-    on(event: "close", listener: ()=>void): this;
+    on(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "close", listener: ()=>void): this;
+    once(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "close", listener: ()=>void): this;
+    off(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "close", listener: ()=>void): this;
+    addListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "close", listener: ()=>void): this;
+    removeListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "close", listener: ()=>void): this;
+    prependListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "close", listener: ()=>void): this;
+    prependOnceListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description queries and binds the connection close event, equivalent to on("close", func);
+     * @description queries and binds the connection close event, equivalent to on("close", func); the listener receives the event object carrying the close code and reason
+     *      @param ev the event object
+     *
      */
-    onclose: (()=>void) | null;
+    onclose: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description queries and binds the error event, equivalent to on("error", func);
+     * @description queries and binds the error event, equivalent to on("error", func); the listener receives the event object carrying the error code and reason
+     *      @param ev the event object
+     *
      */
-    on(event: "error", listener: ()=>void): this;
+    on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "error", listener: ()=>void): this;
+    once(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "error", listener: ()=>void): this;
+    off(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "error", listener: ()=>void): this;
+    addListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "error", listener: ()=>void): this;
+    removeListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "error", listener: ()=>void): this;
+    prependListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "error", listener: ()=>void): this;
+    prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description queries and binds the error event, equivalent to on("error", func);
+     * @description queries and binds the error event, equivalent to on("error", func); the listener receives the event object carrying the error code and reason
+     *      @param ev the event object
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
@@ -300,7 +311,7 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
-    static upgrade(accept: (...args: any[])=>any): Class_Handler;
+    static upgrade(accept: (conn: Class_WebSocket, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;
 
     /**
      * @description creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
@@ -317,7 +328,7 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
-    static upgrade(opts: FIBJS.GeneralObject, accept: (...args: any[])=>any): Class_Handler;
+    static upgrade(opts: FIBJS.GeneralObject, accept: (conn: Class_WebSocket, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;
 
     on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 

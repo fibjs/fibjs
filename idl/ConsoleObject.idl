@@ -74,15 +74,9 @@ interface ConsoleObject : object
     /*! @brief Records general log information, same as info
 
      Records log information at the general level. Usually used to output non-error prompt information.
-     @param fmt format string
      @param args optional argument list
-     */
-    Function(String fmt, ...args);
-
-    /*! @brief Records general log information, same as info
-
-     Records log information at the general level. Usually used to output non-error prompt information.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     Function(...args);
 
@@ -95,165 +89,99 @@ interface ConsoleObject : object
     /*! @brief Records general log information, same as info
 
      Records log information at the general level. Usually used to output non-error prompt information.
-     @param fmt format string
      @param args optional argument list
-     */
-    log(String fmt, ...args);
-
-    /*! @brief Records general log information, same as info
-
-     Records log information at the general level. Usually used to output non-error prompt information.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     log(...args);
 
     /*! @brief Records debug log information
 
      Records debug log information. Usually used to output debug information. Not important.
-     @param fmt format string
      @param args optional argument list
-     */
-    debug(String fmt, ...args);
-
-    /*! @brief Records debug log information
-
-     Records debug log information. Usually used to output debug information. Not important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     debug(...args);
 
     /*! @brief Records general log information, same as log
 
      Records log information at the general level. Usually used to output non-error prompt information.
-     @param fmt format string
      @param args optional argument list
-     */
-    info(String fmt, ...args);
-
-    /*! @brief Records general log information, same as log
-
-     Records log information at the general level. Usually used to output non-error prompt information.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     info(...args);
 
     /*! @brief Records notice log information
 
      Records notice log information. Usually used to output prompt debug information. Moderately important.
-     @param fmt format string
      @param args optional argument list
-     */
-    notice(String fmt, ...args);
-
-    /*! @brief Records notice log information
-
-     Records notice log information. Usually used to output prompt debug information. Moderately important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     notice(...args);
 
     /*! @brief Records warning log information, same as warning
 
      Records warning log information. Usually used to output warning debug information. Important.
-     @param fmt format string
      @param args optional argument list
-     */
-    warn(String fmt, ...args);
-
-    /*! @brief Records warning log information, same as warning
-
-     Records warning log information. Usually used to output warning debug information. Important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     warn(...args);
 
     /*! @brief Records warning log information
 
      Records warning log information. Usually used to output warning debug information. Important.
-     @param fmt format string
      @param args optional argument list
-     */
-    warning(String fmt, ...args);
-
-    /*! @brief Records warning log information
-
-     Records warning log information. Usually used to output warning debug information. Important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     warning(...args);
 
     /*! @brief Records error log information
 
      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     @param fmt format string
      @param args optional argument list
-     */
-    error(String fmt, ...args);
-
-    /*! @brief Records error log information
-
-     Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     error(...args);
 
     /*! @brief Records critical error log information, same as critical
 
      Records critical error log information. Usually used to output critical error information. Very important.
-     @param fmt format string
      @param args optional argument list
-     */
-    crit(String fmt, ...args);
-
-    /*! @brief Records critical error log information, same as critical
-
-     Records critical error log information. Usually used to output critical error information. Very important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     crit(...args);
 
     /*! @brief Records critical error log information
 
      Records critical error log information. Usually used to output critical error information. Very important.
-     @param fmt format string
      @param args optional argument list
-     */
-    critical(String fmt, ...args);
-
-    /*! @brief Records critical error log information
-
-     Records critical error log information. Usually used to output critical error information. Very important.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     critical(...args);
 
     /*! @brief Records alert error log information
 
      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     @param fmt format string
      @param args optional argument list
-     */
-    alert(String fmt, ...args);
-
-    /*! @brief Records alert error log information
-
-     Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     alert(...args);
 
     /*! @brief Outputs the current call stack
 
      Outputs the current call stack through logging.
-     @param fmt format string
      @param args optional argument list
-     */
-    trace(String fmt, ...args);
-
-    /*! @brief Outputs the current call stack
-
-     Outputs the current call stack through logging.
-     @param args optional argument list
+     When the first argument is a string it is used as the format template, see
+     util.format; every other value is printed as-is.
      */
     trace(...args);
 

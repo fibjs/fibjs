@@ -12,18 +12,18 @@ declare class Class_Handler extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a JavaScript message handler
+     *      @param hdlr JavaScript handler function
+     *
+     */
+    constructor(hdlr: (req: any, ...params: any[])=>any);
+
+    /**
      * @description Creates a message handler routing object
      *      @param map initialization routing parameters
      *
      */
     constructor(map: FIBJS.GeneralObject);
-
-    /**
-     * @description Creates a JavaScript message handler
-     *      @param hdlr JavaScript handler function
-     *
-     */
-    constructor(hdlr: (...args: any[])=>any);
 
     /**
      * @description Constructs a fileHandler or HttpRepeater
@@ -82,18 +82,18 @@ declare class Class_HandlerPromise extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a JavaScript message handler
+     *      @param hdlr JavaScript handler function
+     *
+     */
+    constructor(hdlr: (req: any, ...params: any[])=>any);
+
+    /**
      * @description Creates a message handler routing object
      *      @param map initialization routing parameters
      *
      */
     constructor(map: FIBJS.GeneralObject);
-
-    /**
-     * @description Creates a JavaScript message handler
-     *      @param hdlr JavaScript handler function
-     *
-     */
-    constructor(hdlr: (...args: any[])=>any);
 
     /**
      * @description Constructs a fileHandler or HttpRepeater

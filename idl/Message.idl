@@ -55,11 +55,11 @@ interface Message : EventEmitter
      */
     Message setEncoding(String encoding);
 
-    /*! @brief Writes the given data; this method is an alias of the corresponding body method
-     @param data the data to write
+    /*! @brief Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     @param data the data to write, a string is encoded as utf8
      @return returns the number of bytes actually written
      */
-    Integer write(Buffer data) async;
+    Integer write(Buffer|String data) async;
 
     /*! @brief Writes the given text data
      @param data the data to write

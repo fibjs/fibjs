@@ -46,5 +46,5 @@ module sse
      @param accept the connection success handler; the callback will receive two parameters, the first is the received EventSource object and the second is the HttpRequest object of the handshake
      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      */
-    static Handler upgrade(Function accept);
+    static Handler upgrade(Function(EventSource conn, HttpRequest req) accept);
 };

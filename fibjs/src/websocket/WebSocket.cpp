@@ -804,7 +804,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
     return 0;
 }
 
-result_t WebSocket::send(exlib::string data)
+result_t WebSocket::send_text(exlib::string data)
 {
     switch (m_readyState) {
     case WebSocket_base::C_CONNECTING:
@@ -819,7 +819,7 @@ result_t WebSocket::send(exlib::string data)
     return 0;
 }
 
-result_t WebSocket::send(Buffer_base* data)
+result_t WebSocket::send_binary(Buffer_base* data)
 {
     switch (m_readyState) {
     case WebSocket_base::C_CONNECTING:
@@ -832,6 +832,31 @@ result_t WebSocket::send(Buffer_base* data)
 
     (new asyncSend(this, data))->post(0);
     return 0;
+}
+
+// binary data is sent as it is; every other value is rendered with its string
+// form, the way the DOM WebSocket and the ws module of node render it:
+// send(123) sends the text "123", send(null) sends "null". An array is not
+// binary data here, so send([1, 2]) sends the text "1,2".
+result_t WebSocket::send(v8::Local<v8::Value> data)
+{
+    Isolate* isolate = holder();
+    obj_ptr<Buffer_base> buf;
+
+    // INTERIM (commit split): a real string is text; the binary probe below
+    // relies on the strict Buffer conversion that rejects strings, which lands
+    // with the Buffer/encoding batch
+    if (!data->IsString() && !data->IsStringObject()
+        && !data->IsArray() && GetArgumentValue(isolate, data, buf) == 0)
+        return send_binary(buf.get());
+
+    // a value that is not binary data is sent as its string form
+    exlib::string str;
+    result_t hr = GetDOMStringValue(data, str);
+    if (hr < 0)
+        return hr;
+
+    return send_text(str);
 }
 
 result_t WebSocket::ref(obj_ptr<WebSocket_base>& retVal)

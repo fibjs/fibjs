@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventSource.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description Server-Sent Events (SSE) module, implementing HTTP-based server push functionality
@@ -62,7 +63,7 @@ declare module 'sse' {
      *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
      *
      */
-    function upgrade(accept: (...args: any[])=>any): Class_Handler;
+    function upgrade(accept: (conn: Class_EventSource | Class_EventSourcePromise, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;
 
 }
 

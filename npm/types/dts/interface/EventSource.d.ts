@@ -140,107 +140,123 @@ declare class Class_EventSource extends Class_EventEmitter {
 
     /**
      * @description open event callback
+     *      @param ev the event object of the connection
+     *
      */
-    on(event: "open", listener: ()=>void): this;
+    on(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "open", listener: ()=>void): this;
+    once(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "open", listener: ()=>void): this;
+    off(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "open", listener: ()=>void): this;
+    addListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "open", listener: ()=>void): this;
+    removeListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "open", listener: ()=>void): this;
+    prependListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "open", listener: ()=>void): this;
+    prependOnceListener(event: "open", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description open event callback
+     *      @param ev the event object of the connection
+     *
      */
-    onopen: (()=>void) | null;
+    onopen: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description error event callback
+     *      @param ev the event object, carrying the error code and reason
+     *
      */
-    on(event: "error", listener: ()=>void): this;
+    on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "error", listener: ()=>void): this;
+    once(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "error", listener: ()=>void): this;
+    off(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "error", listener: ()=>void): this;
+    addListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "error", listener: ()=>void): this;
+    removeListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "error", listener: ()=>void): this;
+    prependListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "error", listener: ()=>void): this;
+    prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description error event callback
+     *      @param ev the event object, carrying the error code and reason
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description message event callback
+     *      @param ev the event object, carrying the message data, id and retry interval
+     *
      */
-    on(event: "message", listener: ()=>void): this;
+    on(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "message", listener: ()=>void): this;
+    once(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "message", listener: ()=>void): this;
+    off(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "message", listener: ()=>void): this;
+    addListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "message", listener: ()=>void): this;
+    removeListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: ()=>void): this;
+    prependListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "message", listener: ()=>void): this;
+    prependOnceListener(event: "message", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description message event callback
+     *      @param ev the event object, carrying the message data, id and retry interval
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description close event callback
+     *      @param ev the event object of the closed connection
+     *
      */
-    on(event: "close", listener: ()=>void): this;
+    on(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    once(event: "close", listener: ()=>void): this;
+    once(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    off(event: "close", listener: ()=>void): this;
+    off(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addListener(event: "close", listener: ()=>void): this;
+    addListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    removeListener(event: "close", listener: ()=>void): this;
+    removeListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    addEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "close", listener: ()=>void): this;
+    prependListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
-    prependOnceListener(event: "close", listener: ()=>void): this;
+    prependOnceListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
      * @description close event callback
+     *      @param ev the event object of the closed connection
+     *
      */
-    onclose: (()=>void) | null;
+    onclose: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
 
@@ -411,23 +427,31 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
 
     /**
      * @description open event callback
+     *      @param ev the event object of the connection
+     *
      */
-    onopen: (()=>void) | null;
+    onopen: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description error event callback
+     *      @param ev the event object, carrying the error code and reason
+     *
      */
-    onerror: (()=>void) | null;
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description message event callback
+     *      @param ev the event object, carrying the message data, id and retry interval
+     *
      */
-    onmessage: (()=>void) | null;
+    onmessage: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
      * @description close event callback
+     *      @param ev the event object of the closed connection
+     *
      */
-    onclose: (()=>void) | null;
+    onclose: ((ev: FIBJS.GeneralObject)=>void) | null;
 
 }
 

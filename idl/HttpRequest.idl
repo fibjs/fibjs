@@ -25,17 +25,17 @@ interface HttpRequest : HttpMessage
     /*! @brief HttpRequest constructor, creates a new HttpRequest object */
     HttpRequest();
 
-    /*! @brief HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
-     @param url the request URL
-     @param options the request options, which can contain fields such as method, headers and body
-    */
-    HttpRequest(String url, Object options = {});
-
     /*! @brief HttpRequest constructor, copies from an existing Request object and can override options (Fetch API)
      @param request the existing HttpRequest object
      @param options the override options, which can contain fields such as method, headers and body
     */
     HttpRequest(HttpRequest request, Object options = {});
+
+    /*! @brief HttpRequest constructor, creates a request object from a URL string and options (Fetch API)
+     @param url the request URL
+     @param options the request options, which can contain fields such as method, headers and body
+    */
+    HttpRequest(String url, Object options = {});
 
     /*! @brief gets the response message object*/
     readonly HttpResponse response;

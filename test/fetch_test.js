@@ -105,6 +105,15 @@ describe("web fetch", () => {
             assert.strictEqual(await resp.text(), 'text/plain;charset=UTF-8');
         });
 
+        it("number and boolean bodies are sent as text/plain;charset=UTF-8", async () => {
+            // a scalar body is its text, not a form field (node does the same)
+            const byNumber = await fetch(ctx.baseUrl, { method: 'POST', body: 123 });
+            assert.strictEqual(await byNumber.text(), 'text/plain;charset=UTF-8');
+
+            const byBoolean = await fetch(ctx.baseUrl, { method: 'POST', body: true });
+            assert.strictEqual(await byBoolean.text(), 'text/plain;charset=UTF-8');
+        });
+
         it("URLSearchParams body is sent as urlencoded", async () => {
             const resp = await fetch(ctx.baseUrl, { method: 'POST', body: new URLSearchParams({ a: '1' }) });
 
@@ -1304,6 +1313,105 @@ describe("web fetch", () => {
                 const resp = await fetch(ctx.baseUrl, { signal: AbortSignal.timeout(500) });
                 const text = await resp.text();
                 assert.strictEqual(text, body);
+            } finally {
+                ctx.server.close();
+            }
+        });
+    });
+
+    describe("fetch - Request init semantics", () => {
+        // The Fetch standard rejects a body for GET/HEAD, and init.headers
+        // replaces the headers of a Request source instead of merging them
+        it("rejects a body on GET and HEAD", async () => {
+            await assert.rejects(fetch('http://127.0.0.1:1/', { body: 'x' }),
+                (e) => e.name === 'TypeError');
+            await assert.rejects(fetch('http://127.0.0.1:1/', { method: 'GET', body: 'x' }),
+                (e) => e.name === 'TypeError');
+            await assert.rejects(fetch('http://127.0.0.1:1/', { method: 'HEAD', body: 'x' }),
+                (e) => e.name === 'TypeError');
+        });
+
+        it("init.headers replaces the headers of a Request source", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ headers: req.headers, body: req.body ? req.body.readAll().toString() : '' }));
+            });
+            try {
+                const src = new Request(ctx.baseUrl, {
+                    method: 'POST', body: 'x', headers: { a: '1' },
+                });
+                const resp = await fetch(src, { headers: { b: '2' } });
+                const echoed = await resp.json();
+
+                assert.strictEqual(echoed.headers.b, '2');
+                assert.strictEqual(echoed.headers.a, undefined);
+                // the content-type of the replaced body is gone as well
+                assert.strictEqual(echoed.headers['content-type'], undefined);
+                assert.strictEqual(echoed.body, 'x');
+
+                // an explicit empty object replaces the headers too
+                const emptied = await (await fetch(src, { headers: {} })).json();
+                assert.strictEqual(emptied.headers.b, undefined);
+                assert.strictEqual(emptied.headers.a, undefined);
+            } finally {
+                ctx.server.close();
+            }
+        });
+
+        it("init.body replaces the body and keeps a single content-type", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ headers: req.headers, body: req.body ? req.body.readAll().toString() : '' }));
+            });
+            try {
+                const src = new Request(ctx.baseUrl, { method: 'POST', body: 'x' });
+                const echoed = await (await fetch(src, { body: 'y' })).json();
+
+                assert.strictEqual(echoed.body, 'y');
+                assert.strictEqual(echoed.headers['content-type'], 'text/plain;charset=UTF-8');
+            } finally {
+                ctx.server.close();
+            }
+        });
+
+        it("the client instance path follows the same rules", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ headers: req.headers }));
+            });
+            try {
+                const src = new Request(ctx.baseUrl, {
+                    method: 'POST', body: 'x', headers: { a: '1' },
+                });
+                const echoed = await (await new http.Client().fetch(src, { headers: { b: '2' } })).json();
+
+                assert.strictEqual(echoed.headers.b, '2');
+                assert.strictEqual(echoed.headers.a, undefined);
+            } finally {
+                ctx.server.close();
+            }
+        });
+
+        it("treats an undefined init member as absent, like WebIDL", async () => {
+            const ctx = await startServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ method: req.method, headers: req.headers, body: req.body ? req.body.readAll().toString() : '' }));
+            });
+            try {
+                const src = new Request(ctx.baseUrl, {
+                    method: 'POST', body: 'x', headers: { a: '1' },
+                });
+
+                // headers: undefined does not replace the headers of the source
+                const kept = await (await fetch(src, { headers: undefined })).json();
+                assert.strictEqual(kept.headers.a, '1');
+                assert.strictEqual(kept.headers['content-type'], 'text/plain;charset=UTF-8');
+                assert.strictEqual(kept.body, 'x');
+
+                // body: undefined keeps the body of the source as well
+                const sameBody = await (await fetch(src, { method: 'PUT', body: undefined })).json();
+                assert.strictEqual(sameBody.method, 'PUT');
+                assert.strictEqual(sameBody.body, 'x');
             } finally {
                 ctx.server.close();
             }

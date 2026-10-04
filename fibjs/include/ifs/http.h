@@ -32,13 +32,16 @@ class http_base : public object_base {
     DECLARE_CLASS(http_base);
 
 public:
+    using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
+    using Union_fetch_request = std::variant<obj_ptr<HttpRequest_base>, exlib::string>;
+
+public:
     // http_base
     static result_t createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
-    static result_t createServer(SecureContext_base* context, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
-    static result_t createServer(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
-    static result_t get_METHODS(v8::Local<v8::Array>& retVal);
-    static result_t get_cookies(obj_ptr<NArray>& retVal);
+    static result_t get_METHODS(std::vector<exlib::string>& retVal);
+    static result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     static result_t get_keepAlive(bool& retVal);
     static result_t set_keepAlive(bool newVal);
     static result_t get_timeout(int32_t& retVal);
@@ -68,17 +71,17 @@ public:
     static result_t fileHandler(exlib::string root, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> options, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpRequest_base>& retVal);
-    static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
-    static result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
-    static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
-    static result_t request(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
+    static result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
+    static result_t request(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
-    static result_t requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
+    static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t requestSync(v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t requestSync(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t getSync(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
     static result_t get(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
@@ -104,8 +107,7 @@ public:
     static result_t head(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t head(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal);
-    static result_t fetch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    static result_t fetch(HttpRequest_base* request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -168,17 +170,16 @@ public:
     static void s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE4(http_base, requestSync, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE2(http_base, requestSync, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, requestSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE4(http_base, requestSync, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, getSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, postSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, delSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, putSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, patchSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, headSync, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE3(http_base, fetch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE3(http_base, fetch, HttpRequest_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(http_base, fetch, Union_fetch_request, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -278,14 +279,7 @@ inline void http_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
-
-    hr = createServer(v0.get(), v1.get(), vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_createServer_options, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
     hr = createServer(v0, v1.get(), vr);
@@ -308,7 +302,7 @@ inline void http_base::s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<
 
 inline void http_base::s_static_get_METHODS(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_ENTER();
 
@@ -321,7 +315,7 @@ inline void http_base::s_static_get_METHODS(const v8::FunctionCallbackInfo<v8::V
 
 inline void http_base::s_static_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<HttpCookie_base>> vr;
 
     METHOD_ENTER();
 
@@ -706,40 +700,30 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 
     hr = request(v0.get(), v1.get(), vr);
 
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    hr = request(v0, v1, v2, vr);
-
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
 
     hr = request(v0, vr);
 
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = request(v0, v1, vr);
-
-    METHOD_OVER(4, 4);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Object>, 2);
-    ARG(v8::Local<v8::Function>, 3);
-
-    hr = request(v0, v1, v2, v3, vr);
-
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(v8::Local<v8::Function>, 1);
+
+    hr = request(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = request(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = request(v0, v1, vr);
 
@@ -751,13 +735,6 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 
     hr = request(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = request(v0, v1, vr);
-
     METHOD_OVER(3, 3);
 
     ARG(exlib::string, 0);
@@ -765,6 +742,23 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
     ARG(v8::Local<v8::Function>, 2);
 
     hr = request(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = request(v0, v1, v2, vr);
+
+    METHOD_OVER(4, 4);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Object>, 2);
+    ARG(v8::Local<v8::Function>, 3);
+
+    hr = request(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -774,17 +768,6 @@ inline void http_base::s_static_requestSync(const v8::FunctionCallbackInfo<v8::V
     obj_ptr<HttpResponse_base> vr;
 
     ASYNC_METHOD_ENTER("http.requestSync");
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_requestSync(v0, v1, v2, cb, args);
-    else
-        hr = ac_requestSync(v0, v1, v2, vr);
 
     METHOD_OVER(1, 1);
 
@@ -804,6 +787,17 @@ inline void http_base::s_static_requestSync(const v8::FunctionCallbackInfo<v8::V
         hr = acb_requestSync(v0, v1, cb, args);
     else
         hr = ac_requestSync(v0, v1, vr);
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_requestSync(v0, v1, v2, cb, args);
+    else
+        hr = ac_requestSync(v0, v1, v2, vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -1131,23 +1125,13 @@ inline void http_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_fetch_request, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_fetch(v0, v1, cb, args);
     else
         hr = ac_fetch(v0, v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<HttpRequest_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_fetch(v0.get(), v1, cb, args);
-    else
-        hr = ac_fetch(v0.get(), v1, vr);
 
     ASYNC_METHOD_RETURN();
 }

@@ -43,7 +43,9 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal);
-    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncEvent* ac);
+    result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    result_t write(exlib::string data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
@@ -96,13 +98,10 @@ public:
     virtual result_t appendHeader(v8::Local<v8::Object> map);
     virtual result_t appendHeader(Headers_base* headers);
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
-    // INTERIM (commit split): HttpMessage takes the Variant value here; the
-    // final HttpRequest moves to the union/typed-return surface in the http batch.
     virtual result_t appendHeader(exlib::string name, Variant value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(Headers_base* headers);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
-    // INTERIM (commit split): see appendHeader above.
     virtual result_t setHeader(exlib::string name, Variant value);
     virtual result_t removeHeader(exlib::string name);
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
@@ -167,7 +166,9 @@ public:
 
         // Fill u (URL), body fallback, and merged headers from an existing request.
         // Must be called after from_opts so that opts-supplied values take precedence.
-        result_t apply_from_request(HttpRequest_base* req);
+        // When replace_headers is set (the fetch entry saw an explicit init.headers)
+        // the headers of the request are not merged in, the way `new Request(request, init)` does.
+        result_t apply_from_request(HttpRequest_base* req, bool replace_headers = false);
 
         // Resolve u from a base URL string + URL-override fields in opts.
         result_t resolve_url(exlib::string url, v8::Local<v8::Object> opts);
@@ -177,7 +178,9 @@ public:
 
 public:
     // Apply parsed Options to this request (method, headers, body, keepAlive).
-    void set_options(const Options& o);
+    // Apply the options onto this request. Following the Fetch standard an explicit
+    // init.headers replaces the headers already present instead of being appended.
+    void set_options(const Options& o, bool replace_headers = false);
 
     // Bind the runtime response object used by the request lifecycle.
     // This keeps req.response aligned with the object emitted in 'response'.

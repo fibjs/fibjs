@@ -1135,7 +1135,8 @@ describe("child_process", () => {
             var httpd = new http.Server(8899, {
                 "/ws": WebSocket.upgrade((s) => {
                     s.onmessage = function (msg) {
-                        s.send(msg);
+                        // the event carries the message in .data
+                        s.send(msg.data);
                     };
                 })
             });

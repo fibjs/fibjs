@@ -9,6 +9,7 @@
 
 #include "ifs/HttpResponse.h"
 #include "HttpMessage.h"
+#include "HttpCookie.h"
 #include <boost/preprocessor.hpp>
 
 namespace fibjs {
@@ -59,7 +60,9 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal);
-    virtual result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncEvent* ac);
+    result_t write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
+    result_t write(exlib::string data, int32_t& retVal, AsyncEvent* ac);
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
@@ -113,13 +116,10 @@ public:
     virtual result_t appendHeader(v8::Local<v8::Object> map);
     virtual result_t appendHeader(Headers_base* headers);
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
-    // INTERIM (commit split): HttpMessage takes the Variant value here; the
-    // final HttpResponse moves to the union/typed-return surface in the http batch.
     virtual result_t appendHeader(exlib::string name, Variant value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(Headers_base* headers);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
-    // INTERIM (commit split): see appendHeader above.
     virtual result_t setHeader(exlib::string name, Variant value);
     virtual result_t removeHeader(exlib::string name);
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
@@ -141,7 +141,7 @@ public:
     virtual result_t get_ok(bool& retVal);
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers);
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers);
-    virtual result_t get_cookies(obj_ptr<NArray>& retVal);
+    virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     virtual result_t addCookie(HttpCookie_base* cookie);
     virtual result_t redirect(exlib::string url);
     virtual result_t redirect(int32_t statusCode, exlib::string url);
@@ -175,7 +175,8 @@ public:
     obj_ptr<HttpMessage> m_message;
     int32_t m_statusCode;
     exlib::string m_statusMessage;
-    obj_ptr<NArray> m_cookies;
+    std::vector<obj_ptr<HttpCookie_base>> m_cookies;
+    bool m_cookies_filled = false;
     // Fetch API metadata
     exlib::string m_fetchUrl;
     bool m_redirected = false;

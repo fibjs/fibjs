@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
@@ -53,13 +54,6 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description HttpClient constructor, creates a new HttpClient object
-     *      @param context the secure context used to create the HttpClient
-     *
-     */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise);
-
-    /**
-     * @description HttpClient constructor, creates a new HttpClient object
      *
      *      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      *      - keepAlive: specifies whether to keep the connection alive
@@ -75,15 +69,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext
+     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
      *
      */
-    constructor(options: FIBJS.GeneralObject);
+    constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
 
     /**
      * @description Returns the HttpCookie object list of the http client
      */
-    readonly cookies: any[];
+    readonly cookies: Class_HttpCookie[];
 
     /**
      * @description Queries and sets whether to keep the connection alive
@@ -211,99 +205,6 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *
      */
     request(conn: Class_Stream | Class_StreamPromise, req: Class_HttpRequest | Class_HttpRequestPromise): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSyncSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSyncAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the url specified by opts and returns the result
@@ -477,7 +378,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     requestSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     * @description Requests the specified url and returns the result
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -491,23 +392,83 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *          "pathname": "",
      *          "path": "", // alias of pathname, used for the request option.
      *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "signal": AbortSignal // AbortSignal object used to cancel the request
+     *          "headers": {}
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
      *      @param method the http request method: GET, POST, etc.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
-     *      @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     *      @return returns the server response
      *
      */
-    request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
+    requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    requestSyncSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    requestSyncAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the url specified by opts and returns an HttpRequest object
@@ -538,6 +499,24 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *
      */
     request(opts: FIBJS.GeneralObject): Class_HttpRequest;
+
+    /**
+     * @description Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param opts the additional information
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url and returns an HttpRequest object
@@ -572,42 +551,13 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param method the http request method: GET, POST, etc.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
      *      @param callback response callback function, receives HttpResponse as a parameter
      *      @return returns an HttpRequest object
      *
      */
-    request(method: string, url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param opts the additional information
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    request(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
@@ -617,7 +567,51 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    request(method: string, url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    request(method: string, url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // AbortSignal object used to cancel the request
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     *
+     */
+    request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(method: string, url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
@@ -708,6 +702,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    get(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -741,16 +744,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    get(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    get(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    get(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the POST method and returns the result, equivalent to request("POST", ...)
@@ -841,6 +835,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    post(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -877,16 +880,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    post(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    post(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    post(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the DELETE method and returns the result, equivalent to request("DELETE", ...)
@@ -977,6 +971,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    del(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -1010,16 +1013,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    del(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    del(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    del(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the PUT method and returns the result, equivalent to request("PUT", ...)
@@ -1110,6 +1104,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    put(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -1146,16 +1149,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    put(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    put(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    put(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the PATCH method and returns the result, equivalent to request("PATCH", ...)
@@ -1246,6 +1240,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    patch(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -1282,16 +1285,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    patch(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    patch(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    patch(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the HEAD method and returns the result, equivalent to request("PATCH", ...)
@@ -1382,6 +1376,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    head(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -1415,45 +1418,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    head(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    head(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetch(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    fetch(url: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    head(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -1472,36 +1437,15 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
-
-    /**
-     * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
-     *      opts can override the request fields in request; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // overrides the request method in request
-     *          "headers": {}, // merged with request.headers; headers with the same name in opts override those in request
-     *          "body": SeekableStream | Buffer | String | {}, // overrides request.body
-     *          "keepAlive": unknown, // overrides the keep-alive setting
-     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
-     *          "redirect": "follow", // redirect mode: "follow" (default) | "error" | "manual"
-     *          "signal": AbortSignal, // AbortSignal object used to cancel the request
-     *          "streaming": false // whether to return the response body in streaming mode
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
-     *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
-     *
-     */
-    fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -1520,11 +1464,38 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
+     *      opts can override the request fields in request; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // overrides the request method in request
+     *          "headers": {}, // merged with request.headers; headers with the same name in opts override those in request
+     *          "body": SeekableStream | Buffer | String | {}, // overrides request.body
+     *          "keepAlive": unknown, // overrides the keep-alive setting
+     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
+     *          "redirect": "follow", // redirect mode: "follow" (default) | "error" | "manual"
+     *          "signal": AbortSignal, // AbortSignal object used to cancel the request
+     *          "streaming": false // whether to return the response body in streaming mode
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
+     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
+     *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
+     *
+     */
+    fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
 }
 
@@ -1532,6 +1503,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
@@ -1543,13 +1515,6 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description HttpClient constructor, creates a new HttpClient object
      */
     constructor();
-
-    /**
-     * @description HttpClient constructor, creates a new HttpClient object
-     *      @param context the secure context used to create the HttpClient
-     *
-     */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise);
 
     /**
      * @description HttpClient constructor, creates a new HttpClient object
@@ -1568,15 +1533,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext
+     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
      *
      */
-    constructor(options: FIBJS.GeneralObject);
+    constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
 
     /**
      * @description Returns the HttpCookie object list of the http client
      */
-    readonly cookies: any[];
+    readonly cookies: Class_HttpCookie[];
 
     /**
      * @description Queries and sets whether to keep the connection alive
@@ -1704,99 +1669,6 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *
      */
     request(conn: Class_Stream | Class_StreamPromise, req: Class_HttpRequest | Class_HttpRequestPromise): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSyncSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Requests the specified url and returns the result
-     *      opts contains additional request options; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
-     *          "protocol": "http",
-     *          "slashes": true,
-     *          "username": "",
-     *          "password": "",
-     *          "hostname": "",
-     *          "port": "",
-     *          "pathname": "",
-     *          "path": "", // alias of pathname, used for the request option.
-     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "query": {},
-     *          "body": SeekableStream | Buffer | String | {},
-     *          "json": {},
-     *          "pack": {},
-     *          "headers": {}
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
-     *      @param method the http request method: GET, POST, etc.
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns the server response
-     *
-     */
-    requestSyncAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the url specified by opts and returns the result
@@ -1970,7 +1842,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     requestSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     * @description Requests the specified url and returns the result
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -1984,23 +1856,83 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *          "pathname": "",
      *          "path": "", // alias of pathname, used for the request option.
      *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
-     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
      *          "pack": {},
-     *          "headers": {},
-     *          "signal": AbortSignal // AbortSignal object used to cancel the request
+     *          "headers": {}
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
      *      @param method the http request method: GET, POST, etc.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
-     *      @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     *      @return returns the server response
      *
      */
-    request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
+    requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+
+    /**
+     * @description Requests the specified url and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    requestSyncSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    requestSyncAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the url specified by opts and returns an HttpRequest object
@@ -2031,6 +1963,24 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *
      */
     request(opts: FIBJS.GeneralObject): Class_HttpRequest;
+
+    /**
+     * @description Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param opts the additional information
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url and returns an HttpRequest object
@@ -2065,42 +2015,13 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param method the http request method: GET, POST, etc.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
      *      @param callback response callback function, receives HttpResponse as a parameter
      *      @return returns an HttpRequest object
      *
      */
-    request(method: string, url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the url specified by opts, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param opts the additional information
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    request(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    request(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
@@ -2110,7 +2031,51 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    request(method: string, url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    request(method: string, url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "signal": AbortSignal // AbortSignal object used to cancel the request
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns an HttpRequest object (listen to the 'response' event to receive the response)
+     *
+     */
+    request(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    request(method: string, url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
@@ -2201,6 +2166,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    get(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2234,16 +2208,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    get(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    get(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    get(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the POST method and returns the result, equivalent to request("POST", ...)
@@ -2334,6 +2299,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    post(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2370,16 +2344,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    post(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    post(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    post(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the DELETE method and returns the result, equivalent to request("DELETE", ...)
@@ -2470,6 +2435,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    del(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2503,16 +2477,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    del(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    del(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    del(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the PUT method and returns the result, equivalent to request("PUT", ...)
@@ -2603,6 +2568,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    put(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2639,16 +2613,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    put(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    put(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    put(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the PATCH method and returns the result, equivalent to request("PATCH", ...)
@@ -2739,6 +2704,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    patch(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2775,16 +2749,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    patch(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    patch(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
+    patch(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Requests the specified url with the HEAD method and returns the result, equivalent to request("PATCH", ...)
@@ -2875,6 +2840,15 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
 
     /**
      * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
+     *      @param url the url to request; must be a complete url including the host
+     *      @param callback response callback function, receives HttpResponse as a parameter
+     *      @return returns an HttpRequest object
+     *
+     */
+    head(url: string, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
+
+    /**
+     * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
      *      {
@@ -2908,43 +2882,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      @return returns an HttpRequest object
      *
      */
-    head(url: string, opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param callback response callback function, receives HttpResponse as a parameter
-     *      @return returns an HttpRequest object
-     *
-     */
-    head(url: string, callback: (...args: any[])=>any): Class_HttpRequest;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
-
-    /**
-     * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
-     *      @param url the url to request; must be a complete url including the host
-     *      @param opts the additional information
-     *      @return returns an HttpResponse object
-     *
-     */
-    fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    head(url: string, opts: FIBJS.GeneralObject, callback: (resp: Class_HttpResponse | Class_HttpResponsePromise)=>void): Class_HttpRequest;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -2963,11 +2901,13 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -2986,11 +2926,13 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -3009,11 +2951,13 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
      *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
+     *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
+     *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
+     *      and `headers` replaces the headers of the request source instead of merging them
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+    fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
 }
 

@@ -663,56 +663,35 @@ void Http2Session::startLoops()
 
 // -- property getters --
 
-static v8::Local<v8::Object> build_settings_object(Isolate* isolate, NgHttp2Handler& handler,
-    bool remote)
+template <class T>
+static result_t build_settings_object(NgHttp2Handler& handler, bool remote, obj_ptr<T>& retVal)
 {
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+    retVal = new T();
 
-    obj->Set(context, isolate->NewString("headerTableSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_HEADER_TABLE_SIZE)))
-        .IsJust();
-    obj->Set(context, isolate->NewString("enablePush"),
-        v8::Boolean::New(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_ENABLE_PUSH) != 0))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxConcurrentStreams"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS)))
-        .IsJust();
-    obj->Set(context, isolate->NewString("initialWindowSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE)))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxFrameSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_FRAME_SIZE)))
-        .IsJust();
-    obj->Set(context, isolate->NewString("maxHeaderListSize"),
-        v8::Integer::NewFromUnsigned(isolate->m_isolate,
-            handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE)))
-        .IsJust();
+    retVal->headerTableSize = handler.get_setting(remote, NGHTTP2_SETTINGS_HEADER_TABLE_SIZE);
+    retVal->enablePush = handler.get_setting(remote, NGHTTP2_SETTINGS_ENABLE_PUSH) != 0;
+    retVal->maxConcurrentStreams = handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS);
+    retVal->initialWindowSize = handler.get_setting(remote, NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE);
+    retVal->maxFrameSize = handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_FRAME_SIZE);
+    retVal->maxHeaderListSize = handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE);
 
-    return obj;
+    return 0;
 }
 
-result_t Http2Session::get_remoteSettings(v8::Local<v8::Object>& retVal)
+result_t Http2Session::get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal)
 {
     if (!m_nghttp2)
         return Runtime::setError("Http2Session: session is destroyed.");
 
-    retVal = build_settings_object(holder(), m_nghttp2, true);
-    return 0;
+    return build_settings_object(m_nghttp2, true, retVal);
 }
 
-result_t Http2Session::get_localSettings(v8::Local<v8::Object>& retVal)
+result_t Http2Session::get_localSettings(obj_ptr<LocalSettingsType>& retVal)
 {
     if (!m_nghttp2)
         return Runtime::setError("Http2Session: session is destroyed.");
 
-    retVal = build_settings_object(holder(), m_nghttp2, false);
-    return 0;
+    return build_settings_object(m_nghttp2, false, retVal);
 }
 
 result_t Http2Session::get_destroyed(bool& retVal)
