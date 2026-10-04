@@ -83,7 +83,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, block: ()=>void): void;
+    function test(name: string, block: ()=>void): void;
 
     /**
      * @description Defines a test item (with options)
@@ -92,161 +92,166 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+    function test(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
-    /**
-     * @description Test framework module; points to this module and can be called as a function
-     */
-    const test: typeof import ('test');
+    namespace test {
+        /**
+         * @description Test framework module; points to this module and can be called as a function
+         */
+        const test: typeof import ('test');
 
-    /**
-     * @description Test framework module; points to this module and can be called as a function
-     */
-    const it: typeof import ('test');
+        /**
+         * @description Test framework module; points to this module and can be called as a function
+         */
+        const it: typeof import ('test');
 
-    /**
-     * @description Test suite module; can be called as a function, see test_suite
-     */
-    const suite: typeof import ('test_suite');
+        /**
+         * @description Test suite module; can be called as a function, see test_suite
+         */
+        const suite: typeof import ('test_suite');
 
-    /**
-     * @description Test suite module; can be called as a function, see test_suite
-     */
-    const describe: typeof import ('test_suite');
+        /**
+         * @description Test suite module; can be called as a function, see test_suite
+         */
+        const describe: typeof import ('test_suite');
 
-    /**
-     * @description Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
-     */
-    const assert: typeof import ('assert');
+        /**
+         * @description Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
+         */
+        const assert: typeof import ('assert');
 
-    /**
-     * @description Paused test suite definition
-     *      @param name defines the module name
-     *      @param block the module initialization code
-     *
-     */
-    function xdescribe(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test suite definition
+         *      @param name defines the module name
+         *      @param block the module initialization code
+         *
+         */
+        function xdescribe(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test suite definition
-     *      @param name defines the module name
-     *      @param block the module initialization code
-     *
-     */
-    function odescribe(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test suite definition
+         *      @param name defines the module name
+         *      @param block the module initialization code
+         *
+         */
+        function odescribe(name: string, block: ()=>void): void;
 
-    /**
-     * @description Paused test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function xit(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function xit(name: string, block: ()=>void): void;
 
-    /**
-     * @description Paused test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function skip(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function skip(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function oit(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function oit(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function only(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function only(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, block: ()=>void): void;
+        /**
+         * @description Planned test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition (with options)
-     *      @param name defines the item name
-     *      @param options the test options, supporting: { skip, todo, only }
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+        /**
+         * @description Planned test item definition (with options)
+         *      @param name defines the item name
+         *      @param options the test options, supporting: { skip, todo, only }
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition
-     *      @param name defines the item name
-     *
-     */
-    function todo(name: string): void;
+        /**
+         * @description Planned test item definition
+         *      @param name defines the item name
+         *
+         */
+        function todo(name: string): void;
 
-    /**
-     * @description Defines the enter event of the current test module
-     *      @param func the event function
-     *
-     */
-    function before(func: ()=>void): void;
+        /**
+         * @description Defines the enter event of the current test module
+         *      @param func the event function
+         *
+         */
+        function before(func: ()=>void): void;
 
-    /**
-     * @description Defines the exit event of the current test module
-     *      @param func the event function
-     *
-     */
-    function after(func: ()=>void): void;
+        /**
+         * @description Defines the exit event of the current test module
+         *      @param func the event function
+         *
+         */
+        function after(func: ()=>void): void;
 
-    /**
-     * @description Defines the test item enter event of the current test module
-     *      @param func the event function
-     *
-     */
-    function beforeEach(func: ()=>void): void;
+        /**
+         * @description Defines the test item enter event of the current test module
+         *      @param func the event function
+         *
+         */
+        function beforeEach(func: ()=>void): void;
 
-    /**
-     * @description Defines the test item exit event of the current test module
-     *      @param func the event function
-     *
-     */
-    function afterEach(func: ()=>void): void;
+        /**
+         * @description Defines the test item exit event of the current test module
+         *      @param func the event function
+         *
+         */
+        function afterEach(func: ()=>void): void;
 
-    /**
-     * @description Tests that a function must be called a specified number of times
-     *      @param func the function to test
-     *      @return returns the wrapped function
-     *
-     */
-    function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must be called a specified number of times
+         *      @param func the function to test
+         *      @return returns the wrapped function
+         *
+         */
+        function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
-    /**
-     * @description Tests that a function must not be called
-     *      @param func the function to test
-     *      @return returns the wrapped function
-     *
-     */
-    function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must not be called
+         *      @param func the function to test
+         *      @return returns the wrapped function
+         *
+         */
+        function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
-    /**
-     * @description Tests that a function must not be called
-     *      @return returns the wrapped function
-     *
-     */
-    function mustNotCall(): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must not be called
+         *      @return returns the wrapped function
+         *
+         */
+        function mustNotCall(): (...args: any[])=>any;
 
-    /**
-     * @description Sets and queries the slow test warning threshold, in ms, default 75
-     *
-     */
-    var slow: number;
+        /**
+         * @description Sets and queries the slow test warning threshold, in ms, default 75
+         *
+         */
+        var slow: number;
+
+    }
+
+    export = test;
 
 }
 

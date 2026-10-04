@@ -132,6 +132,11 @@ declare namespace FIBJS_IDL {
     export interface IMember {
         /**
          * @description the member name
+         *
+         * The call operator (`operator(...)` in the IDL, idl-def.pegjs) keeps
+         * the literal name `operator`: gen_code turns it into the C++
+         * `_function` call stub, gen_dts into the callable-module /
+         * call-signature declarations.
          */
         name: string
         /**

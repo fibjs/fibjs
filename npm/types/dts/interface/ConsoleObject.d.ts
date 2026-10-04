@@ -79,17 +79,6 @@ declare class Class_ConsoleObject extends Class_object {
     constructor(out: any, err?: any);
 
     /**
-     * @description Records general log information, same as info
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
-     *      When the first argument is a string it is used as the format template, see
-     *      util.format; every other value is printed as-is.
-     *
-     */
-    Function(...args: any[]): void;
-
-    /**
      * @description Queries the section name of the current log object
      */
     readonly section: string;
@@ -280,5 +269,19 @@ declare class Class_ConsoleObject extends Class_object {
      */
     timeEnd(label?: string): void;
 
+}
+
+
+declare interface Class_ConsoleObject {
+    /**
+     * @description Records general log information, same as info
+     *
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
+     *
+     */
+    (...args: any[]): void;
 }
 

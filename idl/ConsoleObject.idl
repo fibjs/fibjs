@@ -78,7 +78,7 @@ interface ConsoleObject : object
      When the first argument is a string it is used as the format template, see
      util.format; every other value is printed as-is.
      */
-    Function(...args);
+    operator(...args);
 
     /*! @brief Queries the section name of the current log object */
     readonly String section;

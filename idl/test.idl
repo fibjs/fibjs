@@ -77,14 +77,14 @@ module test
      @param name defines the item name
      @param block the test content
      */
-    static Function(String name, Function() block);
+    static operator(String name, Function() block);
 
     /*! @brief Defines a test item (with options)
      @param name defines the item name
      @param options the test options, supporting: { skip, todo, only }
      @param block the test content
      */
-    static Function(String name, Object options, Function() block);
+    static operator(String name, Object options, Function() block);
 
     /*! @brief Test framework module; points to this module and can be called as a function */
     static test;

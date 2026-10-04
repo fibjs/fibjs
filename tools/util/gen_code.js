@@ -199,7 +199,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         fname = "_new";
                         is_new = true;
                         hasNew = true;
-                    } else if (fname == "Function") {
+                    } else if (fname == "operator") {
                         fname = "_function";
                         callAsFunc = true;
                         staticCallAsFunc = fstatic;
@@ -886,8 +886,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
         return baseType;
     }
 
-    function is_func_Function(fn, def) {
-        return fn.name === 'Function'
+    // The call operator: the IDL member named `operator` (idl-def.pegjs) marks
+    // an object that is callable - a module (`test(...)`) or the instances of a
+    // class (`util.debuglog(section)(msg)`). The C++ entry point keeps the
+    // historical name `_function`.
+    function is_call_operator(fn, def) {
+        return fn.name === 'operator'
     }
 
     function is_func_new(fn, def) {
@@ -913,7 +917,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
     function get_fname(fn, def) {
         if (is_func_new(fn, def)) return '_new'
-        if (is_func_Function(fn, def)) return '_function'
+        if (is_call_operator(fn, def)) return '_function'
 
         return get_specname(fn.name)
     }
@@ -991,10 +995,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
     }
 
     function vary_overs(fn, def) {
-        var fncallee_ovs = fn.overs.filter(ov => is_func_Function(ov, def));
+        var fncallee_ovs = fn.overs.filter(ov => is_call_operator(ov, def));
         var new_ovs = fn.overs.filter(ov => is_func_new(ov, def));
-        var static_ovs = fn.overs.filter(ov => !!ov.static && !is_func_new(ov, def) && !is_func_Function(ov, def));
-        var inst_mem_ovs = fn.overs.filter(ov => !ov.static && !is_func_new(ov, def) && !is_func_Function(ov, def));
+        var static_ovs = fn.overs.filter(ov => !!ov.static && !is_func_new(ov, def) && !is_call_operator(ov, def));
+        var inst_mem_ovs = fn.overs.filter(ov => !ov.static && !is_func_new(ov, def) && !is_call_operator(ov, def));
 
         // For instance methods, also include parent class overloads
         if (inst_mem_ovs.length > 0) {
@@ -1014,7 +1018,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
         var base = get_specname(fname)
 
         if (fn.static) return base
-        if (is_func_Function(fn, def)) return base
+        if (is_call_operator(fn, def)) return base
         if (is_func_new(fn, def)) return base
         if (fn.symbol)
             return `symbol_${base}`;
@@ -1025,7 +1029,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
     function get_stub_func_prefix(fn, def) {
         var base = 's_'
 
-        if (is_func_Function(fn, def)) return base
+        if (is_call_operator(fn, def)) return base
         if (is_func_new(fn, def)) return base
         if (fn.static) return `${base}static_`
 

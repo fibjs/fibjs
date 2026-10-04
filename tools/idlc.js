@@ -16,6 +16,16 @@ console.log('\n📖 Parsing IDL definitions...');
 var defs = parser(idlFolder);
 console.log(`✅ Parsed ${Object.keys(defs).length} IDL definitions`);
 
+// The call operator is spelled `operator(...)` (idl-def.pegjs). The historical
+// `Function(...)` spelling would now register as a plain method - a silent
+// runtime/type regression - so it is rejected loudly.
+Object.values(defs).forEach((def) => {
+    (def.members || []).forEach((mem) => {
+        if (mem.memType === 'method' && mem.name === 'Function')
+            throw new Error(`${def.declare.name}.Function: the call operator is written \`operator(...)\` (the historical \`Function(...)\` spelling was retired)`);
+    });
+});
+
 console.log('\n🔎 Checking overload shadowing...');
 var shadowed = require('./util/check_overloads')(defs);
 if (shadowed.length) {

@@ -29,6 +29,35 @@ const path = require('path');
 // rewritten into the real signature here.
 const INDEX_SIGNATURE_PLACEHOLDER = '__fibjs_index_signature_';
 
+// The call operator: the IDL member `operator(...)` (idl-def.pegjs). A module
+// carrying one is callable as the module object itself (`test(...)`,
+// `assert(...)`); a class carrying one is callable as its instances
+// (`util.debuglog(section)(msg)` - the runtime instance really is a function
+// object). The shapes below follow @types/node's `node:test`: a function named
+// after the module merged with a namespace and published with `export =`, and
+// a call signature merged into the class through a sibling interface (a class
+// declaration cannot carry one, TS1068).
+const CALL_OPERATOR_NAME = 'operator';
+
+function isCallOperatorMember(mem) {
+    return mem.memType === 'method' && mem.name === CALL_OPERATOR_NAME;
+}
+
+// Modules whose runtime name differs from the IDL unit name: SandBox::
+// installGlobal() publishes the assert_strict API as `assert/strict` (plus the
+// fibjs:/node: variants). The declaration and every reference must use the
+// runtime name - otherwise `import strict from 'node:assert/strict'` types
+// nothing while `assert_strict` types a module the runtime refuses. The file
+// keeps the unit name (the bridge and the triple-slash references point at
+// it).
+const MODULE_RUNTIME_NAMES = {
+    assert_strict: 'assert/strict',
+};
+
+function runtimeModuleName(unitName) {
+    return MODULE_RUNTIME_NAMES[unitName] || unitName;
+}
+
 // dts-dom's `reservedWords` list mixes in Java keywords, so a function named
 // `throws` (assert.throws / assert_strict.throws) is emitted commented out and
 // silently disappears from the corpus. Unwrap that comment when the name is a
@@ -386,7 +415,7 @@ function generalTypeMap(dataType, {
             info.isFibjsInterface = true;
             info.refType = 'interface';
         } else if (allModuleNames.has(dataType)) {
-            const moduleName = dataType;
+            const moduleName = runtimeModuleName(dataType);
             info.type = dom.create.typeof(
                 dom.create.namedTypeReference(`import ('${moduleName}')`)
             );
@@ -1531,6 +1560,10 @@ function processDeclareInterface(def, {
     // member names synthesized by this generator (not declared by the IDL);
     // their inherited overloads are materialized after the member loop (R1)
     const synthesizedMemberNames = [];
+    // the call signatures of the `operator(...)` member (see
+    // CALL_OPERATOR_NAME): emitted through a merged interface next to the
+    // class, since a class declaration cannot carry them
+    const callSignatures = [];
     const declaredMethodNames = new Set(
         def.members
             .filter(mem => mem.memType === 'method')
@@ -1573,6 +1606,30 @@ function processDeclareInterface(def, {
                 }
             }
         }
+
+        if (isCallOperatorMember(mem)) {
+            // the instances are callable; the signature travels through the
+            // merged interface emitted next to the class (see the tail of this
+            // function)
+            if (mem.static)
+                throw new Error(`the static call operator of '${unitName}' is only supported on modules (see processDeclareModule)`);
+
+            const overloads = (mem.overs && mem.overs.length > 1) ? mem.overs : [mem];
+
+            overloads.forEach(over => {
+                const { params } = buildDtsMethodParams(over, getMapParamOptions);
+                const signature = dom.create.callSignature(
+                    params,
+                    mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions())
+                );
+
+                signature.jsDocComment = convertIDLCommentToJSDocComment(over.comments || '');
+                callSignatures.push(signature);
+            });
+
+            return;
+        }
+
         const isInterfaceConstructor = mem.memType === 'method' && mem.name === def.declare.name && !mem.static;
         let memFlags = 0;
         if (mem.static) {
@@ -1848,9 +1905,20 @@ function processDeclareInterface(def, {
     dtsUnit.jsDocComment = convertIDLCommentToJSDocComment(def.declare.comments || '');
 
     // console.notice(`:--- try to emit dts for ${unitCategory}: ${unitName} ---->`)
-    return dom.emit(dtsUnit, {
+    let declared = dom.emit(dtsUnit, {
         tripleSlashDirectives: Object.values(tripleSlashDirectiveMap),
     });
+
+    if (callSignatures.length) {
+        // the call signature merges into the instance type through a sibling
+        // interface - a class declaration cannot hold one (TS1068). The name
+        // tracks the emitted class, so the promise variant gets its own.
+        const merged = dom.create.interface(dtsUnit.name);
+        callSignatures.forEach(signature => merged.members.push(signature));
+        declared += '\n' + dom.emit(merged);
+    }
+
+    return declared;
 }
 
 /**
@@ -1880,6 +1948,16 @@ function processDeclareModule(def, {
     const addRefToTripleSlashDirectivesHost = getAddRefToTripleSlashDirectivesHost(tripleSlashDirectiveMap, { allInterfacesNames, allModuleNames, selfName: unitName });
 
     const mergedOverloads = mergedBufferStringOverloads(def.members);
+
+    // `operator(...)`: the module object itself is callable. The overloads are
+    // emitted as functions named after the module, everything else gathers
+    // into a namespace and `export = <module>` publishes the merged entity
+    // (the shape @types/node gives `node:test`). This is also what makes the
+    // module aliases (`const it: typeof import('test')`) callable.
+    const callFunctions = [];
+
+    if (def.members.some(isCallOperatorMember) && !/^[A-Za-z_$][\w$]*$/.test(unitName))
+        throw new Error(`the call operator of module '${unitName}' needs a valid identifier to merge the function with (rename the module or drop the operator(...) declaration)`);
 
     def.members.forEach(mem => {
         let memFlags = 0;
@@ -1920,6 +1998,38 @@ function processDeclareModule(def, {
          */
         let dtsUnitMember;
         let memberIsOver = false;
+
+        if (isCallOperatorMember(mem)) {
+            // the call overloads become functions named after the module (see
+            // the callFunctions comment above)
+            if (!mem.static)
+                throw new Error(`the call operator of module '${unitName}' must be static`);
+
+            const overloads = (mem.overs && mem.overs.length > 1) ? mem.overs : [mem];
+
+            overloads.forEach(over => {
+                const { params, withRestArgs } = buildDtsMethodParams(over, getMapParamOptions);
+                const { syncFunc, asyncFunc, syncVariant, asyncVariant } = generateDtsFunction(
+                    Object.assign({}, over, { name: unitName }),
+                    params,
+                    mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                    {
+                        withRestArgs,
+                        hasDeclaredMemberName: (name) => declaredMethodNames.has(name),
+                        mapReturnType: mapMemberReturnType,
+                    }
+                );
+
+                syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments || '');
+                callFunctions.push(syncFunc);
+
+                [asyncFunc, syncVariant, asyncVariant]
+                    .filter(Boolean)
+                    .forEach(member => callFunctions.push(member));
+            });
+
+            return;
+        }
 
         switch (mem.memType) {
             case 'prop': {
@@ -2133,6 +2243,15 @@ function processDeclareModule(def, {
         defs, dtsUnit, unitName, unitFlavor, declaredMethodNames,
         allInterfacesNames, allModuleNames, addRefToTripleSlashDirectivesHost,
     });
+
+    if (callFunctions.length) {
+        // function + namespace + `export =`: what the call overloads merge
+        // with. The namespace takes the rest of the module surface (the
+        // materialized base members included).
+        const ns = dom.create.namespace(unitName);
+        ns.members = dtsUnit.members;
+        dtsUnit.members = callFunctions.concat([ns, dom.create.exportEquals(unitName)]);
+    }
 
     dtsUnit.jsDocComment = convertIDLCommentToJSDocComment(def.declare.comments || '');
 
@@ -2356,7 +2475,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
 
             const unitName = def.declare.name;
             const dtsUnit = !ismodule ? dom.create.class(normalizeClazzName(unitName))
-                : dom.create.module(`${unitName}`)
+                : dom.create.module(runtimeModuleName(unitName))
             const tripleSlashDirectiveMap = {};
 
             tripleSlashDirectiveMap['_fibjs.d.ts'] = dom.create.tripleSlashReferencePathDirective(`../_import/_fibjs.d.ts`)
@@ -2392,6 +2511,9 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
             const hasPromiseVariant = ismodule
                 ? hasAsyncMembers(def) && (!ROOT_MODULE_NAMES || ROOT_MODULE_NAMES.has(unitName))
                 : PROMISE_VARIANT_CLASSES.has(unitName);
+
+            if (hasPromiseVariant && ismodule && def.members.some(isCallOperatorMember))
+                throw new Error(`the callable module '${unitName}' cannot also have a promise variant yet: the promises member would have to live inside the merged namespace (see CALL_OPERATOR_NAME)`);
 
             if (hasPromiseVariant) {
                 if (ismodule) {

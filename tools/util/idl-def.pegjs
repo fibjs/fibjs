@@ -11,6 +11,12 @@
   function callbackOf(t) {
     return (t !== null && typeof t === 'object' && !Array.isArray(t)) ? t.callback : null;
   }
+
+  // The call operator (`operator(...)`, see the rule below) is a plain method
+  // member named `operator` at the IR level: gen_code maps the name to the
+  // C++ `_function` call stub and gen_dts to the callable-module (`export =`)
+  // and call-signature forms. The historical `Function(...)` spelling is
+  // retired - it collided with the `Function` type name (callback shapes).
 }
 
 interface = head:declareHead
@@ -55,7 +61,7 @@ interfaceEntend
   }
 
 interfaceBody
-  = "{" members:(constMember / prop / object / object1 / eventDef / method / operator)* _* "}" {
+  = "{" members:(constMember / prop / object / object1 / eventDef / callOperator / method / operator)* _* "}" {
     return members;
   }
 
@@ -146,6 +152,45 @@ object1
       name: type,
       type: type
     };
+  }
+
+// The call operator (C++ `operator()`, WebIDL `legacycaller`): the module
+// object is callable (`test(...)`, `assert(...)`, `describe(...)`) or the
+// instances of the interface are (`util.debuglog(section)(msg)`). The optional
+// leading type is the operator's return value, omitting it means void. The
+// member name `operator` is what gen_code keys the C++ `_function` call stub
+// on; keep one spelling - the retired `Function(...)` form registered as a
+// plain method instead.
+callOperator
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* "operator" _* "(" params:params? _* ")" _* ";" {
+    return {
+      memType: "method",
+      comments: comments.join(""),
+      deprecated: deprecated,
+      static: staticMode,
+      async: null,
+      symbol: '',
+      name: "operator",
+      type: null,
+      params: params
+    };
+  }
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:extType _* "operator" _* "(" params:params? _* ")" _* ";" {
+    var mem = {
+      memType: "method",
+      comments: comments.join(""),
+      deprecated: deprecated,
+      static: staticMode,
+      async: null,
+      symbol: '',
+      name: "operator",
+      type: typeName(type),
+      params: params
+    };
+    var callback = callbackOf(type);
+    if (callback)
+      mem.callback = callback;
+    return mem;
   }
 
 method

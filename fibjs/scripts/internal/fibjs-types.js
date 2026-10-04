@@ -2779,17 +2779,6 @@ declare class Class_ConsoleObject extends Class_object {
     constructor(out: any, err?: any);
 
     /**
-     * @description Records general log information, same as info
-     *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
-     *      @param args optional argument list
-     *      When the first argument is a string it is used as the format template, see
-     *      util.format; every other value is printed as-is.
-     *
-     */
-    Function(...args: any[]): void;
-
-    /**
      * @description Queries the section name of the current log object
      */
     readonly section: string;
@@ -2980,6 +2969,20 @@ declare class Class_ConsoleObject extends Class_object {
      */
     timeEnd(label?: string): void;
 
+}
+
+
+declare interface Class_ConsoleObject {
+    /**
+     * @description Records general log information, same as info
+     *
+     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      @param args optional argument list
+     *      When the first argument is a string it is used as the format template, see
+     *      util.format; every other value is printed as-is.
+     *
+     */
+    (...args: any[]): void;
 }
 
 `,
@@ -32004,536 +32007,541 @@ declare class Class_object {
  *  var test = require('test');
  *  var assert = test.assert;
  *  \`\`\`
- *  Or configure it through test.setup:
+ *  The strict variant is available as a module of its own:
  *  \`\`\`JavaScript
- *  require("test").setup();
+ *  var strict = require('assert/strict');
  *  \`\`\`
  *
  */
 declare module 'assert' {
-    /**
-     * @description Assertion error object
-     */
-    const AssertionError: (...args: any[])=>any;
-
     /**
      * @description Tests that the value is truthy; the assertion fails if it is false
      *      @param actual the value to test
      *      @param msg the message when the assertion fails
      *
      */
-    function Function(actual?: any, msg?: any): void;
+    function assert(actual?: any, msg?: any): void;
 
-    /**
-     * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
-     */
-    const ok: typeof import ('assert');
+    namespace assert {
+        /**
+         * @description Assertion error object
+         */
+        const AssertionError: (...args: any[])=>any;
 
-    /**
-     * ! Strict testing module, see the assert_strict module
-     */
-    const strict: typeof import ('assert_strict');
+        /**
+         * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
+         */
+        const ok: typeof import ('assert');
 
-    /**
-     * @description The assertion fails, throws an error directly
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function fail(msg?: any): void;
+        /**
+         * ! Strict testing module, see the assert_strict module
+         */
+        const strict: typeof import ('assert/strict');
 
-    /**
-     * @description Tests that the value is falsy; the assertion fails if it is true
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notOk(actual: any, msg?: any): void;
+        /**
+         * @description The assertion fails, throws an error directly
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function fail(msg?: any): void;
 
-    /**
-     * @description Tests that the value equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function equal(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is falsy; the assertion fails if it is true
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notOk(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function equal(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function strictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function strictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the string contains the expected string, otherwise the assertion fails
-     *      @param actual the string to test
-     *      @param expected the expected regular expression
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function match(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
+        /**
+         * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the string does not contain the expected string, otherwise the assertion fails
-     *      @param actual the string to test
-     *      @param expected the expected regular expression
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
+        /**
+         * @description Tests that the string contains the expected string, otherwise the assertion fails
+         *      @param actual the string to test
+         *      @param expected the expected regular expression
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function match(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
-    /**
-     * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param delta the decimal precision of the approximation
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function closeTo(actual: any, expected: any, delta: any, msg?: any): void;
+        /**
+         * @description Tests that the string does not contain the expected string, otherwise the assertion fails
+         *      @param actual the string to test
+         *      @param expected the expected regular expression
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param delta the decimal precision of the approximation
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notCloseTo(actual: any, expected: any, delta: any, msg?: any): void;
+        /**
+         * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param delta the decimal precision of the approximation
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function closeTo(actual: any, expected: any, delta: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function lessThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param delta the decimal precision of the approximation
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notCloseTo(actual: any, expected: any, delta: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not less than the expected value; the assertion fails if it is less
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notLessThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function lessThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function greaterThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not less than the expected value; the assertion fails if it is less
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notLessThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notGreaterThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function greaterThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the variable exists; the assertion fails if it is false
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function exist(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notGreaterThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the variable does not exist; the assertion fails if it is true
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notExist(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the variable exists; the assertion fails if it is false
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function exist(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is boolean true, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isTrue(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the variable does not exist; the assertion fails if it is true
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notExist(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not boolean true, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotTrue(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is boolean true, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isTrue(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is boolean false, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isFalse(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not boolean true, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotTrue(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not boolean false, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotFalse(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is boolean false, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isFalse(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is Null, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNull(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not boolean false, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotFalse(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not Null, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotNull(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is Null, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNull(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is undefined, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isUndefined(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not Null, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotNull(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not undefined, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isDefined(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is undefined, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isUndefined(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a function, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isFunction(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not undefined, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isDefined(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a function, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotFunction(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a function, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isFunction(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is an object, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isObject(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a function, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotFunction(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not an object, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotObject(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is an object, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isObject(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is an array, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isArray(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not an object, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotObject(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not an array, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotArray(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is an array, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isArray(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a string, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isString(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not an array, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotArray(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a string, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotString(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a string, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isString(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a number, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNumber(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a string, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotString(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a number, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotNumber(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a number, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNumber(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a boolean, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isBoolean(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a number, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotNumber(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a boolean, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotBoolean(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a boolean, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isBoolean(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is of the given type, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param type the specified type
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function typeOf(actual: any, type: string, msg?: any): void;
+        /**
+         * @description Tests that the value is not a boolean, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotBoolean(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not of the given type, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param type the specified type
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notTypeOf(actual: any, type: string, msg?: any): void;
+        /**
+         * @description Tests that the value is of the given type, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param type the specified type
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function typeOf(actual: any, type: string, msg?: any): void;
 
-    /**
-     * @description Tests that the object contains the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function property(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not of the given type, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param type the specified type
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notTypeOf(actual: any, type: string, msg?: any): void;
 
-    /**
-     * @description Tests that the object does not contain the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the object contains the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function property(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the object does not contain the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function propertyVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function propertyNotVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function propertyVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepPropertyVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function propertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepPropertyNotVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepPropertyVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function throws(block: ()=>void, error: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepPropertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function throws(block: ()=>void, msg?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function throws(block: ()=>void, error: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code does not throw an error; the assertion fails if it throws
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function doesNotThrow(block: ()=>void, msg?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function throws(block: ()=>void, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        /**
+         * @description Tests that the given code does not throw an error; the assertion fails if it throws
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function doesNotThrow(block: ()=>void, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(block: ()=>void, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(block: ()=>void, error: any, msg?: any): Promise;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param result the code to test, given as a Promise
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(result: Promise, error: any, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(block: ()=>void, msg?: any): Promise;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param result the code to test, given as a Promise
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(result: Promise, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param result the code to test, given as a Promise
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(result: Promise, error: any, msg?: any): Promise;
 
-    /**
-     * @description Throws if the argument is true
-     *      @param object the argument
-     *
-     */
-    function ifError(object?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param result the code to test, given as a Promise
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(result: Promise, msg?: any): Promise;
+
+        /**
+         * @description Throws if the argument is true
+         *      @param object the argument
+         *
+         */
+        function ifError(object?: any): void;
+
+    }
+
+    export = assert;
 
 }
 
@@ -32552,524 +32560,530 @@ declare module 'assert' {
  *  var test = require('test');
  *  var assert = test.assert.strict;
  *  \`\`\`
- *  Or configure it through test.setup:
+ *  The module is also registered as \`assert/strict\`, with the \`node:\` and
+ *  \`fibjs:\` prefixes:
  *  \`\`\`JavaScript
- *  require("test").setup();
+ *  var strict = require('assert/strict');
  *  \`\`\`
  *
  */
-declare module 'assert_strict' {
-    /**
-     * @description Assertion error object
-     */
-    const AssertionError: (...args: any[])=>any;
-
+declare module 'assert/strict' {
     /**
      * @description Tests that the value is truthy; the assertion fails if it is false
      *      @param actual the value to test
      *      @param msg the message when the assertion fails
      *
      */
-    function Function(actual?: any, msg?: any): void;
+    function assert_strict(actual?: any, msg?: any): void;
 
-    /**
-     * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
-     */
-    const ok: typeof import ('assert');
+    namespace assert_strict {
+        /**
+         * @description Assertion error object
+         */
+        const AssertionError: (...args: any[])=>any;
 
-    /**
-     * @description Tests that the value is falsy; the assertion fails if it is true
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notOk(actual: any, msg?: any): void;
+        /**
+         * ! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module
+         */
+        const ok: typeof import ('assert');
 
-    /**
-     * @description Tests that the value equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function equal(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is falsy; the assertion fails if it is true
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notOk(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function equal(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function strictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value strictly equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function strictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not strictly equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value deeply equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value does not deeply equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepStrictEqual(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value strictly deeply equals the expected value; the assertion fails if they are not equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the string contains the expected string, otherwise the assertion fails
-     *      @param actual the string to test
-     *      @param expected the expected regular expression
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function match(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
+        /**
+         * @description Tests that the value does not strictly deeply equal the expected value; the assertion fails if they are equal
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepStrictEqual(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the string does not contain the expected string, otherwise the assertion fails
-     *      @param actual the string to test
-     *      @param expected the expected regular expression
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
+        /**
+         * @description Tests that the string contains the expected string, otherwise the assertion fails
+         *      @param actual the string to test
+         *      @param expected the expected regular expression
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function match(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
-    /**
-     * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param delta the decimal precision of the approximation
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function closeTo(actual: any, expected: any, delta: any, msg?: any): void;
+        /**
+         * @description Tests that the string does not contain the expected string, otherwise the assertion fails
+         *      @param actual the string to test
+         *      @param expected the expected regular expression
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function doesNotMatch(actual: string, expected: FIBJS.GeneralObject, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param delta the decimal precision of the approximation
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notCloseTo(actual: any, expected: any, delta: any, msg?: any): void;
+        /**
+         * @description Tests that the value is approximately equal to the expected value, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param delta the decimal precision of the approximation
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function closeTo(actual: any, expected: any, delta: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function lessThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not approximately equal to the expected value, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param delta the decimal precision of the approximation
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notCloseTo(actual: any, expected: any, delta: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not less than the expected value; the assertion fails if it is less
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notLessThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is less than the expected value; the assertion fails if it is greater than or equal to it
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function lessThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function greaterThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not less than the expected value; the assertion fails if it is less
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notLessThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
-     *      @param actual the value to test
-     *      @param expected the expected value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notGreaterThan(actual: any, expected: any, msg?: any): void;
+        /**
+         * @description Tests that the value is greater than the expected value; the assertion fails if it is less than or equal to it
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function greaterThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the variable exists; the assertion fails if it is false
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function exist(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not greater than the expected value; the assertion fails if it is greater
+         *      @param actual the value to test
+         *      @param expected the expected value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notGreaterThan(actual: any, expected: any, msg?: any): void;
 
-    /**
-     * @description Tests that the variable does not exist; the assertion fails if it is true
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notExist(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the variable exists; the assertion fails if it is false
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function exist(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is boolean true, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isTrue(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the variable does not exist; the assertion fails if it is true
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notExist(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not boolean true, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotTrue(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is boolean true, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isTrue(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is boolean false, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isFalse(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not boolean true, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotTrue(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not boolean false, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotFalse(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is boolean false, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isFalse(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is Null, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNull(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not boolean false, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotFalse(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not Null, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotNull(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is Null, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNull(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is undefined, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isUndefined(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not Null, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotNull(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not undefined, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isDefined(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is undefined, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isUndefined(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a function, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isFunction(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not undefined, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isDefined(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a function, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotFunction(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a function, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isFunction(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is an object, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isObject(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a function, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotFunction(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not an object, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotObject(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is an object, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isObject(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is an array, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isArray(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not an object, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotObject(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not an array, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotArray(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is an array, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isArray(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a string, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isString(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not an array, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotArray(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a string, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotString(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a string, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isString(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a number, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNumber(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a string, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotString(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a number, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotNumber(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a number, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNumber(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is a boolean, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isBoolean(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not a number, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotNumber(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not a boolean, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function isNotBoolean(actual: any, msg?: any): void;
+        /**
+         * @description Tests that the value is a boolean, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isBoolean(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is of the given type, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param type the specified type
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function typeOf(actual: any, type: string, msg?: any): void;
+        /**
+         * @description Tests that the value is not a boolean, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function isNotBoolean(actual: any, msg?: any): void;
 
-    /**
-     * @description Tests that the value is not of the given type, otherwise the assertion fails
-     *      @param actual the value to test
-     *      @param type the specified type
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notTypeOf(actual: any, type: string, msg?: any): void;
+        /**
+         * @description Tests that the value is of the given type, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param type the specified type
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function typeOf(actual: any, type: string, msg?: any): void;
 
-    /**
-     * @description Tests that the object contains the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function property(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the value is not of the given type, otherwise the assertion fails
+         *      @param actual the value to test
+         *      @param type the specified type
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notTypeOf(actual: any, type: string, msg?: any): void;
 
-    /**
-     * @description Tests that the object does not contain the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the object contains the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function property(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Tests that the object does not contain the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function notDeepProperty(object: any, prop: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the object contains the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function propertyVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the object does not contain the specified property, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function notDeepProperty(object: any, prop: any, msg?: any): void;
 
-    /**
-     * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function propertyNotVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Tests that the specified property in the object has the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function propertyVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepPropertyVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Tests that the specified property in the object does not have the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function propertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
-     *      @param object the object to test
-     *      @param prop the property to test, separated by "."
-     *      @param value the given value
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function deepPropertyNotVal(object: any, prop: any, value: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the specified property in the object has the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepPropertyVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function throws(block: ()=>void, error: any, msg?: any): void;
+        /**
+         * @description Deeply tests that the specified property in the object does not have the given value, otherwise the assertion fails
+         *      @param object the object to test
+         *      @param prop the property to test, separated by "."
+         *      @param value the given value
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function deepPropertyNotVal(object: any, prop: any, value: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function throws(block: ()=>void, msg?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function throws(block: ()=>void, error: any, msg?: any): void;
 
-    /**
-     * @description Tests that the given code does not throw an error; the assertion fails if it throws
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *
-     */
-    function doesNotThrow(block: ()=>void, msg?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function throws(block: ()=>void, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        /**
+         * @description Tests that the given code does not throw an error; the assertion fails if it throws
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function doesNotThrow(block: ()=>void, msg?: any): void;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param block the code to test, given as a function
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(block: ()=>void, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(block: ()=>void, error: any, msg?: any): Promise;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param result the code to test, given as a Promise
-     *      @param error the specified error, which can be a RegExp/Function/Object/Error
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(result: Promise, error: any, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param block the code to test, given as a function
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(block: ()=>void, msg?: any): Promise;
 
-    /**
-     * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
-     *      @param result the code to test, given as a Promise
-     *      @param msg the message when the assertion fails
-     *      @return returns a Promise
-     *
-     */
-    function rejects(result: Promise, msg?: any): Promise;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param result the code to test, given as a Promise
+         *      @param error the specified error, which can be a RegExp/Function/Object/Error
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(result: Promise, error: any, msg?: any): Promise;
 
-    /**
-     * @description Throws if the argument is true
-     *      @param object the argument
-     *
-     */
-    function ifError(object?: any): void;
+        /**
+         * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
+         *      @param result the code to test, given as a Promise
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function rejects(result: Promise, msg?: any): Promise;
+
+        /**
+         * @description Throws if the argument is true
+         *      @param object the argument
+         *
+         */
+        function ifError(object?: any): void;
+
+    }
+
+    export = assert_strict;
 
 }
 
@@ -56136,7 +56150,7 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, block: ()=>void): void;
+    function test(name: string, block: ()=>void): void;
 
     /**
      * @description Defines a test item (with options)
@@ -56145,161 +56159,166 @@ declare module 'test' {
      *      @param block the test content
      *
      */
-    function Function(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+    function test(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
-    /**
-     * @description Test framework module; points to this module and can be called as a function
-     */
-    const test: typeof import ('test');
+    namespace test {
+        /**
+         * @description Test framework module; points to this module and can be called as a function
+         */
+        const test: typeof import ('test');
 
-    /**
-     * @description Test framework module; points to this module and can be called as a function
-     */
-    const it: typeof import ('test');
+        /**
+         * @description Test framework module; points to this module and can be called as a function
+         */
+        const it: typeof import ('test');
 
-    /**
-     * @description Test suite module; can be called as a function, see test_suite
-     */
-    const suite: typeof import ('test_suite');
+        /**
+         * @description Test suite module; can be called as a function, see test_suite
+         */
+        const suite: typeof import ('test_suite');
 
-    /**
-     * @description Test suite module; can be called as a function, see test_suite
-     */
-    const describe: typeof import ('test_suite');
+        /**
+         * @description Test suite module; can be called as a function, see test_suite
+         */
+        const describe: typeof import ('test_suite');
 
-    /**
-     * @description Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
-     */
-    const assert: typeof import ('assert');
+        /**
+         * @description Assertion test module; can be called as a function; if the tested value is false, an error is reported, and the error behavior can be configured to continue running or to throw the error
+         */
+        const assert: typeof import ('assert');
 
-    /**
-     * @description Paused test suite definition
-     *      @param name defines the module name
-     *      @param block the module initialization code
-     *
-     */
-    function xdescribe(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test suite definition
+         *      @param name defines the module name
+         *      @param block the module initialization code
+         *
+         */
+        function xdescribe(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test suite definition
-     *      @param name defines the module name
-     *      @param block the module initialization code
-     *
-     */
-    function odescribe(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test suite definition
+         *      @param name defines the module name
+         *      @param block the module initialization code
+         *
+         */
+        function odescribe(name: string, block: ()=>void): void;
 
-    /**
-     * @description Paused test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function xit(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function xit(name: string, block: ()=>void): void;
 
-    /**
-     * @description Paused test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function skip(name: string, block: ()=>void): void;
+        /**
+         * @description Paused test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function skip(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function oit(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function oit(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function only(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function only(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, block: ()=>void): void;
+        /**
+         * @description Planned test item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition (with options)
-     *      @param name defines the item name
-     *      @param options the test options, supporting: { skip, todo, only }
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+        /**
+         * @description Planned test item definition (with options)
+         *      @param name defines the item name
+         *      @param options the test options, supporting: { skip, todo, only }
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
-    /**
-     * @description Planned test item definition
-     *      @param name defines the item name
-     *
-     */
-    function todo(name: string): void;
+        /**
+         * @description Planned test item definition
+         *      @param name defines the item name
+         *
+         */
+        function todo(name: string): void;
 
-    /**
-     * @description Defines the enter event of the current test module
-     *      @param func the event function
-     *
-     */
-    function before(func: ()=>void): void;
+        /**
+         * @description Defines the enter event of the current test module
+         *      @param func the event function
+         *
+         */
+        function before(func: ()=>void): void;
 
-    /**
-     * @description Defines the exit event of the current test module
-     *      @param func the event function
-     *
-     */
-    function after(func: ()=>void): void;
+        /**
+         * @description Defines the exit event of the current test module
+         *      @param func the event function
+         *
+         */
+        function after(func: ()=>void): void;
 
-    /**
-     * @description Defines the test item enter event of the current test module
-     *      @param func the event function
-     *
-     */
-    function beforeEach(func: ()=>void): void;
+        /**
+         * @description Defines the test item enter event of the current test module
+         *      @param func the event function
+         *
+         */
+        function beforeEach(func: ()=>void): void;
 
-    /**
-     * @description Defines the test item exit event of the current test module
-     *      @param func the event function
-     *
-     */
-    function afterEach(func: ()=>void): void;
+        /**
+         * @description Defines the test item exit event of the current test module
+         *      @param func the event function
+         *
+         */
+        function afterEach(func: ()=>void): void;
 
-    /**
-     * @description Tests that a function must be called a specified number of times
-     *      @param func the function to test
-     *      @return returns the wrapped function
-     *
-     */
-    function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must be called a specified number of times
+         *      @param func the function to test
+         *      @return returns the wrapped function
+         *
+         */
+        function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
-    /**
-     * @description Tests that a function must not be called
-     *      @param func the function to test
-     *      @return returns the wrapped function
-     *
-     */
-    function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must not be called
+         *      @param func the function to test
+         *      @return returns the wrapped function
+         *
+         */
+        function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
-    /**
-     * @description Tests that a function must not be called
-     *      @return returns the wrapped function
-     *
-     */
-    function mustNotCall(): (...args: any[])=>any;
+        /**
+         * @description Tests that a function must not be called
+         *      @return returns the wrapped function
+         *
+         */
+        function mustNotCall(): (...args: any[])=>any;
 
-    /**
-     * @description Sets and queries the slow test warning threshold, in ms, default 75
-     *
-     */
-    var slow: number;
+        /**
+         * @description Sets and queries the slow test warning threshold, in ms, default 75
+         *
+         */
+        var slow: number;
+
+    }
+
+    export = test;
 
 }
 
@@ -56315,7 +56334,7 @@ declare module 'test_suite' {
      *      @param block the test content
      *
      */
-    function Function(name: string, block: ()=>void): void;
+    function test_suite(name: string, block: ()=>void): void;
 
     /**
      * @description Defines a test suite (with options), can be nested
@@ -56324,40 +56343,45 @@ declare module 'test_suite' {
      *      @param block the test content
      *
      */
-    function Function(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+    function test_suite(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
 
-    /**
-     * @description Paused test suite item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function skip(name: string, block: ()=>void): void;
+    namespace test_suite {
+        /**
+         * @description Paused test suite item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function skip(name: string, block: ()=>void): void;
 
-    /**
-     * @description Independent test suite item definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function only(name: string, block: ()=>void): void;
+        /**
+         * @description Independent test suite item definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function only(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test suite definition
-     *      @param name defines the item name
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, block: ()=>void): void;
+        /**
+         * @description Planned test suite definition
+         *      @param name defines the item name
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, block: ()=>void): void;
 
-    /**
-     * @description Planned test suite definition (with options)
-     *      @param name defines the item name
-     *      @param options the test options, supporting: { skip, todo, only }
-     *      @param block the test content
-     *
-     */
-    function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+        /**
+         * @description Planned test suite definition (with options)
+         *      @param name defines the item name
+         *      @param options the test options, supporting: { skip, todo, only }
+         *      @param block the test content
+         *
+         */
+        function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;
+
+    }
+
+    export = test_suite;
 
 }
 
@@ -61779,8 +61803,10 @@ declare var exports: any;
 // The runtime registers them in SandBox::installRootModules(); dropped at read time
 // when the project loads @types/node (the node definitions own the prefixed names then).
 
-declare module "fibjs:assert" { export * from "assert"; }
-declare module "node:assert" { export * from "assert"; }
+declare module "fibjs:assert" { import assert = require("assert"); export = assert; }
+declare module "node:assert" { import assert = require("assert"); export = assert; }
+declare module "fibjs:assert/strict" { import assert_strict = require("assert/strict"); export = assert_strict; }
+declare module "node:assert/strict" { import assert_strict = require("assert/strict"); export = assert_strict; }
 declare module "fibjs:async_hooks" { export * from "async_hooks"; }
 declare module "node:async_hooks" { export * from "async_hooks"; }
 declare module "fibjs:base32" { export * from "base32"; }
@@ -61877,8 +61903,8 @@ declare module "fibjs:sse" { export * from "sse"; }
 declare module "node:sse" { export * from "sse"; }
 declare module "fibjs:string_decoder" { export * from "string_decoder"; }
 declare module "node:string_decoder" { export * from "string_decoder"; }
-declare module "fibjs:test" { export * from "test"; }
-declare module "node:test" { export * from "test"; }
+declare module "fibjs:test" { import test = require("test"); export = test; }
+declare module "node:test" { import test = require("test"); export = test; }
 declare module "fibjs:timers" { export * from "timers"; }
 declare module "node:timers" { export * from "timers"; }
 declare module "fibjs:tls" { export * from "tls"; }

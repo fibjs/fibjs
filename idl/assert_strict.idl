@@ -9,9 +9,10 @@
  var test = require('test');
  var assert = test.assert.strict;
  ```
- Or configure it through test.setup:
+ The module is also registered as `assert/strict`, with the `node:` and
+ `fibjs:` prefixes:
  ```JavaScript
- require("test").setup();
+ var strict = require('assert/strict');
  ```
  */
 module assert_strict
@@ -23,7 +24,7 @@ module assert_strict
      @param actual the value to test
      @param msg the message when the assertion fails
      */
-    static Function(Value actual = undefined, Value msg = undefined);
+    static operator(Value actual = undefined, Value msg = undefined);
 
     /*! Tests that the value is truthy; the assertion fails if it is false; an alias of the assert module */
     static ok = assert;

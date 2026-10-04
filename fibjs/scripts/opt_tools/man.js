@@ -242,6 +242,19 @@ function parse(rel) {
         if (t.startsWith('//'))
             continue;
 
+        // the callable modules (`test`, `assert`, ...) wrap everything but the
+        // call overloads in a namespace merged with a function named after the
+        // module, published with `export =`: the namespace members are the
+        // module's own, the wrapper is not
+        if (/^namespace\s+[$A-Za-z_][\w$]*\s*\{$/.test(t))
+            continue;
+
+        if (t === '}')
+            continue;
+
+        if (/^export\s+=/.test(t))
+            continue;
+
         members.push({
             decl: t.replace(/^export\s+/, ''),
             doc: doc ? jsdocText(doc) : ''

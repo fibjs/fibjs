@@ -245,6 +245,22 @@ function prefixedModulesFile(files) {
             if (!prefixedModuleSupported(name))
                 return;
 
+            // An `export =` module (the callable ones: test, assert, ...) cannot
+            // be re-exported with `export *` (TS2498); bind and re-export the
+            // entity itself - the shape @types/node gives `node:assert`.
+            if (/^\s*export\s*=/m.test(files[rel])) {
+                // the local binding needs an identifier: `assert/strict` binds
+                // as `assert_strict`
+                const bind = name.replace(/[^\w$]/g, '_');
+
+                if (!/^[A-Za-z_$][\w$]*$/.test(bind))
+                    throw new Error(`the export = module '${name}' needs an identifier to re-export under fibjs:/node:`);
+
+                aliases.push(`declare module "fibjs:${name}" { import ${bind} = require("${name}"); export = ${bind}; }`);
+                aliases.push(`declare module "node:${name}" { import ${bind} = require("${name}"); export = ${bind}; }`);
+                return;
+            }
+
             aliases.push(`declare module "fibjs:${name}" { export * from "${name}"; }`);
             aliases.push(`declare module "node:${name}" { export * from "${name}"; }`);
         });
