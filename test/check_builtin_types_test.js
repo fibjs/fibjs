@@ -84,6 +84,146 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         assert.ok((r.stdout + r.stderr).includes('nope'), 'the user error is missing');
     });
 
+    it('types the callable modules and the callable instances', () => {
+        var dir = path.join(scratch, 'callable');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'callable.ts'), [
+            "import assert from 'assert';",
+            "import nassert from 'node:assert';",
+            "import { describe, it, xit, todo } from 'test';",
+            "import test from 'test';",
+            "import suite from 'test_suite';",
+            "import ntest from 'node:test';",
+            "import util from 'util';",
+            'assert.ok(1);',
+            'assert(1);',
+            'nassert.ok(1);',
+            "describe('suite', () => { it('case', () => {}); });",
+            "suite('nested', () => {});",
+            "test('item', () => {});",
+            "ntest('node item', () => {});",
+            "xit('paused', () => {});",
+            "todo('planned', () => {});",
+            "it.skip('skip', () => {});",
+            "it.only('only', () => {});",
+            "it.todo('later');",
+            'test.assert(1);',
+            "const log = util.debuglog('section');",
+            "log('direct');",
+            'console.log(log);'
+        ].join('\n'));
+
+        // The modules are callable objects: `operator(...)` in the IDL becomes
+        // a function merged with the module namespace and published with
+        // `export =` (the shape @types/node gives `node:test`), so the aliases
+        // (`describe`, `it`, `assert.ok`, ...) are callable too.
+        var r = runCheck(dir, ['callable.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        // ... and the call signatures are typed, not `any`
+        fs.writeFileSync(path.join(dir, 'callable-bad.ts'), [
+            "import assert from 'assert';",
+            "import test from 'test';",
+            'assert(1, 2, 3);',
+            "test.nonexistent('x', () => {});"
+        ].join('\n'));
+
+        r = runCheck(dir, ['callable-bad.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 2, r.stdout + r.stderr);
+    });
+
+    it('types the assert/strict module under its runtime name', () => {
+        var dir = path.join(scratch, 'assert-strict');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'strict.ts'), [
+            "import strict from 'assert/strict';",
+            "import nstrict from 'node:assert/strict';",
+            "import { deepStrictEqual } from 'node:assert/strict';",
+            "import assert from 'assert';",
+            'strict.deepStrictEqual(1, 1);',
+            'nstrict.ok(1);',
+            'deepStrictEqual(1, 1);',
+            'assert.strict(true);',
+            '// @ts-expect-error the parameters are typed, not any',
+            'strict.deepStrictEqual(1);'
+        ].join('\n'));
+
+        // the runtime registers the strict assert API as `assert/strict`
+        // (SandBox::installGlobal) with the fibjs:/node: prefixes; the
+        // declarations use that name, so `node:assert/strict` types and the
+        // `assert.strict` alias agrees
+        var r = runCheck(dir, ['strict.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        // `assert_strict` is not a runtime module name; the types refuse it too
+        fs.writeFileSync(path.join(dir, 'bad.ts'), "import bad from 'assert_strict';");
+
+        r = runCheck(dir, ['bad.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 1, r.stdout + r.stderr);
+    });
+
+    it('keeps the callable and export= declarations in their documented shapes', () => {
+        // The callable modules and the class call signatures are corpus facts:
+        // a class declaration cannot hold a call signature (TS1068) and
+        // `export *` cannot re-export an `export =` module (TS2498), so the
+        // generated shapes are asserted here directly.
+        var files = require('internal/fibjs-types').files;
+
+        [['test', 'test'], ['test_suite', 'test_suite'],
+            ['assert', 'assert'], ['assert_strict', 'assert/strict']
+        ].forEach(([unit, declared]) => {
+            var rel = 'dts/module/' + unit + '.d.ts';
+            var text = files[rel];
+
+            assert.ok(text, rel + ' is missing');
+            assert.ok(text.includes("declare module '" + declared + "' {"),
+                rel + " must declare the runtime name '" + declared + "'");
+            assert.ok(new RegExp('^    function ' + unit + '\\(', 'm').test(text),
+                rel + ' must declare the call overloads as functions named after the module');
+            assert.ok(text.includes('namespace ' + unit + ' {'), rel + ' must merge a namespace');
+            assert.ok(text.includes('export = ' + unit + ';'), rel + ' must publish with export =');
+        });
+
+        // the alias chain must point at the runtime module names
+        assert.ok(files['dts/module/assert.d.ts'].includes("const strict: typeof import ('assert/strict');"),
+            'assert.strict must reference assert/strict');
+        assert.ok(files['dts/module/test.d.ts'].includes("const describe: typeof import ('test_suite');"),
+            'test.describe must reference test_suite');
+
+        // a class declaration cannot hold a call signature (TS1068): the
+        // ConsoleObject signatures merge in through a sibling interface
+        var consoleObject = files['dts/interface/ConsoleObject.d.ts'];
+        var mergedAt = consoleObject.indexOf('declare interface Class_ConsoleObject');
+        // the anonymous form: the named members (`log(...args: any[]): void;`)
+        // must not count
+        var callSignature = /^    \(\.\.\.args: any\[\]\): void;$/m;
+
+        assert.ok(mergedAt > 0, 'the merged interface is missing');
+        assert.ok(consoleObject.slice(0, mergedAt).includes('declare class Class_ConsoleObject'),
+            'the class declaration is missing');
+        assert.ok(!callSignature.test(consoleObject.slice(0, mergedAt)),
+            'the class body must not hold the call signature');
+        assert.ok(callSignature.test(consoleObject.slice(mergedAt)),
+            'the merged interface must carry the call signature');
+
+        // `export *` cannot re-export an `export =` module (TS2498): the
+        // fibjs:/node: aliases bind and re-export the entity instead
+        var prefixed = files['dts/_builtin/prefixed-modules.d.ts'];
+
+        [['test', 'test'], ['assert', 'assert'], ['assert/strict', 'assert_strict']].forEach(([name, bind]) => {
+            assert.ok(prefixed.includes('declare module "node:' + name + '" { import ' + bind + ' = require("' + name + '"); export = ' + bind + '; }'),
+                'node:' + name + ' must bind and re-export the export = entity');
+            assert.ok(!prefixed.includes('export * from "' + name + '"'),
+                'export * from "' + name + '" would be TS2498');
+        });
+    });
+
     it('--no-builtin-types falls back to the types-less behaviour', () => {
         var dir = path.join(scratch, 'bare');
         var r = runCheck(dir, ['--no-builtin-types', 'a.ts']);

@@ -68,6 +68,28 @@ describe('fibjs --man', { skip: !isFibjs }, () => {
             assert.ok(r.stdout.includes('createServer'), 'createServer is missing');
         });
 
+        it('renders the call operator of a callable module', () => {
+            var r = man(['assert']);
+
+            assert.equal(r.code, 0, r.stderr);
+            // `operator(...)` in the IDL: the module object is callable, so the
+            // page lists the call signature under the module's own name
+            assert.ok(r.stdout.includes('function assert('),
+                'the call signature is missing: ' + r.stdout.slice(0, 300));
+            assert.ok(!r.stdout.includes('function Function('),
+                'the historical Function(...) spelling must not come back');
+
+            // the merged namespace flattens back into the page: the call
+            // overloads and the aliases (`test.it`, `test.describe`, ...)
+            var t = man(['test']);
+
+            assert.equal(t.code, 0, t.stderr);
+            assert.ok(t.stdout.includes('function test(name: string, block: ()=>void): void'),
+                'the call overload is missing: ' + t.stdout.slice(0, 300));
+            assert.ok(t.stdout.includes("const it: typeof import ('test')"),
+                'the alias members are missing');
+        });
+
         it('resolves a module alias to the object page', () => {
             var r = man(['http.Server']);
 
