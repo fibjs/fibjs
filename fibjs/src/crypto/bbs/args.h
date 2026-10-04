@@ -58,6 +58,20 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* 
     return CALL_E_NOSYNC;
 }
 
+static result_t bbs_get_args(exlib::string key, bool priv, AsyncEvent* ac)
+{
+    Isolate* isolate = ac->isolate();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> key_ = v8::Object::New(isolate->m_isolate);
+
+    // the key parser reads a string key as utf8, exactly like Buffer.from(key)
+    key_->Set(context, isolate->NewString("key"), isolate->NewString(key)).IsJust();
+    key_->Set(context, isolate->NewString("format"), isolate->NewString("raw")).IsJust();
+    key_->Set(context, isolate->NewString("namedCurve"), isolate->NewString("Bls12381G2")).IsJust();
+
+    return bbs_get_args(key_, priv, ac);
+}
+
 static result_t bbs_get_args(Buffer_base* key, bool priv, AsyncEvent* ac)
 {
     Isolate* isolate = ac->isolate();
@@ -90,6 +104,21 @@ static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncEvent* ac)
     ac->m_ctx[3] = (Buffer_base*)nullptr;
 
     return CALL_E_NOSYNC;
+}
+
+// the key of a BBS operation is a union argument (Buffer|KeyObject|Object|String):
+// the alternative that was given is parsed by the matching overload above
+template <typename... Ts>
+static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncEvent* ac)
+{
+    result_t hr = 0;
+
+    std::visit([&hr, priv, ac](auto& val) {
+        if (hr >= 0)
+            hr = bbs_get_args(val, priv, ac);
+    }, key);
+
+    return hr;
 }
 
 }

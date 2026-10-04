@@ -38,10 +38,24 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
-result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t size,
+result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    int32_t len = Buffer::Cast(buffer)->length();
+    obj_ptr<Buffer_base> buf;
+
+    if (std::holds_alternative<exlib::string>(buffer)) {
+        // The randomly filled buffer is the result: decoding has to happen
+        // before it is validated and filled, so it is decoded here.
+        if (ac->isSync())
+            return CHECK_ERROR(CALL_E_NOSYNC);
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(buffer), "utf8", buf);
+        if (hr < 0)
+            return hr;
+    } else
+        buf = std::get<obj_ptr<Buffer_base>>(buffer);
+
+    int32_t len = Buffer::Cast(buf)->length();
 
     if (offset < 0 || offset > len)
         return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "randomFill: offset %d is out of range [0, %d].", offset, len));
@@ -52,7 +66,7 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
         return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "randomFill: offset(%d) + size(%d) exceeds buffer length %d.", offset, size, len));
 
     if (size == 0) {
-        retVal = buffer;
+        retVal = buf;
         return 0;
     }
 
@@ -62,7 +76,13 @@ result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t si
     obj_ptr<Buffer_base> rand;
     randomBytes(size, rand);
 
-    return buffer->fill(rand, offset, offset + size, retVal);
+    int32_t copied;
+    result_t hr = buf->set(rand, offset, copied);
+    if (hr < 0)
+        return hr;
+
+    retVal = buf;
+    return 0;
 }
 
 result_t crypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal)

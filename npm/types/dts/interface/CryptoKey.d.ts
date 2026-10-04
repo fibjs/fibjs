@@ -31,7 +31,7 @@ declare class Class_CryptoKey extends Class_object {
      *         - 'unwrapKey'
      *
      */
-    readonly usages: any[];
+    readonly usages: string[];
 
 }
 

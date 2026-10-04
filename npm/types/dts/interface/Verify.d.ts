@@ -32,43 +32,15 @@
 declare class Class_Verify extends Class_object {
     /**
      * @description Updates the Verify content with the given data
-     *      @param data the data to update with
+     *      @param data the data to update with; a string is decoded with codec
+     *      @param codec the encoding of a string data, default "utf8"
      *      @return returns the Verify object itself
      *
      */
-    update(data: Class_Buffer): Class_Verify;
-
-    /**
-     * @description Updates the Verify content with the given data
-     *      @param data the data to update with
-     *      @param codec the encoding of data
-     *      @return returns the Verify object itself
-     *
-     */
-    update(data: string, codec?: string): Class_Verify;
-
     update(data: Class_Buffer | string, codec?: string): Class_Verify;
 
     /**
      * @description Verifies the signature of all the data passed in
-     *      @param privateKey the public key used for verification
-     *      @param signature the signature to verify
-     *      @return returns true if the signature is valid, false otherwise
-     *
-     */
-    verify(privateKey: Class_Buffer, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Verifies the signature of all the data passed in
-     *      @param privateKey the public key used for verification
-     *      @param signature the signature to verify
-     *      @return returns true if the signature is valid, false otherwise
-     *
-     */
-    verify(privateKey: Class_KeyObject, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Verifies the signature of all the data passed in
      *
      *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
      *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
@@ -78,53 +50,14 @@ declare class Class_Verify extends Class_object {
      *       - RSA_PKCS1_PADDING (default)
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
-     *
-     *      @param key the private key used for signing
-     *      @param signature the signature to verify
+     *      @param privateKey the public key used for verification; a Buffer or a string in the PEM/DER form,
+     *      or a KeyObject, or an object with the key parameters
+     *      @param signature the signature to verify; a string is decoded with encoding
+     *      @param encoding the encoding of a string signature, default "buffer"
      *      @return returns true if the signature is valid, false otherwise
      *
      */
-    verify(key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Verifies the signature of all the data passed in
-     *      @param privateKey the public key used for verification
-     *      @param signature the signature to verify
-     *      @param encoding the encoding of signature
-     *      @return returns true if the signature is valid, false otherwise
-     *
-     */
-    verify(privateKey: Class_Buffer, signature: string, encoding?: string): boolean;
-
-    /**
-     * @description Verifies the signature of all the data passed in
-     *      @param privateKey the public key used for verification
-     *      @param signature the signature to verify
-     *      @param encoding the encoding of signature
-     *      @return returns true if the signature is valid, false otherwise
-     *
-     */
-    verify(privateKey: Class_KeyObject, signature: string, encoding?: string): boolean;
-
-    /**
-     * @description Verifies the signature of all the data passed in
-     *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
-     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
-     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
-     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
-     *      - padding optional RSA padding value, one of the following:
-     *       - RSA_PKCS1_PADDING (default)
-     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
-     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
-     *
-     *      @param key the private key used for signing
-     *      @param signature the signature to verify
-     *      @param encoding the encoding of signature
-     *      @return returns true if the signature is valid, false otherwise
-     *
-     */
-    verify(key: FIBJS.GeneralObject, signature: string, encoding?: string): boolean;
+    verify(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
 
 }
 

@@ -20,8 +20,7 @@ public:
 
 public:
     // Digest_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal);
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal);
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Digest_base>& retVal);
     virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal);
     virtual result_t get_size(int32_t& retVal);
 

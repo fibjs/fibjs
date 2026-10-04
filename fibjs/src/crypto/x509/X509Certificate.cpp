@@ -261,11 +261,20 @@ result_t GetFingerprintDigest(const EVP_MD* method, X509* cert, exlib::string& r
     return 0;
 }
 
-result_t X509Certificate_base::_new(Buffer_base* cert, obj_ptr<X509Certificate_base>& retVal,
+result_t X509Certificate_base::_new(Union_X509Certificate_cert cert, obj_ptr<X509Certificate_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    obj_ptr<Buffer_base> buf;
+
+    if (std::holds_alternative<exlib::string>(cert)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(cert), "utf8", buf);
+        if (hr < 0)
+            return hr;
+    } else
+        buf = std::get<obj_ptr<Buffer_base>>(cert);
+
     obj_ptr<X509Certificate> cert_ = new X509Certificate();
-    result_t hr = cert_->load_cert(cert);
+    result_t hr = cert_->load_cert(buf);
     if (hr != 0)
         return hr;
 
@@ -301,11 +310,30 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
     return 0;
 }
 
-result_t X509Certificate_base::_new(std::vector<obj_ptr<Buffer_base>>& certs, obj_ptr<X509Certificate_base>& retVal,
+result_t X509Certificate_base::_new(std::vector<Union_X509Certificate_certs>& certs, obj_ptr<X509Certificate_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    // the string form of an entry is encoded as utf8 and handed to the byte
+    // oriented parser, a chain may mix strings and buffers
+    std::vector<obj_ptr<Buffer_base>> bufs;
+
+    bufs.reserve(certs.size());
+
+    for (size_t i = 0; i < certs.size(); i++) {
+        if (std::holds_alternative<exlib::string>(certs[i])) {
+            obj_ptr<Buffer_base> buf;
+
+            result_t hr = Buffer_base::from(std::get<exlib::string>(certs[i]), "utf8", buf);
+            if (hr < 0)
+                return hr;
+
+            bufs.push_back(buf);
+        } else
+            bufs.push_back(std::get<obj_ptr<Buffer_base>>(certs[i]));
+    }
+
     obj_ptr<X509Certificate> cert_ = new X509Certificate();
-    result_t hr = cert_->load_cert(certs);
+    result_t hr = cert_->load_cert(bufs);
     if (hr != 0)
         return hr;
 
@@ -377,33 +405,27 @@ result_t X509Certificate::get_pathlen(int32_t& retVal)
     return 0;
 }
 
-result_t X509Certificate::get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal)
+result_t X509Certificate::get_x509_array(int32_t nid, const char** names, std::vector<exlib::string>& retVal)
 {
     ASN1_BIT_STRING* usage = (ASN1_BIT_STRING*)X509_get_ext_d2i(m_cert, nid, nullptr, nullptr);
     if (!usage || usage->length == 0)
         return CALL_RETURN_UNDEFINED;
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
     unsigned char keyUsage = usage->data[0];
 
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
-    int j = 0;
     for (int32_t i = 0; i < 8; i++)
         if (keyUsage & (0x80 >> i))
-            arr->Set(context, j++, isolate->NewString(names[i]));
-
-    retVal = arr;
+            retVal.push_back(names[i]);
 
     return 0;
 }
 
-result_t X509Certificate::get_keyUsage(v8::Local<v8::Array>& retVal)
+result_t X509Certificate::get_keyUsage(std::vector<exlib::string>& retVal)
 {
     return get_x509_array(NID_key_usage, xfKeyUsages, retVal);
 }
 
-result_t X509Certificate::get_type(v8::Local<v8::Array>& retVal)
+result_t X509Certificate::get_type(std::vector<exlib::string>& retVal)
 {
     return get_x509_array(NID_netscape_cert_type, xfCertTypes, retVal);
 }
@@ -730,5 +752,6 @@ result_t X509Certificate::toJSON(exlib::string key, v8::Local<v8::Value>& retVal
 
     return 0;
 }
+
 
 }

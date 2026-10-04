@@ -13,26 +13,31 @@
 
 namespace fibjs {
 
-result_t crypto_base::createPrivateKey(Buffer_base* key, obj_ptr<KeyObject_base>& retVal)
-{
-    Buffer* key_buf = Buffer::Cast(key);
-    obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->ParsePrivateKeyPEM((const char*)key_buf->data(), key_buf->length(), NULL);
-    if (hr < 0)
-        return hr;
-
-    retVal = keyObj;
-    return 0;
-}
-
-result_t crypto_base::createPrivateKey(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal)
+result_t crypto_base::createPrivateKey(Union_createPrivateKey_key key, obj_ptr<KeyObject_base>& retVal)
 {
     obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->createAsymmetricKey(key, KeyObject::kKeyTypePrivate);
-    if (hr < 0)
-        return hr;
+    result_t hr;
 
-    hr = keyObj->toX25519_privateKey(key);
+    if (std::holds_alternative<v8::Local<v8::Object>>(key)) {
+        // the options object carries the key material and its format
+        v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(key);
+
+        hr = keyObj->createAsymmetricKey(options, KeyObject::kKeyTypePrivate);
+        if (hr < 0)
+            return hr;
+
+        hr = keyObj->toX25519_privateKey(options);
+    } else if (std::holds_alternative<exlib::string>(key)) {
+        // the PEM text itself
+        exlib::string strKey = std::get<exlib::string>(key);
+
+        hr = keyObj->ParsePrivateKeyPEM(strKey.c_str(), (int)strKey.length(), NULL);
+    } else {
+        Buffer* key_buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(key));
+
+        hr = keyObj->ParsePrivateKeyPEM((const char*)key_buf->data(), key_buf->length(), NULL);
+    }
+
     if (hr < 0)
         return hr;
 

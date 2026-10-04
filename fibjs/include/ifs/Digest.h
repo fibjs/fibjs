@@ -21,9 +21,11 @@ class Digest_base : public object_base {
     DECLARE_CLASS(Digest_base);
 
 public:
+    using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Digest_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal) = 0;
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal) = 0;
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Digest_base>& retVal) = 0;
     virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
 
@@ -77,15 +79,9 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->update(v0.get(), vr);
-
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_update_data, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = pInst->update(v0, v1, vr);

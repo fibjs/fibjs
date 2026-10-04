@@ -36,37 +36,35 @@ Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
     EVP_DigestSignInit(m_ctx, NULL, md, NULL, pkey);
 }
 
-result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
+result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Digest_base>& retVal)
 {
-    if(m_bFinal)
+    if (m_bFinal)
         return Runtime::setError("digest has been called");
 
-    Buffer* buf = Buffer::Cast(data);
+    retVal = this;
+
+    if (std::holds_alternative<exlib::string>(data)) {
+        // a string is decoded with codec; the buffer form ignores it, as it did
+        // before the merge (it had no codec parameter)
+        exlib::string _data;
+        result_t hr = commonDecode(codec, std::get<exlib::string>(data), _data);
+        if (hr < 0)
+            return hr;
+
+        if (m_bMac)
+            EVP_DigestSignUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
+        else
+            EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
+
+        return 0;
+    }
+
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
 
     if (m_bMac)
         EVP_DigestSignUpdate(m_ctx, buf->data(), buf->length());
     else
         EVP_DigestUpdate(m_ctx, buf->data(), buf->length());
-    retVal = this;
-
-    return 0;
-}
-
-result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal)
-{
-    if(m_bFinal)
-        return Runtime::setError("digest has been called");
-
-    exlib::string _data;
-    result_t hr = commonDecode(codec, data, _data);
-    if (hr < 0)
-        return hr;
-
-    if (m_bMac)
-        EVP_DigestSignUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
-    else
-        EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
-    retVal = this;
 
     return 0;
 }

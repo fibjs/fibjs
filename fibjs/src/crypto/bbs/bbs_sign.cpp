@@ -170,6 +170,11 @@ static blst_scalar generate_random_scalar()
 
 static result_t bbsSign_(std::vector<obj_ptr<Buffer_base>>& messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    // the key and the options come from the sync phase (ctx[0..3])
+    result_t ctx_hr = ac->ctx(3);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     int suite = ac->m_ctx[1].intVal();
     std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
     Generators gens(fr_messages.size(), suite);
@@ -185,32 +190,14 @@ static result_t bbsSign_(std::vector<obj_ptr<Buffer_base>>& messages, obj_ptr<Bu
     return 0;
 }
 
-result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(privateKey, true, ac);
-
-    return bbsSign_(messages, retVal, ac);
-}
-
-result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(privateKey, true, ac);
-
-    return bbsSign_(messages, retVal, ac);
-}
-
-result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(key, true, ac);
-
-    return bbsSign_(messages, retVal, ac);
-}
 
 static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
+    // the key and the options come from the sync phase (ctx[0..3])
+    result_t ctx_hr = ac->ctx(3);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
     std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
@@ -230,32 +217,14 @@ static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_b
     return 0;
 }
 
-result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
-
-    return bbsVerify_(messages, signature, retVal, ac);
-}
-
-result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
-
-    return bbsVerify_(messages, signature, retVal, ac);
-}
-
-result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(key, false, ac);
-
-    return bbsVerify_(messages, signature, retVal, ac);
-}
 
 static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    // the key and the options come from the sync phase (ctx[0..3])
+    result_t ctx_hr = ac->ctx(3);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     Signature s;
     if (!s.parse(signature))
         return Runtime::setError("crypto: invalid signature");
@@ -359,35 +328,14 @@ static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_bas
     return 0;
 }
 
-result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
-    Buffer_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
-
-    return proofGen_(signature, messages, index, retVal, ac);
-}
-
-result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
-    KeyObject_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
-
-    return proofGen_(signature, messages, index, retVal, ac);
-}
-
-result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
-    v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return bbs_get_args(key, false, ac);
-
-    return proofGen_(signature, messages, index, retVal, ac);
-}
 
 static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, Buffer_base* proof, bool& retVal, AsyncEvent* ac)
 {
+    // the key and the options come from the sync phase (ctx[0..3])
+    result_t ctx_hr = ac->ctx(3);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
 
@@ -450,31 +398,128 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
     return 0;
 }
 
-result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, Buffer_base* publicKey,
-    Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+
+// ---- idl String overloads: decode utf8 and forward ----
+
+
+// ---- idl String[] message overloads: every element is encoded as utf8 ----
+
+template <typename T>
+static result_t messages_to_buffers(std::vector<T>& messages, std::vector<obj_ptr<Buffer_base>>& msgs)
+{
+    msgs.clear();
+    msgs.reserve(messages.size());
+
+    for (size_t i = 0; i < messages.size(); i++) {
+        // a Buffer message is used as it is, a string message is encoded as
+        // utf8
+        if (std::holds_alternative<obj_ptr<Buffer_base>>(messages[i])) {
+            msgs.push_back(std::get<obj_ptr<Buffer_base>>(messages[i]));
+            continue;
+        }
+
+        obj_ptr<Buffer_base> buf;
+
+        result_t hr = Buffer_base::from(std::get<exlib::string>(messages[i]), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        msgs.push_back(buf);
+    }
+
+    return 0;
+}
+
+
+result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey,
+    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return bbs_get_args(privateKey, true, ac);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    result_t hr = messages_to_buffers(messages, msgs);
+    if (hr < 0)
+        return hr;
+
+    return bbsSign_(msgs, retVal, ac);
+}
+
+
+result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey,
+    Union_bbsVerify_signature signature, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return bbs_get_args(publicKey, false, ac);
 
-    return proofVerify_(messages, index, proof, retVal, ac);
+    obj_ptr<Buffer_base> sigBuf;
+
+    if (std::holds_alternative<exlib::string>(signature)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        if (hr < 0)
+            return hr;
+    } else
+        sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    result_t hr = messages_to_buffers(messages, msgs);
+    if (hr < 0)
+        return hr;
+
+    return bbsVerify_(msgs, sigBuf, retVal, ac);
 }
 
-result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, KeyObject_base* publicKey,
-    Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+
+result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages,
+    std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return bbs_get_args(publicKey, false, ac);
 
-    return proofVerify_(messages, index, proof, retVal, ac);
+    obj_ptr<Buffer_base> sigBuf;
+
+    if (std::holds_alternative<exlib::string>(signature)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        if (hr < 0)
+            return hr;
+    } else
+        sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    result_t hr = messages_to_buffers(messages, msgs);
+    if (hr < 0)
+        return hr;
+
+    return proofGen_(sigBuf, msgs, index, retVal, ac);
 }
 
-result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, v8::Local<v8::Object> key,
-    Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+
+result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index,
+    Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(key, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return proofVerify_(messages, index, proof, retVal, ac);
+    obj_ptr<Buffer_base> proofBuf;
+
+    if (std::holds_alternative<exlib::string>(proof)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(proof), "utf8", proofBuf);
+        if (hr < 0)
+            return hr;
+    } else
+        proofBuf = std::get<obj_ptr<Buffer_base>>(proof);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    result_t hr = messages_to_buffers(messages, msgs);
+    if (hr < 0)
+        return hr;
+
+    return proofVerify_(msgs, index, proofBuf, retVal, ac);
 }
+
 
 }

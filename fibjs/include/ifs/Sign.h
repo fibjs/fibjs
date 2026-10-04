@@ -22,12 +22,13 @@ class Sign_base : public object_base {
     DECLARE_CLASS(Sign_base);
 
 public:
+    using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_sign_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // Sign_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Sign_base>& retVal) = 0;
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Sign_base>& retVal) = 0;
-    virtual result_t sign(Buffer_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t sign(KeyObject_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t sign(v8::Local<v8::Object> key, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Sign_base>& retVal) = 0;
+    virtual result_t sign(Union_sign_privateKey privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -75,15 +76,9 @@ inline void Sign_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Sign_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->update(v0.get(), vr);
-
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_update_data, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = pInst->update(v0, v1, vr);
@@ -100,21 +95,7 @@ inline void Sign_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(exlib::string, 1, "buffer");
-
-    hr = pInst->sign(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<KeyObject_base>, 0);
-    OPT_ARG(exlib::string, 1, "buffer");
-
-    hr = pInst->sign(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_sign_privateKey, 0);
     OPT_ARG(exlib::string, 1, "buffer");
 
     hr = pInst->sign(v0, v1, vr);

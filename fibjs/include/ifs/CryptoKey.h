@@ -23,7 +23,7 @@ public:
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_algorithm(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_extractable(bool& retVal) = 0;
-    virtual result_t get_usages(v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t get_usages(std::vector<exlib::string>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -109,7 +109,7 @@ inline void CryptoKey_base::s_get_extractable(const v8::FunctionCallbackInfo<v8:
 
 inline void CryptoKey_base::s_get_usages(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_INSTANCE(CryptoKey_base);
     METHOD_ENTER();

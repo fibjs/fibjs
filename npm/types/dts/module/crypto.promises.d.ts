@@ -35,7 +35,7 @@ declare module 'crypto/promises' {
      *      @return returns the array of supported hash algorithms
      *
      */
-    function getHashes(): any[];
+    function getHashes(): string[];
 
     /**
      * @description Creates an ECDH object for the given ECC curve name
@@ -54,175 +54,101 @@ declare module 'crypto/promises' {
     function createHash(algo: string): Class_Digest;
 
     /**
-     * @description Creates an hmac message digest object for the given algorithm name
-     *      @param algo the algorithm of the message digest object to use
-     *      @param key the binary signing key
+     * @description Creates an hmac message digest object for the given algorithm name; a string key is encoded as utf8
+     *      @param algo the algorithm of the message digest object to use, a string is encoded as utf8
+     *      @param key the binary signing key, a string is encoded as utf8
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer): Class_Digest;
-
-    /**
-     * @description Creates an hmac message digest object for the given algorithm name
-     *      @param algo the algorithm of the message digest object to use
-     *      @param key the signing key, a KeyObject
-     *      @return returns the message digest object
-     *
-     */
-    function createHmac(algo: string, key: Class_KeyObject): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string): Class_Digest;
 
     /**
      * @description Gets the symmetric encryption algorithms supported by the crypto module
      *      @return returns the array of supported symmetric encryption algorithms
      *
      */
-    function getCiphers(): any[];
+    function getCiphers(): string[];
 
     /**
-     * @description Gets algorithm information by cipher algorithm name
-     *      @param name the name of the algorithm to query
+     * @description Gets algorithm information by cipher algorithm name or NID
+     *      @param nameOrNid the name or the NID of the algorithm to query; a string is looked up by name, a number by NID
      *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
      *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
      */
-    function getCipherInfo(name: string, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function getCipherInfo(nameOrNid: string | number, options?: FIBJS.GeneralObject): {
+        name: string;
+        nid: number;
+        blockSize: number;
+        ivLength: number;
+        keyLength: number;
+        mode: string;
+    };
 
     /**
-     * @description Gets algorithm information by cipher algorithm NID
-     *      @param nid the NID of the algorithm to query
-     *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
-     *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
-     *
-     */
-    function getCipherInfo(nid: number, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
-
-    /**
-     * @description Creates a symmetric encryption cipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
+     * @description Creates a symmetric encryption cipher object; a string key is encoded as utf8
+     *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use, a string is encoded as utf8
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric encryption cipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
-     *      @param iv the initialization vector to use
+     * @description Creates a symmetric encryption cipher object; strings are encoded as utf8
+     *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param iv the initialization vector to use, a string is encoded as utf8
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric encryption cipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
-     *      @param iv the initialization vector to use
-     *      @param options the encryption options to use
-     *      @return returns the symmetric encryption cipher object
-     *
-     */
-    function createCipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
-
-    /**
-     * @description Creates a symmetric decryption decipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
+     * @description Creates a symmetric decryption decipher object; a string key is encoded as utf8
+     *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use, a string is encoded as utf8
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
-     *      @param iv the initialization vector to use
+     * @description Creates a symmetric decryption decipher object; strings are encoded as utf8
+     *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param iv the initialization vector to use, a string is encoded as utf8
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
-
-    /**
-     * @description Creates a symmetric decryption decipher object
-     *      @param algorithm the encryption algorithm to use
-     *      @param key the encryption/decryption key to use
-     *      @param iv the initialization vector to use
-     *      @param options the encryption options to use
-     *      @return returns the symmetric decryption decipher object
-     *
-     */
-    function createDecipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
      * @description Gets the ecc curves supported by the crypto module
      *      @return returns the supported ecc curves
      *
      */
-    function getCurves(): any[];
+    function getCurves(): string[];
 
     /**
-     * @description Creates a new key object containing an asymmetric private key
-     *      @param key the private key in pem format to use
+     * @description Creates a new key object containing an asymmetric private key from a PEM string
+     *      @param key the private key in pem format to use, a string is encoded as utf8
      *      @return returns the key object of the private key
      *
      */
-    function createPrivateKey(key: Class_Buffer): Class_KeyObject;
+    function createPrivateKey(key: Class_Buffer | FIBJS.GeneralObject | string): Class_KeyObject;
 
     /**
-     * @description Creates a new key object containing an asymmetric private key
-     *
-     *     The key parameter specifies the configuration properties for creating the private key. Supported properties include:
-     *     - key: a PEM string, DER binary or JWK format object
-     *     - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'. Bls12381G1/Bls12381G2 only support 'raw'
-     *     - type: must be 'pkcs1', 'pkcs8' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
-     *     - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-     *     - passphrase: the password string used for decryption
-     *     - encoding: the string encoding used when key is a string
-     *
-     *      @param key the configuration properties for creating the private key
-     *      @return returns the key object of the private key
-     *
-     */
-    function createPrivateKey(key: FIBJS.GeneralObject): Class_KeyObject;
-
-    /**
-     * @description Creates a new key object containing an asymmetric public key
-     *      @param key the public key in pem format to use
+     * @description Creates a new key object containing an asymmetric public key from a PEM string
+     *      @param key the public key in pem format to use, a string is encoded as utf8
      *      @return returns the key object of the public key
      *
      */
-    function createPublicKey(key: Class_Buffer): Class_KeyObject;
-
-    /**
-     * @description Creates a new key object containing the public key corresponding to the given private key
-     *      @param key the asymmetric private key to use
-     *      @return returns the key object of the public key
-     *
-     */
-    function createPublicKey(key: Class_KeyObject): Class_KeyObject;
-
-    /**
-     * @description Creates a new key object containing an asymmetric public key
-     *
-     *     The key parameter specifies the configuration properties for creating the public key. Supported properties include:
-     *     - key: a PEM string, DER binary or JWK format object
-     *     - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'
-     *     - type: must be 'pkcs1' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
-     *     - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-     *     - encoding: the string encoding used when key is a string
-     *
-     *      @param key the configuration properties for creating the public key
-     *      @return returns the key object of the public key
-     *
-     */
-    function createPublicKey(key: FIBJS.GeneralObject): Class_KeyObject;
+    function createPublicKey(key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_KeyObject;
 
     /**
      * @description Creates a new signing object based on the algorithm specified by algorithm
@@ -244,34 +170,17 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing a symmetric encryption or Hmac key
-     *      @param key the encryption/decryption key to use
-     *      @param encoding the encoding of the key, default "buffer"
+     *      @param key the encryption/decryption key to use, or a string decoded with encoding
+     *      @param encoding the encoding of a string key, default "utf8"
      *      @return returns the symmetric decryption decipher object
      *
      */
-    function createSecretKey(key: Class_Buffer, encoding?: string): Class_KeyObject;
-
-    /**
-     * @description Creates a new key object containing a symmetric encryption or Hmac key
-     *      @param key the encryption/decryption key to use
-     *      @param encoding the encoding of the key, default "buffer"
-     *      @return returns the symmetric decryption decipher object
-     *
-     */
-    function createSecretKey(key: string, encoding: string): Class_KeyObject;
-
-    /**
-     * @description Creates a new certificate request object
-     *      @param csr the data of the certificate request in PEM format to use
-     *      @return returns the certificate request object
-     *
-     */
-    function createCertificateRequest(csr: Class_Buffer): Class_X509CertificateRequest;
+    function createSecretKey(key: Class_Buffer | string, encoding?: string): Class_KeyObject;
 
     /**
      * @description Creates a new certificate request object
      *
-     *      The parameters in options are used to call crypto.createPrivateKey to create the private key object; subject and hashAlgorithm can also be specified. Example:
+     *      The request is either given as its PEM/DER data, or built from an options object whose parameters are used to call crypto.createPrivateKey to create the private key object; subject and hashAlgorithm can also be specified. Example:
      *
      *      ```JavaScript
      *         var pk = crypto.createPrivateKey(rsa4096_pem);
@@ -286,11 +195,11 @@ declare module 'crypto/promises' {
      *         });
      *      ```
      *
-     *      @param options the options for creating the certificate request
+     *      @param csr the data of the certificate request in PEM format to use, or the options to create it
      *      @return returns the certificate request object
      *
      */
-    function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
+    function createCertificateRequest(csr: Class_Buffer | FIBJS.GeneralObject | string): Class_X509CertificateRequest;
 
     /**
      * @description Computes a Diffie-Hellman key from privateKey and publicKey
@@ -306,14 +215,14 @@ declare module 'crypto/promises' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param outputEncoding the output encoding, default "hex"
+     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended; a string data is encoded as utf8
+     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms, a string is encoded as utf8
+     *      @param data the data to sign, a string is encoded as utf8
+     *      @param outputEncoding the output encoding, default "hex", a string is encoded as utf8
      *      @return returns the hashed data
      *
      */
-    function hash(algorithm: string, data: Class_Buffer, outputEncoding?: string): any;
+    function hash(algorithm: string, data: Class_Buffer | string, outputEncoding?: string): any;
 
     /**
      * @description Generates a random number of the specified size using the havege generator
@@ -324,34 +233,34 @@ declare module 'crypto/promises' {
     function randomBytes(size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator
-     *      @param buffer the Buffer to fill
+     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
+     *      @param buffer the Buffer to fill, a string is encoded as utf8
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
      *
      */
-    function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator
-     *      @param buffer the Buffer to fill
+     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
+     *      @param buffer the Buffer to fill, a string is encoded as utf8
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
      *
      */
-    function randomFillSync(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
+    function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator
-     *      @param buffer the Buffer to fill
+     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
+     *      @param buffer the Buffer to fill, a string is encoded as utf8
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
      *
      */
-    function randomFillAsync(buffer: Class_Buffer, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFillAsync(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
      * @description Fills the specified TypedArray with strong random numbers
@@ -457,282 +366,162 @@ declare module 'crypto/promises' {
     }>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869
-     *      @param algoName the hash algorithm to use, see the hash module
-     *      @param password the password to use
-     *      @param salt the salt used by khdf
-     *      @param info the info used by khdf
+     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by khdf, a string is encoded as utf8
+     *      @param info the info used by khdf, a string is encoded as utf8
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
      */
-    function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Promise<Class_Buffer>;
+    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869
-     *      @param algoName the hash algorithm to use, see the hash module
-     *      @param password the password to use
-     *      @param salt the salt used by khdf
-     *      @param info the info used by khdf
+     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by khdf, a string is encoded as utf8
+     *      @param info the info used by khdf, a string is encoded as utf8
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
      */
-    function hkdfSync(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Class_Buffer;
+    function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869
-     *      @param algoName the hash algorithm to use, see the hash module
-     *      @param password the password to use
-     *      @param salt the salt used by khdf
-     *      @param info the info used by khdf
+     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by khdf, a string is encoded as utf8
+     *      @param info the info used by khdf, a string is encoded as utf8
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
      */
-    function hkdfAsync(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Promise<Class_Buffer>;
+    function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
-     *      @param password the password to use
-     *      @param salt the salt used by hmac
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by hmac, a string is encoded as utf8
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
-     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
      *      @return returns the generated binary key
      *
      */
-    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
-     *      @param password the password to use
-     *      @param salt the salt used by hmac
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by hmac, a string is encoded as utf8
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
-     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
      *      @return returns the generated binary key
      *
      */
-    function pbkdf2Sync(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
-     *      @param password the password to use
-     *      @param salt the salt used by hmac
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt used by hmac, a string is encoded as utf8
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
-     *      @param algoName the hash algorithm to use, see the hash module
+     *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
      *      @return returns the generated binary key
      *
      */
-    function pbkdf2Async(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm
-     *      @param password the password to use
-     *      @param salt the salt to use
+     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt to use, a string is encoded as utf8
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
      *
      */
-    function scrypt(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm
-     *      @param password the password to use
-     *      @param salt the salt to use
+     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt to use, a string is encoded as utf8
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
      *
      */
-    function scryptSync(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Generates a key using the scrypt algorithm
-     *      @param password the password to use
-     *      @param salt the salt to use
+     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
+     *      @param password the password to use, a string is encoded as utf8
+     *      @param salt the salt to use, a string is encoded as utf8
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
      *
      */
-    function scryptAsync(password: Class_Buffer, salt: Class_Buffer, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
-     *      @param privateKey the private key to use
-     *      @param buffer the data to decrypt
-     *      @return returns the decrypted data
-     *
-     */
-    function privateDecrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
-     *      @param privateKey the private key to use
-     *      @param buffer the data to decrypt
-     *      @return returns the decrypted data
-     *
-     */
-    function privateDecrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decrypts buffer with the private key and configuration specified by key. buffer was previously encrypted with the corresponding public key
-     *      @param key the private key and configuration to use
-     *      @param buffer the data to decrypt
+     *
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+     *
+     *      @param privateKey the private key and configuration to use
+     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
-
-    /**
-     * @description Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
-     *      @param privateKey the private key to use
-     *      @param buffer the data to encrypt
-     *      @return returns the encrypted data
-     *
-     */
-    function privateEncrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
-     *      @param privateKey the private key to use
-     *      @param buffer the data to encrypt
-     *      @return returns the encrypted data
-     *
-     */
-    function privateEncrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding public key
-     *      @param key the private key and configuration to use
-     *      @param buffer the data to encrypt
+     *
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+     *
+     *      @param privateKey the private key and configuration to use
+     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
-
-    /**
-     * @description Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
-     *      @param publicKey the public key to use
-     *      @param buffer the data to decrypt
-     *      @return returns the decrypted data
-     *
-     */
-    function publicDecrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
-     *      @param publicKey the public key to use
-     *      @param buffer the data to decrypt
-     *      @return returns the decrypted data
-     *
-     */
-    function publicDecrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Decrypts buffer with the public key and configuration specified by key. buffer was previously encrypted with the corresponding private key
-     *      @param key the public key and configuration to use
-     *      @param buffer the data to decrypt
+     *
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+     *
+     *      @param publicKey the public key and configuration to use
+     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
+    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
-     *      @param publicKey the private key to use
-     *      @param buffer the data to encrypt
+     * @description Encrypts buffer with the public key and configuration specified by key. The returned data can be decrypted with the corresponding private key
+     *
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+     *
+     *      @param publicKey the public key and configuration to use
+     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
-     *      @param publicKey the private key to use
-     *      @param buffer the data to encrypt
-     *      @return returns the encrypted data
-     *
-     */
-    function publicEncrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding private key
-     *      @param key the private key and configuration to use
-     *      @param buffer the data to encrypt
-     *      @return returns the encrypted data
-     *
-     */
-    function publicEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function signSync(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function signAsync(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function signSync(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
-
-    /**
-     * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
-     *      @param privateKey the private key to use
-     *      @return returns the signed data
-     *
-     */
-    function signAsync(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Promise<Class_Buffer>;
+    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the signing parameters:
      *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
      *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
      *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
@@ -742,17 +531,17 @@ declare module 'crypto/promises' {
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
+     *      @param data the data to sign, a string is encoded as utf8
      *      @param key the private key and signing parameters to use
      *      @return returns the signed data
      *
      */
-    function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the signing parameters:
      *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
      *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
      *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
@@ -762,17 +551,17 @@ declare module 'crypto/promises' {
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
+     *      @param data the data to sign, a string is encoded as utf8
      *      @param key the private key and signing parameters to use
      *      @return returns the signed data
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
+    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
 
     /**
      * @description Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the signing parameters:
      *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
      *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
      *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
@@ -782,585 +571,236 @@ declare module 'crypto/promises' {
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign
+     *      @param data the data to sign, a string is encoded as utf8
      *      @param key the private key and signing parameters to use
      *      @return returns the signed data
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verifySync(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verifyAsync(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verifySync(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param publicKey the public key to use
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function verifyAsync(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
+    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
-     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
-     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
-     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
-     *      - padding optional RSA padding value, one of the following:
-     *       - RSA_PKCS1_PADDING (default)
-     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
-     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param key the private key and signing parameters to use
-     *      @param signature the signature data to use
+     *      @param data the data to verify, a string is encoded as utf8
+     *      @param key the public key and verifying parameters to use
+     *      @param signature the signature to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
+    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
-     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
-     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
-     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
-     *      - padding optional RSA padding value, one of the following:
-     *       - RSA_PKCS1_PADDING (default)
-     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
-     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param key the private key and signing parameters to use
-     *      @param signature the signature data to use
+     *      @param data the data to verify, a string is encoded as utf8
+     *      @param key the public key and verifying parameters to use
+     *      @param signature the signature to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
+    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
 
     /**
      * @description Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
-     *      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following:
-     *       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s)
-     *       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
-     *      - padding optional RSA padding value, one of the following:
-     *       - RSA_PKCS1_PADDING (default)
-     *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
-     *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify
-     *      @param key the private key and signing parameters to use
-     *      @param signature the signature data to use
+     *      @param data the data to verify, a string is encoded as utf8
+     *      @param key the public key and verifying parameters to use
+     *      @param signature the signature to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
+    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Compares whether the two given pieces of data are equal, using constant-time comparison to prevent timing side-channel attacks
+     *
+     *      Both pieces of data are used as their bytes: a string is encoded as utf8, and the two must have the same length.
      *      @param a the data to compare
      *      @param b the data to compare
      *      @return returns the comparison result
      *
      */
-    function timingSafeEqual(a: Class_Buffer, b: Class_Buffer): boolean;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSign(messages: Class_Buffer[], privateKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSignSync(messages: Class_Buffer[], privateKey: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSignAsync(messages: Class_Buffer[], privateKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSign(messages: Class_Buffer[], privateKey: Class_KeyObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSignSync(messages: Class_Buffer[], privateKey: Class_KeyObject): Class_Buffer;
-
-    /**
-     * @description Function for BBS signing with Bls12381G2
-     *      @param messages the group of messages to sign
-     *      @param privateKey the private key to use; must be a Bls12381G2 private key
-     *      @return returns the signed data
-     *
-     */
-    function bbsSignAsync(messages: Class_Buffer[], privateKey: Class_KeyObject): Promise<Class_Buffer>;
+    function timingSafeEqual(a: Class_Buffer | string, b: Class_Buffer | string): boolean;
 
     /**
      * @description Function for BBS signing with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey to create the private key object; the object also carries the signing options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign
-     *      @param key the private key and options to use
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
      *      @return returns the signed data
      *
      */
-    function bbsSign(messages: Class_Buffer[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Function for BBS signing with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey to create the private key object; the object also carries the signing options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign
-     *      @param key the private key and options to use
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
      *      @return returns the signed data
      *
      */
-    function bbsSignSync(messages: Class_Buffer[], key: FIBJS.GeneralObject): Class_Buffer;
+    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
 
     /**
      * @description Function for BBS signing with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey to create the private key object; the object also carries the signing options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign
-     *      @param key the private key and options to use
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
      *      @return returns the signed data
      *
      */
-    function bbsSignAsync(messages: Class_Buffer[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerify(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerifySync(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerifyAsync(messages: Class_Buffer[], publicKey: Class_Buffer, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerify(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerifySync(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
-
-    /**
-     * @description Function for BBS verification with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use
-     *      @return returns the verification result
-     *
-     */
-    function bbsVerifyAsync(messages: Class_Buffer[], publicKey: Class_KeyObject, signature: Class_Buffer): Promise<boolean>;
+    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Function for BBS verification with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the verifying options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify
-     *      @param key the public key and options to use
-     *      @param signature the signature data to use
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function bbsVerify(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
+    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Function for BBS verification with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the verifying options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify
-     *      @param key the public key and options to use
-     *      @param signature the signature data to use
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function bbsVerifySync(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
+    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
 
     /**
      * @description Function for BBS verification with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the verifying options:
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify
-     *      @param key the public key and options to use
-     *      @param signature the signature data to use
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param signature the signature data to use, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function bbsVerifyAsync(messages: Class_Buffer[], key: FIBJS.GeneralObject, signature: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Class_Buffer;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_Buffer): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Class_Buffer;
-
-    /**
-     * @description Function for generating a BBS selective proof with Bls12381G2
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @return returns the proof data
-     *
-     */
-    function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject): Promise<Class_Buffer>;
+    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
+     *      @param signature the BBS signature to use, a string is encoded as utf8
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
      *      @return returns the proof data
      *
      */
-    function proofGen(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
+     *      @param signature the BBS signature to use, a string is encoded as utf8
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
      *      @return returns the proof data
      *
      */
-    function proofGenSync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Class_Buffer;
+    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
 
     /**
      * @description Function for generating a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use
-     *      @param messages the group of messages to sign
+     *      @param signature the BBS signature to use, a string is encoded as utf8
+     *      @param messages the group of messages to sign, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
      *      @return returns the proof data
      *
      */
-    function proofGenAsync(signature: Class_Buffer, messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject): Promise<Class_Buffer>;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerifySync(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): boolean;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerifyAsync(messages: Class_Buffer[], index: number[], publicKey: Class_Buffer, proof: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerify(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): Promise<boolean>;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerifySync(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): boolean;
-
-    /**
-     * @description Function for verifying a BBS selective proof with Bls12381G2
-     *      @param messages the group of messages to verify
-     *      @param index the indices of the proof to select
-     *      @param publicKey the public key to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to use
-     *      @return returns the verification result
-     *
-     */
-    function proofVerifyAsync(messages: Class_Buffer[], index: number[], publicKey: Class_KeyObject, proof: Class_Buffer): Promise<boolean>;
+    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
-     *      @param proof the proof data to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to verify, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function proofVerify(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): Promise<boolean>;
+    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
-     *      @param proof the proof data to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to verify, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function proofVerifySync(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
+    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): boolean;
 
     /**
      * @description Function for verifying a BBS selective proof with Bls12381G2
      *
-     *      The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-     *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-     *       - header: additional data used for signing
-     *       - proof_header: additional data used for the proof
+     *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify
+     *      @param messages the group of messages to verify, a string message is encoded as utf8
      *      @param index the indices of the proof to select
-     *      @param key the public key and options to use
-     *      @param proof the proof data to use
+     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param proof the proof data to verify, a string is encoded as utf8
      *      @return returns the verification result
      *
      */
-    function proofVerifyAsync(messages: Class_Buffer[], index: number[], key: FIBJS.GeneralObject, proof: Class_Buffer): Promise<boolean>;
+    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description WebCrypto API module

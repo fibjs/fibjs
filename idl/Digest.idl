@@ -21,18 +21,12 @@ In the code above, a SHA-512 digest object is created with the `crypto.createHas
 */
 interface Digest : object
 {
-    /*! @brief Updates the binary digest information
-     @param data the binary data block
-     @return returns the message digest object itself
-     */
-    Digest update(Buffer data);
-
-    /*! @brief Updates the string digest information
-     @param data the string data
+    /*! @brief Updates the digest information with the given data
+     @param data the data block, or a string decoded with codec
      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
      @return returns the message digest object itself
      */
-    Digest update(String data, String codec = "utf8");
+    Digest update(Buffer|String data, String codec = "utf8");
 
     /*! @brief Computes and returns the digest
      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module

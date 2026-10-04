@@ -11,19 +11,19 @@ interface X509Certificate : object
 
     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
 
-    @param cert the binary data of the certificate in PEM format
+    @param cert the binary data of the certificate in PEM format, or the PEM text as a string
     @return returns an X509Certificate object
     */
-    X509Certificate(Buffer cert);
+    X509Certificate(Buffer|String cert);
 
     /*! @brief Creates an X509Certificate object from a group of certificates
 
-    If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
+    If certs contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate; a chain may mix strings and buffers
 
     @param certs the array of certificates in PEM format
     @return returns an X509Certificate object
     */
-    X509Certificate(Buffer certs[]);
+    X509Certificate(Buffer|String certs[]);
 
     /*! @brief The subject of the certificate */
     readonly String subject;
@@ -50,10 +50,10 @@ interface X509Certificate : object
     readonly Integer pathlen;
 
     /*! @brief The key usage of the certificate */
-    readonly Array keyUsage;
+    readonly String[] keyUsage;
 
     /*! @brief The Netscape type of the certificate */
-    readonly Array type;
+    readonly String[] type;
 
     /*! @brief The start time of the certificate validity period */
     readonly String validFrom;

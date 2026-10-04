@@ -107,6 +107,13 @@ describe("hash", () => {
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
         assert.equal(o.hash, crypto.hash(o.name, o.text, 'hex'));
         assert.equal(o.base64, crypto.hash(o.name, o.text, 'base64'));
+
+        // the Buffer alternative of the data parameters goes through the same
+        // bytes (Digest.update and crypto.hash are Buffer|String)
+        const buf = Buffer.from(o.text, 'utf8');
+        assert.equal(o.hash, crypto.createHash(o.name).update(buf).digest('hex'));
+        assert.equal(o.hash, crypto.hash(o.name, buf, 'hex'));
+        assert.equal(o.base64, crypto.hash(o.name, buf, 'base64'));
     }
 
     function hmac_test(o) {

@@ -251,7 +251,8 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
         return hr;
 
     obj_ptr<KeyObject_base> publicKey;
-    hr = createPublicKey(privaterKey, publicKey);
+    obj_ptr<KeyObject_base> privateKeyBase = privaterKey;
+    hr = createPublicKey(Union_createPublicKey_key(privateKeyBase), publicKey);
     if (hr < 0)
         return hr;
 

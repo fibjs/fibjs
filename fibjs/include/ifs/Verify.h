@@ -22,15 +22,14 @@ class Verify_base : public object_base {
     DECLARE_CLASS(Verify_base);
 
 public:
+    using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_verify_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_verify_signature = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Verify_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Verify_base>& retVal) = 0;
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Verify_base>& retVal) = 0;
-    virtual result_t verify(Buffer_base* privateKey, Buffer_base* signature, bool& retVal) = 0;
-    virtual result_t verify(KeyObject_base* privateKey, Buffer_base* signature, bool& retVal) = 0;
-    virtual result_t verify(v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal) = 0;
-    virtual result_t verify(Buffer_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal) = 0;
-    virtual result_t verify(KeyObject_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal) = 0;
-    virtual result_t verify(v8::Local<v8::Object> key, exlib::string signature, exlib::string encoding, bool& retVal) = 0;
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Verify_base>& retVal) = 0;
+    virtual result_t verify(Union_verify_privateKey privateKey, Union_verify_signature signature, exlib::string encoding, bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -78,15 +77,9 @@ inline void Verify_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Verify_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->update(v0.get(), vr);
-
     METHOD_OVER(2, 1);
 
-    ARG(exlib::string, 0);
+    ARG(Union_update_data, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = pInst->update(v0, v1, vr);
@@ -101,47 +94,10 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Verify_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = pInst->verify(v0.get(), v1.get(), vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<KeyObject_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = pInst->verify(v0.get(), v1.get(), vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = pInst->verify(v0, v1.get(), vr);
-
     METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "buffer");
-
-    hr = pInst->verify(v0.get(), v1, v2, vr);
-
-    METHOD_OVER(3, 2);
-
-    ARG(obj_ptr<KeyObject_base>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "buffer");
-
-    hr = pInst->verify(v0.get(), v1, v2, vr);
-
-    METHOD_OVER(3, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(exlib::string, 1);
+    ARG(Union_verify_privateKey, 0);
+    ARG(Union_verify_signature, 1);
     OPT_ARG(exlib::string, 2, "buffer");
 
     hr = pInst->verify(v0, v1, v2, vr);

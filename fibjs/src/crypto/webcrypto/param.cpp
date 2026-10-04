@@ -169,6 +169,16 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     hashObj->add("name", hash);
     m_algorithm->add("hash", hashObj);
 
+    // optional key length in bits, used by generateKey; read here so the async
+    // phase never needs the JS parameters object
+    int32_t length = 0;
+    if (GetConfigValue(params, "length", length, true) == 0) {
+        if (length <= 0 || length % 8 != 0)
+            return Runtime::setError("WebCrypto: HMAC key length must be a positive multiple of 8 bits");
+
+        m_algorithm->add("length", length);
+    }
+
     // Check HMAC specific usages
     for (auto& it : m_usageMap) {
         if (qstrcmp(it.first.c_str(), "sign")

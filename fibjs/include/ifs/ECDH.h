@@ -15,19 +15,27 @@
 
 namespace fibjs {
 
+class Buffer_base;
+
 class ECDH_base : public object_base {
     DECLARE_CLASS(ECDH_base);
 
 public:
+    using Union_convertKey_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_computeSecret_otherPublicKey = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setPrivateKey_privateKey = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setPublicKey_publicKey = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // ECDH_base
-    static result_t convertKey(v8::Local<v8::Value> key, exlib::string curve, exlib::string inputEncoding, exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal);
-    virtual result_t computeSecret(v8::Local<v8::Value> otherPublicKey, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
+    static result_t convertKey(Union_convertKey_key key, exlib::string curve, exlib::string inputEncoding, exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal);
+    virtual result_t computeSecret(Union_computeSecret_otherPublicKey otherPublicKey, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t generateKeys(exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_curveName(exlib::string& retVal) = 0;
     virtual result_t getPrivateKey(exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t getPublicKey(exlib::string encoding, exlib::string format, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t setPrivateKey(v8::Local<v8::Value> privateKey, exlib::string encoding) = 0;
-    virtual result_t setPublicKey(v8::Local<v8::Value> publicKey, exlib::string encoding) = 0;
+    virtual result_t setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::string encoding) = 0;
+    virtual result_t setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::string encoding) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -51,6 +59,8 @@ public:
     static void s_setPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& ECDH_base::class_info()
@@ -88,7 +98,7 @@ inline void ECDH_base::s_static_convertKey(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(5, 2);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(Union_convertKey_key, 0);
     ARG(exlib::string, 1);
     OPT_ARG(exlib::string, 2, "hex");
     OPT_ARG(exlib::string, 3, "hex");
@@ -108,7 +118,7 @@ inline void ECDH_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(3, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(Union_computeSecret_otherPublicKey, 0);
     OPT_ARG(exlib::string, 1, "hex");
     OPT_ARG(exlib::string, 2, "buffer");
 
@@ -188,7 +198,7 @@ inline void ECDH_base::s_setPrivateKey(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(Union_setPrivateKey_privateKey, 0);
     OPT_ARG(exlib::string, 1, "hex");
 
     hr = pInst->setPrivateKey(v0, v1);
@@ -203,7 +213,7 @@ inline void ECDH_base::s_setPublicKey(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(Union_setPublicKey_publicKey, 0);
     OPT_ARG(exlib::string, 1, "hex");
 
     hr = pInst->setPublicKey(v0, v1);

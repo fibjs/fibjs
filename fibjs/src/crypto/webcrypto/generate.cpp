@@ -9,6 +9,7 @@
 #include "ifs/subtle.h"
 #include "ifs/crypto.h"
 #include "CryptoKey.h"
+#include "crypto_util.h"
 
 namespace fibjs {
 
@@ -20,13 +21,63 @@ result_t CryptoKey::generate()
         return generate_ed25519();
     if (m_key_type == kKeyNameECDH)
         return generate_ecdh();
+    if (m_key_type == kKeyNameHMAC)
+        return generate_hmac();
     return 0;
+}
+
+// WebCrypto: the key material of an HMAC key is `length` random bits; `length`
+// defaults to the block size of the hash, in bits. The parameters (hash, and
+// the optional length) were read in the sync phase, so this runs without a JS
+// scope.
+result_t CryptoKey::generate_hmac()
+{
+    int32_t length = 0;
+    Variant v;
+
+    if (m_algorithm->get("length", v) >= 0)
+        length = v.intVal();
+
+    if (length <= 0) {
+        Variant hash;
+        obj_ptr<NObject> hashObj;
+
+        if (m_algorithm->get("hash", hash) < 0 || (hashObj = (NObject*)hash.object()) == NULL)
+            return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+
+        Variant hashName;
+        if (hashObj->get("name", hashName) < 0)
+            return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+
+        const EVP_MD* md = _evp_md_type(hashName.string().c_str());
+        if (md == NULL)
+            return Runtime::setError("WebCrypto: unknown hash algorithm: " + hashName.string());
+
+        length = EVP_MD_block_size(md) * 8;
+    }
+
+    if (length % 8 != 0)
+        return Runtime::setError("WebCrypto: HMAC key length must be a multiple of 8 bits");
+
+    // the resolved length is part of the key algorithm (WebCrypto)
+    m_algorithm->add("length", length);
+
+    std::vector<uint8_t> key(length / 8);
+
+    result_t hr = randomBytes(key.data(), (int32_t)key.size());
+    if (hr < 0)
+        return hr;
+
+    m_key = new KeyObject();
+
+    return m_key->createSecretKey(key.data(), key.size());
 }
 
 result_t CryptoKey::createPublicKey()
 {
     obj_ptr<KeyObject_base> publicKey;
-    result_t hr = crypto_base::createPublicKey(m_key, publicKey);
+    result_t hr = crypto_base::createPublicKey(
+        crypto_base::Union_createPublicKey_key(obj_ptr<KeyObject_base>(m_key.get())), publicKey);
     if (hr < 0)
         return hr;
 
@@ -109,7 +160,7 @@ result_t CryptoKey::generate_ecdh()
     return createPublicKey();
 }
 
-result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extractable, v8::Local<v8::Array> usages,
+result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages,
     Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
@@ -118,8 +169,18 @@ result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extracta
 
         ac->m_ctx.resize(1);
 
+        v8::Local<v8::Object> algObj;
+
+        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm))
+            algObj = std::get<v8::Local<v8::Object>>(algorithm);
+        else {
+            v8::Local<v8::Context> context = isolate->context();
+            algObj = v8::Object::New(isolate->m_isolate);
+            algObj->Set(context, isolate->NewString("name"), isolate->NewString(std::get<exlib::string>(algorithm))).IsJust();
+        }
+
         obj_ptr<CryptoKey> key = new CryptoKey();
-        hr = key->get_param(algorithm, extractable, usages);
+        hr = key->get_param(algObj, extractable, usages);
         if (hr < 0)
             return hr;
 
@@ -128,7 +189,14 @@ result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extracta
         return CALL_E_NOSYNC;
     }
 
+    // the algorithm object was read in the sync phase
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     obj_ptr<CryptoKey> key = (CryptoKey*)ac->m_ctx[0].object();
+    if (key == NULL)
+        return Runtime::setError("WebCrypto: the key parameters were not read");
 
     result_t hr = key->generate();
     if (hr < 0)
@@ -147,21 +215,5 @@ result_t subtle_base::generateKey(v8::Local<v8::Object> algorithm, bool extracta
     return 0;
 }
 
-result_t subtle_base::generateKey(exlib::string algorithm, bool extractable, v8::Local<v8::Array> usages,
-    Variant& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
-        // Create temporary algorithm object and call the object overload
-        v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::Object> algObj = v8::Object::New(isolate->m_isolate);
-        algObj->Set(context, isolate->NewString("name"), isolate->NewString(algorithm)).IsJust();
-
-        return generateKey(algObj, extractable, usages, retVal, ac);
-    }
-
-    return generateKey(v8::Local<v8::Object>(), extractable, usages, retVal, ac);
-}
 
 }

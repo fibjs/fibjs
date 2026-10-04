@@ -17,22 +17,22 @@ declare class Class_X509Certificate extends Class_object {
      *
      *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
      *
-     *     @param cert the binary data of the certificate in PEM format
+     *     @param cert the binary data of the certificate in PEM format, or the PEM text as a string
      *     @return returns an X509Certificate object
      *
      */
-    constructor(cert: Class_Buffer);
+    constructor(cert: Class_Buffer | string);
 
     /**
      * @description Creates an X509Certificate object from a group of certificates
      *
-     *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
+     *     If certs contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate; a chain may mix strings and buffers
      *
      *     @param certs the array of certificates in PEM format
      *     @return returns an X509Certificate object
      *
      */
-    constructor(certs: Class_Buffer[]);
+    constructor(certs: (Class_Buffer | string)[]);
 
     /**
      * @description The subject of the certificate
@@ -77,12 +77,12 @@ declare class Class_X509Certificate extends Class_object {
     /**
      * @description The key usage of the certificate
      */
-    readonly keyUsage: any[];
+    readonly keyUsage: string[];
 
     /**
      * @description The Netscape type of the certificate
      */
-    readonly type: any[];
+    readonly type: string[];
 
     /**
      * @description The start time of the certificate validity period

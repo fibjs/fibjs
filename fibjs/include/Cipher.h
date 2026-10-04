@@ -37,14 +37,11 @@ public:
 
 public:
     // Cipher_base
-    virtual result_t setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
-    virtual result_t setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
+    virtual result_t setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
     virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal);
-    virtual result_t setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    virtual result_t setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    virtual result_t setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal);
-    virtual result_t update(Buffer_base* data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
-    virtual result_t update(exlib::string data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
+    virtual result_t update(Union_update_data data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
 
 public:

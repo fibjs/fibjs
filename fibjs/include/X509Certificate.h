@@ -30,8 +30,8 @@ public:
     virtual result_t get_issuer(exlib::string& retVal);
     virtual result_t get_ca(bool& retVal);
     virtual result_t get_pathlen(int32_t& retVal);
-    virtual result_t get_keyUsage(v8::Local<v8::Array>& retVal);
-    virtual result_t get_type(v8::Local<v8::Array>& retVal);
+    virtual result_t get_keyUsage(std::vector<exlib::string>& retVal);
+    virtual result_t get_type(std::vector<exlib::string>& retVal);
     virtual result_t get_validFrom(exlib::string& retVal);
     virtual result_t get_validTo(exlib::string& retVal);
     virtual result_t get_raw(obj_ptr<Buffer_base>& retVal);
@@ -56,7 +56,7 @@ public:
     void LoadRootCerts();
     result_t load_cert(Buffer_base* cert);
     result_t load_cert(std::vector<obj_ptr<Buffer_base>>& certs);
-    result_t get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal);
+    result_t get_x509_array(int32_t nid, const char** names, std::vector<exlib::string>& retVal);
 
     X509Certificate* next()
     {

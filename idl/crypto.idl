@@ -25,7 +25,7 @@ module crypto
     /*! @brief Gets the hash (digest) algorithms supported by the crypto module
      @return returns the array of supported hash algorithms
      */
-    static Array getHashes();
+    static String[] getHashes();
 
     /*! @brief Creates an ECDH object for the given ECC curve name
      @param curve the ECC curve name to use
@@ -39,142 +39,75 @@ module crypto
     */
     static Digest createHash(String algo);
 
-    /*! @brief Creates an hmac message digest object for the given algorithm name
-     @param algo the algorithm of the message digest object to use
-     @param key the binary signing key
+    /*! @brief Creates an hmac message digest object for the given algorithm name; a string key is encoded as utf8
+     @param algo the algorithm of the message digest object to use, a string is encoded as utf8
+     @param key the binary signing key, a string is encoded as utf8
      @return returns the message digest object
-    */
-    static Digest createHmac(String algo, Buffer key);
-
-    /*! @brief Creates an hmac message digest object for the given algorithm name
-     @param algo the algorithm of the message digest object to use
-     @param key the signing key, a KeyObject
-     @return returns the message digest object
-    */
-    static Digest createHmac(String algo, KeyObject key);
+     */
+    static Digest createHmac(String algo, Buffer|KeyObject|String key);
 
     /*! @brief Gets the symmetric encryption algorithms supported by the crypto module
      @return returns the array of supported symmetric encryption algorithms
      */
-    static Array getCiphers();
+    static String[] getCiphers();
 
-    /*! @brief Gets algorithm information by cipher algorithm name
-     @param name the name of the algorithm to query
+    /*! @brief Gets algorithm information by cipher algorithm name or NID
+     @param nameOrNid the name or the NID of the algorithm to query; a string is looked up by name, a number by NID
      @param options optional parameters; keyLength and ivLength may be specified for further filtering
      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      */
-    static Object getCipherInfo(String name, Object options = {});
+    static (String name, Integer nid, Integer blockSize, Integer ivLength, Integer keyLength, String mode) getCipherInfo(String|Integer nameOrNid, Object options = {});
 
-    /*! @brief Gets algorithm information by cipher algorithm NID
-     @param nid the NID of the algorithm to query
-     @param options optional parameters; keyLength and ivLength may be specified for further filtering
-     @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
-     */
-    static Object getCipherInfo(Integer nid, Object options = {});
-
-    /*! @brief Creates a symmetric encryption cipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
+    /*! @brief Creates a symmetric encryption cipher object; a string key is encoded as utf8
+     @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     @param key the encryption/decryption key to use, a string is encoded as utf8
      @param options the encryption options to use
      @return returns the symmetric encryption cipher object
      */
-    static Cipher createCipher(String algorithm, Buffer key, Object options = {});
+    static Cipher createCipher(String algorithm, Buffer|String key, Object options = {});
 
-    /*! @brief Creates a symmetric encryption cipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
-     @param iv the initialization vector to use
+    /*! @brief Creates a symmetric encryption cipher object; strings are encoded as utf8
+     @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     @param key the encryption/decryption key to use, a string is encoded as utf8
+     @param iv the initialization vector to use, a string is encoded as utf8
      @param options the encryption options to use
      @return returns the symmetric encryption cipher object
      */
-    static Cipher createCipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
+    static Cipher createCipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, Object options = {});
 
-    /*! @brief Creates a symmetric encryption cipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
-     @param iv the initialization vector to use
-     @param options the encryption options to use
-     @return returns the symmetric encryption cipher object
-     */
-    static Cipher createCipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
-
-    /*! @brief Creates a symmetric decryption decipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
+    /*! @brief Creates a symmetric decryption decipher object; a string key is encoded as utf8
+     @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     @param key the encryption/decryption key to use, a string is encoded as utf8
      @param options the encryption options to use
      @return returns the symmetric decryption decipher object
      */
-    static Cipher createDecipher(String algorithm, Buffer key, Object options = {});
+    static Cipher createDecipher(String algorithm, Buffer|String key, Object options = {});
 
-    /*! @brief Creates a symmetric decryption decipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
-     @param iv the initialization vector to use
+    /*! @brief Creates a symmetric decryption decipher object; strings are encoded as utf8
+     @param algorithm the encryption algorithm to use, a string is encoded as utf8
+     @param key the encryption/decryption key to use, a string is encoded as utf8
+     @param iv the initialization vector to use, a string is encoded as utf8
      @param options the encryption options to use
      @return returns the symmetric decryption decipher object
      */
-    static Cipher createDecipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
-
-    /*! @brief Creates a symmetric decryption decipher object
-     @param algorithm the encryption algorithm to use
-     @param key the encryption/decryption key to use
-     @param iv the initialization vector to use
-     @param options the encryption options to use
-     @return returns the symmetric decryption decipher object
-     */
-    static Cipher createDecipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
+    static Cipher createDecipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, Object options = {});
 
     /*! @brief Gets the ecc curves supported by the crypto module
      @return returns the supported ecc curves
      */
-    static Array getCurves();
+    static String[] getCurves();
 
-    /*! @brief Creates a new key object containing an asymmetric private key
-     @param key the private key in pem format to use
+    /*! @brief Creates a new key object containing an asymmetric private key from a PEM string
+     @param key the private key in pem format to use, a string is encoded as utf8
      @return returns the key object of the private key
      */
-    static KeyObject createPrivateKey(Buffer key);
+    static KeyObject createPrivateKey(Buffer|Object|String key);
 
-    /*! @brief Creates a new key object containing an asymmetric private key
-
-    The key parameter specifies the configuration properties for creating the private key. Supported properties include: 
-    - key: a PEM string, DER binary or JWK format object
-    - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'. Bls12381G1/Bls12381G2 only support 'raw'
-    - type: must be 'pkcs1', 'pkcs8' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
-    - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-    - passphrase: the password string used for decryption
-    - encoding: the string encoding used when key is a string
-
-     @param key the configuration properties for creating the private key
-     @return returns the key object of the private key
-     */
-    static KeyObject createPrivateKey(Object key);
-
-    /*! @brief Creates a new key object containing an asymmetric public key
-     @param key the public key in pem format to use
+    /*! @brief Creates a new key object containing an asymmetric public key from a PEM string
+     @param key the public key in pem format to use, a string is encoded as utf8
      @return returns the key object of the public key
      */
-    static KeyObject createPublicKey(Buffer key);
-
-    /*! @brief Creates a new key object containing the public key corresponding to the given private key
-     @param key the asymmetric private key to use
-     @return returns the key object of the public key
-     */
-    static KeyObject createPublicKey(KeyObject key);
-
-    /*! @brief Creates a new key object containing an asymmetric public key
-
-    The key parameter specifies the configuration properties for creating the public key. Supported properties include: 
-    - key: a PEM string, DER binary or JWK format object
-    - format: must be 'pem', 'der', 'jwk' or 'raw'. Default: 'pem'
-    - type: must be 'pkcs1' or 'sec1'. This option is required only when format is 'der', otherwise it is ignored
-    - namedCurve: used when format is 'raw' to specify the curve name of key; it can be an EC curve name, or SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
-    - encoding: the string encoding used when key is a string
-
-     @param key the configuration properties for creating the public key
-     @return returns the key object of the public key
-     */
-    static KeyObject createPublicKey(Object key);
+    static KeyObject createPublicKey(Buffer|KeyObject|Object|String key);
 
     /*! @brief Creates a new signing object based on the algorithm specified by algorithm
      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
@@ -191,28 +124,15 @@ module crypto
     static Verify createVerify(String algorithm, Object options = {});
 
     /*! @brief Creates a new key object containing a symmetric encryption or Hmac key
-     @param key the encryption/decryption key to use
-     @param encoding the encoding of the key, default "buffer"
+     @param key the encryption/decryption key to use, or a string decoded with encoding
+     @param encoding the encoding of a string key, default "utf8"
      @return returns the symmetric decryption decipher object
      */
-    static KeyObject createSecretKey(Buffer key, String encoding = "buffer");
-
-    /*! @brief Creates a new key object containing a symmetric encryption or Hmac key
-     @param key the encryption/decryption key to use
-     @param encoding the encoding of the key, default "buffer"
-     @return returns the symmetric decryption decipher object
-     */
-    static KeyObject createSecretKey(String key, String encoding);
-
-    /*! @brief Creates a new certificate request object
-     @param csr the data of the certificate request in PEM format to use
-     @return returns the certificate request object
-    */
-    static X509CertificateRequest createCertificateRequest(Buffer csr);
+    static KeyObject createSecretKey(Buffer|String key, String encoding = "utf8");
 
     /*! @brief Creates a new certificate request object
 
-     The parameters in options are used to call crypto.createPrivateKey to create the private key object; subject and hashAlgorithm can also be specified. Example:
+     The request is either given as its PEM/DER data, or built from an options object whose parameters are used to call crypto.createPrivateKey to create the private key object; subject and hashAlgorithm can also be specified. Example:
 
      ```JavaScript
         var pk = crypto.createPrivateKey(rsa4096_pem);
@@ -227,10 +147,10 @@ module crypto
         });
      ```
 
-     @param options the options for creating the certificate request
+     @param csr the data of the certificate request in PEM format to use, or the options to create it
      @return returns the certificate request object
     */
-    static X509CertificateRequest createCertificateRequest(Object options);
+    static X509CertificateRequest createCertificateRequest(Buffer|Object|String csr);
 
     /*! @brief Computes a Diffie-Hellman key from privateKey and publicKey
 
@@ -243,13 +163,13 @@ module crypto
     */
     static Buffer diffieHellman(Object options);
 
-    /*! @brief A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
-     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to sign
-     @param outputEncoding the output encoding, default "hex"
+    /*! @brief A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended; a string data is encoded as utf8
+     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms, a string is encoded as utf8
+     @param data the data to sign, a string is encoded as utf8
+     @param outputEncoding the output encoding, default "hex", a string is encoded as utf8
      @return returns the hashed data
-    */
-    static Value hash(String algorithm, Buffer data, String outputEncoding = "hex");
+     */
+    static Value hash(String algorithm, Buffer|String data, String outputEncoding = "hex");
 
     /*! @brief Generates a random number of the specified size using the havege generator
      @param size the size of the random number to generate
@@ -257,13 +177,13 @@ module crypto
      */
     static Buffer randomBytes(Integer size = 16);
 
-    /*! @brief Fills the specified Buffer with random numbers using the havege generator
-     @param buffer the Buffer to fill
+    /*! @brief Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
+     @param buffer the Buffer to fill, a string is encoded as utf8
      @param offset the starting offset, default 0
      @param size the size of the random numbers to generate, default buffer.length - offset
      @return returns the generated random number
      */
-    static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
+    static Buffer randomFill(Buffer|String buffer, Integer offset = 0, Integer size = -1) async;
 
     /*! @brief Fills the specified TypedArray with strong random numbers
      @param data the TypedArray to fill
@@ -301,138 +221,78 @@ module crypto
     */
     static (Variant publicKey, Variant privateKey) generateKeyPair(String type, Object options = {}) async;
 
-    /*! @brief Derives the required binary key from the plaintext password according to rfc5869
-     @param algoName the hash algorithm to use, see the hash module
-     @param password the password to use
-     @param salt the salt used by khdf
-     @param info the info used by khdf
+    /*! @brief Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
+     @param password the password to use, a string is encoded as utf8
+     @param salt the salt used by khdf, a string is encoded as utf8
+     @param info the info used by khdf, a string is encoded as utf8
      @param size the key size to use
      @return returns the generated binary key
      */
-    static Buffer hkdf(String algoName, Buffer password, Buffer salt, Buffer info, Integer size) async;
+    static Buffer hkdf(String algoName, Buffer|String password, Buffer|String salt, Buffer|String info, Integer size) async;
 
-    /*! @brief Derives the required binary key from the plaintext password using the pbkdf2 algorithm
-     @param password the password to use
-     @param salt the salt used by hmac
+    /*! @brief Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
+     @param password the password to use, a string is encoded as utf8
+     @param salt the salt used by hmac, a string is encoded as utf8
      @param iterations the number of iterations to use
      @param size the key size to use
-     @param algoName the hash algorithm to use, see the hash module
+     @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
      @return returns the generated binary key
      */
-    static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
+    static Buffer pbkdf2(Buffer|String password, Buffer|String salt, Integer iterations, Integer size, String algoName) async;
 
-    /*! @brief Generates a key using the scrypt algorithm
-     @param password the password to use
-     @param salt the salt to use
+    /*! @brief Generates a key using the scrypt algorithm; strings are encoded as utf8
+     @param password the password to use, a string is encoded as utf8
+     @param salt the salt to use, a string is encoded as utf8
      @param keylen the length of the key to generate
      @param options optional parameters; supports N, r, p, maxmem
      @return returns the generated binary key
      */
-    static Buffer scrypt(Buffer password, Buffer salt, Integer keylen, Object options = {}) async;
-
-    /*! @brief Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
-     @param privateKey the private key to use
-     @param buffer the data to decrypt
-     @return returns the decrypted data
-     */
-    static Buffer privateDecrypt(Buffer privateKey, Buffer buffer);
-
-    /*! @brief Decrypts buffer with privateKey. buffer was previously encrypted with the corresponding public key
-     @param privateKey the private key to use
-     @param buffer the data to decrypt
-     @return returns the decrypted data
-     */
-    static Buffer privateDecrypt(KeyObject privateKey, Buffer buffer);
+    static Buffer scrypt(Buffer|String password, Buffer|String salt, Integer keylen, Object options = {}) async;
 
     /*! @brief Decrypts buffer with the private key and configuration specified by key. buffer was previously encrypted with the corresponding public key
-     @param key the private key and configuration to use
-     @param buffer the data to decrypt
+
+     The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+
+     @param privateKey the private key and configuration to use
+     @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      @return returns the decrypted data
-     */
-    static Buffer privateDecrypt(Object key, Value buffer);
-
-    /*! @brief Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
-     @param privateKey the private key to use
-     @param buffer the data to encrypt
-     @return returns the encrypted data
-     */
-    static Buffer privateEncrypt(Buffer privateKey, Buffer buffer);
-
-    /*! @brief Encrypts buffer with privateKey. The returned data can be decrypted with the corresponding public key
-     @param privateKey the private key to use
-     @param buffer the data to encrypt
-     @return returns the encrypted data
-     */
-    static Buffer privateEncrypt(KeyObject privateKey, Buffer buffer);
+    */
+    static Buffer privateDecrypt(Buffer|KeyObject|Object|String privateKey, Buffer|String buffer);
 
     /*! @brief Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding public key
-     @param key the private key and configuration to use
-     @param buffer the data to encrypt
+
+     The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+
+     @param privateKey the private key and configuration to use
+     @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      @return returns the encrypted data
-     */
-    static Buffer privateEncrypt(Object key, Value buffer);
-
-    /*! @brief Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
-     @param publicKey the public key to use
-     @param buffer the data to decrypt
-     @return returns the decrypted data
-     */
-    static Buffer publicDecrypt(Buffer publicKey, Buffer buffer);
-
-    /*! @brief Decrypts buffer with publicKey. buffer was previously encrypted with the corresponding private key
-     @param publicKey the public key to use
-     @param buffer the data to decrypt
-     @return returns the decrypted data
-     */
-    static Buffer publicDecrypt(KeyObject publicKey, Buffer buffer);
+    */
+    static Buffer privateEncrypt(Buffer|KeyObject|Object|String privateKey, Buffer|String buffer);
 
     /*! @brief Decrypts buffer with the public key and configuration specified by key. buffer was previously encrypted with the corresponding private key
-     @param key the public key and configuration to use
-     @param buffer the data to decrypt
+
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+
+     @param publicKey the public key and configuration to use
+     @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
      @return returns the decrypted data
-     */
-    static Buffer publicDecrypt(Object key, Value buffer);
-
-    /*! @brief Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
-     @param publicKey the private key to use
-     @param buffer the data to encrypt
-     @return returns the encrypted data
-     */
-    static Buffer publicEncrypt(Buffer publicKey, Buffer buffer);
-
-    /*! @brief Encrypts buffer with publicKey. The returned data can be decrypted with the corresponding private key
-     @param publicKey the private key to use
-     @param buffer the data to encrypt
-     @return returns the encrypted data
-     */
-    static Buffer publicEncrypt(KeyObject publicKey, Buffer buffer);
-
-    /*! @brief Encrypts buffer with the private key and configuration specified by key. The returned data can be decrypted with the corresponding private key
-     @param key the private key and configuration to use
-     @param buffer the data to encrypt
-     @return returns the encrypted data
-     */
-    static Buffer publicEncrypt(Object key, Value buffer);
-
-    /*! @brief Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to sign
-     @param privateKey the private key to use
-     @return returns the signed data
     */
-    static Buffer sign(Value algorithm, Buffer data, Buffer privateKey) async;
+    static Buffer publicDecrypt(Buffer|KeyObject|Object|String publicKey, Buffer|String buffer);
 
-    /*! @brief Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to sign
-     @param privateKey the private key to use
-     @return returns the signed data
+    /*! @brief Encrypts buffer with the public key and configuration specified by key. The returned data can be decrypted with the corresponding private key
+
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
+
+     @param publicKey the public key and configuration to use
+     @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     @return returns the encrypted data
     */
-    static Buffer sign(Value algorithm, Buffer data, KeyObject privateKey) async;
+    static Buffer publicEncrypt(Buffer|KeyObject|Object|String publicKey, Buffer|String buffer);
 
     /*! @brief Computes and returns the signature of data using the given private key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
 
-     The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the signing parameters:
      - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
       - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s) 
       - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
@@ -442,176 +302,81 @@ module crypto
      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
 
      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to sign
+     @param data the data to sign, a string is encoded as utf8
      @param key the private key and signing parameters to use
      @return returns the signed data
     */
-    static Buffer sign(Value algorithm, Buffer data, Object key) async;
-
-    /*! @brief Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to verify
-     @param publicKey the public key to use
-     @param signature the signature data to use
-     @return returns the verification result
-    */
-    static Boolean verify(Value algorithm, Buffer data, Buffer publicKey, Buffer signature) async;
-
-    /*! @brief Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
-     @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to verify
-     @param publicKey the public key to use
-     @param signature the signature data to use
-     @return returns the verification result
-    */
-    static Boolean verify(Value algorithm, Buffer data, KeyObject publicKey, Buffer signature) async;
+    static Buffer sign(Value algorithm, Buffer|String data, Buffer|KeyObject|Object|String key) async;
 
     /*! @brief Verifies the given signature of data using the given key and algorithm. If algorithm is null or undefined, the algorithm depends on the key type (especially Ed25519 and Ed448)
 
-     The parameters in key are used to call crypto.createPublicKey to create the private key object; the following signing parameters are also supported:
-     - dsaEncoding for DSA and ECDSA, this option specifies the format of the generated signature. It can be one of the following: 
-      - 'der' (default): DER-encoded ASN.1 signature structure encoding (r, s) 
-      - 'ieee-p1363' : the signature format r || s proposed in IEEE-P1363
-     - padding optional RSA padding value, one of the following: 
-      - RSA_PKCS1_PADDING (default)
-      - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
-     - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
 
      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     @param data the data to verify
-     @param key the private key and signing parameters to use
-     @param signature the signature data to use
+     @param data the data to verify, a string is encoded as utf8
+     @param key the public key and verifying parameters to use
+     @param signature the signature to use, a string is encoded as utf8
      @return returns the verification result
     */
-    static Boolean verify(Value algorithm, Buffer data, Object key, Buffer signature) async;
+    static Boolean verify(Value algorithm, Buffer|String data, Buffer|KeyObject|Object|String key, Buffer|String signature) async;
 
     /*! @brief Compares whether the two given pieces of data are equal, using constant-time comparison to prevent timing side-channel attacks
+
+     Both pieces of data are used as their bytes: a string is encoded as utf8, and the two must have the same length.
      @param a the data to compare
      @param b the data to compare
      @return returns the comparison result
      */
-    static Boolean timingSafeEqual(Buffer a, Buffer b);
-
-    /*! @brief Function for BBS signing with Bls12381G2
-     @param messages the group of messages to sign
-     @param privateKey the private key to use; must be a Bls12381G2 private key
-     @return returns the signed data
-    */
-    static Buffer bbsSign(Buffer messages[], Buffer privateKey) async;
-
-    /*! @brief Function for BBS signing with Bls12381G2
-     @param messages the group of messages to sign
-     @param privateKey the private key to use; must be a Bls12381G2 private key
-     @return returns the signed data
-    */
-    static Buffer bbsSign(Buffer messages[], KeyObject privateKey) async;
+    static Boolean timingSafeEqual(Buffer|String a, Buffer|String b);
 
     /*! @brief Function for BBS signing with Bls12381G2
 
-     The parameters in key are used to call crypto.createPrivateKey to create the private key object; the following signing parameters are also supported:
+     The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey to create the private key object; the object also carries the signing options:
       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
       - header: additional data used for signing
 
-     @param messages the group of messages to sign
-     @param key the private key and options to use
+     @param messages the group of messages to sign, a string message is encoded as utf8
+     @param privateKey the private key and options to use; must be a Bls12381G2 private key
      @return returns the signed data
     */
-    static Buffer bbsSign(Buffer messages[], Object key) async;
-
-    /*! @brief Function for BBS verification with Bls12381G2
-     @param messages the group of messages to verify
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @param signature the signature data to use
-     @return returns the verification result
-    */
-    static Boolean bbsVerify(Buffer messages[], Buffer publicKey, Buffer signature) async;
-
-    /*! @brief Function for BBS verification with Bls12381G2
-     @param messages the group of messages to verify
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @param signature the signature data to use
-     @return returns the verification result
-    */
-    static Boolean bbsVerify(Buffer messages[], KeyObject publicKey, Buffer signature) async;
+    static Buffer bbsSign(Buffer|String messages[], Buffer|KeyObject|Object|String privateKey) async;
 
     /*! @brief Function for BBS verification with Bls12381G2
 
-     The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the verifying options:
       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
       - header: additional data used for signing
 
-     @param messages the group of messages to verify
-     @param key the public key and options to use
-     @param signature the signature data to use
+     @param messages the group of messages to verify, a string message is encoded as utf8
+     @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     @param signature the signature data to use, a string is encoded as utf8
      @return returns the verification result
     */
-    static Boolean bbsVerify(Buffer messages[], Object key, Buffer signature) async;
-
-    /*! @brief Function for generating a BBS selective proof with Bls12381G2
-     @param signature the BBS signature to use
-     @param messages the group of messages to sign
-     @param index the indices of the proof to select
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @return returns the proof data
-    */
-    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], Buffer publicKey) async;
-
-    /*! @brief Function for generating a BBS selective proof with Bls12381G2
-     @param signature the BBS signature to use
-     @param messages the group of messages to sign
-     @param index the indices of the proof to select
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @return returns the proof data
-    */
-    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], KeyObject publicKey) async;
+    static Boolean bbsVerify(Buffer|String messages[], Buffer|KeyObject|Object|String publicKey, Buffer|String signature) async;
 
     /*! @brief Function for generating a BBS selective proof with Bls12381G2
 
-     The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-      - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-      - header: additional data used for signing
-      - proof_header: additional data used for the proof
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
 
-     @param signature the BBS signature to use
-     @param messages the group of messages to sign
+     @param signature the BBS signature to use, a string is encoded as utf8
+     @param messages the group of messages to sign, a string message is encoded as utf8
      @param index the indices of the proof to select
-     @param key the public key and options to use
+     @param publicKey the public key and options to use; must be a Bls12381G2 public key
      @return returns the proof data
     */
-    static Buffer proofGen(Buffer signature, Buffer messages[], Integer index[], Object key) async;
-
-    /*! @brief Function for verifying a BBS selective proof with Bls12381G2
-     @param messages the group of messages to verify
-     @param index the indices of the proof to select
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @param proof the proof data to use
-     @return returns the verification result
-    */
-    static Boolean proofVerify(Buffer messages[], Integer index[], Buffer publicKey, Buffer proof) async;
-
-    /*! @brief Function for verifying a BBS selective proof with Bls12381G2
-     @param messages the group of messages to verify
-     @param index the indices of the proof to select
-     @param publicKey the public key to use; must be a Bls12381G2 public key
-     @param proof the proof data to use
-     @return returns the verification result
-    */
-    static Boolean proofVerify(Buffer messages[], Integer index[], KeyObject publicKey, Buffer proof) async;
+    static Buffer proofGen(Buffer|String signature, Buffer|String messages[], Integer index[], Buffer|KeyObject|Object|String publicKey) async;
 
     /*! @brief Function for verifying a BBS selective proof with Bls12381G2
 
-     The parameters in key are used to call crypto.createPublicKey to create the public key object; the following signing parameters are also supported:
-      - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
-      - header: additional data used for signing
-      - proof_header: additional data used for the proof
+     The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
 
-     @param messages the group of messages to verify
+     @param messages the group of messages to verify, a string message is encoded as utf8
      @param index the indices of the proof to select
-     @param key the public key and options to use
-     @param proof the proof data to use
+     @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     @param proof the proof data to verify, a string is encoded as utf8
      @return returns the verification result
     */
-    static Boolean proofVerify(Buffer messages[], Integer index[], Object key, Buffer proof) async;
+    static Boolean proofVerify(Buffer|String messages[], Integer index[], Buffer|KeyObject|Object|String publicKey, Buffer|String proof) async;
 
     /*! @brief WebCrypto API module */
     static webcrypto;

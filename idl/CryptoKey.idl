@@ -20,5 +20,5 @@ interface CryptoKey : object
         - 'wrapKey'
         - 'unwrapKey'
     */
-    readonly Array usages;
+    readonly String[] usages;
 };

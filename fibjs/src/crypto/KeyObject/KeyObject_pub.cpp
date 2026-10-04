@@ -12,44 +12,47 @@
 
 namespace fibjs {
 
-result_t crypto_base::createPublicKey(Buffer_base* key, obj_ptr<KeyObject_base>& retVal)
-{
-    Buffer* key_buf = Buffer::Cast(key);
-    obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->ParsePublicKeyPEM((const char*)key_buf->data(), key_buf->length());
-    if (hr < 0)
-        return hr;
-
-    if (hr == 1)
-        return CHECK_ERROR(Runtime::setError("Public key not recognized"));
-
-    hr = keyObj->fixSM2PublicKey();
-    if (hr < 0)
-        return hr;
-
-    retVal = keyObj;
-    return 0;
-}
-
-result_t crypto_base::createPublicKey(KeyObject_base* key, obj_ptr<KeyObject_base>& retVal)
+result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<KeyObject_base>& retVal)
 {
     obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->createPublicKeyFromKeyObject(key);
-    if (hr < 0)
-        return hr;
+    result_t hr;
 
-    retVal = keyObj;
-    return 0;
-}
+    if (std::holds_alternative<v8::Local<v8::Object>>(key)) {
+        // the options object carries the key material and its format
+        v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(key);
 
-result_t crypto_base::createPublicKey(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal)
-{
-    obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->createAsymmetricKey(key, KeyObject::kKeyTypePublic);
-    if (hr < 0)
-        return hr;
+        hr = keyObj->createAsymmetricKey(options, KeyObject::kKeyTypePublic);
+        if (hr < 0)
+            return hr;
 
-    hr = keyObj->toX25519_publicKey(key);
+        hr = keyObj->toX25519_publicKey(options);
+    } else if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
+        hr = keyObj->createPublicKeyFromKeyObject(std::get<obj_ptr<KeyObject_base>>(key));
+    } else if (std::holds_alternative<exlib::string>(key)) {
+        // the PEM text itself
+        exlib::string strKey = std::get<exlib::string>(key);
+
+        hr = keyObj->ParsePublicKeyPEM(strKey.c_str(), (int)strKey.length());
+        if (hr < 0)
+            return hr;
+
+        if (hr == 1)
+            return CHECK_ERROR(Runtime::setError("Public key not recognized"));
+
+        hr = keyObj->fixSM2PublicKey();
+    } else {
+        Buffer* key_buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(key));
+
+        hr = keyObj->ParsePublicKeyPEM((const char*)key_buf->data(), key_buf->length());
+        if (hr < 0)
+            return hr;
+
+        if (hr == 1)
+            return CHECK_ERROR(Runtime::setError("Public key not recognized"));
+
+        hr = keyObj->fixSM2PublicKey();
+    }
+
     if (hr < 0)
         return hr;
 

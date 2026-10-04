@@ -26,22 +26,10 @@ result_t CryptoKey::get_extractable(bool& retVal)
     return 0;
 }
 
-result_t CryptoKey::get_usages(v8::Local<v8::Array>& retVal)
+result_t CryptoKey::get_usages(std::vector<exlib::string>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, m_usageMap.size());
-
-    int32_t cnt = 0;
-    for (auto& it : m_usageMap) {
-        v8::Local<v8::String> usage;
-        if (!v8::String::NewFromUtf8(isolate->m_isolate, it.first.c_str(),
-                v8::NewStringType::kNormal)
-                 .ToLocal(&usage))
-            continue;
-        arr->Set(isolate->m_isolate->GetCurrentContext(), cnt++, usage);
-    }
-
-    retVal = arr;
+    for (auto& it : m_usageMap)
+        retVal.push_back(it.first);
 
     return 0;
 }

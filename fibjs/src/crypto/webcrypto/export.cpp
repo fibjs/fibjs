@@ -99,7 +99,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
     return Runtime::setError("Invalid key type: %d.", keyType);
 }
 
-result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, v8::Local<v8::Object> algorithm,
+result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm,
     bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
@@ -108,8 +108,18 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
 
         ac->m_ctx.resize(3);
 
+        v8::Local<v8::Object> algObj;
+
+        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm))
+            algObj = std::get<v8::Local<v8::Object>>(algorithm);
+        else {
+            v8::Local<v8::Context> context = isolate->context();
+            algObj = v8::Object::New(isolate->m_isolate);
+            algObj->Set(context, isolate->NewString("name"), isolate->NewString(std::get<exlib::string>(algorithm))).IsJust();
+        }
+
         obj_ptr<CryptoKey> key = new CryptoKey();
-        hr = key->get_param(algorithm, extractable, usages);
+        hr = key->get_param(algObj, extractable, usages);
         if (hr < 0)
             return hr;
 
@@ -135,12 +145,21 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         return CALL_E_NOSYNC;
     }
 
+    // the algorithm object and the key data were read in the sync phase
+    result_t ctx_hr = ac->ctx(format == "jwk" ? 1 : 2);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     result_t hr;
     obj_ptr<CryptoKey> key = (CryptoKey*)ac->m_ctx[0].object();
+    if (key == NULL)
+        return Runtime::setError("WebCrypto: the key parameters were not read");
 
     key->m_key = new KeyObject();
     if (format == "jwk") {
         obj_ptr<NObject> jwk = (NObject*)ac->m_ctx[1].object();
+        if (jwk == NULL)
+            return Runtime::setError("WebCrypto: the key data was not read");
         hr = key->m_key->ImportJWKKey(jwk, KeyObject::kKeyTypeUnknown);
         if (hr < 0)
             return hr;
@@ -150,6 +169,8 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         return key->check_import_param();
     } else {
         obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[2].object();
+        if (buf == NULL)
+            return Runtime::setError("WebCrypto: the key data was not read");
 
         if (format == "pkcs8")
             hr = key->m_key->ParsePrivateKey("der", format, "", nullptr, buf);
@@ -178,21 +199,5 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
     return Runtime::setError("WebCrypto: unknown key format: " + format);
 }
 
-result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, exlib::string algorithm,
-    bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
-
-        // Create temporary algorithm object and call the object overload
-        v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::Object> algObj = v8::Object::New(isolate->m_isolate);
-        algObj->Set(context, isolate->NewString("name"), isolate->NewString(algorithm)).IsJust();
-
-        return importKey(format, keyData, algObj, extractable, usages, retVal, ac);
-    }
-
-    return importKey(format, keyData, v8::Local<v8::Object>(), extractable, usages, retVal, ac);
-}
 
 }

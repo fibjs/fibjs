@@ -21,15 +21,17 @@ class Cipher_base : public object_base {
     DECLARE_CLASS(Cipher_base);
 
 public:
+    using Union_setAuthTag_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_setAAD_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // Cipher_base
-    virtual result_t setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
-    virtual result_t setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
     virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
-    virtual result_t setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
     virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal) = 0;
-    virtual result_t update(Buffer_base* data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t update(exlib::string data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t update(Union_update_data data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
 
 public:
@@ -87,14 +89,7 @@ inline void Cipher_base::s_setAuthTag(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(exlib::string, 1, "buffer");
-
-    hr = pInst->setAuthTag(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_setAuthTag_buffer, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = pInst->setAuthTag(v0, v1, vr);
@@ -125,14 +120,7 @@ inline void Cipher_base::s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = pInst->setAAD(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_setAAD_buffer, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->setAAD(v0, v1, vr);
@@ -165,15 +153,7 @@ inline void Cipher_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(3, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(exlib::string, 1, "buffer");
-    OPT_ARG(exlib::string, 2, "buffer");
-
-    hr = pInst->update(v0.get(), v1, v2, vr);
-
-    METHOD_OVER(3, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_update_data, 0);
     OPT_ARG(exlib::string, 1, "utf8");
     OPT_ARG(exlib::string, 2, "buffer");
 

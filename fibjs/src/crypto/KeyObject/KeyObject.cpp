@@ -12,14 +12,11 @@
 
 namespace fibjs {
 
-result_t crypto_base::getCurves(v8::Local<v8::Array>& retVal)
+result_t crypto_base::getCurves(std::vector<exlib::string>& retVal)
 {
     const size_t num_curves = EC_get_builtin_curves(nullptr, 0);
     std::vector<EC_builtin_curve> curves(num_curves);
     EC_get_builtin_curves(curves.data(), num_curves);
-
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
 
     std::sort(curves.begin(), curves.end(), [](const EC_builtin_curve& a, const EC_builtin_curve& b) {
         return a.nid < b.nid;
@@ -33,9 +30,8 @@ result_t crypto_base::getCurves(v8::Local<v8::Array>& retVal)
         return strcmp(a, b) < 0;
     });
 
-    retVal = v8::Array::New(isolate->m_isolate, num_curves);
     for (size_t i = 0; i < num_curves; i++)
-        retVal->Set(context, i, isolate->NewString(curve_names[i]));
+        retVal.push_back(curve_names[i]);
 
     return 0;
 }
@@ -51,18 +47,23 @@ static result_t _createSecretKey(const unsigned char* key, size_t size, obj_ptr<
     return 0;
 }
 
-result_t crypto_base::createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal)
+result_t crypto_base::createSecretKey(Union_createSecretKey_key key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal)
 {
-    Buffer* key_buf = Buffer::Cast(key);
-    return _createSecretKey((const unsigned char*)key_buf->data(), key_buf->length(), retVal);
-}
+    if (std::holds_alternative<exlib::string>(key)) {
+        exlib::string _key = std::get<exlib::string>(key);
 
-result_t crypto_base::createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal)
-{
-    result_t hr = commonDecode(encoding, key, key);
-    if (hr < 0)
-        return hr;
-    return _createSecretKey((const unsigned char*)key.c_str(), key.length(), retVal);
+        result_t hr = commonDecode(encoding, _key, _key);
+        if (hr < 0)
+            return hr;
+
+        return _createSecretKey((const unsigned char*)_key.c_str(), _key.length(), retVal);
+    }
+
+    // the buffer form takes the bytes as they are, as it did before the merge
+    // (its encoding was ignored)
+    Buffer* key_buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(key));
+
+    return _createSecretKey((const unsigned char*)key_buf->data(), key_buf->length(), retVal);
 }
 
 result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal)
@@ -74,18 +75,18 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
     if (hr < 0)
         return hr;
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
-    int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
     if (privateKey_->type() != KeyObject::kKeyTypePrivate)
         return Runtime::setError("property 'privateKey' must be a private key");
+    int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
 
     obj_ptr<KeyObject_base> publicKey;
     hr = GetConfigValue(options, "publicKey", publicKey, true);
     if (hr < 0)
         return hr;
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
-    int32_t publicKeyType = EVP_PKEY_id(publicKey_->pkey());
     if (publicKey_->type() != KeyObject::kKeyTypePublic)
         return Runtime::setError("property 'publicKey' must be a public key");
+    int32_t publicKeyType = EVP_PKEY_id(publicKey_->pkey());
 
     if (privateKeyType != publicKeyType)
         return Runtime::setError("privateKey and publicKey must have the same type");

@@ -16,22 +16,28 @@ namespace fibjs {
 
 bool SafeX509SubjectAltNamePrint(const BIOPointer& out, X509_EXTENSION* ext);
 
-result_t crypto_base::createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal)
-{
-    obj_ptr<X509CertificateRequest> csr_ = new X509CertificateRequest();
-    result_t hr = csr_->load_csr(csr);
-    if (hr != 0)
-        return hr;
-
-    retVal = csr_;
-    return 0;
-}
-
-result_t crypto_base::createCertificateRequest(v8::Local<v8::Object> options,
+result_t crypto_base::createCertificateRequest(Union_createCertificateRequest_csr csr,
     obj_ptr<X509CertificateRequest_base>& retVal)
 {
     obj_ptr<X509CertificateRequest> csr_ = new X509CertificateRequest();
-    result_t hr = csr_->create(options);
+    result_t hr;
+
+    if (std::holds_alternative<v8::Local<v8::Object>>(csr)) {
+        // the options object builds the request from a key, subject and
+        // hashAlgorithm
+        hr = csr_->create(std::get<v8::Local<v8::Object>>(csr));
+    } else if (std::holds_alternative<exlib::string>(csr)) {
+        // the PEM text itself
+        obj_ptr<Buffer_base> buf;
+
+        hr = Buffer_base::from(std::get<exlib::string>(csr), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        hr = csr_->load_csr(buf);
+    } else
+        hr = csr_->load_csr(std::get<obj_ptr<Buffer_base>>(csr));
+
     if (hr != 0)
         return hr;
 

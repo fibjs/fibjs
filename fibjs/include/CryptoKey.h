@@ -29,7 +29,7 @@ public:
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t get_algorithm(v8::Local<v8::Object>& retVal);
     virtual result_t get_extractable(bool& retVal);
-    virtual result_t get_usages(v8::Local<v8::Array>& retVal);
+    virtual result_t get_usages(std::vector<exlib::string>& retVal);
 
 public:
     result_t get_param(v8::Local<v8::Object> params, bool extractable, v8::Local<v8::Array> usages);
@@ -54,6 +54,7 @@ public:
     result_t generate_ecdsa();
     result_t generate_ed25519();
     result_t generate_ecdh();
+    result_t generate_hmac();
 
 public:
     result_t createPublicKey();
@@ -61,7 +62,10 @@ public:
 public:
     KeyObject::KeyType type()
     {
-        return m_key->type();
+        // an HMAC (secret) key keeps its material in the KeyObject as well, but
+        // a key that never got one reports itself as a secret key instead of
+        // dereferencing a null pointer
+        return m_key ? m_key->type() : KeyObject::kKeyTypeSecret;
     }
 
 public:

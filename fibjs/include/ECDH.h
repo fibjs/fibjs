@@ -30,13 +30,13 @@ public:
 
 public:
     // ECDH_base
-    virtual result_t computeSecret(v8::Local<v8::Value> otherKey, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
+    virtual result_t computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     virtual result_t generateKeys(exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal);
     virtual result_t get_curveName(exlib::string& retVal);
     virtual result_t getPrivateKey(exlib::string encoding, v8::Local<v8::Value>& retVal);
     virtual result_t getPublicKey(exlib::string encoding, exlib::string format, v8::Local<v8::Value>& retVal);
-    virtual result_t setPrivateKey(v8::Local<v8::Value> privateKey, exlib::string encoding);
-    virtual result_t setPublicKey(v8::Local<v8::Value> publicKey, exlib::string encoding);
+    virtual result_t setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::string encoding);
+    virtual result_t setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::string encoding);
 
     // Helper functions for convertKey
     result_t ensureKey();

@@ -16,18 +16,16 @@
 
 namespace fibjs {
 
-obj_ptr<NArray> g_hashes;
+std::vector<exlib::string> g_hashes;
 class init_hashes {
 public:
     init_hashes()
     {
-        g_hashes = new NArray();
-
         EVP_MD_do_all_sorted([](const EVP_MD* md,
                                  const char* from, const char* to,
                                  void* x) {
             if (from)
-                g_hashes->append(from);
+                g_hashes.push_back(from);
         },
             NULL);
     }
@@ -82,31 +80,51 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
     return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "createHmac: unknown algorithm '%s'.", algo.c_str()));
 }
 
-result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
+// a string alternative of a KDF argument is decoded as utf8, once, in the
+// asynchronous phase
+template <typename T>
+static result_t union_to_buffer(T& v, obj_ptr<Buffer_base>& buf)
+{
+    if (std::holds_alternative<exlib::string>(v))
+        return Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
+
+    buf = std::get<obj_ptr<Buffer_base>>(v);
+    return 0;
+}
+
+result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
     obj_ptr<Digest_base>& retVal)
 {
-    Buffer* buf = Buffer::Cast(key);
+    if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
+        KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
+        if (ko->type() != KeyObject::kKeyTypeSecret)
+            return CHECK_ERROR(Runtime::setError("createHmac: Invalid key type"));
+
+        return _createHmac(algo, (const char*)ko->data(), ko->length(), retVal);
+    }
+
+    obj_ptr<Buffer_base> keyBuf;
+    result_t hr = union_to_buffer(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = Buffer::Cast(keyBuf);
     return _createHmac(algo, (const char*)buf->data(), buf->length(), retVal);
 }
 
-result_t crypto_base::createHmac(exlib::string algo, KeyObject_base* key,
-    obj_ptr<Digest_base>& retVal)
-{
-    KeyObject* ko = (KeyObject*)key;
-    if (ko->type() != KeyObject::kKeyTypeSecret)
-        return CHECK_ERROR(Runtime::setError("createHmac: Invalid key type"));
-
-    return _createHmac(algo, (const char*)ko->data(), ko->length(), retVal);
-}
-
-result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,
+result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
     exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hash: unknown algorithm '%s'.", algorithm.c_str()));
 
-    Buffer* buf = Buffer::Cast(data);
+    obj_ptr<Buffer_base> dataBuf;
+    result_t hr = union_to_buffer(data, dataBuf);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = Buffer::Cast(dataBuf);
     obj_ptr<Buffer> ret = new Buffer(NULL, EVP_MD_size(md));
 
     EVP_Digest((const unsigned char*)buf->data(), buf->length(), (unsigned char*)ret->data(), NULL, md, NULL);
@@ -114,8 +132,8 @@ result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,
     return ret->toValue(outputEncoding, retVal);
 }
 
-result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info,
-    int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt,
+    Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (size < 1)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: size must be positive, received %d.", size));
@@ -127,9 +145,24 @@ result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer
     if (!md)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: unknown algorithm '%s'.", algoName.c_str()));
 
-    Buffer* buf = Buffer::Cast(password);
-    Buffer* saltBuf = Buffer::Cast(salt);
-    Buffer* infoBuf = Buffer::Cast(info);
+    obj_ptr<Buffer_base> passwordBuf, saltOut, infoOut;
+    result_t hr;
+
+    hr = union_to_buffer(password, passwordBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = union_to_buffer(salt, saltOut);
+    if (hr < 0)
+        return hr;
+
+    hr = union_to_buffer(info, infoOut);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = Buffer::Cast(passwordBuf);
+    Buffer* saltBuf = Buffer::Cast(saltOut);
+    Buffer* infoBuf = Buffer::Cast(infoOut);
     obj_ptr<Buffer> ret = new Buffer(NULL, size);
     EVPKeyCtxPointer pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
     size_t keylen = size;
@@ -148,7 +181,7 @@ result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer
     return 0;
 }
 
-result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations,
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
@@ -162,80 +195,106 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (!md)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "pbkdf2: unknown algorithm '%s'.", algoName.c_str()));
 
-    Buffer* buf = Buffer::Cast(password);
-    Buffer* saltBuf = Buffer::Cast(salt);
+    obj_ptr<Buffer_base> passwordBuf, saltOut;
+    result_t hr;
+
+    hr = union_to_buffer(password, passwordBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = union_to_buffer(salt, saltOut);
+    if (hr < 0)
+        return hr;
+
+    Buffer* buf = Buffer::Cast(passwordBuf);
+    Buffer* saltBuf = Buffer::Cast(saltOut);
     obj_ptr<Buffer> ret = new Buffer(NULL, size);
 
-    int32_t hr = PKCS5_PBKDF2_HMAC((const char*)buf->data(), buf->length(),
+    int32_t hr2 = PKCS5_PBKDF2_HMAC((const char*)buf->data(), buf->length(),
         (const unsigned char*)saltBuf->data(), saltBuf->length(),
         iterations, md, size, ret->data());
-    if (hr != 1)
+    if (hr2 != 1)
         return openssl_error();
 
     retVal = ret;
     return 0;
 }
 
-result_t crypto_base::scrypt(Buffer_base* password, Buffer_base* salt, int32_t keylen,
+class ScryptOptions : public obj_base {
+public:
+    LOAD_OPTIONS(ScryptOptions, (N)(r)(p)(maxmem));
+
+public:
+    std::optional<int64_t> N = 16384; // CPU/memory cost parameter (must be power of 2)
+    std::optional<int32_t> r = 8; // Block size parameter
+    std::optional<int32_t> p = 1; // Parallelization parameter
+    std::optional<int64_t> maxmem = 32 * 1024 * 1024; // Default 32MB
+};
+
+result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    obj_ptr<ScryptOptions> opt;
+    Isolate* isolate = Isolate::current(options);
+    result_t hr = ScryptOptions::load(options, opt);
+    if (hr < 0)
+        return hr;
+
+    // Validate N is a power of 2 and greater than 1
+    uint64_t N = opt->N.value();
+    if (N < 2 || (N & (N - 1)) != 0)
+        return CHECK_ERROR(Runtime::setError("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N));
+
+    // Validate r and p are not zero
+    if (opt->r.value() == 0 || opt->p.value() == 0)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: r and p must be positive."));
+
+    ac->m_ctx.resize(1);
+    ac->m_ctx[0] = opt;
+
+    return CALL_E_NOSYNC;
+}
+
+result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen,
     v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (keylen < 1)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: keylen must be positive, received %d.", keylen));
 
-    class ScryptOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(ScryptOptions, (N)(r)(p)(maxmem));
-
-    public:
-        std::optional<int64_t> N = 16384; // CPU/memory cost parameter (must be power of 2)
-        std::optional<int32_t> r = 8; // Block size parameter
-        std::optional<int32_t> p = 1; // Parallelization parameter
-        std::optional<int64_t> maxmem = 32 * 1024 * 1024; // Default 32MB
-    };
-
-    if (ac->isSync()) {
-        obj_ptr<ScryptOptions> opt;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = ScryptOptions::load(options, opt);
-        if (hr < 0)
-            return hr;
-
-        // Validate N is a power of 2 and greater than 1
-        uint64_t N = opt->N.value();
-        if (N < 2 || (N & (N - 1)) != 0)
-            return CHECK_ERROR(Runtime::setError("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N));
-
-        // Validate r and p are not zero
-        if (opt->r.value() == 0 || opt->p.value() == 0)
-            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: r and p must be positive."));
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opt;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
+    if (ac->isSync())
+        return scrypt_load_options(options, ac);
 
     ScryptOptions* opt = (ScryptOptions*)ac->m_ctx[0].object();
 
-    Buffer* pwd = Buffer::Cast(password);
-    Buffer* saltBuf = Buffer::Cast(salt);
+    obj_ptr<Buffer_base> passwordBuf, saltOut;
+    result_t hr;
+
+    hr = union_to_buffer(password, passwordBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = union_to_buffer(salt, saltOut);
+    if (hr < 0)
+        return hr;
+
+    Buffer* pwd = Buffer::Cast(passwordBuf);
+    Buffer* saltBuf = Buffer::Cast(saltOut);
     obj_ptr<Buffer> ret = new Buffer(NULL, keylen);
 
-    int32_t hr = EVP_PBE_scrypt((const char*)pwd->data(), pwd->length(),
+    int32_t hr2 = EVP_PBE_scrypt((const char*)pwd->data(), pwd->length(),
         (const unsigned char*)saltBuf->data(), saltBuf->length(),
         opt->N.value(), opt->r.value(), opt->p.value(), opt->maxmem.value(),
         ret->data(), keylen);
 
-    if (hr != 1)
+    if (hr2 != 1)
         return openssl_error();
 
     retVal = ret;
     return 0;
 }
 
-result_t crypto_base::getHashes(v8::Local<v8::Array>& retVal)
+result_t crypto_base::getHashes(std::vector<exlib::string>& retVal)
 {
-    g_hashes->valueOf(retVal);
+    retVal = g_hashes;
     return 0;
 }
 

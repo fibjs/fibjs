@@ -158,16 +158,19 @@ result_t ECDH::getPublicKey(exlib::string encoding, exlib::string format, v8::Lo
     return pub_key_buf->toValue(encoding, retVal);
 }
 
-result_t ECDH::setPrivateKey(v8::Local<v8::Value> privateKey, exlib::string encoding)
-{
-    result_t hr = ensureKey();
-    if (hr < 0)
-        return hr;
 
-    // Use GetArgumentValue to handle encoding
-    Isolate* isolate = holder();
+result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::string encoding)
+{
     obj_ptr<Buffer_base> key_buffer;
-    hr = GetArgumentValue(isolate, privateKey, key_buffer, false, encoding.c_str());
+
+    if (std::holds_alternative<exlib::string>(privateKey)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), encoding, key_buffer);
+        if (hr < 0)
+            return hr;
+    } else
+        key_buffer = std::get<obj_ptr<Buffer_base>>(privateKey);
+
+    result_t hr = ensureKey();
     if (hr < 0)
         return hr;
 
@@ -213,16 +216,19 @@ result_t ECDH::setPrivateKey(v8::Local<v8::Value> privateKey, exlib::string enco
     return 0;
 }
 
-result_t ECDH::setPublicKey(v8::Local<v8::Value> publicKey, exlib::string encoding)
-{
-    result_t hr = ensureKey();
-    if (hr < 0)
-        return hr;
 
-    // Use GetArgumentValue to handle encoding
-    Isolate* isolate = holder();
+result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::string encoding)
+{
     obj_ptr<Buffer_base> key_buffer;
-    hr = GetArgumentValue(isolate, publicKey, key_buffer, false, encoding.c_str());
+
+    if (std::holds_alternative<exlib::string>(publicKey)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(publicKey), encoding, key_buffer);
+        if (hr < 0)
+            return hr;
+    } else
+        key_buffer = std::get<obj_ptr<Buffer_base>>(publicKey);
+
+    result_t hr = ensureKey();
     if (hr < 0)
         return hr;
 
@@ -251,9 +257,19 @@ result_t ECDH::setPublicKey(v8::Local<v8::Value> publicKey, exlib::string encodi
     return 0;
 }
 
-result_t ECDH::computeSecret(v8::Local<v8::Value> otherKey, exlib::string inputEncoding, exlib::string outputEncoding,
+
+result_t ECDH::computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib::string inputEncoding, exlib::string outputEncoding,
     v8::Local<v8::Value>& retVal)
 {
+    obj_ptr<Buffer_base> other_key_buffer;
+
+    if (std::holds_alternative<exlib::string>(otherKey)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(otherKey), inputEncoding, other_key_buffer);
+        if (hr < 0)
+            return hr;
+    } else
+        other_key_buffer = std::get<obj_ptr<Buffer_base>>(otherKey);
+
     if (!m_ec || !m_privateKeySet)
         return Runtime::setError("Private key not set");
 
@@ -263,14 +279,7 @@ result_t ECDH::computeSecret(v8::Local<v8::Value> otherKey, exlib::string inputE
         return Runtime::setError("Invalid key pair");
     }
 
-    // Use GetArgumentValue to handle input encoding
-    Isolate* isolate = holder();
-    obj_ptr<Buffer_base> key_buffer;
-    result_t hr = GetArgumentValue(isolate, otherKey, key_buffer, false, inputEncoding.c_str());
-    if (hr < 0)
-        return hr;
-
-    Buffer* other_pub_buf = Buffer::Cast(key_buffer);
+    Buffer* other_pub_buf = Buffer::Cast(other_key_buffer);
     if (!other_pub_buf)
         return Runtime::setError("Invalid buffer type");
 
@@ -306,11 +315,18 @@ result_t ECDH::computeSecret(v8::Local<v8::Value> otherKey, exlib::string inputE
     return secret_buf->toValue(outputEncoding, retVal);
 }
 
-result_t ECDH_base::convertKey(v8::Local<v8::Value> key, exlib::string curve, exlib::string inputEncoding,
+
+result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, exlib::string inputEncoding,
     exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal)
 {
-    if (key.IsEmpty())
-        return Runtime::setError("The \"key\" argument must be of type string. Received undefined");
+    obj_ptr<Buffer_base> key_buffer;
+
+    if (std::holds_alternative<exlib::string>(key)) {
+        result_t hr = Buffer_base::from(std::get<exlib::string>(key), inputEncoding, key_buffer);
+        if (hr < 0)
+            return hr;
+    } else
+        key_buffer = std::get<obj_ptr<Buffer_base>>(key);
 
     if (curve.empty())
         return Runtime::setError("The \"curve\" argument must be of type string. Received undefined");
@@ -326,13 +342,6 @@ result_t ECDH_base::convertKey(v8::Local<v8::Value> key, exlib::string curve, ex
     // Create temporary ECDH object to use helper functions
     ECDH temp_ecdh(curve);
     result_t hr = temp_ecdh.ensureKey();
-    if (hr < 0)
-        return hr;
-
-    // Use GetArgumentValue to handle input encoding
-    Isolate* isolate = Isolate::current();
-    obj_ptr<Buffer_base> key_buffer;
-    hr = GetArgumentValue(isolate, key, key_buffer, false, inputEncoding.c_str());
     if (hr < 0)
         return hr;
 

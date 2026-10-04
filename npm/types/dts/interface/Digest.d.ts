@@ -26,22 +26,12 @@
  */
 declare class Class_Digest extends Class_object {
     /**
-     * @description Updates the binary digest information
-     *      @param data the binary data block
-     *      @return returns the message digest object itself
-     *
-     */
-    update(data: Class_Buffer): Class_Digest;
-
-    /**
-     * @description Updates the string digest information
-     *      @param data the string data
+     * @description Updates the digest information with the given data
+     *      @param data the data block, or a string decoded with codec
      *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
      *      @return returns the message digest object itself
      *
      */
-    update(data: string, codec?: string): Class_Digest;
-
     update(data: Class_Buffer | string, codec?: string): Class_Digest;
 
     /**

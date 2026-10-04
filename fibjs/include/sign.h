@@ -17,11 +17,13 @@ public:
 
 public:
     // Sign_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Sign_base>& retVal);
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Sign_base>& retVal);
-    virtual result_t sign(Buffer_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal);
-    virtual result_t sign(KeyObject_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal);
-    virtual result_t sign(v8::Local<v8::Object> key, exlib::string encoding, v8::Local<v8::Value>& retVal);
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Sign_base>& retVal);
+    virtual result_t sign(Union_sign_privateKey privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal);
+
+public:
+    // key forms: the merged entry dispatches to them
+    result_t sign_keyobj(KeyObject_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal);
+    result_t sign_opts(v8::Local<v8::Object> key, exlib::string encoding, v8::Local<v8::Value>& retVal);
 
 public:
     result_t sign(KeyObject_base* key, DSASigEnc enc, int padding, int salt_len,
@@ -37,14 +39,16 @@ public:
 
 public:
     // Verify_base
-    virtual result_t update(Buffer_base* data, obj_ptr<Verify_base>& retVal);
-    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Verify_base>& retVal);
-    virtual result_t verify(Buffer_base* privateKey, Buffer_base* signature, bool& retVal);
-    virtual result_t verify(KeyObject_base* privateKey, Buffer_base* signature, bool& retVal);
-    virtual result_t verify(v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal);
-    virtual result_t verify(Buffer_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal);
-    virtual result_t verify(KeyObject_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal);
-    virtual result_t verify(v8::Local<v8::Object> key, exlib::string signature, exlib::string encoding, bool& retVal);
+    virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Verify_base>& retVal);
+    virtual result_t verify(Union_verify_privateKey privateKey, Union_verify_signature signature,
+        exlib::string encoding, bool& retVal);
+
+public:
+    // key forms: the merged entry dispatches to them
+    result_t verify_keyobj(KeyObject_base* privateKey, Buffer_base* signature, bool& retVal);
+    result_t verify_opts(v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal);
+    result_t verify_keyobj(KeyObject_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal);
+    result_t verify_opts(v8::Local<v8::Object> key, exlib::string signature, exlib::string encoding, bool& retVal);
 
 public:
     result_t verify(KeyObject_base* key, const unsigned char* signature, size_t sig_len, DSASigEnc enc, int padding, int salt_len, bool& retVal);

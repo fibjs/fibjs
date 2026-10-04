@@ -2,18 +2,11 @@
 interface Cipher : object
 {
     /*! @brief Sets the authentication tag
-     @param buffer the authentication tag data to use
-     @param encoding the encoding of the authentication tag data
+     @param buffer the authentication tag data to use, or a string decoded with encoding
+     @param encoding the encoding of a string authentication tag data, default "utf8"
      @return returns the current Cipher object
      */
-    Cipher setAuthTag(Buffer buffer, String encoding = "buffer");
-
-    /*! @brief Sets the authentication tag
-     @param buffer the authentication tag data to use
-     @param encoding the encoding of the authentication tag data
-     @return returns the current Cipher object
-     */
-    Cipher setAuthTag(String buffer, String encoding = "utf8");
+    Cipher setAuthTag(Buffer|String buffer, String encoding = "utf8");
 
     /*! @brief Queries the authentication tag 
       @return returns the authentication tag data
@@ -21,18 +14,11 @@ interface Cipher : object
     Buffer getAuthTag();
 
     /*! @brief Sets additional authenticated data
-     @param buffer the additional authenticated data to use
+     @param buffer the additional authenticated data to use, or a string decoded with the encoding option
      @param options the additional authenticated data options to use
      @return returns the current Cipher object
     */
-    Cipher setAAD(Buffer buffer, Object options = {});
-
-    /*! @brief Sets additional authenticated data
-     @param buffer the additional authenticated data to use
-     @param options the additional authenticated data options to use
-     @return returns the current Cipher object
-    */
-    Cipher setAAD(String buffer, Object options = {});
+    Cipher setAAD(Buffer|String buffer, Object options = {});
 
     /*! @brief Sets automatic padding
      @param autoPadding specifies whether to pad automatically
@@ -41,20 +27,12 @@ interface Cipher : object
     Cipher setAutoPadding(Boolean autoPadding = true);
 
     /*! @brief Updates the data
-      @param data the data to update
-      @param inputEncoding the encoding of the input data
+      @param data the data to update, or a string decoded with inputEncoding
+      @param inputEncoding the encoding of the input data, default "utf8"
       @param outputEncoding the encoding of the output data
       @return returns the updated data
     */
-    Value update(Buffer data, String inputEncoding = "buffer", String outputEncoding = "buffer");
-
-    /*! @brief Updates the data
-      @param data the data to update
-      @param inputEncoding the encoding of the input data
-      @param outputEncoding the encoding of the output data
-      @return returns the updated data
-    */
-    Value update(String data, String inputEncoding = "utf8", String outputEncoding = "buffer");
+    Value update(Buffer|String data, String inputEncoding = "utf8", String outputEncoding = "buffer");
 
     /*! @brief Finalizes the data
       @param outputEncoding the encoding of the output data

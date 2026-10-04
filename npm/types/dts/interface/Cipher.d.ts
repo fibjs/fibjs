@@ -7,22 +7,11 @@
 declare class Class_Cipher extends Class_object {
     /**
      * @description Sets the authentication tag
-     *      @param buffer the authentication tag data to use
-     *      @param encoding the encoding of the authentication tag data
+     *      @param buffer the authentication tag data to use, or a string decoded with encoding
+     *      @param encoding the encoding of a string authentication tag data, default "utf8"
      *      @return returns the current Cipher object
      *
      */
-    setAuthTag(buffer: Class_Buffer, encoding?: string): Class_Cipher;
-
-    /**
-     * @description Sets the authentication tag
-     *      @param buffer the authentication tag data to use
-     *      @param encoding the encoding of the authentication tag data
-     *      @return returns the current Cipher object
-     *
-     */
-    setAuthTag(buffer: string, encoding?: string): Class_Cipher;
-
     setAuthTag(buffer: Class_Buffer | string, encoding?: string): Class_Cipher;
 
     /**
@@ -34,22 +23,11 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Sets additional authenticated data
-     *      @param buffer the additional authenticated data to use
+     *      @param buffer the additional authenticated data to use, or a string decoded with the encoding option
      *      @param options the additional authenticated data options to use
      *      @return returns the current Cipher object
      *
      */
-    setAAD(buffer: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
-
-    /**
-     * @description Sets additional authenticated data
-     *      @param buffer the additional authenticated data to use
-     *      @param options the additional authenticated data options to use
-     *      @return returns the current Cipher object
-     *
-     */
-    setAAD(buffer: string, options?: FIBJS.GeneralObject): Class_Cipher;
-
     setAAD(buffer: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
@@ -62,24 +40,12 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Updates the data
-     *       @param data the data to update
-     *       @param inputEncoding the encoding of the input data
+     *       @param data the data to update, or a string decoded with inputEncoding
+     *       @param inputEncoding the encoding of the input data, default "utf8"
      *       @param outputEncoding the encoding of the output data
      *       @return returns the updated data
      *
      */
-    update(data: Class_Buffer, inputEncoding?: string, outputEncoding?: string): any;
-
-    /**
-     * @description Updates the data
-     *       @param data the data to update
-     *       @param inputEncoding the encoding of the input data
-     *       @param outputEncoding the encoding of the output data
-     *       @return returns the updated data
-     *
-     */
-    update(data: string, inputEncoding?: string, outputEncoding?: string): any;
-
     update(data: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**

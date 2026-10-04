@@ -52,11 +52,21 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
     return 0;
 }
 
-result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base* baseKey, int32_t length,
+result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length,
     std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        result_t hr = get_ecdh_options(algorithm, (CryptoKey*)baseKey, ac);
+        if (std::holds_alternative<exlib::string>(algorithm)) {
+            // the string form carries no 'public' member: ctx[1] stays empty and
+            // the async phase reports that as an error for ECDH
+            ac->m_ctx.resize(2);
+
+            ac->m_ctx[0] = std::get<exlib::string>(algorithm);
+
+            return CALL_E_NOSYNC;
+        }
+
+        result_t hr = get_ecdh_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)baseKey, ac);
         if (hr < 0)
             return hr;
 
@@ -64,6 +74,12 @@ result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base
     }
 
     CryptoKey* _baseKey = (CryptoKey*)baseKey;
+
+    // the algorithm (and, for ECDH, the public key) comes from the sync phase
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     exlib::string name = ac->m_ctx[0].string();
 
     // Check if the baseKey has 'deriveBits' usage
@@ -75,6 +91,12 @@ result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base
         return Runtime::setError("WebCrypto: ECDH baseKey must be a private key");
 
     if (qstricmp(name.c_str(), "ecdh") == 0) {
+        // the public key is carried in ctx[1]; the string form of the algorithm
+        // has no 'public' member, which is an error for ECDH
+        ctx_hr = ac->ctx(1);
+        if (ctx_hr < 0 || ac->m_ctx[1].object() == NULL)
+            return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
+
         CryptoKey* publicKey = (CryptoKey*)ac->m_ctx[1].object();
 
         // Validate that the public key is indeed public
@@ -142,7 +164,7 @@ result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base
             // If we need to truncate
             if (bytesNeeded < derivedLength) {
                 obj_ptr<Buffer_base> truncated;
-                hr = Buffer_base::_new(bytesNeeded, truncated);
+                hr = Buffer_base::allocUnsafe(bytesNeeded, truncated);
                 if (hr < 0)
                     return hr;
 
@@ -181,19 +203,5 @@ result_t subtle_base::deriveBits(v8::Local<v8::Object> algorithm, CryptoKey_base
     return Runtime::setError("WebCrypto: unsupported algorithm for deriveBits: " + name);
 }
 
-result_t subtle_base::deriveBits(exlib::string algorithm, CryptoKey_base* baseKey, int32_t length,
-    std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
-
-        ac->m_ctx[0] = algorithm;
-        // No public key in string format, this would be an error for ECDH
-
-        return CALL_E_NOSYNC;
-    }
-
-    return deriveBits(v8::Local<v8::Object>(), baseKey, length, retVal, ac);
-}
 
 }

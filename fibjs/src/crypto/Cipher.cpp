@@ -20,25 +20,23 @@
 
 namespace fibjs {
 
-obj_ptr<NArray> g_ciphers;
+std::vector<exlib::string> g_ciphers;
 class cipher_initer {
 public:
     cipher_initer()
     {
-        g_ciphers = new NArray();
-
         EVP_CIPHER_do_all_sorted([](const EVP_CIPHER* ciph, const char* from,
                                      const char* to, void* x) {
             if (from)
-                g_ciphers->append(from);
+                g_ciphers.push_back(from);
         },
             NULL);
     }
 } s_cipher_initer;
 
-result_t crypto_base::getCiphers(v8::Local<v8::Array>& retVal)
+result_t crypto_base::getCiphers(std::vector<exlib::string>& retVal)
 {
-    g_ciphers->valueOf(retVal);
+    retVal = g_ciphers;
     return 0;
 }
 
@@ -76,8 +74,8 @@ static const char* GetCipherMode(int mode)
 }
 
 // Helper function to create cipher info object
-static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
-    v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
+    v8::Local<v8::Object> options, obj_ptr<crypto_base::GetCipherInfoType>& retVal)
 {
     if (!cipher)
         return CALL_RETURN_UNDEFINED;
@@ -131,43 +129,64 @@ static result_t CreateCipherInfo(Isolate* isolate, const EVP_CIPHER* cipher,
         }
     }
 
-    // Create result object
-    v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Context> context = isolate->context();
-
-    info->Set(context, isolate->NewString("name"), isolate->NewString(lowercase_name)).FromMaybe(false);
-    info->Set(context, isolate->NewString("nid"), v8::Integer::New(isolate->m_isolate, nid)).FromMaybe(false);
-    info->Set(context, isolate->NewString("blockSize"), v8::Integer::New(isolate->m_isolate, block_size)).FromMaybe(false);
-    info->Set(context, isolate->NewString("ivLength"), v8::Integer::New(isolate->m_isolate, iv_length)).FromMaybe(false);
-    info->Set(context, isolate->NewString("keyLength"), v8::Integer::New(isolate->m_isolate, key_length)).FromMaybe(false);
-    info->Set(context, isolate->NewString("mode"), isolate->NewString(GetCipherMode(mode))).FromMaybe(false);
-
-    retVal = info;
+    retVal = new crypto_base::GetCipherInfoType();
+    retVal->name = lowercase_name;
+    retVal->nid = nid;
+    retVal->blockSize = block_size;
+    retVal->ivLength = iv_length;
+    retVal->keyLength = key_length;
+    retVal->mode = GetCipherMode(mode);
     return 0;
 }
 
-result_t crypto_base::getCipherInfo(exlib::string name, v8::Local<v8::Object> options,
-    v8::Local<v8::Object>& retVal)
+result_t crypto_base::getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, v8::Local<v8::Object> options,
+    obj_ptr<GetCipherInfoType>& retVal)
 {
-    Isolate* isolate = Isolate::current(options);
-    const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
-    return CreateCipherInfo(isolate, cipher, options, retVal);
+    const EVP_CIPHER* cipher = std::holds_alternative<exlib::string>(nameOrNid)
+        ? EVP_get_cipherbyname(std::get<exlib::string>(nameOrNid).c_str())
+        : EVP_get_cipherbynid(std::get<int32_t>(nameOrNid));
+
+    return CreateCipherInfo(cipher, options, retVal);
 }
 
-result_t crypto_base::getCipherInfo(int32_t nid, v8::Local<v8::Object> options,
-    v8::Local<v8::Object>& retVal)
+// a string alternative of the cipher family is decoded as utf8
+template <typename T>
+static result_t cipher_string_arg(T& v, obj_ptr<Buffer_base>& buf)
 {
-    Isolate* isolate = Isolate::current(options);
-    const EVP_CIPHER* cipher = EVP_get_cipherbynid(nid);
-    return CreateCipherInfo(isolate, cipher, options, retVal);
+    if (std::holds_alternative<exlib::string>(v))
+        return Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
+
+    buf = std::get<obj_ptr<Buffer_base>>(v);
+    return 0;
 }
 
-result_t crypto_base::createCipher(exlib::string algorithm, Buffer_base* key,
+// a string key or iv of the cipher family is decoded as utf8; a KeyObject key
+// is checked and used through its secret bytes
+static result_t cipher_key_args(crypto_base::Union_createCipheriv_key& key, obj_ptr<Buffer_base>& buf, KeyObject*& ko)
+{
+    if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
+        ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
+        if (ko->type() != KeyObject::kKeyTypeSecret)
+            return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
+
+        return 0;
+    }
+
+    ko = NULL;
+    return cipher_string_arg(key, buf);
+}
+
+result_t crypto_base::createCipher(exlib::string algorithm, Union_createCipher_key key,
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kCipher);
 
-    result_t hr = ci->init(algorithm, key, options);
+    obj_ptr<Buffer_base> keyBuf;
+    result_t hr = cipher_string_arg(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = ci->init(algorithm, keyBuf, options);
     if (hr < 0)
         return hr;
 
@@ -176,12 +195,24 @@ result_t crypto_base::createCipher(exlib::string algorithm, Buffer_base* key,
     return 0;
 }
 
-result_t crypto_base::createCipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipheriv_key key,
+    Union_createCipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kCipher);
+    KeyObject* ko = NULL;
 
-    result_t hr = ci->initiv(algorithm, key, iv, options);
+    obj_ptr<Buffer_base> keyBuf;
+    result_t hr = cipher_key_args(key, keyBuf, ko);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> ivBuf;
+    hr = cipher_string_arg(iv, ivBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
+            : ci->initiv(algorithm, keyBuf, ivBuf, options);
     if (hr < 0)
         return hr;
 
@@ -190,30 +221,17 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Buffer_base* key, 
     return 0;
 }
 
-result_t crypto_base::createCipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
-{
-    KeyObject* ko = (KeyObject*)key;
-    if (ko->type() != KeyObject::kKeyTypeSecret)
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
-
-    obj_ptr<Cipher> ci = new Cipher(Cipher::kCipher);
-
-    result_t hr = ci->initiv(algorithm, ko->data(), ko->length(), iv, options);
-    if (hr < 0)
-        return hr;
-
-    retVal = ci;
-
-    return 0;
-}
-
-result_t crypto_base::createDecipher(exlib::string algorithm, Buffer_base* key,
+result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDecipher_key key,
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kDecipher);
 
-    result_t hr = ci->init(algorithm, key, options);
+    obj_ptr<Buffer_base> keyBuf;
+    result_t hr = cipher_string_arg(key, keyBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = ci->init(algorithm, keyBuf, options);
     if (hr < 0)
         return hr;
 
@@ -222,30 +240,24 @@ result_t crypto_base::createDecipher(exlib::string algorithm, Buffer_base* key,
     return 0;
 }
 
-result_t crypto_base::createDecipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key,
+    Union_createDecipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kDecipher);
+    KeyObject* ko = NULL;
 
-    result_t hr = ci->initiv(algorithm, key, iv, options);
+    obj_ptr<Buffer_base> keyBuf;
+    result_t hr = cipher_key_args(key, keyBuf, ko);
     if (hr < 0)
         return hr;
 
-    retVal = ci;
+    obj_ptr<Buffer_base> ivBuf;
+    hr = cipher_string_arg(iv, ivBuf);
+    if (hr < 0)
+        return hr;
 
-    return 0;
-}
-
-result_t crypto_base::createDecipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
-{
-    KeyObject* ko = (KeyObject*)key;
-    if (ko->type() != KeyObject::kKeyTypeSecret)
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
-
-    obj_ptr<Cipher> ci = new Cipher(Cipher::kDecipher);
-
-    result_t hr = ci->initiv(algorithm, ko->data(), ko->length(), iv, options);
+    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
+            : ci->initiv(algorithm, keyBuf, ivBuf, options);
     if (hr < 0)
         return hr;
 
@@ -458,25 +470,26 @@ result_t Cipher::setAuthTag(const char* tag, int tag_len)
     return 0;
 }
 
-result_t Cipher::setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal)
+result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal)
 {
-    Buffer* buf = Buffer::Cast(buffer);
+    result_t hr;
 
-    result_t hr = setAuthTag((const char*)buf->data(), buf->length());
-    if (hr < 0)
-        return hr;
+    if (std::holds_alternative<exlib::string>(buffer)) {
+        exlib::string _buffer = std::get<exlib::string>(buffer);
 
-    retVal = this;
-    return 0;
-}
+        hr = commonDecode(encoding, _buffer, _buffer);
+        if (hr < 0)
+            return hr;
 
-result_t Cipher::setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal)
-{
-    result_t hr = commonDecode(encoding, buffer, buffer);
-    if (hr < 0)
-        return hr;
+        hr = setAuthTag(_buffer.c_str(), _buffer.length());
+    } else {
+        // the buffer form takes the bytes as they are, as it did before the
+        // merge (it had no encoding parameter)
+        Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(buffer));
 
-    hr = setAuthTag(buffer.c_str(), buffer.length());
+        hr = setAuthTag((const char*)buf->data(), buf->length());
+    }
+
     if (hr < 0)
         return hr;
 
@@ -529,28 +542,31 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     return 0;
 }
 
-result_t Cipher::setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
-    Buffer* buf = Buffer::Cast(buffer);
-    result_t hr = setAAD((const char*)buf->data(), buf->length(), options);
-    if (hr < 0)
-        return hr;
+    result_t hr;
 
-    retVal = this;
-    return 0;
-}
+    if (std::holds_alternative<exlib::string>(buffer)) {
+        exlib::string _buffer = std::get<exlib::string>(buffer);
+        exlib::string encoding = "utf8";
 
-result_t Cipher::setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
-{
-    exlib::string encoding = "utf8";
-    result_t hr = GetConfigValue(options, "encoding", encoding, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
+        hr = GetConfigValue(options, "encoding", encoding, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
 
-    hr = commonDecode(encoding, buffer, buffer);
-    if (hr < 0)
-        return hr;
-    hr = setAAD(buffer.c_str(), buffer.length(), options);
+        hr = commonDecode(encoding, _buffer, _buffer);
+        if (hr < 0)
+            return hr;
+
+        hr = setAAD(_buffer.c_str(), _buffer.length(), options);
+    } else {
+        // the buffer form takes the bytes as they are, as it did before the
+        // merge (it had no encoding option)
+        Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(buffer));
+
+        hr = setAAD((const char*)buf->data(), buf->length(), options);
+    }
+
     if (hr < 0)
         return hr;
 
@@ -637,19 +653,23 @@ result_t Cipher::update(const unsigned char* data, size_t len, exlib::string out
     return get_result(out, outputEncoding, retVal, false);
 }
 
-result_t Cipher::update(Buffer_base* data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
+result_t Cipher::update(Union_update_data data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
 {
-    Buffer* buf = Buffer::Cast(data);
+    if (std::holds_alternative<exlib::string>(data)) {
+        exlib::string _data = std::get<exlib::string>(data);
+
+        result_t hr = commonDecode(inputEncoding, _data, _data);
+        if (hr < 0)
+            return hr;
+
+        return update((const unsigned char*)_data.c_str(), _data.length(), outputEncoding, retVal);
+    }
+
+    // the buffer form takes the bytes as they are, as it did before the merge
+    // (its inputEncoding was ignored)
+    Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
+
     return update(buf->data(), buf->length(), outputEncoding, retVal);
-}
-
-result_t Cipher::update(exlib::string data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
-{
-    result_t hr = commonDecode(inputEncoding, data, data);
-    if (hr < 0)
-        return hr;
-
-    return update((const unsigned char*)data.c_str(), data.length(), outputEncoding, retVal);
 }
 
 result_t Cipher::final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
