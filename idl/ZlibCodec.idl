@@ -10,12 +10,12 @@
  */
 interface ZlibCodec : EventEmitter
 {
-    /*! @brief Processes a chunk of data synchronously
-     @param chunk the data to process
+    /*! @brief Processes a chunk of data synchronously; a string chunk is encoded as utf8
+     @param chunk the data to process, a string is encoded as utf8
      @param flushFlag flush flag, see zlib.constants.Z_NO_FLUSH and others
      @return returns the processed data
      */
-    Buffer _processChunk(Buffer chunk, Integer flushFlag);
+    Buffer _processChunk(Buffer|String chunk, Integer flushFlag);
 
     /*! @brief Closes the codec and releases resources */
     close();

@@ -110,7 +110,9 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         p[2] = jsc_version;
 
         obj_ptr<Buffer_base> unz = new Buffer(buf.c_str(), buf.length());
-        return zlib_base::cc_gzip(unz, retVal);
+        // no options here: the empty handle makes the entry use the default
+        // compression level (the sync phase never runs on this path)
+        return zlib_base::cc_gzip(unz, v8::Local<v8::Object>(), retVal);
     }
 
     return 0;

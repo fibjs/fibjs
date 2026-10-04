@@ -65,7 +65,22 @@ public:
     }
 
     // ZlibCodec_base
-    virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal) override
+    virtual result_t _processChunk(typename BASE::Union__processChunk_chunk chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal) override
+    {
+        // the buffer form below does the work; the string alternative is
+        // encoded as utf8 first
+        if (std::holds_alternative<obj_ptr<Buffer_base>>(chunk))
+            return _processChunk(std::get<obj_ptr<Buffer_base>>(chunk).get(), flushFlag, retVal);
+
+        obj_ptr<Buffer_base> buf;
+        result_t hr = Buffer_base::from(std::get<exlib::string>(chunk), "utf8", buf);
+        if (hr < 0)
+            return hr;
+
+        return _processChunk(buf.get(), flushFlag, retVal);
+    }
+
+    virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal)
     {
         if (m_closed)
             return Runtime::setError(ErrorPayload::make(errtype::kError)

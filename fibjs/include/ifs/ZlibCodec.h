@@ -24,8 +24,11 @@ class ZlibCodec_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union__processChunk_chunk = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+
+public:
     // ZlibCodec_base
-    virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t _processChunk(Union__processChunk_chunk chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t close() = 0;
     virtual result_t reset() = 0;
     virtual result_t get__handle(v8::Local<v8::Value>& retVal) = 0;
@@ -89,10 +92,10 @@ inline void ZlibCodec_base::s__processChunk(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(Union__processChunk_chunk, 0);
     ARG(int32_t, 1);
 
-    hr = pInst->_processChunk(v0.get(), v1, vr);
+    hr = pInst->_processChunk(v0, v1, vr);
 
     METHOD_RETURN();
 }
