@@ -66,7 +66,7 @@ interface HttpMessage : Message
      @param name specifies the key to append
      @param value specifies the data to append
      */
-    appendHeader(String name, String value);
+    appendHeader(String name, Variant value);
 
     /*! @brief sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
      @param map specifies the key-value data dictionary to set
@@ -88,7 +88,7 @@ interface HttpMessage : Message
      @param name specifies the key to set
      @param value specifies the data to set
      */
-    setHeader(String name, String value);
+    setHeader(String name, Variant value);
 
     /*! @brief deletes all headers of the specified key
      @param name specifies the key to delete

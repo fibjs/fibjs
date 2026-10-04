@@ -79,10 +79,10 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description constructs a URL object from a URL string
      *      @param url the URL string to parse, which can be an absolute or relative URL
-     *      @param base the base URL string, used when the url parameter is a relative URL
+     *      @param base the base URL, used when the url parameter is a relative URL; a UrlObject is accepted as well as a string
      *
      */
-    constructor(url: string, base?: string);
+    constructor(url: string, base?: string | Class_UrlObject);
 
     /**
      * @description parses a URL string and returns a URL object, or null if parsing fails

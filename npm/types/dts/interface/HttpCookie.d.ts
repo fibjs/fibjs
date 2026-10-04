@@ -128,7 +128,7 @@ declare class Class_HttpCookie extends Class_object {
     /**
      * @description queries and sets the expiration time of the cookie
      */
-    expires: typeof Date;
+    expires: Date;
 
     /**
      * @description queries and sets whether the cookie is only allowed for http requests, default false

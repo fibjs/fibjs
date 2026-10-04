@@ -361,3 +361,314 @@ declare class Class_LevelDB extends Class_object {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
+/**
+ * The promise variant of the LevelDB class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_LevelDBPromise extends Class_object {
+    /**
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
+     *
+     */
+    has(key: Class_Buffer): Promise<boolean>;
+
+    /**
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
+     *
+     */
+    hasSync(key: Class_Buffer): boolean;
+
+    /**
+     * @description Checks whether data with the given key exists in the database
+     *      @param key the key to check
+     *      @return returns whether the key exists
+     *
+     */
+    hasAsync(key: Class_Buffer): Promise<boolean>;
+
+    /**
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
+     *
+     */
+    get(key: Class_Buffer): Promise<Class_Buffer>;
+
+    /**
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
+     *
+     */
+    getSync(key: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description Queries the value of the given key
+     *      @param key the key to query
+     *      @return returns the value of the key, or null if it does not exist
+     *
+     */
+    getAsync(key: Class_Buffer): Promise<Class_Buffer>;
+
+    /**
+     * @description Queries the values of the given keys
+     *      @param keys the array of keys to query
+     *      @return returns an array containing the values of the keys
+     *
+     */
+    mget(keys: any[]): any[];
+
+    /**
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
+     *
+     */
+    set(key: Class_Buffer, value: Class_Buffer): Promise<void>;
+
+    /**
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
+     *
+     */
+    setSync(key: Class_Buffer, value: Class_Buffer): void;
+
+    /**
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *      @param key the key to set
+     *      @param value the value to set
+     *
+     */
+    setAsync(key: Class_Buffer, value: Class_Buffer): Promise<void>;
+
+    /**
+     * @description Sets a group of key-value pairs; inserts new data if the keys do not exist
+     *      @param map the key-value dictionary to set
+     *
+     */
+    mset(map: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Removes the values of the given keys
+     *      @param keys the array of keys to remove
+     *
+     */
+    mremove(keys: any[]): void;
+
+    /**
+     * @description Removes all values of the given key
+     *      @param key the key to remove
+     *
+     */
+    remove(key: Class_Buffer): Promise<void>;
+
+    /**
+     * @description Removes all values of the given key
+     *      @param key the key to remove
+     *
+     */
+    removeSync(key: Class_Buffer): void;
+
+    /**
+     * @description Removes all values of the given key
+     *      @param key the key to remove
+     *
+     */
+    removeAsync(key: Class_Buffer): Promise<void>;
+
+    /**
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
+     *
+     */
+    firstKey(): Promise<Class_Buffer>;
+
+    /**
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
+     *
+     */
+    firstKeySync(): Class_Buffer;
+
+    /**
+     *  @description Queries the smallest key
+     *       @return returns the smallest key
+     *
+     */
+    firstKeyAsync(): Promise<Class_Buffer>;
+
+    /**
+     *  @description Queries the largest key
+     *     @return returns the largest key
+     */
+    lastKey(): Promise<Class_Buffer>;
+
+    /**
+     *  @description Queries the largest key
+     *     @return returns the largest key
+     */
+    lastKeySync(): Class_Buffer;
+
+    /**
+     *  @description Queries the largest key
+     *     @return returns the largest key
+     */
+    lastKeyAsync(): Promise<Class_Buffer>;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach(function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(func: (...args: any[])=>any): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer, func: (...args: any[])=>any): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach(function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+
+    /**
+     * @description Enumerates all key-value pairs in the database
+     *
+     *      The callback function takes two parameters, (value, key)
+     *
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     *
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from the smallest key to enumerate; this key is included in the enumeration
+     *      @param to the largest key to enumerate; this key is not included in the enumeration
+     *      @param opt the enumeration options, supporting skip, limit and reverse
+     *      @param func the enumeration callback function
+     *
+     */
+    forEach(from: Class_Buffer, to: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+
+    /**
+     * @description Starts a transaction on the current database
+     *      @return returns the started transaction object
+     */
+    begin(): Class_LevelDB;
+
+    /**
+     * @description Commits the current transaction
+     */
+    commit(): void;
+
+    /**
+     * @description Closes the current database connection or transaction
+     */
+    close(): Promise<void>;
+
+    /**
+     * @description Closes the current database connection or transaction
+     */
+    closeSync(): void;
+
+    /**
+     * @description Closes the current database connection or transaction
+     */
+    closeAsync(): Promise<void>;
+
+}
+
+
+declare namespace Class_LevelDB {
+    const promises: FIBJS.GeneralObject;
+}

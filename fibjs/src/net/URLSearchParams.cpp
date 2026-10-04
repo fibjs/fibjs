@@ -19,36 +19,51 @@ result_t URLSearchParams_base::_new(obj_ptr<URLSearchParams_base>& retVal, v8::L
     return 0;
 }
 
-result_t URLSearchParams_base::_new(exlib::string init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
+static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchParams_base>& retVal);
+
+result_t URLSearchParams_base::_new(Union_URLSearchParams_init init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<URLSearchParams> params = new URLSearchParams();
-    retVal = params;
-    const char* p = init.c_str();
-    if (*p == '?')
-        init = init.substr(1);
-    return params->parse(init);
+    // a string is the query string itself; an object or an array of pairs
+    // appends the given parameters; another container copies its pairs; any
+    // other value goes through the iterable path
+    if (std::holds_alternative<exlib::string>(init)) {
+        exlib::string str = std::get<exlib::string>(init);
+        obj_ptr<URLSearchParams> params = new URLSearchParams();
+        retVal = params;
+        const char* p = str.c_str();
+        if (*p == '?')
+            str = str.substr(1);
+        return params->parse(str);
+    }
+
+    if (std::holds_alternative<v8::Local<v8::Object>>(init)) {
+        retVal = new URLSearchParams();
+        return retVal->append(std::get<v8::Local<v8::Object>>(init));
+    }
+
+    if (std::holds_alternative<v8::Local<v8::Array>>(init)) {
+        retVal = new URLSearchParams();
+
+        // an element of the sequence that is not a pair is a type error, the
+        // way the DOM and node report it
+        result_t hr = retVal->append(std::get<v8::Local<v8::Array>>(init));
+        if (hr == CALL_E_BADVARTYPE)
+            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
+                .with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs."));
+
+        return hr;
+    }
+
+    if (std::holds_alternative<obj_ptr<URLSearchParams_base>>(init)) {
+        obj_ptr<URLSearchParams> headers = new URLSearchParams();
+        retVal = headers;
+        return headers->init(std::get<obj_ptr<URLSearchParams_base>>(init).get());
+    }
+
+    return url_search_params_init_iterable(std::get<Variant>(init), retVal);
 }
 
-result_t URLSearchParams_base::_new(v8::Local<v8::Object> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
-{
-    retVal = new URLSearchParams();
-    return retVal->append(init);
-}
-
-result_t URLSearchParams_base::_new(v8::Local<v8::Array> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
-{
-    retVal = new URLSearchParams();
-    return retVal->append(init);
-}
-
-result_t URLSearchParams_base::_new(URLSearchParams_base* init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
-{
-    obj_ptr<URLSearchParams> headers = new URLSearchParams();
-    retVal = headers;
-    return headers->init(init);
-}
-
-result_t URLSearchParams_base::_new(Variant init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
+static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchParams_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -57,6 +72,12 @@ result_t URLSearchParams_base::_new(Variant init, obj_ptr<URLSearchParams_base>&
     retVal = params;
 
     v8::Local<v8::Value> v = init;
+
+    // WebIDL: a nullish init means "no parameters"; without this the value would
+    // fall into the string fallback below and turn into a bogus
+    // `undefined=`/`null=` parameter.
+    if (v->IsNullOrUndefined())
+        return 0;
 
     // WebIDL: the init argument may be a sequence of pairs. Any JS iterable
     // (FormData, Map, Set, another URLSearchParams ...) is materialized through

@@ -53,7 +53,7 @@ declare class Class_Condition extends Class_Lock {
      *      @param lock use a self-constructed lock
      *
      */
-    constructor(lock: Class_Lock);
+    constructor(lock: Class_Lock | Class_LockPromise);
 
     /**
      * @description Waits for a condition variable
@@ -93,3 +93,62 @@ declare class Class_Condition extends Class_Lock {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Lock.d.ts" />
+/**
+ * The promise variant of the Condition class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_ConditionPromise extends Class_LockPromise {
+    /**
+     * @description Condition variable constructor (the lock needed by the condition variable is constructed internally by fibjs)
+     */
+    constructor();
+
+    /**
+     * @description Condition variable constructor
+     *      @param lock use a self-constructed lock
+     *
+     */
+    constructor(lock: Class_Lock | Class_LockPromise);
+
+    /**
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
+     *
+     */
+    wait(timeout?: number): Promise<boolean>;
+
+    /**
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
+     *
+     */
+    waitSync(timeout?: number): boolean;
+
+    /**
+     * @description Waits for a condition variable
+     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
+     *      @return returns true if acquired successfully, or false on timeout
+     *
+     */
+    waitAsync(timeout?: number): Promise<boolean>;
+
+    /**
+     * @description Notifies one blocked fiber (the last one added to the fiber pool) to continue execution
+     */
+    notify(): void;
+
+    /**
+     * @description Notifies all blocked fibers to continue execution
+     */
+    notifyAll(): void;
+
+}
+
+
+declare namespace Class_Condition {
+    const promises: FIBJS.GeneralObject;
+}

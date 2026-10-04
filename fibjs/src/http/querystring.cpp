@@ -74,9 +74,8 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
             int32_t i1;
 
             for (i1 = 0; i1 < len1; i1++) {
-                hr = GetArgumentValue(isolate, JSValue(vs->Get(context, i1)), strValue);
-                if (hr < 0)
-                    return hr;
+                // node renders every value through its string form
+                strValue = isolate->toString(JSValue(vs->Get(context, i1)));
 
                 encoding_base::encodeURIComponent(strValue, true, strValue);
 
@@ -88,9 +87,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
                 bufs.append(strValue);
             }
         } else {
-            hr = GetArgumentValue(isolate, v, strValue);
-            if (hr < 0)
-                return hr;
+            strValue = isolate->toString(v);
 
             encoding_base::encodeURIComponent(strValue, true, strValue);
 

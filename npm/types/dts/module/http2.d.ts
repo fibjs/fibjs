@@ -44,7 +44,7 @@ declare module 'http2' {
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
 
     /**
      * @description creates an Http2 server
@@ -53,7 +53,7 @@ declare module 'http2' {
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_Http2Server;
+    function createServer(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -100,7 +100,7 @@ declare module 'http2' {
      *      @return returns the Http2Session client session
      *
      */
-    function connectAsync(authority: string, options?: FIBJS.GeneralObject): Promise<Class_Http2Session>;
+    function connectAsync(authority: string, options?: FIBJS.GeneralObject): Promise<Class_Http2SessionPromise>;
 
     /**
      * @description returns the default HTTP/2 settings object

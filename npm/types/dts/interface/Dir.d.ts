@@ -53,3 +53,59 @@ declare class Class_Dir extends Class_Iterator {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
+/// <reference path="../interface/DirEntry.d.ts" />
+/**
+ * The promise variant of the Dir class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_DirPromise extends Class_Iterator {
+    /**
+     * @description Dir constructor, creates a directory iterator object from a path
+     *      @param path the directory to iterate
+     *
+     */
+    constructor(path: string);
+
+    /**
+     * @description Queries the directory path of the current iteration
+     */
+    readonly path: string;
+
+    /**
+     * @description Reads the next directory entry, returns null when iteration ends
+     */
+    read(): Promise<Class_DirEntry>;
+
+    /**
+     * @description Reads the next directory entry, returns null when iteration ends
+     */
+    readSync(): Class_DirEntry;
+
+    /**
+     * @description Reads the next directory entry, returns null when iteration ends
+     */
+    readAsync(): Promise<Class_DirEntry>;
+
+    /**
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     */
+    close(): Promise<void>;
+
+    /**
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     */
+    closeSync(): void;
+
+    /**
+     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     */
+    closeAsync(): Promise<void>;
+
+}
+
+
+declare namespace Class_Dir {
+    const promises: FIBJS.GeneralObject;
+}

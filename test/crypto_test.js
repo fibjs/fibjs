@@ -369,7 +369,8 @@ describe('crypto', () => {
                 const key = crypto.createSecretKey(keybuf);
 
                 assert.strictEqual(key.type, 'secret');
-                assert.strictEqual(key.toString(), '[object KeyObject]');
+                // the purpose is to check the object type
+                assert.ok(key instanceof crypto.KeyObject);
                 assert.strictEqual(key.symmetricKeySize, 32);
                 assert.strictEqual(key.asymmetricKeyType, undefined);
                 assert.strictEqual(key.asymmetricKeyDetails, undefined);
@@ -474,13 +475,13 @@ describe('crypto', () => {
             it('create with pem', () => {
                 const publicKey = crypto.createPublicKey(publicPem);
                 assert.equal(publicKey.type, 'public');
-                assert.equal(publicKey.toString(), '[object KeyObject]');
+                assert.ok(publicKey instanceof crypto.KeyObject);
                 assert.equal(publicKey.asymmetricKeyType, 'rsa');
                 assert.equal(publicKey.symmetricKeySize, undefined);
 
                 const privateKey = crypto.createPrivateKey(privatePem);
                 assert.equal(privateKey.type, 'private');
-                assert.equal(privateKey.toString(), '[object KeyObject]');
+                assert.ok(privateKey instanceof crypto.KeyObject);
                 assert.equal(privateKey.asymmetricKeyType, 'rsa');
                 assert.equal(privateKey.symmetricKeySize, undefined);
             });
@@ -489,7 +490,7 @@ describe('crypto', () => {
                 const privateKey = crypto.createPrivateKey(privatePem);
                 const derivedPublicKey = crypto.createPublicKey(privateKey);
                 assert.equal(derivedPublicKey.type, 'public');
-                assert.equal(derivedPublicKey.toString(), '[object KeyObject]');
+                assert.ok(derivedPublicKey instanceof crypto.KeyObject);
                 assert.equal(derivedPublicKey.asymmetricKeyType, 'rsa');
                 assert.equal(derivedPublicKey.symmetricKeySize, undefined);
             });
@@ -497,13 +498,13 @@ describe('crypto', () => {
             it('create with jwk', () => {
                 const publicKeyFromJwk = crypto.createPublicKey({ key: publicJwk, format: 'jwk' });
                 assert.equal(publicKeyFromJwk.type, 'public');
-                assert.equal(publicKeyFromJwk.toString(), '[object KeyObject]');
+                assert.ok(publicKeyFromJwk instanceof crypto.KeyObject);
                 assert.equal(publicKeyFromJwk.asymmetricKeyType, 'rsa');
                 assert.equal(publicKeyFromJwk.symmetricKeySize, undefined);
 
                 const privateKeyFromJwk = crypto.createPrivateKey({ key: jwk, format: 'jwk' });
                 assert.equal(privateKeyFromJwk.type, 'private');
-                assert.equal(privateKeyFromJwk.toString(), '[object KeyObject]');
+                assert.ok(privateKeyFromJwk instanceof crypto.KeyObject);
                 assert.equal(privateKeyFromJwk.asymmetricKeyType, 'rsa');
                 assert.equal(privateKeyFromJwk.symmetricKeySize, undefined);
             });
@@ -530,7 +531,7 @@ describe('crypto', () => {
 
                 assert.throws(() => {
                     privateKey.export({ format: 'jwk', passphrase: 'secret' });
-                }, { name: 'TypeError', number: 20005 });
+                }, { name: 'Error', number: 20024 });
 
                 const publicDER = publicKey.export({
                     format: 'der',

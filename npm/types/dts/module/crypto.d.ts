@@ -407,35 +407,15 @@ declare module 'crypto' {
      *     @return returns an object containing the generated key pair
      *
      */
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
+    function generateKeyPair(type: string, options?: FIBJS.GeneralObject): {
+        publicKey: any;
+        privateKey: any;
+    };
 
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any])=>any): void;
-
-    /**
-     * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
-     *
-     *     options supports the following properties:
-     *     - modulusLength: key size in bits (RSA, DSA).
-     *     - publicExponent: public exponent (RSA). Default: 0x10001.
-     *     - hashAlgorithm: name of the message digest (RSA-PSS).
-     *     - mgf1HashAlgorithm: name of the message digest used by MGF1 (RSA-PSS).
-     *     - saltLength: minimum salt length in bytes (RSA-PSS).
-     *     - divisorLength: size of q in bits (DSA).
-     *     - namedCurve: name of the curve to use (EC).
-     *     - prime: the prime parameter (DH).
-     *     - primeLength: prime length in bits (DH).
-     *     - generator: custom generator (DH). Default: 2.
-     *     - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
-     *     - paramEncoding: must be 'named' or 'explicit' (EC). Default: 'named'.
-     *     - publicKeyEncoding: see keyObject.export.
-     *     - privateKeyEncoding: see keyObject.export.
-     *
-     *     @param type the key type to generate; must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
-     *     @param options the options for generating the key
-     *     @return returns an object containing the generated key pair
-     *
-     */
-    function generateKeyPairSync(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
+    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+        publicKey: any;
+        privateKey: any;
+    })=>any): void;
 
     /**
      * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
@@ -461,7 +441,39 @@ declare module 'crypto' {
      *     @return returns an object containing the generated key pair
      *
      */
-    function generateKeyPairAsync(type: string, options?: FIBJS.GeneralObject): Promise<[publicKey: any, privateKey: any]>;
+    function generateKeyPairSync(type: string, options?: FIBJS.GeneralObject): {
+        publicKey: any;
+        privateKey: any;
+    };
+
+    /**
+     * @description Generates a new asymmetric key pair of the given type. Currently supports RSA, RSA-PSS, DSA, EC, Ed25519, Ed448, X25519, X448, SM2, Bls12381G1, Bls12381G2
+     *
+     *     options supports the following properties:
+     *     - modulusLength: key size in bits (RSA, DSA).
+     *     - publicExponent: public exponent (RSA). Default: 0x10001.
+     *     - hashAlgorithm: name of the message digest (RSA-PSS).
+     *     - mgf1HashAlgorithm: name of the message digest used by MGF1 (RSA-PSS).
+     *     - saltLength: minimum salt length in bytes (RSA-PSS).
+     *     - divisorLength: size of q in bits (DSA).
+     *     - namedCurve: name of the curve to use (EC).
+     *     - prime: the prime parameter (DH).
+     *     - primeLength: prime length in bits (DH).
+     *     - generator: custom generator (DH). Default: 2.
+     *     - groupName: <string> Diffie-Hellman group name (DH). See crypto.getDiffieHellman.
+     *     - paramEncoding: must be 'named' or 'explicit' (EC). Default: 'named'.
+     *     - publicKeyEncoding: see keyObject.export.
+     *     - privateKeyEncoding: see keyObject.export.
+     *
+     *     @param type the key type to generate; must be 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'x25519', 'x448', 'sm2', 'Bls12381G1', 'Bls12381G2'
+     *     @param options the options for generating the key
+     *     @return returns an object containing the generated key pair
+     *
+     */
+    function generateKeyPairAsync(type: string, options?: FIBJS.GeneralObject): Promise<{
+        publicKey: any;
+        privateKey: any;
+    }>;
 
     /**
      * @description Derives the required binary key from the plaintext password according to rfc5869

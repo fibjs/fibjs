@@ -21,6 +21,10 @@ class HttpCollection_base : public object_base {
     DECLARE_CLASS(HttpCollection_base);
 
 public:
+    using Union_append_value = std::variant<v8::Local<v8::Array>, Variant>;
+    using Union_set_value = std::variant<v8::Local<v8::Array>, Variant>;
+
+public:
     // HttpCollection_base
     virtual result_t clear() = 0;
     virtual result_t has(exlib::string name, bool& retVal) = 0;
@@ -29,12 +33,10 @@ public:
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t getAll(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t append(v8::Local<v8::Object> map) = 0;
-    virtual result_t append(exlib::string name, v8::Local<v8::Array> values) = 0;
+    virtual result_t append(exlib::string name, Union_append_value value) = 0;
     virtual result_t append(v8::Local<v8::Array> entries) = 0;
-    virtual result_t append(exlib::string name, Variant value) = 0;
     virtual result_t set(v8::Local<v8::Object> map) = 0;
-    virtual result_t set(exlib::string name, v8::Local<v8::Array> values) = 0;
-    virtual result_t set(exlib::string name, Variant value) = 0;
+    virtual result_t set(exlib::string name, Union_set_value value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t _delete(exlib::string name) = 0;
     virtual result_t sort() = 0;
@@ -229,7 +231,7 @@ inline void HttpCollection_base::s_append(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG(Union_append_value, 1);
 
     hr = pInst->append(v0, v1);
 
@@ -238,13 +240,6 @@ inline void HttpCollection_base::s_append(const v8::FunctionCallbackInfo<v8::Val
     ARG(v8::Local<v8::Array>, 0);
 
     hr = pInst->append(v0);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
-
-    hr = pInst->append(v0, v1);
 
     METHOD_VOID();
 }
@@ -263,14 +258,7 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-
-    hr = pInst->set(v0, v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG(Union_set_value, 1);
 
     hr = pInst->set(v0, v1);
 

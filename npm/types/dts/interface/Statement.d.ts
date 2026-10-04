@@ -34,6 +34,22 @@ declare class Class_Statement extends Class_object {
     get(...args: any[]): any;
 
     /**
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
+     *
+     */
+    getSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
+     *
+     */
+    getAsync(...args: any[]): Promise<any>;
+
+    /**
      * @description Executes the statement and returns all rows (materialized at once)
      *          @param args the bound parameters
      *          @return returns an array of all row objects
@@ -42,12 +58,44 @@ declare class Class_Statement extends Class_object {
     all(...args: any[]): any[];
 
     /**
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
+     *
+     */
+    allSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
+     *
+     */
+    allAsync(...args: any[]): Promise<any[]>;
+
+    /**
      * @description Executes a statement that returns no result set
      *          @param args the bound parameters
      *          @return returns a { changes, lastInsertRowid } object
      *
      */
     run(...args: any[]): any;
+
+    /**
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
+     *
+     */
+    runSync(...args: any[]): any;
+
+    /**
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
+     *
+     */
+    runAsync(...args: any[]): Promise<any>;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -61,6 +109,32 @@ declare class Class_Statement extends Class_object {
      *
      */
     iterate(...args: any[]): Iterator<any>;
+
+    /**
+     * @description Executes the statement and returns an iterator for row-by-row reads
+     *
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
+     *
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
+     *
+     */
+    iterateSync(...args: any[]): Iterator<any>;
+
+    /**
+     * @description Executes the statement and returns an iterator for row-by-row reads
+     *
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
+     *
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
+     *
+     */
+    iterateAsync(...args: any[]): Promise<Iterator<any>>;
 
     /**
      * @description Returns the result column metadata
@@ -109,3 +183,168 @@ declare class Class_Statement extends Class_object {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * The promise variant of the Statement class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_StatementPromise extends Class_object {
+    /**
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
+     *
+     */
+    get(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
+     *
+     */
+    getSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row, or undefined if there is no result
+     *          @param args the bound parameters
+     *          @return returns the first row object, or undefined if there is no result
+     *
+     */
+    getAsync(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
+     *
+     */
+    all(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
+     *
+     */
+    allSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows (materialized at once)
+     *          @param args the bound parameters
+     *          @return returns an array of all row objects
+     *
+     */
+    allAsync(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
+     *
+     */
+    run(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
+     *
+     */
+    runSync(...args: any[]): any;
+
+    /**
+     * @description Executes a statement that returns no result set
+     *          @param args the bound parameters
+     *          @return returns a { changes, lastInsertRowid } object
+     *
+     */
+    runAsync(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes the statement and returns an iterator for row-by-row reads
+     *
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
+     *
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
+     *
+     */
+    iterate(...args: any[]): Promise<Iterator<any>>;
+
+    /**
+     * @description Executes the statement and returns an iterator for row-by-row reads
+     *
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
+     *
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
+     *
+     */
+    iterateSync(...args: any[]): Iterator<any>;
+
+    /**
+     * @description Executes the statement and returns an iterator for row-by-row reads
+     *
+     *          Traversing with for...of is recommended (break/exception releases the cursor automatically); calling
+     *          next()/return() manually is dangerous; you must ensure that return() is called on exception and early exit
+     *          return() to release the cursor, otherwise the leaked cursor occupies the connection.
+     *
+     *          @param args the bound parameters
+     *          @return returns a row iterator that produces row objects one by one with bounded memory
+     *
+     */
+    iterateAsync(...args: any[]): Promise<Iterator<any>>;
+
+    /**
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
+     *
+     */
+    columns(): Promise<any[]>;
+
+    /**
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
+     *
+     */
+    columnsSync(): any[];
+
+    /**
+     * @description Returns the result column metadata
+     *          @return returns an array of column metadata; each item contains name/type and other properties
+     *
+     */
+    columnsAsync(): Promise<any[]>;
+
+    /**
+     * @description The original SQL of the current statement
+     */
+    readonly sourceSQL: string;
+
+    /**
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
+     */
+    close(): Promise<void>;
+
+    /**
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
+     */
+    closeSync(): void;
+
+    /**
+     * @description Actively closes and releases the underlying handle; it is released automatically after the iteration ends and can be called repeatedly
+     */
+    closeAsync(): Promise<void>;
+
+}
+
+
+declare namespace Class_Statement {
+    const promises: FIBJS.GeneralObject;
+}

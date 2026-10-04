@@ -65,7 +65,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Last modification time of the file
      */
-    readonly mtime: typeof Date;
+    readonly mtime: Date;
 
     /**
      * @description Last modification time of the file (ms)
@@ -80,7 +80,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Last access time of the file
      */
-    readonly atime: typeof Date;
+    readonly atime: Date;
 
     /**
      * @description Last access time of the file (ms)
@@ -95,7 +95,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description File status change time
      */
-    readonly ctime: typeof Date;
+    readonly ctime: Date;
 
     /**
      * @description File status change time (ms)
@@ -110,7 +110,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description File creation time
      */
-    readonly birthtime: typeof Date;
+    readonly birthtime: Date;
 
     /**
      * @description File creation time (ms)

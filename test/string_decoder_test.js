@@ -316,9 +316,11 @@ describe('TextDecoder', () => {
         // fibjs framework converts strings to Buffer, so exclude '' from invalid inputs
         const notArrayBufferViewExamples = [false, {}, 1, new Error()];
         notArrayBufferViewExamples.forEach((invalidInput) => {
+            // the argument count is fine here, the type is not: the conversion
+            // error must not be reported as an "invalid number of parameters"
             assert.throws(() => {
                 new TextDecoder(undefined, null).decode(invalidInput);
-            }, { name: 'TypeError', number: 20001 });
+            }, { name: 'TypeError', number: 20005 });
         });
     });
 

@@ -288,7 +288,9 @@ void Variant::toString(exlib::string& retVal) const
         if (obj == NULL)
             break;
 
-        obj->toString(retVal);
+        // a native object is rendered as the DOM renders it (a DOMString):
+        // its own toString(), or its class tag when the class has none
+        GetDOMStringValue(obj->wrap(obj->holder()), retVal);
 
         break;
     }
@@ -298,8 +300,11 @@ void Variant::toString(exlib::string& retVal) const
 
     case VT_JSValue: {
         v8::Local<v8::Value>& v = jsVal();
-        Isolate* isolate = Isolate::current();
-        GetArgumentValue(isolate, v, retVal);
+
+        // a value is rendered as the DOM renders it (a DOMString): a plain
+        // object becomes "[object Object]", a native object without a
+        // toString() its class tag, and a symbol raises the engine TypeError
+        GetDOMStringValue(v, retVal);
         break;
     }
 

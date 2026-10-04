@@ -31,11 +31,6 @@ interface FormData : HttpCollection
     */
     FormData();
 
-    /*! @brief FormData constructor, initializes the form data container with the given form data string
-     @param init the form data string used for initialization, such as "name=value&key=val"
-     */
-    FormData(String init);
-
     /*! @brief FormData constructor, initializes form data from a Buffer. Suitable for creating a FormData instance from existing multipart/form-data data
      @param init the multipart/form-data binary data used for initialization
      @param boundary specifies the boundary string of the multipart/form-data, used to parse the data, in the format: multipart/form-data; boundary=${boundary}
@@ -48,21 +43,10 @@ interface FormData : HttpCollection
      */
     FormData(Blob init, String boundary = "");
 
-    /*! @brief FormData constructor, initializes the HTTP form data container with the given object
-        
-     Initializes form fields in bulk by passing an object. The keys of the object are field names and the values are field values (which can be strings, Blobs or arrays).
-
-     @param init the field object used for initialization, whose keys are field names and values are field values (strings, Blobs or arrays)
-    */
-    FormData(Object init);
-
-    /*! @brief FormData constructor, initializes the HTTP form data container with the given HTTP form data container
-        
-     Copies all fields by passing another FormData instance.
-    
-     @param init the HTTP form data container used for initialization
-    */
-    FormData(FormData init);
+    /*! @brief FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
+     @param init the fields: an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val"
+     */
+    FormData(Object|FormData|String init);
 
     /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
         

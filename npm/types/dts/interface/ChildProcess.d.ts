@@ -151,20 +151,317 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      */
     on(event: "exit", listener: ()=>void): this;
 
+    once(event: "exit", listener: ()=>void): this;
+
+    off(event: "exit", listener: ()=>void): this;
+
+    addListener(event: "exit", listener: ()=>void): this;
+
+    removeListener(event: "exit", listener: ()=>void): this;
+
+    addEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "exit", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "exit", listener: ()=>void): this;
+
+    prependOnceListener(event: "exit", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the process exit event, equivalent to on("exit", func);
+     */
+    onexit: (()=>void) | null;
+
     /**
      * @description Queries and binds the child process message event, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
+
+    once(event: "message", listener: ()=>void): this;
+
+    off(event: "message", listener: ()=>void): this;
+
+    addListener(event: "message", listener: ()=>void): this;
+
+    removeListener(event: "message", listener: ()=>void): this;
+
+    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "message", listener: ()=>void): this;
+
+    prependOnceListener(event: "message", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the child process message event, equivalent to on("message", func);
+     */
+    onmessage: (()=>void) | null;
 
     /**
      * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);
      */
     on(event: "spawn", listener: ()=>void): this;
 
+    once(event: "spawn", listener: ()=>void): this;
+
+    off(event: "spawn", listener: ()=>void): this;
+
+    addListener(event: "spawn", listener: ()=>void): this;
+
+    removeListener(event: "spawn", listener: ()=>void): this;
+
+    addEventListener(event: "spawn", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "spawn", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "spawn", listener: ()=>void): this;
+
+    prependOnceListener(event: "spawn", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);
+     */
+    onspawn: (()=>void) | null;
+
     /**
      * @description Queries and binds the child process disconnect event, equivalent to on("disconnect", func);
      */
     on(event: "disconnect", listener: ()=>void): this;
+
+    once(event: "disconnect", listener: ()=>void): this;
+
+    off(event: "disconnect", listener: ()=>void): this;
+
+    addListener(event: "disconnect", listener: ()=>void): this;
+
+    removeListener(event: "disconnect", listener: ()=>void): this;
+
+    addEventListener(event: "disconnect", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "disconnect", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "disconnect", listener: ()=>void): this;
+
+    prependOnceListener(event: "disconnect", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the child process disconnect event, equivalent to on("disconnect", func);
+     */
+    ondisconnect: (()=>void) | null;
+
+    /**
+     * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
+     *      @return returns the current object
+     *
+     */
+    ref(): Class_ChildProcess;
+
+    /**
+     * @description Allows the fibjs process to exit; permits the fibjs process to exit while the object is bound
+     *      @return returns the current object
+     *
+     */
+    unref(): Class_ChildProcess;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+}
+
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/Stream.d.ts" />
+/**
+ * The promise variant of the ChildProcess class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_ChildProcessPromise extends Class_EventEmitter {
+    /**
+     * @description Kills the process this object refers to and delivers a signal
+     *       @param signal the signal to deliver
+     *
+     */
+    kill(signal: number): void;
+
+    /**
+     * @description Kills the process this object refers to and delivers a signal
+     *       @param signal the signal to deliver
+     *
+     */
+    kill(signal?: string): void;
+
+    /**
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
+     *
+     */
+    join(): Promise<number>;
+
+    /**
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
+     *
+     */
+    joinSync(): number;
+
+    /**
+     * @description Waits for the process this object refers to to exit and returns the exit code
+     *       @return the exit code of the process
+     *
+     */
+    joinAsync(): Promise<number>;
+
+    /**
+     * @description Queries whether the pipe to the child process is properly connected
+     */
+    readonly connected: boolean;
+
+    /**
+     * @description Closes the ipc pipe to the child process
+     */
+    disconnect(): void;
+
+    /**
+     * @description Sends a message to the current child process
+     *      @param msg the message to send
+     *
+     */
+    send(msg: any): void;
+
+    /**
+     * @description Resizes the terminal of the current child process
+     *      @param cols the number of terminal columns
+     *      @param rows the number of terminal rows
+     *
+     */
+    resize(cols: number, rows: number): void;
+
+    /**
+     * @description Queries the number of terminal columns
+     */
+    readonly cols: number;
+
+    /**
+     * @description Queries the number of terminal rows
+     */
+    readonly rows: number;
+
+    /**
+     * @description Queries the memory used and the time spent by the current process
+     *
+     *      The memory report is generated similar to the following result:
+     *      ```JavaScript
+     *      {
+     *        "user": 132379,
+     *        "system": 50507,
+     *        "rss": 8622080
+     *      }
+     *      ```
+     *      Where:
+     *      - user returns the time spent by the process in user code, in microseconds (millionths of a second)
+     *      - system returns the time spent by the process in system code, in microseconds (millionths of a second)
+     *      - rss returns the amount of physical memory currently used by the process
+     *      @return returns the report containing the time information
+     *
+     */
+    usage(): FIBJS.GeneralObject;
+
+    /**
+     * @description Reads the id of the process this object refers to
+     *
+     */
+    readonly pid: number;
+
+    /**
+     * @description Queries whether the process this object refers to has already exited
+     */
+    readonly killed: boolean;
+
+    /**
+     * @description Queries and sets the exit code of the current process
+     */
+    readonly exitCode: number;
+
+    /**
+     * @description Reads the standard input object of the process this object refers to
+     *
+     */
+    readonly stdin: Class_StreamPromise;
+
+    /**
+     * @description Reads the standard output object of the process this object refers to
+     *
+     */
+    readonly stdout: Class_StreamPromise;
+
+    /**
+     * @description Reads the standard error object of the process this object refers to
+     *
+     */
+    readonly stderr: Class_StreamPromise;
+
+    /**
+     * @description Reads the list of standard IO objects of the process this object refers to
+     *
+     *      The array contains the standard IO streams of the child process, corresponding to the stdio option passed to spawn. Pipe entries are
+     *      Stream objects, and other entries are null.
+     *
+     */
+    readonly stdio: any[];
+
+    /**
+     * @description Queries and binds the process exit event, equivalent to on("exit", func);
+     */
+    onexit: (()=>void) | null;
+
+    /**
+     * @description Queries and binds the child process message event, equivalent to on("message", func);
+     */
+    onmessage: (()=>void) | null;
+
+    /**
+     * @description Queries and binds the child process spawn event, equivalent to on("spawn", func);
+     */
+    onspawn: (()=>void) | null;
+
+    /**
+     * @description Queries and binds the child process disconnect event, equivalent to on("disconnect", func);
+     */
+    ondisconnect: (()=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive; prevents the fibjs process from exiting while the object is bound
@@ -182,3 +479,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 
 }
 
+
+declare namespace Class_ChildProcess {
+    const promises: FIBJS.GeneralObject;
+}

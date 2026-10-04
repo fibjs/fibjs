@@ -77,3 +77,60 @@ declare class Class_Event extends Class_Lock {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Lock.d.ts" />
+/**
+ * The promise variant of the Event class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_EventPromise extends Class_LockPromise {
+    /**
+     * @description Event object constructor
+     *      @param value whether to wait; waits when true, default is false
+     *
+     */
+    constructor(value?: boolean);
+
+    /**
+     * @description Determines whether the event object is true
+     *      @return returns true if the event is true
+     *
+     */
+    isSet(): boolean;
+
+    /**
+     * @description Activates the event (sets the event state to true) and calls pulse()
+     */
+    set(): void;
+
+    /**
+     * @description Activates all fibers waiting for this event
+     */
+    pulse(): void;
+
+    /**
+     * @description Resets the event (sets the event state to false)
+     */
+    clear(): void;
+
+    /**
+     * @description Waits for an event
+     */
+    wait(): Promise<void>;
+
+    /**
+     * @description Waits for an event
+     */
+    waitSync(): void;
+
+    /**
+     * @description Waits for an event
+     */
+    waitAsync(): Promise<void>;
+
+}
+
+
+declare namespace Class_Event {
+    const promises: FIBJS.GeneralObject;
+}

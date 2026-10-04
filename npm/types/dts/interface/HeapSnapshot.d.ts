@@ -11,7 +11,7 @@ declare class Class_HeapSnapshot extends Class_object {
      *      @return returns the heap snapshot comparison result
      *
      */
-    diff(before: Class_HeapSnapshot): FIBJS.GeneralObject;
+    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): FIBJS.GeneralObject;
 
     /**
      * @description Gets a heap view node by ID
@@ -47,7 +47,7 @@ declare class Class_HeapSnapshot extends Class_object {
     /**
      * @description Time information
      */
-    readonly time: typeof Date;
+    readonly time: Date;
 
     /**
      * @description Root node of the heap view
@@ -61,3 +61,69 @@ declare class Class_HeapSnapshot extends Class_object {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/HeapGraphNode.d.ts" />
+/**
+ * The promise variant of the HeapSnapshot class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_HeapSnapshotPromise extends Class_object {
+    /**
+     * @description Compares with the specified heap snapshot
+     *      @param before the heap snapshot to compare with
+     *      @return returns the heap snapshot comparison result
+     *
+     */
+    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): FIBJS.GeneralObject;
+
+    /**
+     * @description Gets a heap view node by ID
+     *      @param id the node ID, of number type
+     *      @return returns the obtained heap view node
+     *
+     */
+    getNodeById(id: number): Class_HeapGraphNode;
+
+    /**
+     * @description Saves the HeapSnapshot under the specified name
+     *      @param fname the snapshot name
+     *
+     */
+    save(fname: string): Promise<void>;
+
+    /**
+     * @description Saves the HeapSnapshot under the specified name
+     *      @param fname the snapshot name
+     *
+     */
+    saveSync(fname: string): void;
+
+    /**
+     * @description Saves the HeapSnapshot under the specified name
+     *      @param fname the snapshot name
+     *
+     */
+    saveAsync(fname: string): Promise<void>;
+
+    /**
+     * @description Time information
+     */
+    readonly time: Date;
+
+    /**
+     * @description Root node of the heap view
+     */
+    readonly root: Class_HeapGraphNode;
+
+    /**
+     * @description List composed of heap view nodes
+     */
+    readonly nodes: any[];
+
+}
+
+
+declare namespace Class_HeapSnapshot {
+    const promises: FIBJS.GeneralObject;
+}

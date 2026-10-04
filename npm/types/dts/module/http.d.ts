@@ -118,7 +118,7 @@ declare module 'http' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -127,7 +127,7 @@ declare module 'http' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(context: Class_SecureContext, hdlr: Class_Handler): Class_HttpServer;
+    function createServer(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -136,7 +136,7 @@ declare module 'http' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -280,7 +280,7 @@ declare module 'http' {
      *      @return returns the server response
      *
      */
-    function request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpRequest;
+    function request(conn: Class_Stream | Class_StreamPromise, req: Class_HttpRequest | Class_HttpRequestPromise): Class_HttpRequest;
 
     /**
      * @description Requests the specified url and returns the result
@@ -315,6 +315,70 @@ declare module 'http' {
     function requestSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
+     * @description Requests the specified url and returns the result
+     *
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncSync(method: string, url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url and returns the result
+     *
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "path": "", // alias of pathname, used for the request option.
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param method the http request method: GET, POST, etc.
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncAsync(method: string, url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+
+    /**
      * @description Requests the url specified by opts and returns the result
      *      opts contains additional request options; the supported contents are as follows:
      *      ```JavaScript
@@ -341,6 +405,62 @@ declare module 'http' {
      *
      */
     function requestSync(opts: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the url specified by opts and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncSync(opts: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the url specified by opts and returns the result
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncAsync(opts: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
@@ -370,6 +490,64 @@ declare module 'http' {
      *
      */
     function requestSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function requestSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the specified url, registers a callback to receive the response, and returns an HttpRequest object
@@ -560,6 +738,64 @@ declare module 'http' {
     function getSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
+     * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function getSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the GET method and returns the result, equivalent to request("GET", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function getSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+
+    /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The returned HttpRequest object sends the request automatically without calling `end()`; the response is received through the callback; you can also listen to the `'response'` event of the returned object.
@@ -639,6 +875,64 @@ declare module 'http' {
      *
      */
     function postSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the POST method and returns the result, equivalent to request("POST", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function postSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the POST method and returns the result, equivalent to request("POST", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function postSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the specified url with the POST method, registers a callback to receive the response, and returns an HttpRequest object
@@ -725,6 +1019,64 @@ declare module 'http' {
     function delSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
+     * @description Requests the specified url with the DELETE method and returns the result, equivalent to request("DELETE", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function delSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the DELETE method and returns the result, equivalent to request("DELETE", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function delSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+
+    /**
      * @description Requests the specified url with the DELETE method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The returned HttpRequest object requires calling `end()` to send the request; the response is received through the callback; you can also listen to the `'response'` event of the returned object.
@@ -804,6 +1156,64 @@ declare module 'http' {
      *
      */
     function putSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the PUT method and returns the result, equivalent to request("PUT", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function putSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the PUT method and returns the result, equivalent to request("PUT", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function putSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the specified url with the PUT method, registers a callback to receive the response, and returns an HttpRequest object
@@ -890,6 +1300,64 @@ declare module 'http' {
     function patchSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
+     * @description Requests the specified url with the PATCH method and returns the result, equivalent to request("PATCH", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function patchSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the PATCH method and returns the result, equivalent to request("PATCH", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function patchSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
+
+    /**
      * @description Requests the specified url with the PATCH method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The returned HttpRequest object requires calling `end()` to send the request; the response is received through the callback; you can also listen to the `'response'` event of the returned object.
@@ -972,6 +1440,64 @@ declare module 'http' {
      *
      */
     function headSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the HEAD method and returns the result, equivalent to request("HEAD", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function headSyncSync(url: string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Requests the specified url with the HEAD method and returns the result, equivalent to request("HEAD", ...)
+     *      opts contains additional request options; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // specify the http request method: GET, POST, etc, default: GET.
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which contains no additional information
+     *      @param url the url to request; must be a complete url including the host
+     *      @param opts the additional information
+     *      @return returns the server response
+     *
+     */
+    function headSyncAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the specified url with the HEAD method, registers a callback to receive the response, and returns an HttpRequest object
@@ -1064,7 +1590,7 @@ declare module 'http' {
      *      @return returns an HttpResponse object
      *
      */
-    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -1087,32 +1613,9 @@ declare module 'http' {
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
-
-    /**
-     * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
-     *      opts can override the request fields in request; the supported contents are as follows:
-     *      ```JavaScript
-     *      {
-     *          "method": "GET", // overrides the request method in request
-     *          "headers": {}, // merged with request.headers; headers with the same name in opts override those in request
-     *          "body": SeekableStream | Buffer | String | {}, // overrides request.body
-     *          "keepAlive": unknown, // overrides the keep-alive setting
-     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
-     *          "redirect": "follow", // redirect mode: "follow" (default) | "error" | "manual"
-     *          "signal": AbortSignal, // AbortSignal object used to cancel the request
-     *          "streaming": false // whether to return the response body in streaming mode
-     *      }
-     *      ```
-     *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
-     *      @param opts the additional information, can override the corresponding fields in request
-     *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
-     *
-     */
-    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -1135,7 +1638,30 @@ declare module 'http' {
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
      */
-    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+
+    /**
+     * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
+     *      opts can override the request fields in request; the supported contents are as follows:
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", // overrides the request method in request
+     *          "headers": {}, // merged with request.headers; headers with the same name in opts override those in request
+     *          "body": SeekableStream | Buffer | String | {}, // overrides request.body
+     *          "keepAlive": unknown, // overrides the keep-alive setting
+     *          "timeout": 0, // request timeout in milliseconds, uses the client default settings by default
+     *          "redirect": "follow", // redirect mode: "follow" (default) | "error" | "manual"
+     *          "signal": AbortSignal, // AbortSignal object used to cancel the request
+     *          "streaming": false // whether to return the response body in streaming mode
+     *      }
+     *      ```
+     *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
+     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param opts the additional information, can override the corresponding fields in request
+     *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
+     *
+     */
+    function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
 }
 

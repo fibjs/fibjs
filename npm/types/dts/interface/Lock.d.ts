@@ -99,3 +99,78 @@ declare class Class_Lock extends Class_object {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * The promise variant of the Lock class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_LockPromise extends Class_object {
+    /**
+     * @description Constructor
+     */
+    constructor();
+
+    /**
+     * @description Acquires ownership of the lock
+     *
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *
+     */
+    acquire(blocking?: boolean): Promise<boolean>;
+
+    /**
+     * @description Acquires ownership of the lock
+     *
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *
+     */
+    acquireSync(blocking?: boolean): boolean;
+
+    /**
+     * @description Acquires ownership of the lock
+     *
+     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *
+     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *
+     *      When the lock is unavailable and blocking is false, the method returns false.
+     *      @param blocking whether to wait; waits when true, default is true
+     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *
+     */
+    acquireAsync(blocking?: boolean): Promise<boolean>;
+
+    /**
+     * @description Releases ownership of the lock
+     *
+     *      This method releases ownership of the lock; if the current fiber does not own the lock, this method throws an error.
+     *
+     */
+    release(): void;
+
+    /**
+     * @description Queries the number of currently waiting tasks
+     *      @return returns the number of tasks
+     *
+     */
+    count(): number;
+
+}
+
+
+declare namespace Class_Lock {
+    const promises: FIBJS.GeneralObject;
+}

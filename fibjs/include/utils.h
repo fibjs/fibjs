@@ -84,6 +84,7 @@ typedef int32_t SOCKET;
 #include <cmath>
 #include <vector>
 #include <variant>
+#include <utility>
 
 #ifdef _WIN32
 
@@ -230,34 +231,49 @@ enum {
     Isolate* isolate = Isolate::current(args.GetIsolate()); \
     V8_SCOPE(isolate->m_isolate);                           \
     result_t hr = 0;                                        \
+    result_t hr_argc = 0;                                   \
     bool bStrict = false;                                   \
     do {                                                    \
         do {
 
-#define METHOD_OVER(c, o)                                                                         \
-    }                                                                                             \
-    while (0)                                                                                     \
-        ;                                                                                         \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                                   \
-        do {                                                                                      \
-            hr = 0;                                                                               \
-            int32_t argc = argc1;                                                                 \
-            if (!bStrict)                                                                         \
-                while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull())) \
-                    argc--;                                                                       \
-            if ((c) >= 0 && argc > (c)) {                                                         \
-                hr = CALL_E_BADPARAMCOUNT;                                                        \
-                break;                                                                            \
-            }                                                                                     \
-            if ((o) > 0 && argc < (o)) {                                                          \
-                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                    \
-                break;                                                                            \
-            }
+#define METHOD_OVER(c, o)                                                                             \
+    }                                                                                                 \
+    while (0)                                                                                         \
+        ;                                                                                             \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                                       \
+        do {                                                                                          \
+            /* A variant whose argument count does not fit must not overwrite the error of a  */      \
+            /* variant that did pass that check: the error of the variant that got further is */      \
+            /* the useful diagnosis (an arity error only carries when nothing got past it).    */     \
+            result_t hr_prev = hr;                                                                    \
+            hr = 0;                                                                                   \
+            int32_t argc = argc1;                                                                     \
+            if (!bStrict)                                                                             \
+                while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull()))     \
+                    argc--;                                                                           \
+            if ((c) >= 0 && argc > (c)) {                                                             \
+                if (hr_prev == 0 || hr_prev == CALL_E_BADPARAMCOUNT || hr_prev == CALL_E_PARAMNOTOPTIONAL) { \
+                    hr = CALL_E_BADPARAMCOUNT;                                                        \
+                    hr_argc = CALL_E_BADPARAMCOUNT;                                                   \
+                } else                                                                                \
+                    hr = hr_prev;                                                                     \
+                break;                                                                                \
+            }                                                                                         \
+            if ((o) > 0 && argc < (o)) {                                                              \
+                if (hr_prev == 0 || hr_prev == CALL_E_BADPARAMCOUNT || hr_prev == CALL_E_PARAMNOTOPTIONAL) { \
+                    hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                    \
+                    hr_argc = CALL_E_PARAMNOTOPTIONAL;                                                \
+                } else                                                                                \
+                    hr = hr_prev;                                                                     \
+                break;                                                                                \
+            }                                                                                         \
+
 
 #define METHOD_ENTER()                                      \
     Isolate* isolate = Isolate::current(args.GetIsolate()); \
     V8_SCOPE(isolate->m_isolate);                           \
     result_t hr = CALL_E_BADPARAMCOUNT;                     \
+    result_t hr_argc = 0;                                   \
     bool bStrict = true;                                    \
     int32_t argc1 = args.Length();                          \
     clearErrorPayload();                                    \
@@ -269,6 +285,7 @@ enum {
     Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
     V8_SCOPE(isolate->m_isolate);                                                                          \
     result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
+    result_t hr_argc = 0;                                                                                  \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
     clearErrorPayload();                                                                                   \
@@ -285,6 +302,7 @@ enum {
     Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
     V8_SCOPE(isolate->m_isolate);                                                                          \
     result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
+    result_t hr_argc = 0;                                                                                  \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
     v8::Local<v8::Object> cb;                                                                              \
@@ -325,6 +343,7 @@ enum {
 
 #define LOAD_ENTER()                       \
     result_t hr = CALL_E_BADPARAMCOUNT;    \
+    result_t hr_argc = 0;                  \
     Isolate* isolate = Isolate::current(); \
     bool bStrict = true;                   \
     int32_t argc1 = 1;                     \
@@ -344,7 +363,8 @@ enum {
     }                                                                                                           \
     while (0)                                                                                                   \
         ;                                                                                                       \
-    if (!bStrict || (hr != CALL_E_BADPARAMCOUNT && hr != CALL_E_PARAMNOTOPTIONAL && hr != CALL_E_TYPEMISMATCH)) \
+    if (!bStrict || (hr != CALL_E_BADPARAMCOUNT && hr != CALL_E_PARAMNOTOPTIONAL && hr != CALL_E_TYPEMISMATCH    \
+            && hr_argc != CALL_E_BADPARAMCOUNT && hr_argc != CALL_E_PARAMNOTOPTIONAL))                          \
         break;                                                                                                  \
     bStrict = false;                                                                                            \
     }                                                                                                           \
@@ -751,6 +771,15 @@ public:                                                  \
 
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);
 
+// the DOMString conversion of the DOM, the String(v) of the web platform: a
+// number is "1", null is "null", an object goes through its own toString()
+// and a native object without one renders its class tag ("[object File]",
+// what Object.prototype.toString gives). It serves the APIs whose parameter is
+// a DOMString -- btoa, WebSocket.send, the value of a collection -- while the
+// argument conversion above serves the String parameters and takes real
+// strings on purpose
+result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal);
+
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
 {
     if (v.IsEmpty())
@@ -968,8 +997,16 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
 }
 
 class Buffer_base;
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict = false, const char* encoding = "utf8");
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict = false);
+// INTERIM (commit split): the encoding-taking form is kept for the modules that
+// are not yet migrated to the String overloads; it is removed together with the
+// last caller (crypto/ECDH, crypto/encrypt, global/Blob).
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict, const char* encoding);
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict = false);
+
+// a native object is one that wraps an object_base: the class identity is
+// asked for through getInstance, never guessed from the internal field layout
+bool IsNativeObject(v8::Local<v8::Value> v);
 
 inline bool IsJSObject(v8::Local<v8::Value> v)
 {
@@ -978,10 +1015,10 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
         || v->IsBooleanObject() || v->IsSymbolObject())
         return false;
 
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    if (o->InternalFieldCount() > 0)
+    if (IsNativeObject(v))
         return false;
 
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Value> proto = o->GetPrototype();
 
     // accept Object.create(null) — null-prototype plain objects
@@ -1106,27 +1143,49 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     return 0;
 }
 
-template <typename T1, typename T2>
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant<T1, T2>& n, bool bStrict = false)
+// A parameter-position union (`Buffer|String`, an IDL `A|B`) converts to one
+// std::variant: the alternatives are tried in declaration order within the
+// same pass (the whole variant chain runs the strict pass first, then the
+// lenient one), and the first conversion that succeeds wins — the order is
+// the IDL's preference order (plans/idl-union-types-2026-10-02.md).
+//
+// The helpers live above the overload so two-phase lookup finds the per-type
+// converters declared earlier in this header.
+template <std::size_t I, typename... Ts>
+bool tryVariantAlternative(Isolate* isolate, v8::Local<v8::Value> v,
+    std::variant<Ts...>& n, bool bStrict, result_t& hr)
+{
+    std::variant_alternative_t<I, std::variant<Ts...>> value;
+    hr = GetArgumentValue(isolate, v, value, bStrict);
+    if (hr < 0)
+        return false;
+
+    n = std::move(value);
+    return true;
+}
+
+template <typename... Ts, std::size_t... Is>
+result_t getVariantValue(Isolate* isolate, v8::Local<v8::Value> v,
+    std::variant<Ts...>& n, bool bStrict, std::index_sequence<Is...>)
+{
+    result_t hr = CALL_E_TYPEMISMATCH;
+    bool done = false;
+
+    (void)std::initializer_list<bool>{
+        (done ? false
+              : (done = tryVariantAlternative<Is>(isolate, v, n, bStrict, hr)))...
+    };
+
+    return done ? 0 : hr;
+}
+
+template <typename... Ts>
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant<Ts...>& n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    T1 n1;
-    result_t hr = GetArgumentValue(isolate, v, n1, bStrict);
-    if (hr >= 0) {
-        n = n1;
-        return 0;
-    }
-
-    T2 n2;
-    hr = GetArgumentValue(isolate, v, n2, bStrict);
-    if (hr >= 0) {
-        n = n2;
-        return 0;
-    }
-
-    return hr;
+    return getVariantValue(isolate, v, n, bStrict, std::index_sequence_for<Ts...>());
 }
 
 result_t setRuntimeError(result_t code, const char* err = nullptr);
@@ -1144,6 +1203,12 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, T& n, bool bSt
 
     return GetArgumentValue(isolate, v, n, bStrict);
 }
+
+// a binary option (key material, passphrase, header, ...) accepts a string as
+// its utf8 bytes: the string form is the nominal way to write it, while the
+// lenient Buffer argument conversion no longer takes strings (the definition
+// lives in src/global/Buffer.cpp, where Buffer_base is complete)
+result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, obj_ptr<Buffer_base>& n, bool bStrict = false);
 
 template <typename T>
 result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)

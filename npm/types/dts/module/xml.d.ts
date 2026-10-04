@@ -140,6 +140,8 @@ declare module 'xml' {
      */
     function parse(source: Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
+    function parse(source: string | Class_Buffer, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
+
     /**
      * @description Serializes an XmlNode to a string
      *      @param node the XmlNode to serialize

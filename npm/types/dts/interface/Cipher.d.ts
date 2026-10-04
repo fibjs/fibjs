@@ -23,6 +23,8 @@ declare class Class_Cipher extends Class_object {
      */
     setAuthTag(buffer: string, encoding?: string): Class_Cipher;
 
+    setAuthTag(buffer: Class_Buffer | string, encoding?: string): Class_Cipher;
+
     /**
      * @description Queries the authentication tag
      *       @return returns the authentication tag data
@@ -47,6 +49,8 @@ declare class Class_Cipher extends Class_object {
      *
      */
     setAAD(buffer: string, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    setAAD(buffer: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
      * @description Sets automatic padding
@@ -75,6 +79,8 @@ declare class Class_Cipher extends Class_object {
      *
      */
     update(data: string, inputEncoding?: string, outputEncoding?: string): any;
+
+    update(data: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
      * @description Finalizes the data

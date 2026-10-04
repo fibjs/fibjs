@@ -63,8 +63,12 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
     const char* stringDefaultType = defaultFormUrlEncoded ? "application/x-www-form-urlencoded" : "text/plain;charset=UTF-8";
     const char* binaryDefaultType = defaultFormUrlEncoded ? "application/x-www-form-urlencoded" : "application/octet-stream";
 
-    if (body->IsString()) {
-        hr = GetArgumentValue(isolate, body, buf);
+    if (body->IsString() || body->IsStringObject()) {
+        // the string body is its utf8 bytes; the value is rendered here
+        // because the argument conversion takes real strings only
+        exlib::string str = isolate->toString(body);
+
+        hr = Buffer_base::from(str, "utf8", buf);
         if (hr < 0)
             return hr;
 
@@ -137,10 +141,22 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
                         headers->set("Content-Type", mimeType);
                 }
             }
-        } else if (body->IsObject() || body->IsNumber() || body->IsBoolean()) {
+        } else if (body->IsNumber() || body->IsBoolean()) {
+            // a scalar body is its text, like the string body it stands for
+            exlib::string s = isolate->toString(body);
+
+            hr = Buffer_base::from(s, "utf8", buf);
+            if (hr < 0)
+                return hr;
+
+            if (headers) {
+                Variant ct;
+                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                    headers->set("Content-Type", stringDefaultType);
+            }
+        } else if (body->IsObject()) {
             // Object body is a form: it is serialized as multipart/form-data by
-            // default (same as a FormData body). Scalar values (number/boolean)
-            // keep their historical conversion too.
+            // default (same as a FormData body).
             // The caller provided Content-Type is always preserved (except for a
             // multipart one without boundary, which is completed below).
             obj_ptr<FormData_base> converted;
@@ -869,7 +885,7 @@ result_t HttpMessage::appendHeader(Headers_base* headers)
     return 0;
 }
 
-result_t HttpMessage::appendHeader(exlib::string name, exlib::string value)
+result_t HttpMessage::appendHeader(exlib::string name, Variant value)
 {
     return m_headers->append(name, value);
 }
@@ -890,7 +906,7 @@ result_t HttpMessage::setHeader(Headers_base* headers)
     return m_headers->init(headers);
 }
 
-result_t HttpMessage::setHeader(exlib::string name, exlib::string value)
+result_t HttpMessage::setHeader(exlib::string name, Variant value)
 {
     return m_headers->set(name, value);
 }

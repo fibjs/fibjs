@@ -38,3 +38,26 @@ declare class Class_MySQL extends Class_DbConnection {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/DbConnection.d.ts" />
+/**
+ * The promise variant of the MySQL class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_MySQLPromise extends Class_DbConnectionPromise {
+    /**
+     * @description The receive buffer size of the database connection
+     */
+    rxBufferSize: number;
+
+    /**
+     * @description The send buffer size of the database connection
+     */
+    txBufferSize: number;
+
+}
+
+
+declare namespace Class_MySQL {
+    const promises: FIBJS.GeneralObject;
+}

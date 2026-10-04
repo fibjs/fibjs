@@ -60,10 +60,24 @@ inline bool is_slash(char ch)
     return ch == '/' || ch == '\\';
 }
 
-result_t UrlObject_base::_new(exlib::string url, exlib::string base,
+result_t UrlObject_base::_new(exlib::string url, Union_UrlObject_base base,
     obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This)
 {
-    return parse(url, base, retVal);
+    // the base is resolved by its href, exactly the string the WHATWG URL
+    // constructor would see when a URL object is passed
+    if (std::holds_alternative<exlib::string>(base))
+        return parse(url, std::get<exlib::string>(base), retVal);
+
+    obj_ptr<UrlObject_base> b = std::get<obj_ptr<UrlObject_base>>(base);
+    if (!b)
+        return parse(url, "", retVal);
+
+    exlib::string href;
+    result_t hr = b->get_href(href);
+    if (hr < 0)
+        return hr;
+
+    return parse(url, href, retVal);
 }
 
 result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal,
@@ -273,8 +287,11 @@ result_t Url::format(v8::Local<v8::Object> args)
         else
             url += ada::idna::to_ascii(str);
 
-        if (GetConfigValue(args, "port", str) >= 0)
-            url += ":" + str;
+        // the legacy format renders the port, so a number is accepted like in node
+        JSValue port;
+
+        if (GetConfigValue(args, "port", port) >= 0)
+            url += ":" + isolate->toString(port);
 
         hasHost = true;
     }
@@ -630,14 +647,10 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
             if (!obj->Get(holder()->context(), key).ToLocal(&value))
                 return CALL_E_JAVASCRIPT;
 
-            exlib::string k, v;
-            result_t hr = GetArgumentValue(holder(), key, k, false);
-            if (hr < 0)
-                return hr;
-
-            hr = GetArgumentValue(holder(), value, v, false);
-            if (hr < 0)
-                return hr;
+            // the legacy query serializer renders its keys and values: a
+            // numeric entry becomes its text, as querystring does in node
+            exlib::string k = holder()->toString(key);
+            exlib::string v = holder()->toString(value);
 
             search_params.append(k, v);
         }

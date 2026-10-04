@@ -136,7 +136,7 @@ declare module 'registry' {
      *      @param type the type to use; allowed types are DWORD and QWORD, default DWORD
      *
      */
-    function set(root: number, key: string, value: number, type: number): void;
+    function set(root: number, key: string, value: number, type?: number): void;
 
     /**
      * @description Sets the specified key to a string
@@ -146,7 +146,7 @@ declare module 'registry' {
      *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
      *
      */
-    function set(root: number, key: string, value: string, type: number): void;
+    function set(root: number, key: string, value: string, type?: number): void;
 
     /**
      * @description Sets the specified key to a multi-string
@@ -175,7 +175,7 @@ declare module 'registry' {
      *      @param type the type to use; allowed types are DWORD and QWORD, default DWORD
      *
      */
-    function set(root: number, key: string, name: string, value: number, type: number): void;
+    function set(root: number, key: string, name: string, value: number, type?: number): void;
 
     /**
      * @description Sets the specified key to a string
@@ -186,7 +186,7 @@ declare module 'registry' {
      *      @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
      *
      */
-    function set(root: number, key: string, name: string, value: string, type: number): void;
+    function set(root: number, key: string, name: string, value: string, type?: number): void;
 
     /**
      * @description Sets the specified key to a multi-string

@@ -21,9 +21,12 @@ class UrlObject_base : public object_base {
     DECLARE_CLASS(UrlObject_base);
 
 public:
+    using Union_UrlObject_base = std::variant<exlib::string, obj_ptr<UrlObject_base>>;
+
+public:
     // UrlObject_base
     static result_t _new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, Union_UrlObject_base base, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t parse(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal);
     static result_t canParse(exlib::string url, exlib::string base, bool& retVal);
     virtual result_t resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal) = 0;
@@ -158,7 +161,7 @@ inline void UrlObject_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(Union_UrlObject_base, 1, exlib::string(""));
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -180,7 +183,7 @@ inline result_t UrlObject_base::load(v8::Local<v8::Value> v, obj_ptr<UrlObject_b
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(Union_UrlObject_base, 1, exlib::string(""));
 
     hr = _new(v0, v1, vr, args.This());
 

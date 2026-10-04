@@ -44,6 +44,11 @@ describe("url", () => {
             // Input must be a file URL
             assert.throws(() => url.fileURLToPath('https://a/b/c'), { name: 'TypeError', code: 'ERR_INVALID_URL_SCHEME' });
 
+            // a UrlObject, a URL instance and a parsed url object are accepted as well
+            assert.strictEqual(url.fileURLToPath({ protocol: 'file:', pathname: '/tmp/x' }), '/tmp/x');
+            assert.strictEqual(url.fileURLToPath(new URL('file:///tmp/x')), '/tmp/x');
+            assert.strictEqual(url.fileURLToPath(url.parse('file:///tmp/x')), '/tmp/x');
+
             {
                 const withHost = new URL('file://host/a');
 
@@ -3926,6 +3931,29 @@ describe("url", () => {
                 assert.ok(result.includes('example.com'));
             });
         });
+    });
+
+    describe("String argument conversion", () => {
+        // The lenient String pass renders a value through a toString() of its
+        // own: a Buffer as its utf8 bytes, a Date as its ISO text, an object
+        // bringing its own toString(); numbers, arrays, typed arrays and plain
+        // objects without one are rejected (fibjs/src/base/string.cpp).
+        it("accepts a Buffer as its utf8 text", () => {
+            const parsed = url.parse(Buffer.from('http://example.com/a?b=1'));
+            assert.strictEqual(parsed.href, 'http://example.com/a?b=1');
+        });
+
+        it("accepts an object carrying its own toString()", () => {
+            const parsed = url.parse({ toString: () => 'http://example.com/a' });
+            assert.strictEqual(parsed.href, 'http://example.com/a');
+        });
+
+        it("accepts a Date through its ISO text", () => {
+            const parsed = url.parse(new Date(0));
+            assert.strictEqual(parsed.href, '/1970-01-01T00:00:00.000Z');
+        });
+        // the rejection of a number / array / plain object moves with the
+        // strict String conversion (the Buffer/encoding family batch)
     });
 });
 

@@ -85,5 +85,11 @@ declare class Class_CSSStyleDeclaration extends Class_object {
      */
     removeProperty(property: string): string;
 
+    /**
+     * @description Supports accessing CSS properties with camelCase property names, such as style.width and style.maxWidth
+     *
+     */
+    [index: string]: any;
+
 }
 

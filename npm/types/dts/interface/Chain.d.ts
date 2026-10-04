@@ -24,21 +24,55 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlrs handler array
      *
      */
-    constructor(hdlrs: Class_Handler[]);
+    constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
      * @description Adds a handler array
      *      @param hdlrs handler array
      *
      */
-    append(hdlrs: Class_Handler[]): void;
+    append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
 
     /**
      * @description Adds a handler
      *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
      *
      */
-    append(hdlr: Class_Handler): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise): void;
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
+/**
+ * The promise variant of the Chain class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_ChainPromise extends Class_HandlerPromise {
+    /**
+     * @description Constructs a message handler chain object
+     *      @param hdlrs handler array
+     *
+     */
+    constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
+
+    /**
+     * @description Adds a handler array
+     *      @param hdlrs handler array
+     *
+     */
+    append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
+
+    /**
+     * @description Adds a handler
+     *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *
+     */
+    append(hdlr: Class_Handler | Class_HandlerPromise): void;
+
+}
+
+
+declare namespace Class_Chain {
+    const promises: FIBJS.GeneralObject;
+}

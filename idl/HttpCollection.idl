@@ -90,39 +90,31 @@ interface HttpCollection : object
      */
     append(Object map);
 
-    /*! @brief appends a group of data for a key; appending data does not modify the data of an existing key
+    /*! @brief appends data for a key; appending data does not modify the data of an existing key
+
+     An array appends every element in order, any other value appends a single entry
      @param name specifies the key to append
-     @param values specifies the group of data to append
+     @param value specifies the group of data to append, or the single value to append
      */
-    append(String name, Array values);
+    append(String name, Array|Variant value);
 
     /*! @brief appends a group of data; appending data does not modify the data of an existing key
      @param entries specifies the group of data to append, in the format [[<key>, <value>]]
      */
     append(Array entries);
 
-    /*! @brief appends a key-value entry; appending data does not modify the data of an existing key
-     @param name specifies the key to append
-     @param value specifies the data to append
-     */
-    append(String name, Variant value);
-
     /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
      @param map specifies the key-value data dictionary to set
      */
     set(Object map);
 
-    /*! @brief sets a group of data for a key; setting data modifies the value of the key and clears the remaining data with the same key
-     @param name specifies the key to set
-     @param values specifies the group of data to set
-     */
-    set(String name, Array values);
+    /*! @brief sets data for a key; setting data modifies the value of the key and clears the remaining data with the same key
 
-    /*! @brief sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     An array sets every element in order, any other value sets a single entry
      @param name specifies the key to set
-     @param value specifies the data to set
+     @param value specifies the group of data to set, or the single value to set
      */
-    set(String name, Variant value);
+    set(String name, Array|Variant value);
 
     /*! @brief deletes all values of the specified key
      @param name specifies the key to delete
@@ -141,13 +133,13 @@ interface HttpCollection : object
     /*! @brief iterates over the contents of the container
      @param callback specifies the function called during iteration, whose parameters are (value, key, object)
      */
-    forEach(Function callback);
+    forEach(Function(Value value, String key, Object obj) callback);
 
     /*! @brief iterates over the contents of the container
      @param callback specifies the function called during iteration, whose parameters are (value, key, object)
      @param thisArg specifies the this object of the callback function
      */
-    forEach(Function callback, Value thisArg);
+    forEach(Function(Value value, String key, Object obj) callback, Value thisArg);
 
     /*! @brief queries the keys in the container
      @return returns an iterator containing all keys

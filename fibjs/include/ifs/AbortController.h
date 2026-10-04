@@ -83,11 +83,7 @@ inline void AbortController_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
 inline result_t AbortController_base::load(v8::Local<v8::Value> v, obj_ptr<AbortController_base>& retVal)
 {
-    obj_ptr<AbortController_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void AbortController_base::s_get_signal(const v8::FunctionCallbackInfo<v8::Value>& args)

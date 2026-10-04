@@ -105,6 +105,8 @@ declare module 'uuid' {
      */
     function v3(name: string, ns: string): string;
 
+    function v3(name: string, ns: Class_Buffer | string): string;
+
     /**
      * @description Creates a uuid using random numbers
      *      @param options optional parameter object; supports the following properties: random (Buffer, random numbers), rng (Function, random number generator)
@@ -130,6 +132,8 @@ declare module 'uuid' {
      *
      */
     function v5(name: string, ns: string): string;
+
+    function v5(name: string, ns: Class_Buffer | string): string;
 
     /**
      * @description Gets the version number of the uuid

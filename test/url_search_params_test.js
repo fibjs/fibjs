@@ -419,4 +419,32 @@ describe("URLSearchParams Test Suite", () => {
             assert.ok(params.toString().length >= 0);
         });
     });
+
+    describe("init argument and empty name handling", () => {
+        it("should treat a nullish init as an empty parameter list", () => {
+            // the string fallback used to turn these into `undefined=` / `null=`
+            assert.strictEqual(new URLSearchParams(undefined).toString(), '');
+            assert.strictEqual(new URLSearchParams(null).toString(), '');
+            assert.strictEqual(new URLSearchParams().toString(), '');
+        });
+
+        it("should reject a sequence element that is not a pair", () => {
+            assert.throws(() => new URLSearchParams([1]), (e) =>
+                e.number === 20024 && /sequence elements must be pairs/.test(e.message));
+        });
+
+        it("should keep an empty name", () => {
+            const params = new URLSearchParams();
+            params.append('', 'v');
+            assert.strictEqual(params.toString(), '=v');
+            assert.strictEqual(params.get(''), 'v');
+        });
+
+        it("should build from a string, a record and a pair list", () => {
+            assert.strictEqual(new URLSearchParams('?d=4').get('d'), '4');
+            assert.strictEqual(new URLSearchParams({ a: 1 }).toString(), 'a=1');
+            assert.strictEqual(
+                new URLSearchParams([['a', '1'], ['a', '2']]).toString(), 'a=1&a=2');
+        });
+    });
 });

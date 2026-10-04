@@ -21,6 +21,8 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      */
     send(data: string): void;
 
+    send(data: Class_Buffer | string): void;
+
     /**
      * @description closes the channel; this method is used to close the channel
      */
@@ -51,25 +53,166 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      */
     on(event: "open", listener: ()=>void): this;
 
+    once(event: "open", listener: ()=>void): this;
+
+    off(event: "open", listener: ()=>void): this;
+
+    addListener(event: "open", listener: ()=>void): this;
+
+    removeListener(event: "open", listener: ()=>void): this;
+
+    addEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "open", listener: ()=>void): this;
+
+    prependOnceListener(event: "open", listener: ()=>void): this;
+
+    /**
+     * @description channel open event, emitted when the channel is opened
+     */
+    onopen: (()=>void) | null;
+
     /**
      * @description channel message event, emitted when a message is received
      */
     on(event: "message", listener: ()=>void): this;
+
+    once(event: "message", listener: ()=>void): this;
+
+    off(event: "message", listener: ()=>void): this;
+
+    addListener(event: "message", listener: ()=>void): this;
+
+    removeListener(event: "message", listener: ()=>void): this;
+
+    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "message", listener: ()=>void): this;
+
+    prependOnceListener(event: "message", listener: ()=>void): this;
+
+    /**
+     * @description channel message event, emitted when a message is received
+     */
+    onmessage: (()=>void) | null;
 
     /**
      * @description channel close event, emitted when the channel is closed
      */
     on(event: "close", listener: ()=>void): this;
 
+    once(event: "close", listener: ()=>void): this;
+
+    off(event: "close", listener: ()=>void): this;
+
+    addListener(event: "close", listener: ()=>void): this;
+
+    removeListener(event: "close", listener: ()=>void): this;
+
+    addEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "close", listener: ()=>void): this;
+
+    prependOnceListener(event: "close", listener: ()=>void): this;
+
+    /**
+     * @description channel close event, emitted when the channel is closed
+     */
+    onclose: (()=>void) | null;
+
     /**
      * @description channel error event, emitted when an error occurs on the channel
      */
     on(event: "error", listener: ()=>void): this;
 
+    once(event: "error", listener: ()=>void): this;
+
+    off(event: "error", listener: ()=>void): this;
+
+    addListener(event: "error", listener: ()=>void): this;
+
+    removeListener(event: "error", listener: ()=>void): this;
+
+    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "error", listener: ()=>void): this;
+
+    prependOnceListener(event: "error", listener: ()=>void): this;
+
+    /**
+     * @description channel error event, emitted when an error occurs on the channel
+     */
+    onerror: (()=>void) | null;
+
     /**
      * @description channel buffered amount low event, emitted when the channel buffered amount is low
      */
     on(event: "bufferedamountlow", listener: ()=>void): this;
+
+    once(event: "bufferedamountlow", listener: ()=>void): this;
+
+    off(event: "bufferedamountlow", listener: ()=>void): this;
+
+    addListener(event: "bufferedamountlow", listener: ()=>void): this;
+
+    removeListener(event: "bufferedamountlow", listener: ()=>void): this;
+
+    addEventListener(event: "bufferedamountlow", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "bufferedamountlow", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "bufferedamountlow", listener: ()=>void): this;
+
+    prependOnceListener(event: "bufferedamountlow", listener: ()=>void): this;
+
+    /**
+     * @description channel buffered amount low event, emitted when the channel buffered amount is low
+     */
+    onbufferedamountlow: (()=>void) | null;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 

@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include <utility>
+#include <variant>
 #include "Iterator.h"
 
 namespace fibjs {
@@ -77,13 +78,30 @@ public:
         return all(name, retVal);
     }
 
-    result_t getSetCookie(obj_ptr<NArray>& retVal)
+    result_t getSetCookie(std::vector<exlib::string>& retVal)
     {
-        return all("set-cookie", retVal);
+        exlib::string str;
+
+        for (size_t i = 0; i < m_map.size(); i++) {
+            pair& _pair = m_map[i];
+
+            if (!cmp_key(_pair.first.c_str(), "set-cookie")) {
+                _pair.second.toString(str);
+                retVal.push_back(str);
+            }
+        }
+
+        return 0;
     }
 
-    result_t append(exlib::string name, Variant value)
+    // an array appends every element in order, any other value appends a single entry
+    result_t append(exlib::string name, typename BaseType::Union_append_value value)
     {
+        if (std::holds_alternative<v8::Local<v8::Array>>(value))
+            return append_values(name, std::get<v8::Local<v8::Array>>(value));
+
+        Variant v = std::get<Variant>(value);
+
         if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
@@ -93,13 +111,13 @@ public:
                     name[i] = name[i] - 'A' + 'a';
         }
 
-        if (m_string_only && value.type() != Variant::VT_String) {
+        if (m_string_only && v.type() != Variant::VT_String) {
             exlib::string s;
-            value.toString(s);
-            value = s;
+            v.toString(s);
+            v = s;
         }
 
-        m_map.emplace_back(name, value);
+        m_map.emplace_back(name, v);
         m_sorted = false;
         return 0;
     }
@@ -136,7 +154,8 @@ public:
         return 0;
     }
 
-    result_t append(exlib::string name, v8::Local<v8::Array> values)
+    // the array form of append(): every element is appended in order
+    result_t append_values(exlib::string name, v8::Local<v8::Array> values)
     {
         v8::Local<v8::Context> context;
         if (!values->GetCreationContext().ToLocal(&context))
@@ -190,13 +209,17 @@ public:
         return 0;
     }
 
-    result_t set(exlib::string name, Variant value)
+    // an array sets every element in order, any other value sets a single entry
+    result_t set(exlib::string name, typename BaseType::Union_set_value value)
     {
         if (name.empty() && !m_allow_empty_name)
             return CALL_E_INVALIDARG;
 
+        if (std::holds_alternative<v8::Local<v8::Array>>(value))
+            return set_values(name, std::get<v8::Local<v8::Array>>(value));
+
         remove(name);
-        return append(name, value);
+        return append(name, std::get<Variant>(value));
     }
 
     result_t set(v8::Local<v8::Object> map)
@@ -242,7 +265,8 @@ public:
         return 0;
     }
 
-    result_t set(exlib::string name, v8::Local<v8::Array> values)
+    // the array form of set(): the key is replaced by every element in order
+    result_t set_values(exlib::string name, v8::Local<v8::Array> values)
     {
         v8::Local<v8::Context> context;
         if (!values->GetCreationContext().ToLocal(&context))

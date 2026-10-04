@@ -425,7 +425,7 @@ declare module 'global' {
      *      @return the server response
      *
      */
-    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetch(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Requests the given url and returns the result, the same as http.request(url, ...)
@@ -483,7 +483,7 @@ declare module 'global' {
      *      @return the server response
      *
      */
-    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetchAsync(url: string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Sends a Fetch request given a Request object
@@ -492,7 +492,7 @@ declare module 'global' {
      *      @return the server response object
      *
      */
-    function fetch(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Sends a Fetch request given a Request object
@@ -501,7 +501,7 @@ declare module 'global' {
      *      @return the server response object
      *
      */
-    function fetchSync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Class_HttpResponse;
+    function fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description Sends a Fetch request given a Request object
@@ -510,7 +510,7 @@ declare module 'global' {
      *      @return the server response object
      *
      */
-    function fetchAsync(request: Class_HttpRequest, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponse>;
+    function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
      * @description Queues a micro-task for execution

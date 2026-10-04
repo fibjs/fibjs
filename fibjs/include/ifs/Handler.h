@@ -74,7 +74,7 @@ inline void Handler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(std::vector<obj_ptr<Handler_base>>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -107,7 +107,7 @@ inline result_t Handler_base::load(v8::Local<v8::Value> v, obj_ptr<Handler_base>
 
     METHOD_OVER(1, 1);
 
-    STRICT_ARG(std::vector<obj_ptr<Handler_base>>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = _new(v0, vr, args.This());
 

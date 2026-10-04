@@ -149,15 +149,17 @@ describe('io', () => {
             });
 
             it('NOT ALLOWED: infinite begin', () => {
+                // Infinity is not an int32: the out-of-range error must not be
+                // reported as an "invalid number of parameters"
                 assert.throws(() => {
                     new io.RangeStream(file, Infinity, file.size());
-                }, { name: 'TypeError', number: 20001 })
+                }, { name: 'RangeError', number: 20006 })
             });
 
             it('NOT ALLOWED: infinite end', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, 0, Infinity);
-                }, { name: 'TypeError', number: 20001 })
+                }, { name: 'RangeError', number: 20006 })
             });
 
             it('NOT ALLOWED: over file size when use range string', () => {

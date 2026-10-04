@@ -17,11 +17,24 @@ result_t FormData_base::_new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Objec
     return 0;
 }
 
-result_t FormData_base::_new(exlib::string init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
+result_t FormData_base::_new(Union_FormData_init init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<FormData> headers = new FormData();
-    retVal = headers;
-    return headers->parse(init);
+    // a string is the form data itself; a FormData copies the fields of the
+    // other container; an object appends its fields
+    if (std::holds_alternative<exlib::string>(init)) {
+        obj_ptr<FormData> headers = new FormData();
+        retVal = headers;
+        return headers->parse(std::get<exlib::string>(init));
+    }
+
+    if (std::holds_alternative<obj_ptr<FormData_base>>(init)) {
+        obj_ptr<FormData> headers = new FormData();
+        retVal = headers;
+        return headers->init(std::get<obj_ptr<FormData_base>>(init).get());
+    }
+
+    retVal = new FormData();
+    return retVal->append(std::get<v8::Local<v8::Object>>(init));
 }
 
 result_t FormData_base::_new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
@@ -45,50 +58,42 @@ result_t FormData_base::_new(Blob_base* init, exlib::string boundary, obj_ptr<Fo
     return headers->parseMultipart(buffer, boundary.c_str());
 }
 
-result_t FormData_base::_new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
+result_t FormData::append(exlib::string name, Union_append_value value)
 {
-    retVal = new FormData();
-    return retVal->append(init);
-}
+    // an array appends every element, the way the inherited collection does
+    if (std::holds_alternative<v8::Local<v8::Array>>(value))
+        return append_values(name, std::get<v8::Local<v8::Array>>(value));
 
-result_t FormData_base::_new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
-{
-    obj_ptr<FormData> headers = new FormData();
-    retVal = headers;
-    return headers->init(init);
-}
-
-result_t FormData::append(exlib::string name, Variant value)
-{
-    int32_t vt = value.type();
+    Variant v = std::get<Variant>(value);
+    int32_t vt = v.type();
 
     if (vt != Variant::VT_String) {
         if (vt == Variant::VT_JSValue || vt == Variant::VT_Object) {
             // WHATWG FormData: only a real Blob/File becomes a file entry,
             // every other value is converted to a string.
-            v8::Local<v8::Value> v = value;
+            v8::Local<v8::Value> jsValue = v;
 
-            obj_ptr<File_base> file = File_base::getInstance(v);
+            obj_ptr<File_base> file = File_base::getInstance(jsValue);
             if (file) {
-                value = file;
+                v = file;
             } else {
-                obj_ptr<Blob_base> blob = Blob_base::getInstance(v);
+                obj_ptr<Blob_base> blob = Blob_base::getInstance(jsValue);
                 if (blob)
                     return append(name, blob.get());
 
                 exlib::string s;
-                value.toString(s);
-                value = s;
+                v.toString(s);
+                v = s;
             }
         } else {
             exlib::string s;
-            value.toString(s);
-            value = s;
+            v.toString(s);
+            v = s;
         }
     }
 
     m_sorted = false;
-    m_map.emplace_back(name, value);
+    m_map.emplace_back(name, v);
     return 0;
 }
 

@@ -97,3 +97,44 @@ declare class Class_SQLite extends Class_DbConnection {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/DbConnection.d.ts" />
+/**
+ * The promise variant of the SQLite class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_SQLitePromise extends Class_DbConnectionPromise {
+    /**
+     * @description The file name of the current database
+     */
+    readonly fileName: string;
+
+    /**
+     * @description Queries and sets the database timeout in milliseconds
+     */
+    timeout: number;
+
+    /**
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
+     */
+    backup(fileName: string): Promise<void>;
+
+    /**
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
+     */
+    backupSync(fileName: string): void;
+
+    /**
+     * @description Backs up the current database to a new file
+     * 	 @param fileName the database file name to back up to
+     */
+    backupAsync(fileName: string): Promise<void>;
+
+}
+
+
+declare namespace Class_SQLite {
+    const promises: FIBJS.GeneralObject;
+}

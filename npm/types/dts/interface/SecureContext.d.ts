@@ -76,7 +76,7 @@ declare class Class_SecureContext extends Class_object {
      *     @param context the secure context
      *
      */
-    setSNIContext(servername: string, context: Class_SecureContext): void;
+    setSNIContext(servername: string, context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
      * @description Sets the SNI context
@@ -113,7 +113,7 @@ declare class Class_SecureContext extends Class_object {
      *     @return returns the specified secure context
      *
      */
-    getSNIContextAsync(servername: string, auto_resolve?: boolean): Promise<Class_SecureContext>;
+    getSNIContextAsync(servername: string, auto_resolve?: boolean): Promise<Class_SecureContextPromise>;
 
     /**
      * @description Removes the SNI context
@@ -129,3 +129,123 @@ declare class Class_SecureContext extends Class_object {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/X509Certificate.d.ts" />
+/// <reference path="../interface/KeyObject.d.ts" />
+/**
+ * The promise variant of the SecureContext class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_SecureContextPromise extends Class_object {
+    /**
+     * @description Queries the trusted CA certificate of the secure context
+     */
+    readonly ca: Class_X509Certificate;
+
+    /**
+     * @description Queries the private key of the secure context connection
+     */
+    readonly key: Class_KeyObject;
+
+    /**
+     * @description Queries the certificate of the secure context connection
+     */
+    readonly cert: Class_X509Certificate;
+
+    /**
+     * @description Queries the maximum TLS version allowed by the secure context
+     */
+    readonly maxVersion: string;
+
+    /**
+     * @description Queries the minimum TLS version allowed by the secure context
+     */
+    readonly minVersion: string;
+
+    /**
+     * @description Queries the TLS protocol version used by the secure context
+     */
+    readonly secureProtocol: string;
+
+    /**
+     * @description Queries whether the secure context requires a client certificate
+     */
+    readonly requestCert: boolean;
+
+    /**
+     * @description Queries whether the secure context rejects any connection whose certificate fails CA list verification
+     */
+    readonly rejectUnverified: boolean;
+
+    /**
+     * @description Queries whether the secure context rejects any connection that does not provide a certificate authorized by the CA list
+     */
+    readonly rejectUnauthorized: boolean;
+
+    /**
+     * @description Queries the secure context session timeout
+     */
+    readonly sessionTimeout: number;
+
+    /**
+     * @description Sets the SNI context
+     *     @param servername the server name
+     *     @param context the secure context
+     *
+     */
+    setSNIContext(servername: string, context: Class_SecureContext | Class_SecureContextPromise): void;
+
+    /**
+     * @description Sets the SNI context
+     *     @param servername the server name
+     *     @param options options needed to create a secure context with tls.createSecureContext
+     *
+     */
+    setSNIContext(servername: string, options: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
+     *
+     */
+    getSNIContext(servername: string, auto_resolve?: boolean): Promise<Class_SecureContextPromise>;
+
+    /**
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
+     *
+     */
+    getSNIContextSync(servername: string, auto_resolve?: boolean): Class_SecureContext;
+
+    /**
+     * @description Queries the SNI context
+     *     @param servername the server name
+     *     @param auto_resolve whether to create the context automatically
+     *     @return returns the specified secure context
+     *
+     */
+    getSNIContextAsync(servername: string, auto_resolve?: boolean): Promise<Class_SecureContextPromise>;
+
+    /**
+     * @description Removes the SNI context
+     *     @param servername the server name
+     *
+     */
+    removeSNIContext(servername: string): void;
+
+    /**
+     * @description Clears all SNI contexts
+     */
+    clearSNIContexts(): void;
+
+}
+
+
+declare namespace Class_SecureContext {
+    const promises: FIBJS.GeneralObject;
+}

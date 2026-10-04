@@ -98,32 +98,18 @@ declare class Class_Headers extends Class_HttpCollection {
     constructor();
 
     /**
-     * @description Headers constructor, initializes the HTTP headers container with the given object
-     *      @param init the header field object used for initialization, whose keys are header field names and values are header field values
+     * @description Headers constructor, initializes the HTTP headers container from an object, an array of pairs or another Headers
+     *      @param init the initial headers: an object whose keys are header field names and values are header field values, an array whose elements are [name, value] pairs, or another Headers container to copy
      *
      */
-    constructor(init: FIBJS.GeneralObject);
-
-    /**
-     * @description Headers constructor, initializes the HTTP headers container with the given array
-     *      @param init the header field array used for initialization; each element is an array containing a header field name and a header field value
-     *
-     */
-    constructor(init: any[]);
-
-    /**
-     * @description Headers constructor, initializes the HTTP headers container with the given HTTP headers container
-     *      @param init the HTTP headers container used for initialization
-     *
-     */
-    constructor(init: Class_Headers);
+    constructor(init: FIBJS.GeneralObject | any[] | Class_Headers);
 
     /**
      * @description returns an array composed of all Set-Cookie header values
      *      @return returns an array containing all Set-Cookie values
      *
      */
-    getSetCookie(): any[];
+    getSetCookie(): string[];
 
 }
 

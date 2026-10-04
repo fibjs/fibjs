@@ -39,13 +39,6 @@ declare class Class_FormData extends Class_HttpCollection {
     constructor();
 
     /**
-     * @description FormData constructor, initializes the form data container with the given form data string
-     *      @param init the form data string used for initialization, such as "name=value&key=val"
-     *
-     */
-    constructor(init: string);
-
-    /**
      * @description FormData constructor, initializes form data from a Buffer. Suitable for creating a FormData instance from existing multipart/form-data data
      *      @param init the multipart/form-data binary data used for initialization
      *      @param boundary specifies the boundary string of the multipart/form-data, used to parse the data, in the format: multipart/form-data; boundary=${boundary}
@@ -59,27 +52,14 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param boundary optional boundary string; if not specified, it is automatically parsed from the type property of the Blob (e.g. "multipart/form-data; boundary=xxx")
      *
      */
-    constructor(init: Class_Blob, boundary?: string);
+    constructor(init: Class_Blob | Class_BlobPromise, boundary?: string);
 
     /**
-     * @description FormData constructor, initializes the HTTP form data container with the given object
-     *
-     *      Initializes form fields in bulk by passing an object. The keys of the object are field names and the values are field values (which can be strings, Blobs or arrays).
-     *
-     *      @param init the field object used for initialization, whose keys are field names and values are field values (strings, Blobs or arrays)
+     * @description FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
+     *      @param init the fields: an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val"
      *
      */
-    constructor(init: FIBJS.GeneralObject);
-
-    /**
-     * @description FormData constructor, initializes the HTTP form data container with the given HTTP form data container
-     *
-     *      Copies all fields by passing another FormData instance.
-     *
-     *      @param init the HTTP form data container used for initialization
-     *
-     */
-    constructor(init: Class_FormData);
+    constructor(init: FIBJS.GeneralObject | Class_FormData | string);
 
     /**
      * @description appends a key-value entry; appending data does not modify the data of an existing key
@@ -90,7 +70,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param value specifies the Blob to append
      *
      */
-    append(name: string, value: Class_Blob): void;
+    append(name: string, value: Class_Blob | Class_BlobPromise): void;
 
     /**
      * @description appends a key-value entry; appending data does not modify the data of an existing key
@@ -113,7 +93,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param value specifies the Blob to set
      *
      */
-    set(name: string, value: Class_Blob): void;
+    set(name: string, value: Class_Blob | Class_BlobPromise): void;
 
     /**
      * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key

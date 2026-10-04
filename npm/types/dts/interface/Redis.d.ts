@@ -340,7 +340,7 @@ declare class Class_Redis extends Class_object {
      * @description Queries and sets the error handling function; it is called back when sub encounters an error or the network is interrupted; after the callback occurs, all subs of this object are aborted
      *
      */
-    on(event: "suberror", listener: ()=>void): this;
+    onsuberror: (()=>void) | null;
 
     /**
      * @description Sends the message to the given channel

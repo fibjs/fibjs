@@ -19,5 +19,17 @@
  *
  */
 declare class Class_DOMStringMap extends Class_object {
+    /**
+     * @description Accesses data-* attributes with camelCase keys, e.g. dataset.userId corresponds to data-user-id
+     *
+     */
+    [index: string]: any;
+
+    /**
+     * @description Accesses data-* attributes with numeric keys, e.g. dataset[123] corresponds to data-123
+     *
+     */
+    [index: number]: any;
+
 }
 

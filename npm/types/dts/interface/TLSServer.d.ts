@@ -29,7 +29,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the event handling interface object
      *
      */
-    constructor(context: Class_SecureContext, port: number, listener: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description creates a new TLSServer object
@@ -39,7 +39,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the event handling interface object
      *
      */
-    constructor(context: Class_SecureContext, addr: string, port: number, listener: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description creates a new TLSServer object
@@ -52,7 +52,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the event handling interface object
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description creates a new TLSServer object without binding a port; listen() must be called to start
@@ -60,7 +60,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the event handling interface object
      *
      */
-    constructor(context: Class_SecureContext, listener: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description queries the SecureContext used by the current TLSServer
@@ -72,7 +72,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *     @param context specifies the new SecureContext
      *
      */
-    setSecureContext(context: Class_SecureContext): void;
+    setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
      * @description sets the SecureContext used by the current TLSServer
@@ -83,3 +83,77 @@ declare class Class_TLSServer extends Class_TcpServer {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/TcpServer.d.ts" />
+/// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
+/**
+ * The promise variant of the TLSServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_TLSServerPromise extends Class_TcpServerPromise {
+    /**
+     * @description creates a new TLSServer object
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param port specifies the listening port
+     *      @param listener the event handling interface object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description creates a new TLSServer object
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param addr specifies the listening address
+     *      @param port specifies the listening port
+     *      @param listener the event handling interface object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description creates a new TLSServer object
+     *
+     *      In addition to the properties used to create the SecureContext, options also supports the following properties:
+     *      - address: specifies the listening address, optional, defaults to listening on all addresses
+     *      - port: specifies the listening port, optional, listen() must be called to start when not provided
+     *
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param listener the event handling interface object
+     *
+     */
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description creates a new TLSServer object without binding a port; listen() must be called to start
+     *      @param context specifies the secure context used to create TLSServer
+     *      @param listener the event handling interface object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description queries the SecureContext used by the current TLSServer
+     */
+    readonly secureContext: Class_SecureContextPromise;
+
+    /**
+     * @description sets the SecureContext used by the current TLSServer
+     *     @param context specifies the new SecureContext
+     *
+     */
+    setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
+
+    /**
+     * @description sets the SecureContext used by the current TLSServer
+     *     @param options the options needed to create a secure context with tls.createSecureContext
+     *
+     */
+    setSecureContext(options: FIBJS.GeneralObject): void;
+
+}
+
+
+declare namespace Class_TLSServer {
+    const promises: FIBJS.GeneralObject;
+}

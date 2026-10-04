@@ -92,14 +92,6 @@
  */
 declare module 'url' {
     /**
-     * @description formats a URL string into a standard URL string
-     *      @param href the URL string
-     *      @return the formatted URL string
-     *
-     */
-    function format(href: string): string;
-
-    /**
      * @description constructs a URL string from a URL components object
      *      @param args the URL components object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
      *      @return the constructed URL string
@@ -115,6 +107,14 @@ declare module 'url' {
      *
      */
     function format(urlObject: Class_UrlObject, options?: FIBJS.GeneralObject): string;
+
+    /**
+     * @description formats a URL string into a standard URL string
+     *      @param href the URL string
+     *      @return the formatted URL string
+     *
+     */
+    function format(href: string): string;
 
     /**
      * @description parses a URL string into a URL object (traditional API)
@@ -150,22 +150,13 @@ declare module 'url' {
     const URLSearchParams: typeof Class_URLSearchParams;
 
     /**
-     * @description converts a file URL object into a platform-specific file path
-     *      @param url the file URL object (must use the file: protocol)
+     * @description converts a file URL (object or string) into a platform-specific file path
+     *      @param url the file URL, a UrlObject or a string (must use the file: protocol)
      *      @param options conversion options; the windows field specifies whether to force the Windows path format
      *      @return the converted file path string
      *
      */
-    function fileURLToPath(url: Class_UrlObject, options?: FIBJS.GeneralObject): string;
-
-    /**
-     * @description converts a file URL string into a platform-specific file path
-     *      @param url the file URL string (must use the file: protocol)
-     *      @param options conversion options; the windows field specifies whether to force the Windows path format
-     *      @return the converted file path string
-     *
-     */
-    function fileURLToPath(url: string, options?: FIBJS.GeneralObject): string;
+    function fileURLToPath(url: Class_UrlObject | string, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description converts a file path into a file URL object

@@ -81,11 +81,7 @@ inline void MemoryStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline result_t MemoryStream_base::load(v8::Local<v8::Value> v, obj_ptr<MemoryStream_base>& retVal)
 {
-    obj_ptr<MemoryStream_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void MemoryStream_base::s_setTime(const v8::FunctionCallbackInfo<v8::Value>& args)

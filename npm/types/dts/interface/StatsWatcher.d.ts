@@ -27,6 +27,27 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      */
     on(event: "change", listener: ()=>void): this;
 
+    once(event: "change", listener: ()=>void): this;
+
+    off(event: "change", listener: ()=>void): this;
+
+    addListener(event: "change", listener: ()=>void): this;
+
+    removeListener(event: "change", listener: ()=>void): this;
+
+    addEventListener(event: "change", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "change", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "change", listener: ()=>void): this;
+
+    prependOnceListener(event: "change", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the "file change" event, equivalent to on("change", func);
+     */
+    onchange: (()=>void) | null;
+
     /**
      * @description Stops watching the target file path and clears the reference count (no longer holds the process)
      *
@@ -55,6 +76,42 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      *
      */
     unref(): Class_StatsWatcher;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 

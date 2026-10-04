@@ -479,9 +479,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    /* Illegal function name 'throws' can't be used here
     function throws(block: (...args: any[])=>any, msg?: string): void;
-    */
 
     /**
      * @description Tests that the given code throws an error; the assertion fails if nothing is thrown
@@ -490,9 +488,7 @@ declare module 'assert' {
      *      @param msg the message when the assertion fails
      *
      */
-    /* Illegal function name 'throws' can't be used here
     function throws(block: (...args: any[])=>any, error: any, msg?: string): void;
-    */
 
     /**
      * @description Tests that the given code does not throw an error; the assertion fails if it throws

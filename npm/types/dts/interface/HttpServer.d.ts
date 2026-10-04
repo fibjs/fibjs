@@ -32,7 +32,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
      *
      */
-    constructor(port: number, hdlr: Class_Handler);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpServer constructor
@@ -41,7 +41,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpServer constructor
@@ -49,14 +49,14 @@ declare class Class_HttpServer extends Class_TcpServer {
      *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
      *
      */
-    constructor(addr: string, hdlr: Class_Handler);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpServer constructor, does not bind a port; listen() must be called to start
      *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
      *
      */
-    constructor(hdlr: Class_Handler);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description enables cross-origin requests
@@ -92,3 +92,81 @@ declare class Class_HttpServer extends Class_TcpServer {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/TcpServer.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
+/**
+ * The promise variant of the HttpServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_HttpServerPromise extends Class_TcpServerPromise {
+    /**
+     * @description HttpServer constructor, listens on all local addresses
+     *     @param port specifies the port on which the http server listens
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     */
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpServer constructor
+     *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+     *     @param port specifies the port on which the http server listens
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     */
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpServer constructor
+     *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     */
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpServer constructor, does not bind a port; listen() must be called to start
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     */
+    constructor(hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description enables cross-origin requests
+     *      @param allowHeaders specifies the accepted http header fields
+     *
+     */
+    enableCrossOrigin(allowHeaders?: string): void;
+
+    /**
+     * @description queries and sets the maximum number of request headers, default is 128
+     */
+    maxHeadersCount: number;
+
+    /**
+     * @description queries and sets the maximum request header length, default is 8192
+     */
+    maxHeaderSize: number;
+
+    /**
+     * @description queries and sets the maximum body size in MB, default is 64
+     */
+    maxBodySize: number;
+
+    /**
+     * @description switch for the automatic decompression feature, disabled by default
+     */
+    enableEncoding: boolean;
+
+    /**
+     * @description queries and sets the server name, default is: fibjs/0.x.0
+     */
+    serverName: string;
+
+}
+
+
+declare namespace Class_HttpServer {
+    const promises: FIBJS.GeneralObject;
+}

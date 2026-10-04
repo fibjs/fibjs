@@ -69,7 +69,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openMySQLAsync(connString: string): Promise<Class_MySQL>;
+    function openMySQLAsync(connString: string): Promise<Class_MySQLPromise>;
 
     /**
      * @description Opens a sqlite database
@@ -95,7 +95,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openSQLiteAsync(connString: string): Promise<Class_SQLite>;
+    function openSQLiteAsync(connString: string): Promise<Class_SQLitePromise>;
 
     /**
      * @description Opens a sqlite database
@@ -121,7 +121,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openOdbcAsync(connString: string): Promise<Class_DbConnection>;
+    function openOdbcAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens an mssql database
@@ -153,7 +153,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openMSSQLAsync(connString: string): Promise<Class_DbConnection>;
+    function openMSSQLAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens a DaMeng database
@@ -188,7 +188,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openDMAsync(connString: string): Promise<Class_DbConnection>;
+    function openDMAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens a PostgresSQL database
@@ -274,7 +274,7 @@ declare module 'db' {
      *      @return returns the database connection object
      *
      */
-    function openPSQLAsync(connString: string): Promise<Class_DbConnection>;
+    function openPSQLAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens a leveldb database
@@ -300,7 +300,7 @@ declare module 'db' {
      *      @return returns the database object
      *
      */
-    function openLevelDBAsync(connString: string): Promise<Class_LevelDB>;
+    function openLevelDBAsync(connString: string): Promise<Class_LevelDBPromise>;
 
     /**
      * @description Opens a Redis database

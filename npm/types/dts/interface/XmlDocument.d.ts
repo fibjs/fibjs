@@ -63,6 +63,8 @@ declare class Class_XmlDocument extends Class_XmlNode {
      */
     load(source: Class_Buffer, options?: FIBJS.GeneralObject): void;
 
+    load(source: string | Class_Buffer, options?: FIBJS.GeneralObject): void;
+
     /**
      * @description Returns the encoding used for the document (at parse time)
      *

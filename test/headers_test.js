@@ -1014,4 +1014,56 @@ describe("Headers API", () => {
         assert.strictEqual(headers['x-to-delete'], undefined);
         assert.strictEqual(headers.get('x-to-delete'), null);
     });
+
+    describe("constructor and append argument validation", () => {
+        it("should reject values that are not a record, a pair list or headers", () => {
+            [1, true, 'x-a: 1'].forEach((bad) => {
+                assert.throws(() => new Headers(bad), (e) => e.number === 20005);
+            });
+
+            assert.throws(() => new Headers([1]), (e) =>
+                e.number === 20005 && /sequence elements must be pairs/.test(e.message));
+        });
+
+        it("should accept an empty list and null as empty headers", () => {
+            assert.strictEqual([...new Headers([])].length, 0);
+            assert.strictEqual([...new Headers(null)].length, 0);
+        });
+
+        it("should build from a record, a pair list and another Headers", () => {
+            assert.strictEqual(new Headers({ a: '1' }).get('a'), '1');
+            assert.strictEqual(new Headers([['b', '2']]).get('b'), '2');
+            assert.strictEqual(new Headers(new Headers({ c: '3' })).get('c'), '3');
+        });
+
+        it("should reject an empty name with an invalid argument", () => {
+            // 20004, not 20001: the argument count is right, the name is not
+            ['append', 'set'].forEach((method) => {
+                assert.throws(() => new Headers()[method]('', 'v'),
+                    (e) => e.number === 20004);
+            });
+        });
+
+        it("should append a group of values and a record", () => {
+            const h = new Headers();
+            h.append('a', ['1', '2']);
+            assert.deepStrictEqual(h.getAll('a'), ['1', '2']);
+            h.append('a', '3');
+            assert.deepStrictEqual(h.getAll('a'), ['1', '2', '3']);
+
+            h.set('a', ['9', '8']);
+            assert.deepStrictEqual(h.getAll('a'), ['9', '8']);
+            h.set('a', '7');
+            assert.deepStrictEqual(h.getAll('a'), ['7']);
+
+            const h2 = new Headers();
+            h2.append({ x: '1', y: ['2', '3'] });
+            assert.deepStrictEqual(h2.getAll('x'), ['1']);
+            assert.deepStrictEqual(h2.getAll('y'), ['2', '3']);
+
+            const h3 = new Headers();
+            h3.append([['k', '1'], ['k', '2']]);
+            assert.deepStrictEqual(h3.getAll('k'), ['1', '2']);
+        });
+    });
 });

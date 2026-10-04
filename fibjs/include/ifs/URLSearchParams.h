@@ -22,17 +22,21 @@ class URLSearchParams_base : public HttpCollection_base {
     DECLARE_CLASS(URLSearchParams_base);
 
 public:
+    using Union_URLSearchParams_init = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, obj_ptr<URLSearchParams_base>, exlib::string, Variant>;
+    using Union_URLSearchParams_init_load = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, exlib::string, Variant>;
+    static result_t _new(Union_URLSearchParams_init_load init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
+    {
+        return std::visit([&](auto&& v) -> result_t { return _new(Union_URLSearchParams_init(v), retVal, This); }, init);
+    }
+
+public:
     using HttpCollection_base::has;
     using HttpCollection_base::_delete;
 
 public:
     // URLSearchParams_base
     static result_t _new(obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Array> init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(URLSearchParams_base* init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Variant init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_URLSearchParams_init init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t has(exlib::string name, v8::Local<v8::Value> value, bool& retVal) = 0;
     virtual result_t _delete(exlib::string name, v8::Local<v8::Value> value) = 0;
@@ -90,31 +94,7 @@ inline void URLSearchParams_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<URLSearchParams_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(Variant, 0);
+    ARG(Union_URLSearchParams_init, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -129,31 +109,7 @@ inline result_t URLSearchParams_base::load(v8::Local<v8::Value> v, obj_ptr<URLSe
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<URLSearchParams_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(Variant, 0);
+    ARG(Union_URLSearchParams_init_load, 0);
 
     hr = _new(v0, vr, args.This());
 

@@ -44,7 +44,7 @@ declare module 'tls' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(context: Class_SecureContext, listener: Class_Handler): Class_TLSServer;
+    function createServer(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise): Class_TLSServer;
 
     /**
      * @description creates a TLS server
@@ -53,7 +53,7 @@ declare module 'tls' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise): Class_TLSServer;
 
     /**
      * @description creates a SecureContext object, used to maintain secure contexts in the tls module
@@ -119,7 +119,7 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_Stream>;
+    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
@@ -129,6 +129,24 @@ declare module 'tls' {
      *
      */
     function connect(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url
@@ -157,7 +175,7 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connectAsync(url: string, timeout?: number): Promise<Class_Stream>;
+    function connectAsync(url: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url
@@ -167,19 +185,9 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Class_Stream;
 
-    function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description creates a tls/ssl connection based on the url
-     *      @param url specifies the URL to connect
-     *      @param secureContext specifies the secure context
-     *      @param timeout specifies the connection timeout, default is 0
-     *      @return returns the tls/ssl connection object
-     *
-     */
-    function connectSync(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description creates a tls/ssl connection based on the url
@@ -189,7 +197,17 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connectAsync(url: string, secureContext: Class_SecureContext, timeout?: number): Promise<Class_Stream>;
+    function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @return returns the tls/ssl connection object
+     *
+     */
+    function connectAsync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url
@@ -218,7 +236,7 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connectAsync(url: string, options: FIBJS.GeneralObject): Promise<Class_Stream>;
+    function connectAsync(url: string, options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the hostname and port number
@@ -250,7 +268,7 @@ declare module 'tls' {
      *      @return returns the tls/ssl connection object
      *
      */
-    function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_Stream>;
+    function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
@@ -260,6 +278,24 @@ declare module 'tls' {
      *
      */
     function connect(url: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(url: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(url: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
@@ -274,12 +310,52 @@ declare module 'tls' {
     /**
      * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
      *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(url: string, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(url: string, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
-    function connect(url: string, secureContext: Class_SecureContext, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
@@ -290,7 +366,29 @@ declare module 'tls' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(url: string, secureContext: Class_SecureContext, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param secureContext specifies the secure context
+     *      @param timeout specifies the connection timeout, default is 0
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
@@ -303,6 +401,26 @@ declare module 'tls' {
     function connect(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
 
     /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     *      @param url specifies the URL to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(url: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+
+    /**
      * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
      *      @param port specifies the port number to connect
      *      @param connectListener specifies the once connect event listener
@@ -310,6 +428,24 @@ declare module 'tls' {
      *
      */
     function connect(port: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(port: number, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(port: number, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
@@ -324,12 +460,52 @@ declare module 'tls' {
     /**
      * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
      *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(port: number, host: string, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(port: number, host: string, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
      */
     function connect(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(port: number, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
     /**
      * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
@@ -341,6 +517,28 @@ declare module 'tls' {
      *
      */
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectSync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Class_Stream;
+
+    /**
+     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     *      @param port specifies the port number to connect
+     *      @param host specifies the hostname to connect
+     *      @param options specifies the connection options
+     *      @param connectListener specifies the once connect event listener
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (...args: any[])=>any): Promise<Class_StreamPromise>;
 
 }
 

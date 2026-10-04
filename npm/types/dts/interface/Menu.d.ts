@@ -92,5 +92,13 @@ declare class Class_Menu extends Class_object {
      */
     getMenuItemById(id: string): Class_MenuItem;
 
+    /**
+     * @description Gets a menu item, retrieving the menu item at the specified index from the menu.
+     *      @param index the index of the menu item
+     *      @return menu item object
+     *
+     */
+    [index: number]: Class_MenuItem;
+
 }
 

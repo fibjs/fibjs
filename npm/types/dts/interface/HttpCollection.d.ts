@@ -108,12 +108,14 @@ declare class Class_HttpCollection extends Class_object {
     append(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description appends a group of data for a key; appending data does not modify the data of an existing key
+     * @description appends data for a key; appending data does not modify the data of an existing key
+     *
+     *      An array appends every element in order, any other value appends a single entry
      *      @param name specifies the key to append
-     *      @param values specifies the group of data to append
+     *      @param value specifies the group of data to append, or the single value to append
      *
      */
-    append(name: string, values: any[]): void;
+    append(name: string, value: any[] | any): void;
 
     /**
      * @description appends a group of data; appending data does not modify the data of an existing key
@@ -123,14 +125,6 @@ declare class Class_HttpCollection extends Class_object {
     append(entries: any[]): void;
 
     /**
-     * @description appends a key-value entry; appending data does not modify the data of an existing key
-     *      @param name specifies the key to append
-     *      @param value specifies the data to append
-     *
-     */
-    append(name: string, value: any): void;
-
-    /**
      * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
      *      @param map specifies the key-value data dictionary to set
      *
@@ -138,20 +132,14 @@ declare class Class_HttpCollection extends Class_object {
     set(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description sets a group of data for a key; setting data modifies the value of the key and clears the remaining data with the same key
+     * @description sets data for a key; setting data modifies the value of the key and clears the remaining data with the same key
+     *
+     *      An array sets every element in order, any other value sets a single entry
      *      @param name specifies the key to set
-     *      @param values specifies the group of data to set
+     *      @param value specifies the group of data to set, or the single value to set
      *
      */
-    set(name: string, values: any[]): void;
-
-    /**
-     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
-     *      @param name specifies the key to set
-     *      @param value specifies the data to set
-     *
-     */
-    set(name: string, value: any): void;
+    set(name: string, value: any[] | any): void;
 
     /**
      * @description deletes all values of the specified key
@@ -178,7 +166,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param callback specifies the function called during iteration, whose parameters are (value, key, object)
      *
      */
-    forEach(callback: (...args: any[])=>any): void;
+    forEach(callback: (value: any, key: string, obj: FIBJS.GeneralObject)=>void): void;
 
     /**
      * @description iterates over the contents of the container
@@ -186,7 +174,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param thisArg specifies the this object of the callback function
      *
      */
-    forEach(callback: (...args: any[])=>any, thisArg: any): void;
+    forEach(callback: (value: any, key: string, obj: FIBJS.GeneralObject)=>void, thisArg: any): void;
 
     /**
      * @description queries the keys in the container
@@ -208,6 +196,11 @@ declare class Class_HttpCollection extends Class_object {
      *
      */
     entries(): Iterator<any>;
+
+    /**
+     * @description allows direct access to values by using keys as subscripts
+     */
+    [index: string]: any;
 
     "[Symbol.iterator]"(): Iterator<any>;
 

@@ -1,4 +1,18 @@
 
+{
+  // `Function(...)` is a typing-only refinement of a `Function` argument: the
+  // type name stays 'Function' (the C++ generators look it up by name) and the
+  // inline shape travels in the side-car `callback` field, consumed by the
+  // d.ts / docs generators only (see tools/util/ir.d.ts).
+  function typeName(t) {
+    return (t !== null && typeof t === 'object' && !Array.isArray(t)) ? 'Function' : t;
+  }
+
+  function callbackOf(t) {
+    return (t !== null && typeof t === 'object' && !Array.isArray(t)) ? t.callback : null;
+  }
+}
+
 interface = head:declareHead
   body:interfaceBody _* ";" _* {
     return {
@@ -70,7 +84,7 @@ constMember
   }
 
 prop
-  = comments:_* deprecated:deprecatedToken? _* staticMode:staticToken? _* readonly:readonlyToken? _* type:Identifier _* symbol:"@"? name:Identifier _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* staticMode:staticToken? _* readonly:readonlyToken? _* type:type _* isarray:("[" _* "]")? _* symbol:"@"? name:Identifier _* ";" {
     return {
       memType: "prop",
       comments: comments.join(""),
@@ -79,7 +93,8 @@ prop
       readonly: readonly,
       symbol: symbol ? '@' : '',
       name: name,
-      type: type
+      type: type,
+      isarray: isarray
     };
   }
 
@@ -147,8 +162,8 @@ method
       params: params
     };
   }
-  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:type _* isarray:("[" _* "]")? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
-    return {
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:extType _* isarray:("[" _* "]")? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
+    var mem = {
       memType: "method",
       comments: comments.join(""),
       deprecated: deprecated,
@@ -156,10 +171,14 @@ method
       async: async,
       symbol: symbol ? '@' : '',
       name: name,
-      type: type,
+      type: typeName(type),
       isarray: isarray,
       params: params
     };
+    var callback = callbackOf(type);
+    if (callback)
+      mem.callback = callback;
+    return mem;
   }
 
 async_type
@@ -195,18 +214,96 @@ paramopt
   }
 
 paramitem
-  = _* type:type _* name:Identifier _* isarray:("[" _* "]")? def:def? {
-    return {
-      type: type,
+  = _* type:paramType _* name:Identifier _* isarray:("[" _* "]")? def:def? {
+    var param = {
+      type: typeName(type),
       isarray: isarray,
       name: name,
       default:def
-    }
+    };
+    var callback = callbackOf(type);
+    if (callback)
+      param.callback = callback;
+    return param;
   }
 
 type
-  = Identifier
+  = IteratorType
+  / Identifier
   / struct
+
+// `Buffer|String` / `Buffer|KeyObject|Object|String`: a parameter-position
+// union. The alternatives are the runtime conversion's preference order (see
+// plans/idl-union-types-2026-10-02.md); the C++ side receives one
+// `std::variant` (see gen_code). Alternatives are named types or
+// `Iterator<T>`; struct, Function, `...`, a single `[]` and string literals
+// are not alternatives, and a callback shape is never a union member.
+paramType
+  = UnionType
+  / extType
+
+UnionType
+  = first:unionUnit rest:unionTail+ {
+      return [first].concat(rest).join('|');
+    }
+
+unionTail
+  = _* "|" _* unit:unionUnit {
+      return unit;
+    }
+
+unionUnit
+  = IteratorType
+  / Identifier
+
+// `extType` is the only way to reach `CallbackType`: it is used by `paramitem`
+// and by the method return position, so `prop` (which keeps `type`), `operator`
+// and the struct fields (which use `Identifier`) can never carry a shape.
+extType
+  = CallbackType
+  / type
+
+CallbackType
+  = "Function" _* "(" params:callbackParams? _* ")" ret:callbackRet? {
+      return { callback: { params: params || [], ret: ret || null } };
+    }
+
+callbackParams
+  = first:callbackParam nexts:nextCallbackParam* {
+      return [first].concat(nexts);
+    }
+
+nextCallbackParam
+  = "," param:callbackParam {
+      return param;
+    }
+
+callbackParam
+  = _* "..." _* name:Identifier? _* {
+      return { type: "...", name: name || "...", default: null };
+    }
+  / _* type:paramType _* name:Identifier _* isarray:("[" _* "]")? _* {
+      var param = {
+        type: typeName(type),
+        isarray: isarray,
+        name: name,
+        default: null
+      };
+      var callback = callbackOf(type);
+      if (callback)
+        param.callback = callback;
+      return param;
+    }
+
+callbackRet
+  = _* "=>" _* type:extType {
+      return typeName(type);
+    }
+
+IteratorType
+  = "Iterator" _* "<" _* arg:Identifier _* ">" {
+      return 'Iterator<' + arg + '>';
+    }
 
 struct
   = "(" items:items? _* ")" {

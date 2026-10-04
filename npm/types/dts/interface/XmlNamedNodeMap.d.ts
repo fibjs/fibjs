@@ -21,6 +21,12 @@ declare class Class_XmlNamedNodeMap extends Class_object {
     item(index: number): Class_XmlAttr;
 
     /**
+     * @description Data can be accessed directly with an index
+     *
+     */
+    [index: number]: Class_XmlAttr;
+
+    /**
      * @description Queries the attribute with the given name
      *      @param name the name to query
      *      @return returns the queried attribute

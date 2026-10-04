@@ -36,7 +36,7 @@ declare module 'tty' {
      *      @return returns true if the file handle is associated with a terminal window, otherwise returns false
      *
      */
-    function isatty(fd: Class_FileHandle): boolean;
+    function isatty(fd: Class_FileHandle | Class_FileHandlePromise): boolean;
 
 }
 

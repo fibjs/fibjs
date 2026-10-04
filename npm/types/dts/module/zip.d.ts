@@ -93,7 +93,7 @@ declare module 'zip' {
      * 	 @return returns the zip file object
      *
      */
-    function openAsync(path: string, mod?: string, codec?: string): Promise<Class_ZipFile>;
+    function openAsync(path: string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
     /**
      * @description Opens a zip file
@@ -125,7 +125,7 @@ declare module 'zip' {
      * 	 @return returns the zip file object
      *
      */
-    function openAsync(data: Class_Buffer, mod?: string, codec?: string): Promise<Class_ZipFile>;
+    function openAsync(data: Class_Buffer, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
     /**
      * @description Opens a zip file
@@ -135,19 +135,9 @@ declare module 'zip' {
      * 	 @return returns the zip file object
      *
      */
-    function open(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
+    function open(strm: Class_SeekableStream | Class_SeekableStreamPromise, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(strm: Class_SeekableStream, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
-
-    /**
-     * @description Opens a zip file
-     * 	 @param strm zip file stream
-     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
-     * 	 @param codec sets the encoding of the zip file, default "utf8"
-     * 	 @return returns the zip file object
-     *
-     */
-    function openSync(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
+    function open(strm: Class_SeekableStream | Class_SeekableStreamPromise, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description Opens a zip file
@@ -157,7 +147,17 @@ declare module 'zip' {
      * 	 @return returns the zip file object
      *
      */
-    function openAsync(strm: Class_SeekableStream, mod?: string, codec?: string): Promise<Class_ZipFile>;
+    function openSync(strm: Class_SeekableStream | Class_SeekableStreamPromise, mod?: string, codec?: string): Class_ZipFile;
+
+    /**
+     * @description Opens a zip file
+     * 	 @param strm zip file stream
+     * 	 @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     * 	 @param codec sets the encoding of the zip file, default "utf8"
+     * 	 @return returns the zip file object
+     *
+     */
+    function openAsync(strm: Class_SeekableStream | Class_SeekableStreamPromise, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
 }
 

@@ -87,12 +87,6 @@ console.log(unicode);       // 'bücher.com'
 */
 module url
 {
-    /*! @brief formats a URL string into a standard URL string
-     @param href the URL string
-     @return the formatted URL string
-     */
-    static String format(String href);
-
     /*! @brief constructs a URL string from a URL components object
      @param args the URL components object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
      @return the constructed URL string
@@ -105,6 +99,12 @@ module url
      @return the formatted URL string
      */
     static String format(UrlObject urlObject, Object options = {});
+
+    /*! @brief formats a URL string into a standard URL string
+     @param href the URL string
+     @return the formatted URL string
+     */
+    static String format(String href);
 
     /*! @brief parses a URL string into a URL object (traditional API)
      @param url the URL string to parse
@@ -131,19 +131,12 @@ module url
      */
     static URLSearchParams = URLSearchParams;
 
-    /*! @brief converts a file URL object into a platform-specific file path
-     @param url the file URL object (must use the file: protocol)
+    /*! @brief converts a file URL (object or string) into a platform-specific file path
+     @param url the file URL, a UrlObject or a string (must use the file: protocol)
      @param options conversion options; the windows field specifies whether to force the Windows path format
      @return the converted file path string
      */
-    static String fileURLToPath(UrlObject url, Object options = {});
-
-    /*! @brief converts a file URL string into a platform-specific file path
-     @param url the file URL string (must use the file: protocol)
-     @param options conversion options; the windows field specifies whether to force the Windows path format
-     @return the converted file path string
-     */
-    static String fileURLToPath(String url, Object options = {});
+    static String fileURLToPath(UrlObject|String url, Object options = {});
 
     /*! @brief converts a file path into a file URL object
      @param path the file path to convert

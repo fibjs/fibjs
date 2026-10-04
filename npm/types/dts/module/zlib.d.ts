@@ -113,14 +113,14 @@ declare module 'zlib' {
      *      @param to the stream used to store the processing result
      *      @return returns the wrapped stream object
      */
-    function createDeflate(to: Class_Stream): Class_Stream;
+    function createDeflate(to: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a deflateRaw stream object
      *      @param to the stream used to store the processing result
      *      @return returns the wrapped stream object
      */
-    function createDeflateRaw(to: Class_Stream): Class_Stream;
+    function createDeflateRaw(to: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a gunzip stream object
@@ -128,14 +128,14 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return returns the wrapped stream object
      */
-    function createGunzip(to: Class_Stream, maxSize?: number): Class_Stream;
+    function createGunzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a gzip stream object
      *      @param to the stream used to store the processing result
      *      @return returns the wrapped stream object
      */
-    function createGzip(to: Class_Stream): Class_Stream;
+    function createGzip(to: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates an inflate stream object
@@ -143,7 +143,7 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return returns the wrapped stream object
      */
-    function createInflate(to: Class_Stream, maxSize?: number): Class_Stream;
+    function createInflate(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates an inflateRaw stream object
@@ -151,7 +151,7 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return returns the wrapped stream object
      */
-    function createInflateRaw(to: Class_Stream, maxSize?: number): Class_Stream;
+    function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -160,18 +160,9 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function deflate(data: Class_Buffer, level: number): Class_Buffer;
+    function deflate(data: Class_Buffer, level?: number): Class_Buffer;
 
-    function deflate(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflate algorithm (zlib format)
-     *      @param data the data to compress
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *      @return returns the compressed binary data
-     *
-     */
-    function deflateSync(data: Class_Buffer, level: number): Class_Buffer;
+    function deflate(data: Class_Buffer, level?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -180,7 +171,16 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function deflateAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
+    function deflateSync(data: Class_Buffer, level?: number): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
+     *
+     */
+    function deflateAsync(data: Class_Buffer, level?: number): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -221,18 +221,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function deflateTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function deflateTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -241,7 +232,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
+    function deflateToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
@@ -250,18 +250,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function deflateTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
-     *      @param src the stream containing the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function deflateTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
@@ -270,7 +261,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
+    function deflateToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (zlib format)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -340,18 +340,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
@@ -360,7 +351,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function inflateToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
@@ -369,18 +369,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function inflateTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
-     *      @param src the stream containing the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function inflateTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
@@ -389,7 +380,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function inflateToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (zlib format)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -455,17 +455,9 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(data: Class_Buffer, stm: Class_Stream): void;
+    function gzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise): void;
 
-    function gzipTo(data: Class_Buffer, stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the gzip algorithm
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *
-     */
-    function gzipToSync(data: Class_Buffer, stm: Class_Stream): void;
+    function gzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -473,7 +465,15 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(data: Class_Buffer, stm: Class_Stream): Promise<void>;
+    function gzipToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise): void;
+
+    /**
+     * @description Compresses data into a stream object with the gzip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *
+     */
+    function gzipToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Compresses data from a source stream into a stream object with the gzip algorithm
@@ -481,17 +481,9 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(src: Class_Stream, stm: Class_Stream): void;
+    function gzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise): void;
 
-    function gzipTo(src: Class_Stream, stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data from a source stream into a stream object with the gzip algorithm
-     *      @param src the stream containing the data to compress
-     *      @param stm the stream that stores the compressed data
-     *
-     */
-    function gzipToSync(src: Class_Stream, stm: Class_Stream): void;
+    function gzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data from a source stream into a stream object with the gzip algorithm
@@ -499,7 +491,15 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(src: Class_Stream, stm: Class_Stream): Promise<void>;
+    function gzipToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise): void;
+
+    /**
+     * @description Compresses data from a source stream into a stream object with the gzip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *
+     */
+    function gzipToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm
@@ -569,18 +569,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function gunzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function gunzipToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -589,7 +580,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function gunzipToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function gunzipToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
@@ -598,18 +598,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function gunzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function gunzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
-     *      @param src the stream containing the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function gunzipToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function gunzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
@@ -618,7 +609,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function gunzipToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the gzip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function gunzipToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the deflate algorithm (deflateRaw)
@@ -627,18 +627,9 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function deflateRaw(data: Class_Buffer, level: number): Class_Buffer;
+    function deflateRaw(data: Class_Buffer, level?: number): Class_Buffer;
 
-    function deflateRaw(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflate algorithm (deflateRaw)
-     *      @param data the data to compress
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *      @return returns the compressed binary data
-     *
-     */
-    function deflateRawSync(data: Class_Buffer, level: number): Class_Buffer;
+    function deflateRaw(data: Class_Buffer, level?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflate algorithm (deflateRaw)
@@ -647,7 +638,16 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function deflateRawAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
+    function deflateRawSync(data: Class_Buffer, level?: number): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
+     *
+     */
+    function deflateRawAsync(data: Class_Buffer, level?: number): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflate algorithm (deflateRaw)
@@ -688,18 +688,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function deflateRawTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateRawTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateRawToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function deflateRawTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -708,7 +699,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
+    function deflateRawToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateRawToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
@@ -717,18 +717,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function deflateRawTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateRawTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
-     *      @param src the stream containing the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateRawToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function deflateRawTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
@@ -737,7 +728,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
+    function deflateRawToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data from a source stream into a stream object with the deflate algorithm (deflateRaw)
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateRawToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (inflateRaw)
@@ -807,18 +807,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateRawTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateRawToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
@@ -827,7 +818,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function inflateRawToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateRawToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
@@ -836,18 +836,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function inflateRawTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateRawTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
-     *      @param src the stream containing the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateRawToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function inflateRawTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
@@ -856,7 +847,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function inflateRawToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm from a source stream into a stream object (inflateRaw)
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateRawToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Creates a zip stream object
@@ -864,7 +864,7 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *      @return returns the wrapped stream object
      */
-    function createZip(to: Class_Stream, level: number): Class_Stream;
+    function createZip(to: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
 
     /**
      * @description Creates a unzip stream object
@@ -872,7 +872,7 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return returns the wrapped stream object
      */
-    function createUnzip(to: Class_Stream, maxSize?: number): Class_Stream;
+    function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -881,18 +881,9 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function zip(data: Class_Buffer, level: number): Class_Buffer;
+    function zip(data: Class_Buffer, level?: number): Class_Buffer;
 
-    function zip(data: Class_Buffer, level: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the zip algorithm
-     *      @param data the data to compress
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *      @return returns the compressed binary data
-     *
-     */
-    function zipSync(data: Class_Buffer, level: number): Class_Buffer;
+    function zip(data: Class_Buffer, level?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -901,7 +892,16 @@ declare module 'zlib' {
      *      @return returns the compressed binary data
      *
      */
-    function zipAsync(data: Class_Buffer, level: number): Promise<Class_Buffer>;
+    function zipSync(data: Class_Buffer, level?: number): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zip algorithm
+     *      @param data the data to compress
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *      @return returns the compressed binary data
+     *
+     */
+    function zipAsync(data: Class_Buffer, level?: number): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -942,18 +942,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function zipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function zipTo(data: Class_Buffer, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the zip algorithm
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function zipToSync(data: Class_Buffer, stm: Class_Stream, level: number): void;
+    function zipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -962,7 +953,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(data: Class_Buffer, stm: Class_Stream, level: number): Promise<void>;
+    function zipToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the zip algorithm
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function zipToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data from a source stream into a stream object with the zip algorithm
@@ -971,18 +971,9 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function zipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function zipTo(src: Class_Stream, stm: Class_Stream, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data from a source stream into a stream object with the zip algorithm
-     *      @param src the stream containing the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function zipToSync(src: Class_Stream, stm: Class_Stream, level: number): void;
+    function zipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data from a source stream into a stream object with the zip algorithm
@@ -991,7 +982,16 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(src: Class_Stream, stm: Class_Stream, level: number): Promise<void>;
+    function zipToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data from a source stream into a stream object with the zip algorithm
+     *      @param src the stream containing the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function zipToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm
@@ -1061,18 +1061,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function unzipTo(data: Class_Buffer, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function unzipToSync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1081,7 +1072,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(data: Class_Buffer, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function unzipToSync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function unzipToAsync(data: Class_Buffer, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
@@ -1090,18 +1090,9 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function unzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function unzipTo(src: Class_Stream, stm: Class_Stream, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
-     *      @param src the stream containing the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function unzipToSync(src: Class_Stream, stm: Class_Stream, maxSize?: number): void;
+    function unzipTo(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
@@ -1110,7 +1101,16 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(src: Class_Stream, stm: Class_Stream, maxSize?: number): Promise<void>;
+    function unzipToSync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the zip algorithm from a source stream into a stream object
+     *      @param src the stream containing the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function unzipToAsync(src: Class_Stream | Class_StreamPromise, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
 }
 

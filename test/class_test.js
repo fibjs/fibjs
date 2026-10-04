@@ -11,6 +11,21 @@ describe("class test", () => {
         assert.equal(Object.prototype.toString.call(console), "[object console]");
     });
 
+    describe("native object string conversion", () => {
+        it("a class without its own toString has no implicit string form", () => {
+            const blob = new Blob(['x']);
+
+            assert.throws(() => String(blob), /the object can not be converted to string/);
+            // the class tag is still available through Object.prototype
+            assert.equal(Object.prototype.toString.call(blob), "[object Blob]");
+        });
+
+        it("a class implementing toString converts through it", () => {
+            const u = new URL('http://example.com/a?b=1');
+            assert.equal(String(u), u.href);
+        });
+    });
+
     // Tests for the ClassInfo NamedPropertyHandler fix:
     // native C++ instance properties are now reported as own enumerable,
     // so Object.assign / spread / Object.keys can see them on any native object.

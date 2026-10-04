@@ -123,9 +123,47 @@ declare module 'child_process' {
      *      @return returns the stdio output of the child process
      *
      */
-    function exec(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
+    function exec(command: string, options?: FIBJS.GeneralObject): {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    };
 
-    function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    /**
+     * @description Executes a command in a shell and buffers the output; when executed in callback style, the function returns the child process object
+     *     The supported options are as follows:
+     *      ```JavaScript
+     *      {
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
+     *      }
+     *      ```
+     *      @param command specifies the command to run
+     *      @param options specifies the creation options
+     *      @return returns the stdio output of the child process
+     *
+     */
+    function execAsync(command: string, options?: FIBJS.GeneralObject): Promise<{
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    }>;
 
     /**
      * @description Directly executes the specified file and buffers the output; when executed in callback style, the function returns the child process object
@@ -152,9 +190,48 @@ declare module 'child_process' {
      *      @return returns the stdio output of the child process
      *
      */
-    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
+    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject): {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    };
 
-    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    /**
+     * @description Directly executes the specified file and buffers the output; when executed in callback style, the function returns the child process object
+     *     The supported options are as follows:
+     *      ```JavaScript
+     *      {
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
+     *      }
+     *      ```
+     *      @param command specifies the command to run
+     *      @param args specifies the list of string arguments
+     *      @param options specifies the creation options
+     *      @return returns the stdio output of the child process
+     *
+     */
+    function execFileAsync(command: string, args: any[], options?: FIBJS.GeneralObject): Promise<{
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    }>;
 
     /**
      * @description Directly executes the specified file and buffers the output; when executed in callback style, the function returns the child process object
@@ -180,9 +257,47 @@ declare module 'child_process' {
      *      @return returns the stdio output of the child process
      *
      */
-    function execFile(command: string, options?: FIBJS.GeneralObject): [stdout: any, stderr: any, exitCode: number];
+    function execFile(command: string, options?: FIBJS.GeneralObject): {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    };
 
-    function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: [stdout: any, stderr: any, exitCode: number])=>any): void;
+    function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    /**
+     * @description Directly executes the specified file and buffers the output; when executed in callback style, the function returns the child process object
+     *     The supported options are as follows:
+     *      ```JavaScript
+     *      {
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false, // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *         "cols": 80, // specify the initial number of columns for the PTY (only for stdio: 'pty')
+     *         "rows": 24, // specify the initial number of rows for the PTY (only for stdio: 'pty')
+     *         "timeout": 0, // the maximum amount of time (in milliseconds) the process is allowed to run, default to no limit
+     *         "killSignal": "SIGTERM" // the signal to be used when the spawned process will be killed by timeout, default to "SIGTERM"
+     *      }
+     *      ```
+     *      @param command specifies the command to run
+     *      @param options specifies the creation options
+     *      @return returns the stdio output of the child process
+     *
+     */
+    function execFileAsync(command: string, options?: FIBJS.GeneralObject): Promise<{
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    }>;
 
     /**
      * @description Spawns a child process with the given command
@@ -209,7 +324,15 @@ declare module 'child_process' {
      *      @return returns the child process result
      *
      */
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): {
+        pid: number;
+        output: any[];
+        stdout: any;
+        stderr: any;
+        status: number;
+        signal: any;
+        error: any;
+    };
 
     /**
      * @description Spawns a child process with the given command
@@ -235,7 +358,15 @@ declare module 'child_process' {
      *      @return returns the child process result
      *
      */
-    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: NArray, stdout: any, stderr: any, status: number, signal: any, error: any];
+    function spawnSync(command: string, options?: FIBJS.GeneralObject): {
+        pid: number;
+        output: any[];
+        stdout: any;
+        stderr: any;
+        status: number;
+        signal: any;
+        error: any;
+    };
 
     /**
      * @description Synchronously executes a command in a shell and buffers the output
@@ -551,6 +682,86 @@ declare module 'child_process' {
      *
      */
     function sh(strings: any[], ...args: any[]): string;
+
+    /**
+     * @description Executes a command in a shell using string template syntax and buffers the output
+     *
+     *      sh is a wrapper around the exec method for quickly executing shell commands; it supports string template syntax, for example:
+     *      ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var ret = $`ls -l`;
+     *        console.log(ret);
+     *       ```
+     *       Because sh is a template function, templates can be used conveniently in commands, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var ret = $`ls -l ${__dirname}`;
+     *        console.log(ret);
+     *       ```
+     *       You can also conveniently embed arrays in commands, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        const words = [
+     *          "hello",
+     *          "world"
+     *        ]
+     *        var ret = $`echo ${words}`;
+     *        console.log(ret);
+     *       ```
+     *       sh automatically removes the final newline returned by the command, making it convenient to use in the next command, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var world = $`echo world`;
+     *        var ret = $`echo hello ${world}`;
+     *        console.log(ret);
+     *       ```
+     *
+     *       @param strings specifies the command to run
+     *       @param args specifies the list of string arguments
+     *       @return returns the stdio output of the child process
+     *
+     */
+    function shSync(strings: any[], ...args: any[]): string;
+
+    /**
+     * @description Executes a command in a shell using string template syntax and buffers the output
+     *
+     *      sh is a wrapper around the exec method for quickly executing shell commands; it supports string template syntax, for example:
+     *      ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var ret = $`ls -l`;
+     *        console.log(ret);
+     *       ```
+     *       Because sh is a template function, templates can be used conveniently in commands, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var ret = $`ls -l ${__dirname}`;
+     *        console.log(ret);
+     *       ```
+     *       You can also conveniently embed arrays in commands, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        const words = [
+     *          "hello",
+     *          "world"
+     *        ]
+     *        var ret = $`echo ${words}`;
+     *        console.log(ret);
+     *       ```
+     *       sh automatically removes the final newline returned by the command, making it convenient to use in the next command, for example:
+     *       ```JavaScript
+     *        const $ = require("child_process").sh;
+     *        var world = $`echo world`;
+     *        var ret = $`echo hello ${world}`;
+     *        console.log(ret);
+     *       ```
+     *
+     *       @param strings specifies the command to run
+     *       @param args specifies the list of string arguments
+     *       @return returns the stdio output of the child process
+     *
+     */
+    function shAsync(strings: any[], ...args: any[]): Promise<string>;
 
     /**
      * @description Creates an ssh execution function

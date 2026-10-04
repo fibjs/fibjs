@@ -19,11 +19,33 @@ declare namespace FIBJS_IDL {
     export type IIDLDataTuple = IIDLParam[]
 
     /**
+    * @description the inline callback shape of a `Function(...)` parameter or
+    * return type; typing-only, the runtime and the C++ side still see one
+    * `Function` value
+    */
+    export interface IIDLCallbackShape {
+        /**
+         * @description the callback parameters declared between the parentheses
+         */
+        params: IIDLParam[]
+        /**
+         * @description the callback return type as written in the IDL (a type
+         * name, or the struct item list when it is a `(...)` struct); null when
+         * no `=> Type` was declared, which renders as `void`. A nested callback
+         * shape in the return position keeps its type name only, it is not kept
+         * recursively.
+         */
+        ret: IIDLDataType | IIDLDataTuple | null
+    }
+
+    /**
     * @description parameter information in the IDL, describing constructors and member functions
     */
     export interface IIDLParam {
         /**
-         * @description the parameter type
+         * @description the parameter type; `A|B` is a parameter-position union
+         * whose alternatives are the runtime conversion's preference order
+         * (the C++ side receives one `std::variant`, see plans/idl-union-types-2026-10-02.md)
          */
         type: "Array" | string,
         /**
@@ -36,6 +58,11 @@ declare namespace FIBJS_IDL {
         default: {
             value: string
         } | null
+        /**
+         * @description the inline callback shape when the parameter was declared
+         * as `Function(...)`; absent for a bare `Function` or any other type
+         */
+        callback?: IIDLCallbackShape
     }
 
     export interface ISimpleParsedDoc {
@@ -148,6 +175,11 @@ declare namespace FIBJS_IDL {
          * when memType is 'method', this is the return type
          */
         type?: IIDLDataType | IIDLDataTuple
+        /**
+         * @description the inline callback shape when the method returns a
+         * `Function(...)`; typing-only, see IIDLParam['callback']
+         */
+        callback?: IIDLCallbackShape
         /**
          * @description the default value; for a member whose memType is 'const' it is the enum constant.
          */

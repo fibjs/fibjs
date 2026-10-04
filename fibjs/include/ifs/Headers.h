@@ -22,12 +22,18 @@ class Headers_base : public HttpCollection_base {
     DECLARE_CLASS(Headers_base);
 
 public:
+    using Union_Headers_init = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, obj_ptr<Headers_base>>;
+    using Union_Headers_init_load = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>>;
+    static result_t _new(Union_Headers_init_load init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
+    {
+        return std::visit([&](auto&& v) -> result_t { return _new(Union_Headers_init(v), retVal, This); }, init);
+    }
+
+public:
     // Headers_base
     static result_t _new(obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Array> init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Headers_base* init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t getSetCookie(obj_ptr<NArray>& retVal) = 0;
+    static result_t _new(Union_Headers_init init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t getSetCookie(std::vector<exlib::string>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,21 +81,9 @@ inline void Headers_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_Headers_init, 0);
 
     hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<Headers_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -102,28 +96,16 @@ inline result_t Headers_base::load(v8::Local<v8::Value> v, obj_ptr<Headers_base>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_Headers_init_load, 0);
 
     hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<Headers_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }
 
 inline void Headers_base::s_getSetCookie(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_INSTANCE(Headers_base);
     METHOD_ENTER();

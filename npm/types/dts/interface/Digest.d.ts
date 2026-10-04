@@ -42,6 +42,8 @@ declare class Class_Digest extends Class_object {
      */
     update(data: string, codec?: string): Class_Digest;
 
+    update(data: Class_Buffer | string, codec?: string): Class_Digest;
+
     /**
      * @description Computes and returns the digest
      *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module

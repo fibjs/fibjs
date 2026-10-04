@@ -20,6 +20,12 @@ declare class Class_XmlNodeList extends Class_object {
      */
     item(index: number): Class_XmlNode;
 
+    /**
+     * @description Data can be accessed directly with an index
+     *
+     */
+    [index: number]: Class_XmlNode;
+
     "[Symbol.iterator]"(): Iterator<any>;
 
     /**

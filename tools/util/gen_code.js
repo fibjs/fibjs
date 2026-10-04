@@ -1,6 +1,7 @@
 var fs = require("fs");
 var util = require("util");
 var path = require('path');
+var { isUnion, splitUnion } = require('./type-utils');
 
 /**
  * @description generate cpp code from idl definitions
@@ -215,7 +216,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         ov.params.forEach(p => {
                             if (p.name == "...")
                                 ps.push("const v8::FunctionCallbackInfo<v8::Value>& args");
-                            else ps.push(get_type(p) + " " + p.name);
+                            else ps.push(get_type(p, ov) + " " + p.name);
                         });
 
                     if (ov.type)
@@ -276,7 +277,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     inst_mem_ovs
                 } = vary_overs(fn, def);
 
-                function make_ov_params(tp_overs, is_load = false) {
+                function make_ov_params(tp_overs, is_load = false, sink = txts) {
                     tp_overs.forEach(ov => {
                         var argc = 0;
                         var opts = 0;
@@ -290,7 +291,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         if (ov.params) {
                             argc = opts = ov.params.length;
                             ov.params.forEach(p => {
-                                const vt = get_vtype(p);
+                                const vt = get_vtype(p, ov, is_load);
                                 args.push(vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length);
                                 if (p.name == '...') {
                                     opts--;
@@ -306,7 +307,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                     if (p.isarray)
                                         defValue = `${vt}()`;
                                     else if (p.default.value)
-                                        defValue = p.default.value;
+                                        // a string literal default must
+                                        // construct the variant's string
+                                        // alternative explicitly
+                                        defValue = (isUnion(p.type) && /^".*"$/.test(p.default.value))
+                                            ? `exlib::string(${p.default.value})`
+                                            : p.default.value;
                                     else if (Array.isArray(p.default.const))
                                         defValue = p.default.const[0] + '_base::C_' + p.default.const[1];
                                     else
@@ -314,31 +320,43 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                                     params.push(`    OPT_ARG(${vt + ', ' + params.length}, ` + defValue + `);`);
                                 } else {
-                                    if (is_func_new(ov, def) && params.length == 0 && ov.params.length == 1 && p.type == ftype)
-                                        params.push(`    STRICT_ARG(${vt + ', ' + params.length});`);
-                                    else
-                                        params.push(`    ARG(${vt + ', ' + params.length});`);
+                                    params.push(`    ARG(${vt + ', ' + params.length});`);
                                 }
                             });
                         }
 
                         // For load function, only output constructor code with required parameters = 1
                         if (is_load) {
+                            // a constructor that takes the class itself can
+                            // never answer here: load() is only reached for a
+                            // value that is not an instance of the class, so
+                            // converting it again would call load() once more
+                            // and recurse until the stack is gone. An array of
+                            // the class is a different variant (each element is
+                            // converted on its own) and is kept. A union that
+                            // carries the class among its alternatives
+                            // (`Headers(Object|Array|Headers)`) keeps its other
+                            // alternatives: the load conversion drops the self
+                            // one (see the `_load` alias), which is what the
+                            // constructor argument type below resolves to.
+                            if (ov.params && ov.params.some(p => p.type === def.declare.name && !p.isarray))
+                                return;
+
                             if (argc == 0 || opts > 1) {
                                 return;
                             }
                         }
 
-                        txts.push(`    METHOD_OVER(${argc}, ${opts});\n`);
+                        sink.push(`    METHOD_OVER(${argc}, ${opts});\n`);
                         if (params.length)
-                            txts.push(params.join('\n') + '\n');
+                            sink.push(params.join('\n') + '\n');
 
                         args_call = args.slice(0);
                         if (ftype)
                             args_call.push('vr');
 
                         if (ov.deprecated)
-                            txts.push('    DEPRECATED_SOON("' + cls + '.' + ov.name + '");\n');
+                            sink.push('    DEPRECATED_SOON("' + cls + '.' + ov.name + '");\n');
 
                         if (ov.async) {
                             args.push('cb');;
@@ -346,17 +364,17 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                 `    if (!cb.IsEmpty())\n        hr = ${(ov.static ? 'acb_' : 'pInst->acb_')}${get_name(ov.name, ov, def)}(${args.join(', ')}, args);`,
                                 `    else`,
                                 `        hr = ${(ov.static ? 'ac_' : 'pInst->ac_')}${get_name(ov.name, ov, def)}(${args_call.join(', ')});\n`,
-                            ]).forEach(line => txts.push(line))
+                            ]).forEach(line => sink.push(line))
                         } else {
                             if (is_func_new(ov, def))
                                 args_call.push('args.This()');
 
                             if (ov.static || is_func_new(ov, def))
-                                txts.push([
+                                sink.push([
                                     `    hr = ${get_name(get_fname(ov, def), ov, def)}(${args_call.join(', ')});\n`,
                                 ].join(''));
                             else
-                                txts.push([
+                                sink.push([
                                     `    hr = pInst->${get_name(get_fname(ov, def), ov, def)}(${args_call.join(', ')});\n`,
                                 ].join(''));
 
@@ -399,11 +417,24 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     make_ov_params(new_ovs);
                     txts.push('    CONSTRUCT_RETURN();\n}\n');
 
+                    var load_body = [];
+                    make_ov_params(new_ovs, true, load_body);
+
                     txts.push(`inline result_t ${cls}_base::load(v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)\n{`);
-                    txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
-                    txts.push(`    LOAD_ENTER();\n`);
-                    make_ov_params(new_ovs, true);
-                    txts.push('    LOAD_RETURN();\n}\n');
+
+                    if (load_body.length) {
+                        txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
+                        txts.push(`    LOAD_ENTER();\n`);
+                        load_body.forEach(line => txts.push(line));
+                        txts.push('    LOAD_RETURN();\n}\n');
+                    } else {
+                        // nothing is constructible from a value (every
+                        // constructor takes the class itself, directly or
+                        // among its union alternatives): a type mismatch, not
+                        // a parameter-count error -- the caller decides what
+                        // the value means
+                        txts.push('    return CALL_E_TYPEMISMATCH;\n}\n');
+                    }
                 });
 
                 // Check if any overload has Function as last parameter
@@ -480,7 +511,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     fns += get_name(fname, fn, def);
                     fns += "(";
 
-                    fns += get_rtype(fn.type) + "& retVal";
+                    fns += get_rtype(fn.type, fn.isarray) + "& retVal";
 
                     fns += fstatic ? ");" : ") = 0;";
 
@@ -516,7 +547,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
-                txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
+                txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type, fn.isarray)} vr;\n`);
 
                 if (!fstatic)
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
@@ -716,23 +747,140 @@ function gen_code(cls, def, baseFolder, allDefs) {
         }
     }
 
-    function get_type(p) {
-        if (p.isarray)
-            return `std::vector<${typeMap[p.type] || (`obj_ptr<${p.type}_base>`)}>&`;
-        return typeMap[p.type] || (p.type + "_base*");
+    // `Iterator<T>` (`Iterator<XmlNode>` in the IDL) is a typing-only
+    // refinement consumed by the d.ts; the C++ side always means the plain
+    // `Iterator`, so generic arguments are stripped before any type lookup.
+    function base_type(t) {
+        return typeof t === 'string' ? t.replace(/<[^>]*>$/, '') : t;
     }
 
-    function get_vtype(p) {
-        var t = typeMap[p.type] || (`obj_ptr<${p.type}_base>`);
+    // A parameter-position union (`Buffer|String`, see
+    // plans/idl-union-types-2026-10-02.md) becomes a class-level alias over
+    // `std::variant`: the ARG / OPT_ARG / ASYNC_* macros split their arguments
+    // on commas, so the variant type is never written inline. The alias is
+    // named after the parameter it belongs to — `Union_<member>_<param>`,
+    // e.g. `Union_deflate_data` — so a hand-written implementation signature
+    // reads as the function's own vocabulary. Identical unions are
+    // deliberately NOT shared: every parameter gets its own alias, even when
+    // the variant type is the same (user decision, plan §3.7).
+    function union_alias(ov, p) {
+        if (!ov)
+            throw new Error(`[gen_code] the union parameter '${p.name}' has no member context to derive its alias from`);
+
+        return 'Union_' + [ov.name, p.name]
+            .map(n => String(n).replace(/[^A-Za-z0-9_]/g, '_'))
+            .join('_');
+    }
+
+    function union_variants(type) {
+        return splitUnion(type).map(alt => {
+            var t = base_type(alt);
+            return typeMap[t] || (`obj_ptr<${t}_base>`);
+        });
+    }
+
+    function collect_union_types() {
+        var unions = {};
+
+        def.members.forEach(fn => {
+            // event parameters are typing-only (d.ts / docs): they never reach
+            // the member codegen, so a union there needs no std::variant alias
+            // (see plans/idl-event-types-2026-10-03.md)
+            if (fn.memType === 'event')
+                return;
+
+            (fn.overs || []).forEach(ov => {
+                (ov.params || []).forEach(p => {
+                    if (!isUnion(p.type))
+                        return;
+
+                    var alias = union_alias(ov, p);
+                    var existing = unions[alias];
+
+                    if (existing) {
+                        // the same name with the same union is one alias; two
+                        // different unions under one name must be fixed in the
+                        // IDL (rename the parameter)
+                        if (existing.type !== p.type)
+                            throw new Error(`[gen_code] union alias '${alias}' maps two different unions ('${existing.type}' vs '${p.type}') on '${def.declare.name}'; rename one of the parameters`);
+                        return;
+                    }
+
+                    var alts = splitUnion(p.type);
+
+                    unions[alias] = {
+                        alias: alias,
+                        type: p.type,
+                        variants: union_variants(p.type),
+                        loadVariants: is_self_ctor_union(ov, p)
+                            ? union_variants(alts.filter(a => a !== def.declare.name).join('|'))
+                            : null,
+                    };
+                });
+            });
+        });
+
+        return unions;
+    }
+
+    function get_type(p, ov) {
+        if (isUnion(p.type)) {
+            var alias = union_alias(ov, p);
+            return p.isarray ? `std::vector<${alias}>&` : alias;
+        }
+
+        var t = base_type(p.type);
+        if (p.isarray)
+            return `std::vector<${typeMap[t] || (`obj_ptr<${t}_base>`)}>&`;
+        return typeMap[t] || (t + "_base*");
+    }
+
+    // A constructor union that carries the class itself (`Object|Array|Headers`
+    // on Headers) also gets a selfless alias, used by load(): the value is not
+    // an instance of the class, so the self alternative can only call load()
+    // again and recurse. Only when the union is the constructor's *sole*
+    // parameter: the wrapper forwards the one converted value, so with a second
+    // parameter (`UrlObject(String url, String|UrlObject base)`) there would be
+    // no `_new` overload to call - `load()` reaches that constructor through
+    // its plain parameters instead (the url string and the defaulted base).
+    function is_self_ctor_union(ov, p) {
+        return is_func_new(ov, def) && !p.isarray && (ov.params || []).length === 1 &&
+            splitUnion(p.type).indexOf(def.declare.name) >= 0;
+    }
+
+    function get_vtype(p, ov, is_load = false) {
+        if (isUnion(p.type)) {
+            var alias = union_alias(ov, p);
+            // load()’s conversion drops the self alternative: the value is not
+            // an instance of the class, so converting it into the class again
+            // can only recurse (see the `_load` alias and its bridging _new).
+            // The same predicate as the alias emission, or the load body would
+            // name an alias that was never declared.
+            if (is_load && is_self_ctor_union(ov, p))
+                alias += '_load';
+            return p.isarray ? `std::vector<${alias}>` : alias;
+        }
+
+        var bt = base_type(p.type);
+        var t = typeMap[bt] || (`obj_ptr<${bt}_base>`);
         if (p.isarray)
             t = `std::vector<${t}>`;
         return t;
     }
 
     function get_rtype(t, isarray) {
-        if (Array.isArray(t))
-            return `obj_ptr<${t.name}>`;
-        var baseType = typeMap[t] || (`obj_ptr<${t}_base>`);
+        if (Array.isArray(t)) {
+            var base = `obj_ptr<${t.name}>`;
+            return isarray ? `std::vector<${base}>` : base;
+        }
+
+        // returns are not parameter positions: the IDL grammar does not allow
+        // a union there, and `GetReturnValue(std::variant)` does not exist
+        if (isUnion(t))
+            throw new Error(`[gen_code] union types are parameter-only, got the return type '${t}'`);
+
+        var bt = base_type(t);
+        var baseType = typeMap[bt] || (`obj_ptr<${bt}_base>`);
         if (isarray)
             return `std::vector<${baseType}>`;
         return baseType;
@@ -979,7 +1127,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     var name = fn.name;
                     name = name.substr(0, 1).toUpperCase() + name.substr(1) + "Type";
                     fn.type.name = name;
-                    fn.overs.forEach(ofun => {
+                    (fn.overs || []).forEach(ofun => {
                         ofun.type.name = name;
                     })
 
@@ -1079,7 +1227,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                             if (ov.params) {
                                 pn = ov.params.length;
-                                ov.params.forEach(p => ps.push(get_type(p).replace(/&/g, "")));
+                                ov.params.forEach(p => ps.push(get_type(p, ov).replace(/&/g, "")));
                             }
 
                             fns += (ov.static ? "STATIC" : "MEMBER");
@@ -1137,11 +1285,38 @@ function gen_code(cls, def, baseFolder, allDefs) {
             }
         }
 
+        function gen_cls_union_types() {
+            var unions = collect_union_types();
+            var keys = Object.keys(unions);
+
+            if (!keys.length)
+                return;
+
+            txts.push("\npublic:");
+
+            keys.forEach(k => {
+                var u = unions[k];
+                txts.push(`    using ${u.alias} = std::variant<${u.variants.join(', ')}>;`);
+
+                if (u.loadVariants) {
+                    // load()’s own conversion of the union: the self alternative
+                    // is dropped and the trimmed variant is mapped back to the
+                    // full one before the constructor runs
+                    txts.push(`    using ${u.alias}_load = std::variant<${u.loadVariants.join(', ')}>;`);
+                    txts.push(`    static result_t _new(${u.alias}_load init, obj_ptr<${cls}_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())`);
+                    txts.push(`    {`);
+                    txts.push(`        return std::visit([&](auto&& v) -> result_t { return _new(${u.alias}(v), retVal, This); }, init);`);
+                    txts.push(`    }`);
+                }
+            });
+        }
+
         function gen_cls_declare_end() {
             txts.push("};");
         }
 
         gen_cls_declare();
+        gen_cls_union_types();
         gen_cls_using_declarations();
         gen_cls_consts();
         gen_cls_retTypes();
@@ -1371,13 +1546,26 @@ function gen_code(cls, def, baseFolder, allDefs) {
         var types = {};
 
         function add_type(type) {
-            if (type && (type !== cls) && (type !== 'object') &&
-                (type !== def.declare.extend) &&
-                (!typeMap[type]))
-                types[type] = true;
+            // a union needs every alternative's forward declaration / include
+            if (isUnion(type)) {
+                splitUnion(type).forEach(add_type);
+                return;
+            }
+
+            var t = base_type(type);
+            if (t && (t !== cls) && (t !== 'object') &&
+                (t !== def.declare.extend) &&
+                (!typeMap[t]))
+                types[t] = true;
         }
 
         def.members.forEach(m => {
+            // event parameters are typed for the d.ts only: they generate no
+            // C++ member, so they pull in no forward declaration / include
+            // (see plans/idl-event-types-2026-10-03.md)
+            if (m.memType === 'event')
+                return;
+
             if (Array.isArray(m.type))
                 m.type.forEach(rt => add_type(rt.type));
             else

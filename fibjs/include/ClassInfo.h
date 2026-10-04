@@ -12,6 +12,7 @@
 
 #include <v8.h>
 #include <string>
+#include "utils.h"
 
 namespace fibjs {
 
@@ -102,7 +103,7 @@ inline void prop_setter_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)
     ClassData::ClassProperty* cp = (ClassData::ClassProperty*)v8::Local<v8::External>::Cast(args.Data())->Value();
 
     v8::Local<v8::Object> self = args.This();
-    if (self->InternalFieldCount() > 0) {
+    if (IsNativeObject(self)) {
         // Native instance: delegate to the native setter (which may throw for readonly props).
         // Never fall back to CreateDataProperty — that would shadow the native getter.
         if (cp->setter)

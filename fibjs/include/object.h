@@ -403,10 +403,13 @@ public:
 
     virtual result_t toString(exlib::string& retVal)
     {
-        retVal = "[object ";
-        retVal.append(Classinfo().name());
-        retVal.append("]");
-        return 0;
+        // a native object has no implicit string form: classes that can be
+        // written as a string implement toString themselves, everything else
+        // reports an error instead of turning into "[object Name]" and being
+        // silently accepted where a string is expected
+        exlib::string msg = Classinfo().name();
+        msg.append(": the object can not be converted to string.");
+        return CHECK_ERROR(Runtime::setError(msg.c_str()));
     }
 
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)

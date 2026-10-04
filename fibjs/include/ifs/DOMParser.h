@@ -76,11 +76,7 @@ inline void DOMParser_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline result_t DOMParser_base::load(v8::Local<v8::Value> v, obj_ptr<DOMParser_base>& retVal)
 {
-    obj_ptr<DOMParser_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void DOMParser_base::s_parseFromString(const v8::FunctionCallbackInfo<v8::Value>& args)

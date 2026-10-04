@@ -46,6 +46,11 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
     return NULL;
 }
 
+bool IsNativeObject(v8::Local<v8::Value> v)
+{
+    return object_base::getInstance(v) != NULL;
+}
+
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict)
 {
     vr = (object_base*)object_base::unwrap(v);

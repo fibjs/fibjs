@@ -182,6 +182,12 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
     return ToString(isolate, str);
 }
 
+// INTERIM (commit split): the strict String conversion (an object converts
+// only through a toString() of its own, a primitive has no string form)
+// switches with the Buffer/encoding family, whose corpus carries the callers
+// that hand a real string form. Until then the lenient pass keeps rendering
+// through ToString().
+
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
 {
     if (v.IsEmpty())
@@ -196,6 +202,11 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
     else if (!bStrict) {
         if (v->IsDate())
             str = v.As<v8::Date>()->ToISOString();
+        else if (IsNativeObject(v))
+            // a native object renders through the DOMString form: its own
+            // toString(), or its class tag when the class implements none
+            // (object_base::toString reports an error now)
+            return GetDOMStringValue(v, n);
         else
             str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
     } else
@@ -205,6 +216,43 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
         return CALL_E_JAVASCRIPT;
 
     n = ToString(isolate->m_isolate, str);
+    return 0;
+}
+
+result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal)
+{
+    Isolate* isolate = v->IsObject() ? Isolate::current(v.As<v8::Object>()) : Isolate::current();
+
+    // the value's own string form, like String() in JavaScript. A conversion
+    // that throws is either a symbol (the engine error stands) or a native
+    // object whose class implements no toString() -- the generic one reports
+    // an error (object_base::toString); the DOM renders the object tag for the
+    // latter, which is what Object.prototype.toString gives: String(file) is
+    // "[object File]"
+    v8::TryCatch trycatch(isolate->m_isolate);
+    v8::Local<v8::String> str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
+
+    if (trycatch.HasCaught()) {
+        object_base* o = object_base::getInstance(v);
+
+        if (!o) {
+            // the conversion of a value that is not a native object threw (a
+            // symbol, or a toString() of its own): the engine error stands
+            trycatch.ReThrow();
+
+            return CALL_E_JAVASCRIPT;
+        }
+
+        retVal = "[object ";
+        retVal.append(o->Classinfo().name());
+        retVal.append("]");
+        return 0;
+    }
+
+    if (str.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    retVal = ToString(isolate->m_isolate, str);
     return 0;
 }
 

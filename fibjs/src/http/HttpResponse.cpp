@@ -318,7 +318,9 @@ result_t HttpResponse::appendHeader(Headers_base* headers)
     return m_message->appendHeader(headers);
 }
 
-result_t HttpResponse::appendHeader(exlib::string name, exlib::string value)
+// INTERIM (commit split): HttpMessage takes the Variant value here; the final
+// HttpResponse moves to the union/typed-return surface in the http batch.
+result_t HttpResponse::appendHeader(exlib::string name, Variant value)
 {
     return m_message->appendHeader(name, value);
 }
@@ -338,7 +340,8 @@ result_t HttpResponse::setHeader(Headers_base* headers)
     return m_message->setHeader(headers);
 }
 
-result_t HttpResponse::setHeader(exlib::string name, exlib::string value)
+// INTERIM (commit split): see appendHeader above.
+result_t HttpResponse::setHeader(exlib::string name, Variant value)
 {
     return m_message->setHeader(name, value);
 }

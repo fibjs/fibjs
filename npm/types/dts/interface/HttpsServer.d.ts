@@ -42,7 +42,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
-    constructor(context: Class_SecureContext, port: number, hdlr: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpsServer constructor
@@ -52,7 +52,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
-    constructor(context: Class_SecureContext, addr: string, port: number, hdlr: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpsServer constructor, listens on all local addresses
@@ -65,7 +65,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description HttpsServer constructor, does not bind a port; listen() must be called to start
@@ -73,7 +73,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
      *
      */
-    constructor(context: Class_SecureContext, hdlr: Class_Handler);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
 
     /**
      * @description queries the SecureContext used by the current HttpsServer
@@ -85,7 +85,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *     @param context specifies the new SecureContext
      *
      */
-    setSecureContext(context: Class_SecureContext): void;
+    setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
      * @description sets the SecureContext used by the current HttpsServer
@@ -96,3 +96,77 @@ declare class Class_HttpsServer extends Class_HttpServer {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/HttpServer.d.ts" />
+/// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
+/**
+ * The promise variant of the HttpsServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
+    /**
+     * @description HttpsServer constructor, listens on all local addresses
+     *     @param context the SecureContext secure context
+     *     @param port specifies the port on which the http server listens
+     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpsServer constructor
+     *      @param context the SecureContext secure context
+     *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
+     *      @param port specifies the port on which the http server listens
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpsServer constructor, listens on all local addresses
+     *
+     *      In addition to the properties used to create a SecureContext, options can also provide the following properties:
+     *      - address: specifies the listening address, optional, by default listens on all addresses
+     *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
+     *
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *
+     */
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *      @param context the SecureContext secure context
+     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *
+     */
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+
+    /**
+     * @description queries the SecureContext used by the current HttpsServer
+     */
+    readonly secureContext: Class_SecureContextPromise;
+
+    /**
+     * @description sets the SecureContext used by the current HttpsServer
+     *     @param context specifies the new SecureContext
+     *
+     */
+    setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
+
+    /**
+     * @description sets the SecureContext used by the current HttpsServer
+     *     @param options the options needed to create a secure context with tls.createSecureContext
+     *
+     */
+    setSecureContext(options: FIBJS.GeneralObject): void;
+
+}
+
+
+declare namespace Class_HttpsServer {
+    const promises: FIBJS.GeneralObject;
+}

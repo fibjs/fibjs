@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <optional>
+#include <tuple>
 #include <exlib/include/fiber.h>
 #include "utils.h"
 #include "Runtime.h"
@@ -102,6 +104,23 @@ public:
 public:
     std::vector<Variant> m_ctx;
     obj_ptr<object_base> m_ctxo;
+
+public:
+    // The union discipline (plans/idl-union-types-2026-10-02.md §3.15): a union
+    // parameter that carries a v8 alternative is preprocessed in the sync phase
+    // and carried in m_ctx; the async phase only reads the slot back, and asks
+    // for it first. A missing slot means the sync phase never ran (the
+    // compile-cache entry cc_<name> calls the implementation straight in the
+    // async phase), which is a programming error of that entry, not something
+    // to dereference.
+    result_t ctx(size_t n)
+    {
+        if (m_ctx.size() <= n)
+            return Runtime::setError(CALL_E_INVALIDARG,
+                "the union parameter at ctx[%d] was not prepared: the sync phase of this entry did not run.", (int32_t)n);
+
+        return 0;
+    }
 
 protected:
     void captureErrorContext(int32_t v)
@@ -659,6 +678,116 @@ public:
 private:
     v8::Isolate* m_isolate;
     v8::Global<v8::Object> m_v;
+};
+
+// One captured union alternative: plain values are copied; a v8 handle is kept
+// alive in a Global and surfaces as an empty handle when the callback resumes
+// — the same contract as _at<v8::Local<Object>> above.
+template <typename T>
+class _at_variant_alt {
+public:
+    _at_variant_alt(T v)
+        : m_v(v)
+    {
+    }
+
+    T c_value()
+    {
+        return m_v;
+    }
+
+    T value()
+    {
+        return m_v;
+    }
+
+private:
+    T m_v;
+};
+
+template <typename T>
+class _at_variant_alt<v8::Local<T>> {
+public:
+    _at_variant_alt(v8::Local<T> v)
+        : m_isolate(Isolate::current(v)->m_isolate)
+    {
+        m_v.Reset(m_isolate, v);
+    }
+
+    v8::Local<T> c_value()
+    {
+        return v8::Local<T>();
+    }
+
+    v8::Local<T> value()
+    {
+        return m_v.Get(m_isolate);
+    }
+
+private:
+    v8::Isolate* m_isolate;
+    v8::Global<T> m_v;
+};
+
+// A union parameter (IDL `A|B`, `std::variant` in the generated signatures)
+// captured for the callback phase: the alternative index is preserved, the
+// non-v8 alternatives carry their values and the v8 alternatives surface as
+// empty handles when the callback resumes. The synchronous phase sees the
+// original value (the async macros pass it to the implementation directly),
+// so `value()` mirrors that contract.
+template <typename... Ts>
+class _at<std::variant<Ts...>> {
+public:
+    _at(std::variant<Ts...>& v)
+        : m_index(v.index())
+    {
+        capture(v, std::index_sequence_for<Ts...>());
+    }
+
+    std::variant<Ts...> c_value()
+    {
+        return convert(true, std::index_sequence_for<Ts...>());
+    }
+
+    std::variant<Ts...> value()
+    {
+        return convert(false, std::index_sequence_for<Ts...>());
+    }
+
+private:
+    template <std::size_t... Is>
+    void capture(std::variant<Ts...>& v, std::index_sequence<Is...>)
+    {
+        bool done = false;
+
+        (void)std::initializer_list<bool>{
+            (done || v.index() != Is
+                 ? false
+                 : (done = true, std::get<Is>(m_cap).emplace(std::get<Is>(v)), true))...
+        };
+    }
+
+    template <std::size_t... Is>
+    std::variant<Ts...> convert(bool resume, std::index_sequence<Is...>)
+    {
+        std::variant<Ts...> out;
+        bool done = false;
+
+        (void)std::initializer_list<bool>{
+            (done || m_index != Is
+                 ? false
+                 : (done = true,
+                    out.template emplace<Is>(resume
+                        ? std::get<Is>(m_cap).value().c_value()
+                        : std::get<Is>(m_cap).value().value()),
+                    true))...
+        };
+
+        return out;
+    }
+
+    std::size_t m_index;
+    std::tuple<std::optional<_at_variant_alt<Ts>>...> m_cap;
 };
 
 class NType;

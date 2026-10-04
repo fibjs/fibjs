@@ -402,6 +402,40 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
     return 0;
 }
 
+// INTERIM (commit split): the 4-argument form is the existing conversion with
+// the default encoding; it goes away when the Buffer parameter family switches
+// to the strict conversion (the first caller of this form is generated code).
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
+{
+    return GetArgumentValue(isolate, v, vr, bStrict, "utf8");
+}
+
+// a binary option (key material, passphrase, header, ...) accepts a string as
+// its utf8 bytes: the string form is the nominal way to write it, while the
+// lenient Buffer argument conversion no longer takes strings
+result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, obj_ptr<Buffer_base>& n, bool bStrict)
+{
+    if (o.IsEmpty())
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
+
+    Isolate* isolate = Isolate::current(o);
+    JSValue v = o->Get(isolate->context(), isolate->NewString(key));
+    if (v->IsUndefined() || v->IsNull())
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
+
+    if (v->IsString() || v->IsStringObject()) {
+        exlib::string s;
+
+        result_t hr = GetArgumentValue(isolate, v, s);
+        if (hr < 0)
+            return hr;
+
+        return Buffer_base::from(s, "utf8", n);
+    }
+
+    return GetArgumentValue(isolate, v, n, bStrict);
+}
+
 #define BUFFER_INSTANCE()                                     \
     obj_ptr<Buffer> pInst = Buffer::getInstance(args.This()); \
     if (pInst == NULL) {                                      \

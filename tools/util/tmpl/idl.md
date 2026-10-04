@@ -41,6 +41,36 @@ function def_value(v, o)
     return v.const;
 }
 
+function type_name(t)
+{
+    if(Array.isArray(t))
+        return '(' + t.map(function(it){
+            return (it.type ? it.type + ' ' : '') + it.name + (it.isarray ? '[]' : '');
+        }).join(', ') + ')';
+
+    return t;
+}
+
+function type_text(p)
+{
+    if(p.callback)
+    {
+        var ps = p.callback.params.map(function(cp){
+            if(cp.type === '...' || !cp.type)
+                return '...' + (cp.name && cp.name !== '...' ? cp.name : '');
+
+            return type_text(cp) + ' ' + cp.name + (cp.isarray ? '[]' : '');
+        }).join(', ');
+
+        var s = 'Function(' + ps + ')';
+        if(p.callback.ret)
+            s += ' => ' + type_name(p.callback.ret);
+        return s;
+    }
+
+    return p.type;
+}
+
 function member_output(title, test){
     var has = false;
     members.forEach(function(m){
@@ -69,7 +99,7 @@ methodsToProcess.forEach(function(method) {
 <%if(method.const){%><%-method.const%> <%}
 if(method.static){%><%-method.static%> <%}
 if(method.readonly){%><%-method.readonly%> <%}
-if(method.type){%><%-method.type%> <%}
+if(method.callback){%><%-type_text(method)%> <%}else if(method.type){%><%-method.type%> <%}
 if(method.memType === 'event'){%>event <%}
 %><%-declare.name == method.name ? ' new ' : declare.name + (method.memType !== 'operator' ? '.' + (method.memType === 'event' ? '' : method.symbol) : '')%><%-method.name%><%
 if(method.memType == 'method' || method.memType == 'event'){
@@ -80,8 +110,8 @@ if(method.memType == 'method' || method.memType == 'event'){
             if(ps)
                 ps += ',\n                ';
 
-            if(p.type)
-                ps += p.type + ' ';
+            if(p.type || p.callback)
+                ps += type_text(p) + ' ';
             ps += p.name;
             if(p.isarray)
                 ps += "[]";

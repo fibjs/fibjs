@@ -71,19 +71,9 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description processes a message or object with the given handler
-     *
-     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description processes a message or object with the given handler
@@ -93,7 +83,17 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler, v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+
+    /**
+     * @description processes a message or object with the given handler
+     *
+     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
+     *      @param hdlr specifies the handler to use
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): Promise<void>;
 
 }
 

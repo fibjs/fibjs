@@ -94,3 +94,75 @@ declare class Class_File extends Class_Blob {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Blob.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
+/**
+ * The promise variant of the File class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_FilePromise extends Class_BlobPromise {
+    /**
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+     *
+     *     options supports the following properties:
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
+     *
+     *      @param blobParts the initial data array, may contain strings, ArrayBuffers, TypedArrays, Blobs, etc.
+     *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *      @param options optional parameter object
+     *
+     */
+    constructor(blobParts: any[], name: string, options?: FIBJS.GeneralObject);
+
+    /**
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+     *
+     *     options supports the following properties:
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
+     *
+     *      @param blobData the initial binary data, can be a Buffer or another binary data type.
+     *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *      @param options optional parameter object
+     *
+     */
+    constructor(blobData: Class_Buffer, name: string, options?: FIBJS.GeneralObject);
+
+    /**
+     * !@description File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+     *
+     *     options supports the following properties:
+     *        - data: the initial binary data, can be a Buffer or another binary data type.
+     *        - name: the file name, must be a string and cannot be empty, e.g. "a.txt".
+     *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
+     *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
+     *
+     *      @param options optional parameter object
+     *
+     */
+    constructor(options?: FIBJS.GeneralObject);
+
+    /**
+     * !@description File name, read-only property, returns the name of the file.
+     *
+     *      This property identifies the file, and is typically used when displaying, uploading or saving it.
+     *
+     */
+    readonly name: string;
+
+    /**
+     * !@description Last modification timestamp, read-only property, returns the last modification time of the file (in milliseconds).
+     *
+     *      This property represents the last modification time of the file, in milliseconds since 1970-01-01 00:00:00 UTC.
+     *
+     */
+    readonly lastModified: number;
+
+}
+
+
+declare namespace Class_File {
+    const promises: FIBJS.GeneralObject;
+}

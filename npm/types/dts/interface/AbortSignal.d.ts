@@ -56,5 +56,62 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      */
     on(event: "abort", listener: ()=>void): this;
 
+    once(event: "abort", listener: ()=>void): this;
+
+    off(event: "abort", listener: ()=>void): this;
+
+    addListener(event: "abort", listener: ()=>void): this;
+
+    removeListener(event: "abort", listener: ()=>void): this;
+
+    addEventListener(event: "abort", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "abort", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "abort", listener: ()=>void): this;
+
+    prependOnceListener(event: "abort", listener: ()=>void): this;
+
+    /**
+     * @description Event handler triggered when the request is aborted
+     */
+    onabort: (()=>void) | null;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
 }
 

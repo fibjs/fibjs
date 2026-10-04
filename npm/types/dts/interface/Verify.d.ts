@@ -47,6 +47,8 @@ declare class Class_Verify extends Class_object {
      */
     update(data: string, codec?: string): Class_Verify;
 
+    update(data: Class_Buffer | string, codec?: string): Class_Verify;
+
     /**
      * @description Verifies the signature of all the data passed in
      *      @param privateKey the public key used for verification

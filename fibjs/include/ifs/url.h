@@ -22,14 +22,16 @@ class url_base : public object_base {
     DECLARE_CLASS(url_base);
 
 public:
+    using Union_fileURLToPath_url = std::variant<obj_ptr<UrlObject_base>, exlib::string>;
+
+public:
     // url_base
-    static result_t format(exlib::string href, exlib::string& retVal);
     static result_t format(v8::Local<v8::Object> args, exlib::string& retVal);
     static result_t format(UrlObject_base* urlObject, v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t format(exlib::string href, exlib::string& retVal);
     static result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal);
     static result_t resolve(exlib::string _from, exlib::string to, exlib::string& retVal);
-    static result_t fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> options, exlib::string& retVal);
-    static result_t fileURLToPath(exlib::string url, v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t pathToFileURL(exlib::string path, v8::Local<v8::Object> options, obj_ptr<UrlObject_base>& retVal);
     static result_t domainToASCII(exlib::string domain, exlib::string& retVal);
     static result_t domainToUnicode(exlib::string domain, exlib::string& retVal);
@@ -96,12 +98,6 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-
-    hr = format(v0, vr);
-
-    METHOD_OVER(1, 1);
-
     ARG(v8::Local<v8::Object>, 0);
 
     hr = format(v0, vr);
@@ -112,6 +108,12 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = format(v0.get(), v1, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = format(v0, vr);
 
     METHOD_RETURN();
 }
@@ -157,14 +159,7 @@ inline void url_base::s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<UrlObject_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = fileURLToPath(v0.get(), v1, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
+    ARG(Union_fileURLToPath_url, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = fileURLToPath(v0, v1, vr);

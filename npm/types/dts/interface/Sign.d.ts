@@ -47,6 +47,8 @@ declare class Class_Sign extends Class_object {
      */
     update(data: string, codec?: string): Class_Sign;
 
+    update(data: Class_Buffer | string, codec?: string): Class_Sign;
+
     /**
      * @description Computes the signature of all the data passed in
      *      @param privateKey the private key used for signing

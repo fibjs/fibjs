@@ -3135,4 +3135,34 @@ Line 3 with special chars: áéíóú`;
             });
         });
     });
+
+    describe("constructor and append argument validation", () => {
+        // the rejection of a non-source value (e.g. a number) moves with the
+        // strict String conversion (the Buffer/encoding family batch)
+
+        it("should accept an empty field name, like the Web FormData API", () => {
+            const form = new FormData();
+            form.append('', 'v');
+            assert.strictEqual(form.get(''), 'v');
+            assert.deepStrictEqual(form.getAll(''), ['v']);
+        });
+
+        it("should keep the File name of an appended entry", () => {
+            const form = new FormData();
+            form.append('file', new File(['x'], 'файл.txt'));
+            assert.strictEqual(form.get('file').constructor.name, 'File');
+            assert.strictEqual(form.get('file').name, 'файл.txt');
+        });
+
+        it("should append and set a group of values", () => {
+            const form = new FormData();
+            form.append('list', ['a', 'b']);
+            assert.deepStrictEqual(form.getAll('list'), ['a', 'b']);
+            form.append('list', 'c');
+            assert.deepStrictEqual(form.getAll('list'), ['a', 'b', 'c']);
+
+            form.set('list', ['x', 'y']);
+            assert.deepStrictEqual(form.getAll('list'), ['x', 'y']);
+        });
+    });
 });

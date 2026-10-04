@@ -101,44 +101,11 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
     constructor();
 
     /**
-     * @description URLSearchParams constructor, initializes the parameter container with the given query string
-     *      @param init the query string used for initialization, such as "name=value&key=val"
+     * @description URLSearchParams constructor, initializes the parameter container from an object, an array of pairs, another container, a query string or an iterable
+     *      @param init the initial parameters: an object whose keys are parameter names, an array of [name, value] pairs, another URLSearchParams container, a query string such as "name=value&key=val", or any iterable of [name, value] pairs
      *
      */
-    constructor(init: string);
-
-    /**
-     * @description URLSearchParams constructor, initializes the parameter container with the given object
-     *      @param init the parameter object used for initialization, whose keys are parameter names and values are parameter values
-     *
-     */
-    constructor(init: FIBJS.GeneralObject);
-
-    /**
-     * @description URLSearchParams constructor, initializes the parameter container with the given array
-     *      @param init the parameter array used for initialization; each element is an array containing a parameter name and a parameter value
-     *
-     */
-    constructor(init: any[]);
-
-    /**
-     * @description URLSearchParams constructor, initializes the parameter container with the given URLSearchParams object
-     *      @param init the URLSearchParams object used for initialization
-     *
-     */
-    constructor(init: Class_URLSearchParams);
-
-    /**
-     * @description URLSearchParams constructor, initializes the parameter container with the given iterable object
-     *
-     *      Any object implementing the iterator protocol (such as Map, Set, FormData, URLSearchParams) is expanded into
-     *      a sequence of [name, value] pairs and then written, consistent with the Web standard URLSearchParams constructor;
-     *      a TypeError is thrown if an element is not a key-value pair.
-     *
-     *      @param init the iterable object used for initialization; each element is an array containing a parameter name and a parameter value
-     *
-     */
-    constructor(init: any);
+    constructor(init: FIBJS.GeneralObject | any[] | Class_URLSearchParams | string | any);
 
     /**
      * @description the number of parameter pairs (multiple values with the same name are counted separately, consistent with the Web standard)

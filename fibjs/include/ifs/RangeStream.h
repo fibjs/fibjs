@@ -101,11 +101,7 @@ inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline result_t RangeStream_base::load(v8::Local<v8::Value> v, obj_ptr<RangeStream_base>& retVal)
 {
-    obj_ptr<RangeStream_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void RangeStream_base::s_get_begin(const v8::FunctionCallbackInfo<v8::Value>& args)

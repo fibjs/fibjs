@@ -121,11 +121,7 @@ inline void Service_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline result_t Service_base::load(v8::Local<v8::Value> v, obj_ptr<Service_base>& retVal)
 {
-    obj_ptr<Service_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)

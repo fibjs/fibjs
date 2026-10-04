@@ -24,17 +24,23 @@ class FormData_base : public HttpCollection_base {
     DECLARE_CLASS(FormData_base);
 
 public:
+    using Union_FormData_init = std::variant<v8::Local<v8::Object>, obj_ptr<FormData_base>, exlib::string>;
+    using Union_FormData_init_load = std::variant<v8::Local<v8::Object>, exlib::string>;
+    static result_t _new(Union_FormData_init_load init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
+    {
+        return std::visit([&](auto&& v) -> result_t { return _new(Union_FormData_init(v), retVal, This); }, init);
+    }
+
+public:
     using HttpCollection_base::append;
     using HttpCollection_base::set;
 
 public:
     // FormData_base
     static result_t _new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Blob_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(FormData_base* init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_FormData_init init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(exlib::string name, Blob_base* value) = 0;
     virtual result_t append(exlib::string name, Variant value, exlib::string filename) = 0;
     virtual result_t set(exlib::string name, Blob_base* value) = 0;
@@ -92,12 +98,6 @@ inline void FormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = _new(v0, vr, args.This());
-
     METHOD_OVER(2, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
@@ -114,15 +114,9 @@ inline void FormData_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_FormData_init, 0);
 
     hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<FormData_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -133,12 +127,6 @@ inline result_t FormData_base::load(v8::Local<v8::Value> v, obj_ptr<FormData_bas
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = _new(v0, vr, args.This());
-
     METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Blob_base>, 0);
@@ -148,15 +136,9 @@ inline result_t FormData_base::load(v8::Local<v8::Value> v, obj_ptr<FormData_bas
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(Union_FormData_init_load, 0);
 
     hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    STRICT_ARG(obj_ptr<FormData_base>, 0);
-
-    hr = _new(v0.get(), vr, args.This());
 
     LOAD_RETURN();
 }
@@ -190,7 +172,7 @@ inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG(Union_append_value, 1);
 
     hr = pInst->append(v0, v1);
 
@@ -199,13 +181,6 @@ inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(v8::Local<v8::Array>, 0);
 
     hr = pInst->append(v0);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
-
-    hr = pInst->append(v0, v1);
 
     METHOD_VOID();
 }
@@ -239,14 +214,7 @@ inline void FormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-
-    hr = pInst->set(v0, v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG(Union_set_value, 1);
 
     hr = pInst->set(v0, v1);
 

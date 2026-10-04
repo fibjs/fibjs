@@ -76,9 +76,20 @@ result_t url_base::resolve(exlib::string _from, exlib::string to,
     return 0;
 }
 
-result_t url_base::fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> options, exlib::string& retVal)
+result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Object> options, exlib::string& retVal)
 {
-    obj_ptr<Url> u = (Url*)url;
+    // a string is parsed into a URL object first
+    if (std::holds_alternative<exlib::string>(url)) {
+        obj_ptr<Url> parsed = new Url();
+
+        result_t hr = parsed->parse(std::get<exlib::string>(url));
+        if (hr < 0)
+            return hr;
+
+        return fileURLToPath(parsed, options, retVal);
+    }
+
+    obj_ptr<Url> u = (Url*)std::get<obj_ptr<UrlObject_base>>(url).get();
 
     if (!u->m_url || u->m_url->type != ada::scheme::FILE)
         return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
@@ -184,17 +195,6 @@ result_t url_base::fileURLToPath(UrlObject_base* url, v8::Local<v8::Object> opti
     }
 
     return 0;
-}
-
-result_t url_base::fileURLToPath(exlib::string url, v8::Local<v8::Object> options, exlib::string& retVal)
-{
-    obj_ptr<Url> u = new Url();
-
-    result_t hr = u->parse(url);
-    if (hr < 0)
-        return hr;
-
-    return fileURLToPath(u, options, retVal);
 }
 
 result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> options, obj_ptr<UrlObject_base>& retVal)

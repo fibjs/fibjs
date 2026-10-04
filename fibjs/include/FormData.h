@@ -21,7 +21,7 @@ public:
 
 public:
     // HttpCollection_base
-    virtual result_t append(exlib::string name, Variant value);
+    virtual result_t append(exlib::string name, Union_append_value value);
 
 public:
     // FormData_base

@@ -101,11 +101,7 @@ inline void TLSHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline result_t TLSHandler_base::load(v8::Local<v8::Value> v, obj_ptr<TLSHandler_base>& retVal)
 {
-    obj_ptr<TLSHandler_base> vr;
-
-    LOAD_ENTER();
-
-    LOAD_RETURN();
+    return CALL_E_TYPEMISMATCH;
 }
 
 inline void TLSHandler_base::s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args)

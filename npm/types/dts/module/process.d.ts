@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
 /**
  * @description Process handling module, used to manage the resources of the current process
  *
@@ -178,14 +179,14 @@ declare module 'process' {
     /**
      * @description Exits the current process, using exitCode as the process result
      */
-    function exit(): void;
+    function exit(): never;
 
     /**
      * @description Exits the current process and returns the result
      *      @param code the process result to return
      *
      */
-    function exit(code: number): void;
+    function exit(code: number): never;
 
     /**
      * @description Returns the current working path of the operating system
@@ -433,6 +434,76 @@ declare module 'process' {
      *
      */
     function send(msg: any): void;
+
+    function EventEmitter(options?: FIBJS.GeneralObject): void;
+
+    const defaultMaxListeners: number;
+
+    function on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function off(ev: any): FIBJS.GeneralObject;
+
+    function off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function removeListener(ev: any): FIBJS.GeneralObject;
+
+    function removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function removeAllListeners(ev: any): FIBJS.GeneralObject;
+
+    function removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
+
+    function setMaxListeners(n: number): void;
+
+    function getMaxListeners(): number;
+
+    function listeners(ev: any): any[];
+
+    function rawListeners(ev: any): any[];
+
+    function listenerCount(ev: any): number;
+
+    function listenerCount(o: any, ev: any): number;
+
+    function eventNames(): any[];
+
+    function emit(ev: any, ...args: any[]): boolean;
+
+    function addAbortListener(signal: Class_EventEmitter, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    function once(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function on(emitter: Class_EventEmitter, ev: any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    function toString(): string;
+
+    function toJSON(key?: string): any;
 
 }
 

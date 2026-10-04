@@ -3,21 +3,62 @@ var path = require('path');
 var ejs = require('ejs');
 var beautify = require('js-beautify');
 var cloneDeep = require('clone-deep');
+var typeUtils = require('./type-utils');
 
 global.cwrap = 0;
 
 module.exports = function (defs, docsFolder) {
+    // Render a type the way the IDL declares it: inline callbacks keep their
+    // shape (`Function(String eventType, Value filename)`), structs keep their
+    // item list. Used by the signatures and the @param / @return prefixes.
+    function formatTypeName(t) {
+        if (Array.isArray(t)) {
+            var ts = '';
+
+            t.forEach(function (item) {
+                if (ts)
+                    ts += ', ';
+
+                if (item.type)
+                    ts += item.type + ' ';
+                ts += item.name;
+                if (item.isarray)
+                    ts += '[]';
+            });
+            return '(' + ts + ')';
+        }
+        if (typeUtils.isUnion(t))
+            return typeUtils.splitUnion(t).join(' | ');
+        return t;
+    }
+
+    function formatCallback(shape) {
+        var s = 'Function(' + (shape.params || []).map(formatParam).join(', ') + ')';
+        if (shape.ret)
+            s += ' => ' + formatTypeName(shape.ret);
+        return s;
+    }
+
+    function formatParam(p) {
+        if (p.type === '...' || !p.type)
+            return '...' + (p.name && p.name !== '...' ? p.name : '');
+
+        var s = (p.callback ? formatCallback(p.callback) : formatTypeName(p.type)) + ' ';
+        s += p.name;
+        if (p.isarray)
+            s += '[]';
+        return s;
+    }
+
+    function formatType(p) {
+        return p.callback ? formatCallback(p.callback) : formatTypeName(p.type);
+    }
+
     // Generate function signature for better error messages
     function getMethodSignature(className, method) {
         var sig = className + '.' + method.name + '(';
         if (method.params && method.params.length > 0) {
-            sig += method.params.map(p => {
-                var paramStr = '';
-                if (p.type) paramStr += p.type + ' ';
-                paramStr += p.name;
-                if (p.isarray) paramStr += '[]';
-                return paramStr;
-            }).join(', ');
+            sig += method.params.map(formatParam).join(', ');
         }
         sig += ')';
         return sig;
@@ -64,26 +105,20 @@ module.exports = function (defs, docsFolder) {
                         if (m.params[i].type && m.params[i].name === m.doc.params[i].name) {
                             if (m.params[i].isarray)
                                 m.doc.params[i].name += '[]';
-                            m.doc.params[i].descript = m.params[i].type + ", " + m.doc.params[i].descript;
+                            m.doc.params[i].descript = formatType(m.params[i]) + ", " + m.doc.params[i].descript;
                         }
                     }
                 }
 
                 if (Array.isArray(m.type)) {
-                    var ts = '';
-
-                    m.type.forEach(function (p) {
-                        if (ts)
-                            ts += ', ';
-
-                        if (p.type)
-                            ts += p.type + ' ';
-                        ts += p.name;
-                    });
-                    m.type = '(' + ts + ')';
+                    m.type = formatTypeName(m.type);
                 }
 
-                if (m.type) {
+                if (m.callback) {
+                    if (m.memType == 'method' && m.doc.return && m.doc.return.descript) {
+                        m.doc.return.descript = formatCallback(m.callback) + (m.isarray ? '[]' : '') + ", " + m.doc.return.descript;
+                    }
+                } else if (m.type) {
                     if (m.memType == 'method' && m.doc.return && m.doc.return.descript) {
                         m.doc.return.descript = m.type + ", " + m.doc.return.descript;
                     }

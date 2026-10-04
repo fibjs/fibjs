@@ -77,15 +77,55 @@ declare class Class_WebSocket extends Class_EventEmitter {
      */
     constructor(url: string, opts: FIBJS.GeneralObject);
 
+    /**
+     * @description specifies WebSocket message type 0, representing a continuation frame
+     */
+    static readonly CONTINUE: 0;
 
+    /**
+     * @description specifies WebSocket message type 1, representing a text frame
+     */
+    static readonly TEXT: 1;
 
+    /**
+     * @description specifies WebSocket message type 2, representing a binary frame
+     */
+    static readonly BINARY: 2;
 
+    /**
+     * @description specifies WebSocket message type 8, connection close
+     */
+    static readonly CLOSE: 8;
 
+    /**
+     * @description specifies WebSocket message type 9, representing a ping frame
+     */
+    static readonly PING: 9;
 
+    /**
+     * @description specifies WebSocket message type 10, representing a pong frame
+     */
+    static readonly PONG: 10;
 
+    /**
+     * @description specifies the WebSocket state, indicating connecting
+     */
+    static readonly CONNECTING: 0;
 
+    /**
+     * @description specifies the WebSocket state, indicating connected
+     */
+    static readonly OPEN: 1;
 
+    /**
+     * @description specifies the WebSocket state, indicating closing
+     */
+    static readonly CLOSING: 2;
 
+    /**
+     * @description specifies the WebSocket state, indicating closed
+     */
+    static readonly CLOSED: 3;
 
     /**
      * @description queries the server the current object is connected to
@@ -129,25 +169,111 @@ declare class Class_WebSocket extends Class_EventEmitter {
      */
     send(data: Class_Buffer): void;
 
+    send(data: string | Class_Buffer): void;
+
     /**
      * @description queries and binds the connection success event, equivalent to on("open", func);
      */
     on(event: "open", listener: ()=>void): this;
+
+    once(event: "open", listener: ()=>void): this;
+
+    off(event: "open", listener: ()=>void): this;
+
+    addListener(event: "open", listener: ()=>void): this;
+
+    removeListener(event: "open", listener: ()=>void): this;
+
+    addEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "open", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "open", listener: ()=>void): this;
+
+    prependOnceListener(event: "open", listener: ()=>void): this;
+
+    /**
+     * @description queries and binds the connection success event, equivalent to on("open", func);
+     */
+    onopen: (()=>void) | null;
 
     /**
      * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func);
      */
     on(event: "message", listener: ()=>void): this;
 
+    once(event: "message", listener: ()=>void): this;
+
+    off(event: "message", listener: ()=>void): this;
+
+    addListener(event: "message", listener: ()=>void): this;
+
+    removeListener(event: "message", listener: ()=>void): this;
+
+    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "message", listener: ()=>void): this;
+
+    prependOnceListener(event: "message", listener: ()=>void): this;
+
+    /**
+     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func);
+     */
+    onmessage: (()=>void) | null;
+
     /**
      * @description queries and binds the connection close event, equivalent to on("close", func);
      */
     on(event: "close", listener: ()=>void): this;
 
+    once(event: "close", listener: ()=>void): this;
+
+    off(event: "close", listener: ()=>void): this;
+
+    addListener(event: "close", listener: ()=>void): this;
+
+    removeListener(event: "close", listener: ()=>void): this;
+
+    addEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "close", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "close", listener: ()=>void): this;
+
+    prependOnceListener(event: "close", listener: ()=>void): this;
+
+    /**
+     * @description queries and binds the connection close event, equivalent to on("close", func);
+     */
+    onclose: (()=>void) | null;
+
     /**
      * @description queries and binds the error event, equivalent to on("error", func);
      */
     on(event: "error", listener: ()=>void): this;
+
+    once(event: "error", listener: ()=>void): this;
+
+    off(event: "error", listener: ()=>void): this;
+
+    addListener(event: "error", listener: ()=>void): this;
+
+    removeListener(event: "error", listener: ()=>void): this;
+
+    addEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "error", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "error", listener: ()=>void): this;
+
+    prependOnceListener(event: "error", listener: ()=>void): this;
+
+    /**
+     * @description queries and binds the error event, equivalent to on("error", func);
+     */
+    onerror: (()=>void) | null;
 
     /**
      * @description keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
@@ -192,6 +318,42 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *
      */
     static upgrade(opts: FIBJS.GeneralObject, accept: (...args: any[])=>any): Class_Handler;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 

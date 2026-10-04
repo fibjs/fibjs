@@ -72,9 +72,9 @@ interface UrlObject : object
 
     /*! @brief constructs a URL object from a URL string
      @param url the URL string to parse, which can be an absolute or relative URL
-     @param base the base URL string, used when the url parameter is a relative URL
+     @param base the base URL, used when the url parameter is a relative URL; a UrlObject is accepted as well as a string
      */
-    UrlObject(String url, String base = "");
+    UrlObject(String url, String|UrlObject base = "");
 
     /*! @brief parses a URL string and returns a URL object, or null if parsing fails
      @param url the URL string to parse

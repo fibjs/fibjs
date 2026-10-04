@@ -45,7 +45,7 @@ declare class Class_WebSocketMessage extends Class_Message {
      * 	@param maxSize maximum package size in MB, default is 67108864(64M)
      *
      */
-    constructor(type: number, masked?: boolean, compress?: boolean, maxSize?: number);
+    constructor(type?: number, masked?: boolean, compress?: boolean, maxSize?: number);
 
     /**
      * @description queries and reads the websocket mask flag, default is true
@@ -69,3 +69,46 @@ declare class Class_WebSocketMessage extends Class_Message {
 
 }
 
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/Message.d.ts" />
+/**
+ * The promise variant of the WebSocketMessage class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_WebSocketMessagePromise extends Class_MessagePromise {
+    /**
+     * @description package handling message object constructor
+     * 	@param type websocket message type, default is websocket.BINARY
+     * 	@param masked websocket message mask, default is true
+     *     @param compress marks whether the message is compressed, default is false
+     * 	@param maxSize maximum package size in MB, default is 67108864(64M)
+     *
+     */
+    constructor(type?: number, masked?: boolean, compress?: boolean, maxSize?: number);
+
+    /**
+     * @description queries and reads the websocket mask flag, default is true
+     */
+    masked: boolean;
+
+    /**
+     * @description queries and reads the websocket compression state, default is false
+     */
+    compress: boolean;
+
+    /**
+     * @description queries and sets the maximum package size in bytes, default is 67108864(64M)
+     */
+    maxSize: number;
+
+    /**
+     * @description queries the message data. Returns a String for text messages and a Buffer for binary messages. This is a standard Web API property.
+     */
+    readonly data: any;
+
+}
+
+
+declare namespace Class_WebSocketMessage {
+    const promises: FIBJS.GeneralObject;
+}

@@ -96,11 +96,14 @@ public:
     virtual result_t appendHeader(v8::Local<v8::Object> map);
     virtual result_t appendHeader(Headers_base* headers);
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
-    virtual result_t appendHeader(exlib::string name, exlib::string value);
+    // INTERIM (commit split): HttpMessage takes the Variant value here; the
+    // final HttpRequest moves to the union/typed-return surface in the http batch.
+    virtual result_t appendHeader(exlib::string name, Variant value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(Headers_base* headers);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
-    virtual result_t setHeader(exlib::string name, exlib::string value);
+    // INTERIM (commit split): see appendHeader above.
+    virtual result_t setHeader(exlib::string name, Variant value);
     virtual result_t removeHeader(exlib::string name);
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
     virtual result_t getHeaders(obj_ptr<NObject>& retVal);

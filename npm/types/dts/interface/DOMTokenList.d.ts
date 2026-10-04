@@ -21,6 +21,11 @@
  */
 declare class Class_DOMTokenList extends Class_object {
     /**
+     * @description Returns the token at the specified index
+     */
+    [index: number]: string;
+
+    /**
      * @description Returns the number of tokens in the set
      */
     readonly length: number;

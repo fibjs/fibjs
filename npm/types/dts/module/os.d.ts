@@ -237,7 +237,7 @@ declare module 'os' {
      *      @return returns a javascript Date object
      *
      */
-    function time(tmString?: string): typeof Date;
+    function time(tmString?: string): Date;
 
     /**
      * @description Time calculation function; calculates the time according to part
@@ -247,7 +247,7 @@ declare module 'os' {
      *      @return returns a javascript Date object
      *
      */
-    function dateAdd(d: typeof Date, num: number, part: string): typeof Date;
+    function dateAdd(d: Date, num: number, part: string): Date;
 
 }
 

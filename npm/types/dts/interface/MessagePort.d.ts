@@ -65,10 +65,88 @@ declare class Class_MessagePort extends Class_EventEmitter {
      */
     on(event: "message", listener: ()=>void): this;
 
+    once(event: "message", listener: ()=>void): this;
+
+    off(event: "message", listener: ()=>void): this;
+
+    addListener(event: "message", listener: ()=>void): this;
+
+    removeListener(event: "message", listener: ()=>void): this;
+
+    addEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "message", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "message", listener: ()=>void): this;
+
+    prependOnceListener(event: "message", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the message reception event, equivalent to on("message", func); start() is called automatically once it is set.
+     */
+    onmessage: (()=>void) | null;
+
     /**
      * @description Queries and binds the message deserialization error event, equivalent to on("messageerror", func);
      */
     on(event: "messageerror", listener: ()=>void): this;
+
+    once(event: "messageerror", listener: ()=>void): this;
+
+    off(event: "messageerror", listener: ()=>void): this;
+
+    addListener(event: "messageerror", listener: ()=>void): this;
+
+    removeListener(event: "messageerror", listener: ()=>void): this;
+
+    addEventListener(event: "messageerror", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "messageerror", listener: ()=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "messageerror", listener: ()=>void): this;
+
+    prependOnceListener(event: "messageerror", listener: ()=>void): this;
+
+    /**
+     * @description Queries and binds the message deserialization error event, equivalent to on("messageerror", func);
+     */
+    onmessageerror: (()=>void) | null;
+
+    on(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>any): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 

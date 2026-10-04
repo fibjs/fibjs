@@ -149,13 +149,6 @@ inline result_t HttpRequest_base::load(v8::Local<v8::Value> v, obj_ptr<HttpReque
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(2, 1);
-
-    ARG(obj_ptr<HttpRequest_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-
-    hr = _new(v0.get(), v1, vr, args.This());
-
     LOAD_RETURN();
 }
 
