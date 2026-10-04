@@ -21,7 +21,7 @@ const isFibjs = typeof process !== 'undefined' && process.versions && process.ve
 
 // Keep in sync with plans/cli-help-convention.md §5 and with the Commands
 // section of fibjs/src/base/options.cpp (R7).
-const COMMANDS = ['init', 'install', 'test', 'check', 'cov-process', 'prof-process'];
+const COMMANDS = ['init', 'install', 'test', 'check', 'cov-process', 'prof-process', 'man'];
 
 // Options that belong to a command: none of them may be inlined in the top
 // level help (R1).

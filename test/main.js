@@ -14,6 +14,8 @@ run("./test_proc_test.js");
 run("./runner_filter_test.js");
 run("./runner_hook_test.js");
 run("./cli_help_test.js");
+run("./man_test.js");
+run("./check_builtin_types_test.js");
 run("./idl_check_test.js");
 
 run("./class_test.js");

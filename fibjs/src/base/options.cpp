@@ -348,6 +348,7 @@ static void printHelp()
          "  --check [files]             run the TypeScript checker (alias: -c).\n"
          "  --cov-process <glob> <dir>  merge lcov files and generate the coverage report.\n"
          "  --prof-process <log> <out>  render a --prof log as a flame graph SVG.\n"
+         "  --man [name]                look up the built-in manual (module, object, member).\n"
          "\n"
          "Run `fibjs --<command> --help` for the options of a command.\n"
          "\n"
