@@ -15,6 +15,7 @@
 #include "TLSSocket.h"
 #include "Url.h"
 #include "Socket.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -24,18 +25,23 @@ DECLARE_MODULE(http2);
 static result_t create_server_by_context(SecureContext_base* context, Handler_base* hdlr,
     obj_ptr<Http2Server_base>& retVal);
 
-result_t http2_base::createServer(Union_createServer_options options, Handler_base* hdlr,
+result_t http2_base::createServer(Union_createServer_options options, Union_createServer_hdlr hdlr,
     obj_ptr<Http2Server_base>& retVal)
 {
-    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
-        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), hdlr, retVal);
-
-    obj_ptr<SecureContext_base> ctx;
-    result_t hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
     if (hr < 0)
         return hr;
 
-    return create_server_by_context(ctx.get(), hdlr, retVal);
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
+        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), handler, retVal);
+
+    obj_ptr<SecureContext_base> ctx;
+    hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
+    if (hr < 0)
+        return hr;
+
+    return create_server_by_context(ctx.get(), handler, retVal);
 }
 
 static result_t create_server_by_context(SecureContext_base* context, Handler_base* hdlr,
@@ -112,6 +118,22 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(1);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(2);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(3);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(4);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     obj_ptr<TLSSocket> ssl_sock = (TLSSocket*)(object_base*)ac->m_ctx[0].object();
     exlib::string hostname = ac->m_ctx[1].string();

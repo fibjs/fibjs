@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/object.d.ts" />
 /**
  * @description Message handler chain object
  *
@@ -21,54 +22,69 @@
 declare class Class_Chain extends Class_Handler {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
      * @description Adds a handler array
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
 
     /**
      * @description Adds a handler
-     *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a nested Chain and invoked in order;
+     *      - a handler function `(req, ...params) => any`, called with the same message the chain receives;
+     *      - a routing map object, whose values are handlers in these same forms;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/object.d.ts" />
 /**
  * The promise variant of the Chain class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_ChainPromise extends Class_HandlerPromise {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
      * @description Adds a handler array
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
 
     /**
      * @description Adds a handler
-     *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a nested Chain and invoked in order;
+     *      - a handler function `(req, ...params) => any`, called with the same message the chain receives;
+     *      - a routing map object, whose values are handlers in these same forms;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
 
 }
 

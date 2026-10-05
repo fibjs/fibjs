@@ -14,16 +14,30 @@
 interface TLSHandler : Handler
 {
     /*! @brief creates a new TLSHandler object
+
+    handler may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param context specifies the secure context used to create TLSHandler
-    @param handler the event handling interface object
+    @param handler the connection handler
     */
-    TLSHandler(SecureContext context, Handler handler);
+    TLSHandler(SecureContext context, Handler|Handler[]|Function(TLSSocket socket) => Value|Object|String handler);
 
     /*! @brief creates a new TLSHandler object
+
+    handler may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param options the options needed to create a secure context with tls.createSecureContext
-    @param handler the event handling interface object
+    @param handler the connection handler
     */
-    TLSHandler(Object options, Handler handler);
+    TLSHandler(Object options, Handler|Handler[]|Function(TLSSocket socket) => Value|Object|String handler);
 
     /*! @brief queries the SecureContext used by the current TLSHandler */
     readonly SecureContext secureContext;

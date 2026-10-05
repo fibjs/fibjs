@@ -12,6 +12,7 @@
 #include "NullHandler.h"
 #include "HttpHandler.h"
 #include "Chain.h"
+#include "union_helpers.h"
 #include "Routing.h"
 #include "HttpFileHandler.h"
 
@@ -81,13 +82,21 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
     return 0;
 }
 
-result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
+result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
     AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    // the async-aware helper keeps the phase logic inside: the alternatives
+    // whose conversion needs V8/Isolate (the callback, the routing map, the
+    // array and the address string) are converted in the sync phase and
+    // carried in m_ctx; the class alternative is resolved in the async phase,
+    // so a cc_ caller can pass it directly
+    // (plans/async-phase-discipline-audit-2026-10-05.md §4.5)
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler, ac);
+    if (hr < 0)
+        return hr;
 
-    return (new Chain::asyncInvoke(hdlr, v, ac))->post(0);
+    return (new Chain::asyncInvoke(handler, v, ac))->post(0);
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)

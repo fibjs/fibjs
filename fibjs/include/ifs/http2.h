@@ -27,6 +27,7 @@ class http2_base : public object_base {
 
 public:
     using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
+    using Union_createServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
 
 public:
     class GetDefaultSettingsType : public NType {
@@ -63,7 +64,7 @@ public:
 
 public:
     // http2_base
-    static result_t createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<Http2Server_base>& retVal);
     static result_t connect(exlib::string authority, v8::Local<v8::Object> options, obj_ptr<Http2Session_base>& retVal, AsyncEvent* ac);
     static result_t getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal);
 
@@ -131,9 +132,9 @@ inline void http2_base::s_static_createServer(const v8::FunctionCallbackInfo<v8:
     METHOD_OVER(2, 2);
 
     ARG(Union_createServer_options, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_createServer_hdlr, 1);
 
-    hr = createServer(v0, v1.get(), vr);
+    hr = createServer(v0, v1, vr);
 
     METHOD_RETURN();
 }

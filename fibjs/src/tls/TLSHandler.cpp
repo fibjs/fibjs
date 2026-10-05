@@ -10,20 +10,26 @@
 #include "ifs/mq.h"
 #include "TLSHandler.h"
 #include "TLSSocket.h"
+#include "union_helpers.h"
 
 
 namespace fibjs {
 
-result_t TLSHandler_base::_new(SecureContext_base* context, Handler_base* handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
+result_t TLSHandler_base::_new(SecureContext_base* context, Union_TLSHandler_handler handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
 {
+    obj_ptr<Handler_base> _handler;
+    result_t hr = handler_from_union(handler, _handler);
+    if (hr < 0)
+        return hr;
+
     retVal = new TLSHandler(context);
     retVal->wrap(This);
-    retVal->set_handler(handler);
+    retVal->set_handler(_handler);
 
     return 0;
 }
 
-result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Handler_base* handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
+result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Union_TLSHandler_handler handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SecureContext_base> ctx;
     result_t hr = tls_base::createSecureContext(options, true, ctx);

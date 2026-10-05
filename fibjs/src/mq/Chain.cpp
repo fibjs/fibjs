@@ -8,6 +8,7 @@
 #include "object.h"
 #include "Chain.h"
 #include "ifs/mq.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -46,24 +47,29 @@ result_t Chain::isRouting(bool& retVal)
 result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {
-    if (m_array.size() == 0)
-        return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_array.size() == 0)
+        return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
 
     return (new asyncInvoke(m_array, v, ac))->post(0);
 }
 
-result_t Chain::append(Handler_base* hdlr)
+result_t Chain::append(Union_append_hdlr hdlr)
 {
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     int32_t no = (int32_t)m_array.size();
 
     char strBuf[32];
     snprintf(strBuf, sizeof(strBuf), "handler_%d", no);
 
-    SetPrivate(strBuf, hdlr->wrap());
-    m_array.append(hdlr);
+    SetPrivate(strBuf, handler->wrap());
+    m_array.append(handler);
 
     return 0;
 }

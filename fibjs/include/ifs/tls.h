@@ -27,11 +27,12 @@ class tls_base : public object_base {
 
 public:
     using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
+    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
     using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
 
 public:
     // tls_base
-    static result_t createServer(Union_createServer_options options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Union_createServer_listener listener, obj_ptr<TLSServer_base>& retVal);
     static result_t createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t createSecureContext(bool isServer, obj_ptr<SecureContext_base>& retVal);
     static result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
@@ -129,9 +130,9 @@ inline void tls_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(2, 2);
 
     ARG(Union_createServer_options, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_createServer_listener, 1);
 
-    hr = createServer(v0, v1.get(), vr);
+    hr = createServer(v0, v1, vr);
 
     METHOD_RETURN();
 }

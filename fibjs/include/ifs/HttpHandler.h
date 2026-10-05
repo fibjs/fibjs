@@ -22,8 +22,11 @@ class HttpHandler_base : public Handler_base {
     DECLARE_CLASS(HttpHandler_base);
 
 public:
+    using Union_HttpHandler_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // HttpHandler_base
-    static result_t _new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
@@ -101,9 +104,9 @@ inline void HttpHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_HttpHandler_hdlr, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -116,9 +119,9 @@ inline result_t HttpHandler_base::load(v8::Local<v8::Value> v, obj_ptr<HttpHandl
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_HttpHandler_hdlr, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     LOAD_RETURN();
 }

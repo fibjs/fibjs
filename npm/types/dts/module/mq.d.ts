@@ -67,33 +67,54 @@ declare module 'mq' {
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description processes a message or object with the given handler
-     *
-     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+
+    /**
+     * @description processes a message or object with the given handler
+     *
+     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
 
 }
 

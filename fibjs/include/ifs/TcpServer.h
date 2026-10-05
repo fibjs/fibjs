@@ -25,6 +25,9 @@ class TcpServer_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_TcpServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     class AddressType : public NType {
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
@@ -50,11 +53,11 @@ public:
 
 public:
     // TcpServer_base
-    static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t port, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, int32_t port, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start() = 0;
     virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
@@ -148,37 +151,37 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_TcpServer_listener, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(3, 3);
 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
-    ARG(obj_ptr<Handler_base>, 2);
+    ARG(Union_TcpServer_listener, 2);
 
-    hr = _new(v0, v1, v2.get(), vr, args.This());
+    hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_TcpServer_listener, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_TcpServer_listener, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_TcpServer_listener, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -191,9 +194,9 @@ inline result_t TcpServer_base::load(v8::Local<v8::Value> v, obj_ptr<TcpServer_b
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_TcpServer_listener, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     LOAD_RETURN();
 }

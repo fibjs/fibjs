@@ -1,6 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Http2Server.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Http2Session.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
@@ -16,12 +18,22 @@ declare module 'http2/promises' {
 
     /**
      * @description creates an Http2 server
-     *      @param options TLS options object or SecureContext configuration
-     *      @param hdlr the request handling function
+     *
+     *      options may be the TLS options object, used to create the SecureContext with
+     *      tls.createSecureContext, or the SecureContext object itself.
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
+     *      @param options the TLS options or the SecureContext object
+     *      @param hdlr the request handler
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target

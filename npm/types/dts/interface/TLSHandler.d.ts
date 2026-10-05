@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /**
  * @description tls/ssl protocol conversion handler
  *
@@ -19,19 +20,33 @@
 declare class Class_TLSHandler extends Class_Handler {
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSHandler
@@ -63,25 +78,40 @@ declare class Class_TLSHandler extends Class_Handler {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /**
  * The promise variant of the TLSHandler class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSHandler

@@ -25,9 +25,12 @@ class mq_base : public object_base {
     DECLARE_CLASS(mq_base);
 
 public:
+    using Union_invoke_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // mq_base
     static result_t nullHandler(obj_ptr<Handler_base>& retVal);
-    static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
+    static result_t invoke(Union_invoke_hdlr hdlr, object_base* v, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -45,7 +48,7 @@ public:
     static void s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
+    ASYNC_STATIC2(mq_base, invoke, Union_invoke_hdlr, object_base*);
 };
 }
 
@@ -101,13 +104,13 @@ inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 2);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_invoke_hdlr, 0);
     ARG(obj_ptr<object_base>, 1);
 
     if (!cb.IsEmpty())
-        hr = acb_invoke(v0.get(), v1.get(), cb, args);
+        hr = acb_invoke(v0, v1.get(), cb, args);
     else
-        hr = ac_invoke(v0.get(), v1.get());
+        hr = ac_invoke(v0, v1.get());
 
     ASYNC_METHOD_VOID();
 }

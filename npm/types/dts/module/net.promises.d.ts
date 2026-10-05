@@ -171,7 +171,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -180,7 +185,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -189,7 +199,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -385,22 +400,36 @@ declare module 'net/promises' {
 
     /**
      * @description creates a TCP server
-     *      @param options the server options object, which can contain the following properties:
-     *       - address: specifies the listening address, default is all addresses
-     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
-     *      @param listener the connection handler function
-     *      @return returns the TcpServer object
      *
-     */
-    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
-
-    /**
-     * @description creates a TCP server
-     *      @param listener the connection handler function
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(socket) => any`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *      @param listener the connection handler
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+
+    /**
+     * @description creates a TCP server
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(socket) => any`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *      @param options the server options object, which can contain the following properties:
+     *       - address: specifies the listening address, default is all addresses
+     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
+     *      @param listener the connection handler
+     *      @return returns the TcpServer object
+     *
+     */
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
 
     /**
      * @description creates a UrlObject object, see UrlObject

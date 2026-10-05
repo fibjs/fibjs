@@ -23,11 +23,14 @@ class HttpServer_base : public TcpServer_base {
     DECLARE_CLASS(HttpServer_base);
 
 public:
+    using Union_HttpServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // HttpServer_base
-    static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t port, Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, int32_t port, Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
@@ -103,30 +106,30 @@ inline void HttpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_HttpServer_hdlr, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(3, 3);
 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
-    ARG(obj_ptr<Handler_base>, 2);
+    ARG(Union_HttpServer_hdlr, 2);
 
-    hr = _new(v0, v1, v2.get(), vr, args.This());
+    hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_HttpServer_hdlr, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_HttpServer_hdlr, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -139,9 +142,9 @@ inline result_t HttpServer_base::load(v8::Local<v8::Value> v, obj_ptr<HttpServer
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_HttpServer_hdlr, 0);
 
-    hr = _new(v0.get(), vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     LOAD_RETURN();
 }

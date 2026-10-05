@@ -18,31 +18,59 @@ server.start();
 interface Http2Server : TcpServer
 {
     /*! @brief Http2Server constructor
+
+     hdlr accepts the same forms as http.createServer:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path/address string.
      @param context SecureContext secure context
-     @param hdlr http built-in message handler
+     @param hdlr the request handler
     */
-    Http2Server(SecureContext context, Handler hdlr);
+    Http2Server(SecureContext context, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief Http2Server constructor
+
+     hdlr accepts the same forms as http.createServer:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path/address string.
      @param context SecureContext secure context
      @param port listening port
-     @param hdlr http built-in message handler
+     @param hdlr the request handler
     */
-    Http2Server(SecureContext context, Integer port, Handler hdlr);
+    Http2Server(SecureContext context, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief Http2Server constructor
+
+     hdlr accepts the same forms as http.createServer:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path/address string.
      @param context SecureContext secure context
      @param addr listening address
      @param port listening port
-     @param hdlr http built-in message handler
+     @param hdlr the request handler
     */
-    Http2Server(SecureContext context, String addr, Integer port, Handler hdlr);
+    Http2Server(SecureContext context, String addr, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief Http2Server constructor, creates the SecureContext from options
+
+     hdlr accepts the same forms as http.createServer:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path/address string.
      @param options the options for creating the SecureContext, may contain address and port
-     @param hdlr http built-in message handler
+     @param hdlr the request handler
     */
-    Http2Server(Object options, Handler hdlr);
+    Http2Server(Object options, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief queries the SecureContext used by the current Http2Server */
     readonly SecureContext secureContext;

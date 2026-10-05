@@ -39,12 +39,22 @@ declare module 'tls' {
 
     /**
      * @description creates a TLS server
-     *      @param options specifies the secure context object, or the options for creating the secure context
-     *      @param listener the connection handling function
+     *
+     *      options may be the SecureContext object used by the server, or the options for creating
+     *      one (the same object tls.createSecureContext accepts).
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *      @param options the secure context or the options used to create one
+     *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
 
     /**
      * @description creates a SecureContext object, used to maintain secure contexts in the tls module
@@ -114,7 +124,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -123,7 +138,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -132,7 +152,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *

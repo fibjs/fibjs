@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/Message.d.ts" />
 /**
  * @description Message handler routing object
  *
@@ -115,22 +116,36 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -142,12 +157,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts http host names
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -159,12 +181,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts all http methods
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -176,12 +205,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http GET method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -193,12 +229,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http POST method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -210,12 +253,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -227,12 +277,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -244,12 +301,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -261,18 +325,26 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/Message.d.ts" />
 /**
  * The promise variant of the Routing class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -310,22 +382,36 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -337,12 +423,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts http host names
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -354,12 +447,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts all http methods
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -371,12 +471,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http GET method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -388,12 +495,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http POST method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -405,12 +519,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -422,12 +543,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -439,12 +567,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -456,12 +591,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
 }
 

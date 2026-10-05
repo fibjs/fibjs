@@ -24,11 +24,14 @@ class Http2Server_base : public TcpServer_base {
     DECLARE_CLASS(Http2Server_base);
 
 public:
+    using Union_Http2Server_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // Http2Server_base
-    static result_t _new(SecureContext_base* context, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(SecureContext_base* context, int32_t port, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, Handler_base* hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, Union_Http2Server_hdlr hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, int32_t port, Union_Http2Server_hdlr hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, exlib::string addr, int32_t port, Union_Http2Server_hdlr hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, Union_Http2Server_hdlr hdlr, obj_ptr<Http2Server_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal) = 0;
     virtual result_t setSecureContext(SecureContext_base* context) = 0;
     virtual result_t setSecureContext(v8::Local<v8::Object> options) = 0;
@@ -84,33 +87,33 @@ inline void Http2Server_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(2, 2);
 
     ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_Http2Server_hdlr, 1);
 
-    hr = _new(v0.get(), v1.get(), vr, args.This());
+    hr = _new(v0.get(), v1, vr, args.This());
 
     METHOD_OVER(3, 3);
 
     ARG(obj_ptr<SecureContext_base>, 0);
     ARG(int32_t, 1);
-    ARG(obj_ptr<Handler_base>, 2);
+    ARG(Union_Http2Server_hdlr, 2);
 
-    hr = _new(v0.get(), v1, v2.get(), vr, args.This());
+    hr = _new(v0.get(), v1, v2, vr, args.This());
 
     METHOD_OVER(4, 4);
 
     ARG(obj_ptr<SecureContext_base>, 0);
     ARG(exlib::string, 1);
     ARG(int32_t, 2);
-    ARG(obj_ptr<Handler_base>, 3);
+    ARG(Union_Http2Server_hdlr, 3);
 
-    hr = _new(v0.get(), v1, v2, v3.get(), vr, args.This());
+    hr = _new(v0.get(), v1, v2, v3, vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_Http2Server_hdlr, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

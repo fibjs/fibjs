@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /**
  * @description TcpServer` is a high-concurrency TCP Socket server, which can be used to create a TCP server that already has TCP connections established with clients in its initial state
  *
@@ -33,20 +33,48 @@
 declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description TcpServer constructor, listening on all local addresses
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param addr specifies the tcp server listening address; "" means listening on all local addresses
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
@@ -55,26 +83,32 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param options server options
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param addr specifies the unix socket or Windows pipe server listening address
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise);
-
-    /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description starts the current server
@@ -323,28 +357,56 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the TcpServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description TcpServer constructor, listening on all local addresses
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param addr specifies the tcp server listening address; "" means listening on all local addresses
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
@@ -353,26 +415,32 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param options server options
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
      *     @param addr specifies the unix socket or Windows pipe server listening address
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise);
-
-    /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description starts the current server

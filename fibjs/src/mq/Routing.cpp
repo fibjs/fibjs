@@ -11,6 +11,7 @@
 #include "ifs/HttpRequest.h"
 #include "parse.h"
 #include "Url.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -394,7 +395,7 @@ exlib::string Routing::host2RegExp(exlib::string pattern, route_info* info)
     return res;
 }
 
-result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base* hdlr,
+result_t Routing::append(exlib::string method, exlib::string pattern, Union_append_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     uint32_t opt = PCRE2_UCP | PCRE2_CASELESS;
@@ -404,12 +405,17 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     bool bSub = false;
     route_info info;
 
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     if (pattern.length() > 0 && pattern[0] != '^') {
         if (!qstricmp(method.c_str(), "HOST"))
             pattern = host2RegExp(pattern, &info);
         else {
             bool isRoute = false;
-            hdlr->isRouting(isRoute);
+            handler->isRouting(isRoute);
             if (isRoute) {
                 int32_t len = (int32_t)pattern.length();
                 if (len > 0) {
@@ -443,9 +449,9 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     char strBuf[32];
     snprintf(strBuf, sizeof(strBuf), "handler_%d", no);
 
-    SetPrivate(strBuf, hdlr->wrap());
+    SetPrivate(strBuf, handler->wrap());
 
-    obj_ptr<rule> r = new rule(method, re, hdlr, bSub, info);
+    obj_ptr<rule> r = new rule(method, re, handler, bSub, info);
     m_array.insert(m_array.begin(), r);
 
     retVal = this;
@@ -482,7 +488,7 @@ result_t Routing::append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVa
     return _append("*", map, retVal);
 }
 
-result_t Routing::append(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::append(exlib::string pattern, Union_append_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("*", pattern, hdlr, retVal);
@@ -493,7 +499,7 @@ result_t Routing::_host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal
     return _append("HOST", map, retVal);
 }
 
-result_t Routing::_host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
+result_t Routing::_host(exlib::string pattern, Union_host_hdlr hdlr, obj_ptr<Routing_base>& retVal)
 {
     return append("HOST", pattern, hdlr, retVal);
 }
@@ -503,7 +509,7 @@ result_t Routing::all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("*", map, retVal);
 }
 
-result_t Routing::all(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::all(exlib::string pattern, Union_all_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("*", pattern, hdlr, retVal);
@@ -514,7 +520,7 @@ result_t Routing::get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("GET", map, retVal);
 }
 
-result_t Routing::get(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::get(exlib::string pattern, Union_get_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("GET", pattern, hdlr, retVal);
@@ -525,7 +531,7 @@ result_t Routing::post(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("POST", map, retVal);
 }
 
-result_t Routing::post(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
+result_t Routing::post(exlib::string pattern, Union_post_hdlr hdlr, obj_ptr<Routing_base>& retVal)
 {
     return append("POST", pattern, hdlr, retVal);
 }
@@ -535,7 +541,7 @@ result_t Routing::del(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("DELETE", map, retVal);
 }
 
-result_t Routing::del(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::del(exlib::string pattern, Union_del_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("DELETE", pattern, hdlr, retVal);
@@ -546,7 +552,7 @@ result_t Routing::put(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("PUT", map, retVal);
 }
 
-result_t Routing::put(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::put(exlib::string pattern, Union_put_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("PUT", pattern, hdlr, retVal);
@@ -557,7 +563,7 @@ result_t Routing::patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal
     return _append("PATCH", map, retVal);
 }
 
-result_t Routing::patch(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::patch(exlib::string pattern, Union_patch_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("PATCH", pattern, hdlr, retVal);
@@ -568,7 +574,7 @@ result_t Routing::find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
     return _append("FIND", map, retVal);
 }
 
-result_t Routing::find(exlib::string pattern, Handler_base* hdlr,
+result_t Routing::find(exlib::string pattern, Union_find_hdlr hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("FIND", pattern, hdlr, retVal);

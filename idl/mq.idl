@@ -46,8 +46,15 @@ module mq
     /*! @brief processes a message or object with the given handler
 
      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     @param hdlr specifies the handler to use
+
+     hdlr may be given in any of these forms:
+     - a built-in Handler object, used as it is;
+     - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     - a handling function `(v, ...params) => any`, called with the message;
+     - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     - a path/address string, converted through the Handler constructor.
+     @param hdlr the handler to run
      @param v specifies the message or object to process
      */
-    static invoke(Handler hdlr, object v) async;
+    static invoke(Handler|Handler[]|Function(object v, ...params) => Value|Object|String hdlr, object v) async;
 };

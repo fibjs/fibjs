@@ -15,6 +15,7 @@
 #include "Url.h"
 #include "options.h"
 #include "openssl/provider.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -140,17 +141,20 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "tls.connect: url must start with 'ssl:', got '%s'.", url.c_str()));
 
     if (ac->isSync()) {
-        ac->m_ctx.resize(1);
-
-        obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
-        ssl_sock->init(secureContext);
-
+        // only the listener registration needs the sync phase; without one the
+        // socket is built in the async phase (no `_new` off the JS thread,
+        // plans/async-phase-discipline-audit-2026-10-05.md §3-F16)
         if (!connectListener.IsEmpty()) {
+            ac->m_ctx.resize(1);
+
+            obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
+            ssl_sock->init(secureContext);
+
             v8::Local<v8::Object> _retVal;
             ssl_sock->once(ssl_sock->holder()->NewString("connect"), connectListener, _retVal);
-        }
 
-        ac->m_ctx[0] = ssl_sock;
+            ac->m_ctx[0] = ssl_sock;
+        }
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -207,6 +211,11 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    if (ac->m_ctx.size() < 2) {
+        // no sync phase (cc_ from the port form): the default context, no timeout
+        return connect(url, ac->isolate()->m_ctx, 0, connectListener, retVal, ac);
+    }
+
     int32_t timeout = ac->m_ctx[1].intVal();
     return connect(url, nullptr, timeout, connectListener, retVal, ac);
 }
@@ -260,8 +269,18 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    TLSSocket_base* ssl_sock = (TLSSocket_base*)ac->m_ctx[0].object();
-    int32_t timeout = ac->m_ctx[1].intVal();
+    obj_ptr<TLSSocket> ssl_sock;
+    int32_t timeout = 0;
+
+    if (ac->m_ctx.size() > 1) {
+        ssl_sock = (TLSSocket*)ac->m_ctx[0].object();
+        timeout = ac->m_ctx[1].intVal();
+    } else {
+        // no sync phase (cc_ from connect_by_port): the default context
+        ssl_sock = new TLSSocket();
+        ssl_sock->init(ac->isolate()->m_ctx);
+    }
+
     return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, ac))
         ->post(0);
 }
@@ -297,6 +316,13 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(1);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     TLSSocket_base* ssl_sock = (TLSSocket_base*)ac->m_ctx[0].object();
     ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[1].object();
     exlib::string host = opts->host.value();
@@ -317,16 +343,21 @@ result_t tls_base::connect(Union_connect_options options, v8::Local<v8::Function
     return connect_by_port(std::get<int32_t>(options), connectListener, retVal, ac);
 }
 
-result_t tls_base::createServer(Union_createServer_options options, Handler_base* listener,
+result_t tls_base::createServer(Union_createServer_options options, Union_createServer_listener listener,
     obj_ptr<TLSServer_base>& retVal)
 {
-    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
-        return TLSServer_base::_new(std::get<obj_ptr<SecureContext_base>>(options).get(), listener, retVal);
-
-    obj_ptr<SecureContext_base> ctx;
-    result_t hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(listener, handler);
     if (hr < 0)
         return hr;
-    return TLSServer_base::_new(ctx, listener, retVal);
+
+    if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
+        return TLSServer_base::_new(std::get<obj_ptr<SecureContext_base>>(options).get(), handler, retVal);
+
+    obj_ptr<SecureContext_base> ctx;
+    hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
+    if (hr < 0)
+        return hr;
+    return TLSServer_base::_new(ctx, handler, retVal);
 }
 }

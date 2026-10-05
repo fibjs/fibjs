@@ -168,7 +168,7 @@ public:
 public:
     // Chain_base
     virtual result_t append(std::vector<obj_ptr<Handler_base>>& hdlrs);
-    virtual result_t append(Handler_base* hdlr);
+    virtual result_t append(Union_append_hdlr hdlr);
 
 private:
     QuickArray<obj_ptr<Handler_base>> m_array;

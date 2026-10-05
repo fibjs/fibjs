@@ -32,13 +32,14 @@ class http_base : public object_base {
     DECLARE_CLASS(http_base);
 
 public:
+    using Union_createServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
     using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
     using Union_fetch_request = std::variant<obj_ptr<HttpRequest_base>, exlib::string>;
 
 public:
     // http_base
-    static result_t createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
-    static result_t createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal);
+    static result_t createServer(Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal);
+    static result_t createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
     static result_t get_METHODS(std::vector<exlib::string>& retVal);
     static result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
@@ -273,16 +274,16 @@ inline void http_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_createServer_hdlr, 0);
 
-    hr = createServer(v0.get(), vr);
+    hr = createServer(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(Union_createServer_options, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_createServer_hdlr, 1);
 
-    hr = createServer(v0, v1.get(), vr);
+    hr = createServer(v0, v1, vr);
 
     METHOD_RETURN();
 }

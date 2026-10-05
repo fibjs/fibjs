@@ -27,6 +27,7 @@ class net_base : public object_base {
 
 public:
     using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
+    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
 
 public:
     enum {
@@ -52,8 +53,8 @@ public:
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
-    static result_t createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
-    static result_t createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal);
+    static result_t createServer(v8::Local<v8::Object> options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal);
+    static result_t createServer(Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(v8::Local<v8::Value> ip, int32_t& retVal);
     static result_t isIPv4(v8::Local<v8::Value> ip, bool& retVal);
@@ -370,15 +371,15 @@ inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_createServer_listener, 1);
 
-    hr = createServer(v0, v1.get(), vr);
+    hr = createServer(v0, v1, vr);
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_createServer_listener, 0);
 
-    hr = createServer(v0.get(), vr);
+    hr = createServer(v0, vr);
 
     METHOD_RETURN();
 }

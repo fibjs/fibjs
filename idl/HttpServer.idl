@@ -23,28 +23,56 @@ After creating the HttpServer object, use `svr.start()` to start the server, so 
 interface HttpServer : TcpServer
 {
     /*! @brief HttpServer constructor, listens on all local addresses
+
+    hdlr may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
     @param port specifies the port on which the http server listens
-    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+    @param hdlr the request handler
    */
-    HttpServer(Integer port, Handler hdlr);
+    HttpServer(Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpServer constructor
+
+    hdlr may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
     @param port specifies the port on which the http server listens
-    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+    @param hdlr the request handler
    */
-    HttpServer(String addr, Integer port, Handler hdlr);
+    HttpServer(String addr, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpServer constructor
+
+    hdlr may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
-    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+    @param hdlr the request handler
    */
-    HttpServer(String addr, Handler hdlr);
+    HttpServer(String addr, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpServer constructor, does not bind a port; listen() must be called to start
-    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+
+    hdlr may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
+    @param hdlr the request handler
    */
-    HttpServer(Handler hdlr);
+    HttpServer(Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief enables cross-origin requests
      @param allowHeaders specifies the accepted http header fields

@@ -6,7 +6,7 @@
 declare class Class_Handler extends Class_object {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
@@ -76,7 +76,7 @@ declare class Class_Handler extends Class_object {
 declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);

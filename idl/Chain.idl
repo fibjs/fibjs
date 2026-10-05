@@ -17,17 +17,24 @@ In practice, the Chain object can be applied to various scenarios; for example, 
 interface Chain : Handler
 {
     /*! @brief Constructs a message handler chain object
-     @param hdlrs handler array
+     @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      */
     Chain(Handler hdlrs[]);
 
     /*! @brief Adds a handler array
-     @param hdlrs handler array
+     @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      */
     append(Handler hdlrs[]);
 
     /*! @brief Adds a handler
-     @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+
+     hdlr may be given in any of these forms:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a nested Chain and invoked in order;
+     - a handler function `(req, ...params) => any`, called with the same message the chain receives;
+     - a routing map object, whose values are handlers in these same forms;
+     - a path/address string, converted through the Handler constructor.
+     @param hdlr the handler appended to the chain
      */
-    append(Handler hdlr);
+    append(Handler|Handler[]|Function(object req, ...params) => Value|Object|String hdlr);
 };

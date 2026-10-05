@@ -27,17 +27,31 @@ When this service is started, it will listen for all IP addresses and requests o
 interface TcpServer : EventEmitter
 {
     /*! @brief TcpServer constructor, listening on all local addresses
+
+    listener may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param port specifies the tcp server listening port
-    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+    @param listener the connection handler
    */
-    TcpServer(Integer port, Handler listener);
+    TcpServer(Integer port, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief TcpServer constructor
+
+    listener may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param addr specifies the tcp server listening address; "" means listening on all local addresses
     @param port specifies the tcp server listening port
-    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+    @param listener the connection handler
    */
-    TcpServer(String addr, Integer port, Handler listener);
+    TcpServer(String addr, Integer port, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief TcpServer constructor
 
@@ -45,21 +59,41 @@ interface TcpServer : EventEmitter
      - address: specifies the listening address, optional, defaults to listening on all addresses
      - port: specifies the listening port, optional, listen() must be called to start when not provided
 
+    listener may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param options server options
-    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+    @param listener the connection handler
    */
-    TcpServer(Object options, Handler listener);
+    TcpServer(Object options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief TcpServer constructor
+
+    listener may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
     @param addr specifies the unix socket or Windows pipe server listening address
-    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+    @param listener the connection handler
    */
-    TcpServer(String addr, Handler listener);
+    TcpServer(String addr, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief TcpServer constructor, does not bind a port, listen() must be called to start
-    @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+
+    listener may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(socket) => any`, called with each accepted connection (a Socket);
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+    - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+    @param listener the connection handler
    */
-    TcpServer(Handler listener);
+    TcpServer(Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief starts the current server */
     start();

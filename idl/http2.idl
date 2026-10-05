@@ -28,11 +28,21 @@ module http2
     static Server = Http2Server;
 
     /*! @brief creates an Http2 server
-     @param options TLS options object or SecureContext configuration
-     @param hdlr the request handling function
+
+     options may be the TLS options object, used to create the SecureContext with
+     tls.createSecureContext, or the SecureContext object itself.
+
+     hdlr accepts the same forms as http.createServer:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path/address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
+     @param options the TLS options or the SecureContext object
+     @param hdlr the request handler
      @return returns an Http2Server object; call listen() then start() to start serving
     */
-    static Http2Server createServer(Object|SecureContext options, Handler hdlr);
+    static Http2Server createServer(Object|SecureContext options, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief creates an HTTP/2 client session to the specified target
 

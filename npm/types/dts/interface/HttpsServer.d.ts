@@ -1,6 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description HttpsServer is the object used to create an https server; an HttpsServer object can use all the interface functions and properties of HttpServer. An HttpsServer object can be provided with a certificate object (X509Cert type) and a key object (PKey type) generated earlier with openssl when it is created, thereby providing tls/ssl encrypted services for clients
@@ -37,22 +39,36 @@
 declare class Class_HttpsServer extends Class_HttpServer {
     /**
      * @description HttpsServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *     @param context the SecureContext secure context
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *     @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param context the SecureContext secure context
      *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *      @param port specifies the port on which the http server listens
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, listens on all local addresses
@@ -61,19 +77,32 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      - address: specifies the listening address, optional, by default listens on all addresses
      *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
      *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param context the SecureContext secure context
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current HttpsServer
@@ -100,6 +129,8 @@ declare class Class_HttpsServer extends Class_HttpServer {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the HttpsServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
@@ -107,22 +138,36 @@ declare class Class_HttpsServer extends Class_HttpServer {
 declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
     /**
      * @description HttpsServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *     @param context the SecureContext secure context
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *     @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param context the SecureContext secure context
      *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *      @param port specifies the port on which the http server listens
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, listens on all local addresses
@@ -131,19 +176,32 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      - address: specifies the listening address, optional, by default listens on all addresses
      *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
      *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *      @param context the SecureContext secure context
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current HttpsServer

@@ -11,22 +11,28 @@
 #include "ifs/tls.h"
 #include "ifs/TLSServer.h"
 #include "TLSServer.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
-result_t HttpsServer_base::_new(SecureContext_base* context, int32_t port, Handler_base* hdlr,
+result_t HttpsServer_base::_new(SecureContext_base* context, int32_t port, Union_HttpsServer_hdlr hdlr,
     obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new(context, "", port, hdlr, retVal, This);
 }
 
-result_t HttpsServer_base::_new(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* hdlr,
+result_t HttpsServer_base::_new(SecureContext_base* context, exlib::string addr, int32_t port, Union_HttpsServer_hdlr hdlr,
     obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This)
 {
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HttpsServer> svr = new HttpsServer();
     svr->wrap(This);
 
-    result_t hr = svr->create(context, addr, port, hdlr);
+    hr = svr->create(context, addr, port, handler);
     if (hr < 0)
         return hr;
 
@@ -35,7 +41,7 @@ result_t HttpsServer_base::_new(SecureContext_base* context, exlib::string addr,
     return 0;
 }
 
-result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Handler_base* hdlr,
+result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Union_HttpsServer_hdlr hdlr,
     obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SecureContext_base> ctx;
@@ -60,14 +66,19 @@ result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Handler_base* hdl
     return _new(ctx, address, port, hdlr, retVal, This);
 }
 
-result_t HttpsServer_base::_new(SecureContext_base* context, Handler_base* hdlr,
+result_t HttpsServer_base::_new(SecureContext_base* context, Union_HttpsServer_hdlr hdlr,
     obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This)
 {
     // no-port constructor: store handler and context, call listen() to bind
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HttpsServer> svr = new HttpsServer();
     svr->wrap(This);
 
-    result_t hr = svr->setup(context, hdlr);
+    hr = svr->setup(context, handler);
     if (hr < 0)
         return hr;
 

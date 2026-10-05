@@ -22,10 +22,13 @@ class Chain_base : public Handler_base {
     DECLARE_CLASS(Chain_base);
 
 public:
+    using Union_append_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // Chain_base
     static result_t _new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(std::vector<obj_ptr<Handler_base>>& hdlrs) = 0;
-    virtual result_t append(Handler_base* hdlr) = 0;
+    virtual result_t append(Union_append_hdlr hdlr) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,9 +107,9 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG(Union_append_hdlr, 0);
 
-    hr = pInst->append(v0.get());
+    hr = pInst->append(v0);
 
     METHOD_VOID();
 }

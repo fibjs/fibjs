@@ -103,19 +103,33 @@ interface Routing : Handler
     Routing append(Object map);
 
     /*! @brief Adds a routing rule
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing append(String pattern, Handler hdlr);
+    Routing append(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a routing rule
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing append(String method, String pattern, Handler hdlr);
+    Routing append(String method, String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules for http host names
    @param map routing parameters
@@ -124,11 +138,18 @@ interface Routing : Handler
     Routing host(Object map);
 
     /*! @brief Adds a routing rule that accepts http host names
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing host(String pattern, Handler hdlr);
+    Routing host(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept all http methods
    @param map routing parameters
@@ -137,11 +158,18 @@ interface Routing : Handler
     Routing all(Object map);
 
     /*! @brief Adds a routing rule that accepts all http methods
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing all(String pattern, Handler hdlr);
+    Routing all(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of GET method routing rules
    @param map routing parameters
@@ -150,11 +178,18 @@ interface Routing : Handler
     Routing get(Object map);
 
     /*! @brief Adds a routing rule that accepts the http GET method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing get(String pattern, Handler hdlr);
+    Routing get(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http POST method
    @param map routing parameters
@@ -163,11 +198,18 @@ interface Routing : Handler
     Routing post(Object map);
 
     /*! @brief Adds a routing rule that accepts the http POST method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing post(String pattern, Handler hdlr);
+    Routing post(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http DELETE method
    @param map routing parameters
@@ -176,11 +218,18 @@ interface Routing : Handler
     Routing del(Object map);
 
     /*! @brief Adds a routing rule that accepts the http DELETE method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing del(String pattern, Handler hdlr);
+    Routing del(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of PUT method routing rules
    @param map routing parameters
@@ -189,11 +238,18 @@ interface Routing : Handler
     Routing put(Object map);
 
     /*! @brief Adds a routing rule that accepts the http PUT method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing put(String pattern, Handler hdlr);
+    Routing put(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of PATCH method routing rules
    @param map routing parameters
@@ -202,11 +258,18 @@ interface Routing : Handler
     Routing patch(Object map);
 
     /*! @brief Adds a routing rule that accepts the http PATCH method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing patch(String pattern, Handler hdlr);
+    Routing patch(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of FIND method routing rules
    @param map routing parameters
@@ -215,9 +278,16 @@ interface Routing : Handler
     Routing find(Object map);
 
     /*! @brief Adds a routing rule that accepts the http FIND method
+
+   hdlr may be given in any of these forms:
+   - a Handler object, invoked as it is;
+   - an array of handlers, wrapped in a Chain and invoked in order;
+   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+   - a routing map object, whose values are handlers in these same forms;
+   - a path/address string.
    @param pattern message match pattern
-   @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+   @param hdlr the route handler
    @return returns the routing object itself
    */
-    Routing find(String pattern, Handler hdlr);
+    Routing find(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 };

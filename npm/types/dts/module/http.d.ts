@@ -114,20 +114,38 @@ declare module 'http' {
 
     /**
      * @description Creates an http server
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
+     *      @param hdlr the request handler
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an https server
-     *      @param options either the SecureContext object used for TLS configuration, or the TLS options object used to create one
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      options configures the TLS connection: the SecureContext object used by the server,
+     *      or the TLS options object used to create one (the same object tls.createSecureContext
+     *      accepts).
+     *
+     *      hdlr may be given in the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
+     *      @param options the secure context or the TLS options used to create one
+     *      @param hdlr the request handler
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -1576,7 +1594,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -1607,7 +1625,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -1636,7 +1654,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *

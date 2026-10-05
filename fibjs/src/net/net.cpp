@@ -14,6 +14,7 @@
 #include "options.h"
 #include "AsyncUV.h"
 #include "Socket.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -74,6 +75,9 @@ result_t net_base::info(v8::Local<v8::Object>& retVal)
 result_t net_base::resolve(exlib::string name, int32_t family,
     exlib::string& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
         return CHECK_ERROR(Runtime::setError(
             ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
@@ -95,9 +99,6 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         exlib::string& _retVal;
         AsyncEvent* _ac;
     };
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
@@ -188,16 +189,17 @@ result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
 result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
     AsyncEvent* ac)
 {
+    // 纯 tag 分发（不转换、不触碰 V8）：ssl: 直接交给 tls 入口，由它处理相位
     if (!qstrcmp(url.c_str(), "ssl:", 4))
         return tls_base::connect(url, timeout, retVal, ac);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
         return CHECK_ERROR(Runtime::setError(
             ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
                 .format("connect: unknown protocol in url '%s'.", url.c_str())));
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!qstrcmp(url.c_str(), "tcp:", 4)) {
         obj_ptr<Url> u = new Url();
@@ -264,6 +266,10 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
     return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
 }
@@ -286,24 +292,46 @@ result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Funct
 result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        bool is_ipv6 = Url::isIPv6(host);
-        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        // the listener registration needs the socket wrapper, so the socket is
+        // built in the sync phase only when a listener is present; otherwise
+        // it is built in the async phase (no `_new` off the JS thread,
+        // plans/async-phase-discipline-audit-2026-10-05.md §3-F14)
+        if (!connectListener.IsEmpty()) {
+            bool is_ipv6 = Url::isIPv6(host);
+            int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
-        obj_ptr<Socket_base> socket;
-        result_t hr = Socket_base::_new(family, socket);
-        if (hr < 0)
-            return hr;
+            obj_ptr<Socket_base> socket;
+            result_t hr = create_socket(family, socket);
+            if (hr < 0)
+                return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = socket;
+            ac->m_ctx.resize(1);
+            ac->m_ctx[0] = socket;
 
-        v8::Local<v8::Object> _retVal;
-        socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
+            v8::Local<v8::Object> _retVal;
+            socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
+        }
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    Socket_base* socket = (Socket_base*)ac->m_ctx[0].object();
+    obj_ptr<Socket_base> holder;
+    Socket_base* socket = NULL;
+
+    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL)
+        socket = Socket_base::getInstance(ac->m_ctx[0].object());
+
+    if (socket == NULL) {
+        bool is_ipv6 = Url::isIPv6(host);
+        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+
+        result_t hr = create_socket(family, holder);
+        if (hr < 0)
+            return hr;
+
+        socket = holder;
+    }
+
     return socket->connect(port, host, timeout, retVal, ac);
 }
 
@@ -355,6 +383,13 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(1);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
     Socket_base* socket = (Socket_base*)ac->m_ctx[1].object();
@@ -427,12 +462,12 @@ result_t net_base::isIPv6(v8::Local<v8::Value> ip, bool& retVal)
     return 0;
 }
 
-result_t net_base::createServer(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
+result_t net_base::createServer(v8::Local<v8::Object> options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal)
 {
     return TcpServer_base::_new(options, listener, retVal);
 }
 
-result_t net_base::createServer(Handler_base* listener, obj_ptr<TcpServer_base>& retVal)
+result_t net_base::createServer(Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal)
 {
     return TcpServer_base::_new(listener, retVal);
 }

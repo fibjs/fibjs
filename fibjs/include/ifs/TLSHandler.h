@@ -23,9 +23,12 @@ class TLSHandler_base : public Handler_base {
     DECLARE_CLASS(TLSHandler_base);
 
 public:
+    using Union_TLSHandler_handler = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+
+public:
     // TLSHandler_base
-    static result_t _new(SecureContext_base* context, Handler_base* handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, Handler_base* handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, Union_TLSHandler_handler handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, Union_TLSHandler_handler handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal) = 0;
     virtual result_t setSecureContext(SecureContext_base* context) = 0;
     virtual result_t setSecureContext(v8::Local<v8::Object> options) = 0;
@@ -85,16 +88,16 @@ inline void TLSHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(2, 2);
 
     ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_TLSHandler_handler, 1);
 
-    hr = _new(v0.get(), v1.get(), vr, args.This());
+    hr = _new(v0.get(), v1, vr, args.This());
 
     METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
-    ARG(obj_ptr<Handler_base>, 1);
+    ARG(Union_TLSHandler_handler, 1);
 
-    hr = _new(v0, v1.get(), vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

@@ -16,6 +16,7 @@
 #include "version.h"
 #include "ifs/zlib.h"
 #include "ifs/console.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -586,12 +587,17 @@ static int32_t mt_cmp(const void* p, const void* q)
     return qstricmp(*(const char**)p, *(const char**)q);
 }
 
-result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal,
+result_t HttpHandler_base::_new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HttpHandler> ht_hdlr = new HttpHandler();
     ht_hdlr->wrap(This);
-    ht_hdlr->set_handler(hdlr);
+    ht_hdlr->set_handler(handler);
 
     retVal = ht_hdlr;
 

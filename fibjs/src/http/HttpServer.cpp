@@ -8,24 +8,30 @@
 #include "object.h"
 #include "HttpServer.h"
 #include "ifs/http.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
-result_t HttpServer_base::_new(int32_t port, Handler_base* hdlr,
+result_t HttpServer_base::_new(int32_t port, Union_HttpServer_hdlr hdlr,
     obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new("", port, hdlr, retVal, This);
 }
 
-result_t HttpServer_base::_new(exlib::string addr, int32_t port, Handler_base* hdlr,
+result_t HttpServer_base::_new(exlib::string addr, int32_t port, Union_HttpServer_hdlr hdlr,
     obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     result_t hr;
 
+    obj_ptr<Handler_base> handler;
+    hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HttpServer> svr = new HttpServer();
     svr->wrap(This);
 
-    hr = svr->create(addr, port, hdlr);
+    hr = svr->create(addr, port, handler);
     if (hr < 0)
         return hr;
 
@@ -33,7 +39,7 @@ result_t HttpServer_base::_new(exlib::string addr, int32_t port, Handler_base* h
     return 0;
 }
 
-result_t HttpServer_base::_new(exlib::string addr, Handler_base* hdlr,
+result_t HttpServer_base::_new(exlib::string addr, Union_HttpServer_hdlr hdlr,
     obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t n = get_port(addr.c_str());
@@ -43,14 +49,19 @@ result_t HttpServer_base::_new(exlib::string addr, Handler_base* hdlr,
     return _new(addr, 0, hdlr, retVal, This);
 }
 
-result_t HttpServer_base::_new(Handler_base* hdlr,
+result_t HttpServer_base::_new(Union_HttpServer_hdlr hdlr,
     obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     // no-port constructor: store handler only, call listen() to bind
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<HttpServer> svr = new HttpServer();
     svr->wrap(This);
 
-    result_t hr = svr->setup(hdlr);
+    hr = svr->setup(handler);
     if (hr < 0)
         return hr;
 

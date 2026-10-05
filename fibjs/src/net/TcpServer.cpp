@@ -10,17 +10,23 @@
 #include "ifs/mq.h"
 #include "ifs/console.h"
 #include "Url.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
 result_t _new_tcpServer(exlib::string addr, int32_t port,
-    Handler_base* listener, obj_ptr<TcpServer_base>& retVal,
+    TcpServer_base::Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(listener, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<TcpServer> svr = new TcpServer();
     svr->wrap(This);
 
-    result_t hr = svr->create(addr, port, listener);
+    hr = svr->create(addr, port, handler);
     if (hr < 0)
         return hr;
 
@@ -29,20 +35,20 @@ result_t _new_tcpServer(exlib::string addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer_base::_new(int32_t port, Handler_base* listener,
+result_t TcpServer_base::_new(int32_t port, Union_TcpServer_listener listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new("", port, listener, retVal, This);
 }
 
 result_t TcpServer_base::_new(exlib::string addr, int32_t port,
-    Handler_base* listener, obj_ptr<TcpServer_base>& retVal,
+    Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new_tcpServer(addr, port, listener, retVal, This);
 }
 
-result_t TcpServer_base::_new(exlib::string addr, Handler_base* listener,
+result_t TcpServer_base::_new(exlib::string addr, Union_TcpServer_listener listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t n = get_port(addr.c_str());
@@ -52,18 +58,23 @@ result_t TcpServer_base::_new(exlib::string addr, Handler_base* listener,
     return _new_tcpServer(addr, 0, listener, retVal, This);
 }
 
-result_t TcpServer_base::_new(Handler_base* listener,
+result_t TcpServer_base::_new(Union_TcpServer_listener listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     // no-port constructor: store handler only, call listen() to bind
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(listener, handler);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<TcpServer> svr = new TcpServer();
     svr->wrap(This);
-    svr->set_handler(listener);
+    svr->set_handler(handler);
     retVal = svr;
     return 0;
 }
 
-result_t TcpServer_base::_new(v8::Local<v8::Object> options, Handler_base* listener,
+result_t TcpServer_base::_new(v8::Local<v8::Object> options, Union_TcpServer_listener listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     exlib::string address;

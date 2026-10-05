@@ -16,6 +16,7 @@
 #include "HttpRequest.h"
 #include "HttpClient.h"
 #include "BufferedStream.h"
+#include "union_helpers.h"
 #include <unordered_map>
 #include "Isolate.h"
 #include "ifs/zlib.h"
@@ -503,9 +504,14 @@ result_t http_base::head(exlib::string url, v8::Local<v8::Function> callback,
     return get_httpClient()->head(url, callback, retVal);
 }
 
-result_t http_base::createServer(Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+result_t http_base::createServer(Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal)
 {
-    return HttpServer_base::_new(hdlr, retVal);
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
+    return HttpServer_base::_new(handler, retVal);
 }
 
 // the context form of the merged createServer entry: always an https server
@@ -520,10 +526,15 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
     return 0;
 }
 
-result_t http_base::createServer(Union_createServer_options options, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal)
+result_t http_base::createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal)
 {
+    obj_ptr<Handler_base> handler;
+    result_t hr = handler_from_union(hdlr, handler);
+    if (hr < 0)
+        return hr;
+
     if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
-        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), hdlr, retVal);
+        return create_server_by_context(std::get<obj_ptr<SecureContext_base>>(options).get(), handler, retVal);
 
     v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
     Isolate* isolate = Isolate::current(opts);
@@ -539,10 +550,10 @@ result_t http_base::createServer(Union_createServer_options options, Handler_bas
         if (hr < 0)
             return hr;
 
-        return create_server_by_context(ctx.get(), hdlr, retVal);
+        return create_server_by_context(ctx.get(), handler, retVal);
     }
 
-    return HttpServer_base::_new(hdlr, retVal);
+    return HttpServer_base::_new(handler, retVal);
 }
 
 result_t http_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,

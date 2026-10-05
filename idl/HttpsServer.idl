@@ -31,19 +31,33 @@ Note that if external access is required, the certificate must be issued by a tr
 interface HttpsServer : HttpServer
 {
     /*! @brief HttpsServer constructor, listens on all local addresses
+
+    hdlr may be given in any of these forms:
+    - a Handler object, invoked as it is;
+    - an array of handlers, wrapped in a Chain and invoked in order;
+    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
     @param context the SecureContext secure context
     @param port specifies the port on which the http server listens
-    @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+    @param hdlr the request handler
     */
-    HttpsServer(SecureContext context, Integer port, Handler hdlr);
+    HttpsServer(SecureContext context, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpsServer constructor
+
+     hdlr may be given in any of these forms:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      @param context the SecureContext secure context
      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      @param port specifies the port on which the http server listens
-     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     @param hdlr the request handler
     */
-    HttpsServer(SecureContext context, String addr, Integer port, Handler hdlr);
+    HttpsServer(SecureContext context, String addr, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpsServer constructor, listens on all local addresses
 
@@ -51,16 +65,29 @@ interface HttpsServer : HttpServer
      - address: specifies the listening address, optional, by default listens on all addresses
      - port: specifies the listening port, optional; when not provided, listen() must be called to start
 
+     hdlr may be given in any of these forms:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      @param options the options needed to create a secure context with tls.createSecureContext
-     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     @param hdlr the request handler
     */
-    HttpsServer(Object options, Handler hdlr);
+    HttpsServer(Object options, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief HttpsServer constructor, does not bind a port; listen() must be called to start
+
+     hdlr may be given in any of these forms:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
+     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      @param context the SecureContext secure context
-     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     @param hdlr the request handler
     */
-    HttpsServer(SecureContext context, Handler hdlr);
+    HttpsServer(SecureContext context, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
     /*! @brief queries the SecureContext used by the current HttpsServer */
     readonly SecureContext secureContext;
