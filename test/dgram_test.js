@@ -190,21 +190,41 @@ describe('dgram', () => {
 
         const c = dgram.createSocket('udp4');
 
-        // Node also sets syscall/address/port (gap recorded)
-        assert.throws(() => {
+        // A machine that cannot route the broadcast address has no broadcast to
+        // test: the runner VMs report EHOSTUNREACH for it (the macOS 15 GitHub
+        // Actions runners do), and nothing here can deliver the datagram.
+        function skipNoRoute() {
+            console.log('Broadcast test skipped: network interface not available');
+            c.close();
+            s.close();
+        }
+
+        // The refusal of a send to the broadcast address without SO_BROADCAST
+        // comes after the route is resolved: where a broadcast route exists the
+        // kernel answers EACCES, and where none exists the routing stage fails
+        // first, so the permission check is never reached.  Node also sets
+        // syscall/address/port (gap recorded).
+        var refused = null;
+        try {
             c.send('123456', base_port + 1006, "255.255.255.255");
-        }, { code: 'EACCES' });
+        } catch (e) {
+            refused = e;
+        }
+
+        if (refused && (refused.code === 'EHOSTUNREACH' || refused.code === 'ENETUNREACH')) {
+            skipNoRoute();
+            return;
+        }
+
+        assert.ok(refused, 'a send to the broadcast address must be refused without SO_BROADCAST');
+        assert.equal(refused.code, 'EACCES');
 
         try {
             c.setBroadcast(true);
             c.send('123456', base_port + 1006, "255.255.255.255");
         } catch (e) {
-            // Skip test if broadcast is not supported in this environment
-            // (e.g., macOS 15 GitHub Actions VM may lack proper network routing)
             if (e.code === 'EHOSTUNREACH' || e.code === 'ENETUNREACH') {
-                console.log('Broadcast test skipped: network interface not available');
-                c.close();
-                s.close();
+                skipNoRoute();
                 return;
             }
             throw e;
