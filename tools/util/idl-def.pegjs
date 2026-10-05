@@ -3,13 +3,23 @@
   // `Function(...)` is a typing-only refinement of a `Function` argument: the
   // type name stays 'Function' (the C++ generators look it up by name) and the
   // inline shape travels in the side-car `callback` field, consumed by the
-  // d.ts / docs generators only (see tools/util/ir.d.ts).
+  // d.ts / docs generators only (see tools/util/ir.d.ts). A union whose
+  // `Function` alternative is shaped returns the union string wrapped in
+  // `{ type, callback }`, so the shape reaches the parameter the same way.
   function typeName(t) {
-    return (t !== null && typeof t === 'object' && !Array.isArray(t)) ? 'Function' : t;
+    if (t !== null && typeof t === 'object' && !Array.isArray(t))
+      return t.type !== undefined ? t.type : 'Function';
+    return t;
   }
 
   function callbackOf(t) {
     return (t !== null && typeof t === 'object' && !Array.isArray(t)) ? t.callback : null;
+  }
+
+  // the alternative as it appears in the union string: a shaped Function
+  // alternative is the plain `Function` type, its shape travels separately
+  function unionUnitName(u) {
+    return typeof u === 'object' ? 'Function' : u;
   }
 
   // The call operator (`operator(...)`, see the rule below) is a plain method
@@ -280,16 +290,28 @@ type
 // `Buffer|String` / `Buffer|KeyObject|Object|String`: a parameter-position
 // union. The alternatives are the runtime conversion's preference order (see
 // plans/idl-union-types-2026-10-02.md); the C++ side receives one
-// `std::variant` (see gen_code). Alternatives are named types or
-// `Iterator<T>`; struct, Function, `...`, a single `[]` and string literals
-// are not alternatives, and a callback shape is never a union member.
+// `std::variant` (see gen_code). Alternatives are named types, `Iterator<T>`,
+// an array of a named type (`Handler[]`, the shapes a value-array parameter
+// element accepts) or a shaped `Function(...)` (typing-only: the shape travels
+// in the parameter's `callback` field, the alternative stays `Function`);
+// struct, `...` and string literals are not alternatives.
 paramType
   = UnionType
   / extType
 
 UnionType
   = first:unionUnit rest:unionTail+ {
-      return [first].concat(rest).join('|');
+      var units = [first].concat(rest);
+      var callback = null;
+
+      units.forEach(u => {
+        var c = callbackOf(u);
+        if (c)
+          callback = c;
+      });
+
+      var type = units.map(unionUnitName).join('|');
+      return callback ? { type: type, callback: callback } : type;
     }
 
 unionTail
@@ -299,7 +321,16 @@ unionTail
 
 unionUnit
   = IteratorType
+  / ArrayUnit
+  / CallbackType
   / Identifier
+
+// `Handler[]` inside a union: the alternative is an array whose element is the
+// named type (`std::vector<obj_ptr<Handler_base>>` on the C++ side).
+ArrayUnit
+  = name:Identifier _* "[" _* "]" {
+      return name + '[]';
+    }
 
 // `extType` is the only way to reach `CallbackType`: it is used by `paramitem`
 // and by the method return position, so `prop` (which keeps `type`), `operator`

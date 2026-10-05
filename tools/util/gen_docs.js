@@ -39,11 +39,20 @@ module.exports = function (defs, docsFolder) {
         return s;
     }
 
+    function formatUnion(t, shape) {
+        return typeUtils.splitUnion(t).map(function (alt) {
+            return (alt === 'Function' && shape) ? formatCallback(shape) : alt;
+        }).join(' | ');
+    }
+
     function formatParam(p) {
         if (p.type === '...' || !p.type)
             return '...' + (p.name && p.name !== '...' ? p.name : '');
 
-        var s = (p.callback ? formatCallback(p.callback) : formatTypeName(p.type)) + ' ';
+        var type = p.callback
+            ? (typeUtils.isUnion(p.type) ? formatUnion(p.type, p.callback) : formatCallback(p.callback))
+            : formatTypeName(p.type);
+        var s = type + ' ';
         s += p.name;
         if (p.isarray)
             s += '[]';
@@ -51,7 +60,9 @@ module.exports = function (defs, docsFolder) {
     }
 
     function formatType(p) {
-        return p.callback ? formatCallback(p.callback) : formatTypeName(p.type);
+        if (!p.callback)
+            return formatTypeName(p.type);
+        return typeUtils.isUnion(p.type) ? formatUnion(p.type, p.callback) : formatCallback(p.callback);
     }
 
     // Generate function signature for better error messages

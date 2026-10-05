@@ -108,6 +108,17 @@ function modelOf(type) {
     if (TYPE_ACCEPTS[type])
         return TYPE_ACCEPTS[type];
 
+    // `Handler[]` inside a union: the vector converter takes an array whose
+    // elements the inner converter accepts (each element is converted on its
+    // own, in the lenient mode). The element kind keeps `Buffer[]` and
+    // `String[]` apart in the shadow analysis.
+    if (type.length > 2 && type.slice(-2) === '[]') {
+        var inner = modelOf(type.slice(0, -2));
+        var kind = 'array<' + inner.strict.slice().sort().join('|') + '>';
+
+        return { strict: [kind], lenient: [kind] };
+    }
+
     // a native class or an unknown name: only its own instances match, and
     // there is no lenient construction unless the class declares one above
     return { strict: ['#' + type], lenient: [] };

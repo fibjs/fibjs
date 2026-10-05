@@ -20,8 +20,8 @@ declare namespace FIBJS_IDL {
 
     /**
     * @description the inline callback shape of a `Function(...)` parameter or
-    * return type; typing-only, the runtime and the C++ side still see one
-    * `Function` value
+    * return type, or of the `Function(...)` alternative of a parameter union;
+    * typing-only, the runtime and the C++ side still see one `Function` value
     */
     export interface IIDLCallbackShape {
         /**
@@ -60,7 +60,8 @@ declare namespace FIBJS_IDL {
         } | null
         /**
          * @description the inline callback shape when the parameter was declared
-         * as `Function(...)`; absent for a bare `Function` or any other type
+         * as `Function(...)`, or when the `Function` alternative of a union
+         * carries one; absent for a bare `Function` or any other type
          */
         callback?: IIDLCallbackShape
     }

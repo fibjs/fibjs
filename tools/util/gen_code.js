@@ -772,11 +772,23 @@ function gen_code(cls, def, baseFolder, allDefs) {
             .join('_');
     }
 
+    /**
+     * One union alternative as its C++ variant member. `Handler[]` is the
+     * vector of the elements the value-array converter builds (the runtime
+     * converts each element on its own, see GetArgumentValue(std::vector<T>&)).
+     */
+    function union_variant(alt) {
+        if (typeof alt === 'string' && alt.length > 2 && alt.slice(-2) === '[]') {
+            var inner = base_type(alt.slice(0, -2));
+            return `std::vector<${typeMap[inner] || (`obj_ptr<${inner}_base>`)}>`;
+        }
+
+        var t = base_type(alt);
+        return typeMap[t] || (`obj_ptr<${t}_base>`);
+    }
+
     function union_variants(type) {
-        return splitUnion(type).map(alt => {
-            var t = base_type(alt);
-            return typeMap[t] || (`obj_ptr<${t}_base>`);
-        });
+        return splitUnion(type).map(union_variant);
     }
 
     function collect_union_types() {
@@ -1557,6 +1569,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
             }
 
             var t = base_type(type);
+
+            // `Handler[]` inside a union: the element type carries the forward
+            // declaration / include (the vector needs no declaration of its own)
+            if (t && t.length > 2 && t.slice(-2) === '[]')
+                t = base_type(t.slice(0, -2));
+
             if (t && (t !== cls) && (t !== 'object') &&
                 (t !== def.declare.extend) &&
                 (!typeMap[t]))

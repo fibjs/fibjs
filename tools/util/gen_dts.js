@@ -279,6 +279,10 @@ function generalTypeMap(dataType, {
     allModuleNames,
     useRefInstance = false,
     instanceFlavor = 'fiber',
+    // the rendered `Function` alternative of a parameter union declared with a
+    // shape (`Handler|Function(Value req) => Value|String`); bare `Function`
+    // alternatives keep the anonymous `(...args: any[]) => any` form
+    functionAlternative = null,
 }) {
     const info = {
         type: null,
@@ -294,7 +298,9 @@ function generalTypeMap(dataType, {
         const auxRefs = [];
 
         splitUnion(dataType).forEach((member) => {
-            const memberInfo = generalTypeMap(member, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor });
+            const memberInfo = (member === 'Function' && functionAlternative)
+                ? { type: functionAlternative }
+                : generalTypeMap(member, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor });
             types.push(memberInfo.type || dom.type.any);
 
             if (memberInfo.refType)
@@ -305,6 +311,19 @@ function generalTypeMap(dataType, {
         info.type = dom.create.union(types);
         if (auxRefs.length)
             info.auxRefs = auxRefs;
+        return info;
+    }
+
+    // `Handler[]` inside a union: an array alternative. The element maps as its
+    // named type does; the runtime converts each element on its own
+    // (GetArgumentValue(std::vector<T>&) runs the per-element converter).
+    if (typeof dataType === 'string' && dataType.length > 2 && dataType.slice(-2) === '[]') {
+        const elementName = dataType.slice(0, -2);
+        const elementInfo = generalTypeMap(elementName, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor });
+        info.type = dom.create.array(elementInfo.type || dom.type.any);
+        if (elementInfo.refType)
+            info.auxRefs = [{ refType: elementInfo.refType, name: elementName }];
+        (elementInfo.auxRefs || []).forEach(aux => (info.auxRefs = info.auxRefs || []).push(aux));
         return info;
     }
 
@@ -660,8 +679,11 @@ function mapParamTypeToDtsType(paramType, {
     instanceFlavor = 'both',
 }) {
     // `Function(...)` parameter: the shape carries the typings, the runtime
-    // still handles the argument as one `Function`
-    if (paramInfo && paramInfo.callback) {
+    // still handles the argument as one `Function`. A union that declares its
+    // `Function` alternative with a shape (`Handler|Function(Value req) =>
+    // Value|String`) renders the shape in that alternative's place; the rest
+    // of the union goes through the normal mapping below.
+    if (paramInfo && paramInfo.callback && !isUnion(paramType)) {
         let callbackType = mapCallbackShapeToDtsType(paramInfo.callback, {
             memberInfo: { name: paramInfo.name },
             memberHostName: paramHostName,
@@ -676,7 +698,20 @@ function mapParamTypeToDtsType(paramType, {
         return { type: callbackType };
     }
 
-    const result = generalTypeMap(paramType, { allInterfacesNames, allModuleNames, useRefInstance: true, instanceFlavor });
+    const mapOptions = { allInterfacesNames, allModuleNames, useRefInstance: true, instanceFlavor };
+
+    if (paramInfo && paramInfo.callback)
+        mapOptions.functionAlternative = mapCallbackShapeToDtsType(paramInfo.callback, {
+            memberInfo: { name: paramInfo.name },
+            memberHostName: paramHostName,
+            dtsUnitName,
+            allInterfacesNames,
+            allModuleNames,
+            addRefToTripleSlashDirectivesHost,
+            instanceFlavor,
+        });
+
+    const result = generalTypeMap(paramType, mapOptions);
 
     if (result.type) {
         if (result.refType && dtsUnitName !== paramType) {
@@ -1082,6 +1117,26 @@ function buildDtsMethodParams(paramsHost, getMapParamOptions, { typeOverride } =
     });
 
     return { params, withRestArgs };
+}
+
+/**
+ * dts-dom's interface printer writes a call signature's parameters as
+ * `name: type` and ignores ParameterFlags (its `printObjectTypeMembers` case
+ * "call-signature", unlike writeParameter) - a rest `...args` would come out as
+ * `args`. Carry the flags in the name, which is the part that printer writes
+ * verbatim.
+ */
+function callSignatureParameters(params) {
+    return params.map(p => {
+        let name = p.name;
+
+        if (p.flags & dom.ParameterFlags.Rest)
+            name = '...' + name;
+        else if (p.flags & dom.ParameterFlags.Optional)
+            name = name + '?';
+
+        return dom.create.parameter(name, p.type, p.flags);
+    });
 }
 
 /**
@@ -1619,7 +1674,7 @@ function processDeclareInterface(def, {
             overloads.forEach(over => {
                 const { params } = buildDtsMethodParams(over, getMapParamOptions);
                 const signature = dom.create.callSignature(
-                    params,
+                    callSignatureParameters(params),
                     mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions())
                 );
 
