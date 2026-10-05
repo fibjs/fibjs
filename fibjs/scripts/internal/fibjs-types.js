@@ -56,7 +56,8 @@ declare class Class_AbortController extends Class_object {
 
     /**
      * @description Aborts one or more Web requests
-     *      @param reason the reason for aborting the request: a string, or a value of any type
+     *      reason may be a string, or a value of any type.
+     *      @param reason the reason for aborting the request
      *
      */
     abort(reason?: string | any): void;
@@ -72,7 +73,8 @@ declare class Class_AbortController extends Class_object {
 declare class Class_AbortSignal extends Class_EventEmitter {
     /**
      * @description Aborts one or more Web requests
-     *      @param reason the reason for aborting the request: a string, or a value of any type
+     *      reason may be a string, or a value of any type.
+     *      @param reason the reason for aborting the request
      *      @return returns an AbortSignal object
      *
      */
@@ -516,7 +518,8 @@ declare class Class_Blob extends Class_object {
      * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
@@ -625,7 +628,8 @@ declare class Class_BlobPromise extends Class_object {
      * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
@@ -1918,6 +1922,7 @@ declare class Class_CSSStyleDeclaration extends Class_object {
 `,
         "dts/interface/Chain.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/object.d.ts" />
 /**
  * @description Message handler chain object
  *
@@ -1939,54 +1944,69 @@ declare class Class_CSSStyleDeclaration extends Class_object {
 declare class Class_Chain extends Class_Handler {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
      * @description Adds a handler array
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
 
     /**
      * @description Adds a handler
-     *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a nested Chain and invoked in order;
+     *      - a handler function \`(req, ...params) => any\`, called with the same message the chain receives;
+     *      - a routing map object, whose values are handlers in these same forms;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/object.d.ts" />
 /**
  * The promise variant of the Chain class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_ChainPromise extends Class_HandlerPromise {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
      * @description Adds a handler array
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
      *
      */
     append(hdlrs: (Class_Handler | Class_HandlerPromise)[]): void;
 
     /**
      * @description Adds a handler
-     *      @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a nested Chain and invoked in order;
+     *      - a handler function \`(req, ...params) => any\`, called with the same message the chain receives;
+     *      - a routing map object, whose values are handlers in these same forms;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
 
 }
 
@@ -2010,7 +2030,8 @@ declare namespace Class_Chain {
 declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *       signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to deliver
      *
      */
     kill(signal?: string | number): void;
@@ -2312,7 +2333,8 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *       signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to deliver
      *
      */
     kill(signal?: string | number): void;
@@ -2491,7 +2513,8 @@ declare namespace Class_ChildProcess {
 declare class Class_Cipher extends Class_object {
     /**
      * @description Sets the authentication tag
-     *      @param buffer the authentication tag data to use, or a string decoded with encoding
+     *      buffer may be a Buffer, or a string decoded with encoding.
+     *      @param buffer the authentication tag data
      *      @param encoding the encoding of a string authentication tag data, default "utf8"
      *      @return returns the current Cipher object
      *
@@ -2507,7 +2530,8 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Sets additional authenticated data
-     *      @param buffer the additional authenticated data to use, or a string decoded with the encoding option
+     *      buffer may be a Buffer, or a string decoded with the encoding option.
+     *      @param buffer the additional authenticated data
      *      @param options the additional authenticated data options to use
      *      @return returns the current Cipher object
      *
@@ -2524,7 +2548,8 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Updates the data
-     *       @param data the data to update, or a string decoded with inputEncoding
+     *       data may be a Buffer, or a string decoded with inputEncoding.
+     *       @param data the data to update
      *       @param inputEncoding the encoding of the input data, default "utf8"
      *       @param outputEncoding the encoding of the output data
      *       @return returns the updated data
@@ -4135,8 +4160,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4147,8 +4174,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer | string, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4157,8 +4186,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4167,8 +4198,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4181,8 +4214,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4193,8 +4228,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4501,8 +4538,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4511,8 +4550,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4521,8 +4562,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -4531,8 +4574,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4543,8 +4588,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4555,8 +4602,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -4720,7 +4769,8 @@ declare namespace Class_DgramSocket {
 declare class Class_Digest extends Class_object {
     /**
      * @description Updates the digest information with the given data
-     *      @param data the data block, or a string decoded with codec
+     *      data may be a Buffer, or a string decoded with codec.
+     *      @param data the data block
      *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
      *      @return returns the message digest object itself
      *
@@ -4937,7 +4987,8 @@ declare class Class_DirEntry extends Class_object {
 declare class Class_ECDH extends Class_object {
     /**
      * @description Converts a public key to the specified format
-     *      @param key the public key to convert, or a string in inputEncoding
+     *      key may be a Buffer, or a string decoded with inputEncoding.
+     *      @param key the public key to convert
      *      @param curve the predefined elliptic curve to use
      *      @param inputEncoding the encoding of key: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -4949,7 +5000,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Computes the shared secret from another public key
-     *      @param otherPublicKey the other party's public key, or a string in inputEncoding
+     *      otherPublicKey may be a Buffer, or a string decoded with inputEncoding.
+     *      @param otherPublicKey the other party's public key
      *      @param inputEncoding the encoding of otherPublicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
      *      @return returns the computed shared secret
@@ -4992,7 +5044,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Sets the private key
-     *      @param privateKey the private key data, or a string in encoding
+     *      privateKey may be a Buffer, or a string decoded with encoding.
+     *      @param privateKey the private key data
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
@@ -5000,7 +5053,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Sets the public key
-     *      @param publicKey the public key data, or a string in encoding
+     *      publicKey may be a Buffer, or a string decoded with encoding.
+     *      @param publicKey the public key data
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
@@ -6336,7 +6390,8 @@ declare class Class_File extends Class_Blob {
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *
@@ -6403,7 +6458,8 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *
@@ -6734,7 +6790,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -6752,7 +6809,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -6768,7 +6826,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -6785,7 +6844,8 @@ declare class Class_FileHandle extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -6804,7 +6864,8 @@ declare class Class_FileHandle extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -6821,7 +6882,8 @@ declare class Class_FileHandle extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -7264,7 +7326,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -7280,7 +7343,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -7296,7 +7360,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      \`\`\`
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -7313,7 +7378,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -7330,7 +7396,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -7347,7 +7414,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      \`\`\`
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -7662,7 +7730,8 @@ declare class Class_FormData extends Class_HttpCollection {
 
     /**
      * @description FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
-     *      @param init the fields: an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val"
+     *      init may be an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val".
+     *      @param init the fields
      *
      */
     constructor(init: FIBJS.GeneralObject | Class_FormData | string);
@@ -7782,7 +7851,7 @@ declare class Class_Gzip extends Class_ZlibCodec {
 declare class Class_Handler extends Class_object {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
@@ -7852,7 +7921,7 @@ declare class Class_Handler extends Class_object {
 declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Constructs a message handler chain object
-     *      @param hdlrs handler array
+     *      @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function, a routing map object, or a path/address string)
      *
      */
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
@@ -8267,6 +8336,8 @@ declare namespace Class_HeapSnapshot {
         "dts/interface/Http2Server.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description Http2Server is a high-concurrency HTTP/2 server
@@ -8290,38 +8361,66 @@ declare namespace Class_HeapSnapshot {
 declare class Class_Http2Server extends Class_TcpServer {
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
      *      @param port listening port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
      *      @param addr listening address
      *      @param port listening port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor, creates the SecureContext from options
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param options the options for creating the SecureContext, may contain address and port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current Http2Server
@@ -8348,6 +8447,8 @@ declare class Class_Http2Server extends Class_TcpServer {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the Http2Server class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
@@ -8355,38 +8456,66 @@ declare class Class_Http2Server extends Class_TcpServer {
 declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
      *      @param port listening port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param context SecureContext secure context
      *      @param addr listening address
      *      @param port listening port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Http2Server constructor, creates the SecureContext from options
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string.
      *      @param options the options for creating the SecureContext, may contain address and port
-     *      @param hdlr http built-in message handler
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current Http2Server
@@ -9154,6 +9283,9 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description HttpClient constructor, creates a new HttpClient object
      *
+     *      options may be the options object used to create the secure context (the same object
+     *      tls.createSecureContext accepts), or the SecureContext object itself.
+     *
      *      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      *      - keepAlive: specifies whether to keep the connection alive
      *      - timeout: specifies the timeout
@@ -9168,7 +9300,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
+     *      @param options the secure context or the options used to create one
      *
      */
     constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
@@ -10535,7 +10667,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -10562,7 +10694,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -10587,7 +10719,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -10618,6 +10750,9 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description HttpClient constructor, creates a new HttpClient object
      *
+     *      options may be the options object used to create the secure context (the same object
+     *      tls.createSecureContext accepts), or the SecureContext object itself.
+     *
      *      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      *      - keepAlive: specifies whether to keep the connection alive
      *      - timeout: specifies the timeout
@@ -10632,7 +10767,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
+     *      @param options the secure context or the options used to create one
      *
      */
     constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
@@ -11999,7 +12134,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -12024,7 +12159,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -12049,7 +12184,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      \`\`\`
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as \`text/plain;charset=UTF-8\`,
      *      and \`headers\` replaces the headers of the request source instead of merging them
@@ -12179,7 +12314,7 @@ declare class Class_HttpCollection extends Class_object {
      *
      *      An array appends every element in order, any other value appends a single entry
      *      @param name specifies the key to append
-     *      @param value specifies the group of data to append, or the single value to append
+     *      @param value the values to append
      *
      */
     append(name: string, value: any[] | any): void;
@@ -12203,7 +12338,7 @@ declare class Class_HttpCollection extends Class_object {
      *
      *      An array sets every element in order, any other value sets a single entry
      *      @param name specifies the key to set
-     *      @param value specifies the group of data to set, or the single value to set
+     *      @param value the values to set
      *
      */
     set(name: string, value: any[] | any): void;
@@ -12421,6 +12556,8 @@ declare class Class_HttpCookie extends Class_object {
 `,
         "dts/interface/HttpHandler.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /**
  * @description http protocol conversion handler
  *
@@ -12437,10 +12574,17 @@ declare class Class_HttpCookie extends Class_object {
 declare class Class_HttpHandler extends Class_Handler {
     /**
      * @description creates an http protocol handler object, converting the data of a stream object into http message objects
-     *     @param hdlr the built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *     @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
@@ -12484,16 +12628,25 @@ declare class Class_HttpHandler extends Class_Handler {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /**
  * The promise variant of the HttpHandler class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
     /**
      * @description creates an http protocol handler object, converting the data of a stream object into http message objects
-     *     @param hdlr the built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *     @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
@@ -13372,10 +13525,13 @@ declare class Class_HttpResponse extends Class_HttpMessage {
 
     /**
      * @description adds an HttpCookie object to cookies
-     *      @param cookie specifies the HttpCookie object to add
+     *
+     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
+     *      accepts (name, value, path, domain, ...).
+     *      @param cookie the cookie to add
      *
      */
-    addCookie(cookie: Class_HttpCookie): void;
+    addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
      * @description sends a redirect to the client
@@ -13565,10 +13721,13 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
 
     /**
      * @description adds an HttpCookie object to cookies
-     *      @param cookie specifies the HttpCookie object to add
+     *
+     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
+     *      accepts (name, value, path, domain, ...).
+     *      @param cookie the cookie to add
      *
      */
-    addCookie(cookie: Class_HttpCookie): void;
+    addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
      * @description sends a redirect to the client
@@ -13688,6 +13847,8 @@ declare namespace Class_HttpResponse {
 `,
         "dts/interface/HttpServer.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description HttpServer is one of the built-in objects; it is the object used to create an HTTP server. An HttpServer object contains two required parameters: a port and an event handling interface object. In the event handling interface object, the concrete implementation can be a simple callback function, or complex routing, a chained handling array, etc.
@@ -13716,35 +13877,63 @@ declare namespace Class_HttpResponse {
 declare class Class_HttpServer extends Class_TcpServer {
     /**
      * @description HttpServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor, does not bind a port; listen() must be called to start
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *     @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
@@ -13783,6 +13972,8 @@ declare class Class_HttpServer extends Class_TcpServer {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the HttpServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
@@ -13790,35 +13981,63 @@ declare class Class_HttpServer extends Class_TcpServer {
 declare class Class_HttpServerPromise extends Class_TcpServerPromise {
     /**
      * @description HttpServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *     @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpServer constructor, does not bind a port; listen() must be called to start
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object; see mq.Handler for details
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *     @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
@@ -13892,6 +14111,8 @@ declare class Class_HttpUploadData extends Class_object {
         "dts/interface/HttpsServer.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description HttpsServer is the object used to create an https server; an HttpsServer object can use all the interface functions and properties of HttpServer. An HttpsServer object can be provided with a certificate object (X509Cert type) and a key object (PKey type) generated earlier with openssl when it is created, thereby providing tls/ssl encrypted services for clients
@@ -13928,22 +14149,36 @@ declare class Class_HttpUploadData extends Class_object {
 declare class Class_HttpsServer extends Class_HttpServer {
     /**
      * @description HttpsServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param context the SecureContext secure context
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *     @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param context the SecureContext secure context
      *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *      @param port specifies the port on which the http server listens
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, listens on all local addresses
@@ -13952,19 +14187,32 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      - address: specifies the listening address, optional, by default listens on all addresses
      *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
      *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param context the SecureContext secure context
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current HttpsServer
@@ -13991,6 +14239,8 @@ declare class Class_HttpsServer extends Class_HttpServer {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the HttpsServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
@@ -13998,22 +14248,36 @@ declare class Class_HttpsServer extends Class_HttpServer {
 declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
     /**
      * @description HttpsServer constructor, listens on all local addresses
+     *
+     *     hdlr may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *     - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *     @param context the SecureContext secure context
      *     @param port specifies the port on which the http server listens
-     *     @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *     @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param context the SecureContext secure context
      *      @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
      *      @param port specifies the port on which the http server listens
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, listens on all local addresses
@@ -14022,19 +14286,32 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      - address: specifies the listening address, optional, by default listens on all addresses
      *      - port: specifies the listening port, optional; when not provided, listen() must be called to start
      *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description HttpsServer constructor, does not bind a port; listen() must be called to start
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *      @param context the SecureContext secure context
-     *      @param hdlr the http built-in message handler: a handler function, chained handling array or routing object
+     *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current HttpsServer
@@ -14238,8 +14515,10 @@ declare class Class_KeyObject extends Class_object {
  */
 declare class Class_LevelDB extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
@@ -14248,24 +14527,30 @@ declare class Class_LevelDB extends Class_object {
     has(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -14274,16 +14559,20 @@ declare class Class_LevelDB extends Class_object {
     get(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -14298,9 +14587,11 @@ declare class Class_LevelDB extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string): void;
@@ -14308,17 +14599,21 @@ declare class Class_LevelDB extends Class_object {
     set(key: Class_Buffer | string, value: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
@@ -14338,8 +14633,10 @@ declare class Class_LevelDB extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     remove(key: Class_Buffer | string): void;
@@ -14347,15 +14644,19 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeSync(key: Class_Buffer | string): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeAsync(key: Class_Buffer | string): Promise<void>;
@@ -14559,48 +14860,60 @@ declare class Class_LevelDB extends Class_object {
  */
 declare class Class_LevelDBPromise extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     has(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     get(key: Class_Buffer | string): Promise<Class_Buffer>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -14615,25 +14928,31 @@ declare class Class_LevelDBPromise extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
@@ -14653,22 +14972,28 @@ declare class Class_LevelDBPromise extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     remove(key: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeSync(key: Class_Buffer | string): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeAsync(key: Class_Buffer | string): Promise<void>;
@@ -15459,7 +15784,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -15469,7 +15795,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -15477,7 +15804,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -16162,7 +16490,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -16170,7 +16499,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -16178,7 +16508,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -17061,7 +17392,8 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
 declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
      * @description sends data to the remote end; a Buffer is sent as binary data and a string as text data
-     *      @param data the data to send; a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *
      */
     send(data: Class_Buffer | string): void;
@@ -17414,90 +17746,99 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
+    setLocalDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
+    setRemoteDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
+    addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description creates an Offer description
@@ -17991,90 +18332,99 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
+    setLocalDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
+    setRemoteDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
+    addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description creates an Offer description
@@ -18443,27 +18793,33 @@ declare class Class_Redis extends Class_object {
     command(cmd: string, ...args: any[]): any;
 
     /**
-     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
     setNX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key already exists.; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Sets the key to value only when the key already exists.
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
@@ -18494,27 +18850,33 @@ declare class Class_Redis extends Class_object {
     msetNX(...kvs: any[]): void;
 
     /**
-     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value; strings are encoded as utf8
-     *      @param key the key to append to, a string is encoded as utf8
-     *      @param value the data to append, a string is encoded as utf8
+     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to append to
+     *      @param value the data to append
      *      @return the length of the string in key after appending value
      *
      */
     append(key: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Overwrites the string value stored at key with the value parameter, starting from the offset; strings are encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Overwrites the string value stored at key with the value parameter, starting from the offset
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param offset the byte offset to modify
-     *      @param value the data to overwrite, a string is encoded as utf8
+     *      @param value the data to overwrite
      *      @return the length of the string after the modification
      *
      */
     setRange(key: Class_Buffer | string, offset: number, value: Class_Buffer | string): number;
 
     /**
-     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end); a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @param start the start byte offset of the query
      *      @param end the end byte offset of the query
      *      @return the extracted substring
@@ -18523,16 +18885,20 @@ declare class Class_Redis extends Class_object {
     getRange(key: Class_Buffer | string, start: number, end: number): Class_Buffer;
 
     /**
-     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value; a string key is encoded as utf8
-     *      @param key the key to count, a string is encoded as utf8
+     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to count
      *      @return the length of the string value, or 0 when key does not exist
      *
      */
     strlen(key: Class_Buffer | string): number;
 
     /**
-     * @description Counts the number of bits set to 1 in the given string; a string key is encoded as utf8
-     *      @param key the key to count, a string is encoded as utf8
+     * @description Counts the number of bits set to 1 in the given string
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to count
      *      @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
      *      @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
      *      @return the number of bits set to 1
@@ -18541,8 +18907,10 @@ declare class Class_Redis extends Class_object {
     bitcount(key: Class_Buffer | string, start?: number, end?: number): number;
 
     /**
-     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned; a string key is encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
+     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
      *      @return returns Null when key does not exist, otherwise returns the value of key
      *
      */
@@ -18563,17 +18931,21 @@ declare class Class_Redis extends Class_object {
     mget(...keys: any[]): any[];
 
     /**
-     * @description Sets the given key to value and returns the old value of key; strings are encoded as utf8
-     *      @param key the key to query and modify, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets the given key to value and returns the old value of key
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query and modify
+     *      @param value the value to set
      *      @return returns the old value of the given key
      *
      */
     getset(key: Class_Buffer | string, value: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Subtracts the decrement from the value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Subtracts the decrement from the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param num the number to subtract
      *      @return the value of key after subtracting num
      *
@@ -18581,8 +18953,10 @@ declare class Class_Redis extends Class_object {
     decr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Adds the increment to the value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Adds the increment to the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param num the number to add
      *      @return the value of key after adding num
      *
@@ -18590,8 +18964,10 @@ declare class Class_Redis extends Class_object {
     incr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Sets or clears the bit at the given offset in the string value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Sets or clears the bit at the given offset in the string value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param offset the bit offset to modify
      *      @param value the value to set or clear, either 0 or 1
      *      @return the bit originally stored at the offset
@@ -18600,8 +18976,10 @@ declare class Class_Redis extends Class_object {
     setBit(key: Class_Buffer | string, offset: number, value: number): number;
 
     /**
-     * @description Gets the bit at the given offset in the string value stored at key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Gets the bit at the given offset in the string value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @param offset the bit offset to query
      *      @return the bit at the given offset of the string value
      *
@@ -18609,16 +18987,20 @@ declare class Class_Redis extends Class_object {
     getBit(key: Class_Buffer | string, offset: number): number;
 
     /**
-     * @description Checks whether the given key exists; a string key is encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
+     * @description Checks whether the given key exists
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
      *      @return returns True if key exists, otherwise returns False
      *
      */
     exists(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Returns the type of the value stored at key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the type of the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash
      *
      */
@@ -18646,8 +19028,10 @@ declare class Class_Redis extends Class_object {
     del(...keys: any[]): number;
 
     /**
-     * @description Sets a time to live for the given key; when the key expires it is automatically deleted; a string key is encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
+     * @description Sets a time to live for the given key; when the key expires it is automatically deleted
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
      *      @param ttl the time to live for key in milliseconds
      *      @return returns True if key exists, otherwise returns False
      *
@@ -18655,41 +19039,51 @@ declare class Class_Redis extends Class_object {
     expire(key: Class_Buffer | string, ttl: number): boolean;
 
     /**
-     * @description Returns the remaining time to live of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the remaining time to live of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set
      *
      */
     ttl(key: Class_Buffer | string): number;
 
     /**
-     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires); a string key is encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
+     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
      *      @return returns True if key exists, otherwise returns False
      *
      */
     persist(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist; strings are encoded as utf8
-     *      @param key the key to rename, a string is encoded as utf8
-     *      @param newkey the destination key to rename to, a string is encoded as utf8
+     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
+     *
+     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
      *
      */
     rename(key: Class_Buffer | string, newkey: Class_Buffer | string): void;
 
     /**
-     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist; strings are encoded as utf8
-     *      @param key the key to rename, a string is encoded as utf8
-     *      @param newkey the destination key to rename to, a string is encoded as utf8
+     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
+     *
+     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
      *      @return returns True when the rename succeeds, and False if newkey already exists
      *
      */
     renameNX(key: Class_Buffer | string, newkey: Class_Buffer | string): boolean;
 
     /**
-     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to subscribe to, a string is encoded as utf8
+     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to subscribe to
      *      @param func the callback function
      *
      */
@@ -18703,15 +19097,19 @@ declare class Class_Redis extends Class_object {
     sub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
+     * @description Unsubscribes all callbacks of the given channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to unsubscribe from
      *
      */
     unsub(channel: Class_Buffer | string): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
+     * @description Unsubscribes the given callback function of the given channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to unsubscribe from
      *      @param func the callback function to unsubscribe
      *
      */
@@ -18782,41 +19180,51 @@ declare class Class_Redis extends Class_object {
     onsuberror: (()=>void) | null;
 
     /**
-     * @description Sends the message to the given channel; strings are encoded as utf8
-     *      @param channel the channel to publish to, a string is encoded as utf8
-     *      @param message the message to publish, a string is encoded as utf8
+     * @description Sends the message to the given channel
+     *
+     *      channel and message may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the channel to publish to
+     *      @param message the message to publish
      *      @return the number of clients that received this message
      *
      */
     pub(channel: Class_Buffer | string, message: Class_Buffer | string): number;
 
     /**
-     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the Hash object bound to the given key
      *
      */
     getHash(key: Class_Buffer | string): Class_RedisHash;
 
     /**
-     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the List object bound to the given key
      *
      */
     getList(key: Class_Buffer | string): Class_RedisList;
 
     /**
-     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the Set object bound to the given key
      *
      */
     getSet(key: Class_Buffer | string): Class_RedisSet;
 
     /**
-     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the SortedSet object bound to the given key
      *
      */
@@ -18824,7 +19232,8 @@ declare class Class_Redis extends Class_object {
 
     /**
      * @description Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command; a string key is encoded as utf8
-     *      @param key the key to serialize, a string is encoded as utf8
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to serialize
      *      @return returns the serialized value, or null if key does not exist
      *
      */
@@ -18832,8 +19241,10 @@ declare class Class_Redis extends Class_object {
 
     /**
      * @description Deserializes the given serialized value and associates it with the given key; strings are encoded as utf8
-     *      @param key the key to deserialize to, a string is encoded as utf8
-     *      @param data the data to deserialize, a string is encoded as utf8
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to deserialize to
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to deserialize
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
@@ -18863,17 +19274,21 @@ declare class Class_Redis extends Class_object {
  */
 declare class Class_RedisHash extends Class_object {
     /**
-     * @description Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten; strings are encoded as utf8
-     *      @param field the field to modify, a string is encoded as utf8
-     *      @param value the value to modify, a string is encoded as utf8
+     * @description Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten
+     *
+     *      field and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param field the field to modify
+     *      @param value the value to modify
      *
      */
     set(field: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect; strings are encoded as utf8
-     *      @param field the field to modify, a string is encoded as utf8
-     *      @param value the value to modify, a string is encoded as utf8
+     * @description Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect
+     *
+     *      field and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param field the field to modify
+     *      @param value the value to modify
      *
      */
     setNX(field: Class_Buffer | string, value: Class_Buffer | string): void;
@@ -18891,8 +19306,10 @@ declare class Class_RedisHash extends Class_object {
     mset(...kvs: any[]): void;
 
     /**
-     * @description Returns the value of the given field in the hash table; a string field is encoded as utf8
-     *      @param field the field to query, a string is encoded as utf8
+     * @description Returns the value of the given field in the hash table
+     *
+     *      field may be a Buffer or a string; a string is encoded as utf8.
+     *      @param field the field to query
      *      @return the value of the given field; returns null when the given field does not exist or the given key does not exist
      *
      */
@@ -18913,8 +19330,10 @@ declare class Class_RedisHash extends Class_object {
     mget(...fields: any[]): any[];
 
     /**
-     * @description Adds the increment to the value stored in the field; a string field is encoded as utf8
-     *      @param field the field to modify, a string is encoded as utf8
+     * @description Adds the increment to the value stored in the field
+     *
+     *      field may be a Buffer or a string; a string is encoded as utf8.
+     *      @param field the field to modify
      *      @param num the number to add
      *      @return the value of the field after adding num
      *
@@ -18940,8 +19359,10 @@ declare class Class_RedisHash extends Class_object {
     len(): number;
 
     /**
-     * @description Checks whether the given field exists in the hash table; a string field is encoded as utf8
-     *      @param field the field to query, a string is encoded as utf8
+     * @description Checks whether the given field exists in the hash table
+     *
+     *      field may be a Buffer or a string; a string is encoded as utf8.
+     *      @param field the field to query
      *      @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist
      *
      */
@@ -19020,9 +19441,11 @@ declare class Class_RedisList extends Class_object {
     rpop(): Class_Buffer;
 
     /**
-     * @description Sets the element at the given index of the list to value; a string value is encoded as utf8
+     * @description Sets the element at the given index of the list to value
+     *
+     *      value may be a Buffer or a string; a string is encoded as utf8.
      *      @param index the index to modify
-     *      @param value the value to modify, a string is encoded as utf8
+     *      @param value the value to modify
      *
      */
     set(index: number, value: Class_Buffer | string): void;
@@ -19035,27 +19458,35 @@ declare class Class_RedisList extends Class_object {
     get(index: number): Class_Buffer;
 
     /**
-     * @description Inserts value into the list before the pivot value; strings are encoded as utf8
-     *      @param pivot the value to search for on insertion, a string is encoded as utf8
-     *      @param value the value to insert, a string is encoded as utf8
+     * @description Inserts value into the list before the pivot value
+     *
+     *      pivot and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param pivot the value to search for on insertion
+     *      value may be a Buffer or a string; a string is encoded as utf8.
+     *      @param value the value to insert
      *      @return the length of the list after insertion
      *
      */
     insertBefore(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Inserts value into the list after the pivot value; strings are encoded as utf8
-     *      @param pivot the value to search for on insertion, a string is encoded as utf8
-     *      @param value the value to insert, a string is encoded as utf8
+     * @description Inserts value into the list after the pivot value
+     *
+     *      pivot and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param pivot the value to search for on insertion
+     *      value may be a Buffer or a string; a string is encoded as utf8.
+     *      @param value the value to insert
      *      @return the length of the list after insertion
      *
      */
     insertAfter(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Removes elements equal to the value parameter from the list according to the count parameter; a string value is encoded as utf8
+     * @description Removes elements equal to the value parameter from the list according to the count parameter
+     *
      *      @param count the number of elements to remove
-     *      @param value the value to remove, a string is encoded as utf8
+     *      value may be a Buffer or a string; a string is encoded as utf8.
+     *      @param value the value to remove
      *      @return the number of elements removed
      *
      */
@@ -19135,8 +19566,10 @@ declare class Class_RedisSet extends Class_object {
     len(): number;
 
     /**
-     * @description Checks whether member is a member of the set; a string member is encoded as utf8
-     *      @param member the member to check, a string is encoded as utf8
+     * @description Checks whether member is a member of the set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to check
      *      @return returns true if member is a member of the set
      *
      */
@@ -19200,16 +19633,20 @@ declare class Class_RedisSortedSet extends Class_object {
     add(...sms: any[]): number;
 
     /**
-     * @description Returns the score of the member in the sorted set; a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the score of the member in the sorted set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the score of member as a string
      *
      */
     score(member: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Adds the increment num to the score of the member in the sorted set; a string member is encoded as utf8
-     *      @param member the member to modify, a string is encoded as utf8
+     * @description Adds the increment num to the score of the member in the sorted set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to modify
      *      @param num the number to add
      *      @return the new score of member as a string
      *
@@ -19263,16 +19700,20 @@ declare class Class_RedisSortedSet extends Class_object {
     rangeRev(start: number, stop: number, withScores?: boolean): any[];
 
     /**
-     * @description Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest); a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest)
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
      *
      */
     rank(member: Class_Buffer | string): number;
 
     /**
-     * @description Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest); a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest)
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
      *
      */
@@ -19283,6 +19724,7 @@ declare class Class_RedisSortedSet extends Class_object {
 `,
         "dts/interface/Routing.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/Message.d.ts" />
 /**
  * @description Message handler routing object
  *
@@ -19398,22 +19840,36 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -19425,12 +19881,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts http host names
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -19442,12 +19905,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts all http methods
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -19459,12 +19929,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http GET method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -19476,12 +19953,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http POST method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -19493,12 +19977,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -19510,12 +20001,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -19527,12 +20025,19 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -19544,18 +20049,26 @@ declare class Class_Routing extends Class_Handler {
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/Message.d.ts" />
 /**
  * The promise variant of the Routing class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -19593,22 +20106,36 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a routing rule
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -19620,12 +20147,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts http host names
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -19637,12 +20171,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts all http methods
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -19654,12 +20195,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http GET method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -19671,12 +20219,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http POST method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -19688,12 +20243,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -19705,12 +20267,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -19722,12 +20291,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -19739,12 +20315,19 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
+     *
+     *    hdlr may be given in any of these forms:
+     *    - a Handler object, invoked as it is;
+     *    - an array of handlers, wrapped in a Chain and invoked in order;
+     *    - a handler function \`(req, ...captures) => any\`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
+     *    - a routing map object, whose values are handlers in these same forms;
+     *    - a path/address string.
      *    @param pattern message match pattern
-     *    @param hdlr built-in message handler, handler function, chain processing array, or routing object; see mq.Handler
+     *    @param hdlr the route handler
      *    @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
 
 }
 
@@ -19976,7 +20559,8 @@ declare class Class_SandBox extends Class_object {
     /**
      * @description Adds a script module to the sandbox; a string script is encoded as utf8
      *      @param srcname the script name to add; srcname must include an extension, such as json, js or jsc
-     *      @param script the binary code to add, a Buffer or a string encoded as utf8
+     *      script may be a Buffer, or a string encoded as utf8.
+     *      @param script the binary code to add
      *      @return returns the loaded module object
      *
      */
@@ -21077,7 +21661,8 @@ declare namespace Class_Service {
 declare class Class_Sign extends Class_object {
     /**
      * @description Updates the Sign content with the given data
-     *      @param data the data to update with; a string is decoded with codec
+     *      data may be a Buffer or a string; a string is decoded with codec.
+     *      @param data the data to update with
      *      @param codec the encoding of a string data, default "utf8"
      *      @return returns the Sign object itself
      *
@@ -21096,8 +21681,8 @@ declare class Class_Sign extends Class_object {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param privateKey the private key used for signing: a Buffer or a string in the PEM/DER form (a string is encoded as utf8),
-     *      a KeyObject, or an object with the key parameters
+     *      privateKey may be a Buffer or a string in the PEM/DER form (a string is encoded as utf8), a KeyObject, or an object with the key parameters.
+     *      @param privateKey the private key used for signing
      *      @param encoding the encoding of the return value
      *      @return returns the signature value
      *
@@ -21957,7 +22542,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -21967,7 +22553,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -21975,7 +22562,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -22423,7 +23011,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -22431,7 +23020,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -22439,7 +23029,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -24479,7 +25070,8 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible
-     *      @param buf optional; a Buffer or a string to decode first. When it is omitted, only the internally retained bytes are returned
+     *      buf may be a Buffer or a string to decode first; when it is omitted, only the internally retained bytes are returned.
+     *      @param buf the data to decode first, optional
      *      @return the decoded string.
      *
      */
@@ -24487,7 +25079,9 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call
-     *      @param buf the Buffer to decode, or a string encoded as utf8
+     *
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the data to decode
      *      @return the decoded string.
      *
      */
@@ -24495,7 +25089,9 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer to decode, or a string encoded as utf8
+     *
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the data to decode
      *      @param offset the decoding offset
      *      @return the decoded string.
      *
@@ -24504,7 +25100,8 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer containing the bytes to decode, or a string encoded as utf8
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the bytes to decode
      *      @return the decoded string.
      *
      */
@@ -24536,6 +25133,7 @@ declare class Class_StringDecoder extends Class_object {
         "dts/interface/TLSHandler.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /**
  * @description tls/ssl protocol conversion handler
  *
@@ -24554,19 +25152,33 @@ declare class Class_StringDecoder extends Class_object {
 declare class Class_TLSHandler extends Class_Handler {
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSHandler
@@ -24598,25 +25210,40 @@ declare class Class_TLSHandler extends Class_Handler {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /**
  * The promise variant of the TLSHandler class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSHandler object
+     *
+     *     handler may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the event handling interface object
+     *     @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSHandler
@@ -24652,6 +25279,7 @@ declare namespace Class_TLSHandler {
         "dts/interface/TLSServer.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description tls server object, makes it easy to create a standard multi-fiber tls/ssl server
@@ -24675,22 +25303,36 @@ declare namespace Class_TLSHandler {
 declare class Class_TLSServer extends Class_TcpServer {
     /**
      * @description creates a new TLSServer object
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
      *      @param port specifies the listening port
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
      *      @param addr specifies the listening address
      *      @param port specifies the listening port
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object
@@ -24699,19 +25341,32 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object without binding a port; listen() must be called to start
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSServer
@@ -24738,6 +25393,7 @@ declare class Class_TLSServer extends Class_TcpServer {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TcpServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/TLSSocket.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the TLSServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
@@ -24745,22 +25401,36 @@ declare class Class_TLSServer extends Class_TcpServer {
 declare class Class_TLSServerPromise extends Class_TcpServerPromise {
     /**
      * @description creates a new TLSServer object
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
      *      @param port specifies the listening port
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
      *      @param addr specifies the listening address
      *      @param port specifies the listening port
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object
@@ -24769,19 +25439,32 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param options the options needed to create a secure context with tls.createSecureContext
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description creates a new TLSServer object without binding a port; listen() must be called to start
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *      @param context specifies the secure context used to create TLSServer
-     *      @param listener the event handling interface object
+     *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description queries the SecureContext used by the current TLSServer
@@ -25205,7 +25888,7 @@ declare namespace Class_TLSSocket {
 declare class Class_TTYInputStream extends Class_Stream {
     /**
      * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
@@ -25249,7 +25932,7 @@ declare class Class_TTYInputStream extends Class_Stream {
 declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
      * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
@@ -25306,7 +25989,7 @@ declare namespace Class_TTYInputStream {
 declare class Class_TTYOutputStream extends Class_Stream {
     /**
      * @description Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
@@ -25536,7 +26219,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
     /**
      * @description Creates a new TTYOutputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
@@ -25648,8 +26331,8 @@ declare namespace Class_TTYOutputStream {
 `,
         "dts/interface/TcpServer.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /**
  * @description TcpServer\` is a high-concurrency TCP Socket server, which can be used to create a TCP server that already has TCP connections established with clients in its initial state
  *
@@ -25681,20 +26364,48 @@ declare namespace Class_TTYOutputStream {
 declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description TcpServer constructor, listening on all local addresses
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param addr specifies the tcp server listening address; "" means listening on all local addresses
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
@@ -25703,26 +26414,32 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param options server options
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param addr specifies the unix socket or Windows pipe server listening address
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise);
-
-    /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description starts the current server
@@ -25971,28 +26688,56 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
-/// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
+/// <reference path="../interface/Handler.d.ts" />
 /**
  * The promise variant of the TcpServer class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description TcpServer constructor, listening on all local addresses
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param addr specifies the tcp server listening address; "" means listening on all local addresses
      *     @param port specifies the tcp server listening port
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
@@ -26001,26 +26746,32 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      - address: specifies the listening address, optional, defaults to listening on all addresses
      *      - port: specifies the listening port, optional, listen() must be called to start when not provided
      *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param options server options
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor
+     *
+     *     listener may be given in any of these forms:
+     *     - a Handler object, invoked as it is;
+     *     - an array of handlers, wrapped in a Chain and invoked in order;
+     *     - a handler function \`(socket) => any\`, called with each accepted connection (a Socket);
+     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *     - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
      *     @param addr specifies the unix socket or Windows pipe server listening address
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
+     *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise);
-
-    /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *     @param listener specifies the built-in message handler for received tcp connections: handling function, chain handling array, routing object, see mq.Handler for details
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description starts the current server
@@ -26164,7 +26915,8 @@ declare class Class_TextDecoder extends Class_object {
 
     /**
      * @description Converts binary data to text; a string data is encoded as utf8
-     *      @param data the binary to convert, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to decode
      *      @param opts decoding options
      *      @return returns the decoded text
      *
@@ -26580,10 +27332,11 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description constructs a URL object from a URL string
      *      @param url the URL string to parse, which can be an absolute or relative URL
-     *      @param base the base URL, used when the url parameter is a relative URL; a UrlObject is accepted as well as a string
+     *      base is used when url is a relative URL; it may be a URL string, a UrlObject, or a URL components object (the same fields the UrlObject constructor accepts).
+     *      @param base the base URL
      *
      */
-    constructor(url: string, base?: string | Class_UrlObject);
+    constructor(url: string, base?: string | Class_UrlObject | FIBJS.GeneralObject);
 
     /**
      * @description parses a URL string and returns a URL object, or null if parsing fails
@@ -26778,7 +27531,8 @@ declare class Class_UrlObject extends Class_object {
 declare class Class_Verify extends Class_object {
     /**
      * @description Updates the Verify content with the given data
-     *      @param data the data to update with; a string is decoded with codec
+     *      data may be a Buffer or a string; a string is decoded with codec.
+     *      @param data the data to update with
      *      @param codec the encoding of a string data, default "utf8"
      *      @return returns the Verify object itself
      *
@@ -26796,9 +27550,10 @@ declare class Class_Verify extends Class_object {
      *       - RSA_PKCS1_PADDING (default)
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
-     *      @param privateKey the public key used for verification; a Buffer or a string in the PEM/DER form,
-     *      or a KeyObject, or an object with the key parameters
-     *      @param signature the signature to verify; a string is decoded with encoding
+     *      privateKey may be a Buffer or a string in the PEM/DER form, a KeyObject, or an object with the key parameters.
+     *      @param privateKey the public key used for verification
+     *      signature may be a Buffer or a string; a string is decoded with encoding.
+     *      @param signature the signature to verify
      *      @param encoding the encoding of a string signature, default "buffer"
      *      @return returns true if the signature is valid, false otherwise
      *
@@ -29338,7 +30093,8 @@ declare class Class_X509Certificate extends Class_object {
      *
      *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
      *
-     *     @param cert the binary data of the certificate in PEM format, or the PEM text as a string
+     *      cert may be the PEM/DER data of the certificate, or the PEM text as a string.
+     *      @param cert the certificate data
      *     @return returns an X509Certificate object
      *
      */
@@ -29498,11 +30254,13 @@ declare class Class_X509Certificate extends Class_object {
 
     /**
      * @description Checks whether this certificate was issued by the given issuer
+     *
+     *     issuer may be an X509Certificate object, a PEM string, or a DER/PEM Buffer.
      *     @param issuer the issuer certificate
      *     @return returns true if the certificate was issued by issuer, false otherwise
      *
      */
-    checkIssued(issuer: Class_X509Certificate): boolean;
+    checkIssued(issuer: Class_X509Certificate | Class_Buffer | string): boolean;
 
     /**
      * @description Checks whether the certificate's public key matches the signature of the given private key
@@ -29887,7 +30645,8 @@ declare class Class_XmlDocument extends Class_XmlNode {
 
     /**
      * @description Forms the document by parsing XML/HTML data
-     *      @param source the XML/HTML data to parse, depending on the type when the document was created; a string is encoded as utf8
+     *      source may be a Buffer or a string, depending on the type the document was created with; a string is encoded as utf8.
+     *      @param source the data to parse
      *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
@@ -31937,7 +32696,8 @@ declare namespace Class_ZipFile {
 declare class Class_ZlibCodec extends Class_EventEmitter {
     /**
      * @description Processes a chunk of data synchronously; a string chunk is encoded as utf8
-     *      @param chunk the data to process, a string is encoded as utf8
+     *      chunk may be a Buffer or a string; a string is encoded as utf8.
+     *      @param chunk the data to process
      *      @param flushFlag flush flag, see zlib.constants.Z_NO_FLUSH and others
      *      @return returns the processed data
      *
@@ -33131,8 +33891,10 @@ declare module 'async_hooks' {
  */
 declare module 'base32' {
     /**
-     * @description Encodes data in base32 format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in base32 format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @return returns the encoded string
      *
      */
@@ -33173,16 +33935,20 @@ declare module 'base32' {
  */
 declare module 'base58' {
     /**
-     * @description Encodes data in base58 format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in base58 format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @return returns the encoded string
      *
      */
     function encode(data: Class_Buffer | string): string;
 
     /**
-     * @description Encodes data in base58check format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in base58check format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @param chk_ver the check version to use
      *      @return returns the encoded string
      *
@@ -33235,8 +34001,10 @@ declare module 'base58' {
  */
 declare module 'base64' {
     /**
-     * @description Encodes data in base64 format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in base64 format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @param url specifies whether to use url-safe character encoding
      *      @return returns the encoded string
      *
@@ -35102,7 +35870,8 @@ declare module 'console' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      \`\`\`
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function add(cfg: FIBJS.GeneralObject | any[]): void;
@@ -35180,7 +35949,8 @@ declare module 'console' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      \`\`\`
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function use(cfg: FIBJS.GeneralObject | any[]): void;
@@ -35614,7 +36384,8 @@ declare module 'console/promises' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      \`\`\`
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function add(cfg: FIBJS.GeneralObject | any[]): void;
@@ -35692,7 +36463,8 @@ declare module 'console/promises' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      \`\`\`
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function use(cfg: FIBJS.GeneralObject | any[]): void;
@@ -37256,9 +38028,11 @@ declare module 'crypto' {
     function createHash(algo: string): Class_Digest;
 
     /**
-     * @description Creates an hmac message digest object for the given algorithm name; a string key is encoded as utf8
+     * @description Creates an hmac message digest object for the given algorithm name
+     *
+     *      key may be a Buffer, a KeyObject, or a string; a string is encoded as utf8.
      *      @param algo the algorithm of the message digest object to use, a string is encoded as utf8
-     *      @param key the binary signing key, a string is encoded as utf8
+     *      @param key the binary signing key
      *      @return returns the message digest object
      *
      */
@@ -37273,7 +38047,8 @@ declare module 'crypto' {
 
     /**
      * @description Gets algorithm information by cipher algorithm name or NID
-     *      @param nameOrNid the name or the NID of the algorithm to query; a string is looked up by name, a number by NID
+     *      nameOrNid is a string, looked up by name, or a number, looked up by NID.
+     *      @param nameOrNid the name or the NID of the algorithm to query
      *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
      *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
@@ -37288,9 +38063,11 @@ declare module 'crypto' {
     };
 
     /**
-     * @description Creates a symmetric encryption cipher object; a string key is encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -37298,10 +38075,12 @@ declare module 'crypto' {
     function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric encryption cipher object; strings are encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -37309,9 +38088,11 @@ declare module 'crypto' {
     function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; a string key is encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -37319,10 +38100,12 @@ declare module 'crypto' {
     function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; strings are encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -37338,7 +38121,9 @@ declare module 'crypto' {
 
     /**
      * @description Creates a new key object containing an asymmetric private key from a PEM string
-     *      @param key the private key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the private key to use
      *      @return returns the key object of the private key
      *
      */
@@ -37346,7 +38131,9 @@ declare module 'crypto' {
 
     /**
      * @description Creates a new key object containing an asymmetric public key from a PEM string
-     *      @param key the public key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the public key to use
      *      @return returns the key object of the public key
      *
      */
@@ -37372,7 +38159,8 @@ declare module 'crypto' {
 
     /**
      * @description Creates a new key object containing a symmetric encryption or Hmac key
-     *      @param key the encryption/decryption key to use, or a string decoded with encoding
+     *      key may be a Buffer, or a string decoded with encoding.
+     *      @param key the encryption/decryption key to use
      *      @param encoding the encoding of a string key, default "utf8"
      *      @return returns the symmetric decryption decipher object
      *
@@ -37397,7 +38185,8 @@ declare module 'crypto' {
      *         });
      *      \`\`\`
      *
-     *      @param csr the data of the certificate request in PEM format to use, or the options to create it
+     *      csr may be the PEM/DER data of the certificate request, or the options object used to create it.
+     *      @param csr the certificate request data or the options to create it
      *      @return returns the certificate request object
      *
      */
@@ -37417,9 +38206,11 @@ declare module 'crypto' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended; a string data is encoded as utf8
+     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms, a string is encoded as utf8
-     *      @param data the data to sign, a string is encoded as utf8
+     *      @param data the data to hash
      *      @param outputEncoding the output encoding, default "hex", a string is encoded as utf8
      *      @return returns the hashed data
      *
@@ -37435,8 +38226,10 @@ declare module 'crypto' {
     function randomBytes(size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -37447,8 +38240,10 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -37457,8 +38252,10 @@ declare module 'crypto' {
     function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -37575,11 +38372,13 @@ declare module 'crypto' {
     }>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -37589,11 +38388,13 @@ declare module 'crypto' {
     function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -37601,11 +38402,13 @@ declare module 'crypto' {
     function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -37613,9 +38416,11 @@ declare module 'crypto' {
     function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -37627,9 +38432,11 @@ declare module 'crypto' {
     function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -37639,9 +38446,11 @@ declare module 'crypto' {
     function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -37651,9 +38460,11 @@ declare module 'crypto' {
     function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -37664,9 +38475,11 @@ declare module 'crypto' {
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -37675,9 +38488,11 @@ declare module 'crypto' {
     function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -37690,8 +38505,9 @@ declare module 'crypto' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -37702,8 +38518,9 @@ declare module 'crypto' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -37714,8 +38531,9 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -37726,8 +38544,9 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -37745,9 +38564,11 @@ declare module 'crypto' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -37767,9 +38588,11 @@ declare module 'crypto' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -37787,9 +38610,11 @@ declare module 'crypto' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -37800,10 +38625,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -37816,10 +38644,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -37830,10 +38661,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -37857,8 +38691,10 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -37873,8 +38709,10 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -37887,8 +38725,10 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -37901,9 +38741,11 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -37918,9 +38760,11 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -37933,9 +38777,11 @@ declare module 'crypto' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -37946,10 +38792,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -37962,10 +38811,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -37976,10 +38828,13 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -37990,10 +38845,12 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -38006,10 +38863,12 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -38020,10 +38879,12 @@ declare module 'crypto' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -38098,9 +38959,11 @@ declare module 'crypto/promises' {
     function createHash(algo: string): Class_Digest;
 
     /**
-     * @description Creates an hmac message digest object for the given algorithm name; a string key is encoded as utf8
+     * @description Creates an hmac message digest object for the given algorithm name
+     *
+     *      key may be a Buffer, a KeyObject, or a string; a string is encoded as utf8.
      *      @param algo the algorithm of the message digest object to use, a string is encoded as utf8
-     *      @param key the binary signing key, a string is encoded as utf8
+     *      @param key the binary signing key
      *      @return returns the message digest object
      *
      */
@@ -38115,7 +38978,8 @@ declare module 'crypto/promises' {
 
     /**
      * @description Gets algorithm information by cipher algorithm name or NID
-     *      @param nameOrNid the name or the NID of the algorithm to query; a string is looked up by name, a number by NID
+     *      nameOrNid is a string, looked up by name, or a number, looked up by NID.
+     *      @param nameOrNid the name or the NID of the algorithm to query
      *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
      *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
@@ -38130,9 +38994,11 @@ declare module 'crypto/promises' {
     };
 
     /**
-     * @description Creates a symmetric encryption cipher object; a string key is encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -38140,10 +39006,12 @@ declare module 'crypto/promises' {
     function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric encryption cipher object; strings are encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -38151,9 +39019,11 @@ declare module 'crypto/promises' {
     function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; a string key is encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -38161,10 +39031,12 @@ declare module 'crypto/promises' {
     function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; strings are encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -38180,7 +39052,9 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing an asymmetric private key from a PEM string
-     *      @param key the private key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the private key to use
      *      @return returns the key object of the private key
      *
      */
@@ -38188,7 +39062,9 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing an asymmetric public key from a PEM string
-     *      @param key the public key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the public key to use
      *      @return returns the key object of the public key
      *
      */
@@ -38214,7 +39090,8 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing a symmetric encryption or Hmac key
-     *      @param key the encryption/decryption key to use, or a string decoded with encoding
+     *      key may be a Buffer, or a string decoded with encoding.
+     *      @param key the encryption/decryption key to use
      *      @param encoding the encoding of a string key, default "utf8"
      *      @return returns the symmetric decryption decipher object
      *
@@ -38239,7 +39116,8 @@ declare module 'crypto/promises' {
      *         });
      *      \`\`\`
      *
-     *      @param csr the data of the certificate request in PEM format to use, or the options to create it
+     *      csr may be the PEM/DER data of the certificate request, or the options object used to create it.
+     *      @param csr the certificate request data or the options to create it
      *      @return returns the certificate request object
      *
      */
@@ -38259,9 +39137,11 @@ declare module 'crypto/promises' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended; a string data is encoded as utf8
+     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms, a string is encoded as utf8
-     *      @param data the data to sign, a string is encoded as utf8
+     *      @param data the data to hash
      *      @param outputEncoding the output encoding, default "hex", a string is encoded as utf8
      *      @return returns the hashed data
      *
@@ -38277,8 +39157,10 @@ declare module 'crypto/promises' {
     function randomBytes(size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -38287,8 +39169,10 @@ declare module 'crypto/promises' {
     function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -38297,8 +39181,10 @@ declare module 'crypto/promises' {
     function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -38410,11 +39296,13 @@ declare module 'crypto/promises' {
     }>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -38422,11 +39310,13 @@ declare module 'crypto/promises' {
     function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -38434,11 +39324,13 @@ declare module 'crypto/promises' {
     function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -38446,9 +39338,11 @@ declare module 'crypto/promises' {
     function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -38458,9 +39352,11 @@ declare module 'crypto/promises' {
     function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -38470,9 +39366,11 @@ declare module 'crypto/promises' {
     function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -38482,9 +39380,11 @@ declare module 'crypto/promises' {
     function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -38493,9 +39393,11 @@ declare module 'crypto/promises' {
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -38504,9 +39406,11 @@ declare module 'crypto/promises' {
     function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -38519,8 +39423,9 @@ declare module 'crypto/promises' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -38531,8 +39436,9 @@ declare module 'crypto/promises' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -38543,8 +39449,9 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -38555,8 +39462,9 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -38574,9 +39482,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -38594,9 +39504,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -38614,9 +39526,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -38627,10 +39541,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -38641,10 +39558,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -38655,10 +39575,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -38682,8 +39605,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -38696,8 +39621,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -38710,8 +39637,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -38724,9 +39653,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -38739,9 +39670,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -38754,9 +39687,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -38767,10 +39702,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -38781,10 +39719,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -38795,10 +39736,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -38809,10 +39753,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -38823,10 +39769,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -38837,10 +39785,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -39629,7 +40579,7 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      \`\`\`
-     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
+     *      @param opts the socket family or the options object
      *      @return returns the created Socket object
      *
      */
@@ -39648,7 +40598,7 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      \`\`\`
-     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
+     *      @param opts the socket family or the options object
      *      @param callback adds a listener for the 'message' event.
      *      @return returns the created Socket object
      *
@@ -39924,7 +40874,8 @@ declare module 'encoding' {
 
     /**
      * @description Encodes the Buffer as a string; a string data is encoded as utf8
-     *      @param data the initial string, written in utf-8 format, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the initial string, written in utf-8 format
      *      @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by ICU, default is "utf8", a string is encoded as utf8
      *      @return returns the encoded string
      *
@@ -40276,7 +41227,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -40288,7 +41239,7 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -40299,7 +41250,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -40311,7 +41262,7 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -40320,7 +41271,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -40332,7 +41283,7 @@ declare module 'fs' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -40617,9 +41568,9 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmod(path: string, mode: number | any): void;
@@ -40629,9 +41580,9 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmodSync(path: string, mode: number | any): void;
@@ -40639,17 +41590,19 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmodAsync(path: string, mode: number | any): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmod(path: string, mode: number | any): void;
@@ -40658,16 +41611,20 @@ declare module 'fs' {
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmodSync(path: string, mode: number | any): void;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmodAsync(path: string, mode: number | any): Promise<void>;
@@ -40972,64 +41929,76 @@ declare module 'fs' {
 
     /**
      * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @return the basic information of the file
      *
      */
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise): Class_Stat;
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise): Class_Stat;
 
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
-
-    /**
-     * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
-     *      @return the basic information of the file
-     *
-     */
-    function fstatSync(fd: Class_FileHandle | Class_FileHandlePromise): Class_Stat;
-
-    /**
-     * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
-     *      @return the basic information of the file
-     *
-     */
-    function fstatAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
-     *      @param options the query options
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @return the basic information of the file
      *
      */
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+    function fstatSync(fd: number | Class_FileHandle | Class_FileHandlePromise): Class_Stat;
 
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+    /**
+     * @description Queries the basic information of the given file
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
+     *      @return the basic information of the file
+     *
+     */
+    function fstatAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
 
     /**
      * @description Queries the basic information of the given file
      *
      *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @param options the query options
      *      @return the basic information of the file
      *
      */
-    function fstatSync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
      * @description Queries the basic information of the given file
      *
      *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @param options the query options
      *      @return the basic information of the file
      *
      */
-    function fstatAsync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
+    function fstatSync(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+
+    /**
+     * @description Queries the basic information of the given file
+     *
+     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
+     *      @param options the query options
+     *      @return the basic information of the file
+     *
+     */
+    function fstatAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
@@ -41067,7 +42036,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41085,7 +42054,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41101,7 +42070,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41143,7 +42112,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41161,7 +42130,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41177,7 +42146,7 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -41242,7 +42211,9 @@ declare module 'fs' {
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -41250,15 +42221,17 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -41266,13 +42239,15 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function readSync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -41280,187 +42255,223 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param mode the file mode
      *
      */
-    function fchmod(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): void;
+    function fchmod(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): void;
 
-    function fchmod(fd: Class_FileHandle | Class_FileHandlePromise, mode: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
-     *      @param mode the file mode
-     *
-     */
-    function fchmodSync(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): void;
+    function fchmod(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param mode the file mode
      *
      */
-    function fchmodAsync(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
+    function fchmodSync(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): void;
+
+    /**
+     * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
+     *      @param mode the file mode
+     *
+     */
+    function fchmodAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchown(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
+    function fchown(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
 
-    function fchown(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
+    function fchown(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchownSync(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
+    function fchownSync(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchownAsync(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
+    function fchownAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimes(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
+    function futimes(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
 
-    function futimes(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
+    function futimes(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimesSync(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
+    function futimesSync(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimesAsync(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
+    function futimesAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fdatasync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
-    function fdatasync(fd: Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
+    function fdatasync(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasyncSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fdatasyncSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasyncAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fdatasyncAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fsync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
-    function fsync(fd: Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
+    function fsync(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsyncSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fsyncSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsyncAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fsyncAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Changes the size of a file by its file descriptor
      *
      *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
      *      @param len the new size of the file, 0 by default
      *
      */
-    function ftruncate(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): void;
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): void;
 
-    function ftruncate(fd: Class_FileHandle | Class_FileHandlePromise, len?: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Changes the size of a file by its file descriptor
-     *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
-     *      @param len the new size of the file, 0 by default
-     *
-     */
-    function ftruncateSync(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): void;
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the size of a file by its file descriptor
      *
      *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
      *      @param len the new size of the file, 0 by default
      *
      */
-    function ftruncateAsync(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
+    function ftruncateSync(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): void;
+
+    /**
+     * @description Changes the size of a file by its file descriptor
+     *
+     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
+     *      @param len the new size of the file, 0 by default
+     *
+     */
+    function ftruncateAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
 
     /**
      * @description Queries the information of the file system
@@ -41604,7 +42615,7 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -41626,7 +42637,7 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -41646,7 +42657,7 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -41873,8 +42884,10 @@ declare module 'fs' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -41894,8 +42907,10 @@ declare module 'fs' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -41913,8 +42928,10 @@ declare module 'fs' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -42057,26 +43074,32 @@ declare module 'fs' {
 
     /**
      * @description Closes the file descriptor
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
      *
      */
-    function close(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function close(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
-    function close(fd: Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Closes the file descriptor
-     *      @param fd the file descriptor object
-     *
-     */
-    function closeSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function close(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Closes the file descriptor
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
      *
      */
-    function closeAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function closeSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
+
+    /**
+     * @description Closes the file descriptor
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
+     *
+     */
+    function closeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Opens a text file for reading, writing, or both
@@ -42180,32 +43203,17 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
      *      @return the file content
      *
      */
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): any;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
 
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Reads the whole content of a file, by its file descriptor or by its name
-     *
-     *      options supports the following options:
-     *      \`\`\`JavaScript
-     *      {
-     *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
-     *      \`\`\`
-     *
-     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
-     *      @return the file content
-     *
-     */
-    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): any;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -42218,12 +43226,36 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
      *      @return the file content
      *
      */
-    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
+
+    /**
+     * @description Reads the whole content of a file, by its file descriptor or by its name
+     *
+     *      options supports the following options:
+     *      \`\`\`JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      \`\`\`
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
+     *      @return the file content
+     *
+     */
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\\n" on posix and "\\r\\n" on windows by default
@@ -42238,7 +43270,9 @@ declare module 'fs' {
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -42246,15 +43280,17 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -42262,13 +43298,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -42276,48 +43314,54 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
 
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
 
     /**
      * @description Creates a text file and writes content into it
@@ -42367,15 +43411,17 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -42390,13 +43436,15 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -42411,13 +43459,15 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -42431,15 +43481,17 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -42453,13 +43505,15 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -42473,20 +43527,24 @@ declare module 'fs' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Sets a zip virtual file mapping; a string data is encoded as utf8
+     * @description Sets a zip virtual file mapping
      *
      *      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip.
+     *
+     *      data may be a Buffer holding the zip, or a string; a string is encoded as utf8.
      *      @param fname the mapping path, a string is encoded as utf8
-     *      @param data the zip data to map, a string is encoded as utf8
+     *      @param data the zip data to map
      *
      */
     function setZipFS(fname: string, data: Class_Buffer | string): void;
@@ -42821,7 +43879,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -42833,7 +43891,7 @@ declare module 'fs/promises' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -42842,7 +43900,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -42854,7 +43912,7 @@ declare module 'fs/promises' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -42863,7 +43921,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755', '0755', '0o755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -42875,7 +43933,7 @@ declare module 'fs/promises' {
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
      *      @param path the directory to create
-     *      @param mode the file mode or the creation options: a number, an octal string, or an options object
+     *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
      *
      */
@@ -43148,9 +44206,9 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmod(path: string, mode: number | any): Promise<void>;
@@ -43158,9 +44216,9 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmodSync(path: string, mode: number | any): void;
@@ -43168,33 +44226,39 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755', '0755', '0o755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function chmodAsync(path: string, mode: number | any): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmod(path: string, mode: number | any): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmodSync(path: string, mode: number | any): void;
 
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
+     *
+     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
      *      @param path the file to operate on, a string is encoded as utf8
-     *      @param mode the access permissions to set
+     *      @param mode the access permissions
      *
      */
     function lchmodAsync(path: string, mode: number | any): Promise<void>;
@@ -43483,60 +44547,72 @@ declare module 'fs/promises' {
 
     /**
      * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @return the basic information of the file
      *
      */
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
-
-    /**
-     * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
-     *      @return the basic information of the file
-     *
-     */
-    function fstatSync(fd: Class_FileHandle | Class_FileHandlePromise): Class_Stat;
-
-    /**
-     * @description Queries the basic information of the given file
-     *      @param fd the file descriptor object
-     *      @return the basic information of the file
-     *
-     */
-    function fstatAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
 
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
-     *      @param options the query options
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @return the basic information of the file
      *
      */
-    function fstat(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
+    function fstatSync(fd: number | Class_FileHandle | Class_FileHandlePromise): Class_Stat;
+
+    /**
+     * @description Queries the basic information of the given file
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
+     *      @return the basic information of the file
+     *
+     */
+    function fstatAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<Class_Stat>;
 
     /**
      * @description Queries the basic information of the given file
      *
      *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @param options the query options
      *      @return the basic information of the file
      *
      */
-    function fstatSync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+    function fstat(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
     /**
      * @description Queries the basic information of the given file
      *
      *      options currently has no effective option and is kept for Node.js compatibility only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
      *      @param options the query options
      *      @return the basic information of the file
      *
      */
-    function fstatAsync(fd: Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
+    function fstatSync(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Class_Stat;
+
+    /**
+     * @description Queries the basic information of the given file
+     *
+     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      @param fd the file descriptor
+     *      @param options the query options
+     *      @return the basic information of the file
+     *
+     */
+    function fstatAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, options: FIBJS.GeneralObject): Promise<Class_Stat>;
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
@@ -43572,7 +44648,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43588,7 +44664,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43604,7 +44680,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the symbolic link to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43644,7 +44720,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43660,7 +44736,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43676,7 +44752,7 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      @param path the path to read
-     *      @param options the read options, or the encoding of the returned value; 'buffer' returns a Buffer
+     *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
      *
      */
@@ -43737,7 +44813,9 @@ declare module 'fs/promises' {
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -43745,13 +44823,15 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -43759,13 +44839,15 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readSync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Reads the content of a file by its file descriptor
      *
      *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer the result is written into
      *      @param offset the write offset in the Buffer, 0 by default
      *      @param length the number of bytes to read, 0 by default
@@ -43773,175 +44855,211 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param mode the file mode
      *
      */
-    function fchmod(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
+    function fchmod(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param mode the file mode
      *
      */
-    function fchmodSync(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): void;
+    function fchmodSync(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): void;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the mode is applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param mode the file mode
      *
      */
-    function fchmodAsync(fd: Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
+    function fchmodAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, mode: number): Promise<void>;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchown(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
+    function fchown(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchownSync(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
+    function fchownSync(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): void;
 
     /**
      * @description Changes the owner by the file descriptor. Effective on POSIX systems only.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the owner is changed on the file it addresses.
+     *      @param fd the file descriptor
      *      @param uid the user id
      *      @param gid the group id
      *
      */
-    function fchownAsync(fd: Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
+    function fchownAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, uid: number, gid: number): Promise<void>;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimes(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
+    function futimes(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimesSync(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
+    function futimesSync(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): void;
 
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
      *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
+     *      @param fd the file descriptor
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
      *
      */
-    function futimesAsync(fd: Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
+    function futimesAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, atime: any, mtime: any): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fdatasync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasyncSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fdatasyncSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Only the file data is synchronized, not the metadata, which costs less than fsync.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data of that descriptor is flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fdatasyncAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fdatasyncAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsyncSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function fsyncSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
     /**
      * @description Synchronizes data to disk by the file descriptor
      *
      *      Synchronizes both the file data and the metadata, making sure the written content is persisted.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the data and metadata of that descriptor are flushed.
+     *      @param fd the file descriptor
      *
      */
-    function fsyncAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function fsyncAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Changes the size of a file by its file descriptor
      *
      *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
      *      @param len the new size of the file, 0 by default
      *
      */
-    function ftruncate(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
 
     /**
      * @description Changes the size of a file by its file descriptor
      *
      *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
      *      @param len the new size of the file, 0 by default
      *
      */
-    function ftruncateSync(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): void;
+    function ftruncateSync(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): void;
 
     /**
      * @description Changes the size of a file by its file descriptor
      *
      *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
+     *      @param fd the file descriptor
      *      @param len the new size of the file, 0 by default
      *
      */
-    function ftruncateAsync(fd: Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
+    function ftruncateAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): Promise<void>;
 
     /**
      * @description Queries the information of the file system
@@ -44071,7 +45189,7 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -44091,7 +45209,7 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -44111,7 +45229,7 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
      *      @param path the directory to query
-     *      @param opts the options, or the encoding of the returned file names
+     *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
      *
      */
@@ -44330,8 +45448,10 @@ declare module 'fs/promises' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -44349,8 +45469,10 @@ declare module 'fs/promises' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -44368,8 +45490,10 @@ declare module 'fs/promises' {
      *      - 'a+' read and write, appending; the file is created when missing.
      *
      *      The returned file stream supports positioning operations such as seek, tell and rewind.
+     *
+     *      flags may be the integer fs.constants flags, or a string; "r" (read only) is the default.
      *      @param fname the file name
-     *      @param flags the open mode: integer fs.constants flags, or a string, "r" (read only) by default
+     *      @param flags the open mode
      *      @return the opened file object
      *
      */
@@ -44506,24 +45630,30 @@ declare module 'fs/promises' {
 
     /**
      * @description Closes the file descriptor
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
      *
      */
-    function close(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function close(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Closes the file descriptor
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
      *
      */
-    function closeSync(fd: Class_FileHandle | Class_FileHandlePromise): void;
+    function closeSync(fd: number | Class_FileHandle | Class_FileHandlePromise): void;
 
     /**
      * @description Closes the file descriptor
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; both close the same underlying descriptor.
+     *      @param fd the file descriptor
      *
      */
-    function closeAsync(fd: Class_FileHandle | Class_FileHandlePromise): Promise<void>;
+    function closeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise): Promise<void>;
 
     /**
      * @description Opens a text file for reading, writing, or both
@@ -44623,12 +45753,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
      *      @return the file content
      *
      */
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -44641,12 +45774,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
      *      @return the file content
      *
      */
-    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): any;
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -44659,12 +45795,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
-     *      @param fname the file name, or the file descriptor object
-     *      @param options the decoding, or the read options; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
+     *      @param fname the file to read
+     *      @param options the decoding or the read options
      *      @return the file content
      *
      */
-    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\\n" on posix and "\\r\\n" on windows by default
@@ -44679,7 +45818,9 @@ declare module 'fs/promises' {
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -44687,13 +45828,15 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -44701,13 +45844,15 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param buffer the Buffer object to write
      *      @param offset the read offset in the Buffer, 0 by default
      *      @param length the number of bytes to write, -1 by default
@@ -44715,46 +45860,52 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
 
     /**
      * @description Writes content into a file by its file descriptor
      *
      *      position defaults to -1, which writes from the current file position. The string is encoded with encoding before writing.
-     *      @param fd the file descriptor object
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
      *      @param string the string to write
      *      @param position the write position, the current file position by default
      *      @param encoding the decoding, utf8 by default
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): Promise<number>;
 
     /**
      * @description Creates a text file and writes content into it
@@ -44802,13 +45953,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -44823,13 +45976,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -44844,13 +45999,15 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      A file descriptor ignores the options object and encodes text data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to write
      *      @param data the data to write
-     *      @param opt the encoding of text data, utf8 by default, or the write options
+     *      @param opt the encoding of text data or the write options
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -44864,13 +46021,15 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -44884,13 +46043,15 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -44904,20 +46065,24 @@ declare module 'fs/promises' {
      *      }
      *      \`\`\`
      *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
-     *      @param fname the file name, or the file descriptor object
+     *
+     *      fname may be the file name, an integer file descriptor, or a FileHandle object.
+     *      @param fname the file to append to
      *      @param data the data to write
-     *      @param options the encoding of the data, or the write options
+     *      @param options the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Sets a zip virtual file mapping; a string data is encoded as utf8
+     * @description Sets a zip virtual file mapping
      *
      *      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip.
+     *
+     *      data may be a Buffer holding the zip, or a string; a string is encoded as utf8.
      *      @param fname the mapping path, a string is encoded as utf8
-     *      @param data the zip data to map, a string is encoded as utf8
+     *      @param data the zip data to map
      *
      */
     function setZipFS(fname: string, data: Class_Buffer | string): void;
@@ -45765,7 +46930,8 @@ declare module 'global' {
      * @description Sends a Fetch request given a Request object or a URL string
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of merging them
-     *      @param request the Request object, or the target URL of the request
+     *      request may be an HttpRequest object, or the target URL of the request.
+     *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
@@ -45776,7 +46942,8 @@ declare module 'global' {
      * @description Sends a Fetch request given a Request object or a URL string
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of merging them
-     *      @param request the Request object, or the target URL of the request
+     *      request may be an HttpRequest object, or the target URL of the request.
+     *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
@@ -45787,7 +46954,8 @@ declare module 'global' {
      * @description Sends a Fetch request given a Request object or a URL string
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of merging them
-     *      @param request the Request object, or the target URL of the request
+     *      request may be an HttpRequest object, or the target URL of the request.
+     *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
      *
@@ -46632,8 +47800,10 @@ declare module "gui" {
  */
 declare module 'hex' {
     /**
-     * @description Encodes data in hex format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in hex format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @return returns the encoded string
      *
      */
@@ -46766,20 +47936,38 @@ declare module 'http' {
 
     /**
      * @description Creates an http server
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param hdlr the request handler
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an https server
-     *      @param options either the SecureContext object used for TLS configuration, or the TLS options object used to create one
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      options configures the TLS connection: the SecureContext object used by the server,
+     *      or the TLS options object used to create one (the same object tls.createSecureContext
+     *      accepts).
+     *
+     *      hdlr may be given in the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param options the secure context or the TLS options used to create one
+     *      @param hdlr the request handler
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -48228,7 +49416,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -48259,7 +49447,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -48288,7 +49476,7 @@ declare module 'http' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -48367,20 +49555,38 @@ declare module 'http/promises' {
 
     /**
      * @description Creates an http server
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param hdlr the request handler
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an https server
-     *      @param options either the SecureContext object used for TLS configuration, or the TLS options object used to create one
-     *      @param hdlr request handler function, receives (req, res) parameters
+     *
+     *      options configures the TLS connection: the SecureContext object used by the server,
+     *      or the TLS options object used to create one (the same object tls.createSecureContext
+     *      accepts).
+     *
+     *      hdlr may be given in the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param options the secure context or the TLS options used to create one
+     *      @param hdlr the request handler
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -49829,7 +51035,7 @@ declare module 'http/promises' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -49858,7 +51064,7 @@ declare module 'http/promises' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -49887,7 +51093,7 @@ declare module 'http/promises' {
      *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      *      \`text/plain;charset=UTF-8\`, and \`headers\` replaces the headers of the request source instead of
      *      merging them
-     *      @param request the request source: an HttpRequest object, or the target URL of the request
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request
      *      @return returns the server response, containing properties such as status, headers, body, ok, redirected, url and type
      *
@@ -49904,6 +51110,8 @@ declare module "http" {
         "dts/module/http2.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Http2Server.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Http2Session.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
@@ -49942,12 +51150,22 @@ declare module 'http2' {
 
     /**
      * @description creates an Http2 server
-     *      @param options TLS options object or SecureContext configuration
-     *      @param hdlr the request handling function
+     *
+     *      options may be the TLS options object, used to create the SecureContext with
+     *      tls.createSecureContext, or the SecureContext object itself.
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param options the TLS options or the SecureContext object
+     *      @param hdlr the request handler
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -50031,6 +51249,8 @@ declare module 'http2' {
         "dts/module/http2.promises.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Http2Server.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/HttpRequest.d.ts" />
+/// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/Http2Session.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
@@ -50046,12 +51266,22 @@ declare module 'http2/promises' {
 
     /**
      * @description creates an Http2 server
-     *      @param options TLS options object or SecureContext configuration
-     *      @param hdlr the request handling function
+     *
+     *      options may be the TLS options object, used to create the SecureContext with
+     *      tls.createSecureContext, or the SecureContext object itself.
+     *
+     *      hdlr accepts the same forms as http.createServer:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(req, res) => any\`, called with the HttpRequest and the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as \`(req, ...captures, res) => any\`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a path/address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
+     *      @param options the TLS options or the SecureContext object
+     *      @param hdlr the request handler
      *      @return returns an Http2Server object; call listen() then start() to start serving
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -51739,33 +52969,54 @@ declare module 'mq' {
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description processes a message or object with the given handler
-     *
-     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+
+    /**
+     * @description processes a message or object with the given handler
+     *
+     *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
 
 }
 
@@ -51839,31 +53090,52 @@ declare module 'mq/promises' {
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): Promise<void>;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
 
     /**
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): void;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
 
     /**
      * @description processes a message or object with the given handler
      *
      *      Unlike the invoke method of a handler, this method will repeatedly call the returned handler of each handler until a handler returns null.
-     *      @param hdlr specifies the handler to use
+     *
+     *      hdlr may be given in any of these forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to new mq.Chain(hdlr), see Chain;
+     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a routing map object, whose values are handlers in these same forms, equivalent to new mq.Routing(hdlr), see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *      @param hdlr the handler to run
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise, v: Class_object): Promise<void>;
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
 
 }
 
@@ -51927,7 +53199,8 @@ declare module 'msgpack' {
 
     /**
      * @description Decodes a string into a variable using msgpack; a string data is encoded as utf8
-     *      @param data the binary data to decode, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to decode
      *      @return returns the decoded variable
      *
      */
@@ -51969,7 +53242,8 @@ declare module 'msgpack' {
 declare module 'multibase' {
     /**
      * @description Encodes data in multibase format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @param codec the encoding to use, a string is encoded as utf8
      *      @return returns the encoded string
      *
@@ -52198,7 +53472,12 @@ declare module 'net' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52207,7 +53486,12 @@ declare module 'net' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52216,7 +53500,12 @@ declare module 'net' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52418,22 +53707,36 @@ declare module 'net' {
 
     /**
      * @description creates a TCP server
-     *      @param options the server options object, which can contain the following properties:
-     *       - address: specifies the listening address, default is all addresses
-     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
-     *      @param listener the connection handler function
-     *      @return returns the TcpServer object
      *
-     */
-    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
-
-    /**
-     * @description creates a TCP server
-     *      @param listener the connection handler function
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param listener the connection handler
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+
+    /**
+     * @description creates a TCP server
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param options the server options object, which can contain the following properties:
+     *       - address: specifies the listening address, default is all addresses
+     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
+     *      @param listener the connection handler
+     *      @return returns the TcpServer object
+     *
+     */
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
 
     /**
      * @description creates a UrlObject object, see UrlObject
@@ -52675,7 +53978,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52684,7 +53992,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52693,7 +54006,12 @@ declare module 'net/promises' {
 
     /**
      * @description establishes a connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options object (with the port/host/timeout properties), the remote port, or the unix socket path
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host and timeout properties;
+     *      - the remote port, with the host defaulting to localhost;
+     *      - the path of a unix socket.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -52889,22 +54207,36 @@ declare module 'net/promises' {
 
     /**
      * @description creates a TCP server
-     *      @param options the server options object, which can contain the following properties:
-     *       - address: specifies the listening address, default is all addresses
-     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
-     *      @param listener the connection handler function
-     *      @return returns the TcpServer object
      *
-     */
-    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
-
-    /**
-     * @description creates a TCP server
-     *      @param listener the connection handler function
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param listener the connection handler
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+
+    /**
+     * @description creates a TCP server
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted connection;
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param options the server options object, which can contain the following properties:
+     *       - address: specifies the listening address, default is all addresses
+     *       - port: specifies the listening port, optional. When not provided, listen() must be called to start
+     *      @param listener the connection handler
+     *      @return returns the TcpServer object
+     *
+     */
+    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
 
     /**
      * @description creates a UrlObject object, see UrlObject
@@ -55055,7 +56387,8 @@ declare module 'process' {
     /**
      * @description Sends a signal to the specified process
      *      @param pid specifies the process id
-     *      @param signal specifies the signal to send: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *      signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to send
      *
      */
     function kill(pid: number, signal?: string | number): void;
@@ -55848,8 +57181,10 @@ declare module 'string_decoder' {
 declare module 'subtle' {
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -55857,8 +57192,10 @@ declare module 'subtle' {
 
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -55866,8 +57203,10 @@ declare module 'subtle' {
 
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -55905,7 +57244,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -55915,7 +57255,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -55925,7 +57266,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -55937,7 +57279,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -55949,7 +57292,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -55961,7 +57305,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -55971,9 +57316,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -55981,9 +57328,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -55991,9 +57340,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -56001,10 +57352,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -56012,10 +57366,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -56023,10 +57380,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -56034,7 +57394,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits
@@ -56044,7 +57405,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits
@@ -56054,7 +57416,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits
@@ -56611,12 +57974,22 @@ declare module 'tls' {
 
     /**
      * @description creates a TLS server
-     *      @param options specifies the secure context object, or the options for creating the secure context
-     *      @param listener the connection handling function
+     *
+     *      options may be the SecureContext object used by the server, or the options for creating
+     *      one (the same object tls.createSecureContext accepts).
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param options the secure context or the options used to create one
+     *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
 
     /**
      * @description creates a SecureContext object, used to maintain secure contexts in the tls module
@@ -56686,7 +58059,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -56695,7 +58073,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -56704,7 +58087,12 @@ declare module 'tls' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -57080,12 +58468,22 @@ declare module 'tls/promises' {
 
     /**
      * @description creates a TLS server
-     *      @param options specifies the secure context object, or the options for creating the secure context
-     *      @param listener the connection handling function
+     *
+     *      options may be the SecureContext object used by the server, or the options for creating
+     *      one (the same object tls.createSecureContext accepts).
+     *
+     *      listener may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
+     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
+     *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
+     *      @param options the secure context or the options used to create one
+     *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
 
     /**
      * @description creates a SecureContext object, used to maintain secure contexts in the tls module
@@ -57153,7 +58551,12 @@ declare module 'tls/promises' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -57162,7 +58565,12 @@ declare module 'tls/promises' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -57171,7 +58579,12 @@ declare module 'tls/promises' {
 
     /**
      * @description creates a tls/ssl connection and triggers the connect event after the connection is established
-     *      @param options specifies the connection options, the url ('ssl://host:port') or the port number
+     *
+     *      options may be given in any of these forms:
+     *      - a connection options object carrying the port, host, timeout and the TLS options;
+     *      - the url to connect to, such as 'ssl://host:port';
+     *      - the remote port, with the host defaulting to localhost.
+     *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -57541,7 +58954,7 @@ declare module 'tty' {
 
     /**
      * @description Queries whether it is a command interactive window
-     *     @param fd the file descriptor or file handle object
+     *     @param fd the file descriptor; an integer descriptor or a FileHandle object
      *      @return returns true if it is associated with a terminal window, otherwise returns false
      *
      */
@@ -58126,12 +59539,15 @@ declare module 'url' {
 
     /**
      * @description formats a URL object into a string, with formatting options
-     *      @param urlObject the URL object to format
+     *
+     *      urlObject may be a UrlObject, a URL string (parsed first), or a URL components object
+     *      (the same fields the UrlObject constructor accepts).
+     *      @param urlObject the URL to format
      *      @param options formatting options, supporting the fields: fragment (whether to include the fragment), unicode (whether to display domain names in Unicode), auth (whether to include authentication information)
      *      @return the formatted URL string
      *
      */
-    function format(urlObject: Class_UrlObject, options?: FIBJS.GeneralObject): string;
+    function format(urlObject: Class_UrlObject | string | FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description formats a URL string into a standard URL string
@@ -58176,12 +59592,15 @@ declare module 'url' {
 
     /**
      * @description converts a file URL (object or string) into a platform-specific file path
-     *      @param url the file URL, a UrlObject or a string (must use the file: protocol)
+     *
+     *      url must use the file: protocol; it may be a UrlObject, a URL string, or a URL components object
+     *      (the same fields the UrlObject constructor accepts).
+     *      @param url the file URL
      *      @param options conversion options; the windows field specifies whether to force the Windows path format
      *      @return the converted file path string
      *
      */
-    function fileURLToPath(url: Class_UrlObject | string, options?: FIBJS.GeneralObject): string;
+    function fileURLToPath(url: Class_UrlObject | string | FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description converts a file path into a file URL object
@@ -59312,8 +60731,10 @@ declare module 'uuid' {
 
     /**
      * @description Creates a uuid with an MD5 namespace
+     *
+     *      ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
      *      @param name the name to use
-     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
+     *      @param ns the namespace UUID
      *      @return returns a generated uuid string
      *
      */
@@ -59329,8 +60750,10 @@ declare module 'uuid' {
 
     /**
      * @description Creates a uuid with a SHA1 namespace
+     *
+     *      ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
      *      @param name the name to use
-     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
+     *      @param ns the namespace UUID
      *      @return returns a generated uuid string
      *
      */
@@ -59696,7 +61119,8 @@ declare module 'v8' {
      * @description Deserializes a Buffer or a string into a value
      *
      *      Restores binary data previously serialized by serialize back into a JavaScript value.
-     *      @param data the Buffer to deserialize; a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to deserialize
      *      @return returns the deserialized value
      *
      */
@@ -59758,7 +61182,8 @@ declare module 'vm' {
      * @description Runs the code specified by code within the given contextifiedObject and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextifiedObject specifies the context object at runtime
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */
@@ -59768,7 +61193,8 @@ declare module 'vm' {
      * @description Uses the given contextObject to create a context, runs the code specified by code in it and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextObject specifies the object to be contextified
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */
@@ -59777,7 +61203,8 @@ declare module 'vm' {
     /**
      * @description Runs the code specified by code in the current context and returns the result
      *      @param code specifies the script code to compile and run
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */
@@ -60061,7 +61488,8 @@ declare module 'xml' {
 
     /**
      * @description Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
-     *      @param source the xml/html data to parse; a string is encoded as utf8
+     *      source may be a Buffer or a string; a string is encoded as utf8.
+     *      @param source the data to parse
      *      @param type the text type, default text/xml; can also be set to text/html
      *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *      @return returns the created XmlDocument object
@@ -60405,9 +61833,12 @@ declare module 'zlib' {
     function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -60416,26 +61847,34 @@ declare module 'zlib' {
     function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60445,8 +61884,10 @@ declare module 'zlib' {
     function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60454,8 +61895,10 @@ declare module 'zlib' {
     function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60463,9 +61906,12 @@ declare module 'zlib' {
     function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -60474,26 +61920,34 @@ declare module 'zlib' {
     function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60503,8 +61957,10 @@ declare module 'zlib' {
     function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60512,8 +61968,10 @@ declare module 'zlib' {
     function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60521,8 +61979,10 @@ declare module 'zlib' {
     function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -60532,8 +61992,10 @@ declare module 'zlib' {
     function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -60541,8 +62003,10 @@ declare module 'zlib' {
     function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -60550,8 +62014,10 @@ declare module 'zlib' {
     function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
@@ -60560,25 +62026,32 @@ declare module 'zlib' {
     function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -60587,26 +62060,34 @@ declare module 'zlib' {
     function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60616,8 +62097,10 @@ declare module 'zlib' {
     function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60625,8 +62108,10 @@ declare module 'zlib' {
     function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60634,9 +62119,12 @@ declare module 'zlib' {
     function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -60645,26 +62133,34 @@ declare module 'zlib' {
     function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60674,8 +62170,10 @@ declare module 'zlib' {
     function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60683,8 +62181,10 @@ declare module 'zlib' {
     function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60692,9 +62192,12 @@ declare module 'zlib' {
     function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -60703,26 +62206,34 @@ declare module 'zlib' {
     function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60732,8 +62243,10 @@ declare module 'zlib' {
     function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60741,8 +62254,10 @@ declare module 'zlib' {
     function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60766,9 +62281,12 @@ declare module 'zlib' {
     function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -60777,26 +62295,34 @@ declare module 'zlib' {
     function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60806,8 +62332,10 @@ declare module 'zlib' {
     function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60815,8 +62343,10 @@ declare module 'zlib' {
     function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -60824,9 +62354,12 @@ declare module 'zlib' {
     function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -60835,26 +62368,34 @@ declare module 'zlib' {
     function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60864,8 +62405,10 @@ declare module 'zlib' {
     function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -60873,8 +62416,10 @@ declare module 'zlib' {
     function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61005,35 +62550,46 @@ declare module 'zlib/promises' {
     function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61041,8 +62597,10 @@ declare module 'zlib/promises' {
     function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61050,8 +62608,10 @@ declare module 'zlib/promises' {
     function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61059,35 +62619,46 @@ declare module 'zlib/promises' {
     function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61095,8 +62666,10 @@ declare module 'zlib/promises' {
     function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61104,8 +62677,10 @@ declare module 'zlib/promises' {
     function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61113,8 +62688,10 @@ declare module 'zlib/promises' {
     function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -61122,8 +62699,10 @@ declare module 'zlib/promises' {
     function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -61131,8 +62710,10 @@ declare module 'zlib/promises' {
     function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -61140,59 +62721,76 @@ declare module 'zlib/promises' {
     function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61200,8 +62798,10 @@ declare module 'zlib/promises' {
     function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61209,8 +62809,10 @@ declare module 'zlib/promises' {
     function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61218,35 +62820,46 @@ declare module 'zlib/promises' {
     function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61254,8 +62867,10 @@ declare module 'zlib/promises' {
     function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61263,8 +62878,10 @@ declare module 'zlib/promises' {
     function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61272,35 +62889,46 @@ declare module 'zlib/promises' {
     function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61308,8 +62936,10 @@ declare module 'zlib/promises' {
     function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61317,8 +62947,10 @@ declare module 'zlib/promises' {
     function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61342,35 +62974,46 @@ declare module 'zlib/promises' {
     function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61378,8 +63021,10 @@ declare module 'zlib/promises' {
     function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61387,8 +63032,10 @@ declare module 'zlib/promises' {
     function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -61396,35 +63043,46 @@ declare module 'zlib/promises' {
     function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61432,8 +63090,10 @@ declare module 'zlib/promises' {
     function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -61441,8 +63101,10 @@ declare module 'zlib/promises' {
     function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
