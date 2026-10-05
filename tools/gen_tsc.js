@@ -74,6 +74,13 @@ const EXPORTS = [
     // entries it did not memoize, the second is a no-op in the trimmed build.
     'resolveModuleName',
     'getModeForUsageLocation',
+    // the type-reference side of the same story: `--check` serves a
+    // `resolveTypeReferenceDirectiveReferences` host callback built on this,
+    // so the node type references (a dependency directive, a `types` entry,
+    // the `"*"` scan) can be refused - a checked program never carries
+    // @types/node (check.js createHost); every other reference resolves
+    // through the compiler.
+    'resolveTypeReferenceDirective',
 ];
 
 function downloadTypeScript() {
