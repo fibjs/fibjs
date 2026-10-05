@@ -1101,6 +1101,8 @@ public:
 
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
+        // 受控同步快路径（C 类例外，见审计报告 §3-C）：两个廉价前置判断后直通
+        // 内层 readBuffer（其自身负责相位），不额外引入等待。
         if (!m_inner)
             return CALL_RETURN_NULL; // already closed
         if (!m_cleanup)
@@ -2511,6 +2513,10 @@ result_t HttpClient::requestSync(exlib::string method, exlib::string url, v8::Lo
     if (ac->isSync())
         return get_request_opts(method, url, opts, ac);
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     return requestSync(o.get(), retVal, ac);
 }
@@ -2520,6 +2526,10 @@ result_t HttpClient::requestSync(exlib::string method, exlib::string url,
 {
     if (ac->isSync())
         return get_request_opts(method, url, opts, ac);
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     return requestSync(o.get(), retVal, ac);
@@ -3280,6 +3290,10 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
         ac->m_ctx[0] = o;
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     return (new asyncFetch(o, retVal, ac))->post(0);

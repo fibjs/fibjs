@@ -31,6 +31,10 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         return CHECK_ERROR(CALL_E_GUICALL);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     HRESULT hr = 0;
     exlib::Event ev;
     async([&hr, &ev, &retVal, &ac]() {

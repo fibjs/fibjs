@@ -37,6 +37,10 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         return CHECK_ERROR(CALL_E_GUICALL);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     DialogOptions* opts = (DialogOptions*)ac->m_ctx[0].object();
 
     bool isSaveDialog = opts->type.value() == "saveFile";
