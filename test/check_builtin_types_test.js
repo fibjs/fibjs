@@ -6,8 +6,9 @@
 // user errors must still be reported, and --no-builtin-types must fall back
 // to the behaviour without the embedded types.
 //
-// Mixed @types/node projects are not a target: the fibjs globals would
-// overlap the node ones, --no-builtin-types is the way out there.
+// @types/node never joins a checked program (a dependency's directive, a
+// `types` entry, or the default type-roots scan alike); --no-builtin-types is
+// the way out for a node-targeted project.
 //
 // Every scenario runs in a temp directory: tsc searches tsconfig.json upwards
 // and the repository root has one. The suite spawns the binary through
@@ -254,6 +255,155 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
             'the built-in types must not be attached: ' + text);
         assert.ok(!text.includes("'Blob'"),
             'the browser Blob must be the one in play (no built-in one): ' + text);
+    });
+
+    it('keeps @types/node out when a dependency references it and the types exclude node', () => {
+        // undici-types (reached through @anthropic-ai/sdk) carries
+        // `/// <reference types="node" />`. The directive resolves against the
+        // type roots and ignores the project's `types` list, so without the
+        // refusal the whole @types/node global set would join the built-in
+        // ones and the two Buffer/WebSocket/... sets would fight.
+        var dir = path.join(scratch, 'node-reference');
+
+        fs.mkdirSync(path.join(dir, 'node_modules', '@types', 'node'), { recursive: true });
+        fs.mkdirSync(path.join(dir, 'node_modules', 'dep'), { recursive: true });
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'package.json'),
+            JSON.stringify({ name: '@types/node', types: 'index.d.ts' }));
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'index.d.ts'),
+            'declare var Buffer: { from(value: string): { node: true } };\n');
+        fs.writeFileSync(path.join(dir, 'node_modules', 'dep', 'package.json'),
+            JSON.stringify({ name: 'dep', types: 'index.d.ts' }));
+        fs.writeFileSync(path.join(dir, 'node_modules', 'dep', 'index.d.ts'),
+            '/// <reference types="node" />\nexport declare function f(): void;\n');
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { types: [], strict: true, skipLibCheck: true },
+            files: ['a.ts']
+        }));
+        fs.writeFileSync(path.join(dir, 'a.ts'), [
+            "import { f } from 'dep';",
+            "const b: Class_Buffer = Buffer.from('abc');",
+            'f();',
+            'console.log(b);'
+        ].join('\n'));
+
+        var r = runCheck(dir, []);
+        var text = r.stdout + r.stderr;
+
+        assert.equal(errors(text), 0, text);
+        assert.ok(text.includes('the reference is not resolved'),
+            'the refusal note is missing: ' + text);
+
+        // the flip side: a `types` list naming node changes nothing - the
+        // program never carries @types/node, and the built-in globals stay
+        // (they are not dropped for a node-named project)
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { types: ['node'], strict: true, skipLibCheck: true },
+            files: ['b.ts']
+        }));
+        fs.writeFileSync(path.join(dir, 'b.ts'), [
+            "import { f } from 'dep';",
+            "const b: Class_Buffer = Buffer.from('abc');",
+            'f();',
+            'console.log(b);'
+        ].join('\n'));
+
+        r = runCheck(dir, []);
+        text = r.stdout + r.stderr;
+
+        assert.equal(errors(text), 0, text);
+        assert.ok(text.includes('not loaded'),
+            'the refusal note for the `types` entry is missing: ' + text);
+
+        r = runCheck(dir, ['--listFilesOnly']);
+
+        assert.ok(!r.stdout.includes('@types/node'),
+            'a `types` entry naming node must not load it: ' + r.stdout);
+    });
+
+    it('keeps @types/node out of a DOM project whose types exclude node as well', () => {
+        // the refusal is not tied to the fibjs built-in types: a browser
+        // project that pinned its `types` gets the same policy, so node-only
+        // globals (process, Buffer, ...) do not type-check in browser code
+        // just because a dependency references them.
+        var dir = path.join(scratch, 'node-reference-browser');
+
+        fs.mkdirSync(path.join(dir, 'node_modules', '@types', 'node'), { recursive: true });
+        fs.mkdirSync(path.join(dir, 'node_modules', 'dep'), { recursive: true });
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'package.json'),
+            JSON.stringify({ name: '@types/node', types: 'index.d.ts' }));
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'index.d.ts'),
+            'declare var Buffer: { from(value: string): { node: true } };\n');
+        fs.writeFileSync(path.join(dir, 'node_modules', 'dep', 'package.json'),
+            JSON.stringify({ name: 'dep', types: 'index.d.ts' }));
+        fs.writeFileSync(path.join(dir, 'node_modules', 'dep', 'index.d.ts'),
+            '/// <reference types="node" />\nexport declare function f(): void;\n');
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { lib: ['ES2020', 'DOM'], types: [], strict: true, skipLibCheck: true },
+            files: ['a.ts']
+        }));
+        fs.writeFileSync(path.join(dir, 'a.ts'), [
+            "import { f } from 'dep';",
+            'const d: Document = document;',
+            'f();',
+            'console.log(d);'
+        ].join('\n'));
+
+        var r = runCheck(dir, []);
+        var text = r.stdout + r.stderr;
+
+        assert.equal(errors(text), 0, text);
+        assert.ok(text.includes('the reference is not resolved'),
+            'the refusal note is missing: ' + text);
+
+        // the program itself must not carry the node globals
+        r = runCheck(dir, ['--listFilesOnly']);
+        assert.ok(!r.stdout.includes('@types/node'),
+            'the refused program must not contain @types/node: ' + r.stdout);
+
+        // the flip side: a `types` list naming node changes nothing here either
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { lib: ['ES2020', 'DOM'], types: ['node'], strict: true, skipLibCheck: true },
+            files: ['a.ts']
+        }));
+
+        r = runCheck(dir, ['--listFilesOnly']);
+
+        assert.ok(!r.stdout.includes('@types/node'),
+            'a checked program never carries @types/node: ' + r.stdout);
+    });
+
+    it('never auto-includes @types/node (a `types: ["*"]` scan is refused too)', () => {
+        // the package sits in node_modules and the project scans the type
+        // roots with `types: ["*"]`: stock tsc would load it. A checked
+        // program does not - the built-in globals stay the environment, the
+        // misleading TS2688 ("the package is installed") is not reported, and
+        // the refusal is said once.
+        var dir = path.join(scratch, 'node-auto-include');
+
+        fs.mkdirSync(path.join(dir, 'node_modules', '@types', 'node'), { recursive: true });
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'package.json'),
+            JSON.stringify({ name: '@types/node', types: 'index.d.ts' }));
+        fs.writeFileSync(path.join(dir, 'node_modules', '@types', 'node', 'index.d.ts'),
+            'declare var Buffer: { from(value: string): { node: true } };\n');
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { types: ['*'], skipLibCheck: true }
+        }));
+        fs.writeFileSync(path.join(dir, 'a.ts'), [
+            "const b: Class_Buffer = Buffer.from('abc');",
+            'console.log(b);'
+        ].join('\n'));
+
+        var r = runCheck(dir, []);
+        var text = r.stdout + r.stderr;
+
+        assert.equal(errors(text), 0, text);
+        assert.ok(text.includes('not loaded'),
+            'the auto-include refusal note is missing: ' + text);
+
+        r = runCheck(dir, ['--listFilesOnly']);
+
+        assert.ok(!r.stdout.includes('@types/node'),
+            'the default scan must not pull @types/node in: ' + r.stdout);
     });
 
     it('the default lib of a fibjs project is es-only', () => {
