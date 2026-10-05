@@ -14,6 +14,13 @@
  *     console, ... with browser types that do not match the runtime. A project
  *     that lists DOM in its tsconfig `lib` is a browser project and keeps the
  *     browser types: the built-in types are not attached to it;
+ *   - @types/node never joins a checked program: a dependency's `/// <reference
+ *     types="node" />` (undici-types carries one), a `types` entry naming node,
+ *     and a `types: ["*"]` type-roots scan that finds the package are all
+ *     refused - the program runs against its environment (the built-in types,
+ *     or the browser types of a DOM project) and node-only globals (process,
+ *     Buffer, ...) do not type-check. A node-targeted project checks with
+ *     stock tsc instead (--no-builtin-types);
  *   - a tsconfig with `references` is checked project by project, each with its
  *     own tsconfig (the `tsc -b --noEmit` equivalent, usable as the monorepo
  *     root check);
@@ -47,15 +54,10 @@ const EXIT_SUCCESS = 0;
 const EXIT_USAGE = 1;
 const EXIT_DIAGNOSTICS = 2;
 
-// The files that provide the fibjs globals and the `fibjs:`/`node:` module
-// aliases. A project that loads @types/node keeps the node definitions
-// instead: the fibjs ones are dropped (the documented --no-builtin-types
-// story, applied selectively).
-const GLOBALS_FILES = [
-    'dts/module/global.d.ts',
-    'dts/_builtin/globals.d.ts',
-    'dts/_builtin/prefixed-modules.d.ts',
-];
+// The compiler's pseudo containing file for `types` entries (named ones and
+// the `"*"` type-roots scan): the checker tells those refusals apart from the
+// `/// <reference types="node" />` directives in files by it (see createHost).
+const INFERRED_TYPES_FILE = '__inferred type names__.ts';
 
 const USAGE = [
     'Usage: fibjs --check [options] <files...>',
@@ -90,6 +92,15 @@ const USAGE = [
     '  against). A repository that has both keeps them apart with one tsconfig',
     '  per area - the front-end directory lists DOM, the back end does not and',
     '  keeps the runtime types.',
+    '',
+    '  a checked program never carries @types/node: a `/// <reference',
+    '  types="node" />` in a dependency (undici-types carries one), a `types`',
+    '  entry naming node, and a `types: ["*"]` type-roots scan that finds the',
+    '  package are all refused - the program runs against its environment (the',
+    '  built-in types, or the browser types of a DOM project), so node-only',
+    '  globals (process, Buffer, ...) do not type-check. A node-targeted',
+    '  project checks with stock tsc instead: --no-builtin-types, or "fibjs":',
+    '  { "builtinTypes": false } in its tsconfig.',
     '',
     '  a project opts out of the built-in types with "fibjs": { "builtinTypes":',
     '  false } in its tsconfig; the --no-builtin-types flag does the same for',
@@ -160,6 +171,17 @@ function preEmitDiagnostics(program) {
 
 function isBuiltinTypeFile(fileName) {
     return normalizeSlashes(fileName).startsWith(BUILTIN_ROOT + '/');
+}
+
+// The compiler reports an unresolved type reference directive as TS2688
+// ("Cannot find type definition file for 'node'"). When the checker refused
+// the node types on purpose, the diagnostic is misleading - the package is
+// usually installed, the program simply does not carry it - and the refusal
+// note is the one to read; every other TS2688 (a genuinely missing package)
+// stays.
+function isRefusedNodeTypesDiagnostic(diagnostic) {
+    return diagnostic.code === 2688 &&
+        ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n').indexOf("'node'") >= 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +362,7 @@ function report(diagnostics, pretty) {
  * The host serves three layers: the fibjs built-in types and the bundled lib
  * files (both virtual, keyed by path / by file name) and the real file system.
  */
-function createHost(options, virtual, graph) {
+function createHost(options, virtual, graph, blockNodeTypeReferences) {
     const host = ts.createCompilerHost(options, /* setParentNodes */ true);
     const served = host.getSourceFile.bind(host);
     const fileExists = host.fileExists.bind(host);
@@ -382,6 +404,49 @@ function createHost(options, virtual, graph) {
 
     host.getDefaultLibLocation = () => LIB_ROOT;
     host.getDefaultLibFileName = opts => LIB_ROOT + '/' + ts.getDefaultLibFileName(opts);
+
+    // @types/node does not belong to a checked program: the built-in types are
+    // the environment of a fibjs program, the browser types the ones of a DOM
+    // project, and the node globals would fight either set. Every route is
+    // refused here: a dependency's `/// <reference types="node" />`
+    // (undici-types, reached through @anthropic-ai/sdk, is the known source -
+    // it resolves against the type roots, primary and secondary, and ignores
+    // the project's `types` list), a `types` entry naming node, and a
+    // `types: ["*"]` type-roots scan; every other directive goes through the
+    // compiler's own resolver, and the refused ones are reported after the
+    // program is built.
+    //
+    // The callback is the plural `...References` form: the compiler binds it
+    // as-is and hands it the program's own file references, so the delegate
+    // result (the resolver's `{ resolvedTypeReferenceDirective, ... }`) is
+    // returned untouched; the names-only form would wrap the entries a second
+    // time and the program would read the file name off the wrapper.
+    if (blockNodeTypeReferences) {
+        host.refusedNodeTypeReferences = [];
+        host.refusedNodeTypeAutoIncludes = [];
+
+        host.resolveTypeReferenceDirectiveReferences = (entries, containingFile, redirectedReference, compilerOptions, containingSourceFile) =>
+            entries.map(entry => {
+                const name = typeof entry === 'string' ? entry : entry.fileName;
+
+                if (name !== 'node' && name.indexOf('node/') !== 0)
+                    return ts.resolveTypeReferenceDirective(name, containingFile, compilerOptions,
+                        host, redirectedReference, /* cache */ undefined,
+                        containingSourceFile && containingSourceFile.impliedNodeFormat);
+
+                // the `types` entries resolve with the compiler's pseudo
+                // file as the containing file; a directive resolves with the
+                // file that wrote it. One entry is enough for the note below.
+                const refused = normalizeSlashes(containingFile).indexOf(INFERRED_TYPES_FILE) >= 0
+                    ? host.refusedNodeTypeAutoIncludes
+                    : host.refusedNodeTypeReferences;
+
+                if (!refused.length)
+                    refused.push(normalizeSlashes(containingFile));
+
+                return { resolvedTypeReferenceDirective: undefined };
+            });
+    }
 
     // the compiler resolves through this callback; recording every result
     // there is what makes the reported import chain the checked one
@@ -511,43 +576,6 @@ function defaultLibFor(options) {
     return [name.replace(/\.full\.d\.ts$/, '.d.ts')];
 }
 
-/**
- * Whether the project effectively loads @types/node: the fibjs globals are
- * dropped then, so the node definitions are the single source of the node
- * globals.
- *
- * The effective compiler options decide, not the presence of the package: a
- * project that pins `"types": ["..."]` without `node` (or `"types": []`) keeps
- * the fibjs globals even though @types/node sits in its node_modules - the
- * checker must not drop them behind the project's back. Without an explicit
- * list the compiler includes every package under the type roots, so the
- * package's presence decides there.
- */
-function projectLoadsNodeTypes(options, projectPath) {
-    if (Array.isArray(options.types))
-        return options.types.indexOf('node') >= 0;
-
-    if (Array.isArray(options.typeRoots) && options.typeRoots.length)
-        return options.typeRoots.some(root =>
-            ts.sys.fileExists(path.join(root, 'node', 'package.json')));
-
-    let dir = path.resolve(projectPath);
-
-    if (!ts.sys.directoryExists(dir))
-        dir = path.dirname(dir);
-
-    for (;;) {
-        if (ts.sys.fileExists(path.join(dir, 'node_modules', '@types', 'node', 'package.json')))
-            return true;
-
-        const parent = path.dirname(dir);
-        if (parent === dir)
-            return false;
-
-        dir = parent;
-    }
-}
-
 // ---------------------------------------------------------------------------
 // checking one project
 
@@ -632,22 +660,27 @@ function checkProject(request) {
     if (browserProject && useBuiltinTypes && explicitBuiltinTypes !== false)
         write('note: the project lists DOM in `lib` - the fibjs built-in types are not attached\n');
 
-    // an @types/node project keeps the node definitions for the globals: the
-    // fibjs globals files are dropped (the documented --no-builtin-types
-    // story, applied selectively)
-    const dropGlobals = projectBuiltinTypes && projectLoadsNodeTypes(options, projectPath);
+    // @types/node never joins a checked program. Whenever the driver supplies
+    // the program's type environment (the fibjs built-in types, or the browser
+    // types of a DOM project), every route to it is refused: a dependency's
+    // `/// <reference types="node" />` (undici-types carries one - it resolves
+    // against the type roots and ignores the project's `types` list), a
+    // `types` entry naming node, and a `types: ["*"]` type-roots scan. The node
+    // globals would otherwise join the built-in ones (a class mismatch on
+    // every Buffer, WebSocket, ...) or leak node-only globals (process,
+    // Buffer, ...) into browser code. A node-targeted project checks with
+    // stock tsc instead (--no-builtin-types, or "fibjs": { "builtinTypes":
+    // false } in its tsconfig).
+    const blockNodeTypeReferences = useBuiltinTypes && explicitBuiltinTypes !== false;
 
     // a fibjs project without an explicit `lib` gets the es-only default lib:
     // lib.dom must not slip in through the compiler defaults and collide with
     // the built-in globals (see defaultLibFor)
-    if (projectBuiltinTypes && !dropGlobals && options.lib === undefined)
+    if (projectBuiltinTypes && options.lib === undefined)
         options.lib = defaultLibFor(options);
 
     if (projectBuiltinTypes) {
         Object.keys(builtinTypeFiles).forEach(rel => {
-            if (dropGlobals && GLOBALS_FILES.indexOf(rel) >= 0)
-                return;
-
             virtual[normalizeSlashes(path.join(BUILTIN_ROOT, rel))] = builtinTypeFiles[rel];
         });
 
@@ -664,7 +697,7 @@ function checkProject(request) {
     }
 
     const graph = [];
-    const host = createHost(options, virtual, graph);
+    const host = createHost(options, virtual, graph, blockNodeTypeReferences);
     const program = ts.createProgram({
         rootNames,
         options,
@@ -680,17 +713,27 @@ function checkProject(request) {
             return EXIT_SUCCESS;
     }
 
+    if (host.refusedNodeTypeReferences && host.refusedNodeTypeReferences.length)
+        write('note: the program references the node types (`/// <reference types="node" />`) - ' +
+            'the reference is not resolved; a checked program does not carry @types/node\n');
+
+    if (host.refusedNodeTypeAutoIncludes && host.refusedNodeTypeAutoIncludes.length)
+        write('note: the project\'s `types` would load @types/node (a named entry or the "*" scan) - ' +
+            'not loaded; a checked program does not carry @types/node (use --no-builtin-types ' +
+            'for a node-targeted project)\n');
+
     // lib.dom can be pulled into the program by a `/// <reference lib="dom" />`
     // even when the tsconfig does not list it; the browser globals then fight
     // the built-in ones in the same program and the visible errors are
     // confusing (setTimeout typed as the browser one, ...). Say it instead of
     // leaving the mix unexplained.
-    if (projectBuiltinTypes && !dropGlobals &&
+    if (projectBuiltinTypes &&
         program.getSourceFiles().some(sourceFile => /\/lib\.dom\.d\.ts$/.test(normalizeSlashes(sourceFile.fileName))))
         write('note: lib.dom is in the program (a file references the DOM lib) while the fibjs built-in types are attached - the two global sets conflict; list DOM in `lib` for the browser types, or drop the reference\n');
 
     const diagnostics = preEmitDiagnostics(program)
-        .filter(diagnostic => !(diagnostic.file && isBuiltinTypeFile(diagnostic.file.fileName)));
+        .filter(diagnostic => !(diagnostic.file && isBuiltinTypeFile(diagnostic.file.fileName)))
+        .filter(diagnostic => !(blockNodeTypeReferences && isRefusedNodeTypesDiagnostic(diagnostic)));
 
     const all = extraDiagnostics.concat(diagnostics);
 
