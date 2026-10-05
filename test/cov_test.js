@@ -38,7 +38,13 @@ const DEMO = [
     ""
 ].join('\n');
 
-describe('coverage CLI', { skip: !isFibjs }, () => {
+// The counters a log is built from are kept by a JIT-capable V8 only: the
+// iPhone targets build V8 jitless and debug::Coverage::Collect() aborts there,
+// so the switch cannot collect anything on that platform.  Its behaviour there
+// is checked on its own, below.
+const canCollectCoverage = process.platform !== 'ios';
+
+describe('coverage CLI', { skip: !isFibjs || !canCollectCoverage }, () => {
     var scratch;
     var seq = 0;
 
@@ -389,5 +395,51 @@ describe('coverage CLI', { skip: !isFibjs }, () => {
             assert.ok(r.stderr.indexOf('fibjs --cov-process:') === 0, r.stderr);
             assert.ok(r.stderr.indexOf('Usage: fibjs --cov-process') > 0, r.stderr);
         });
+    });
+});
+
+// Where V8 is jitless (the iPhone targets) there are no block counters to build
+// a report from, and asking V8 for them aborts the process: the switch has to
+// say so and let the run finish, and it must not leave a log behind that is
+// empty rather than absent.
+describe('coverage on a jitless platform', { skip: !isFibjs || canCollectCoverage }, () => {
+    function covRun(cwd, args, extraEnv) {
+        var r = child_process.spawnSync(process.execPath, args, {
+            encoding: 'utf8',
+            cwd: cwd,
+            env: Object.assign({}, process.env, extraEnv),
+            input: ''
+        });
+
+        return {
+            code: r.status,
+            stdout: r.stdout || '',
+            stderr: (r.stderr || '').replace(ANSI_RE, '')
+        };
+    }
+
+    it('the switch is reported and the run still ends cleanly', () => {
+        var cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-cov-jitless-'));
+
+        try {
+            fs.writeFileSync(path.join(cwd, 'demo.js'), "console.log('alpha');\n");
+
+            // both ways in end in the same place: the command line, and the
+            // environment variable that a test suite may export globally
+            [
+                { args: ['--cov', 'demo.js'], env: undefined, label: '--cov' },
+                { args: ['demo.js'], env: { FIBJS_COV: '1' }, label: 'FIBJS_COV=1' }
+            ].forEach(c => {
+                var r = covRun(cwd, c.args, c.env);
+
+                assert.equal(r.code, 0, `${c.label}: ${r.stderr}`);
+                assert.equal(r.stdout.trim(), 'alpha', `${c.label}: ${r.stderr}`);
+                assert.ok(r.stderr.indexOf('not supported') >= 0, `${c.label}: ${r.stderr}`);
+                assert.deepEqual(fs.readdirSync(cwd), ['demo.js'],
+                    `${c.label}: a log must not be left behind`);
+            });
+        } finally {
+            fs.rmSync(cwd, { recursive: true, force: true });
+        }
     });
 });

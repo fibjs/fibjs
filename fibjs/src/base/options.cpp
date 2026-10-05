@@ -144,6 +144,20 @@ static void defaultCovFilename(char* name, size_t size)
         tmv.tm_hour, tmv.tm_min, tmv.tm_sec, (int32_t)uv_os_getpid());
 }
 
+#ifdef iPhone
+// Coverage is built from the block counters of V8, and a jitless V8 keeps
+// none: the vendored V8 of the iPhone targets is built that way (see
+// vender/v8/cmake/options.cmake) and debug::Coverage::Collect() aborts with
+// "Check failed: !V8_JITLESS_BOOL" when the log is written on the way out.
+// Answer the switch and let the run finish instead of dying at its exit; no
+// log is opened, so nothing half-written is left behind.  --cov-process reads
+// and merges finished logs and does not come through here, it keeps working.
+static void openCovFile(const char* /*filename*/)
+{
+    fprintf(stderr, "code coverage is not supported on this platform (jitless V8)\n");
+    fflush(stderr);
+}
+#else
 // `mkdir -p` for the directory part of a coverage file path: FIBJS_COV and
 // --cov may point into a directory tree that does not exist yet (`cov/run.lcov`
 // in a fresh checkout), just like the output directory of --cov-process is
@@ -180,6 +194,7 @@ static void openCovFile(const char* filename)
         _exit(1);
     }
 }
+#endif
 
 // Case insensitive match of a whole environment value against a keyword.
 static bool envValueIs(const char* value, const char* keyword)
