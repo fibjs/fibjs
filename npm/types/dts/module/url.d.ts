@@ -101,12 +101,15 @@ declare module 'url' {
 
     /**
      * @description formats a URL object into a string, with formatting options
-     *      @param urlObject the URL object to format
+     *
+     *      urlObject may be a UrlObject, a URL string (parsed first), or a URL components object
+     *      (the same fields the UrlObject constructor accepts).
+     *      @param urlObject the URL to format
      *      @param options formatting options, supporting the fields: fragment (whether to include the fragment), unicode (whether to display domain names in Unicode), auth (whether to include authentication information)
      *      @return the formatted URL string
      *
      */
-    function format(urlObject: Class_UrlObject, options?: FIBJS.GeneralObject): string;
+    function format(urlObject: Class_UrlObject | string | FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description formats a URL string into a standard URL string
@@ -151,12 +154,15 @@ declare module 'url' {
 
     /**
      * @description converts a file URL (object or string) into a platform-specific file path
-     *      @param url the file URL, a UrlObject or a string (must use the file: protocol)
+     *
+     *      url must use the file: protocol; it may be a UrlObject, a URL string, or a URL components object
+     *      (the same fields the UrlObject constructor accepts).
+     *      @param url the file URL
      *      @param options conversion options; the windows field specifies whether to force the Windows path format
      *      @return the converted file path string
      *
      */
-    function fileURLToPath(url: Class_UrlObject | string, options?: FIBJS.GeneralObject): string;
+    function fileURLToPath(url: Class_UrlObject | string | FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description converts a file path into a file URL object

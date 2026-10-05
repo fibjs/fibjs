@@ -10,6 +10,7 @@
 #include "path.h"
 #include "ifs/url.h"
 #include "Buffer.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -89,7 +90,13 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
         return fileURLToPath(parsed, options, retVal);
     }
 
-    obj_ptr<Url> u = (Url*)std::get<obj_ptr<UrlObject_base>>(url).get();
+    // a UrlObject or a URL components object: both resolve to a UrlObject
+    obj_ptr<UrlObject_base> obj;
+    result_t obj_hr = urlobject_from_union(url, obj);
+    if (obj_hr < 0)
+        return obj_hr;
+
+    obj_ptr<Url> u = (Url*)obj.get();
 
     if (!u->m_url || u->m_url->type != ada::scheme::FILE)
         return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
@@ -269,10 +276,15 @@ result_t url_base::domainToUnicode(exlib::string domain, exlib::string& retVal)
     return 0;
 }
 
-result_t url_base::format(UrlObject_base* urlObject, v8::Local<v8::Object> options, exlib::string& retVal)
+result_t url_base::format(Union_format_urlObject urlObject, v8::Local<v8::Object> options, exlib::string& retVal)
 {
+    obj_ptr<UrlObject_base> u;
+    result_t hr = urlobject_from_union(urlObject, u);
+    if (hr < 0)
+        return hr;
+
     // Temporary minimal implementation for compilation
-    return urlObject->get_href(retVal);
+    return u->get_href(retVal);
 }
 
 } /* namespace fibjs */

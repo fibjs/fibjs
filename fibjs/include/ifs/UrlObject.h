@@ -21,7 +21,7 @@ class UrlObject_base : public object_base {
     DECLARE_CLASS(UrlObject_base);
 
 public:
-    using Union_UrlObject_base = std::variant<exlib::string, obj_ptr<UrlObject_base>>;
+    using Union_UrlObject_base = std::variant<exlib::string, obj_ptr<UrlObject_base>, v8::Local<v8::Object>>;
 
 public:
     // UrlObject_base

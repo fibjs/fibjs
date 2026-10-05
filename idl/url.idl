@@ -94,11 +94,14 @@ module url
     static String format(Object args);
 
     /*! @brief formats a URL object into a string, with formatting options
-     @param urlObject the URL object to format
+
+     urlObject may be a UrlObject, a URL string (parsed first), or a URL components object
+     (the same fields the UrlObject constructor accepts).
+     @param urlObject the URL to format
      @param options formatting options, supporting the fields: fragment (whether to include the fragment), unicode (whether to display domain names in Unicode), auth (whether to include authentication information)
      @return the formatted URL string
      */
-    static String format(UrlObject urlObject, Object options = {});
+    static String format(UrlObject|String|Object urlObject, Object options = {});
 
     /*! @brief formats a URL string into a standard URL string
      @param href the URL string
@@ -132,11 +135,14 @@ module url
     static URLSearchParams = URLSearchParams;
 
     /*! @brief converts a file URL (object or string) into a platform-specific file path
-     @param url the file URL, a UrlObject or a string (must use the file: protocol)
+
+     url must use the file: protocol; it may be a UrlObject, a URL string, or a URL components object
+     (the same fields the UrlObject constructor accepts).
+     @param url the file URL
      @param options conversion options; the windows field specifies whether to force the Windows path format
      @return the converted file path string
      */
-    static String fileURLToPath(UrlObject|String url, Object options = {});
+    static String fileURLToPath(UrlObject|String|Object url, Object options = {});
 
     /*! @brief converts a file path into a file URL object
      @param path the file path to convert

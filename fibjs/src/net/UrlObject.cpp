@@ -9,6 +9,7 @@
 #include "Url.h"
 #include "ifs/encoding.h"
 #include "URLSearchParams.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -68,12 +69,17 @@ result_t UrlObject_base::_new(exlib::string url, Union_UrlObject_base base,
     if (std::holds_alternative<exlib::string>(base))
         return parse(url, std::get<exlib::string>(base), retVal);
 
-    obj_ptr<UrlObject_base> b = std::get<obj_ptr<UrlObject_base>>(base);
+    // a UrlObject or a URL components object: both resolve to a UrlObject
+    obj_ptr<UrlObject_base> b;
+    result_t hr = urlobject_from_union(base, b);
+    if (hr < 0)
+        return hr;
+
     if (!b)
         return parse(url, "", retVal);
 
     exlib::string href;
-    result_t hr = b->get_href(href);
+    hr = b->get_href(href);
     if (hr < 0)
         return hr;
 
