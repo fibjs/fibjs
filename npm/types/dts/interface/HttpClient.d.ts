@@ -55,6 +55,9 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description HttpClient constructor, creates a new HttpClient object
      *
+     *      options may be the options object used to create the secure context (the same object
+     *      tls.createSecureContext accepts), or the SecureContext object itself.
+     *
      *      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      *      - keepAlive: specifies whether to keep the connection alive
      *      - timeout: specifies the timeout
@@ -69,7 +72,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
+     *      @param options the secure context or the options used to create one
      *
      */
     constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
@@ -1436,7 +1439,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them
@@ -1463,7 +1466,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them
@@ -1488,7 +1491,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them
@@ -1519,6 +1522,9 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description HttpClient constructor, creates a new HttpClient object
      *
+     *      options may be the options object used to create the secure context (the same object
+     *      tls.createSecureContext accepts), or the SecureContext object itself.
+     *
      *      In addition to the properties used to create a SecureContext, options also needs to provide the following properties:
      *      - keepAlive: specifies whether to keep the connection alive
      *      - timeout: specifies the timeout
@@ -1533,7 +1539,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      - poolTimeout: specifies the keep-alive cached connection timeout
      *      - proxyEnv: specifies the proxy configuration environment variables, including HTTP_PROXY, HTTPS_PROXY, NO_PROXY and their lowercase forms
      *
-     *      @param options options required to create a secure context using tls.createSecureContext, or the SecureContext object itself
+     *      @param options the secure context or the options used to create one
      *
      */
     constructor(options: Class_SecureContext | Class_SecureContextPromise | FIBJS.GeneralObject);
@@ -2900,7 +2906,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them
@@ -2925,7 +2931,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them
@@ -2950,7 +2956,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      }
      *      ```
      *      body, json and pack must not appear at the same time. Default is {}, which overrides no information in request
-     *      @param request request source object, provides basic information such as url, method, headers and body
+     *      @param request the request source
      *      @param opts the additional information, can override the corresponding fields in request; following the Fetch
      *      standard a GET or HEAD request must not carry a body, a string body is sent as `text/plain;charset=UTF-8`,
      *      and `headers` replaces the headers of the request source instead of merging them

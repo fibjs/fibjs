@@ -163,7 +163,8 @@ declare module 'console' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      ```
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function add(cfg: FIBJS.GeneralObject | any[]): void;
@@ -241,7 +242,8 @@ declare module 'console' {
      *         count: 10 // option, selectable from 2 to 128, default is 128
      *      });
      *      ```
-     *      @param cfg output configuration
+     *      cfg may be a single configuration object, or an array of them; each is applied in order.
+     *      @param cfg the output configuration
      *
      */
     function use(cfg: FIBJS.GeneralObject | any[]): void;

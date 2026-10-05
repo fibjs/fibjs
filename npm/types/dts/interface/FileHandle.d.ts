@@ -285,7 +285,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -303,7 +304,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -319,7 +321,8 @@ declare class Class_FileHandle extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -336,7 +339,8 @@ declare class Class_FileHandle extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -355,7 +359,8 @@ declare class Class_FileHandle extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -372,7 +377,8 @@ declare class Class_FileHandle extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -815,7 +821,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -831,7 +838,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -847,7 +855,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      }
      *      ```
      *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      @param options the decoding method, or the read options
+     *      options may be the decoding method string, or the read options object.
+     *      @param options the decoding method or the read options
      *      @return returns the file content
      *
      */
@@ -864,7 +873,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -881,7 +891,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */
@@ -898,7 +909,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      ```
      *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
      *      @param data the data to write
-     *      @param opt the encoding of string data, or the write options
+     *      opt may be the encoding of string data, or the write options object.
+     *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
      */

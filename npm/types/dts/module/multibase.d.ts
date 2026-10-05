@@ -31,7 +31,8 @@
 declare module 'multibase' {
     /**
      * @description Encodes data in multibase format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @param codec the encoding to use, a string is encoded as utf8
      *      @return returns the encoded string
      *

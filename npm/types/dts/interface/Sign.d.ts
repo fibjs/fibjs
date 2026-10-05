@@ -32,7 +32,8 @@
 declare class Class_Sign extends Class_object {
     /**
      * @description Updates the Sign content with the given data
-     *      @param data the data to update with; a string is decoded with codec
+     *      data may be a Buffer or a string; a string is decoded with codec.
+     *      @param data the data to update with
      *      @param codec the encoding of a string data, default "utf8"
      *      @return returns the Sign object itself
      *
@@ -51,8 +52,8 @@ declare class Class_Sign extends Class_object {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
-     *      @param privateKey the private key used for signing: a Buffer or a string in the PEM/DER form (a string is encoded as utf8),
-     *      a KeyObject, or an object with the key parameters
+     *      privateKey may be a Buffer or a string in the PEM/DER form (a string is encoded as utf8), a KeyObject, or an object with the key parameters.
+     *      @param privateKey the private key used for signing
      *      @param encoding the encoding of the return value
      *      @return returns the signature value
      *

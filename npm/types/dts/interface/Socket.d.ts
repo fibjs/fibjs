@@ -434,7 +434,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -444,7 +445,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -452,7 +454,8 @@ declare class Class_Socket extends Class_Stream {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -900,7 +903,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -908,7 +912,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */
@@ -916,7 +921,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
 
     /**
      * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
      */

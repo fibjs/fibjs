@@ -23,7 +23,8 @@ interface Buffer : object
 
     /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
      @param size the required length of the buffer
-     @param fill the value to pre-fill the new buffer with: an integer byte, or a Buffer pattern. Default: 0
+     fill may be an integer byte, or a Buffer pattern. Default: 0.
+     @param fill the value to pre-fill the new buffer with
      @return the filled new Buffer object
     */
     static Buffer alloc(Integer size, Buffer|Integer fill = 0);
@@ -144,7 +145,8 @@ interface Buffer : object
     Integer write(String str, String codec = "utf8");
 
     /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with: a number is a byte value, a Buffer is a byte pattern to repeat; if offset and end are not specified, the whole buffer is filled
+     v may be a number (a byte value) or a Buffer (a byte pattern to repeat); if offset and end are not specified, the whole buffer is filled.
+     @param v the data to fill with
      @param offset the fill start position
      @param end the fill end position
      @return returns the current Buffer object
@@ -460,14 +462,18 @@ interface Buffer : object
     Integer writeDoubleBE(Number value, Integer offset);
 
     /*! @brief Returns the first position of the specified data in the Buffer
-     @param v the data to find: a number is a byte value, a string is searched as its utf8 bytes, and a Buffer is a byte sequence; if offset is not specified, the search starts from the beginning
+
+     v may be a number (a byte value), a string (searched as its utf8 bytes), or a Buffer (a byte sequence); if offset is not specified, the search starts from the beginning.
+     @param v the data to find
      @param offset the start search position
      @return returns the position found, or -1 if not found
      */
     Integer indexOf(Buffer|String|Integer v, Integer offset = 0);
 
     /*! @brief Returns the last position of the specified data in the Buffer
-     @param v the data to find: a number is a byte value, a string is searched as its utf8 bytes, and a Buffer is a byte sequence; if offset is not specified, the search starts from the beginning
+
+     v may be a number (a byte value), a string (searched as its utf8 bytes), or a Buffer (a byte sequence); if offset is not specified, the search starts from the beginning.
+     @param v the data to find
      @param offset the start search position
      @return returns the position found, or -1 if not found
      */

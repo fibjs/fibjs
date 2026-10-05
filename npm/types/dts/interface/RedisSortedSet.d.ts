@@ -28,16 +28,20 @@ declare class Class_RedisSortedSet extends Class_object {
     add(...sms: any[]): number;
 
     /**
-     * @description Returns the score of the member in the sorted set; a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the score of the member in the sorted set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the score of member as a string
      *
      */
     score(member: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Adds the increment num to the score of the member in the sorted set; a string member is encoded as utf8
-     *      @param member the member to modify, a string is encoded as utf8
+     * @description Adds the increment num to the score of the member in the sorted set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to modify
      *      @param num the number to add
      *      @return the new score of member as a string
      *
@@ -91,16 +95,20 @@ declare class Class_RedisSortedSet extends Class_object {
     rangeRev(start: number, stop: number, withScores?: boolean): any[];
 
     /**
-     * @description Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest); a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the rank of member in the sorted set. Members are ordered by increasing score (from smallest to largest)
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
      *
      */
     rank(member: Class_Buffer | string): number;
 
     /**
-     * @description Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest); a string member is encoded as utf8
-     *      @param member the member to query, a string is encoded as utf8
+     * @description Returns the rank of member in the sorted set. Members are ordered by decreasing score (from largest to smallest)
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to query
      *      @return the rank of member if member is a member of the sorted set key; returns nil if member is not a member of the sorted set key
      *
      */

@@ -105,84 +105,113 @@ module zlib
      @return returns the wrapped stream object*/
     static Stream createInflateRaw(Stream to, Integer maxSize = -1);
 
-    /*! @brief Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
-     @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+    /*! @brief Compresses data with the deflate algorithm (zlib format)
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     @param data the data to compress
+     @param level the compression level or the options
      @return returns the compressed binary data
      */
     static Buffer deflate(Buffer|String data, Integer|Object level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
+    /*! @brief Compresses data into a stream object with the deflate algorithm (zlib format)
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to compress
      @param stm the stream that stores the compressed data
      @param level the compression level, default DEFAULT_COMPRESSION
      */
     static deflateTo(Buffer|Stream|String data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     @param data the compressed data, a string is encoded as utf8
-     @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+    /*! @brief Decompresses data compressed with the deflate algorithm (zlib format)
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     @param data the compressed data
+     @param maxSize the decompression size limit or the options
      @return returns the decompressed binary data
      */
     static Buffer inflate(Buffer|String data, Integer|Object maxSize = -1) async;
 
-    /*! @brief Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     @param data the data to decompress, a string is encoded as utf8
+    /*! @brief Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to decompress
      @param stm the stream that stores the decompressed data
      @param maxSize the decompression size limit, default -1, no limit
      */
     static inflateTo(Buffer|Stream|String data, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Compresses data with the gzip algorithm; a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
+    /*! @brief Compresses data with the gzip algorithm
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     @param data the data to compress
      @param options the compression options, read as { level }
      @return returns the compressed binary data
      */
     static Buffer gzip(Buffer|String data, Object options = {}) async;
 
-    /*! @brief Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
+    /*! @brief Compresses data into a stream object with the gzip algorithm
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to compress
      @param stm the stream that stores the compressed data
      */
     static gzipTo(Buffer|Stream|String data, Stream stm) async;
 
-    /*! @brief Decompresses gzip data; a string data is encoded as utf8
-     @param data the compressed data, a string is encoded as utf8
-     @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+    /*! @brief Decompresses gzip data
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     @param data the compressed data
+     @param maxSize the decompression size limit or the options
      @return returns the decompressed binary data
      */
     static Buffer gunzip(Buffer|String data, Integer|Object maxSize = -1) async;
 
-    /*! @brief Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     @param data the data to decompress, a string is encoded as utf8
+    /*! @brief Decompresses data compressed with the gzip algorithm into a stream object
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to decompress
      @param stm the stream that stores the decompressed data
      @param maxSize the decompression size limit, default -1, no limit
      */
     static gunzipTo(Buffer|Stream|String data, Stream stm, Integer maxSize = -1) async;
 
-    /*! @brief Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
-     @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+    /*! @brief Compresses data with the deflateRaw algorithm
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     @param data the data to compress
+     @param level the compression level or the options
      @return returns the compressed binary data
      */
     static Buffer deflateRaw(Buffer|String data, Integer|Object level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
+    /*! @brief Compresses data into a stream object with the deflate algorithm (deflateRaw)
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to compress
      @param stm the stream that stores the compressed data
      @param level the compression level, default DEFAULT_COMPRESSION
      */
     static deflateRawTo(Buffer|Stream|String data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Decompresses deflateRaw data; a string data is encoded as utf8
-     @param data the compressed data, a string is encoded as utf8
-     @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+    /*! @brief Decompresses deflateRaw data
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     @param data the compressed data
+     @param maxSize the decompression size limit or the options
      @return returns the decompressed binary data
      */
     static Buffer inflateRaw(Buffer|String data, Integer|Object maxSize = -1) async;
 
-    /*! @brief Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     @param data the data to decompress, a string is encoded as utf8
+    /*! @brief Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to decompress
      @param stm the stream that stores the decompressed data
      @param maxSize the decompression size limit, default -1, no limit
      */
@@ -200,29 +229,39 @@ module zlib
      @return returns the wrapped stream object*/
     static Stream createUnzip(Stream to, Integer maxSize = -1);
 
-    /*! @brief Compresses data with the zip algorithm; a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
-     @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+    /*! @brief Compresses data with the zip algorithm
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     @param data the data to compress
+     @param level the compression level or the options
      @return returns the compressed binary data
      */
     static Buffer zip(Buffer|String data, Integer|Object level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     @param data the data to compress, a string is encoded as utf8
+    /*! @brief Compresses data into a stream object with the zip algorithm
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to compress
      @param stm the stream that stores the compressed data
      @param level the compression level, default DEFAULT_COMPRESSION
      */
     static zipTo(Buffer|Stream|String data, Stream stm, Integer level = DEFAULT_COMPRESSION) async;
 
-    /*! @brief Decompresses zip data; a string data is encoded as utf8
-     @param data the compressed data, a string is encoded as utf8
-     @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+    /*! @brief Decompresses zip data
+
+     data may be a Buffer or a string; a string is encoded as utf8.
+     maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     @param data the compressed data
+     @param maxSize the decompression size limit or the options
      @return returns the decompressed binary data
      */
     static Buffer unzip(Buffer|String data, Integer|Object maxSize = -1) async;
 
-    /*! @brief Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     @param data the data to decompress, a string is encoded as utf8
+    /*! @brief Decompresses data compressed with the zip algorithm into a stream object
+
+     data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     @param data the data to decompress
      @param stm the stream that stores the decompressed data
      @param maxSize the decompression size limit, default -1, no limit
      */

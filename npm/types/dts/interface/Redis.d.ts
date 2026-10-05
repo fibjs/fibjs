@@ -25,27 +25,33 @@ declare class Class_Redis extends Class_object {
     command(cmd: string, ...args: any[]): any;
 
     /**
-     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
     setNX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key already exists.; strings are encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
-     *      @param value the data to associate, a string is encoded as utf8
+     * @description Sets the key to value only when the key already exists.
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
+     *      @param value the data to associate
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */
@@ -76,27 +82,33 @@ declare class Class_Redis extends Class_object {
     msetNX(...kvs: any[]): void;
 
     /**
-     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value; strings are encoded as utf8
-     *      @param key the key to append to, a string is encoded as utf8
-     *      @param value the data to append, a string is encoded as utf8
+     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to append to
+     *      @param value the data to append
      *      @return the length of the string in key after appending value
      *
      */
     append(key: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Overwrites the string value stored at key with the value parameter, starting from the offset; strings are encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Overwrites the string value stored at key with the value parameter, starting from the offset
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param offset the byte offset to modify
-     *      @param value the data to overwrite, a string is encoded as utf8
+     *      @param value the data to overwrite
      *      @return the length of the string after the modification
      *
      */
     setRange(key: Class_Buffer | string, offset: number, value: Class_Buffer | string): number;
 
     /**
-     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end); a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @param start the start byte offset of the query
      *      @param end the end byte offset of the query
      *      @return the extracted substring
@@ -105,16 +117,20 @@ declare class Class_Redis extends Class_object {
     getRange(key: Class_Buffer | string, start: number, end: number): Class_Buffer;
 
     /**
-     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value; a string key is encoded as utf8
-     *      @param key the key to count, a string is encoded as utf8
+     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to count
      *      @return the length of the string value, or 0 when key does not exist
      *
      */
     strlen(key: Class_Buffer | string): number;
 
     /**
-     * @description Counts the number of bits set to 1 in the given string; a string key is encoded as utf8
-     *      @param key the key to count, a string is encoded as utf8
+     * @description Counts the number of bits set to 1 in the given string
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to count
      *      @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
      *      @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
      *      @return the number of bits set to 1
@@ -123,8 +139,10 @@ declare class Class_Redis extends Class_object {
     bitcount(key: Class_Buffer | string, start?: number, end?: number): number;
 
     /**
-     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned; a string key is encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
+     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
      *      @return returns Null when key does not exist, otherwise returns the value of key
      *
      */
@@ -145,17 +163,21 @@ declare class Class_Redis extends Class_object {
     mget(...keys: any[]): any[];
 
     /**
-     * @description Sets the given key to value and returns the old value of key; strings are encoded as utf8
-     *      @param key the key to query and modify, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets the given key to value and returns the old value of key
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query and modify
+     *      @param value the value to set
      *      @return returns the old value of the given key
      *
      */
     getset(key: Class_Buffer | string, value: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Subtracts the decrement from the value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Subtracts the decrement from the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param num the number to subtract
      *      @return the value of key after subtracting num
      *
@@ -163,8 +185,10 @@ declare class Class_Redis extends Class_object {
     decr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Adds the increment to the value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Adds the increment to the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param num the number to add
      *      @return the value of key after adding num
      *
@@ -172,8 +196,10 @@ declare class Class_Redis extends Class_object {
     incr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Sets or clears the bit at the given offset in the string value stored at key; a string key is encoded as utf8
-     *      @param key the key to modify, a string is encoded as utf8
+     * @description Sets or clears the bit at the given offset in the string value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to modify
      *      @param offset the bit offset to modify
      *      @param value the value to set or clear, either 0 or 1
      *      @return the bit originally stored at the offset
@@ -182,8 +208,10 @@ declare class Class_Redis extends Class_object {
     setBit(key: Class_Buffer | string, offset: number, value: number): number;
 
     /**
-     * @description Gets the bit at the given offset in the string value stored at key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Gets the bit at the given offset in the string value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @param offset the bit offset to query
      *      @return the bit at the given offset of the string value
      *
@@ -191,16 +219,20 @@ declare class Class_Redis extends Class_object {
     getBit(key: Class_Buffer | string, offset: number): number;
 
     /**
-     * @description Checks whether the given key exists; a string key is encoded as utf8
-     *      @param key the key to associate, a string is encoded as utf8
+     * @description Checks whether the given key exists
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to associate
      *      @return returns True if key exists, otherwise returns False
      *
      */
     exists(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Returns the type of the value stored at key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the type of the value stored at key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash
      *
      */
@@ -228,8 +260,10 @@ declare class Class_Redis extends Class_object {
     del(...keys: any[]): number;
 
     /**
-     * @description Sets a time to live for the given key; when the key expires it is automatically deleted; a string key is encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
+     * @description Sets a time to live for the given key; when the key expires it is automatically deleted
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
      *      @param ttl the time to live for key in milliseconds
      *      @return returns True if key exists, otherwise returns False
      *
@@ -237,41 +271,51 @@ declare class Class_Redis extends Class_object {
     expire(key: Class_Buffer | string, ttl: number): boolean;
 
     /**
-     * @description Returns the remaining time to live of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Returns the remaining time to live of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set
      *
      */
     ttl(key: Class_Buffer | string): number;
 
     /**
-     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires); a string key is encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
+     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
      *      @return returns True if key exists, otherwise returns False
      *
      */
     persist(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist; strings are encoded as utf8
-     *      @param key the key to rename, a string is encoded as utf8
-     *      @param newkey the destination key to rename to, a string is encoded as utf8
+     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
+     *
+     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
      *
      */
     rename(key: Class_Buffer | string, newkey: Class_Buffer | string): void;
 
     /**
-     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist; strings are encoded as utf8
-     *      @param key the key to rename, a string is encoded as utf8
-     *      @param newkey the destination key to rename to, a string is encoded as utf8
+     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
+     *
+     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to rename
+     *      @param newkey the destination key to rename to
      *      @return returns True when the rename succeeds, and False if newkey already exists
      *
      */
     renameNX(key: Class_Buffer | string, newkey: Class_Buffer | string): boolean;
 
     /**
-     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to subscribe to, a string is encoded as utf8
+     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to subscribe to
      *      @param func the callback function
      *
      */
@@ -285,15 +329,19 @@ declare class Class_Redis extends Class_object {
     sub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
+     * @description Unsubscribes all callbacks of the given channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to unsubscribe from
      *
      */
     unsub(channel: Class_Buffer | string): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given channel; a string channel is encoded as utf8
-     *      @param channel the name of the channel to unsubscribe from, a string is encoded as utf8
+     * @description Unsubscribes the given callback function of the given channel
+     *
+     *      channel may be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the name of the channel to unsubscribe from
      *      @param func the callback function to unsubscribe
      *
      */
@@ -364,41 +412,51 @@ declare class Class_Redis extends Class_object {
     onsuberror: (()=>void) | null;
 
     /**
-     * @description Sends the message to the given channel; strings are encoded as utf8
-     *      @param channel the channel to publish to, a string is encoded as utf8
-     *      @param message the message to publish, a string is encoded as utf8
+     * @description Sends the message to the given channel
+     *
+     *      channel and message may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param channel the channel to publish to
+     *      @param message the message to publish
      *      @return the number of clients that received this message
      *
      */
     pub(channel: Class_Buffer | string, message: Class_Buffer | string): number;
 
     /**
-     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the Hash object bound to the given key
      *
      */
     getHash(key: Class_Buffer | string): Class_RedisHash;
 
     /**
-     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the List object bound to the given key
      *
      */
     getList(key: Class_Buffer | string): Class_RedisList;
 
     /**
-     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the Set object bound to the given key
      *
      */
     getSet(key: Class_Buffer | string): Class_RedisSet;
 
     /**
-     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database; a string key is encoded as utf8
-     *      @param key the key to get, a string is encoded as utf8
+     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to get
      *      @return returns the SortedSet object bound to the given key
      *
      */
@@ -406,7 +464,8 @@ declare class Class_Redis extends Class_object {
 
     /**
      * @description Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command; a string key is encoded as utf8
-     *      @param key the key to serialize, a string is encoded as utf8
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to serialize
      *      @return returns the serialized value, or null if key does not exist
      *
      */
@@ -414,8 +473,10 @@ declare class Class_Redis extends Class_object {
 
     /**
      * @description Deserializes the given serialized value and associates it with the given key; strings are encoded as utf8
-     *      @param key the key to deserialize to, a string is encoded as utf8
-     *      @param data the data to deserialize, a string is encoded as utf8
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to deserialize to
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to deserialize
      *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
      *
      */

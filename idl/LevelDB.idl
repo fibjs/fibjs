@@ -44,14 +44,18 @@ The above covers the basic usage of the LevelDB object with examples, making key
  */
 interface LevelDB : object
 {
-    /*! @brief Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     @param key the key to check, a string is encoded as utf8
+    /*! @brief Checks whether data with the given key exists in the database
+
+     key may be a Buffer or a string; a string is encoded as utf8.
+     @param key the key to check
      @return returns whether the key exists
      */
     Boolean has(Buffer|String key) async;
 
-    /*! @brief Queries the value of the given key; a string key is encoded as utf8
-     @param key the key to query, a string is encoded as utf8
+    /*! @brief Queries the value of the given key
+
+     key may be a Buffer or a string; a string is encoded as utf8.
+     @param key the key to query
      @return returns the value of the key, or null if it does not exist
      */
     Buffer get(Buffer|String key) async;
@@ -62,9 +66,11 @@ interface LevelDB : object
      */
     NArray mget(Array keys);
 
-    /*! @brief Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     @param key the key to set, a string is encoded as utf8
-     @param value the value to set, a string is encoded as utf8
+    /*! @brief Sets a key-value pair; inserts new data if the key does not exist
+
+     key and value may each be a Buffer or a string; a string is encoded as utf8.
+     @param key the key to set
+     @param value the value to set
      */
     set(Buffer|String key, Buffer|String value) async;
 
@@ -78,8 +84,10 @@ interface LevelDB : object
      */
     mremove(Array keys);
 
-    /*! @brief Removes all values of the given key; a string key is encoded as utf8
-     @param key the key to remove, a string is encoded as utf8
+    /*! @brief Removes all values of the given key
+
+     key may be a Buffer or a string; a string is encoded as utf8.
+     @param key the key to remove
      */
     remove(Buffer|String key) async;
 

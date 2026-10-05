@@ -49,7 +49,8 @@ declare class Class_XmlDocument extends Class_XmlNode {
 
     /**
      * @description Forms the document by parsing XML/HTML data
-     *      @param source the XML/HTML data to parse, depending on the type when the document was created; a string is encoded as utf8
+     *      source may be a Buffer or a string, depending on the type the document was created with; a string is encoded as utf8.
+     *      @param source the data to parse
      *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */

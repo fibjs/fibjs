@@ -89,8 +89,10 @@ declare module 'uuid' {
 
     /**
      * @description Creates a uuid with an MD5 namespace
+     *
+     *      ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
      *      @param name the name to use
-     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
+     *      @param ns the namespace UUID
      *      @return returns a generated uuid string
      *
      */
@@ -106,8 +108,10 @@ declare module 'uuid' {
 
     /**
      * @description Creates a uuid with a SHA1 namespace
+     *
+     *      ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
      *      @param name the name to use
-     *      @param ns the namespace UUID: a Buffer holding its 16 binary bytes, or the namespace UUID string; a predefined namespace can be used as well
+     *      @param ns the namespace UUID
      *      @return returns a generated uuid string
      *
      */

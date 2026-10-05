@@ -80,7 +80,8 @@ declare class Class_SandBox extends Class_object {
     /**
      * @description Adds a script module to the sandbox; a string script is encoded as utf8
      *      @param srcname the script name to add; srcname must include an extension, such as json, js or jsc
-     *      @param script the binary code to add, a Buffer or a string encoded as utf8
+     *      script may be a Buffer, or a string encoded as utf8.
+     *      @param script the binary code to add
      *      @return returns the loaded module object
      *
      */

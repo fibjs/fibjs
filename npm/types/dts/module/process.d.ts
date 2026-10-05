@@ -421,7 +421,8 @@ declare module 'process' {
     /**
      * @description Sends a signal to the specified process
      *      @param pid specifies the process id
-     *      @param signal specifies the signal to send: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *      signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to send
      *
      */
     function kill(pid: number, signal?: string | number): void;

@@ -16,7 +16,8 @@
 declare class Class_ZlibCodec extends Class_EventEmitter {
     /**
      * @description Processes a chunk of data synchronously; a string chunk is encoded as utf8
-     *      @param chunk the data to process, a string is encoded as utf8
+     *      chunk may be a Buffer or a string; a string is encoded as utf8.
+     *      @param chunk the data to process
      *      @param flushFlag flush flag, see zlib.constants.Z_NO_FLUSH and others
      *      @return returns the processed data
      *

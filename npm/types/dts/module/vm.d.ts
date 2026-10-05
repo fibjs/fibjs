@@ -51,7 +51,8 @@ declare module 'vm' {
      * @description Runs the code specified by code within the given contextifiedObject and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextifiedObject specifies the context object at runtime
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */
@@ -61,7 +62,8 @@ declare module 'vm' {
      * @description Uses the given contextObject to create a context, runs the code specified by code in it and returns the result
      *      @param code specifies the script code to compile and run
      *      @param contextObject specifies the object to be contextified
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */
@@ -70,7 +72,8 @@ declare module 'vm' {
     /**
      * @description Runs the code specified by code in the current context and returns the result
      *      @param code specifies the script code to compile and run
-     *      @param opts specifies the running options, or the script file name
+     *      opts may be the running options object, or the script file name.
+     *      @param opts the running options or the script file name
      *      @return returns the running result
      *
      */

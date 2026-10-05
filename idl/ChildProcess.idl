@@ -8,7 +8,8 @@
 interface ChildProcess : EventEmitter
 {
     /*! @brief Kills the process this object refers to and delivers a signal
-      @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
+      signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     @param signal the signal to deliver
      */
     kill(String|Integer signal = "SIGTERM");
 

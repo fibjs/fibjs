@@ -44,7 +44,8 @@ interface FormData : HttpCollection
     FormData(Blob init, String boundary = "");
 
     /*! @brief FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
-     @param init the fields: an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val"
+     init may be an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val".
+     @param init the fields
      */
     FormData(Object|FormData|String init);
 

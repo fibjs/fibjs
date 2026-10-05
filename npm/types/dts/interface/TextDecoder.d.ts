@@ -21,7 +21,8 @@ declare class Class_TextDecoder extends Class_object {
 
     /**
      * @description Converts binary data to text; a string data is encoded as utf8
-     *      @param data the binary to convert, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to decode
      *      @param opts decoding options
      *      @return returns the decoded text
      *

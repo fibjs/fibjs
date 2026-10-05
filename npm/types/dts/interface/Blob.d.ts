@@ -46,7 +46,8 @@ declare class Class_Blob extends Class_object {
      * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */
@@ -155,7 +156,8 @@ declare class Class_BlobPromise extends Class_object {
      * @description Blob object constructor; a string blobData is encoded as utf8
      *
      *      Creates a new Blob instance with the specified data content and type.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param options the options object, containing the type (MIME type) and endings (newline handling) properties
      *
      */

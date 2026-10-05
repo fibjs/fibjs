@@ -7,7 +7,8 @@
 declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
      * @description sends data to the remote end; a Buffer is sent as binary data and a string as text data
-     *      @param data the data to send; a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to send
      *
      */
     send(data: Class_Buffer | string): void;

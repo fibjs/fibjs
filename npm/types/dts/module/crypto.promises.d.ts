@@ -54,9 +54,11 @@ declare module 'crypto/promises' {
     function createHash(algo: string): Class_Digest;
 
     /**
-     * @description Creates an hmac message digest object for the given algorithm name; a string key is encoded as utf8
+     * @description Creates an hmac message digest object for the given algorithm name
+     *
+     *      key may be a Buffer, a KeyObject, or a string; a string is encoded as utf8.
      *      @param algo the algorithm of the message digest object to use, a string is encoded as utf8
-     *      @param key the binary signing key, a string is encoded as utf8
+     *      @param key the binary signing key
      *      @return returns the message digest object
      *
      */
@@ -71,7 +73,8 @@ declare module 'crypto/promises' {
 
     /**
      * @description Gets algorithm information by cipher algorithm name or NID
-     *      @param nameOrNid the name or the NID of the algorithm to query; a string is looked up by name, a number by NID
+     *      nameOrNid is a string, looked up by name, or a number, looked up by NID.
+     *      @param nameOrNid the name or the NID of the algorithm to query
      *      @param options optional parameters; keyLength and ivLength may be specified for further filtering
      *      @return returns an object containing algorithm information, or undefined if the algorithm does not exist or the options do not match. The returned object contains the following properties: name, nid, blockSize, ivLength, keyLength, mode
      *
@@ -86,9 +89,11 @@ declare module 'crypto/promises' {
     };
 
     /**
-     * @description Creates a symmetric encryption cipher object; a string key is encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -96,10 +101,12 @@ declare module 'crypto/promises' {
     function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric encryption cipher object; strings are encoded as utf8
+     * @description Creates a symmetric encryption cipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric encryption cipher object
      *
@@ -107,9 +114,11 @@ declare module 'crypto/promises' {
     function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; a string key is encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -117,10 +126,12 @@ declare module 'crypto/promises' {
     function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
-     * @description Creates a symmetric decryption decipher object; strings are encoded as utf8
+     * @description Creates a symmetric decryption decipher object
+     *
+     *      key may be a Buffer, a KeyObject, or a string; iv may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the encryption algorithm to use, a string is encoded as utf8
-     *      @param key the encryption/decryption key to use, a string is encoded as utf8
-     *      @param iv the initialization vector to use, a string is encoded as utf8
+     *      @param key the encryption/decryption key to use
+     *      @param iv the initialization vector to use
      *      @param options the encryption options to use
      *      @return returns the symmetric decryption decipher object
      *
@@ -136,7 +147,9 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing an asymmetric private key from a PEM string
-     *      @param key the private key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the private key to use
      *      @return returns the key object of the private key
      *
      */
@@ -144,7 +157,9 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing an asymmetric public key from a PEM string
-     *      @param key the public key in pem format to use, a string is encoded as utf8
+     *
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and its format.
+     *      @param key the public key to use
      *      @return returns the key object of the public key
      *
      */
@@ -170,7 +185,8 @@ declare module 'crypto/promises' {
 
     /**
      * @description Creates a new key object containing a symmetric encryption or Hmac key
-     *      @param key the encryption/decryption key to use, or a string decoded with encoding
+     *      key may be a Buffer, or a string decoded with encoding.
+     *      @param key the encryption/decryption key to use
      *      @param encoding the encoding of a string key, default "utf8"
      *      @return returns the symmetric decryption decipher object
      *
@@ -195,7 +211,8 @@ declare module 'crypto/promises' {
      *         });
      *      ```
      *
-     *      @param csr the data of the certificate request in PEM format to use, or the options to create it
+     *      csr may be the PEM/DER data of the certificate request, or the options object used to create it.
+     *      @param csr the certificate request data or the options to create it
      *      @return returns the certificate request object
      *
      */
@@ -215,9 +232,11 @@ declare module 'crypto/promises' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended; a string data is encoded as utf8
+     * @description A utility for creating a one-shot hash digest of data. When hashing a small amount of available data (<= 5MB), it is faster than the object-based crypto.createHash(). If the data is large or streamed, crypto.createHash() is still recommended
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms, a string is encoded as utf8
-     *      @param data the data to sign, a string is encoded as utf8
+     *      @param data the data to hash
      *      @param outputEncoding the output encoding, default "hex", a string is encoded as utf8
      *      @return returns the hashed data
      *
@@ -233,8 +252,10 @@ declare module 'crypto/promises' {
     function randomBytes(size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -243,8 +264,10 @@ declare module 'crypto/promises' {
     function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -253,8 +276,10 @@ declare module 'crypto/promises' {
     function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
     /**
-     * @description Fills the specified Buffer with random numbers using the havege generator; a string buffer is encoded as utf8
-     *      @param buffer the Buffer to fill, a string is encoded as utf8
+     * @description Fills the specified Buffer with random numbers using the havege generator
+     *
+     *      buffer may be a Buffer or a string; a string is encoded as utf8.
+     *      @param buffer the Buffer to fill
      *      @param offset the starting offset, default 0
      *      @param size the size of the random numbers to generate, default buffer.length - offset
      *      @return returns the generated random number
@@ -366,11 +391,13 @@ declare module 'crypto/promises' {
     }>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -378,11 +405,13 @@ declare module 'crypto/promises' {
     function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -390,11 +419,13 @@ declare module 'crypto/promises' {
     function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password according to rfc5869; strings are encoded as utf8
+     * @description Derives the required binary key from the plaintext password according to rfc5869
+     *
+     *      password, salt and info may each be a Buffer or a string; a string is encoded as utf8.
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by khdf, a string is encoded as utf8
-     *      @param info the info used by khdf, a string is encoded as utf8
+     *      @param password the password to use
+     *      @param salt the salt used by hkdf
+     *      @param info the info used by hkdf
      *      @param size the key size to use
      *      @return returns the generated binary key
      *
@@ -402,9 +433,11 @@ declare module 'crypto/promises' {
     function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -414,9 +447,11 @@ declare module 'crypto/promises' {
     function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -426,9 +461,11 @@ declare module 'crypto/promises' {
     function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
-     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt used by hmac, a string is encoded as utf8
+     * @description Derives the required binary key from the plaintext password using the pbkdf2 algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt used by hmac
      *      @param iterations the number of iterations to use
      *      @param size the key size to use
      *      @param algoName the hash algorithm to use, see the hash module, a string is encoded as utf8
@@ -438,9 +475,11 @@ declare module 'crypto/promises' {
     function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -449,9 +488,11 @@ declare module 'crypto/promises' {
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -460,9 +501,11 @@ declare module 'crypto/promises' {
     function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Generates a key using the scrypt algorithm; strings are encoded as utf8
-     *      @param password the password to use, a string is encoded as utf8
-     *      @param salt the salt to use, a string is encoded as utf8
+     * @description Generates a key using the scrypt algorithm
+     *
+     *      password and salt may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param password the password to use
+     *      @param salt the salt to use
      *      @param keylen the length of the key to generate
      *      @param options optional parameters; supports N, r, p, maxmem
      *      @return returns the generated binary key
@@ -475,8 +518,9 @@ declare module 'crypto/promises' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -487,8 +531,9 @@ declare module 'crypto/promises' {
      *
      *      The private key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPrivateKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param privateKey the private key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -499,8 +544,9 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to decrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to decrypt
      *      @return returns the decrypted data
      *
      */
@@ -511,8 +557,9 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the RSA options (padding, oaepHash, oaepLabel and encoding).
      *
+     *      buffer may be a Buffer, or a string decoded with the options' encoding (default utf8); the options object is required for the string form.
      *      @param publicKey the public key and configuration to use
-     *      @param buffer the data to encrypt; a string buffer is decoded with the options' encoding (default utf8), where the options object is required
+     *      @param buffer the data to encrypt
      *      @return returns the encrypted data
      *
      */
@@ -530,9 +577,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -550,9 +599,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -570,9 +621,11 @@ declare module 'crypto/promises' {
      *       - RSA_PKCS1_PSS_PADDING; RSA_PKCS1_PSS_PADDING will use MGF1 with the same hash function as the one used to sign the message specified in RFC 4055 section 3.1
      *      - saltLength the salt length when padding is RSA_PKCS1_PSS_PADDING. The special value RSA_PSS_SALTLEN_DIGEST sets the salt length to the digest size, and RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the signing parameters.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to sign, a string is encoded as utf8
-     *      @param key the private key and signing parameters to use
+     *      @param data the data to sign
+     *      @param key the private key to sign with
      *      @return returns the signed data
      *
      */
@@ -583,10 +636,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -597,10 +653,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -611,10 +670,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey; the object also carries the verifying parameters (dsaEncoding, padding and saltLength, see sign).
      *
+     *      data may be a Buffer or a string, a string is encoded as utf8.
+     *      key may be a KeyObject, a PEM/DER Buffer or string, or an options object carrying the key material and the verifying parameters.
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
      *      @param algorithm the signing algorithm to use; use crypto.getHashes to get the names of the available digest algorithms
-     *      @param data the data to verify, a string is encoded as utf8
-     *      @param key the public key and verifying parameters to use
-     *      @param signature the signature to use, a string is encoded as utf8
+     *      @param data the data to verify
+     *      @param key the public key to verify with
+     *      @param signature the signature to verify
      *      @return returns the verification result
      *
      */
@@ -638,8 +700,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -652,8 +716,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -666,8 +732,10 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
-     *      @param privateKey the private key and options to use; must be a Bls12381G2 private key
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      privateKey must be a Bls12381G2 private key.
+     *      @param messages the group of messages to sign
+     *      @param privateKey the private key and options to use
      *      @return returns the signed data
      *
      */
@@ -680,9 +748,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -695,9 +765,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -710,9 +782,11 @@ declare module 'crypto/promises' {
      *       - suite: must be 'Bls12381Sha256', 'Bls12381Shake256'. Default: 'Bls12381Sha256'
      *       - header: additional data used for signing
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param signature the signature data to use, a string is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. signature may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
+     *      @param publicKey the public key and options to use
+     *      @param signature the signature data to use
      *      @return returns the verification result
      *
      */
@@ -723,10 +797,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -737,10 +814,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -751,10 +831,13 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param signature the BBS signature to use, a string is encoded as utf8
-     *      @param messages the group of messages to sign, a string message is encoded as utf8
+     *      signature may be a Buffer or a string, a string is encoded as utf8.
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key.
+     *      @param signature the BBS signature to use
+     *      @param messages the group of messages to sign
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
+     *      @param publicKey the public key and options to use
      *      @return returns the proof data
      *
      */
@@ -765,10 +848,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -779,10 +864,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */
@@ -793,10 +880,12 @@ declare module 'crypto/promises' {
      *
      *      The public key is a Buffer holding the key data, a KeyObject, a string holding it in PEM form, or an object whose parameters are used to call crypto.createPublicKey to create the public key object; the object also carries the suite and header options (see bbsSign).
      *
-     *      @param messages the group of messages to verify, a string message is encoded as utf8
+     *      messages may be an array of Buffers or strings; a string message is encoded as utf8.
+     *      publicKey must be a Bls12381G2 public key. proof may be a Buffer or a string, a string is encoded as utf8.
+     *      @param messages the group of messages to verify
      *      @param index the indices of the proof to select
-     *      @param publicKey the public key and options to use; must be a Bls12381G2 public key
-     *      @param proof the proof data to verify, a string is encoded as utf8
+     *      @param publicKey the public key and options to use
+     *      @param proof the proof data to verify
      *      @return returns the verification result
      *
      */

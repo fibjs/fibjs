@@ -58,7 +58,7 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      ```
-     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
+     *      @param opts the socket family or the options object
      *      @return returns the created Socket object
      *
      */
@@ -77,7 +77,7 @@ declare module 'dgram' {
      *          "sendBufferSize": 1024      // specify the size of the send buffer
      *      }
      *      ```
-     *      @param opts the socket family, 'udp4' or 'udp6', or the options object
+     *      @param opts the socket family or the options object
      *      @param callback adds a listener for the 'message' event.
      *      @return returns the created Socket object
      *

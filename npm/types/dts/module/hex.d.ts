@@ -28,8 +28,10 @@
  */
 declare module 'hex' {
     /**
-     * @description Encodes data in hex format; a string data is encoded as utf8
-     *      @param data the data to encode, a string is encoded as utf8
+     * @description Encodes data in hex format
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to encode
      *      @return returns the encoded string
      *
      */

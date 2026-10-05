@@ -15,7 +15,8 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Returns the internally retained buffer as characters. Incomplete UTF-8 and UTF-16 bytes are completed when possible
-     *      @param buf optional; a Buffer or a string to decode first. When it is omitted, only the internally retained bytes are returned
+     *      buf may be a Buffer or a string to decode first; when it is omitted, only the internally retained bytes are returned.
+     *      @param buf the data to decode first, optional
      *      @return the decoded string.
      *
      */
@@ -23,7 +24,9 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Returns a decoded string, ensuring any incomplete trailing characters are omitted from this return and stored internally for the next write or end call
-     *      @param buf the Buffer to decode, or a string encoded as utf8
+     *
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the data to decode
      *      @return the decoded string.
      *
      */
@@ -31,7 +34,9 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer to decode, or a string encoded as utf8
+     *
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the data to decode
      *      @param offset the decoding offset
      *      @return the decoded string.
      *
@@ -40,7 +45,8 @@ declare class Class_StringDecoder extends Class_object {
 
     /**
      * @description Internal use.
-     *      @param buf the Buffer containing the bytes to decode, or a string encoded as utf8
+     *      buf may be a Buffer, or a string encoded as utf8.
+     *      @param buf the bytes to decode
      *      @return the decoded string.
      *
      */

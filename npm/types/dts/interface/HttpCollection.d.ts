@@ -112,7 +112,7 @@ declare class Class_HttpCollection extends Class_object {
      *
      *      An array appends every element in order, any other value appends a single entry
      *      @param name specifies the key to append
-     *      @param value specifies the group of data to append, or the single value to append
+     *      @param value the values to append
      *
      */
     append(name: string, value: any[] | any): void;
@@ -136,7 +136,7 @@ declare class Class_HttpCollection extends Class_object {
      *
      *      An array sets every element in order, any other value sets a single entry
      *      @param name specifies the key to set
-     *      @param value specifies the group of data to set, or the single value to set
+     *      @param value the values to set
      *
      */
     set(name: string, value: any[] | any): void;

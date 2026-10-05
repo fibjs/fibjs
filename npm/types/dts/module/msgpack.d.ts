@@ -53,7 +53,8 @@ declare module 'msgpack' {
 
     /**
      * @description Decodes a string into a variable using msgpack; a string data is encoded as utf8
-     *      @param data the binary data to decode, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to decode
      *      @return returns the decoded variable
      *
      */

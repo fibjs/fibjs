@@ -9,7 +9,8 @@
 declare class Class_ECDH extends Class_object {
     /**
      * @description Converts a public key to the specified format
-     *      @param key the public key to convert, or a string in inputEncoding
+     *      key may be a Buffer, or a string decoded with inputEncoding.
+     *      @param key the public key to convert
      *      @param curve the predefined elliptic curve to use
      *      @param inputEncoding the encoding of key: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -21,7 +22,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Computes the shared secret from another public key
-     *      @param otherPublicKey the other party's public key, or a string in inputEncoding
+     *      otherPublicKey may be a Buffer, or a string decoded with inputEncoding.
+     *      @param otherPublicKey the other party's public key
      *      @param inputEncoding the encoding of otherPublicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
      *      @return returns the computed shared secret
@@ -64,7 +66,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Sets the private key
-     *      @param privateKey the private key data, or a string in encoding
+     *      privateKey may be a Buffer, or a string decoded with encoding.
+     *      @param privateKey the private key data
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
@@ -72,7 +75,8 @@ declare class Class_ECDH extends Class_object {
 
     /**
      * @description Sets the public key
-     *      @param publicKey the public key data, or a string in encoding
+     *      publicKey may be a Buffer, or a string decoded with encoding.
+     *      @param publicKey the public key data
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */

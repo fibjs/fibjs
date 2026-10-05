@@ -121,7 +121,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -131,7 +132,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -139,7 +141,8 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -824,7 +827,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -832,7 +836,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */
@@ -840,7 +845,8 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      @param data the data to write, a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
      */

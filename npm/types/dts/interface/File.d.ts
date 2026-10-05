@@ -54,7 +54,8 @@ declare class Class_File extends Class_Blob {
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *
@@ -121,7 +122,8 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *     options supports the following properties:
      *        - type: the MIME type (e.g. "text/plain"), default is an empty string.
      *        - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     *      @param blobData the initial binary data, a Buffer or another binary data type; a string is encoded as utf8
+     *      blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     *      @param blobData the initial binary data
      *      @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
      *      @param options optional parameter object
      *

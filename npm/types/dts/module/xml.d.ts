@@ -118,7 +118,8 @@ declare module 'xml' {
 
     /**
      * @description Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
-     *      @param source the xml/html data to parse; a string is encoded as utf8
+     *      source may be a Buffer or a string; a string is encoded as utf8.
+     *      @param source the data to parse
      *      @param type the text type, default text/xml; can also be set to text/html
      *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *      @return returns the created XmlDocument object

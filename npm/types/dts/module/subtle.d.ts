@@ -10,8 +10,10 @@
 declare module 'subtle' {
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -19,8 +21,10 @@ declare module 'subtle' {
 
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -28,8 +32,10 @@ declare module 'subtle' {
 
     /**
      * @description Computes the hash value of the given data
-     *      @param algorithm the hash algorithm to use, as an object ({ name }) or a string
-     *      @param data the data to compute the hash value of; a string is encoded as utf8
+     *      algorithm may be an object carrying the name, or a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the hash algorithm to use
+     *      @param data the data to compute the hash value of
      *      @return returns the computed hash value
      *
      */
@@ -67,7 +73,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -77,7 +84,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -87,7 +95,8 @@ declare module 'subtle' {
 
     /**
      * @description Generates a new key
-     *      @param algorithm the algorithm used to generate the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm used to generate the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the generated key
@@ -99,7 +108,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -111,7 +121,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -123,7 +134,8 @@ declare module 'subtle' {
      * @description Imports a key
      *      @param format the import format, which can be 'raw', 'pkcs8', 'spki' or 'jwk'.
      *      @param keyData the object containing the key data
-     *      @param algorithm the algorithm of the key, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the algorithm of the key
      *      @param extractable specifies whether the key can be exported
      *      @param usages the usages of the key
      *      @return returns the imported key
@@ -133,9 +145,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -143,9 +157,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -153,9 +169,11 @@ declare module 'subtle' {
 
     /**
      * @description Signs data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for signing
-     *      @param data the data to sign; a string is encoded as utf8
+     *      @param data the data to sign
      *      @return returns the signed data
      *
      */
@@ -163,10 +181,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -174,10 +195,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -185,10 +209,13 @@ declare module 'subtle' {
 
     /**
      * @description Verifies data using the key
-     *      @param algorithm the signing algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      signature may be a Buffer or a string; a string is encoded as utf8.
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param algorithm the signing algorithm to use
      *      @param key the key used for verification
-     *      @param signature the signature data to use; a string is encoded as utf8
-     *      @param data the data to verify; a string is encoded as utf8
+     *      @param signature the signature data to use
+     *      @param data the data to verify
      *      @return returns the verification result
      *
      */
@@ -196,7 +223,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits
@@ -206,7 +234,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits
@@ -216,7 +245,8 @@ declare module 'subtle' {
 
     /**
      * @description Derives bits from a base key
-     *      @param algorithm the derivation algorithm to use, as an object or a string
+     *      algorithm may be given as an object or as a string.
+     *      @param algorithm the derivation algorithm to use
      *      @param baseKey the base key used for derivation
      *      @param length the number of bits to derive
      *      @return returns the derived bits

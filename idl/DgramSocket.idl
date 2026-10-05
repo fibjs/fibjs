@@ -21,16 +21,20 @@ interface DgramSocket : EventEmitter
     */
     bind(Object opts) async;
 
-    /*! @brief sends a datagram on the socket; a string msg is encoded as utf8
-     @param msg specifies the data to send, a string is encoded as utf8
+    /*! @brief sends a datagram on the socket
+
+     msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     @param msg the message to send
      @param port specifies the destination port to send to
      @param address specifies the destination address to send to, a string is encoded as utf8
      @return returns the number of bytes sent
      */
     Integer send(Buffer|String msg, Integer port, String address = "") async;
 
-    /*! @brief sends a datagram on the socket; a string msg is encoded as utf8
-     @param msg specifies the data to send, a string is encoded as utf8
+    /*! @brief sends a datagram on the socket
+
+     msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     @param msg the message to send
      @param offset starts sending from the specified offset
      @param length sends the specified length
      @param port specifies the destination port to send to

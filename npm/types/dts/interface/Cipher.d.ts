@@ -7,7 +7,8 @@
 declare class Class_Cipher extends Class_object {
     /**
      * @description Sets the authentication tag
-     *      @param buffer the authentication tag data to use, or a string decoded with encoding
+     *      buffer may be a Buffer, or a string decoded with encoding.
+     *      @param buffer the authentication tag data
      *      @param encoding the encoding of a string authentication tag data, default "utf8"
      *      @return returns the current Cipher object
      *
@@ -23,7 +24,8 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Sets additional authenticated data
-     *      @param buffer the additional authenticated data to use, or a string decoded with the encoding option
+     *      buffer may be a Buffer, or a string decoded with the encoding option.
+     *      @param buffer the additional authenticated data
      *      @param options the additional authenticated data options to use
      *      @return returns the current Cipher object
      *
@@ -40,7 +42,8 @@ declare class Class_Cipher extends Class_object {
 
     /**
      * @description Updates the data
-     *       @param data the data to update, or a string decoded with inputEncoding
+     *       data may be a Buffer, or a string decoded with inputEncoding.
+     *       @param data the data to update
      *       @param inputEncoding the encoding of the input data, default "utf8"
      *       @param outputEncoding the encoding of the output data
      *       @return returns the updated data

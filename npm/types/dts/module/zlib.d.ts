@@ -154,9 +154,12 @@ declare module 'zlib' {
     function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -165,26 +168,34 @@ declare module 'zlib' {
     function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -194,8 +205,10 @@ declare module 'zlib' {
     function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -203,8 +216,10 @@ declare module 'zlib' {
     function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -212,9 +227,12 @@ declare module 'zlib' {
     function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -223,26 +241,34 @@ declare module 'zlib' {
     function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format); a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -252,8 +278,10 @@ declare module 'zlib' {
     function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -261,8 +289,10 @@ declare module 'zlib' {
     function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (zlib format)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -270,8 +300,10 @@ declare module 'zlib' {
     function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -281,8 +313,10 @@ declare module 'zlib' {
     function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -290,8 +324,10 @@ declare module 'zlib' {
     function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data with the gzip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param options the compression options, read as { level }
      *      @return returns the compressed binary data
      *
@@ -299,8 +335,10 @@ declare module 'zlib' {
     function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
@@ -309,25 +347,32 @@ declare module 'zlib' {
     function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
     /**
-     * @description Compresses data into a stream object with the gzip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *
      */
     function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -336,26 +381,34 @@ declare module 'zlib' {
     function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses gzip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses gzip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -365,8 +418,10 @@ declare module 'zlib' {
     function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -374,8 +429,10 @@ declare module 'zlib' {
     function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -383,9 +440,12 @@ declare module 'zlib' {
     function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -394,26 +454,34 @@ declare module 'zlib' {
     function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the deflateRaw algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -423,8 +491,10 @@ declare module 'zlib' {
     function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -432,8 +502,10 @@ declare module 'zlib' {
     function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw); a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -441,9 +513,12 @@ declare module 'zlib' {
     function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -452,26 +527,34 @@ declare module 'zlib' {
     function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses deflateRaw data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses deflateRaw data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -481,8 +564,10 @@ declare module 'zlib' {
     function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -490,8 +575,10 @@ declare module 'zlib' {
     function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw); a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the deflate algorithm into a stream object (inflateRaw)
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -515,9 +602,12 @@ declare module 'zlib' {
     function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
@@ -526,26 +616,34 @@ declare module 'zlib' {
     function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Compresses data with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
-     *      @param level the compression level, default DEFAULT_COMPRESSION; an object is read as the options, supporting: { level }
+     * @description Compresses data with the zip algorithm
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      level may be a number, default DEFAULT_COMPRESSION, or an options object supporting: { level }.
+     *      @param data the data to compress
+     *      @param level the compression level or the options
      *      @return returns the compressed binary data
      *
      */
     function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -555,8 +653,10 @@ declare module 'zlib' {
     function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -564,8 +664,10 @@ declare module 'zlib' {
     function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
-     * @description Compresses data into a stream object with the zip algorithm; a string data is encoded as utf8
-     *      @param data the data to compress, a string is encoded as utf8
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to compress
      *      @param stm the stream that stores the compressed data
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
@@ -573,9 +675,12 @@ declare module 'zlib' {
     function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
@@ -584,26 +689,34 @@ declare module 'zlib' {
     function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description Decompresses zip data; a string data is encoded as utf8
-     *      @param data the compressed data, a string is encoded as utf8
-     *      @param maxSize the decompression size limit, default -1, no limit; an object is read as the options, supporting: { maxOutputLength }
+     * @description Decompresses zip data
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      maxSize may be a number, default -1 (no limit), or an options object supporting: { maxOutputLength }.
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
      *      @return returns the decompressed binary data
      *
      */
     function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -613,8 +726,10 @@ declare module 'zlib' {
     function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *
@@ -622,8 +737,10 @@ declare module 'zlib' {
     function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object; a string data is encoded as utf8
-     *      @param data the data to decompress, a string is encoded as utf8
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      data may be a Buffer, a Stream or a string; a string is encoded as utf8.
+     *      @param data the data to decompress
      *      @param stm the stream that stores the decompressed data
      *      @param maxSize the decompression size limit, default -1, no limit
      *

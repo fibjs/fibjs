@@ -130,7 +130,8 @@ module console
         count: 10 // option, selectable from 2 to 128, default is 128
      });
      ```
-     @param cfg output configuration
+     cfg may be a single configuration object, or an array of them; each is applied in order.
+     @param cfg the output configuration
      */
     static add(Object|Array cfg);
 
@@ -204,7 +205,8 @@ module console
         count: 10 // option, selectable from 2 to 128, default is 128
      });
      ```
-     @param cfg output configuration
+     cfg may be a single configuration object, or an array of them; each is applied in order.
+     @param cfg the output configuration
      */
     static use(Object|Array cfg);
 

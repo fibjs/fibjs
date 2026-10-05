@@ -283,7 +283,8 @@ module global
     /*! @brief Sends a Fetch request given a Request object or a URL string
      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
-     @param request the Request object, or the target URL of the request
+     request may be an HttpRequest object, or the target URL of the request.
+     @param request the request source
      @param opts request options (may override the fields of request)
      @return the server response object
     */

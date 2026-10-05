@@ -263,7 +263,8 @@ declare module 'v8' {
      * @description Deserializes a Buffer or a string into a value
      *
      *      Restores binary data previously serialized by serialize back into a JavaScript value.
-     *      @param data the Buffer to deserialize; a string is encoded as utf8
+     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *      @param data the data to deserialize
      *      @return returns the deserialized value
      *
      */

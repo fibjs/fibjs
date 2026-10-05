@@ -64,8 +64,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -76,8 +78,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer | string, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -86,8 +90,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -96,8 +102,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -110,8 +118,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -122,8 +132,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -430,8 +442,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -440,8 +454,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -450,8 +466,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param port specifies the destination port to send to
      *      @param address specifies the destination address to send to, a string is encoded as utf8
      *      @return returns the number of bytes sent
@@ -460,8 +478,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -472,8 +492,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to
@@ -484,8 +506,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
-     * @description sends a datagram on the socket; a string msg is encoded as utf8
-     *      @param msg specifies the data to send, a string is encoded as utf8
+     * @description sends a datagram on the socket
+     *
+     *      msg may be a Buffer holding the datagram, or a string; a string is encoded as utf8.
+     *      @param msg the message to send
      *      @param offset starts sending from the specified offset
      *      @param length sends the specified length
      *      @param port specifies the destination port to send to

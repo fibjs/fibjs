@@ -49,8 +49,10 @@
  */
 declare class Class_LevelDB extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
@@ -59,24 +61,30 @@ declare class Class_LevelDB extends Class_object {
     has(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -85,16 +93,20 @@ declare class Class_LevelDB extends Class_object {
     get(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -109,9 +121,11 @@ declare class Class_LevelDB extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string): void;
@@ -119,17 +133,21 @@ declare class Class_LevelDB extends Class_object {
     set(key: Class_Buffer | string, value: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
@@ -149,8 +167,10 @@ declare class Class_LevelDB extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     remove(key: Class_Buffer | string): void;
@@ -158,15 +178,19 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeSync(key: Class_Buffer | string): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeAsync(key: Class_Buffer | string): Promise<void>;
@@ -370,48 +394,60 @@ declare class Class_LevelDB extends Class_object {
  */
 declare class Class_LevelDBPromise extends Class_object {
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     has(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasSync(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Checks whether data with the given key exists in the database; a string key is encoded as utf8
-     *      @param key the key to check, a string is encoded as utf8
+     * @description Checks whether data with the given key exists in the database
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to check
      *      @return returns whether the key exists
      *
      */
     hasAsync(key: Class_Buffer | string): Promise<boolean>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     get(key: Class_Buffer | string): Promise<Class_Buffer>;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
     getSync(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Queries the value of the given key; a string key is encoded as utf8
-     *      @param key the key to query, a string is encoded as utf8
+     * @description Queries the value of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to query
      *      @return returns the value of the key, or null if it does not exist
      *
      */
@@ -426,25 +462,31 @@ declare class Class_LevelDBPromise extends Class_object {
     mget(keys: any[]): any[];
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
 
     /**
-     * @description Sets a key-value pair; inserts new data if the key does not exist; strings are encoded as utf8
-     *      @param key the key to set, a string is encoded as utf8
-     *      @param value the value to set, a string is encoded as utf8
+     * @description Sets a key-value pair; inserts new data if the key does not exist
+     *
+     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to set
+     *      @param value the value to set
      *
      */
     setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
@@ -464,22 +506,28 @@ declare class Class_LevelDBPromise extends Class_object {
     mremove(keys: any[]): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     remove(key: Class_Buffer | string): Promise<void>;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeSync(key: Class_Buffer | string): void;
 
     /**
-     * @description Removes all values of the given key; a string key is encoded as utf8
-     *      @param key the key to remove, a string is encoded as utf8
+     * @description Removes all values of the given key
+     *
+     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      @param key the key to remove
      *
      */
     removeAsync(key: Class_Buffer | string): Promise<void>;

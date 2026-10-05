@@ -48,8 +48,10 @@ declare class Class_RedisSet extends Class_object {
     len(): number;
 
     /**
-     * @description Checks whether member is a member of the set; a string member is encoded as utf8
-     *      @param member the member to check, a string is encoded as utf8
+     * @description Checks whether member is a member of the set
+     *
+     *      member may be a Buffer or a string; a string is encoded as utf8.
+     *      @param member the member to check
      *      @return returns true if member is a member of the set
      *
      */

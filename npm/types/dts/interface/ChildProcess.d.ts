@@ -13,7 +13,8 @@
 declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *       signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to deliver
      *
      */
     kill(signal?: string | number): void;
@@ -315,7 +316,8 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Kills the process this object refers to and delivers a signal
-     *       @param signal the signal to deliver: a number, or a name such as "SIGTERM"; the default is SIGTERM
+     *       signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
+     *      @param signal the signal to deliver
      *
      */
     kill(signal?: string | number): void;

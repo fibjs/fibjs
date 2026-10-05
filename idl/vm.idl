@@ -38,7 +38,8 @@ module vm
     /*! @brief Runs the code specified by code within the given contextifiedObject and returns the result
      @param code specifies the script code to compile and run
      @param contextifiedObject specifies the context object at runtime
-     @param opts specifies the running options, or the script file name
+     opts may be the running options object, or the script file name.
+     @param opts the running options or the script file name
      @return returns the running result
     */
     static Value runInContext(String code, Object contextifiedObject, Object|String opts = {});
@@ -46,14 +47,16 @@ module vm
     /*! @brief Uses the given contextObject to create a context, runs the code specified by code in it and returns the result
      @param code specifies the script code to compile and run
      @param contextObject specifies the object to be contextified
-     @param opts specifies the running options, or the script file name
+     opts may be the running options object, or the script file name.
+     @param opts the running options or the script file name
      @return returns the running result
     */
     static Value runInNewContext(String code, Object contextObject = {}, Object|String opts = {});
 
     /*! @brief Runs the code specified by code in the current context and returns the result
      @param code specifies the script code to compile and run
-     @param opts specifies the running options, or the script file name
+     opts may be the running options object, or the script file name.
+     @param opts the running options or the script file name
      @return returns the running result
     */
     static Value runInThisContext(String code, Object|String opts = {});

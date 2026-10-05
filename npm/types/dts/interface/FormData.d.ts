@@ -56,7 +56,8 @@ declare class Class_FormData extends Class_HttpCollection {
 
     /**
      * @description FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
-     *      @param init the fields: an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val"
+     *      init may be an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val".
+     *      @param init the fields
      *
      */
     constructor(init: FIBJS.GeneralObject | Class_FormData | string);
