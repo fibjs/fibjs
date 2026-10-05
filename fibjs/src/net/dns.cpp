@@ -131,6 +131,10 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
     resolve_data* resolver = new resolve_data((LookupOptions*)ac->m_ctx[0].object(), name, retVal, ac);

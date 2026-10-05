@@ -398,6 +398,10 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
     return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
 }

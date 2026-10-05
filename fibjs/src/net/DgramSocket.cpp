@@ -161,13 +161,13 @@ void DgramSocket::stop_bind()
 
 result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 {
-    if (m_bound)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
-
     if (ac->isSync()) {
         m_holder = new ValueHolder(wrap());
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    if (m_bound)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
 
     inetAddr addr_info;
 
@@ -203,9 +203,6 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
 result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    if (m_bound)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
-
     if (ac->isSync()) {
         m_holder = new ValueHolder(wrap());
 
@@ -224,11 +221,21 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
         ac->m_ctx.resize(2);
         ac->m_ctx[0] = port;
         ac->m_ctx[1] = addr;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+    ctx_hr = ac->ctx(1);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     int32_t port = ac->m_ctx[0].intVal();
     exlib::string addr = ac->m_ctx[1].string();
 
+    // "already bound" 检查在内层 bind(port, addr, ac) 的 async 相位完成
     return bind(port, addr, ac);
 }
 
@@ -345,11 +352,11 @@ result_t DgramSocket::send(Union_send_msg msg, int32_t offset, int32_t length, i
 result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, int32_t port,
     exlib::string address, int32_t& retVal, AsyncEvent* ac)
 {
-    if (offset < 0 || length <= 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (offset < 0 || length <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
@@ -365,6 +372,9 @@ result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, in
 result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
     exlib::string address, int32_t& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -374,9 +384,6 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
         if (hr < 0)
             return hr;
     }
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> msg1;
     msg->slice(offset, offset + length, msg1);

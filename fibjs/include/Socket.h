@@ -19,6 +19,12 @@ namespace fibjs {
 
 result_t socket_isAlive(SOCKET fd, bool& retVal);
 
+// The backend dispatch behind Socket_base::_new, callable outside the JS
+// constructor: the async phase builds sockets through it (`_new` is a JS entry
+// and must not run off the JS thread,
+// plans/async-phase-discipline-audit-2026-10-05.md §3-F14).
+result_t create_socket(int32_t family, obj_ptr<Socket_base>& retVal);
+
 class ConnectOptions : public obj_base {
 public:
     LOAD_OPTIONS(ConnectOptions, (host)(port)(timeout));

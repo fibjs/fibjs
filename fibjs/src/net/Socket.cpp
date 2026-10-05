@@ -114,13 +114,20 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
 #endif
 }
 
-result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
-    v8::Local<v8::Object> This)
+// The backend dispatch of Socket_base::_new, callable without the JS
+// constructor (see the declaration in Socket.h).
+result_t create_socket(int32_t family, obj_ptr<Socket_base>& retVal)
 {
     if (g_uv_socket || family == net_base::C_AF_UNIX)
         return UVSocket::create(family, retVal);
-    else
-        return Socket::create(family, retVal);
+
+    return Socket::create(family, retVal);
+}
+
+result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    return create_socket(family, retVal);
 }
 
 Socket::~Socket()
@@ -210,11 +217,11 @@ result_t Socket::flush(AsyncEvent* ac)
 
 result_t Socket::close(AsyncEvent* ac)
 {
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return 0;
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_aio.m_fd == INVALID_SOCKET)
+        return 0;
 
     return m_aio.close(ac);
 }
@@ -508,6 +515,10 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
         startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
     return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);

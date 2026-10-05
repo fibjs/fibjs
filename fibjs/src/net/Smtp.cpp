@@ -208,11 +208,11 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         bool m_tls;
     };
 
-    if (m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncConnect(this, url, ac))->post(0);
 }
@@ -220,22 +220,22 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retVal,
     AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncCommand(this, cmd, arg, retVal, ac))->post(0);
 }
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncCommand(this, cmd, arg, ac))->post(0);
 }
@@ -321,11 +321,11 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
         int32_t step;
     };
 
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncHello(this, hostname, ac))->post(0);
 }
@@ -395,11 +395,11 @@ result_t Smtp::login(exlib::string username, exlib::string password,
         int32_t step;
     };
 
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
@@ -473,11 +473,11 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
         int32_t step;
     };
 
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return (new asyncData(this, txt, ac))->post(0);
 }
