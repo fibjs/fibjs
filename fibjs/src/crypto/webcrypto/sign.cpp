@@ -75,59 +75,45 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
     return 0;
 }
 
+// The string form of the algorithm is pure C++: check_name and the HMAC hash
+// come from the key's C++ algorithm object (m_algorithm), so the whole path
+// runs in the async phase and a cc_ caller can use it
+// (plans/async-phase-discipline-audit-2026-10-05.md §3-F10/§4.5).
+static result_t name_hash_from_key(CryptoKey* key, const exlib::string& name, exlib::string& hash)
+{
+    result_t hr = key->check_name(name);
+    if (hr < 0)
+        return hr;
+
+    hash.clear();
+
+    if (qstricmp(name.c_str(), "hmac") == 0) {
+        Variant v;
+        obj_ptr<NObject> hashObj;
+
+        if (key->m_algorithm->get("hash", v) >= 0 && (hashObj = (NObject*)v.object()) != NULL) {
+            Variant hashName;
+
+            if (hashObj->get("name", hashName) >= 0 && hashName.type() == Variant::VT_String)
+                hash = hashName.string();
+        }
+    }
+
+    return 0;
+}
+
 
 result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        result_t hr;
-
-        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm))
-            hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
-        else {
-            exlib::string name = std::get<exlib::string>(algorithm);
-
-            ac->m_ctx.resize(2);
-            ac->m_ctx[0] = name;
-
-            CryptoKey* _alg_key = (CryptoKey*)key;
-            hr = _alg_key->check_name(name);
+        // only the object alternative reads JS values; the string form is
+        // C++-only (check_name + the key's C++ algorithm object) and is
+        // resolved in the async phase, so a cc_ caller can use it
+        // (plans/async-phase-discipline-audit-2026-10-05.md §3-F10)
+        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm)) {
+            result_t hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
             if (hr < 0)
                 return hr;
-
-            // For HMAC, extract hash from key algorithm
-            if (qstricmp(name.c_str(), "hmac") == 0) {
-                Isolate* isolate = ac->isolate();
-                v8::Local<v8::Context> context = isolate->context();
-                v8::Local<v8::Object> key_algorithm;
-                hr = _alg_key->get_algorithm(key_algorithm);
-                if (hr < 0)
-                    return hr;
-
-                v8::Local<v8::Value> _hash = key_algorithm->Get(context, isolate->NewString("hash")).FromMaybe(v8::Local<v8::Value>());
-                if (!_hash.IsEmpty() && _hash->IsObject()) {
-                    v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
-                    exlib::string hash;
-                    hr = GetConfigValue(_hash_obj, "name", hash, true);
-                    if (hr < 0)
-                        return hr;
-                    ac->m_ctx[1] = hash;
-                } else
-                    ac->m_ctx[1] = exlib::string("");
-            } else
-                ac->m_ctx[1] = exlib::string("");
-        }
-
-        if (hr < 0)
-            return hr;
-
-        if (std::holds_alternative<exlib::string>(data)) {
-            obj_ptr<Buffer_base> str_buf;
-            hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", str_buf);
-            if (hr < 0)
-                return hr;
-
-            ac->m_ctx.resize(3);
-            ac->m_ctx[2] = str_buf;
         }
 
         return CALL_E_NOSYNC;
@@ -138,19 +124,28 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
         data_buffer = std::get<obj_ptr<Buffer_base>>(data);
     else {
-        // the string form decoded the data in the sync phase
-        result_t ctx_hr = ac->ctx(2);
-        if (ctx_hr < 0)
-            return ctx_hr;
-
-        data_buffer = (Buffer_base*)ac->m_ctx[2].object();
-        if (data_buffer == NULL)
-            return Runtime::setError("WebCrypto: the data was not read");
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", data_buffer);
+        if (hr < 0)
+            return hr;
     }
 
     CryptoKey* _key = (CryptoKey*)key;
-    exlib::string hash = ac->m_ctx[1].string();
-    exlib::string name = ac->m_ctx[0].string();
+    exlib::string name, hash;
+
+    if (std::holds_alternative<exlib::string>(algorithm)) {
+        name = std::get<exlib::string>(algorithm);
+
+        result_t hr = name_hash_from_key(_key, name, hash);
+        if (hr < 0)
+            return hr;
+    } else {
+        result_t ctx_hr = ac->ctx(1);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        name = ac->m_ctx[0].string();
+        hash = ac->m_ctx[1].string();
+    }
 
     // Check if the key has 'sign' usage
     if (_key->m_usageMap.find("sign") == _key->m_usageMap.end())
@@ -218,65 +213,12 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
 result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        result_t hr;
-
-        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm))
-            hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
-        else {
-            exlib::string name = std::get<exlib::string>(algorithm);
-
-            ac->m_ctx.resize(2);
-            ac->m_ctx[0] = name;
-
-            CryptoKey* _alg_key = (CryptoKey*)key;
-            hr = _alg_key->check_name(name);
+        // only the object alternative reads JS values; the string form is
+        // C++-only and is resolved in the async phase (see sign above)
+        if (std::holds_alternative<v8::Local<v8::Object>>(algorithm)) {
+            result_t hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
             if (hr < 0)
                 return hr;
-
-            // For HMAC, extract hash from key algorithm
-            if (qstricmp(name.c_str(), "hmac") == 0) {
-                Isolate* isolate = ac->isolate();
-                v8::Local<v8::Context> context = isolate->context();
-                v8::Local<v8::Object> key_algorithm;
-                hr = _alg_key->get_algorithm(key_algorithm);
-                if (hr < 0)
-                    return hr;
-
-                v8::Local<v8::Value> _hash = key_algorithm->Get(context, isolate->NewString("hash")).FromMaybe(v8::Local<v8::Value>());
-                if (!_hash.IsEmpty() && _hash->IsObject()) {
-                    v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
-                    exlib::string hash;
-                    hr = GetConfigValue(_hash_obj, "name", hash, true);
-                    if (hr < 0)
-                        return hr;
-                    ac->m_ctx[1] = hash;
-                } else
-                    ac->m_ctx[1] = exlib::string("");
-            } else
-                ac->m_ctx[1] = exlib::string("");
-        }
-
-        if (hr < 0)
-            return hr;
-
-        if (std::holds_alternative<exlib::string>(signature)) {
-            obj_ptr<Buffer_base> str_sig;
-            hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", str_sig);
-            if (hr < 0)
-                return hr;
-
-            ac->m_ctx.resize(3);
-            ac->m_ctx[2] = str_sig;
-        }
-
-        if (std::holds_alternative<exlib::string>(data)) {
-            obj_ptr<Buffer_base> str_buf;
-            hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", str_buf);
-            if (hr < 0)
-                return hr;
-
-            ac->m_ctx.resize(4);
-            ac->m_ctx[3] = str_buf;
         }
 
         return CALL_E_NOSYNC;
@@ -287,32 +229,36 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
     if (std::holds_alternative<obj_ptr<Buffer_base>>(signature))
         signature_buffer = std::get<obj_ptr<Buffer_base>>(signature);
     else {
-        // the string form decoded the signature in the sync phase; the slot is
-        // the one this shape writes (a string data writes ctx[3] as well)
-        result_t ctx_hr = ac->ctx(2);
-        if (ctx_hr < 0)
-            return ctx_hr;
-
-        signature_buffer = (Buffer_base*)ac->m_ctx[2].object();
-        if (signature_buffer == NULL)
-            return Runtime::setError("WebCrypto: the signature was not read");
+        result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", signature_buffer);
+        if (hr < 0)
+            return hr;
     }
 
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
         data_buffer = std::get<obj_ptr<Buffer_base>>(data);
     else {
-        result_t ctx_hr = ac->ctx(3);
-        if (ctx_hr < 0)
-            return ctx_hr;
-
-        data_buffer = (Buffer_base*)ac->m_ctx[3].object();
-        if (data_buffer == NULL)
-            return Runtime::setError("WebCrypto: the data was not read");
+        result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", data_buffer);
+        if (hr < 0)
+            return hr;
     }
 
     CryptoKey* _key = (CryptoKey*)key;
-    exlib::string hash = ac->m_ctx[1].string();
-    exlib::string name = ac->m_ctx[0].string();
+    exlib::string name, hash;
+
+    if (std::holds_alternative<exlib::string>(algorithm)) {
+        name = std::get<exlib::string>(algorithm);
+
+        result_t hr = name_hash_from_key(_key, name, hash);
+        if (hr < 0)
+            return hr;
+    } else {
+        result_t ctx_hr = ac->ctx(1);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
+        name = ac->m_ctx[0].string();
+        hash = ac->m_ctx[1].string();
+    }
 
     // Check if the key has 'verify' usage
     if (_key->m_usageMap.find("verify") == _key->m_usageMap.end())

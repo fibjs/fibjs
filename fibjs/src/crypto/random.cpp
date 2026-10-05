@@ -41,14 +41,14 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal)
 result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     obj_ptr<Buffer_base> buf;
 
     if (std::holds_alternative<exlib::string>(buffer)) {
         // The randomly filled buffer is the result: decoding has to happen
         // before it is validated and filled, so it is decoded here.
-        if (ac->isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
-
         result_t hr = Buffer_base::from(std::get<exlib::string>(buffer), "utf8", buf);
         if (hr < 0)
             return hr;
@@ -69,9 +69,6 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
         retVal = buf;
         return 0;
     }
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> rand;
     randomBytes(size, rand);

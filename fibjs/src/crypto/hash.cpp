@@ -135,11 +135,11 @@ result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
 result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt,
     Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (size < 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: size must be positive, received %d.", size));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (size < 1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "hkdf: size must be positive, received %d.", size));
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
@@ -185,11 +185,11 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (iterations < 1 || size < 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "pbkdf2: iterations and size must be positive."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "pbkdf2: iterations and size must be positive."));
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
@@ -257,11 +257,15 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncEvent* ac)
 result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen,
     v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return scrypt_load_options(options, ac);
+
     if (keylen < 1)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: keylen must be positive, received %d.", keylen));
 
-    if (ac->isSync())
-        return scrypt_load_options(options, ac);
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     ScryptOptions* opt = (ScryptOptions*)ac->m_ctx[0].object();
 

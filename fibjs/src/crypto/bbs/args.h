@@ -121,4 +121,32 @@ static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncEvent* ac
     return hr;
 }
 
+// The async-aware entry: Buffer/String/Object build a JS options object (the
+// Buffer form also wraps the buffer), so they stay in the sync phase; the
+// KeyObject alternative is pure C++ and is resolved in the async phase, so a
+// cc_ caller can pass it directly. No V8 is touched in the async branch.
+template <typename... Ts>
+static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
+            return CALL_E_NOSYNC; // pure C++: left to the async phase
+
+        return bbs_get_args(key, priv, ac);
+    }
+
+    // async / cc_: the slot prepared by the sync phase comes first
+    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL)
+        return 0;
+
+    // otherwise the KeyObject alternative, parsed without touching V8
+    if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
+        result_t hr = bbs_get_args(std::get<obj_ptr<KeyObject_base>>(key), priv, ac);
+        return hr == CALL_E_NOSYNC ? 0 : hr;
+    }
+
+    return Runtime::setError(CALL_E_TYPEMISMATCH,
+        "the key union was not prepared: this entry requires the synchronous phase.");
+}
+
 }

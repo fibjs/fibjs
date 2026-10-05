@@ -241,6 +241,10 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
         return CALL_E_NOSYNC;
     }
 
+    result_t ctx_hr = ac->ctx(2);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac->m_ctx[0].object();
 
     retVal = new GenerateKeyPairType();

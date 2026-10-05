@@ -56,31 +56,32 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
     std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        if (std::holds_alternative<exlib::string>(algorithm)) {
-            // the string form carries no 'public' member: ctx[1] stays empty and
-            // the async phase reports that as an error for ECDH
-            ac->m_ctx.resize(2);
-
-            ac->m_ctx[0] = std::get<exlib::string>(algorithm);
-
-            return CALL_E_NOSYNC;
+        // only the object alternative reads JS values; the string form is
+        // C++-only and is resolved in the async phase, so a cc_ caller can use
+        // it (plans/async-phase-discipline-audit-2026-10-05.md §3-F9)
+        if (!std::holds_alternative<exlib::string>(algorithm)) {
+            result_t hr = get_ecdh_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)baseKey, ac);
+            if (hr < 0)
+                return hr;
         }
-
-        result_t hr = get_ecdh_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)baseKey, ac);
-        if (hr < 0)
-            return hr;
 
         return CALL_E_NOSYNC;
     }
 
     CryptoKey* _baseKey = (CryptoKey*)baseKey;
+    exlib::string name;
 
-    // the algorithm (and, for ECDH, the public key) comes from the sync phase
-    result_t ctx_hr = ac->ctx(0);
-    if (ctx_hr < 0)
-        return ctx_hr;
+    if (std::holds_alternative<exlib::string>(algorithm))
+        name = std::get<exlib::string>(algorithm);
+    else {
+        // the algorithm (and, for ECDH, the public key) was prepared by the
+        // sync phase
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
 
-    exlib::string name = ac->m_ctx[0].string();
+        name = ac->m_ctx[0].string();
+    }
 
     // Check if the baseKey has 'deriveBits' usage
     if (_baseKey->m_usageMap.find("deriveBits") == _baseKey->m_usageMap.end())
@@ -93,7 +94,10 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
     if (qstricmp(name.c_str(), "ecdh") == 0) {
         // the public key is carried in ctx[1]; the string form of the algorithm
         // has no 'public' member, which is an error for ECDH
-        ctx_hr = ac->ctx(1);
+        if (std::holds_alternative<exlib::string>(algorithm))
+            return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
+
+        result_t ctx_hr = ac->ctx(1);
         if (ctx_hr < 0 || ac->m_ctx[1].object() == NULL)
             return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
 

@@ -434,12 +434,13 @@ static result_t messages_to_buffers(std::vector<T>& messages, std::vector<obj_pt
 result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return bbs_get_args(privateKey, true, ac);
+    result_t hr = bbs_prepare_key(privateKey, true, ac);
+    if (hr < 0)
+        return hr;
 
     std::vector<obj_ptr<Buffer_base>> msgs;
 
-    result_t hr = messages_to_buffers(messages, msgs);
+    hr = messages_to_buffers(messages, msgs);
     if (hr < 0)
         return hr;
 
@@ -450,13 +451,14 @@ result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Uni
 result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey,
     Union_bbsVerify_signature signature, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<Buffer_base> sigBuf;
 
     if (std::holds_alternative<exlib::string>(signature)) {
-        result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
         if (hr < 0)
             return hr;
     } else
@@ -464,7 +466,7 @@ result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages,
 
     std::vector<obj_ptr<Buffer_base>> msgs;
 
-    result_t hr = messages_to_buffers(messages, msgs);
+    hr = messages_to_buffers(messages, msgs);
     if (hr < 0)
         return hr;
 
@@ -475,13 +477,14 @@ result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages,
 result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages,
     std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<Buffer_base> sigBuf;
 
     if (std::holds_alternative<exlib::string>(signature)) {
-        result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
         if (hr < 0)
             return hr;
     } else
@@ -489,7 +492,7 @@ result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<U
 
     std::vector<obj_ptr<Buffer_base>> msgs;
 
-    result_t hr = messages_to_buffers(messages, msgs);
+    hr = messages_to_buffers(messages, msgs);
     if (hr < 0)
         return hr;
 
@@ -500,13 +503,14 @@ result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<U
 result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index,
     Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return bbs_get_args(publicKey, false, ac);
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr < 0)
+        return hr;
 
     obj_ptr<Buffer_base> proofBuf;
 
     if (std::holds_alternative<exlib::string>(proof)) {
-        result_t hr = Buffer_base::from(std::get<exlib::string>(proof), "utf8", proofBuf);
+        hr = Buffer_base::from(std::get<exlib::string>(proof), "utf8", proofBuf);
         if (hr < 0)
             return hr;
     } else
@@ -514,7 +518,7 @@ result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messa
 
     std::vector<obj_ptr<Buffer_base>> msgs;
 
-    result_t hr = messages_to_buffers(messages, msgs);
+    hr = messages_to_buffers(messages, msgs);
     if (hr < 0)
         return hr;
 
