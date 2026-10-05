@@ -396,11 +396,11 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
 
 result_t SQLite::close(AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     // Cascade-close active cursors (finalize statements not yet released) to
     // keep sqlite3_close from failing
@@ -419,14 +419,14 @@ result_t SQLite::close(AsyncEvent* ac)
 
 result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
     if (!m_conn)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     if (m_activeStmt)
         return db_stmt_busy_error();
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     const char* pStr = sql.c_str();
     int32_t sLen = (int32_t)sql.length();
@@ -544,11 +544,11 @@ result_t SQLite::set_timeout(int32_t newVal)
 
 result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     int32_t rc;
     struct sqlite3* db2 = NULL;
@@ -592,11 +592,11 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 
 result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     // Query SQLite system table to get all user tables
     exlib::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
@@ -605,11 +605,11 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
 result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
 
     // Query SQLite table structure and format to match information_schema style
     exlib::string escapedTableName = escape_string(tableName);

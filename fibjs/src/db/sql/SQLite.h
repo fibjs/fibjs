@@ -33,11 +33,11 @@ public:
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t begin(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         obj_ptr<NArray> retVal;
 

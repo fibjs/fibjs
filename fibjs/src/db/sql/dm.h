@@ -61,11 +61,11 @@ public:
 
     virtual result_t begin(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (m_activeStmt)
             return db_stmt_busy_error();
@@ -81,11 +81,11 @@ public:
 
     virtual result_t commit(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (m_activeStmt)
             return db_stmt_busy_error();
@@ -106,11 +106,11 @@ public:
 
     virtual result_t rollback(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (m_activeStmt)
             return db_stmt_busy_error();

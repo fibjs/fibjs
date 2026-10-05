@@ -168,11 +168,11 @@ public:
 
     result_t use(exlib::string dbName, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         obj_ptr<NArray> retVal;
         exlib::string s("USE ", 4);
@@ -182,11 +182,11 @@ public:
 
     result_t begin(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         obj_ptr<NArray> retVal;
 
@@ -203,11 +203,11 @@ public:
 
     result_t commit(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         obj_ptr<NArray> retVal;
 
@@ -220,11 +220,11 @@ public:
 
     result_t rollback(exlib::string point, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         obj_ptr<NArray> retVal;
 
@@ -256,9 +256,6 @@ public:
     result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
         AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync()) {
             exlib::string str;
             result_t hr = format(sql, args, str);
@@ -271,6 +268,13 @@ public:
             return CHECK_ERROR(CALL_E_LONGSYNC);
         }
 
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
+
         exlib::string str = ac->m_ctx[0].string();
         return execute(str, retVal, ac);
     }
@@ -280,9 +284,6 @@ public:
     result_t execute(formater fmt, v8::Local<v8::Object> opts,
         obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync()) {
             exlib::string str;
             result_t hr = fmt(opts, str);
@@ -294,6 +295,13 @@ public:
 
             return CHECK_ERROR(CALL_E_LONGSYNC);
         }
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
 
         exlib::string str = ac->m_ctx[0].string();
         return execute(str, retVal, ac);
@@ -375,11 +383,11 @@ public:
     result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal,
         AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (m_activeStmt)
             return db_stmt_busy_error();
@@ -392,9 +400,6 @@ public:
     result_t iterate(exlib::string sql, OptArgs args,
         obj_ptr<Iterator_base>& retVal, AsyncEvent* ac)
     {
-        if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync()) {
             // Main thread: convert v8 args to Variant (must not touch v8 in a fiber)
             ac->m_ctx.resize(args.Length() + 1);
@@ -407,6 +412,13 @@ public:
             }
             return CHECK_ERROR(CALL_E_LONGSYNC);
         }
+
+        if (!m_conn)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        result_t ctx_hr = ac->ctx(0);
+        if (ctx_hr < 0)
+            return ctx_hr;
 
         obj_ptr<Statement_base> stmt;
         result_t hr = prepare(ac->m_ctx[0].string(), stmt, ac);

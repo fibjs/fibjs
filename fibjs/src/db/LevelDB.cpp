@@ -83,11 +83,11 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
 
 result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -114,11 +114,11 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncEvent* ac)
 
 result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -224,11 +224,11 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
 
 result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -318,11 +318,11 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 
 result_t LevelDB::remove(Union_remove_key key, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -342,11 +342,11 @@ result_t LevelDB::remove(Union_remove_key key, AsyncEvent* ac)
 
 result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
     it->SeekToFirst();
@@ -363,11 +363,11 @@ result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
 result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!db())
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!db())
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "LevelDB: database is closed."));
 
     leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
     it->SeekToLast();

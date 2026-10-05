@@ -490,11 +490,11 @@ result_t mysql::get_type(exlib::string& retVal)
 
 result_t mysql::close(AsyncEvent* ac)
 {
-    if (!m_conn)
-        return 0;
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return 0;
 
     if (m_conn) {
         UMConnection_Close(m_conn);
@@ -507,14 +507,14 @@ result_t mysql::close(AsyncEvent* ac)
 
 result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
     if (!m_conn)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     if (m_activeStmt)
         return db_stmt_busy_error();
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     DBResult* res = (DBResult*)UMConnection_Query(m_conn, sql.c_str(), sql.length());
     if (!res)
@@ -580,11 +580,11 @@ result_t mysql::set_txBufferSize(int32_t newVal)
 
 result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     // Query MySQL information_schema to get all tables in current database
     exlib::string sql = "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name";
@@ -593,11 +593,11 @@ result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
 result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!m_conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
 
     // Query MySQL information_schema to get table column information
     exlib::string escapedTableName = escape_string(tableName);

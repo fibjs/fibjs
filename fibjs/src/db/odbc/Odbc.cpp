@@ -95,11 +95,11 @@ result_t odbc_disconnect(void* conn)
 
 result_t odbc_close(void*& conn, AsyncEvent* ac)
 {
-    if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     odbc_disconnect(conn);
     conn = NULL;
@@ -384,14 +384,14 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
 
 result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
     if (!conn)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     if (activeStmt && *activeStmt)
         return db_stmt_busy_error();
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -938,11 +938,11 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
 
 result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -989,11 +989,11 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
 result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    if (!conn)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
 
     SQLRETURN hr;
     SQLHSTMT stmt;
