@@ -24,7 +24,7 @@ declare module 'tty' {
 
     /**
      * @description Queries whether it is a command interactive window
-     *     @param fd the file descriptor or file handle object
+     *     @param fd the file descriptor; an integer descriptor or a FileHandle object
      *      @return returns true if it is associated with a terminal window, otherwise returns false
      *
      */

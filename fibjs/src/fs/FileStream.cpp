@@ -35,11 +35,11 @@ FileStream::~FileStream()
 result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == -1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     exlib::string strBuf;
 
@@ -92,11 +92,11 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
 result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == -1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
@@ -218,11 +218,11 @@ result_t FileStream::Write(const char* p, int32_t sz)
 
 result_t FileStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 {
-    if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == -1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     return Write(data);
 }
@@ -341,11 +341,11 @@ result_t FileStream::rewind()
 
 result_t FileStream::flush(AsyncEvent* ac)
 {
-    if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == -1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     //    fflush(m_file);
 
@@ -379,11 +379,11 @@ result_t FileStream::close(AsyncEvent* ac)
 
 result_t FileStream::truncate(int64_t bytes, AsyncEvent* ac)
 {
-    if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == -1)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
     if (ftruncate64(m_fd, bytes) < 0)
         return CHECK_ERROR(LastError("ftruncate", name));

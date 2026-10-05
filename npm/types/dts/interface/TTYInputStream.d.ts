@@ -14,7 +14,7 @@
 declare class Class_TTYInputStream extends Class_Stream {
     /**
      * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */
@@ -58,7 +58,7 @@ declare class Class_TTYInputStream extends Class_Stream {
 declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
      * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the underlying file descriptor or file handle object, which must be a tty device
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
      *      @param opts options object passed to the Stream constructor
      *
      */

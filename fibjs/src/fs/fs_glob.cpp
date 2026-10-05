@@ -508,6 +508,10 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     obj_ptr<GlobOptions> _opts = (GlobOptions*)ac->m_ctx[0].object();
 
     // Get working directory from options or use current directory

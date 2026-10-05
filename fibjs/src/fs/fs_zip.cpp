@@ -302,6 +302,10 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     result_t hr = lstat(path, retVal, ac);
     if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
         return CALL_RETURN_UNDEFINED;
@@ -353,6 +357,10 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     result_t hr = stat(path, retVal, ac);
     if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
