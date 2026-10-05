@@ -3198,3 +3198,249 @@ describe('fs', () => {
         });
     });
 });
+
+// The descriptor parameter unions of the IDL (Integer|FileHandle fd,
+// FileHandle|String|Integer fname), exercised through the primary, xxxSync,
+// xxxAsync and callback call forms. Every form converts through the same path,
+// and each alternative keeps its own semantics.
+describe('descriptor parameter unions', () => {
+    var fs_ = require('fs');
+    var path_ = require('path');
+    var os_ = require('os');
+    var test_util_ = require('./test_util');
+    var dir, file, handle, fd;
+
+    before(() => {
+        dir = fs_.mkdtempSync(path_.join(os_.tmpdir(), 'fibjs-union-'));
+        file = path_.join(dir, 'data.txt');
+        fs_.writeFile(file, 'hello world');
+        handle = fs_.open(file, 'r+');
+        fd = handle.fd;
+    });
+
+    after(() => {
+        try {
+            fs_.close(fd);
+        } catch (e) { }
+        try {
+            fs_.rmdir(dir);
+        } catch (e) { }
+    });
+
+    function tempFile(name, content) {
+        var p = path_.join(dir, name);
+        fs_.writeFile(p, content === undefined ? 'hello world' : content);
+        return p;
+    }
+
+    // The callback/async forms complete on another fiber, so the caller waits
+    // for the delivery.
+    function callbackForm(invoke) {
+        var got;
+        invoke(function (err, res) {
+            got = { err: err, res: res };
+        });
+        assert.ok(test_util_.waitUntil(function () { return got !== undefined; }),
+            'the callback form did not complete');
+        return got;
+    }
+
+    function asyncForm(promise) {
+        var got;
+        promise.then(function (res) {
+            got = { res: res };
+        }, function (err) {
+            got = { err: err };
+        });
+        assert.ok(test_util_.waitUntil(function () { return got !== undefined; }),
+            'the async form did not complete');
+        return got;
+    }
+
+    it('fstat reads the same descriptor in every call form', () => {
+        var expected = fs_.stat(file).size;
+
+        assert.equal(fs_.fstat(fd).size, expected);
+        assert.equal(callbackForm(cb => fs_.fstat(fd, cb)).res.size, expected);
+        assert.equal(fs_.fstatSync(fd).size, expected);
+        assert.equal(asyncForm(fs_.fstatAsync(fd)).res.size, expected);
+
+        // the FileHandle alternative still works the same way
+        assert.equal(fs_.fstat(handle).size, expected);
+        assert.equal(fs_.fstatSync(handle).size, expected);
+    });
+
+    it('read accepts an integer descriptor in every call form', () => {
+        var primary = Buffer.alloc(5);
+        assert.equal(fs_.read(fd, primary, 0, 5, 0), 5);
+        assert.equal(primary.toString(), 'hello');
+
+        var viaCallback = Buffer.alloc(5);
+        var r = callbackForm(cb => fs_.read(fd, viaCallback, 0, 5, 0, cb));
+        assert.isNull(r.err);
+        assert.equal(r.res, 5);
+        assert.equal(viaCallback.toString(), 'hello');
+
+        var viaSync = Buffer.alloc(5);
+        assert.equal(fs_.readSync(fd, viaSync, 0, 5, 0), 5);
+        assert.equal(viaSync.toString(), 'hello');
+
+        var viaAsync = Buffer.alloc(5);
+        var a = asyncForm(fs_.readAsync(fd, viaAsync, 0, 5, 0));
+        assert.isUndefined(a.err);
+        assert.equal(a.res, 5);
+        assert.equal(viaAsync.toString(), 'hello');
+    });
+
+    it('write accepts an integer descriptor in every call form', () => {
+        var p = tempFile('write.txt', '');
+        var h = fs_.open(p, 'r+');
+
+        assert.equal(fs_.write(h.fd, Buffer.from('AB'), 0, 2, 0), 2);
+        assert.equal(callbackForm(cb => fs_.write(h.fd, Buffer.from('CD'), 0, 2, 2, cb)).res, 2);
+        assert.equal(fs_.writeSync(h.fd, Buffer.from('EF'), 0, 2, 4), 2);
+        assert.equal(asyncForm(fs_.writeAsync(h.fd, Buffer.from('GH'), 0, 2, 6)).res, 2);
+
+        // the string overload, in every form
+        assert.equal(fs_.write(h.fd, 'ij', 8), 2);
+        assert.equal(callbackForm(cb => fs_.write(h.fd, 'kl', 10, 'utf8', cb)).res, 2);
+        assert.equal(fs_.writeSync(h.fd, 'mn', 12), 2);
+        assert.equal(asyncForm(fs_.writeAsync(h.fd, 'op', 14)).res, 2);
+
+        assert.equal(fs_.readFile(p).toString(), 'ABCDEFGHijklmnop');
+        fs_.close(h);
+    });
+
+    it('close accepts an integer descriptor in every call form', () => {
+        fs_.close(fs_.open(file, 'r').fd);
+        var r = callbackForm(cb => fs_.close(fs_.open(file, 'r').fd, cb));
+        assert.isNull(r.err);
+        fs_.closeSync(fs_.open(file, 'r').fd);
+        assert.isUndefined(asyncForm(fs_.closeAsync(fs_.open(file, 'r').fd)).err);
+    });
+
+    it('fchmod/fchown/futimes/fdatasync/fsync/ftruncate accept an integer descriptor', () => {
+        var now = new Date();
+
+        fs_.fchmod(fd, 0o644);
+        assert.isNull(callbackForm(cb => fs_.fchmod(fd, 0o644, cb)).err);
+        fs_.fchmodSync(fd, 0o644);
+        assert.isUndefined(asyncForm(fs_.fchmodAsync(fd, 0o644)).err);
+
+        // -1 leaves the owner unchanged, so it works unprivileged
+        fs_.fchown(fd, -1, -1);
+        assert.isNull(callbackForm(cb => fs_.fchown(fd, -1, -1, cb)).err);
+        fs_.fchownSync(fd, -1, -1);
+        assert.isUndefined(asyncForm(fs_.fchownAsync(fd, -1, -1)).err);
+
+        fs_.futimes(fd, now, now);
+        assert.isNull(callbackForm(cb => fs_.futimes(fd, now, now, cb)).err);
+        fs_.futimesSync(fd, now, now);
+        assert.isUndefined(asyncForm(fs_.futimesAsync(fd, now, now)).err);
+
+        fs_.fdatasync(fd);
+        assert.isNull(callbackForm(cb => fs_.fdatasync(fd, cb)).err);
+        fs_.fdatasyncSync(fd);
+        assert.isUndefined(asyncForm(fs_.fdatasyncAsync(fd)).err);
+
+        fs_.fsync(fd);
+        assert.isNull(callbackForm(cb => fs_.fsync(fd, cb)).err);
+        fs_.fsyncSync(fd);
+        assert.isUndefined(asyncForm(fs_.fsyncAsync(fd)).err);
+
+        var trunc = tempFile('trunc.txt');
+        var h = fs_.open(trunc, 'r+');
+        fs_.ftruncate(h.fd, 5);
+        assert.equal(fs_.readFile(trunc).toString(), 'hello');
+        assert.isNull(callbackForm(cb => fs_.ftruncate(h.fd, 3, cb)).err);
+        assert.equal(fs_.readFile(trunc).toString(), 'hel');
+        fs_.ftruncateSync(h.fd, 2);
+        assert.equal(fs_.readFile(trunc).toString(), 'he');
+        assert.isUndefined(asyncForm(fs_.ftruncateAsync(h.fd, 1)).err);
+        assert.equal(fs_.readFile(trunc).toString(), 'h');
+        fs_.close(h);
+    });
+
+    it('readFile/writeFile/appendFile accept a name, a descriptor and a FileHandle', () => {
+        var p = tempFile('rw.txt');
+
+        // name form
+        assert.equal(fs_.readFile(p).toString(), 'hello world');
+        assert.equal(callbackForm(cb => fs_.readFile(p, cb)).res.toString(), 'hello world');
+        assert.equal(fs_.readFileSync(p).toString(), 'hello world');
+        assert.equal(asyncForm(fs_.readFileAsync(p)).res.toString(), 'hello world');
+
+        // descriptor form: like Node.js, the read starts at the current
+        // position and the descriptor is neither closed nor repositioned,
+        // so every form opens its own
+        function reopen() {
+            return fs_.open(p, 'r+');
+        }
+
+        var h = reopen();
+        assert.equal(fs_.readFile(h.fd).toString(), 'hello world');
+        assert.equal(fs_.readFile(h.fd).length, 0, 'the read consumed the position');
+        fs_.close(h);
+
+        h = reopen();
+        assert.equal(callbackForm(cb => fs_.readFile(h.fd, cb)).res.toString(), 'hello world');
+        fs_.close(h);
+
+        h = reopen();
+        assert.equal(fs_.readFileSync(h.fd).toString(), 'hello world');
+        fs_.close(h);
+
+        h = reopen();
+        assert.equal(asyncForm(fs_.readFileAsync(h.fd)).res.toString(), 'hello world');
+        fs_.close(h);
+
+        // FileHandle form
+        h = reopen();
+        assert.equal(fs_.readFile(h).toString(), 'hello world');
+        fs_.close(h);
+
+        h = reopen();
+        assert.equal(fs_.readFileSync(h).toString(), 'hello world');
+
+        // writeFile / appendFile: name, descriptor and handle
+        fs_.writeFile(p, 'one');
+        assert.equal(fs_.readFile(p).toString(), 'one');
+        fs_.writeFileSync(p, 'two');
+        assert.equal(fs_.readFile(p).toString(), 'two');
+        assert.equal(callbackForm(cb => fs_.writeFile(p, 'three', cb)).res, 5);
+        assert.equal(fs_.readFile(p).toString(), 'three');
+        assert.equal(asyncForm(fs_.writeFileAsync(p, 'four')).res, 4);
+        assert.equal(fs_.readFile(p).toString(), 'four');
+
+        fs_.appendFile(p, '!');
+        assert.equal(fs_.readFile(p).toString(), 'four!');
+        assert.equal(callbackForm(cb => fs_.appendFile(p, '!', cb)).res, 1);
+        assert.equal(fs_.readFile(p).toString(), 'four!!');
+        assert.equal(fs_.appendFileSync(p, '!'), 1);
+        assert.equal(asyncForm(fs_.appendFileAsync(p, '!')).res, 1);
+        assert.equal(fs_.readFile(p).toString(), 'four!!!!');
+
+        fs_.writeFile(h.fd, 'ABCDEFGH');
+        fs_.appendFile(h.fd, 'ij');
+        assert.equal(fs_.readFile(p).toString(), 'ABCDEFGHij');
+        fs_.writeFile(h, '12345678');
+        fs_.appendFile(h, '90');
+        assert.equal(fs_.readFile(p).toString(), '1234567890');
+        fs_.close(h);
+    });
+
+    it('rejects values no descriptor alternative accepts', () => {
+        // a numeric string goes through the lenient Integer rule every
+        // Integer parameter uses, so it reaches the same descriptor
+        assert.equal(fs_.fstat(String(fd)).size, fs_.fstat(fd).size);
+
+        assert.throws(() => fs_.fstat('abc'));
+        assert.throws(() => fs_.fstatSync('abc'));
+        assert.throws(() => fs_.fstat({}));
+        assert.throws(() => fs_.readFile(fd, 1));
+
+        // the conversion runs in the synchronous phase: the error is
+        // thrown, not delivered to the callback
+        assert.throws(() => fs_.fstat('abc', function () { }));
+    });
+});

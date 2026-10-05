@@ -7428,5 +7428,58 @@ describe("http", () => {
             });
         });
     });
+
+    // The http handler parameter unions (Handler|Handler[]|Function|Object|
+    // String) across the server constructor forms, and the HttpResponse
+    // init-object union (HttpCookie|Object).
+    describe('the http parameter unions', () => {
+        var mq_ = require('mq');
+        var tls_ = require('tls');
+        var crypto_ = require('crypto');
+
+        it('every server constructor accepts every declared handler shape', () => {
+            var fn = function (req, res) { if (res) res.end(); };
+            var shapes = [fn, new mq_.Handler(fn), [fn], { '/': fn }];
+            var dir = os.tmpdir();
+
+            shapes.forEach(h => {
+                http.createServer(h).close();
+                new http.Server(h).close();
+                new http.Handler(h);
+            });
+
+            // the path/address string alternative
+            http.createServer(dir).close();
+            http.createServer('http://127.0.0.1:1/').close();
+            new http.Handler(dir);
+
+            // the address/port constructor forms carry the same listener union
+            new http.Server(0, fn).close();
+            new http.Server('127.0.0.1', 0, fn).close();
+            http.createServer({}, fn).close();
+
+            // the TLS server forms take a SecureContext
+            var pk = crypto_.generateKeyPairSync('rsa', { modulusLength: 2048 });
+            var ca = crypto_.createCertificateRequest({ key: pk.privateKey, subject: { CN: 'fibjs.org' } })
+                .issue({ key: pk.privateKey, ca: true, validFrom: new Date(new Date() - 1000), issuer: { CN: 'fibjs.org' } });
+            var ctx = tls_.createSecureContext({ key: pk.privateKey, cert: ca.pem });
+
+            shapes.forEach(h => {
+                new http.HttpsServer(ctx, h).close();
+                new http.HttpsServer(ctx, 0, h).close();
+            });
+        });
+
+        it('addCookie accepts a cookie and an options object', () => {
+            var res = new http.Response();
+            res.addCookie({ name: 'a', value: 'b', path: '/' });
+            res.addCookie(new http.Cookie({ name: 'c', value: 'd' }));
+
+            assert.equal(res.cookies.length, 2);
+            assert.equal(res.cookies[0].name, 'a');
+            assert.equal(res.cookies[0].path, '/');
+            assert.equal(res.cookies[1].name, 'c');
+        });
+    });
 });
 

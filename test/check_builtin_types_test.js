@@ -330,4 +330,162 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
 
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });
-});
+
+    it('accepts the Handler conversion face the IDL declares', () => {
+        var dir = path.join(scratch, 'handler-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'handler.ts'), [
+            "import http from 'http';",
+            "import http2 from 'http2';",
+            "import net from 'net';",
+            "import tls from 'tls';",
+            "import mq from 'mq';",
+            // the IDL declares the parameter as
+            // `Handler|Handler[]|Function(...) => Value|Object|String`: the
+            // callable alternative carries the shapes the runtime converts
+            // into a Handler, so --strict gives the arrow parameters their
+            // contextual type (no TS7006) and the declared parameter types
+            "http.createServer((req, res) => { const h: Class_Headers = req.headers; res.write('x'); res.end(); });",
+            "http.createServer({ '/': (req: any, res: any) => { } });",
+            "http.createServer('./www');",
+            "http.createServer('http://backend');",
+            "http.createServer([new mq.Handler((req: any, res: any) => { })]);",
+            'new http.Server((req, res) => { req.method; res.end(); });',
+            "new http.Handler('./www');",
+            'net.createServer((sock) => { sock.remotePort; sock.end(); });',
+            'new net.TcpServer(0, (sock) => { sock.remotePort; sock.end(); });',
+            'tls.createServer({}, (sock) => { sock.alpnProtocol; sock.end(); });',
+            'http2.createServer({}, (req, res) => { req.method; res.end(); });',
+            'const r = new mq.Routing({});',
+            "r.get('/x/*', (req, p1, res) => { req.value; console.log(p1, res); });",
+            "r.append('/x', './www');",
+            'mq.invoke((req: any) => req, new mq.Routing({}));',
+            'console.log(http, http2, net, tls, mq, r);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'handler.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        // the callable shape types the callback parameters per server: a
+        // member of another server's argument is a type error
+        fs.writeFileSync(path.join(dir, 'shapes.ts'), [
+            "import net from 'net';",
+            "import tls from 'tls';",
+            '// @ts-expect-error a tcp socket has no tls member',
+            'net.createServer((sock) => { sock.alpnProtocol; });',
+            '// @ts-expect-error a tls socket is not an http request',
+            'tls.createServer({}, (sock) => { sock.headers; });'
+        ].join('\n'));
+
+        r = runCheck(dir, ['shapes.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        // the union must not have widened the parameters to `any`: the values
+        // no alternative accepts stay type errors
+        fs.writeFileSync(path.join(dir, 'neg.ts'), [
+            "import http from 'http';",
+            "import net from 'net';",
+            '// @ts-expect-error',
+            'http.createServer(123);',
+            '// @ts-expect-error',
+            'net.createServer(123);'
+        ].join('\n'));
+
+        r = runCheck(dir, ['neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('accepts the descriptor unions the IDL declares', () => {
+        var dir = path.join(scratch, 'descriptor-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'fd.ts'), [
+            "import fs from 'fs';",
+            // the descriptor parameters declare `Integer|FileHandle`: a raw
+            // descriptor or a FileHandle object
+            'const h: Class_FileHandle = fs.open("x");',
+            'const st = fs.fstat(1);',
+            'fs.fstat(h);',
+            'const buf = Buffer.alloc(8);',
+            'fs.read(0, buf);',
+            'fs.write(1, buf);',
+            'fs.close(1);',
+            'fs.fsync(1);',
+            'fs.ftruncate(1, 0);',
+            'fs.readFile(0);',
+            'fs.readFile(h);',
+            'fs.writeFile(1, "x");',
+            'fs.appendFile(1, "x");',
+            'console.log(st, buf);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'fd.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        fs.writeFileSync(path.join(dir, 'fd-neg.ts'), [
+            "import fs from 'fs';",
+            '// @ts-expect-error a string is not a descriptor',
+            'fs.fstat("1");'
+        ].join('\n'));
+
+        r = runCheck(dir, ['fd-neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('accepts the URL unions the IDL declares', () => {
+        var dir = path.join(scratch, 'url-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'url.ts'), [
+            "import url from 'url';",
+            // the URL parameters declare `UrlObject|String|Object`: the
+            // constructor base, url.format and url.fileURLToPath accept a
+            // UrlObject, a URL string and a URL components object alike
+            "const a = new URL('/a', 'https://x/');",
+            "const b = new URL('/a', new URL('https://x/'));",
+            "const c = new URL('/a', { protocol: 'https:', hostname: 'x' });",
+            "const f: string = url.format('https://x/a?b=1#c', { fragment: false });",
+            'const f2: string = url.format({ protocol: "https:", hostname: "x" });',
+            "const p: string = url.fileURLToPath({ protocol: 'file:', pathname: '/tmp/x' });",
+            'console.log(a, b, c, f, f2, p);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'url.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+    it('accepts the init-object unions the IDL declares', () => {
+        var dir = path.join(scratch, 'init-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'init.ts'), [
+            "import http from 'http';",
+            "import rtc from 'rtc';",
+            "import crypto from 'crypto';",
+            // HttpCookie|Object: the instance or its options object
+            'const res = new http.Response();',
+            "res.addCookie({ name: 'a', value: 'b', path: '/' });",
+            "res.addCookie(new http.Cookie({ name: 'c', value: 'd' }));",
+            // RTCSessionDescription|Object / RTCIceCandidate|Object
+            'const pc = new rtc.RTCPeerConnection();',
+            "pc.setLocalDescription({ type: 'offer', sdp: 'v=0' });",
+            "pc.setRemoteDescription(new rtc.RTCSessionDescription({ type: 'offer', sdp: 'v=0' }));",
+            "pc.addIceCandidate({ candidate: 'a', sdpMid: '0' });",
+            // X509Certificate|Buffer|String
+            'const leaf = new crypto.X509Certificate(Buffer.from("x"));',
+            'leaf.checkIssued(new crypto.X509Certificate(Buffer.from("y")));',
+            "leaf.checkIssued('-----BEGIN CERTIFICATE-----');",
+            "leaf.checkIssued(Buffer.from('-----BEGIN CERTIFICATE-----'));",
+            'console.log(res, pc, leaf);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'init.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });});

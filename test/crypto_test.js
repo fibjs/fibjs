@@ -4773,3 +4773,19 @@ describe('crypto', () => {
 
     require("./ecdh_test.js");
 });
+
+// The X509Certificate issuer union (X509Certificate|Buffer|String).
+describe('the X509 parameter unions', () => {
+    it('checkIssued accepts a certificate, a PEM string and a Buffer', () => {
+        var caPem = fs.readFile(path.join(__dirname, 'cert_files', 'test-ca.crt'));
+        var leafPem = fs.readFile(path.join(__dirname, 'cert_files', 'cert_example_multi.crt'));
+
+        var ca = new crypto.X509Certificate(caPem);
+        var leaf = new crypto.X509Certificate(leafPem);
+
+        assert.isTrue(leaf.checkIssued(ca));
+        assert.isTrue(leaf.checkIssued(caPem.toString()));
+        assert.isTrue(leaf.checkIssued(caPem));
+        assert.isFalse(leaf.checkIssued(leafPem));
+    });
+});

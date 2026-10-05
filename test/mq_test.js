@@ -1491,3 +1491,181 @@ describe("mq", () => {
     });
 });
 
+// The mq handler parameter unions (Handler|Handler[]|Function|Object|String)
+// in every call form, plus the routing captures and the async union
+// discipline under repeat/concurrent calls.
+describe('the mq parameter unions', () => {
+    var mq_ = require('mq');
+    var http_ = require('http');
+    var test_util_ = require('./test_util');
+
+    function callbackForm(invoke) {
+        var got;
+        invoke(function (err, res) {
+            got = { err: err, res: res };
+        });
+        assert.ok(test_util_.waitUntil(function () { return got !== undefined; }),
+            'the callback form did not complete');
+        return got;
+    }
+
+    function asyncForm(promise) {
+        var got;
+        promise.then(function (res) {
+            got = { res: res };
+        }, function (err) {
+            got = { err: err };
+        });
+        assert.ok(test_util_.waitUntil(function () { return got !== undefined; }),
+            'the async form did not complete');
+        return got;
+    }
+
+    it('mq.invoke accepts a handler in the primary and callback forms', () => {
+        var seen = [];
+        var msg = new mq_.Message();
+        msg.value = 'primary';
+
+        mq_.invoke(function (v) { seen.push(v.value); }, msg);
+        assert.deepEqual(seen, ['primary']);
+
+        var r = callbackForm(cb => mq_.invoke(function (v) { seen.push(v.value); }, msg, cb));
+        assert.isNull(r.err);
+        assert.deepEqual(seen, ['primary', 'primary']);
+    });
+
+    it('mq.invokeSync/invokeAsync accept every handler shape', () => {
+        var shapes = [
+            function (v) { return undefined; },
+            new mq_.Handler(function (v) { return undefined; }),
+            [function (v) { return undefined; }],
+            { 'a': function (v) { return undefined; } }
+        ];
+
+        shapes.forEach((hdlr, i) => {
+            var msg = new mq_.Message();
+            msg.value = i === shapes.length - 1 ? 'a' : 'v';
+
+            mq_.invokeSync(hdlr, msg);
+            assert.isUndefined(asyncForm(mq_.invokeAsync(hdlr, msg)).err, 'shape ' + i);
+
+            var r = callbackForm(cb => mq_.invoke(hdlr, msg, cb));
+            assert.isNull(r.err, 'shape ' + i);
+        });
+    });
+
+    it('mq.invoke rejects a value no handler alternative accepts', () => {
+        var msg = new mq_.Message();
+        assert.throws(() => mq_.invokeSync(123, msg));
+        assert.throws(() => mq_.invoke(123, msg));
+    });
+
+    it('Chain.append accepts the handler, the array and the function', () => {
+        var set = function (v) { v.value = 'set'; };
+        var chain = new mq_.Chain([set]);
+
+        chain.append(set);
+        chain.append([set]);
+        chain.append(new mq_.Handler(set));
+
+        var msg = new mq_.Message();
+        msg.value = 'before';
+        mq_.invoke(chain, msg);
+        assert.equal(msg.value, 'set');
+    });
+
+    it('a routing template hands its captures to the handler before res', () => {
+        var captures = null;
+        var params = null;
+        var routing = new mq_.Routing();
+
+        routing.get('/x/:id/:name', function (req, id, name, res) {
+            captures = [id, name, typeof res];
+            params = req.params;
+            res.write('id=' + id + ',name=' + name);
+        });
+        routing.get('/plain', function (req, res) {
+            res.write('plain:' + typeof res);
+        });
+
+        var svr = http_.createServer(routing);
+        svr.listen(0);
+        test_util_.push(svr.socket);
+
+        try {
+            var port = svr.address().port;
+            var got;
+
+            http_.get('http://127.0.0.1:' + port + '/x/42/a%20b', function (r) {
+                got = { status: r.statusCode, body: r.readAll().toString() };
+            });
+            assert.ok(test_util_.waitUntil(function () { return got !== undefined; }));
+            assert.equal(got.status, 200);
+            assert.equal(got.body, 'id=42,name=a b');
+            assert.deepEqual(captures, ['42', 'a b', 'object']);
+            assert.equal(params.length, 2);
+            assert.equal(params[0], '42');
+            assert.equal(params[1], 'a b');
+
+            // a route without captures still receives the response
+            got = undefined;
+            http_.get('http://127.0.0.1:' + port + '/plain', function (r) {
+                got = { status: r.statusCode, body: r.readAll().toString() };
+            });
+            assert.ok(test_util_.waitUntil(function () { return got !== undefined; }));
+            assert.equal(got.body, 'plain:object');
+        } finally {
+            svr.close();
+        }
+    });
+
+    it('keeps each call\'s payload on its own call (repeat)', () => {
+        for (var i = 0; i < 200; i++) {
+            var msg = new mq_.Message();
+            msg.value = 'r' + i;
+
+            var seen = null;
+            var fn = function (v) { seen = v.value; };
+            var map = {};
+            map[msg.value] = fn;
+
+            var hdlr = i % 4 === 0 ? fn
+                : i % 4 === 1 ? new mq_.Handler(fn)
+                    : i % 4 === 2 ? [fn]
+                        : map;
+
+            if (i % 2)
+                mq_.invokeSync(hdlr, msg);
+            else
+                mq_.invoke(hdlr, msg);
+
+            assert.equal(seen, 'r' + i, 'iteration ' + i + ' kept its own payload');
+        }
+    });
+
+    it('keeps concurrent async calls isolated', () => {
+        var N = 32;
+        var seen = {};
+        var pending = 0;
+        var settled = 0;
+
+        for (var i = 0; i < N; i++) {
+            (function (i) {
+                var msg = new mq_.Message();
+                msg.value = 'c' + i;
+                pending++;
+
+                mq_.invokeAsync(function (v) { seen[v.value] = true; }, msg).then(function () {
+                    settled++;
+                }, function () {
+                    settled++;
+                });
+            })(i);
+        }
+
+        assert.ok(test_util_.waitUntil(function () { return settled === pending; }, 3000),
+            'every concurrent invoke completed');
+        assert.equal(Object.keys(seen).length, N, 'each concurrent call saw its own message');
+    });
+});
+

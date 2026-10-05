@@ -1249,3 +1249,24 @@ describe('http2', () => {
         });
     });
 });
+
+// The http2 handler parameter unions (Handler|Handler[]|Function|Object|
+// String) across the server constructor forms.
+describe('the http2 parameter unions', () => {
+    var mq_ = require('mq');
+
+    it('createServer/Server accept every declared handler shape', () => {
+        var pk = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+        var ca = crypto.createCertificateRequest({ key: pk.privateKey, subject: { CN: 'fibjs.org' } })
+            .issue({ key: pk.privateKey, ca: true, validFrom: new Date(new Date() - 1000), issuer: { CN: 'fibjs.org' } });
+        var ctx = tls.createSecureContext({ key: pk.privateKey, cert: ca.pem });
+
+        var fn = function (req, res) { if (res) res.end(); };
+        var shapes = [fn, new mq_.Handler(fn), [fn], { '/': fn }];
+
+        shapes.forEach(h => {
+            http2.createServer(ctx, h).close();
+            new http2.Server(ctx, h).close();
+        });
+    });
+});

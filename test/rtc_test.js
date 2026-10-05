@@ -138,4 +138,53 @@ describe('rtc', function () {
     });
 });
 
+// The RTC init-object unions (RTCSessionDescription|Object,
+// RTCIceCandidate|Object) in every call form.
+describe('the RTC parameter unions', () => {
+    function catchOf(fn) {
+        try {
+            fn();
+        } catch (e) {
+            return e;
+        }
+        return null;
+    }
+
+    function asyncForm(promise) {
+        var got;
+        promise.then(function (res) {
+            got = { res: res };
+        }, function (err) {
+            got = { err: err };
+        });
+        assert.ok(test_util.waitUntil(function () { return got !== undefined; }),
+            'the async form did not complete');
+        return got;
+    }
+
+    it('the RTC members convert an init object in every call form', () => {
+        // 20024 is the domain error of a connection with nothing to
+        // negotiate; 20005 would mean the object was not converted
+        function assertConverted(err) {
+            assert.ok(err, 'the call should fail on the empty connection');
+            assert.notEqual(err.number, 20005, 'the init object must not be a type mismatch');
+        }
+
+        var desc = { type: 'offer', sdp: 'v=0' };
+        var cand = { candidate: 'candidate:1 1 UDP 1 127.0.0.1 10000 typ host', sdpMid: '0', sdpMLineIndex: 0 };
+
+        assertConverted(catchOf(() => new rtc.RTCPeerConnection().setLocalDescriptionSync(desc)));
+        assertConverted(catchOf(() => new rtc.RTCPeerConnection().setRemoteDescriptionSync(desc)));
+        assertConverted(catchOf(() => new rtc.RTCPeerConnection().addIceCandidateSync(cand)));
+
+        assertConverted(asyncForm(new rtc.RTCPeerConnection().setLocalDescription(desc)).err);
+        assertConverted(asyncForm(new rtc.RTCPeerConnection().setLocalDescriptionAsync(desc)).err);
+        assertConverted(asyncForm(new rtc.RTCPeerConnection().addIceCandidateAsync(cand)).err);
+
+        // the class form reaches the same domain error
+        assertConverted(catchOf(() =>
+            new rtc.RTCPeerConnection().setLocalDescriptionSync(new rtc.RTCSessionDescription(desc))));
+    });
+});
+
 

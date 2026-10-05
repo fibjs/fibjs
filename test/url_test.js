@@ -3961,3 +3961,30 @@ describe("url", () => {
     });
 });
 
+// The URL parameter unions (UrlObject|String|Object) of the URL constructor,
+// url.format and url.fileURLToPath.
+describe('the url parameter unions', () => {
+    var path_ = require('path');
+
+    it('accepts a UrlObject, a string and a components object', () => {
+        assert.equal(new URL('/a', 'https://x/').href, 'https://x/a');
+        assert.equal(new URL('/a', new URL('https://x/')).href, 'https://x/a');
+        assert.equal(new URL('/a', { protocol: 'https:', hostname: 'x' }).href, 'https://x/a');
+
+        // the module-level class is the same union
+        assert.equal(new url.URL('/a', new url.URL('https://x/')).href, 'https://x/a');
+        assert.equal(new url.URL('/a', { protocol: 'https:', hostname: 'x' }).href, 'https://x/a');
+        assert.equal(new url.URL('https://x/a').href, 'https://x/a');
+
+        assert.equal(url.format('https://x/a?b=1#c', { fragment: false }), 'https://x/a?b=1#c');
+        assert.equal(url.format({ protocol: 'https:', hostname: 'x' }), 'https://x/');
+        assert.equal(url.format(new URL('https://x/a')), 'https://x/a');
+
+        assert.equal(url.fileURLToPath('file:///tmp/x'), path_.normalize('/tmp/x'));
+        assert.equal(url.fileURLToPath(new URL('file:///tmp/x')), path_.normalize('/tmp/x'));
+        assert.equal(url.fileURLToPath({ protocol: 'file:', pathname: '/tmp/x' }), path_.normalize('/tmp/x'));
+
+        assert.throws(() => url.fileURLToPath(123));
+    });
+});
+

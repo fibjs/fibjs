@@ -3214,3 +3214,29 @@ function test_net(eng, use_uv) {
 
 test_net("ev", false);
 test_net("uv", true);
+
+// The net handler parameter unions (Handler|Handler[]|Function|Object|String)
+// across the server constructor forms; the listener receives the accepted
+// Socket.
+describe('the net parameter unions', () => {
+    var mq_ = require('mq');
+
+    it('every server constructor accepts every declared handler shape', () => {
+        var fn = function (socket) { socket.close(); };
+        var shapes = [fn, new mq_.Handler(fn), [fn], { '/': fn }];
+        var dir = os.tmpdir();
+
+        shapes.forEach(h => {
+            net.createServer(h).close();
+            new net.TcpServer(h).close();
+        });
+
+        // the path/address string alternative
+        net.createServer(dir).close();
+        new net.TcpServer(dir).close();
+
+        // the address/port constructor forms
+        new net.TcpServer(0, fn).close();
+        new net.TcpServer('127.0.0.1', 0, fn).close();
+    });
+});

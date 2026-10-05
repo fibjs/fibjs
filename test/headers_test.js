@@ -1067,3 +1067,34 @@ describe("Headers API", () => {
         });
     });
 });
+
+// The HttpCollection value unions (Array|Variant): the entry array is covered
+// above; here the value array and the single value forms, plus the rejects.
+describe('the collection parameter unions', () => {
+    var http_ = require('http');
+
+    it('a value array appends and sets in order', () => {
+        var res = new http_.Response();
+
+        // a plain value array appends one entry per element
+        res.headers.append('X-A', ['3', '4']);
+        var all = res.headers.getAll('X-A');
+        assert.equal(all.length, 2);
+        assert.equal(all[0], '3');
+        assert.equal(all[1], '4');
+
+        res.headers.set('X-C', ['5', '6']);
+        var setAll = res.headers.getAll('X-C');
+        assert.equal(setAll.length, 2);
+        assert.equal(setAll[0], '5');
+        assert.equal(setAll[1], '6');
+        // get joins the values the way the wire format does
+        assert.equal(res.headers.get('X-C'), '5, 6');
+    });
+
+    it('rejects a value no collection alternative accepts', () => {
+        var res = new http_.Response();
+        assert.throws(() => res.headers.append(1));
+        assert.throws(() => res.headers.set(1));
+    });
+});
