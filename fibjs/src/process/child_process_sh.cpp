@@ -116,14 +116,26 @@ result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exli
         Isolate* isolate = Isolate::current(strings);
         exlib::string cmd = AsyncShell::process_command(strings, args);
 
-        ac->m_ctx.resize(2);
-        ac->m_ctx[1] = cmd;
+        result_t hr = exec(cmd, v8::Local<v8::Object>(), *(obj_ptr<ExecType>*)nullptr, ac);
+        if (hr != CALL_E_NOSYNC)
+            return hr;
 
-        return exec(cmd, v8::Local<v8::Object>(), *(obj_ptr<ExecType>*)nullptr, ac);
+        // exec/execFile 与本函数共享同一个 ac，而 execFile 的 sync 相位会重建
+        // m_ctx（[0]=codec、[1]=input）：命令串必须在调用之后放入 exec 家族
+        // 不使用的 m_ctx[2] 跨相位携带。（真正的 spawn 已在 execFile 的 sync
+        // 相位完成，async 相位只做 stdout/stderr 抽取。）
+        ac->m_ctx.resize(3);
+        ac->m_ctx[2] = cmd;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    result_t ctx_hr = ac->ctx(2);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     AsyncShell* as = new AsyncShell(retVal, ac);
-    exlib::string cmd = ac->m_ctx[1].string();
+    exlib::string cmd = ac->m_ctx[2].string();
 
     return exec(cmd, v8::Local<v8::Object>(), as->m_exec_retVal, as);
 }
