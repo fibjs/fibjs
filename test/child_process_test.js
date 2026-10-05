@@ -1253,8 +1253,15 @@ describe("child_process", () => {
     it("environment rendering", () => {
         // every environment value is rendered with its string form
         var script = 'console.log([process.env.M13_NUM, process.env.M13_BOOL, process.env.M13_OBJ].join("|"))';
+
+        // a filtered env has to keep the keys the platform loader runs a child
+        // with: a simulator child started without DYLD_ROOT_PATH dies in dyld
+        // and a cross-arch child without QEMU_LD_PREFIX cannot find its loader
+        // (both leave an empty stdout behind, see test_util.childEnvKeys)
         var r = child_process.execFile(cmd, ['-e', script], {
-            env: { M13_NUM: 500, M13_BOOL: true, M13_OBJ: { a: 1 } }
+            env: Object.assign(test_util.pickEnv(process.env, []), {
+                M13_NUM: 500, M13_BOOL: true, M13_OBJ: { a: 1 }
+            })
         });
 
         assert.strictEqual(String(r.stdout).trim(), "500|true|[object Object]");
