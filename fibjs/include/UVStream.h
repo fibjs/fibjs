@@ -417,6 +417,9 @@ public:
 
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
     {
+        // 受控例外（§3-C）：非后台 stdio 流直接委托 AsyncStream::read，其内部
+        // 有自己的同步快路径；不能把 guard 提到委托之前，否则会破坏"缓冲数据
+        // 立即可读"的同步语义。
         if (this->m_readable || !is_stdio_fd(m_fd))
             return AsyncStream<T>::read(bytes, retVal, ac);
 
@@ -469,6 +472,8 @@ public:
         obj_ptr<UVStream_tmpl> m_pThis;
     };
 
+    // 受控例外（§3-C）：stdio/非阻塞写在 AC 的 sync 相位就以"后台写"方式
+    // fire-and-forget，无须进入 async 相位。
     bool isBackgroundWrite(AsyncEvent* ac)
     {
         return (is_stdio_fd(m_fd) || m_nonblockWrite) && ac->isSync() && ac->callType() == AsyncEvent::kAsyncCall;

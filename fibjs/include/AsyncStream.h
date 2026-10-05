@@ -460,7 +460,10 @@ public:
 
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
     {
-        // readable mode: return from pending queue synchronously
+        // 受控同步快路径（C 类例外，见审计报告 §3-C）：readable 模式下先看
+        // 待读队列，命中就同步返回（未命中也是同步的“暂无数据”语义）；只有
+        // 非 readable 流才进下面的 async 相位。NOSYNC 时第二次进入只多做
+        // 一次空队列检查。
         if (m_readable) {
             m_lock.lock();
 
@@ -628,13 +631,15 @@ public:
         return static_cast<T*>(this)->writeBuffer(buf, ac);
     }
 
-    // Enqueue buffer into write queue during sync phase
+    // Enqueue buffer into write queue during sync phase. The completion event
+    // travels in m_ctx[2] with the other parameters: m_ctxo is the
+    // callback-style return-value slot, never a parameter carrier
+    // (plans/async-phase-discipline-audit-2026-10-05.md §3-G).
     result_t enqueueWrite(Buffer_base* data, bool& retVal, AsyncEvent* ac)
     {
-        ac->m_ctxo = new Event();
-
-        ac->m_ctx.resize(2);
+        ac->m_ctx.resize(3);
         ac->m_ctx[0] = data;
+        ac->m_ctx[2] = new Event();
 
         int32_t len;
         data->get_length(len);
@@ -664,13 +669,15 @@ public:
         if (ac->isSync())
             return enqueueWrite(data, retVal, ac);
 
-        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+
+        if (ev == NULL) {
             retVal = true;
             return static_cast<T*>(this)->writeBuffer(data, ac);
         }
 
         retVal = ac->m_ctx[1].boolVal();
-        ac->m_ctxo.As<Event_base>()->set();
+        ev->set();
         return CALL_E_PENDDING;
     }
 
@@ -679,13 +686,15 @@ public:
         if (ac->isSync())
             return enqueueWrite(data, retVal, ac);
 
-        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+
+        if (ev == NULL) {
             retVal = true;
             return static_cast<T*>(this)->writeBuffer(data, ac);
         }
 
         retVal = ac->m_ctx[1].boolVal();
-        ac->m_ctxo.As<Event_base>()->set();
+        ev->set();
         return CALL_E_PENDDING;
     }
 
@@ -699,7 +708,9 @@ public:
             return enqueueWrite(buf, retVal, ac);
         }
 
-        if (ac->m_ctx.size() == 0 || !Event_base::getInstance(ac->m_ctxo)) {
+        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+
+        if (ev == NULL) {
             obj_ptr<Buffer_base> buf;
             result_t hr = Buffer_base::from(data, encoding, buf);
             if (hr < 0)
@@ -709,7 +720,7 @@ public:
         }
 
         retVal = ac->m_ctx[1].boolVal();
-        ac->m_ctxo.As<Event_base>()->set();
+        ev->set();
         return CALL_E_PENDDING;
     }
 
@@ -874,7 +885,7 @@ public:
 
         ON_STATE(AsyncStreamWriter, write_done)
         {
-            m_ac->m_ctxo.As<Event_base>()->wait(this);
+            Event_base::getInstance(m_ac->m_ctx[2].object())->wait(this);
 
             m_ac->post(n);
             m_ac = nullptr;
@@ -885,7 +896,7 @@ public:
         virtual int32_t error(int32_t v)
         {
             if (m_ac) {
-                m_ac->m_ctxo.As<Event_base>()->wait(this);
+                Event_base::getInstance(m_ac->m_ctx[2].object())->wait(this);
 
                 m_ac->post(v);
                 m_ac = nullptr;

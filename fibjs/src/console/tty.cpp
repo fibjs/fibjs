@@ -147,11 +147,11 @@ result_t TTYOutputStream::clearScreenDown()
 
 result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncEvent* ac)
 {
-    if (x < 0)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "cursorTo: x must be non-negative, received %d.", x));
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (x < 0)
+        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "cursorTo: x must be non-negative, received %d.", x));
 
     char numStr[64];
 

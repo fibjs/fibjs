@@ -63,6 +63,8 @@ public:
 
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
     {
+        // 受控同步快路径（C 类例外，见审计报告 §3-C）：已结束的迭代器直接
+        // 同步返回 {done:true}；其余语义才需要 async 相位。
         if (m_done) {
             retVal = new NextType();
             retVal->done = true;

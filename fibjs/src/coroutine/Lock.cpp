@@ -19,6 +19,9 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This)
 
 result_t Lock::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
 {
+    // 受控同步快路径（C 类例外，见审计报告 §3-C）：锁能立即到手（或调用方
+    // 不要求阻塞）时没有异步工作，直接在 sync 相位返回；只有真正需要阻塞
+    // 等待才进 async 相位。
     if (m_lock.trylock()) {
         retVal = true;
         return 0;

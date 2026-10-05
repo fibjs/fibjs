@@ -244,13 +244,12 @@ result_t Message::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
 
 result_t Message::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = new Buffer(data.c_str(), data.length());
-        return CALL_E_NOSYNC;
-    }
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[0].object();
+    // Buffer 构造是纯 C++（不触碰 V8）：直接在 async 相位完成，不必把转换
+    // 结果挤进 m_ctx（见 plans/async-phase-discipline-audit-2026-10-05.md §2）
+    obj_ptr<Buffer_base> buf = new Buffer(data.c_str(), data.length());
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
@@ -296,6 +295,10 @@ result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* a
         return CALL_E_NOSYNC;
     }
 
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
+
     obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[0].object();
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
@@ -340,6 +343,10 @@ result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* a
 
         return CALL_E_NOSYNC;
     }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[0].object();
     obj_ptr<MemoryStream> ms = new MemoryStream();

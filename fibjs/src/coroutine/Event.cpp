@@ -68,6 +68,8 @@ result_t Event::clear()
 
 result_t Event::wait(AsyncEvent* ac)
 {
+    // 受控同步快路径（C 类例外，见审计报告 §3-C）：事件已置位时无需等待，
+    // 直接返回；未置位才进 async 相位。
     if (m_event.isSet())
         return 0;
 

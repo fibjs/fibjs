@@ -467,10 +467,6 @@ result_t EventSource::close(AsyncEvent* ac)
 
 result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
 {
-    if (m_readyState != sse_base::C_SENDER) {
-        return CHECK_ERROR(Runtime::setError("EventSource.send: can only be called when readyState is sse.SENDER"));
-    }
-
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
 
@@ -484,6 +480,14 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
+
+    if (m_readyState != sse_base::C_SENDER) {
+        return CHECK_ERROR(Runtime::setError("EventSource.send: can only be called when readyState is sse.SENDER"));
+    }
+
+    result_t ctx_hr = ac->ctx(0);
+    if (ctx_hr < 0)
+        return ctx_hr;
 
     SendOptions* opts = (SendOptions*)ac->m_ctx[0].object();
 

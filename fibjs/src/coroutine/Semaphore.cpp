@@ -46,6 +46,8 @@ result_t Semaphore::count(int32_t& retVal)
 
 result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
 {
+    // 受控同步快路径（C 类例外，见审计报告 §3-C）：信号量有余量时立即返回，
+    // 只有需要等待才进 async 相位。
     if (m_sem.trywait()) {
         retVal = true;
         return 0;
