@@ -336,11 +336,11 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, int3
         inetAddr m_ai;
     };
 
-    if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
 
@@ -412,11 +412,11 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
         char m_Buf[(sizeof(inetAddr) + 16) * 2];
     };
 
-    if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<Socket> s = new Socket(true);
     result_t hr = s->create(m_family);
@@ -510,11 +510,11 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         obj_ptr<Buffer> m_read_buf;
     };
 
-    if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_lockRecv, timeout, this))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
@@ -574,11 +574,11 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac, int32_t timeout)
         int32_t m_sz;
     };
 
-    if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     (new asyncSend(m_fd, data, ac, m_lockSend, timeout, this))->post();
     return CHECK_ERROR(CALL_E_PENDDING);

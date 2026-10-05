@@ -122,6 +122,8 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         obj_ptr<Buffer_base>& m_retVal;
     };
 
+    // 受控同步快路径（C 类例外，见审计报告 §3-C）：bytes < 0 且缓冲有数据时
+    // 直接同步返回；否则先做一次预扫描（process），未凑齐再进 async 相位。
     if (bytes < 0) {
         int32_t n = (int32_t)m_buf.length() - m_pos;
         if (n > 0) {

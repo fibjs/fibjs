@@ -60,11 +60,11 @@ public:
 
     virtual result_t read(obj_ptr<ReadType>& retVal, AsyncEvent* ac)
     {
-        if (!m_stream)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
+
+        if (!m_stream)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         return (new AsyncRead(this, retVal, ac))->post(0);
     }
@@ -105,11 +105,11 @@ public:
 
     virtual result_t cancel(exlib::string reason, AsyncEvent* ac)
     {
-        if (!m_stream)
-            return 0;
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
+
+        if (!m_stream)
+            return 0;
 
         return (new AsyncCancel(this, ac))->post(0);
     }
