@@ -10,6 +10,7 @@
 #include "RTCSessionDescription.h"
 #include "RTCIceCandidate.h"
 #include "SimpleObject.h"
+#include "union_helpers.h"
 
 namespace fibjs {
 
@@ -254,12 +255,17 @@ result_t RTCPeerConnection::setLocalDescription(AsyncEvent* ac)
     return 0;
 }
 
-result_t RTCPeerConnection::setLocalDescription(RTCSessionDescription_base* description, AsyncEvent* ac)
+result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    // the async-aware helper keeps the phase logic: the object alternative is
+    // built in the sync phase (it reads JS properties), the class alternative
+    // is resolved in the async phase, so a cc_ caller can pass it directly
+    obj_ptr<RTCSessionDescription_base> description_;
+    result_t hr = ctor_object_from_union<RTCSessionDescription_base>(description, description_, ac);
+    if (hr < 0)
+        return hr;
 
-    RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description);
+    RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description_.get());
 
     if (desc->m_desc.type() == rtc::Description::Type::Offer) {
         try {
@@ -272,14 +278,20 @@ result_t RTCPeerConnection::setLocalDescription(RTCSessionDescription_base* desc
     return 0;
 }
 
-result_t RTCPeerConnection::setRemoteDescription(RTCSessionDescription_base* description, AsyncEvent* ac)
+result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
+    // keep the connection alive across the async operation; the JS wrapper
+    // exists only on the JS call path (the sync phase), so this side effect
+    // stays here
+    if (ac->isSync())
         m_self = new ValueHolder(wrap());
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
 
-    RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description);
+    obj_ptr<RTCSessionDescription_base> description_;
+    result_t hr = ctor_object_from_union<RTCSessionDescription_base>(description, description_, ac);
+    if (hr < 0)
+        return hr;
+
+    RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description_.get());
     try {
         m_peerConnection->setRemoteDescription(desc->m_desc);
         isolate_ref();
@@ -291,12 +303,17 @@ result_t RTCPeerConnection::setRemoteDescription(RTCSessionDescription_base* des
     return 0;
 }
 
-result_t RTCPeerConnection::addIceCandidate(RTCIceCandidate_base* candidate, AsyncEvent* ac)
+result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    // the async-aware helper keeps the phase logic: the object alternative is
+    // built in the sync phase (it reads JS properties), the class alternative
+    // is resolved in the async phase, so a cc_ caller can pass it directly
+    obj_ptr<RTCIceCandidate_base> candidate_;
+    result_t hr = ctor_object_from_union<RTCIceCandidate_base>(candidate, candidate_, ac);
+    if (hr < 0)
+        return hr;
 
-    RTCIceCandidate* cand = static_cast<RTCIceCandidate*>(candidate);
+    RTCIceCandidate* cand = static_cast<RTCIceCandidate*>(candidate_.get());
     try {
         m_peerConnection->addRemoteCandidate(cand->m_candidate);
     } catch (std::exception& e) {

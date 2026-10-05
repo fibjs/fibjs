@@ -24,6 +24,7 @@ class X509Certificate_base : public object_base {
 public:
     using Union_X509Certificate_cert = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_X509Certificate_certs = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_checkIssued_issuer = std::variant<obj_ptr<X509Certificate_base>, obj_ptr<Buffer_base>, exlib::string>;
 
 public:
     // X509Certificate_base
@@ -50,7 +51,7 @@ public:
     virtual result_t checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
     virtual result_t checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
     virtual result_t checkIP(exlib::string ip, exlib::string& retVal) = 0;
-    virtual result_t checkIssued(X509Certificate_base* issuer, bool& retVal) = 0;
+    virtual result_t checkIssued(Union_checkIssued_issuer issuer, bool& retVal) = 0;
     virtual result_t checkPrivateKey(KeyObject_base* privateKey, bool& retVal) = 0;
     virtual result_t verify(KeyObject_base* publicKey, bool& retVal) = 0;
 
@@ -493,9 +494,9 @@ inline void X509Certificate_base::s_checkIssued(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<X509Certificate_base>, 0);
+    ARG(Union_checkIssued_issuer, 0);
 
-    hr = pInst->checkIssued(v0.get(), vr);
+    hr = pInst->checkIssued(v0, vr);
 
     METHOD_RETURN();
 }

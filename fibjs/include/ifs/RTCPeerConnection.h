@@ -26,13 +26,18 @@ class RTCPeerConnection_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
+    using Union_setLocalDescription_description = std::variant<obj_ptr<RTCSessionDescription_base>, v8::Local<v8::Object>>;
+    using Union_setRemoteDescription_description = std::variant<obj_ptr<RTCSessionDescription_base>, v8::Local<v8::Object>>;
+    using Union_addIceCandidate_candidate = std::variant<obj_ptr<RTCIceCandidate_base>, v8::Local<v8::Object>>;
+
+public:
     // RTCPeerConnection_base
     static result_t _new(v8::Local<v8::Object> options, obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal) = 0;
     virtual result_t setLocalDescription(AsyncEvent* ac) = 0;
-    virtual result_t setLocalDescription(RTCSessionDescription_base* description, AsyncEvent* ac) = 0;
-    virtual result_t setRemoteDescription(RTCSessionDescription_base* description, AsyncEvent* ac) = 0;
-    virtual result_t addIceCandidate(RTCIceCandidate_base* candidate, AsyncEvent* ac) = 0;
+    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac) = 0;
+    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac) = 0;
+    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac) = 0;
     virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac) = 0;
@@ -85,9 +90,9 @@ public:
 
 public:
     ASYNC_MEMBER0(RTCPeerConnection_base, setLocalDescription);
-    ASYNC_MEMBER1(RTCPeerConnection_base, setLocalDescription, RTCSessionDescription_base*);
-    ASYNC_MEMBER1(RTCPeerConnection_base, setRemoteDescription, RTCSessionDescription_base*);
-    ASYNC_MEMBER1(RTCPeerConnection_base, addIceCandidate, RTCIceCandidate_base*);
+    ASYNC_MEMBER1(RTCPeerConnection_base, setLocalDescription, Union_setLocalDescription_description);
+    ASYNC_MEMBER1(RTCPeerConnection_base, setRemoteDescription, Union_setRemoteDescription_description);
+    ASYNC_MEMBER1(RTCPeerConnection_base, addIceCandidate, Union_addIceCandidate_candidate);
     ASYNC_MEMBERVALUE2(RTCPeerConnection_base, createOffer, v8::Local<v8::Object>, Variant);
     ASYNC_MEMBERVALUE2(RTCPeerConnection_base, createAnswer, v8::Local<v8::Object>, Variant);
     ASYNC_MEMBERVALUE1(RTCPeerConnection_base, getStats, obj_ptr<NMap>);
@@ -208,12 +213,12 @@ inline void RTCPeerConnection_base::s_setLocalDescription(const v8::FunctionCall
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<RTCSessionDescription_base>, 0);
+    ARG(Union_setLocalDescription_description, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_setLocalDescription(v0.get(), cb, args);
+        hr = pInst->acb_setLocalDescription(v0, cb, args);
     else
-        hr = pInst->ac_setLocalDescription(v0.get());
+        hr = pInst->ac_setLocalDescription(v0);
 
     ASYNC_METHOD_VOID();
 }
@@ -225,12 +230,12 @@ inline void RTCPeerConnection_base::s_setRemoteDescription(const v8::FunctionCal
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<RTCSessionDescription_base>, 0);
+    ARG(Union_setRemoteDescription_description, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_setRemoteDescription(v0.get(), cb, args);
+        hr = pInst->acb_setRemoteDescription(v0, cb, args);
     else
-        hr = pInst->ac_setRemoteDescription(v0.get());
+        hr = pInst->ac_setRemoteDescription(v0);
 
     ASYNC_METHOD_VOID();
 }
@@ -242,12 +247,12 @@ inline void RTCPeerConnection_base::s_addIceCandidate(const v8::FunctionCallback
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<RTCIceCandidate_base>, 0);
+    ARG(Union_addIceCandidate_candidate, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_addIceCandidate(v0.get(), cb, args);
+        hr = pInst->acb_addIceCandidate(v0, cb, args);
     else
-        hr = pInst->ac_addIceCandidate(v0.get());
+        hr = pInst->ac_addIceCandidate(v0);
 
     ASYNC_METHOD_VOID();
 }

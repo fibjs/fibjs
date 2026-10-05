@@ -31,9 +31,9 @@ public:
     // RTCPeerConnection_base
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal);
     virtual result_t setLocalDescription(AsyncEvent* ac);
-    virtual result_t setLocalDescription(RTCSessionDescription_base* description, AsyncEvent* ac);
-    virtual result_t setRemoteDescription(RTCSessionDescription_base* description, AsyncEvent* ac);
-    virtual result_t addIceCandidate(RTCIceCandidate_base* candidate, AsyncEvent* ac);
+    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac);
+    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac);
+    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac);
     virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac);

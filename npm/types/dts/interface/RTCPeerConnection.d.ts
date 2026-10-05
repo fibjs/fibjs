@@ -88,90 +88,99 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
+    setLocalDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
+    setRemoteDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
+    addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description creates an Offer description
@@ -665,90 +674,99 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionSync(description: Class_RTCSessionDescription): void;
+    setLocalDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the local description associated with the connection
      *
      *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setLocalDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setLocalDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescription(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescription(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionSync(description: Class_RTCSessionDescription): void;
+    setRemoteDescriptionSync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): void;
 
     /**
      * @description changes the remote description associated with the connection
      *
      *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
      *
-     *      @param description session description
+     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      @param description the session description
      *
      */
-    setRemoteDescriptionAsync(description: Class_RTCSessionDescription): Promise<void>;
+    setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidate(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateSync(candidate: Class_RTCIceCandidate): void;
+    addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
      * @description adds an ICE candidate
      *
      *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
      *
-     *      @param candidate ICE candidate
+     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      @param candidate the ICE candidate
      *
      */
-    addIceCandidateAsync(candidate: Class_RTCIceCandidate): Promise<void>;
+    addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description creates an Offer description

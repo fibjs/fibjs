@@ -12,6 +12,7 @@
 #include "HttpCookie.h"
 #include "HttpMessage.h"
 #include "Buffer.h"
+#include "union_helpers.h"
 #include "MemoryStream.h"
 #include "Isolate.h"
 
@@ -820,16 +821,20 @@ result_t HttpResponse::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal
     return 0;
 }
 
-result_t HttpResponse::addCookie(HttpCookie_base* cookie)
+result_t HttpResponse::addCookie(Union_addCookie_cookie cookie)
 {
+    obj_ptr<HttpCookie_base> cookie_;
+    result_t hr = ctor_object_from_union<HttpCookie_base>(cookie, cookie_);
+    if (hr < 0)
+        return hr;
+
     std::vector<obj_ptr<HttpCookie_base>> cookies;
-    result_t hr;
 
     hr = get_cookies(cookies);
     if (hr < 0)
         return hr;
 
-    m_cookies.push_back(cookie);
+    m_cookies.push_back(cookie_);
 
     return 0;
 }

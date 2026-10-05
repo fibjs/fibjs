@@ -70,9 +70,12 @@ interface HttpResponse : HttpMessage
     readonly HttpCookie[] cookies;
 
     /*! @brief adds an HttpCookie object to cookies
-     @param cookie specifies the HttpCookie object to add
+
+     cookie may be an HttpCookie object, or an options object the HttpCookie constructor
+     accepts (name, value, path, domain, ...).
+     @param cookie the cookie to add
      */
-    addCookie(HttpCookie cookie);
+    addCookie(HttpCookie|Object cookie);
 
     /*! @brief sends a redirect to the client
      @param url the redirect address

@@ -142,7 +142,7 @@ public:
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers);
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers);
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
-    virtual result_t addCookie(HttpCookie_base* cookie);
+    virtual result_t addCookie(Union_addCookie_cookie cookie);
     virtual result_t redirect(exlib::string url);
     virtual result_t redirect(int32_t statusCode, exlib::string url);
     virtual result_t get_url(exlib::string& retVal);

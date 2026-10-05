@@ -17,7 +17,8 @@ declare class Class_X509Certificate extends Class_object {
      *
      *     If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
      *
-     *     @param cert the binary data of the certificate in PEM format, or the PEM text as a string
+     *      cert may be the PEM/DER data of the certificate, or the PEM text as a string.
+     *      @param cert the certificate data
      *     @return returns an X509Certificate object
      *
      */
@@ -177,11 +178,13 @@ declare class Class_X509Certificate extends Class_object {
 
     /**
      * @description Checks whether this certificate was issued by the given issuer
+     *
+     *     issuer may be an X509Certificate object, a PEM string, or a DER/PEM Buffer.
      *     @param issuer the issuer certificate
      *     @return returns true if the certificate was issued by issuer, false otherwise
      *
      */
-    checkIssued(issuer: Class_X509Certificate): boolean;
+    checkIssued(issuer: Class_X509Certificate | Class_Buffer | string): boolean;
 
     /**
      * @description Checks whether the certificate's public key matches the signature of the given private key

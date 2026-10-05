@@ -95,10 +95,13 @@ declare class Class_HttpResponse extends Class_HttpMessage {
 
     /**
      * @description adds an HttpCookie object to cookies
-     *      @param cookie specifies the HttpCookie object to add
+     *
+     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
+     *      accepts (name, value, path, domain, ...).
+     *      @param cookie the cookie to add
      *
      */
-    addCookie(cookie: Class_HttpCookie): void;
+    addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
      * @description sends a redirect to the client
@@ -288,10 +291,13 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
 
     /**
      * @description adds an HttpCookie object to cookies
-     *      @param cookie specifies the HttpCookie object to add
+     *
+     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
+     *      accepts (name, value, path, domain, ...).
+     *      @param cookie the cookie to add
      *
      */
-    addCookie(cookie: Class_HttpCookie): void;
+    addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
      * @description sends a redirect to the client

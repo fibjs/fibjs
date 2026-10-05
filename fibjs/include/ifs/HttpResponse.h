@@ -23,6 +23,9 @@ class HttpResponse_base : public HttpMessage_base {
     DECLARE_CLASS(HttpResponse_base);
 
 public:
+    using Union_addCookie_cookie = std::variant<obj_ptr<HttpCookie_base>, v8::Local<v8::Object>>;
+
+public:
     // HttpResponse_base
     static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Value> body, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -38,7 +41,7 @@ public:
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers) = 0;
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers) = 0;
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal) = 0;
-    virtual result_t addCookie(HttpCookie_base* cookie) = 0;
+    virtual result_t addCookie(Union_addCookie_cookie cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
     virtual result_t redirect(int32_t statusCode, exlib::string url) = 0;
     virtual result_t get_url(exlib::string& retVal) = 0;
@@ -333,9 +336,9 @@ inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<HttpCookie_base>, 0);
+    ARG(Union_addCookie_cookie, 0);
 
-    hr = pInst->addCookie(v0.get());
+    hr = pInst->addCookie(v0);
 
     METHOD_VOID();
 }

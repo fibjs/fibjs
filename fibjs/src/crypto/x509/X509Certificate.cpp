@@ -708,10 +708,26 @@ result_t X509Certificate::checkIP(exlib::string ip, exlib::string& retVal)
     return 0;
 }
 
-result_t X509Certificate::checkIssued(X509Certificate_base* issuer, bool& retVal)
+result_t X509Certificate::checkIssued(Union_checkIssued_issuer issuer, bool& retVal)
 {
-    X509Certificate* issuer_ = (X509Certificate*)issuer;
-    retVal = X509_check_issued(issuer_->m_cert, m_cert) == X509_V_OK;
+    // a PEM string or a DER Buffer is parsed into a certificate first, exactly
+    // the conversion X509Certificate::load() makes
+    obj_ptr<X509Certificate_base> issuer_;
+
+    if (std::holds_alternative<obj_ptr<X509Certificate_base>>(issuer))
+        issuer_ = std::get<obj_ptr<X509Certificate_base>>(issuer);
+    else {
+        Union_X509Certificate_cert cert = std::holds_alternative<obj_ptr<Buffer_base>>(issuer)
+            ? Union_X509Certificate_cert(std::get<obj_ptr<Buffer_base>>(issuer))
+            : Union_X509Certificate_cert(std::get<exlib::string>(issuer));
+
+        result_t hr = X509Certificate_base::_new(cert, issuer_);
+        if (hr < 0)
+            return hr;
+    }
+
+    X509Certificate* issuer_cert = (X509Certificate*)issuer_.get();
+    retVal = X509_check_issued(issuer_cert->m_cert, m_cert) == X509_V_OK;
     return 0;
 }
 
