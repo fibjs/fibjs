@@ -58,8 +58,14 @@ describe("module", () => {
         });
 
         it("require with invalid file: URL should throw", () => {
+            // The URL has to point at a path the platform can read: a file URL
+            // without a drive letter is rejected before the lookup, so build
+            // the missing path the way the platform spells it.
+            var missing = url.pathToFileURL(
+                path.join(__dirname, 'module', 'no_such_file.js')).href;
+
             assert.throws(() => {
-                require('file:///nonexistent/path/module.js');
+                require(missing);
             }, { code: 'MODULE_NOT_FOUND' });
         });
     });

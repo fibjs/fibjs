@@ -45,9 +45,13 @@ describe("url", () => {
             assert.throws(() => url.fileURLToPath('https://a/b/c'), { name: 'TypeError', code: 'ERR_INVALID_URL_SCHEME' });
 
             // a UrlObject, a URL instance and a parsed url object are accepted as well
-            assert.strictEqual(url.fileURLToPath({ protocol: 'file:', pathname: '/tmp/x' }), '/tmp/x');
-            assert.strictEqual(url.fileURLToPath(new URL('file:///tmp/x')), '/tmp/x');
-            assert.strictEqual(url.fileURLToPath(url.parse('file:///tmp/x')), '/tmp/x');
+            // (the URL has to carry a path the platform can read: Windows needs
+            // the drive letter)
+            const file_url = isWindows ? 'file:///C:/tmp/x' : 'file:///tmp/x';
+            const file_path = isWindows ? 'C:\\tmp\\x' : '/tmp/x';
+            assert.strictEqual(url.fileURLToPath({ protocol: 'file:', pathname: isWindows ? '/C:/tmp/x' : '/tmp/x' }), file_path);
+            assert.strictEqual(url.fileURLToPath(new URL(file_url)), file_path);
+            assert.strictEqual(url.fileURLToPath(url.parse(file_url)), file_path);
 
             {
                 const withHost = new URL('file://host/a');
@@ -3980,9 +3984,14 @@ describe('the url parameter unions', () => {
         assert.equal(url.format({ protocol: 'https:', hostname: 'x' }), 'https://x/');
         assert.equal(url.format(new URL('https://x/a')), 'https://x/a');
 
-        assert.equal(url.fileURLToPath('file:///tmp/x'), path_.normalize('/tmp/x'));
-        assert.equal(url.fileURLToPath(new URL('file:///tmp/x')), path_.normalize('/tmp/x'));
-        assert.equal(url.fileURLToPath({ protocol: 'file:', pathname: '/tmp/x' }), path_.normalize('/tmp/x'));
+        // the path has to be one the platform can read: Windows needs the
+        // drive letter
+        const file_url = isWindows ? 'file:///C:/tmp/x' : 'file:///tmp/x';
+        const file_path = isWindows ? 'C:\\tmp\\x' : path_.normalize('/tmp/x');
+
+        assert.equal(url.fileURLToPath(file_url), file_path);
+        assert.equal(url.fileURLToPath(new URL(file_url)), file_path);
+        assert.equal(url.fileURLToPath({ protocol: 'file:', pathname: isWindows ? '/C:/tmp/x' : '/tmp/x' }), file_path);
 
         assert.throws(() => url.fileURLToPath(123));
     });
