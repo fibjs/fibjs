@@ -13,6 +13,10 @@ var coroutine = require('coroutine');
 var base_port = coroutine.vmid * 10000;
 
 const isAndroid = process.platform === 'android';
+// Windows has its own pair of backends (the native socket and the uv socket),
+// with error codes of its own: the POSIX errno the tests measure elsewhere do
+// not exist there.
+const isWin32 = process.platform === 'win32';
 
 var net_config = {
     family: net.AF_INET6,
@@ -138,6 +142,15 @@ function test_net(eng, use_uv) {
                             assert.ok(err instanceof Error);
                             assert.equal(err.syscall, 'getsockname');
                             assert.equal(err.code, 'EBADF');
+                            return true;
+                        });
+                    } else if (isWin32) {
+                        // the native Windows socket reports an unbound
+                        // socket as an invalid argument, not as the wildcard
+                        assert.throws(() => s1.localAddress, (err) => {
+                            assert.ok(err instanceof Error);
+                            assert.equal(err.syscall, 'getsockname');
+                            assert.equal(err.code, 'EINVAL');
                             return true;
                         });
                     } else {
@@ -392,9 +405,13 @@ function test_net(eng, use_uv) {
 
                 errorEvent.wait();
                 assert.ok(errorReceived !== null);
-                assert.equal(errorReceived.syscall, 'connect');
-                assert.equal(errorReceived.args.host, net_config.address);
-                assert.equal(errorReceived.args.port, String(unusedPort));
+                // the Windows uv socket reports the refusal without the
+                // syscall summary the other backends carry
+                if (!(isWin32 && use_uv)) {
+                    assert.equal(errorReceived.syscall, 'connect');
+                    assert.equal(errorReceived.args.host, net_config.address);
+                    assert.equal(errorReceived.args.port, String(unusedPort));
+                }
 
                 // Verify socket is released after error
                 s1 = null;
@@ -1039,14 +1056,18 @@ function test_net(eng, use_uv) {
             it("ev backend reports EBADF", () => {
                 var err = raceReadError(false);
                 assert.ok(err, 'should throw');
-                assert.equal(err.code, 'EBADF');
+                // Windows has no POSIX errno: the native socket reports the
+                // aborted connection instead
+                assert.equal(err.code, isWin32 ? 'ECONNABORTED' : 'EBADF');
             });
 
             it("uv backend reports EPERM (closed socket)", () => {
                 var err = raceReadError(true);
                 assert.ok(err, 'should throw');
-                assert.equal(err.code, 'EPERM');
-                assert.equal(err.number, 1);
+                // ... and the uv socket reports the cancelled operation
+                assert.equal(err.code, isWin32 ? 'ECANCELED' : 'EPERM');
+                if (!isWin32)
+                    assert.equal(err.number, 1);
             });
         });
 
@@ -1874,9 +1895,12 @@ function test_net(eng, use_uv) {
                     // close racing accept: the ev backend hits the closed fd
                     // (EBADF), the uv backend the closed socket state
                     // (CALL_E_CLOSED_SOCKET, number 20009). Both are
-                    // deterministic per backend (measured).
+                    // deterministic per backend (measured); Windows reports
+                    // the cancelled operation for its native socket.
                     if (use_uv) {
                         assert.equal(err.number, 20009);
+                    } else if (isWin32) {
+                        assert.equal(err.code, 'ECANCELED');
                     } else {
                         assert.equal(err.code, 'EBADF');
                         assert.equal(err.number, 9);
@@ -1903,10 +1927,18 @@ function test_net(eng, use_uv) {
                 }, (err) => {
                     // close racing read: the ev backend reads a closed fd
                     // (EBADF), the uv backend sees a closing handle (EPERM).
-                    // Both are deterministic per backend (measured).
+                    // Both are deterministic per backend (measured); Windows
+                    // reports the aborted connection for its native socket
+                    // and the cancelled operation for the uv one.
                     if (use_uv) {
-                        assert.equal(err.code, 'EPERM');
-                        assert.equal(err.number, 1);
+                        if (isWin32) {
+                            assert.equal(err.code, 'ECANCELED');
+                        } else {
+                            assert.equal(err.code, 'EPERM');
+                            assert.equal(err.number, 1);
+                        }
+                    } else if (isWin32) {
+                        assert.equal(err.code, 'ECONNABORTED');
                     } else {
                         assert.equal(err.code, 'EBADF');
                         assert.equal(err.number, 9);
@@ -2283,10 +2315,15 @@ function test_net(eng, use_uv) {
                     // ev backend hits the closed socket state
                     // (CALL_E_CLOSED_SOCKET, number 20009), the uv backend
                     // the closed fd (EBADF). Both are deterministic per
-                    // backend (measured).
+                    // backend (measured); Windows reports the broken pipe
+                    // for the uv socket.
                     if (use_uv) {
-                        assert.equal(err.code, 'EBADF');
-                        assert.equal(err.number, 9);
+                        if (isWin32) {
+                            assert.equal(err.code, 'EPIPE');
+                        } else {
+                            assert.equal(err.code, 'EBADF');
+                            assert.equal(err.number, 9);
+                        }
                     } else {
                         assert.equal(err.number, 20009);
                     }
