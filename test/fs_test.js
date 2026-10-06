@@ -30,6 +30,10 @@ var linux = process.platform === 'linux';
 var android = process.platform === 'android';
 var isIOS = process.platform === 'ios';
 
+// Writing a handle that was opened read-only is EBADF on POSIX; Windows refuses
+// the write with EPERM (libuv maps ERROR_ACCESS_DENIED to it).
+var write_denied = win ? 'EPERM' : 'EBADF';
+
 function assert_stat_property(statObj) {
     assert.isNumber(statObj.dev)
     assert.isNumber(statObj.mode)
@@ -934,10 +938,12 @@ describe('fs', () => {
         fs.writeFile(test_file, 'test content');
         assert.equal(fs.exists(test_file), true);
 
-        // rmdir should fail on a file (without recursive)
+        // rmdir should fail on a file (without recursive): POSIX reports
+        // ENOTDIR, Windows cannot see the file as a directory at all and
+        // reports ENOENT.
         assert.throws(() => {
             fs.rmdir(test_file);
-        }, { code: 'ENOTDIR' });
+        }, { code: win ? 'ENOENT' : 'ENOTDIR' });
 
         // File should still exist
         assert.equal(fs.exists(test_file), true);
@@ -1356,7 +1362,7 @@ describe('fs', () => {
                 f.write('x');
             }, (err) => {
                 assert.ok(err instanceof Error);
-                assert.equal(err.code, 'EBADF');
+                assert.equal(err.code, write_denied);
                 assert.equal(err.syscall, 'write');
                 assert.equal(err.path, target);
                 assert.equal(err.args.length, '1');
@@ -1366,7 +1372,7 @@ describe('fs', () => {
             assert.throws(() => {
                 f.write(new Buffer(4096));
             }, (err) => {
-                assert.equal(err.code, 'EBADF');
+                assert.equal(err.code, write_denied);
                 assert.equal(err.args.length, '4096');
                 assert.equal(err.args.buffer, '<Buffer len=4096>');
                 return true;
@@ -2242,12 +2248,17 @@ describe('fs', () => {
             assert.equal(fs.readFile(fn).toString(), 'string data');
 
             fh = await fs.promises.open(fn, 'r');
-            await assert.rejects(() => fh.writeFile('x'), (err) => {
-                assert.equal(err.code, 'EBADF');
-                assert.equal(err.syscall, 'write');
-                return true;
-            });
-            await fh.close();
+            try {
+                await assert.rejects(() => fh.writeFile('x'), (err) => {
+                    assert.equal(err.code, write_denied);
+                    assert.equal(err.syscall, 'write');
+                    return true;
+                });
+            } finally {
+                // close before the unlink: Windows cannot unlink an open file,
+                // and the EBUSY would hide the error the assertions report
+                await fh.close();
+            }
         } finally {
             fs.unlink(fn);
         }
@@ -2258,22 +2269,27 @@ describe('fs', () => {
         fs.writeFile(fn, 'hello world');
         try {
             var fh = await fs.promises.open(fn, 'r');
-            await assert.rejects(() => fh.write('x'), (err) => {
-                assert.equal(err.code, 'EBADF');
-                assert.equal(err.syscall, 'write');
-                assert.equal(err.args.buffer, '<Buffer len=1>');
-                assert.equal(err.args.length, '1');
-                assert.equal(err.args.position, '-1');
-                return true;
-            });
+            try {
+                await assert.rejects(() => fh.write('x'), (err) => {
+                    assert.equal(err.code, write_denied);
+                    assert.equal(err.syscall, 'write');
+                    assert.equal(err.args.buffer, '<Buffer len=1>');
+                    assert.equal(err.args.length, '1');
+                    assert.equal(err.args.position, '-1');
+                    return true;
+                });
 
-            await assert.rejects(() => fh.write(new Buffer(2048)), (err) => {
-                assert.equal(err.code, 'EBADF');
-                assert.equal(err.args.buffer, '<Buffer len=2048>');
-                assert.equal(err.args.length, '2048');
-                return true;
-            });
-            await fh.close();
+                await assert.rejects(() => fh.write(new Buffer(2048)), (err) => {
+                    assert.equal(err.code, write_denied);
+                    assert.equal(err.args.buffer, '<Buffer len=2048>');
+                    assert.equal(err.args.length, '2048');
+                    return true;
+                });
+            } finally {
+                // close before the unlink: Windows cannot unlink an open file,
+                // and the EBUSY would hide the error the assertions report
+                await fh.close();
+            }
         } finally {
             fs.unlink(fn);
         }

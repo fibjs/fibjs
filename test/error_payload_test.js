@@ -5,6 +5,10 @@ var io = require('io');
 var os = require('os');
 var path = require('path');
 
+// Writing a handle that was opened read-only is EBADF on POSIX; Windows
+// refuses the write with EPERM (libuv maps ERROR_ACCESS_DENIED to it).
+const write_denied = process.platform === 'win32' ? 'EPERM' : 'EBADF';
+
 var vmid = process.pid || 0;
 var missing = path.join(__dirname, '__missing_error_payload_' + vmid);
 
@@ -59,7 +63,7 @@ describe('error payload', () => {
     });
 
     it('renders Buffer objects as <Buffer len=N>', async () => {
-        // A real I/O failure (EBADF on a read-only stream) renders the buffer
+        // A real I/O failure (a write on a read-only stream) renders the buffer
         // through the object summary instead of a bare <Object Buffer>.
         var f = fs.openFile(__filename, 'r');
 
@@ -67,7 +71,7 @@ describe('error payload', () => {
             await assert.rejects(async () => {
                 await f.write(Buffer.alloc(64, 0x41));
             }, (err) => {
-                assert.equal(err.code, 'EBADF');
+                assert.equal(err.code, write_denied);
                 assert.equal(err.args.buffer, '<Buffer len=64>');
                 return true;
             });
