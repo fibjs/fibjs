@@ -6,6 +6,7 @@ var child_process = require('child_process');
 
 // Detect runtime: fibjs or node
 const isFibjs = typeof process !== 'undefined' && process.versions && process.versions.fibjs;
+const isWin32 = process.platform === 'win32';
 
 const FIXTURES_DIR = path.join(__dirname, 'opt_tools_test_files', 'fixtures');
 const TMP_DIR = path.join(__dirname, 'opt_tools_test_files', 'tmp');
@@ -1959,7 +1960,18 @@ describe('opt_tools install lifecycle', function () {
 
             var link = path.join(targetDir, 'node_modules/.bin/binpkg');
 
-            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the bin is linked: ' + listDir(path.join(targetDir, 'node_modules/.bin')));
+            // npm links bins with a symlink on POSIX and with the
+            // sh/.cmd/.ps1 shims on Windows, so the bin is a plain file there
+            function assert_bin(msg) {
+                if (isWin32) {
+                    assert.ok(fs.existsSync(link) && fs.existsSync(link + '.cmd') && fs.existsSync(link + '.ps1'), msg);
+                    assert.ok(!fs.lstatSync(link).isSymbolicLink(), msg);
+                } else {
+                    assert.ok(fs.lstatSync(link).isSymbolicLink(), msg);
+                }
+            }
+
+            assert_bin('the bin is linked: ' + listDir(path.join(targetDir, 'node_modules/.bin')));
 
             // the package is gone, the link is not: installing it again meets the link
             // it wrote itself, which npm's bin-links leaves alone
@@ -1971,7 +1983,7 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(second.status, 0, diag(targetDir, second) + '\n' + out);
             assert.ok(out.indexOf('EEXIST') < 0 && out.indexOf('File exists') < 0,
                 'linking what is already linked is not an error:\n' + out);
-            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the link is still there');
+            assert_bin('the link is still there');
 
             // a plain file in the way is replaced, the way npm replaces it
             rmdirSync(path.join(targetDir, 'node_modules/bin-pkg'));
@@ -1981,9 +1993,15 @@ describe('opt_tools install lifecycle', function () {
             var third = runInstaller(targetDir, ['--install'], offline());
 
             assert.equal(third.status, 0, diag(targetDir, third) + '\n' + outputOf(third));
-            assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the file in the way is replaced by a link: ' +
+            assert_bin('the file in the way is replaced: ' +
                 listDir(path.join(targetDir, 'node_modules/.bin')));
-            assert.equal(fs.readlinkSync(link).replace(/\\/g, '/'), '../bin-pkg/cli.js');
+            if (isWin32) {
+                // the shim points at the package's cli file
+                var shim = fs.readFileSync(link, 'utf8');
+                assert.ok(shim.indexOf('cli.js') >= 0, 'the shim points at the cli: ' + shim);
+            } else {
+                assert.equal(fs.readlinkSync(link).replace(/\\/g, '/'), '../bin-pkg/cli.js');
+            }
         });
     });
 
