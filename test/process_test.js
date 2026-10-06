@@ -204,7 +204,13 @@ describe('process', () => {
 
         // the numeric form and the signal name form are both accepted
         assert.isUndefined(process.kill(pid, 0));
-        assert.isUndefined(process.kill(pid, 'SIGCONT'));
+        if (process.platform === 'win32') {
+            // Windows has no SIGCONT: the name is not a signal there
+            assert.throws(() => process.kill(pid, 'SIGCONT'),
+                { number: 20024, message: /Unknown signal: SIGCONT/ });
+        } else {
+            assert.isUndefined(process.kill(pid, 'SIGCONT'));
+        }
 
         // an unknown signal name reports the name, not a type error
         assert.throws(() => process.kill(pid, 'M13_NO_SUCH_SIGNAL'),
@@ -400,12 +406,15 @@ describe('process', () => {
     describe("umask", () => {
         it("accepts an octal string and a number", () => {
             const old = process.umask();
+            // Windows has no POSIX mode bits: its CRT mask keeps only
+            // _S_IREAD|_S_IWRITE, so every mask reads back as 0o600
+            const masked = process.platform === 'win32' ? () => 0o600 : (mask) => mask;
             try {
                 process.umask('0700');
-                assert.strictEqual(process.umask() & 0o777, 0o700);
+                assert.strictEqual(process.umask() & 0o777, masked(0o700));
 
                 process.umask(0o644);
-                assert.strictEqual(process.umask() & 0o777, 0o644);
+                assert.strictEqual(process.umask() & 0o777, masked(0o644));
             } finally {
                 process.umask(old);
             }

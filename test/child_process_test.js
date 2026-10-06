@@ -15,6 +15,10 @@ var os = require('os');
 
 const isWin32 = process.platform === "win32";
 const isIOS = process.platform === "ios";
+
+// An ENOENT system error carries the libuv number on Windows and the POSIX
+// errno everywhere else (Node reports the same values).
+const ENOENT_ERRNO = isWin32 ? -4058 : -2;
 const supportsPosixStdioFd = !isWin32 && !isIOS;
 
 var envKeys = require('./process/const.env_keys.js');
@@ -478,7 +482,7 @@ describe("child_process", () => {
         }, (err) => {
             assert.ok(err instanceof Error);
             assert.equal(err.code, 'ENOENT');
-            assert.equal(err.errno, -2);
+            assert.equal(err.errno, ENOENT_ERRNO);
             assert.equal(err.syscall, 'spawn definitely-not-a-command-xyz');
             assert.equal(err.path, 'definitely-not-a-command-xyz');
             assert.equal(err.args.command, 'definitely-not-a-command-xyz');
@@ -492,7 +496,7 @@ describe("child_process", () => {
 
         assert.ok(r.error);
         assert.equal(r.error.code, 'ENOENT');
-        assert.equal(r.error.errno, -2);
+        assert.equal(r.error.errno, ENOENT_ERRNO);
         assert.equal(r.error.syscall, 'spawn definitely-not-a-command-xyz');
         assert.equal(r.error.path, 'definitely-not-a-command-xyz');
         assert.equal(r.error.args.argv, '["--flag"]');
@@ -1044,7 +1048,7 @@ describe("child_process", () => {
         // spawn ENOENT -> Node-shaped SystemError fields
         assert.throws(() => {
             child_process.run("not_exists_exec_file");
-        }, { code: 'ENOENT', errno: -2, syscall: 'spawn not_exists_exec_file' });
+        }, { code: 'ENOENT', errno: ENOENT_ERRNO, syscall: 'spawn not_exists_exec_file' });
     });
 
     it("multi run", () => {
