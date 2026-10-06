@@ -3,64 +3,224 @@
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description Server-Sent Events (SSE) module, implementing HTTP-based server push functionality
+ * @description The sse module is the server side of the Server-Sent Events protocol: it upgrades an HTTP request into a text/event-stream response and pushes events to EventSource clients
  *
- *   The SSE module provides a standard EventSource interface implementation, supporting real-time data stream push from server to client.
- *   This module follows the W3C Server-Sent Events specification and provides complete client and server implementations:
+ *  Use this module to push a live feed over plain HTTP. The client opens one
+ *  long-lived response with the EventSource class exported here, and the server
+ *  keeps writing events through the sender object obtained from `upgrade`.
  *
- *   Client features:
- *   - EventSource interface: creates a persistent connection to the server and receives real-time event streams
- *   - Event parsing: supports standard fields such as data, event, id, retry
+ *  Main capabilities:
  *
- *   Server features:
- *   - Protocol upgrade handling: upgrades HTTP requests to SSE connections
- *   - Event sending: pushes formatted event data to clients
- *   - Connection management: maintains the lifecycle of multiple client connections
+ *  - **Server push**: `upgrade` turns an HTTP route into an SSE endpoint; the accept callback
+ *    receives an EventSource in SENDER state whose `send` writes events and whose `close` ends
+ *    the response;
+ *  - **Client class**: `EventSource` is the client implementation, exported so that
+ *    `new (require('sse').EventSource)(url)` works; its constructor, properties and events are
+ *    documented in the EventSource definition;
+ *  - **State constants**: `CONNECTING`, `OPEN` and `CLOSED` describe a client connection,
+ *    `SENDER` describes a server-side sender.
  *
- *   Connection states:
- *   - CONNECTING (0): the connection is being established
- *   - OPEN (1): the connection is established and data can be sent and received
- *   - CLOSED (2): the connection is closed
- *   - SENDER (3): sending mode, used for server-side push
+ *  Concepts:
  *
- *   Event types:
- *   - open: connection established successfully
- *   - message: server message received
- *   - error: connection error or data parsing error
- *   - close: connection closed
+ *  - **Wire format**: the response has Content-Type "text/event-stream" and uses chunked
+ *    transfer encoding. An event is a group of UTF-8 text lines terminated by an empty line:
+ *    `data:` lines carry the payload and several data lines join with "\n", `event:` names the
+ *    event type ("message" when absent), `id:` carries an event id and `retry:` a suggested
+ *    reconnect delay in milliseconds.
+ *  - **Field rules**: field names are matched case-insensitively, the spaces after the field
+ *    colon are not part of the value, ":" starts a comment line and unknown fields are ignored.
+ *    `send` writes the id, event and retry lines only when the corresponding option is
+ *    provided, followed by one data line per line of the payload.
+ *  - **Stream termination**: the server ends the stream with `close`, which writes the
+ *    terminating chunk; the client then raises `close`. In this implementation a lone empty
+ *    line with no field before it also ends the stream, so do not use bare empty lines as
+ *    heartbeats, and a comment-only group is delivered as a message event with empty data.
+ *  - **Reconnection**: the client does not reconnect and never sends the Last-Event-ID
+ *    header. A resumable feed must replay missed events on the server side and let the client
+ *    create a new EventSource; see the EventSource definition for the error and close
+ *    semantics.
+ *
+ *  Import:
+ *  ```JavaScript
+ *  const sse = require('sse');
+ *  // the module is also available as require('node:sse')
+ *  ```
+ *
+ *  Example 1 — one event from server to client:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const sse = require('sse');
+ *
+ *  const server = new http.Server(0, {
+ *      '/greeting': sse.upgrade((sender) => {
+ *          sender.send('hello from the server', { id: '1' });
+ *          sender.close(); // terminates the chunked response
+ *      })
+ *  });
+ *  server.start();
+ *
+ *  const port = server.socket.localPort;
+ *  const es = new sse.EventSource('http://127.0.0.1:' + port + '/greeting');
+ *  es.onmessage = (ev) => console.log(ev.data, ev.id); // hello from the server 1
+ *  es.onclose = () => server.stop(); // the server ended the stream
+ *  es.onerror = (ev) => console.log('error', ev.reason);
+ *  ```
+ *
+ *  Example 2 — a named event with multi-line data and a retry hint:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const sse = require('sse');
+ *
+ *  const server = new http.Server(0, {
+ *      '/feed': sse.upgrade((sender) => {
+ *          sender.send('line one\nline two', { event: 'tick', retry: 3000 });
+ *          sender.close();
+ *      })
+ *  });
+ *  server.start();
+ *
+ *  const port = server.socket.localPort;
+ *  const es = new sse.EventSource('http://127.0.0.1:' + port + '/feed');
+ *  es.addEventListener('tick', (ev) => {
+ *      console.log(ev.data); // line one\nline two
+ *      console.log(ev.retry); // 3000
+ *  });
+ *  es.onclose = () => server.stop();
+ *  es.onerror = (ev) => console.log('error', ev.reason);
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - fibjs has no global EventSource; the client class is always created from this module and
+ *    the state constants are read from the module (`sse.OPEN`), not from the class.
+ *  - `retry` is parsed and reported on event objects but never acted upon: this
+ *    implementation does not reconnect, while MDN EventSource reconnects and sends
+ *    Last-Event-ID.
+ *  - The server accepts any HTTP request routed to `upgrade`, regardless of its Accept
+ *    header, and answers with status 200 and the handshake headers.
  *
  */
 declare module 'sse' {
     /**
-     * @description event source state: connecting
+     * @description Event source state value 0: connecting, the request is being made
+     *
+     *      The initial state of a client EventSource. It moves to OPEN after a text/event-stream
+     *      response is accepted, and stays here after a connection failure because the request is
+     *      not retried. Server-side senders start in SENDER instead; see the EventSource
+     *      definition for the full state transitions.
+     *
      */
     export const CONNECTING: 0;
 
     /**
-     * @description event source state: connected
+     * @description Event source state value 1: open, events can be received
+     *
+     *      The state of a client EventSource after the response headers were accepted. `message`
+     *      and named events are dispatched while the state stays OPEN. The constant lives on the
+     *      sse module, so it is read as `sse.OPEN`, not from the EventSource class.
+     *
      */
     export const OPEN: 1;
 
     /**
-     * @description event source state: closed
+     * @description Event source state value 2: closed, the stream has ended
+     *
+     *      The state after the server ended the stream, an HTTP error was received or `close()`
+     *      was called. An EventSource is never reopened; create a new one to read again.
+     *
      */
     export const CLOSED: 2;
 
     /**
-     * @description event source state: sending mode
+     * @description Event source state value 3: sender, a server-side connection is ready to push
+     *
+     *      fibjs extension, not part of MDN EventSource: the state of the EventSource object
+     *      delivered to the accept callback of `upgrade`. Only a sender may call `send`; a client
+     *      EventSource raises error 20024 when send is called. See the EventSource definition.
+     *
      */
     export const SENDER: 3;
 
     /**
-     * @description creates an event source interface for server-sent events, see EventSource
+     * @description The client class exported by the module, see the EventSource definition
+     *
+     *      `sse.EventSource` is the EventSource class defined in the EventSource definition; it
+     *      is not a global variable. Create a client with
+     *      `new sse.EventSource(url[, options])`, read events through `onmessage`,
+     *      `addEventListener` and `onopen`, and observe errors and the end of the stream through
+     *      `onerror` and `onclose`. The readyState values are read from the module as
+     *      `sse.CONNECTING`, `sse.OPEN` and `sse.CLOSED`.
+     *
+     *      Node.js and MDN expose EventSource as a global and reconnect automatically; this
+     *      implementation must be created from the module and never retries. See the EventSource
+     *      definition for the constructor options, events and error semantics.
+     *
+     *      Example — report an HTTP error through the error event:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const sse = require('sse');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.status = 404;
+     *          req.response.write('missing');
+     *      });
+     *      server.start();
+     *
+     *      const es = new sse.EventSource('http://127.0.0.1:' + server.socket.localPort + '/');
+     *      es.onmessage = () => console.log('never fires');
+     *      es.onerror = (ev) => {
+     *          console.log(ev.code, ev.reason); // 404 Invalid status: File Not Found
+     *          server.stop();
+     *      };
+     *      ```
+     *
      */
     const EventSource: typeof Class_EventSource;
 
     /**
-     * @description creates an sse protocol handler that receives upgrade requests from http and performs the handshake, generating an EventSource object
+     * @description Creates a handler that upgrades an HTTP request into an SSE sender
+     *
+     *      The returned Handler can be mounted directly on an HttpServer route or used with Chain
+     *      and Routing. For every request the handler answers with status 200, Content-Type
+     *      "text/event-stream" and Transfer-Encoding: chunked, then creates a server-side
+     *      EventSource in SENDER state and calls accept(sender, req) with the sender and the
+     *      handshake HttpRequest. Events are written with the sender's `send` and the response is
+     *      finished with `close`; without close the chunked response stays open and the client
+     *      keeps waiting. The callback runs once per request, so keep the sender references if
+     *      the server has to broadcast to several connections. See the EventSource definition
+     *      for the sender API. MDN documents only the client side of SSE, so there is no
+     *      standard server object to compare with. Invoking the handler with a non-HTTP object
+     *      raises a type error.
+     *
+     *      Example — push three progress events and end the stream:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const sse = require('sse');
+     *
+     *      const server = new http.Server(0, {
+     *          '/progress': sse.upgrade((sender) => {
+     *              ['start', 'half', 'end'].forEach((step, i) => {
+     *                  sender.send(step, { event: 'progress', id: 'p' + i });
+     *              });
+     *              sender.close();
+     *          })
+     *      });
+     *      server.start();
+     *
+     *      const port = server.socket.localPort;
+     *      const es = new sse.EventSource('http://127.0.0.1:' + port + '/progress');
+     *      const steps = [];
+     *      es.addEventListener('progress', (ev) => steps.push(ev.data));
+     *      es.onclose = () => {
+     *          console.log(steps.join(',')); // start,half,end
+     *          server.stop();
+     *      };
+     *      es.onerror = (ev) => console.log('error', ev.reason);
      *      ```
-     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received EventSource object and the second is the HttpRequest object of the handshake
-     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
+     *
+     *      @param accept the connection success handler, called as accept(conn, req) with the
+     *        SENDER EventSource and the handshake HttpRequest
+     *      @return the Handler to mount on an HTTP server or use with Chain and Routing
      *
      */
     function upgrade(accept: (conn: Class_EventSource | Class_EventSourcePromise, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;

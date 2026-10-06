@@ -1,16 +1,118 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description File path processing module
+ * @description The win32 rule set of the path module: it processes Windows paths on every platform
  *
- *  Usage:
+ *  This definition is the manual page of the rule set reachable at runtime as
+ *  `require('path').win32` or `require('path/win32')`; it is not itself a require-able module
+ *  name. Except for fullpath, all functions are pure string operations and never touch the file
+ *  system, so Windows paths can be analysed from Linux and other systems.
+ *
+ *  Main capabilities:
+ *
+ *  - **Building paths**: `join`, `resolve`, `normalize`, `fullpath` (Windows only);
+ *  - **Breaking paths down**: `parse`, `format`, `basename`, `dirname`, `extname`;
+ *  - **Comparing paths**: `relative`, `isAbsolute`, `matchesGlob`;
+ *  - **Conversion**: `toNamespacedPath`;
+ *  - **Constants**: `sep` ('\\') and `delimiter` (';').
+ *
+ *  Concepts:
+ *
+ *  - **Windows rule set**: both '/' and '\' separate segments, so 'C:/temp' and 'C:\temp' are
+ *    equivalent. The recognised roots are drive-absolute ('C:\'), drive-relative ('C:'), UNC
+ *    ('\\server\share') and device namespace ('\\?\C:\') forms. Only paths rooted at a real
+ *    root are absolute: isAbsolute('C:') is false while isAbsolute('C:\') is true.
+ *  - **Windows specifics**: parse, format and dirname keep drive letters and UNC shares;
+ *    relative compares paths case-insensitively and returns the target unchanged across drives;
+ *    matchesGlob accepts both separators and compares drive letters case-insensitively;
+ *    toNamespacedPath converts a path to the '\\?\' / '\\?\UNC\' form used by the Windows
+ *    long-path APIs.
+ *  - **join vs resolve vs normalize**: join merges segments and normalizes, keeping a later
+ *    absolute segment as a plain segment; resolve restarts at the rightmost absolute segment and
+ *    anchors relative segments at the working directory, preserving its drive; normalize only
+ *    rewrites '.' and '..' segments, repeated separators and trailing separators.
+ *  - **Extensions and dotfiles**: extname('.bashrc') is '' because a leading dot starts a
+ *    dotfile; extname('.env.local') is '.local' and extname('index.') is '.'. basename(path, ext)
+ *    strips ext as a plain suffix and ignores trailing separators.
+ *  - **Fullpath is Windows-only**: fullpath (fibjs extension) anchors a relative path to the
+ *    working directory through the native Windows API, and throws on other platforms; use
+ *    resolve or normalize in cross-platform code.
+ *
+ *  Import:
  *  ```JavaScript
- *  var path = require('path').win32;
+ *  // path_win32 is the manual-page name; the runtime entry points are:
+ *  const win32 = require('path').win32;
+ *  const win32Again = require('path/win32');
  *  ```
+ *
+ *  Example 1 — drive letters, UNC shares and trailing separators:
+ *  ```JavaScript
+ *  const win32 = require('path').win32;
+ *
+ *  console.log(win32.normalize('C:/temp//foo/../bar'));        // C:\temp\bar
+ *  console.log(win32.normalize('\\\\server\\share\\dir\\..')); // \\server\share
+ *  console.log(win32.normalize('C:'));                         // C:.
+ *  ```
+ *
+ *  Example 2 — joining, resolving and checking absoluteness:
+ *  ```JavaScript
+ *  const win32 = require('path').win32;
+ *
+ *  console.log(win32.join('C:\\temp', 'sub', '..', 'file.txt')); // C:\temp\file.txt
+ *  console.log(win32.resolve('C:\\temp', 'D:/data'));            // D:\data
+ *  console.log(win32.isAbsolute('C:\\temp')); // true
+ *  console.log(win32.isAbsolute('C:temp'));   // false (drive-relative)
+ *  ```
+ *
+ *  Example 3 — parse and format drive and UNC paths:
+ *  ```JavaScript
+ *  const win32 = require('path').win32;
+ *
+ *  const parts = win32.parse('\\\\server\\share\\logs\\app.log');
+ *  console.log(parts.root, parts.base); // \\server\share\ app.log
+ *
+ *  console.log(win32.format({ root: 'C:\\', name: 'boot', ext: '.ini' }));
+ *  // C:\boot.ini
+ *  console.log(win32.extname('C:\\dir\\.gitignore')); // ''
+ *  ```
+ *
+ *  Example 4 — namespace paths (pure string operation, runs on any platform):
+ *  ```JavaScript
+ *  const win32 = require('path').win32;
+ *
+ *  console.log(win32.toNamespacedPath('C:\\temp\\file.txt'));
+ *  // \\?\C:\temp\file.txt
+ *  console.log(win32.toNamespacedPath('\\\\server\\share\\f'));
+ *  // \\?\UNC\server\share\f
+ *  console.log(win32.toNamespacedPath('//server/share/f'));
+ *  // \\?\UNC\server\share\f
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - Node.js exposes the same rule set as require('path').win32; fibjs also provides the
+ *    require('path/win32') subpath form and documents the rule set as the path_win32 definition.
+ *  - fullpath is implemented only on Windows builds; on other platforms it throws
+ *    'not supported on none Win32 platform !'.
  *
  */
 declare module 'path_win32' {
     /**
-     * @description Normalizes a path, resolving parent directory references
+     * @description Normalizes a win32 path, resolving '.' and '..' and collapsing repeated separators
+     *
+     *      Both '/' and '\' separate segments, so normalize('C:/temp/foo') is 'C:\temp\foo'. Drive
+     *      letters, drive-relative forms and UNC or device roots are preserved; 'C:' alone normalizes
+     *      to 'C:.'. A trailing separator is preserved unless a '..' segment removes it. A pure
+     *      string transformation with no file system access. See the path module for the shared
+     *      rules.
+     *
+     *      Example — normalize Windows paths:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.normalize('C:/temp//foo/../bar'));        // C:\temp\bar
+     *      console.log(win32.normalize('\\\\server\\share\\dir\\..')); // \\server\share
+     *      console.log(win32.normalize('C:'));                         // C:.
+     *      ```
      *
      *      @param path the path to normalize
      *      @return the normalized path
@@ -19,7 +121,12 @@ declare module 'path_win32' {
     function normalize(path: string): string;
 
     /**
-     * @description Returns the file name of a path, removing a matching extension when ext is given
+     * @description Returns the last portion of a win32 path, removing a matching extension
+     *
+     *      Both '/' and '\' are accepted as separators, so basename('C:\\dir\\file.txt') is
+     *      'file.txt'. Trailing separators are ignored, basename('C:') is '' and basename('C:.') is
+     *      '.'. The optional ext is stripped as a plain suffix, not necessarily starting with a dot.
+     *      A colon that is not followed by a separator is part of the name ('file:stream').
      *
      *      @param path the path to query
      *      @param ext the extension to remove when the file name matches
@@ -29,7 +136,12 @@ declare module 'path_win32' {
     function basename(path: string, ext?: string): string;
 
     /**
-     * @description Returns the extension of the file in a path
+     * @description Returns the extension from the last '.' of the last win32 segment
+     *
+     *      A leading dot starts a dotfile, not an extension: extname('.gitignore') is '',
+     *      extname('.env.local') is '.local' and extname('index.') is '.'. The result is '' for '..'
+     *      and for paths ending with a separator. Both '/' and '\' separate segments, so
+     *      extname('C:\\dir.name\\file') is '' because the dot is in a parent segment.
      *
      *      @param path the path to query
      *      @return the extension
@@ -38,18 +150,36 @@ declare module 'path_win32' {
     function extname(path: string): string;
 
     /**
-     * @description Formats an object into a path
+     * @description Formats a path object into a win32 path string, the inverse of parse
      *
-     *      pathObject supports the following fields:
+     *      All fields are optional. Base wins over name + ext, and dir wins over root unless dir is
+     *      empty; when dir equals root no separator is inserted. '\' is always used as the separator,
+     *      even on other platforms, and a dir-only object produces a trailing '\'. The full field
+     *      list is documented in the path module.
+     *
+     *      pathObject supports the following properties:
      *      ```JavaScript
-     *      {
-     *          "dir": "", // specify the directory of the path
-     *          "root": "", // specify the root of the path
-     *          "base": "", // specify the base of the path, it's the combination of name and ext
-     *          "name": "", // specify the name of the path
-     *          "ext": "", // specify the ext of the path
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "root": "C:\\",   // the root of the path, e.g. 'C:\\' or a UNC share
+     *          "dir": "C:\\tmp", // the directory; wins over root when both are set
+     *          "base": "c.ext",  // the full last segment; wins over name + ext
+     *          "ext": ".ext",    // the extension, including the leading dot
+     *          "name": "c"       // the name without the extension
+     *      })
      *      ```
+     *
+     *      Example — build win32 paths from objects:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.format({ dir: 'C:\\temp', name: 'a', ext: '.txt' }));
+     *      // C:\temp\a.txt
+     *      console.log(win32.format({ root: 'C:\\', name: 'boot', ext: '.ini' }));
+     *      // C:\boot.ini
+     *      console.log(win32.format({ dir: 'some\\dir' })); // some\dir\
+     *      ```
+     *
      *      @param pathObject the path object
      *      @return the formatted path
      *
@@ -57,7 +187,25 @@ declare module 'path_win32' {
     function format(pathObject: FIBJS.GeneralObject): string;
 
     /**
-     * @description Parses a path into a path object
+     * @description Parses a win32 path into an object with root, dir, base, ext and name fields
+     *
+     *      The object always contains all five fields as strings and can be passed to format. Root
+     *      forms: 'C:\' for drive-absolute paths, 'C:' for drive-relative paths,
+     *      '\\server\share\' for UNC paths and '\\?\C:\' for device paths; the separator style of
+     *      the input is kept (parse('C:/temp') has root 'C:/'). A trailing separator is ignored for
+     *      base and a leading dot starts a dotfile. See the path module for the shared field
+     *      semantics.
+     *
+     *      Example — inspect parsed win32 paths:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      const p = win32.parse('C:\\Users\\dev\\index.html');
+     *      console.log(p.root, p.dir, p.base); // C:\ C:\Users\dev index.html
+     *
+     *      const unc = win32.parse('\\\\server\\share\\app.log');
+     *      console.log(unc.root, unc.base); // \\server\share\ app.log
+     *      ```
      *
      *      @param path the path to parse
      *      @return the parsed path object
@@ -72,7 +220,12 @@ declare module 'path_win32' {
     };
 
     /**
-     * @description Returns the directory name of a path
+     * @description Returns the directory name of a win32 path, dropping the last segment
+     *
+     *      Both separators are recognised and trailing separators are ignored. Drive-absolute paths
+     *      keep their root (dirname('C:\\foo') is 'C:\') and drive-relative paths keep their drive
+     *      (dirname('c:foo') is 'c:'). UNC roots are preserved: dirname('\\\\unc\\share') is
+     *      '\\unc\share' and dirname('\\\\unc\\share\\foo') is '\\unc\share\'.
      *
      *      @param path the path to query
      *      @return the directory name
@@ -81,7 +234,21 @@ declare module 'path_win32' {
     function dirname(path: string): string;
 
     /**
-     * @description Converts a path into a full path
+     * @description Converts a win32 path into an absolute path using the native Windows API
+     *
+     *      A fibjs extension, not part of Node.js, and implemented only on Windows: on other
+     *      platforms it throws 'not supported on none Win32 platform !'. On Windows the path is
+     *      passed to GetFullPathNameW, which anchors a relative path to the current directory of the
+     *      current drive and expands the result, keeping the win32 separators.
+     *
+     *      Example — resolve a Windows path (Windows only):
+     *      ```JavaScript
+     *      // requires: windows
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.fullpath('..\\file.txt'));
+     *      console.log(win32.fullpath('C:/temp/./file.txt')); // C:\temp\file.txt
+     *      ```
      *
      *      @param path the path to convert
      *      @return the full path
@@ -90,17 +257,39 @@ declare module 'path_win32' {
     function fullpath(path: string): string;
 
     /**
-     * @description Checks whether a path matches the given glob pattern
+     * @description Checks whether a path matches a glob pattern using the win32 rule set
+     *
+     *      Supports '*', '**', '?', character classes, brace expansion and the extglob forms;
+     *      patterns are anchored as a whole and dotfiles need an explicit dot. Under the win32 rule
+     *      set both '/' and '\' are accepted in paths and patterns, drive letters are compared
+     *      case-insensitively and paths on different drives never match: matchesGlob('c:\\a.js',
+     *      'C:\\*.js') is true while matchesGlob('D:\\a.js', 'C:\\*.js') is false. The path module
+     *      documents the full syntax.
      *
      *      @param path the path to check
      *      @param pattern the glob pattern
-     *      @return the match result
+     *      @return true when the path matches the pattern
      *
      */
     function matchesGlob(path: string, pattern: string): boolean;
 
     /**
-     * @description Checks whether a path is absolute
+     * @description Checks whether a win32 path is absolute
+     *
+     *      Returns true when the path starts with '/' or '\', when it is a UNC or device path
+     *      ('\\server\share', '\\?\C:\'), or when it is a drive path with a separator after the
+     *      colon ('C:\' or 'C:/'). A drive-relative path such as 'C:temp' and the empty string are
+     *      false; the check is purely textual.
+     *
+     *      Example — distinguish drive-absolute from drive-relative:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.isAbsolute('C:\\temp'));          // true
+     *      console.log(win32.isAbsolute('C:/temp'));           // true
+     *      console.log(win32.isAbsolute('C:temp'));            // false
+     *      console.log(win32.isAbsolute('\\\\server\\share')); // true
+     *      ```
      *
      *      @param path the path to check
      *      @return true when the path is absolute
@@ -109,7 +298,22 @@ declare module 'path_win32' {
     function isAbsolute(path: string): boolean;
 
     /**
-     * @description Joins a series of paths into a single path
+     * @description Joins segments into a normalized win32 path using '\' as the separator
+     *
+     *      Empty segments are ignored and '.' is returned when the result would be empty. A later
+     *      absolute segment is appended as an ordinary segment: join('a', '/b') is 'a\b'. A leading
+     *      '//' or '\\' pair can form a UNC share when a server and share are present, and drive
+     *      letters are preserved: join('c:', 'file') is 'c:\file'. See the path module for the
+     *      join/resolve/fullpath comparison.
+     *
+     *      Example — join win32 segments:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.join('C:\\temp', 'sub', '..', 'file.txt')); // C:\temp\file.txt
+     *      console.log(win32.join('//server', 'share', 'dir'));         // \\server\share\dir
+     *      console.log(win32.join('c:', 'file'));                       // c:\file
+     *      ```
      *
      *      @param ps one or more paths
      *      @return the joined path
@@ -118,7 +322,21 @@ declare module 'path_win32' {
     function join(...ps: any[]): string;
 
     /**
-     * @description Resolves a series of paths into an absolute path
+     * @description Resolves segments into an absolute win32 path, anchored at the working directory
+     *
+     *      Segments are processed from right to left until an absolute one is found, so the rightmost
+     *      absolute segment wins; relative segments are anchored at the working directory and keep
+     *      its drive. The result is normalized and has no trailing separator. With no arguments, or
+     *      with only empty segments, the working directory is returned. Paths are resolved with the
+     *      win32 rule set even when the host is not Windows.
+     *
+     *      Example — resolve win32 segments:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.resolve('C:\\temp', 'sub'));     // C:\temp\sub
+     *      console.log(win32.resolve('C:\\temp', 'D:/data')); // D:\data
+     *      ```
      *
      *      @param ps one or more paths
      *      @return the resolved path
@@ -127,7 +345,13 @@ declare module 'path_win32' {
     function resolve(...ps: any[]): string;
 
     /**
-     * @description Returns the relative path from _from to to
+     * @description Returns the relative win32 path from _from to to
+     *
+     *      Both arguments are resolved against the working directory first. '' is returned for the
+     *      same location; otherwise the result uses '..' segments as needed and has no trailing
+     *      separator. Paths are compared case-insensitively, and a target on another drive is
+     *      returned unchanged because no relative path can cross drives
+     *      (relative('C:\\a', 'D:\\b') is 'D:\b').
      *
      *      @param _from the source path
      *      @param to the target path
@@ -137,8 +361,26 @@ declare module 'path_win32' {
     function relative(_from: string, to: string): string;
 
     /**
-     * @description Converts a path into a namespace-prefixed path; only effective on Windows, other systems get the input back
-     *     see: https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces
+     * @description Converts a win32 path into the '\\?\' namespace-prefixed form
+     *
+     *      The path is resolved and then prefixed: a drive path gains the '\\?\' prefix ('C:\tmp'
+     *      becomes '\\?\C:\tmp') and a UNC path becomes '\\?\UNC\...', with forward slashes
+     *      converted to backslashes. An existing '\\?\' prefix is not duplicated, and non-string
+     *      values are returned unchanged. A pure string operation that works on every platform,
+     *      although the prefix is only meaningful on Windows.
+     *
+     *      Example — convert drive and UNC paths:
+     *      ```JavaScript
+     *      const win32 = require('path').win32;
+     *
+     *      console.log(win32.toNamespacedPath('C:\\temp\\file.txt'));
+     *      // \\?\C:\temp\file.txt
+     *      console.log(win32.toNamespacedPath('\\\\server\\share\\f'));
+     *      // \\?\UNC\server\share\f
+     *      console.log(win32.toNamespacedPath('//server/share/f'));
+     *      // \\?\UNC\server\share\f
+     *      ```
+     *
      *      @param path the path to convert
      *      @return the converted path
      *
@@ -146,25 +388,31 @@ declare module 'path_win32' {
     function toNamespacedPath(path?: any): any;
 
     /**
-     * @description The path segment separator of the current system: '/' on posix, a backslash on Windows
+     * @description The path segment separator of the win32 rule set: '\'
      *
      */
     export const sep: "\\";
 
     /**
-     * @description The multi-path delimiter of the current system: ':' on posix, ';' on Windows
+     * @description The PATH-list delimiter of the win32 rule set: ';'
      *
      */
     export const delimiter: ";";
 
     /**
-     * @description The posix implementation, see path_posix
+     * @description The posix rule set of the path module, see path_posix
+     *
+     *      Use it to process POSIX paths (forward slashes, backslash as an ordinary character) from a
+     *      win32 context.
      *
      */
     const posix: FIBJS.GeneralObject;
 
     /**
-     * @description The Windows implementation, see path_win32
+     * @description The win32 rule set itself
+     *
+     *      A self reference to the object returned by require('path').win32, provided for API
+     *      symmetry with path_posix.
      *
      */
     const win32: FIBJS.GeneralObject;

@@ -2,28 +2,97 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description The XMLSerializer interface provides the ability to serialize a DOM tree into an XML string
+ * @description XMLSerializer serializes a DOM node into XML text; the class is a global and Node.js has no equivalent
  *
- *  XMLSerializer can serialize DOM nodes into XML strings:
+ *  `new XMLSerializer().serializeToString(node)` accepts any XmlNode — a document, element, text
+ *  node, comment, CDATA section or processing instruction — and returns the XML serialization of
+ *  that node alone. There is no module to require, and `instanceof XMLSerializer` recognizes the
+ *  instances.
+ *
+ *  Concepts:
+ *
+ *  - **XML rules**: elements are written with XML syntax regardless of how the document was
+ *    parsed: an empty element becomes `<name />`, and `<`/`&`/quotes are escaped in text and
+ *    attribute values (a newline, carriage return or tab in an attribute becomes
+ *    &#10;/&#13;/&#9;). Comments and CDATA sections are kept, and namespace prefixes and xmlns
+ *    declarations already present in the tree are serialized like ordinary attributes; fibjs adds
+ *    no namespace of its own, while browsers serialize HTML documents with the XHTML namespace.
+ *  - **Node-level dispatch**: serializing an element uses the XML element writer, but a document
+ *    node goes through the generic node writer; for an HTML-parsed document the document path
+ *    keeps HTML-style tags (`<br>`), so pass the element or documentElement when XML-style output
+ *    (`<br />`) is required.
+ *  - **XML declaration**: serializing a whole document whose source had an XML declaration
+ *    includes the declaration (<?xml version="1.0"?>); serializing documentElement or any other
+ *    node never emits it.
+ *
+ *  Obtained from:
+ *  - `new XMLSerializer()` — the constructor takes no arguments, and the serializer is stateless,
+ *    so one instance can serialize any number of nodes.
+ *
+ *  Example 1 — serialize a parsed XML document:
  *  ```JavaScript
+ *  const doc = new DOMParser().parseFromString(
+ *      '<?xml version="1.0"?><root a="1"><child/></root>', 'text/xml');
+ *  const xml = new XMLSerializer().serializeToString(doc);
+ *
+ *  console.log(xml); // <?xml version="1.0"?><root a="1"><child/></root>
+ *  ```
+ *
+ *  Example 2 — serialize, re-parse and compare a round trip:
+ *  ```JavaScript
+ *  const parser = new DOMParser();
  *  const serializer = new XMLSerializer();
  *
- *  // serializes an XML document
- *  const parser = new DOMParser();
- *  const doc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
- *  const xmlStr = serializer.serializeToString(doc);
- *  console.log(xmlStr); // output: <root><item>data</item></root>
+ *  const source = '<root><item id="1">a &amp; b</item></root>';
+ *  const text = serializer.serializeToString(parser.parseFromString(source, 'text/xml'));
+ *  const second = parser.parseFromString(text, 'text/xml');
+ *
+ *  console.log(text); // <root><item id="1">a &amp; b</item></root>
+ *  console.log(second.documentElement.firstChild.textContent); // a & b
+ *  ```
+ *
+ *  Example 3 — XML output for an HTML-parsed element:
+ *  ```JavaScript
+ *  const doc = new DOMParser().parseFromString(
+ *      '<html><body><br><img src="a.png"></body></html>', 'text/html');
+ *  const serializer = new XMLSerializer();
+ *
+ *  console.log(serializer.serializeToString(doc.body.childNodes[0])); // <br />
+ *  console.log(serializer.serializeToString(doc).indexOf('<br>') >= 0); // true
  *  ```
  *
  */
 declare class Class_XMLSerializer extends Class_object {
     /**
      * @description Constructs an XMLSerializer object
+     *
+     *      The constructor takes no arguments; calling it with any argument throws TypeError [20001].
+     *
+     *      Example — create a serializer:
+     *      ```JavaScript
+     *      const serializer = new XMLSerializer();
+     *      console.log(serializer instanceof XMLSerializer); // true
+     *      ```
+     *
      */
     constructor();
 
     /**
      * @description Serializes a DOM node into an XML string
+     *
+     *      The argument must be an XmlNode instance; a primitive, null or a non-node object throws
+     *      TypeError [20005], and calling the method with zero or two arguments throws
+     *      TypeError [20002]/[20001]. The method is stateless and can be called repeatedly. See the
+     *      class description for the serialization rules and for the difference between serializing
+     *      a document and its elements.
+     *
+     *      Example — serialize a parsed document:
+     *      ```JavaScript
+     *      const doc = new DOMParser().parseFromString('<root><a/></root>', 'text/xml');
+     *      const xml = new XMLSerializer().serializeToString(doc);
+     *      console.log(xml); // <root><a/></root>
+     *      ```
+     *
      *      @param node the DOM node to serialize
      *      @return returns the serialized XML string
      *

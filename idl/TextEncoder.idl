@@ -1,32 +1,138 @@
-/*! @brief TextEncoder encoding object
+/*! @brief Encodes JavaScript strings into bytes, the Web TextEncoder API of fibjs
 
- Creation method
+ TextEncoder is available both as the global TextEncoder and as util.TextEncoder (the same
+ class). It converts a string into a byte sequence of a selected character encoding and
+ returns a Buffer; utf-8, the default, is the only encoding of the Web standard and is
+ converted with a direct copy of the internal utf-8 string.
+
+ fibjs extension: the constructor also accepts other charset labels (gbk, big5, euc-jp,
+ utf-16le, windows-125x, ...) and produces bytes in that encoding, while the Web standard and
+ Node.js ignore the label and always encode utf-8. An unknown label raises `RangeError [20004]
+ ERR_ENCODING_NOT_SUPPORTED`.
+
+ Concepts:
+
+ - **Encoding labels**: WHATWG names and labels are resolved to a canonical name (utf8 and
+   UTF-8 become utf-8, latin1 becomes windows-1252) with an ICU lookup as fallback for
+   charsets outside the WHATWG list. The resolved name is exposed by the encoding property.
+ - **Output type**: encode() returns a Buffer, a Uint8Array subclass, so the result can be
+   used anywhere a BufferSource is expected; Node.js returns a plain Uint8Array.
+ - **Partial writes**: encodeInto() writes into a caller-provided buffer and reports how much
+   of the source (in UTF-16 code units) and how many bytes were written. A character is never
+   split, so a small destination stops at the last complete character.
+ - **Strings**: the input is a fibjs string; undefined and null are treated as an empty
+   input, while the Web standard converts them with the USVString rules ("null").
+
+ Obtained from:
+ - `new TextEncoder()` / `new TextEncoder(codec)` — the constructor, as the global TextEncoder
+   or as `require('util').TextEncoder`.
+
+ Example 1 — encode utf-8 and inspect the bytes:
  ```JavaScript
- var textEncoder = new util.TextEncoder('utf8');
+ const encoder = new TextEncoder();
+
+ console.log(encoder.encoding);       // utf-8
+ const bytes = encoder.encode('héllo');
+ console.log(bytes.length);          // 6 (é is two bytes in utf-8)
+ console.log(bytes.toString('hex')); // 68c3a96c6c6f
+ console.log(encoder.encode('').length); // 0
+ ```
+
+ Example 2 — write into a destination with encodeInto:
+ ```JavaScript
+ const encoder = new TextEncoder();
+ const destination = Buffer.alloc(4);
+
+ const result = encoder.encodeInto('héllo', destination);
+ console.log(result.read, result.written); // 3 4
+ console.log(destination.toString());      // hél (the bytes that fit)
+ ```
+
+ Example 3 — a non-utf-8 codec is a fibjs extension:
+ ```JavaScript
+ const encoder = new TextEncoder('gbk');
+ const decoder = new TextDecoder('gbk');
+
+ console.log(encoder.encoding);                      // gbk
+ console.log(encoder.encode('中文').toString('hex')); // d6d0cec4
+ console.log(decoder.decode(encoder.encode('中文'))); // 中文
  ```
  */
 interface TextEncoder : object
 {
-    /*! @brief TextEncoder object constructor, constructed with parameters
-	 @param codec the encoding charset
- 	 @param opts encoding options
+    /*! @brief Creates an encoder for a character encoding
+
+     codec is a WHATWG label or any ICU charset name; the default utf-8 is the only encoding
+     of the Web standard and the others are a fibjs extension. An unknown label, or a label
+     containing characters outside printable ASCII, throws `RangeError [20004]
+     ERR_ENCODING_NOT_SUPPORTED`. The opts argument is accepted for signature compatibility
+     and ignored, because no encoder options are defined.
+
+     Example — select a legacy codec:
+     ```JavaScript
+     const encoder = new TextEncoder('latin1');
+
+     console.log(encoder.encoding);                    // windows-1252 (canonical name)
+     console.log(encoder.encode('é').toString('hex')); // e9
+     try { new TextEncoder('no-such-codec'); } catch (e) { console.log(e.code); }
+     // ERR_ENCODING_NOT_SUPPORTED
+     ```
+
+     @param codec the encoding label, default "utf8"
+     @param opts reserved; ignored
      */
     TextEncoder(String codec = "utf8", Object opts = {});
 
-    /*! @brief Converts text to binary data
-	 @param data the text to convert
- 	 @param opts encoding options
-	 @return returns the encoded binary data
-	 */
+    /*! @brief Encodes a string into a Buffer
+
+     The text is converted with the encoding selected at construction; for utf-8 the internal
+     string is copied straight into the Buffer and other codecs go through the charset
+     converter. A missing, undefined or null argument, and an empty string, yield a
+     zero-length Buffer. A Buffer argument is accepted through its string form, while a value
+     without a string form (a number) throws TypeError 20005. The opts argument is accepted
+     for signature compatibility and ignored.
+
+     Example — encode and round trip through TextDecoder:
+     ```JavaScript
+     const bytes = new TextEncoder().encode('fibjs');
+
+     console.log(Buffer.isBuffer(bytes), bytes.toString()); // true fibjs
+     console.log(new TextDecoder().decode(bytes)); // fibjs
+     ```
+
+     @param data the text to encode, default ""
+     @param opts reserved; ignored
+     @return the encoded bytes as a Buffer
+     */
     Buffer encode(String data = "", Object opts = {});
 
-    /*! @brief Encodes text into the destination buffer
-	 @param source the text to encode
-	 @param destination the destination buffer to write into
-	 @return returns an object containing the read and written properties
-	 */
+    /*! @brief Encodes into an existing buffer
+
+     source is encoded into destination, which must be a Buffer or another JS buffer. The
+     returned object has `read` (UTF-16 code units of source consumed) and `written` (bytes
+     stored); a character is never split, so the method writes as many complete characters as
+     fit and stops - with a 4-byte destination, "héllo" reports read 3, written 4 and stores
+     "hél". An empty destination reports read 0, written 0, and a destination that is not a
+     buffer throws TypeError 20005.
+
+     Example — a character that does not fit is not written:
+     ```JavaScript
+     const destination = Buffer.alloc(1);
+     const result = new TextEncoder().encodeInto('中a', destination);
+
+     console.log(result.read, result.written); // 0 0 (中 needs 3 bytes)
+     ```
+
+     @param source the text to encode
+     @param destination the Buffer receiving the bytes
+     @return an object with the `read` (source UTF-16 units) and `written` (bytes) counts
+     */
     (Number read, Number written) encodeInto(String source, Buffer destination);
 
-    /*! @brief Queries the current encoding charset */
+    /*! @brief The resolved encoding name of the encoder, read-only
+
+     The WHATWG canonical name of the constructor label: "utf-8" by default, "windows-1252"
+     for latin1, "gbk" for gbk. The value is fixed at construction.
+    */
     readonly String encoding;
 };

@@ -1,74 +1,126 @@
-/*! @brief The SQLite object is a member of the built-in db module and is mainly responsible for connecting to and operating on SQLite databases; it can be used to create, query, insert into and update SQLite databases. The SQLite object also provides some advanced operations such as backup and SQL formatting. SQLite connection objects also support transactions
+/*! @brief SQLite is the DbConnection implementation for SQLite databases: one file (or an
+ in-memory database) with no server process
 
-In practice, we usually create SQLite tables according to business needs and then perform data operations such as insert, delete, update and query, for example:
+ Obtained from:
+ - `db.openSQLite(connString)` — accepts `sqlite:path`, `sqlite://path` and a bare file
+   path;
+ - `db.open('sqlite:path')` — the same connection through the generic entry.
 
-```JavaScript
-var db = require('db')
+ Concepts:
 
-// open a SQLite database
-var sqlite = db.openSQLite('test.db')
+ - **File or memory**: the path is opened READWRITE|CREATE, so a missing file is created.
+   `:memory:` opens a private in-memory database and an empty string opens a temporary
+   on-disk database; both discard their data when the connection closes. `fileName`
+   reports the path exactly as it was given.
+ - **PRAGMAs**: every connection enables WAL journaling, `synchronous=normal` and
+   `temp_store=memory`; when the file system cannot provide WAL it silently falls back to
+   the rollback journal, and an in-memory database reports `memory` as its journal mode.
+   The busy handler waits up to `timeout` milliseconds (default 5000) for a locked
+   database before reporting a busy error.
+ - **Type affinity**: SQLite stores a type per value, not per column. BLOB and binary
+   columns come back as Buffer, DATETIME/TIMESTAMP/DATE/TIME columns are parsed into
+   Date, NULL as null and other values as number or string. INTEGER values are read
+   through a double, so values beyond 2^53 lose precision.
+ - **Transactions**: begin uses `BEGIN IMMEDIATE` so a read-then-write transaction takes
+   the WAL write lock up front instead of failing on a lock upgrade; the savepoint forms
+   of begin/commit/rollback behave as described in DbConnection.
+ - **Built-in extensions**: FTS5 full-text search and the `vec_index` virtual table for
+   vector search through `vec_search` are compiled into the engine.
 
-// use execute method to create a table
-sqlite.execute('CREATE TABLE test (id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, age INT NOT NULL)')
+ Example 1 — file database round trip:
+ ```JavaScript
+ const db = require('db');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
 
-// use execute method to insert data
-sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 1, 'Alice', 18)
-sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 2, 'Bob', 20)
-sqlite.execute('INSERT INTO test (id, name, age) VALUES (?, ?, ?)', 3, 'Charlie', 22)
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-sqlite-'));
+ const conn = db.openSQLite(path.join(dir, 'notes.db'));
+ console.log(conn.fileName.endsWith('notes.db')); // true
 
-// use execute method to query data
-var rs = sqlite.execute('SELECT * FROM test')
-console.log(rs)
+ conn.execute('CREATE TABLE note (id INTEGER PRIMARY KEY, body TEXT)');
+ conn.execute('INSERT INTO note (body) VALUES (?)', 'hello');
+ console.log(conn.execute('SELECT COUNT(*) AS n FROM note')[0].n); // 1
 
-// use execute method to update data
-sqlite.execute('UPDATE test SET name=?, age=? WHERE id=?', 'Marry', 19, 1)
+ conn.close();
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
 
-// use execute method to delete data
-sqlite.execute('DELETE FROM test WHERE id=?', 2)
-```
+ Example 2 — vector search with the vec_index extension:
+ ```JavaScript
+ const db = require('db');
+ const conn = db.openSQLite(':memory:');
 
-SQLite also has a built-in vec_index module: indexes on vector fields can be created in a SQLite database and searches can be performed based on vector fields to obtain the set of vectors closest to the target vector. Vectors can be represented by numeric arrays, such as: [1, 2, 3], and vector dimensions are supported. In addition, vec_index supports batch operations inside transactions.
+ conn.execute('CREATE VIRTUAL TABLE vindex USING vec_index(title(3))');
+ conn.execute('INSERT INTO vindex (title, rowid) VALUES (?, ?)', '[1,2,3]', 3);
 
-Here is a simple example:
+ const found = conn.execute(
+     'SELECT rowid, distance FROM vindex WHERE vec_search(title, ?)', '[1,2,5.1234]');
+ console.log(found[0].rowid); // 3, the closest vector
 
-``` JavaScript
-var db = require('db');
-var path = require('path');
-
-var conn = db.openSQLite(path.join(__dirname, 'vec_test.db'));
-
-conn.execute('create virtual table vindex using vec_index(title(3), description(3))');
-
-conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 3)`);
-``` 
-
-The vec_search function can be used to perform vector search, for example:
-
-``` JavaScript
-var key = [1, 2, 5.1234];
-var limit = 1;
-
-var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}")`);
-``` 
-
-vec_search returns the closest vector set and a distance array, where distances are ordered from smallest to largest. To return multiple closest vector sets, use the :limit parameter, for example:
-
-``` JavaScript
-var key = [1, 2, 5.1234];
-var limit = 1;
-
-var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}:10")`);
-``` 
+ conn.close();
+ ```
 */
 interface SQLite : DbConnection
 {
-    /*! @brief The file name of the current database */
+    /*! @brief The file name of the current database
+
+     Returns the path exactly as it was passed to db.openSQLite or db.open, so a relative
+     path stays relative; `:memory:` is returned for an in-memory database and an empty
+     string for a temporary one. The call fails with error number 20009 when the
+     connection is closed.
+     */
     readonly String fileName;
 
-    /*! @brief Queries and sets the database timeout in milliseconds */
+    /*! @brief Queries and sets the database timeout in milliseconds
+
+     The busy timeout: how long SQLite waits for a locked database (a concurrent writer
+     or an exclusive lock) before reporting a busy error. Default 5000; 0 disables the
+     wait and makes a locked database fail immediately. The value is applied to the
+     current connection and is also used by backup. Reading or assigning it on a closed
+     connection fails with error number 20009.
+
+     Example — read and change the busy timeout:
+     ```JavaScript
+     const db = require('db');
+     const conn = db.openSQLite(':memory:');
+     console.log(conn.timeout); // 5000
+     conn.timeout = 1000;
+     console.log(conn.timeout); // 1000
+     conn.close();
+     ```
+     */
     Integer timeout;
 
     /*! @brief Backs up the current database to a new file
-	 @param fileName the database file name to back up to */
+
+     Copies the whole database into fileName with the SQLite online backup API,
+     restarting on locks until the copy completes; the source connection stays open and
+     usable while the backup runs. The destination accepts the same forms as
+     openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
+     and overwritten when it exists; its parent directory must already exist, otherwise
+     the call fails with error number 20024. Lock waits are bounded by timeout.
+
+     Example — back up a database and open the copy:
+     ```JavaScript
+     const db = require('db');
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-sqlite-'));
+     const conn = db.openSQLite(path.join(dir, 'main.db'));
+     conn.execute('CREATE TABLE note (body TEXT)');
+     conn.execute('INSERT INTO note (body) VALUES (?)', 'kept');
+     conn.backup(path.join(dir, 'backup.db'));
+
+     const copy = db.openSQLite(path.join(dir, 'backup.db'));
+     console.log(copy.execute('SELECT COUNT(*) AS n FROM note')[0].n); // 1
+     copy.close();
+     conn.close();
+     fs.rmSync(dir, { recursive: true, force: true });
+     ```
+
+     @param fileName the database file name to back up to */
     backup(String fileName) async;
 };

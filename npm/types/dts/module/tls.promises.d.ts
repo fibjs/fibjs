@@ -10,25 +10,41 @@
  */
 declare module 'tls/promises' {
     /**
-     * @description tls/ssl network socket object, see TLSSocket
+     * @description The TLSSocket class entry point, see TLSSocket
+     *
+     *      The same class as the sockets returned by connect and handed to TLSServer handlers; use it
+     *      directly to wrap an existing stream or to drive the handshake step by step.
+     *
      */
     const TLSSocket: typeof Class_TLSSocket;
 
     /**
-     * @description tls/ssl protocol conversion handler, see TLSHandler
+     * @description The TLSHandler class entry point, see TLSHandler
+     *
+     *      A handler that upgrades every accepted raw stream to TLS and then invokes the wrapped
+     *      handler; pass it to net.createServer or new net.TcpServer to build a TLS protocol server.
+     *
      */
     const Handler: typeof Class_TLSHandler;
 
     /**
-     * @description tls/ssl protocol conversion handler, see TLSServer
+     * @description The TLSServer class entry point, see TLSServer
+     *
+     *      The class of the servers created by createServer; it combines net.TcpServer with TLSHandler
+     *      and can also be created with new tls.Server(context, listener). Node.js names its class
+     *      tls.Server as well; neither environment exports tls.TLSServer.
+     *
      */
     const Server: typeof Class_TLSServer;
 
     /**
-     * @description creates a TLS server
+     * @description Creates a TLS server from a secure context or the options used to create one
      *
-     *      options may be the SecureContext object used by the server, or the options for creating
-     *      one (the same object tls.createSecureContext accepts).
+     *      options may be a ready SecureContext or an options object accepted by createSecureContext.
+     *      The returned server has no port bound: call listen() (or bind elsewhere and then start())
+     *      before it accepts clients, and stop() when done. Unlike the TLSServer options constructor,
+     *      an `address` or `port` key in options is not bound here, so tls.createServer({port: 8443},
+     *      listener) still requires listen().
      *
      *      listener may be given in any of these forms:
      *      - a Handler object, invoked as it is;
@@ -36,6 +52,9 @@ declare module 'tls/promises' {
      *      - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
      *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
      *      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
+     *      Node.js tls.createServer() accepts a missing listener and reports connections through the
+     *      'secureConnection' event, while fibjs requires the listener and hands each TLSSocket to it
+     *      directly; a missing listener throws a parameter-not-optional error.
      *      @param options the secure context or the options used to create one
      *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
@@ -44,24 +63,50 @@ declare module 'tls/promises' {
     function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
 
     /**
-     * @description creates a SecureContext object, used to maintain secure contexts in the tls module
+     * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections
      *
-     *      The options for creating a secure context support the following options:
-     *      - ca: overrides the trusted CA certificates. By default, the well-known CAs managed by Mozilla are trusted. When this option is used to explicitly specify CAs, Mozilla's CAs are completely replaced. The value can be a string or a Buffer, or an Array of strings or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be able to chain to a CA trusted by the server for the connection to be authenticated. When using certificates that do not chain to a well-known CA, the certificate's CA must be explicitly specified as a trusted CA, otherwise the connection will not be authenticated. If the certificate used by the peer does not match or chain to one of the default CAs, use the ca option to provide a CA certificate that the peer certificate can match or chain to. For self-signed certificates, the certificate is its own CA and must be provided. For PEM-encoded certificates, the supported types are TRUSTED CERTIFICATE, X509 CERTIFICATE and CERTIFICATE.
-     *      - cert: certificate chains in PEM format. One certificate chain should be provided for each private key. Each certificate chain should contain the certificate in PEM format for the provided private key, followed by intermediate certificates in PEM format (if any), in order, and excluding the root CA (the root CA must be pre-generated). When multiple certificate chains are provided, their order does not have to be the same as the private keys in key. If intermediate certificates are not provided, the peer will not be able to verify the certificate and the handshake will fail.
-     *      - key: the private key in PEM format. PEM allows encrypted private keys to be chosen. Encrypted keys will be decrypted using options.passphrase.
-     *      - passphrase: the shared passphrase used for a single private key and/or a PFX.
-     *      - requestCert: if true, the server will require a client certificate for authentication. Default: true.
-     *      - rejectUnverified: if not false, the server will reject any connection whose certificate fails CA list verification. Default: true.
-     *      - rejectUnauthorized: if not false, the server will reject any connection that does not provide a certificate authorized by the CA list. Default: true in client mode, false in server mode.
-     *      - maxVersion: sets the maximum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1' or 'TLSv1'. Cannot be specified together with the secureProtocol option.
-     *      - minVersion: sets the minimum allowed TLS version. One of 'TLSv1.3', 'TLSv1.2', 'TLSv1.1' or 'TLSv1'. Cannot be specified together with the secureProtocol option.
-     *      - secureProtocol: legacy mechanism to select the TLS protocol version to use; it does not support independent control of the minimum and maximum versions, nor restricting the protocol to TLSv1.3. Using minVersion and maxVersion is recommended instead.
-     *      - sessionTimeout: the number of seconds after which a TLS session created by the server will no longer be resumable. Default: 300.
-     *      - SNIResolver: used to resolve the server name in the SNI callback. The function signature is function(servername), where servername is the server name indication sent by the client. The return value is a SecureContext object, or null if it cannot be resolved.
-     *      - SNICacheSize: the size of the SNI context cache. Default: 1024.
-     *      - SNICacheTimeout: the timeout of the SNI context cache (in seconds). Default: 300. If set to 0 or a negative number, the cache will never expire.
-     *      - SNICacheIdleTimeout: the timeout of the SNI idle context cache (in seconds). Default: 300. If set to 0 or a negative number, the idle cache will never expire.
+     *      A context is validated while it is created: an unknown version name, a conflicting
+     *      secureProtocol/minVersion combination and unparsable or mismatching certificate material
+     *      fail here instead of at handshake time (invalid PEM material reports error 20024). Without
+     *      options an empty context is built. With isServer false (the default) the context behaves as
+     *      a client: it inherits the default Mozilla trust store and requires a verified server
+     *      certificate, while a server context has no CA of its own and does not require a client
+     *      certificate. When options carries a `secureContext` key, that ready context is returned and
+     *      the other TLS keys are ignored; this is how the connect forms accept {secureContext: ctx}.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "ca": null,                 // trusted CAs: PEM string/Buffer/X509Certificate or an array
+     *          "cert": null,               // PEM certificate chain: leaf first, then intermediates
+     *          "key": null,                // PEM private key matching cert; needs passphrase if encrypted
+     *          "passphrase": null,         // passphrase of an encrypted private key or PFX
+     *          "requestCert": true,        // ask the peer for a certificate
+     *          "rejectUnverified": true,   // fail the handshake if that certificate does not verify
+     *          "rejectUnauthorized": undefined, // require a peer certificate; client true, server false
+     *          "minVersion": null,         // 'TLSv1' | 'TLSv1.1' | 'TLSv1.2' | 'TLSv1.3'
+     *          "maxVersion": null,         // 'TLSv1' | 'TLSv1.1' | 'TLSv1.2' | 'TLSv1.3'
+     *          "secureProtocol": null,     // legacy method name, e.g. 'TLSv1_2_method'
+     *          "sessionTimeout": 7200,     // server-side resumable session lifetime in seconds
+     *          "alpnProtocols": [],        // protocol names offered through ALPN
+     *          "SNIResolver": null,        // (servername) => SecureContext, server only
+     *          "SNICacheSize": 1024,       // number of cached SNI contexts
+     *          "SNICacheTimeout": 300,     // lifetime of a cached SNI context in seconds
+     *          "SNICacheIdleTimeout": 300, // idle lifetime of a cached SNI context in seconds
+     *          "secureContext": null       // a ready context; when set, the other TLS keys are ignored
+     *      })
+     *      ```
+     *
+     *      ca/cert accept a PEM string, a Buffer, an X509Certificate or an array of them; a PEM string
+     *      may concatenate several certificates. key and cert must be provided together, and the key is
+     *      checked to match the certificate. Supplying ca completely replaces the Mozilla store, so the
+     *      peer certificate must chain to one of the given CAs. requestCert, rejectUnverified and
+     *      rejectUnauthorized control the verification described in the module concepts. minVersion
+     *      and maxVersion cannot be combined with a legacy secureProtocol value that already fixes a
+     *      version. sessionTimeout only affects a server context. The SNI options configure the
+     *      server-side cache used by getSNIContext and are ignored on a client context. Node.js
+     *      accepts many more keys (ciphers, ecdhCurve, honorCipherOrder, ...), which fibjs ignores.
      *
      *      @param options the options for creating the secure context
      *      @param isServer whether it is in server mode, default is false
@@ -71,7 +116,12 @@ declare module 'tls/promises' {
     function createSecureContext(options: FIBJS.GeneralObject, isServer?: boolean): Class_SecureContext;
 
     /**
-     * @description creates a SecureContext object, used to maintain secure contexts in the tls module
+     * @description Creates an empty SecureContext, optionally with the defaults of a server
+     *
+     *      Shorthand for createSecureContext({}, isServer). With isServer false the context trusts the
+     *      default Mozilla roots and requires a verified server certificate; with true it behaves as a
+     *      server: rejectUnauthorized defaults to false and the SNI callback is installed, so the
+     *      context can serve setSNIContext/getSNIContext lookups.
      *      @param isServer whether it is in server mode, default is false
      *      @return returns the created secure context
      *
@@ -79,12 +129,27 @@ declare module 'tls/promises' {
     function createSecureContext(isServer?: boolean): Class_SecureContext;
 
     /**
-     * @description queries the default SecureContext
+     * @description The process-wide default SecureContext
+     *
+     *      Used when connect, new TLSSocket() or createSecureContext() is called without an explicit
+     *      context. It is a client context, so the Mozilla roots are trusted; the same object is
+     *      exposed here for inspection or reuse. Node.js has no equivalent property, it exposes
+     *      rootCertificates and the DEFAULT_* constants instead.
+     *
      */
     const secureContext: Class_SecureContextPromise;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a TLS connection from an options object and waits for the handshake
+     *
+     *      The object is read twice: as connection options it uses `host` (default 'localhost'), `port`
+     *      (default 0) and `timeout` (connect timeout in milliseconds, default 0), while the remaining
+     *      keys are the TLS options of createSecureContext (`ca`, `cert`, `key`, `rejectUnverified`,
+     *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
+     *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
+     *      declared Stream type is its base interface) and throws an Error with a verification code on
+     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
+     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -92,7 +157,16 @@ declare module 'tls/promises' {
     function connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a TLS connection from an options object and waits for the handshake
+     *
+     *      The object is read twice: as connection options it uses `host` (default 'localhost'), `port`
+     *      (default 0) and `timeout` (connect timeout in milliseconds, default 0), while the remaining
+     *      keys are the TLS options of createSecureContext (`ca`, `cert`, `key`, `rejectUnverified`,
+     *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
+     *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
+     *      declared Stream type is its base interface) and throws an Error with a verification code on
+     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
+     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -100,7 +174,16 @@ declare module 'tls/promises' {
     function connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a TLS connection from an options object and waits for the handshake
+     *
+     *      The object is read twice: as connection options it uses `host` (default 'localhost'), `port`
+     *      (default 0) and `timeout` (connect timeout in milliseconds, default 0), while the remaining
+     *      keys are the TLS options of createSecureContext (`ca`, `cert`, `key`, `rejectUnverified`,
+     *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
+     *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
+     *      declared Stream type is its base interface) and throws an Error with a verification code on
+     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
+     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -108,12 +191,14 @@ declare module 'tls/promises' {
     function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection and triggers the connect event after the connection is established
+     * @description Creates a TLS connection without blocking and reports the outcome through events
      *
-     *      options may be given in any of these forms:
-     *      - a connection options object carrying the port, host, timeout and the TLS options;
-     *      - the url to connect to, such as 'ssl://host:port';
-     *      - the remote port, with the host defaulting to localhost.
+     *      options selects one of the other entry forms: an options object (host/port/timeout plus the
+     *      TLS options), an `ssl://` URL, or the remote port, in which case the host defaults to
+     *      'localhost'. The call returns immediately; on success the 'connect' event fires with the
+     *      TLSSocket, and on failure an 'error' event carries an Error with `code` and
+     *      `args.servername` instead of throwing. Listen for the 'error' event, otherwise a failed
+     *      handshake becomes an unhandled error.
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -122,12 +207,14 @@ declare module 'tls/promises' {
     function connect(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection and triggers the connect event after the connection is established
+     * @description Creates a TLS connection without blocking and reports the outcome through events
      *
-     *      options may be given in any of these forms:
-     *      - a connection options object carrying the port, host, timeout and the TLS options;
-     *      - the url to connect to, such as 'ssl://host:port';
-     *      - the remote port, with the host defaulting to localhost.
+     *      options selects one of the other entry forms: an options object (host/port/timeout plus the
+     *      TLS options), an `ssl://` URL, or the remote port, in which case the host defaults to
+     *      'localhost'. The call returns immediately; on success the 'connect' event fires with the
+     *      TLSSocket, and on failure an 'error' event carries an Error with `code` and
+     *      `args.servername` instead of throwing. Listen for the 'error' event, otherwise a failed
+     *      handshake becomes an unhandled error.
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -136,12 +223,14 @@ declare module 'tls/promises' {
     function connectSync(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection and triggers the connect event after the connection is established
+     * @description Creates a TLS connection without blocking and reports the outcome through events
      *
-     *      options may be given in any of these forms:
-     *      - a connection options object carrying the port, host, timeout and the TLS options;
-     *      - the url to connect to, such as 'ssl://host:port';
-     *      - the remote port, with the host defaulting to localhost.
+     *      options selects one of the other entry forms: an options object (host/port/timeout plus the
+     *      TLS options), an `ssl://` URL, or the remote port, in which case the host defaults to
+     *      'localhost'. The call returns immediately; on success the 'connect' event fires with the
+     *      TLSSocket, and on failure an 'error' event carries an Error with `code` and
+     *      `args.servername` instead of throwing. Listen for the 'error' event, otherwise a failed
+     *      handshake becomes an unhandled error.
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -150,7 +239,11 @@ declare module 'tls/promises' {
     function connectAsync(options: FIBJS.GeneralObject | string | number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a port from an options object
+     *
+     *      The port is fixed, the host defaults to 'localhost' and options is the same object as in the
+     *      blocking (port, host, options) form, so `host` inside it overrides the default. It returns
+     *      immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -160,7 +253,11 @@ declare module 'tls/promises' {
     function connect(port: number, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a port from an options object
+     *
+     *      The port is fixed, the host defaults to 'localhost' and options is the same object as in the
+     *      blocking (port, host, options) form, so `host` inside it overrides the default. It returns
+     *      immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -170,7 +267,11 @@ declare module 'tls/promises' {
     function connectSync(port: number, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a port from an options object
+     *
+     *      The port is fixed, the host defaults to 'localhost' and options is the same object as in the
+     *      blocking (port, host, options) form, so `host` inside it overrides the default. It returns
+     *      immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -180,7 +281,10 @@ declare module 'tls/promises' {
     function connectAsync(port: number, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port
+     *
+     *      The default context is used and the host is both the TCP target and the verified SNI name.
+     *      The call returns immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param connectListener specifies the once connect event listener
@@ -190,7 +294,10 @@ declare module 'tls/promises' {
     function connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port
+     *
+     *      The default context is used and the host is both the TCP target and the verified SNI name.
+     *      The call returns immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param connectListener specifies the once connect event listener
@@ -200,7 +307,10 @@ declare module 'tls/promises' {
     function connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port
+     *
+     *      The default context is used and the host is both the TCP target and the verified SNI name.
+     *      The call returns immediately and reports the handshake through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param connectListener specifies the once connect event listener
@@ -210,7 +320,10 @@ declare module 'tls/promises' {
     function connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL, with a connect listener
+     *
+     *      Returns immediately; the outcome is delivered through the 'connect'/'error' events. timeout
+     *      bounds only the connect attempt (0 means no limit).
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -220,7 +333,10 @@ declare module 'tls/promises' {
     function connect(url: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL, with a connect listener
+     *
+     *      Returns immediately; the outcome is delivered through the 'connect'/'error' events. timeout
+     *      bounds only the connect attempt (0 means no limit).
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -230,7 +346,10 @@ declare module 'tls/promises' {
     function connectSync(url: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL, with a connect listener
+     *
+     *      Returns immediately; the outcome is delivered through the 'connect'/'error' events. timeout
+     *      bounds only the connect attempt (0 means no limit).
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -240,7 +359,10 @@ declare module 'tls/promises' {
     function connectAsync(url: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with an explicit context
+     *
+     *      Returns immediately; the given SecureContext is used for the handshake and the outcome is
+     *      delivered through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param connectListener specifies the once connect event listener
@@ -250,7 +372,10 @@ declare module 'tls/promises' {
     function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with an explicit context
+     *
+     *      Returns immediately; the given SecureContext is used for the handshake and the outcome is
+     *      delivered through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param connectListener specifies the once connect event listener
@@ -260,7 +385,10 @@ declare module 'tls/promises' {
     function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with an explicit context
+     *
+     *      Returns immediately; the given SecureContext is used for the handshake and the outcome is
+     *      delivered through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param connectListener specifies the once connect event listener
@@ -270,7 +398,11 @@ declare module 'tls/promises' {
     function connectAsync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL and an options object
+     *
+     *      Returns immediately; the TLS keys of options build the context while its `host`, `port` and
+     *      `timeout` keys are ignored (the URL provides the target), and the outcome is delivered
+     *      through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -280,7 +412,11 @@ declare module 'tls/promises' {
     function connect(url: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL and an options object
+     *
+     *      Returns immediately; the TLS keys of options build the context while its `host`, `port` and
+     *      `timeout` keys are ignored (the URL provides the target), and the outcome is delivered
+     *      through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -290,7 +426,11 @@ declare module 'tls/promises' {
     function connectSync(url: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL and an options object
+     *
+     *      Returns immediately; the TLS keys of options build the context while its `host`, `port` and
+     *      `timeout` keys are ignored (the URL provides the target), and the outcome is delivered
+     *      through the 'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @param connectListener specifies the once connect event listener
@@ -300,7 +440,11 @@ declare module 'tls/promises' {
     function connectAsync(url: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port with explicit options
+     *
+     *      The full listener form: options supplies the TLS keys and the connect timeout, host is both
+     *      the TCP target and the verified SNI name. It returns immediately and reports the handshake
+     *      through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param options specifies the connection options
@@ -311,7 +455,11 @@ declare module 'tls/promises' {
     function connect(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port with explicit options
+     *
+     *      The full listener form: options supplies the TLS keys and the connect timeout, host is both
+     *      the TCP target and the verified SNI name. It returns immediately and reports the handshake
+     *      through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param options specifies the connection options
@@ -322,7 +470,11 @@ declare module 'tls/promises' {
     function connectSync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking TLS connection to a host and port with explicit options
+     *
+     *      The full listener form: options supplies the TLS keys and the connect timeout, host is both
+     *      the TCP target and the verified SNI name. It returns immediately and reports the handshake
+     *      through the 'connect'/'error' events.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect
      *      @param options specifies the connection options
@@ -333,7 +485,12 @@ declare module 'tls/promises' {
     function connectAsync(port: number, host: string, options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a blocking TLS connection to a host and port
+     *
+     *      The synchronous workhorse: connect(port), connect(port, host) and connect(port, host,
+     *      options) all land here. host defaults to 'localhost' and options to an empty object, so
+     *      connect(port, {ca}) is not a valid form - pass the host explicitly or use an options object
+     *      as the single argument. The host is both the TCP target and the verified SNI name.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect, default is "localhost"
      *      @param options specifies the connection options
@@ -343,7 +500,12 @@ declare module 'tls/promises' {
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a blocking TLS connection to a host and port
+     *
+     *      The synchronous workhorse: connect(port), connect(port, host) and connect(port, host,
+     *      options) all land here. host defaults to 'localhost' and options to an empty object, so
+     *      connect(port, {ca}) is not a valid form - pass the host explicitly or use an options object
+     *      as the single argument. The host is both the TCP target and the verified SNI name.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect, default is "localhost"
      *      @param options specifies the connection options
@@ -353,7 +515,12 @@ declare module 'tls/promises' {
     function connectSync(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the hostname and port number
+     * @description Creates a blocking TLS connection to a host and port
+     *
+     *      The synchronous workhorse: connect(port), connect(port, host) and connect(port, host,
+     *      options) all land here. host defaults to 'localhost' and options to an empty object, so
+     *      connect(port, {ca}) is not a valid form - pass the host explicitly or use an options object
+     *      as the single argument. The host is both the TCP target and the verified SNI name.
      *      @param port specifies the port number to connect
      *      @param host specifies the hostname to connect, default is "localhost"
      *      @param options specifies the connection options
@@ -363,7 +530,13 @@ declare module 'tls/promises' {
     function connectAsync(port: number, host?: string, options?: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL
+     *
+     *      The URL must carry the `ssl:` scheme and an explicit port, otherwise an invalid-argument
+     *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
+     *      the TCP target, the SNI name and the verified name. The default context supplies the trust
+     *      store, so pass a SecureContext or an options object when the server certificate is not
+     *      signed by a well-known CA. Node.js has no URL string form.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -372,7 +545,13 @@ declare module 'tls/promises' {
     function connect(url: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL
+     *
+     *      The URL must carry the `ssl:` scheme and an explicit port, otherwise an invalid-argument
+     *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
+     *      the TCP target, the SNI name and the verified name. The default context supplies the trust
+     *      store, so pass a SecureContext or an options object when the server certificate is not
+     *      signed by a well-known CA. Node.js has no URL string form.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -381,7 +560,13 @@ declare module 'tls/promises' {
     function connectSync(url: string, timeout?: number): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL
+     *
+     *      The URL must carry the `ssl:` scheme and an explicit port, otherwise an invalid-argument
+     *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
+     *      the TCP target, the SNI name and the verified name. The default context supplies the trust
+     *      store, so pass a SecureContext or an options object when the server certificate is not
+     *      signed by a well-known CA. Node.js has no URL string form.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -390,7 +575,10 @@ declare module 'tls/promises' {
     function connectAsync(url: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL with an explicit context
+     *
+     *      Same as the plain URL form, but the given SecureContext supplies the trust store, the client
+     *      certificate and the ALPN list instead of the default context.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0
@@ -400,7 +588,10 @@ declare module 'tls/promises' {
     function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL with an explicit context
+     *
+     *      Same as the plain URL form, but the given SecureContext supplies the trust store, the client
+     *      certificate and the ALPN list instead of the default context.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0
@@ -410,7 +601,10 @@ declare module 'tls/promises' {
     function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL with an explicit context
+     *
+     *      Same as the plain URL form, but the given SecureContext supplies the trust store, the client
+     *      certificate and the ALPN list instead of the default context.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0
@@ -420,7 +614,11 @@ declare module 'tls/promises' {
     function connectAsync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL and an options object
+     *
+     *      The TLS keys of options build the context as in the options-object form; its `host` and
+     *      `port` keys are ignored because the URL provides both, while `timeout` still bounds the
+     *      connect. A `secureContext` key inside options is honored.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
@@ -429,7 +627,11 @@ declare module 'tls/promises' {
     function connect(url: string, options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL and an options object
+     *
+     *      The TLS keys of options build the context as in the options-object form; its `host` and
+     *      `port` keys are ignored because the URL provides both, while `timeout` still bounds the
+     *      connect. A `secureContext` key inside options is honored.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
@@ -438,7 +640,11 @@ declare module 'tls/promises' {
     function connectSync(url: string, options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url
+     * @description Creates a blocking TLS connection from an `ssl://` URL and an options object
+     *
+     *      The TLS keys of options build the context as in the options-object form; its `host` and
+     *      `port` keys are ignored because the URL provides both, while `timeout` still bounds the
+     *      connect. A `secureContext` key inside options is honored.
      *      @param url specifies the URL to connect
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
@@ -447,7 +653,11 @@ declare module 'tls/promises' {
     function connectAsync(url: string, options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with a context and a timeout
+     *
+     *      The most explicit URL listener form: secureContext supplies the handshake configuration,
+     *      timeout bounds the connect attempt and the outcome is delivered through the
+     *      'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0
@@ -458,7 +668,11 @@ declare module 'tls/promises' {
     function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with a context and a timeout
+     *
+     *      The most explicit URL listener form: secureContext supplies the handshake configuration,
+     *      timeout bounds the connect attempt and the outcome is delivered through the
+     *      'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0
@@ -469,7 +683,11 @@ declare module 'tls/promises' {
     function connectSync(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description creates a tls/ssl connection based on the url, and triggers the connect event after the connection is established
+     * @description Creates a non-blocking connection from an `ssl://` URL with a context and a timeout
+     *
+     *      The most explicit URL listener form: secureContext supplies the handshake configuration,
+     *      timeout bounds the connect attempt and the outcome is delivered through the
+     *      'connect'/'error' events.
      *      @param url specifies the URL to connect
      *      @param secureContext specifies the secure context
      *      @param timeout specifies the connection timeout, default is 0

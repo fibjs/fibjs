@@ -4,63 +4,201 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
- * @description Basic message object
+ * @description Basic message object: the payload unit shared by the networking stacks
  *
- *  The Message object is compatible with all mq modules and can be used to build a custom message processing system. It is created as follows:
+ *  Message is the base class of every payload exchanged by the networking stacks: an HttpRequest or
+ *  HttpResponse (through HttpMessage), a WebSocket frame payload (WebSocketMessage) and the objects
+ *  processed by mq handlers are all Messages. On its own it is a plain in-memory message: the body
+ *  is read and written with read/readAll/write/text/json/pack, routing metadata travels in
+ *  value/params, and the data/close/error events of the body stream are forwarded to the message.
+ *
+ *  Concepts:
+ *
+ *  - **Buffered and streaming bodies**: a locally built message (write/text/json/pack) buffers its
+ *    body in a seekable MemoryStream, so it can be read from the beginning more than once; a
+ *    message read from a socket may expose a streaming body that can be consumed only once (a
+ *    second consume throws TypeError 20024 "body has already been consumed"). `bodyUsed` reports
+ *    whether a consume method ran, `length` is the size of a buffered body (0 for a streaming
+ *    one), and `body` is null when the message has no body or the buffered body is empty.
+ *  - **Writing**: `write` appends to the buffered body and encodes a string as utf8; `text`,
+ *    `json` and `pack` replace the body with the utf8 text, the JSON encoding and the msgpack
+ *    encoding of their argument. `end` writes the given data (if any) and marks the message ended.
+ *  - **Reading**: `read` reads from the current position of the body and `readAll` rewinds a
+ *    buffered body and returns everything; `text`/`json`/`pack`/`bytes`/`arrayBuffer`/`blob`
+ *    consume the body and convert it at once. `json` and `pack` implement the JSON and msgpack
+ *    formats through the json and msgpack modules; on an HttpMessage they also set or check the
+ *    Content-Type header.
+ *  - **Encoding**: `setEncoding` hands the encoding to the body stream, so the `data` event
+ *    delivers strings instead of Buffers; for the built-in memory-backed bodies `read` keeps
+ *    returning a Buffer. Node's IncomingMessage.setEncoding applies the encoding to the readable
+ *    itself, so its read() returns strings.
+ *  - **Wire format**: `sendTo` and `readFrom` serialize and parse a complete message on a stream.
+ *    The base Message does not implement them (they throw 20009); HttpRequest, HttpResponse and
+ *    WebSocketMessage override both. `stream` is the buffered stream a message was read from.
+ *  - **Routing metadata**: `value` carries the path or route value a handler dispatches on and
+ *    `params` the capture groups the router fills for a matched pattern (see mq.Routing); both are
+ *    plain data, and writing into `params` from JavaScript is not reflected back.
+ *
+ *  Obtained from:
+ *  - `new mq.Message()` — an empty in-memory message, the form used to build mq payloads;
+ *  - `new http.Request()` / `new http.Response()` — HTTP messages (HttpMessage subclasses);
+ *  - `new WebSocket.Message(...)` or the `message` event of a WebSocket (WebSocketMessage);
+ *  - handler callbacks — mq.invoke, mq.Routing, mq.Chain and HttpServer handlers receive or
+ *    produce Message objects;
+ *  - `http.getSync(...)`, `http.postSync(...)` and the other client functions return an
+ *    HttpResponse, which is also a Message.
+ *
+ *  Example 1 — write, inspect and read a message:
  *  ```JavaScript
- *  var mq = require("mq");
- *  var m = new mq.Message();
+ *  const mq = require('mq');
+ *
+ *  const msg = new mq.Message();
+ *  msg.type = mq.Message.TEXT;
+ *  msg.value = '/greeting';
+ *  msg.write('hello');
+ *  msg.write(' world');
+ *
+ *  console.log(msg.length); // 11
+ *  console.log(msg.readAll().toString()); // hello world
  *  ```
+ *
+ *  Example 2 — JSON and msgpack payloads:
+ *  ```JavaScript
+ *  const mq = require('mq');
+ *
+ *  const jsonMsg = new mq.Message();
+ *  jsonMsg.json({ user: 'fibjs', tags: ['fast', 'sync'] });
+ *  console.log(jsonMsg.json().tags.length); // 2
+ *
+ *  const packMsg = new mq.Message();
+ *  packMsg.pack({ n: 42 });
+ *  console.log(packMsg.pack().n); // 42
+ *  ```
+ *
+ *  Example 3 — a handler receives and fills a message:
+ *  ```JavaScript
+ *  const mq = require('mq');
+ *
+ *  const handler = new mq.Handler((msg) => {
+ *      console.log(msg.value); // /hello
+ *      msg.type = mq.Message.TEXT;
+ *      msg.write('handled');
+ *  });
+ *
+ *  const msg = new mq.Message();
+ *  msg.value = '/hello';
+ *  mq.invoke(handler, msg);
+ *  console.log(msg.readAll().toString()); // handled
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - The Message constructor is public and usable, but `clone`/`sendTo`/`readFrom`/`stream` are
+ *    only implemented by the concrete subclasses and throw 20009 here; use HttpRequest,
+ *    HttpResponse or WebSocketMessage when a serializable message is needed. The constructor is
+ *    reachable as `mq.Message` (the class is not a global).
+ *  - Node.js has no single message base class: http.IncomingMessage, http.ServerResponse and
+ *    stream.Readable play separate roles, and mq has no counterpart at all.
  *
  */
 declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Message type 1, representing a text type
+     *
+     *      Set `type` to this value on messages whose payload is text: WebSocketMessage then delivers
+     *      `data` as a String, and application handlers can decode the body as text. The default type
+     *      of a new message is BINARY.
+     *
      */
     static readonly TEXT: 1;
 
     /**
      * @description Message type 2, representing a binary type
+     *
+     *      The default type of a new message. The payload is treated as raw bytes; a WebSocketMessage
+     *      with this type delivers `data` as a Buffer.
+     *
      */
     static readonly BINARY: 2;
 
     /**
      * @description Message object constructor
+     *
+     *      Creates an empty in-memory message with type BINARY, an empty value and params, no body and
+     *      the end flag unset. The constructor is reachable as `mq.Message` (the class is not a
+     *      global); for a serializable message use the concrete subclasses instead.
+     *
      */
     constructor();
 
     /**
      * @description Whether the current message has been sent
+     *
+     *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
+     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
+     *      equivalent property on IncomingMessage.
+     *
      */
     readonly sent: boolean;
 
     /**
      * @description The basic content of the message
+     *
+     *      A free-form string that carries the value a handler dispatches on: mq.Routing stores the
+     *      matched path or the captured value in it, and an HttpRequest mirrors its path. Default is
+     *      an empty string.
+     *
      */
     value: string;
 
     /**
      * @description The basic parameters of the message
+     *
+     *      Holds the capture groups that mq.Routing fills when a pattern with capture groups matches;
+     *      the handler receives them here and as extra function arguments. The array is a read view:
+     *      writing into it from JavaScript does not change the message.
+     *
      */
     readonly params: any[];
 
     /**
      * @description Message type
+     *
+     *      TEXT (1) or BINARY (2), BINARY by default; any integer is accepted. WebSocketMessage uses
+     *      the value to decide whether `data` is a String or a Buffer, and HttpResponse overrides the
+     *      property with the Fetch response type string ('basic', 'cors', 'error').
+     *
      */
     type: number;
 
     /**
      * @description The stream object containing the data part of the message
+     *
+     *      A buffered body is seekable and can be read from the beginning more than once; assigning a
+     *      non-seekable stream makes the body streaming, so it can be consumed only once. The getter
+     *      returns null when the message has no body or when the buffered body is empty (size 0).
+     *
      */
     body: Class_Stream;
 
     /**
      * @description Queries whether the body of the message has been consumed
+     *
+     *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
+     *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
+     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      consumed". read and readAll do not set the flag.
+     *
      */
     readonly bodyUsed: boolean;
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -71,6 +209,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -79,6 +222,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -87,6 +235,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -96,6 +248,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -103,6 +259,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -111,9 +271,32 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
-     *      After setting, the `data` event and `read()` return strings instead of Buffer objects,
-     *      consistent with the behavior of Node's IncomingMessage.setEncoding
-     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     *      The encoding is handed to the body stream, so the `data` event then delivers strings
+     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer,
+     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      or an unsupported encoding throws a TypeError.
+     *
+     *      Example — the data event decodes after setEncoding:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const msg = new mq.Message();
+     *      const ms = new io.MemoryStream();
+     *      ms.write('hello');
+     *      ms.rewind();
+     *      msg.body = ms;
+     *
+     *      const chunks = [];
+     *      msg.setEncoding('utf8');
+     *      msg.on('data', (chunk) => chunks.push(chunk));
+     *      msg.resume();
+     *      coroutine.sleep(10);
+     *
+     *      console.log(chunks.length, typeof chunks[0], chunks[0]); // 1 string hello
+     *      ```
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc.
      *      @return returns the current message object
      *
      */
@@ -121,7 +304,25 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -132,7 +333,25 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -141,7 +360,25 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -150,6 +387,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -160,6 +401,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -168,6 +413,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -176,6 +425,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -185,6 +438,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -192,6 +449,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -199,6 +460,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -208,6 +473,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -215,6 +484,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -222,6 +495,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -232,6 +509,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -240,6 +521,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -248,6 +533,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -257,6 +545,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -264,6 +555,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -271,6 +565,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -281,6 +579,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -289,6 +591,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -297,6 +603,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -306,6 +617,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -313,6 +629,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -320,6 +641,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -330,6 +655,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -338,6 +667,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -346,6 +679,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -355,6 +693,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -362,6 +705,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -369,11 +717,20 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description The length of the data part of the message
+     *
+     *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
+     *      streaming body (a response body received from a client), whose size is unknown until it is
+     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *
      */
     readonly length: number;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
@@ -382,14 +739,22 @@ declare class Class_Message extends Class_EventEmitter {
     end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
     endSync(): number;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
@@ -397,6 +762,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -407,6 +775,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -415,6 +786,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -423,6 +797,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -434,6 +811,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -443,6 +823,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -452,6 +835,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -463,6 +849,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -472,6 +861,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -481,6 +873,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries whether the current message has ended
+     *
+     *      True after any end() overload. It is not used by Chain or Routing to decide whether to
+     *      continue; HttpRequest.isEnded reports the state of its response when one is attached,
+     *      otherwise the request message state.
      *      @return returns true if ended
      *
      */
@@ -488,11 +884,44 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Clears the content of the message
+     *
+     *      Resets the value, params, body and the end flag; type and lastError are preserved. An
+     *      HttpMessage additionally resets protocol (back to HTTP/1.1), keepAlive, headers, trailers,
+     *      stream and socket state.
+     *
      */
     clear(): void;
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -503,6 +932,34 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -511,6 +968,34 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -519,6 +1004,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -529,6 +1019,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -537,6 +1032,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -545,16 +1045,43 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries the stream object used when the message was read from
+     *
+     *      The base Message throws 20009; on an HttpMessage and a WebSocketMessage it is the buffered
+     *      stream the message was parsed from, and null when the message was built in memory. It is
+     *      distinct from socket, the underlying device stream of an HTTP message.
+     *
      */
     readonly stream: Class_Stream;
 
     /**
      * @description Queries and sets the last error of message processing
+     *
+     *      A free-form string, empty by default; the base message never writes it, handler layers
+     *      such as Chain record a failure here. clear() preserves it.
+     *
      */
     lastError: string;
 
     /**
      * @description Copies the current message object
+     *
+     *      The base Message and HttpMessage are not cloneable directly and throw 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage return a deep copy with its own body, headers and
+     *      metadata, so the copy can be read and modified independently.
+     *
+     *      Example — clone a response and read both copies:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.statusCode = 201;
+     *      res.appendHeader('X-Id', '7');
+     *      res.write('created');
+     *
+     *      const copy = res.clone();
+     *      console.log(copy.statusCode, copy.firstHeader('X-Id'), copy.text()); // 201 7 created
+     *      console.log(res.text()); // created (the original is unchanged)
+     *      ```
      *      @return returns the copied message object
      *
      */
@@ -562,13 +1089,19 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Switches the message body stream to flowing read mode
+     *
+     *      The body starts emitting `data` events and pipe destinations receive data; a buffered body
+     *      is read from its current position. Returns the message itself, so the call can be chained.
      *      @return returns the message object
      *
      */
     resume(): Class_Message;
 
     /**
-     * @description Pauses the automatic reading mode of the message body stream. This method is for compatibility only and has no actual effect when called
+     * @description Pauses the automatic reading mode of the message body stream
+     *
+     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
      */
@@ -576,6 +1109,33 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Pipes the message body stream data to a destination stream
+     *
+     *      Data is forwarded through the `data` events of the body, so a streaming body flows
+     *      automatically while a buffered body is copied from its current position (rewind it first
+     *      when it was just written). The options are handed to the underlying pipe helper; end:
+     *      false leaves the destination open when the body ends. Returns the destination, like Node's
+     *      readable.pipe.
+     *
+     *      Example — copy a buffered body into another stream:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const ms = new io.MemoryStream();
+     *      ms.write('piped data');
+     *      ms.rewind();
+     *
+     *      const msg = new mq.Message();
+     *      msg.body = ms;
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(msg.pipe(dst) === dst); // true
+     *      coroutine.sleep(20);
+     *
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // piped data
+     *      ```
      *      @param destination the destination stream object
      *      @param options pipe options, optional
      *      @return returns the destination stream object
@@ -584,7 +1144,10 @@ declare class Class_Message extends Class_EventEmitter {
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Removes all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect when called
+     * @description Removes all pipe destinations of the message body stream
+     *
+     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      already established.
      *      @param destination a specific writable destination to unpipe
      *
      */
@@ -592,6 +1155,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Forwarded from the message body stream; it fires while the body is flowing (`resume`,
+     *      `pipe`, or a listener attached before the data is produced). The argument is a Buffer, or a
+     *      String once setEncoding was called.
      *      @param data the data read
      *
      */
@@ -615,6 +1182,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Forwarded from the message body stream; it fires while the body is flowing (`resume`,
+     *      `pipe`, or a listener attached before the data is produced). The argument is a Buffer, or a
+     *      String once setEncoding was called.
      *      @param data the data read
      *
      */
@@ -622,6 +1193,10 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Forwarded from the body stream when it is closed; a message built in memory does not emit
+     *      it by itself.
+     *
      */
     on(event: "close", listener: ()=>void): this;
 
@@ -643,11 +1218,18 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Forwarded from the body stream when it is closed; a message built in memory does not emit
+     *      it by itself.
+     *
      */
     onclose: (()=>void) | null;
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
+     *
+     *      Forwarded from the body stream; the listener receives the error payload of the stream,
+     *      whose code is the error number.
      *      @param code error code
      *
      */
@@ -671,6 +1253,9 @@ declare class Class_Message extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
+     *
+     *      Forwarded from the body stream; the listener receives the error payload of the stream,
+     *      whose code is the error number.
      *      @param code error code
      *
      */
@@ -726,51 +1311,101 @@ declare class Class_Message extends Class_EventEmitter {
 declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Message type 1, representing a text type
+     *
+     *      Set `type` to this value on messages whose payload is text: WebSocketMessage then delivers
+     *      `data` as a String, and application handlers can decode the body as text. The default type
+     *      of a new message is BINARY.
+     *
      */
     static readonly TEXT: 1;
 
     /**
      * @description Message type 2, representing a binary type
+     *
+     *      The default type of a new message. The payload is treated as raw bytes; a WebSocketMessage
+     *      with this type delivers `data` as a Buffer.
+     *
      */
     static readonly BINARY: 2;
 
     /**
      * @description Message object constructor
+     *
+     *      Creates an empty in-memory message with type BINARY, an empty value and params, no body and
+     *      the end flag unset. The constructor is reachable as `mq.Message` (the class is not a
+     *      global); for a serializable message use the concrete subclasses instead.
+     *
      */
     constructor();
 
     /**
      * @description Whether the current message has been sent
+     *
+     *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
+     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
+     *      equivalent property on IncomingMessage.
+     *
      */
     readonly sent: boolean;
 
     /**
      * @description The basic content of the message
+     *
+     *      A free-form string that carries the value a handler dispatches on: mq.Routing stores the
+     *      matched path or the captured value in it, and an HttpRequest mirrors its path. Default is
+     *      an empty string.
+     *
      */
     value: string;
 
     /**
      * @description The basic parameters of the message
+     *
+     *      Holds the capture groups that mq.Routing fills when a pattern with capture groups matches;
+     *      the handler receives them here and as extra function arguments. The array is a read view:
+     *      writing into it from JavaScript does not change the message.
+     *
      */
     readonly params: any[];
 
     /**
      * @description Message type
+     *
+     *      TEXT (1) or BINARY (2), BINARY by default; any integer is accepted. WebSocketMessage uses
+     *      the value to decide whether `data` is a String or a Buffer, and HttpResponse overrides the
+     *      property with the Fetch response type string ('basic', 'cors', 'error').
+     *
      */
     type: number;
 
     /**
      * @description The stream object containing the data part of the message
+     *
+     *      A buffered body is seekable and can be read from the beginning more than once; assigning a
+     *      non-seekable stream makes the body streaming, so it can be consumed only once. The getter
+     *      returns null when the message has no body or when the buffered body is empty (size 0).
+     *
      */
     body: Class_StreamPromise;
 
     /**
      * @description Queries whether the body of the message has been consumed
+     *
+     *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
+     *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
+     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      consumed". read and readAll do not set the flag.
+     *
      */
     readonly bodyUsed: boolean;
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -779,6 +1414,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -787,6 +1427,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
+     *
+     *      Reads from the current position of the body: a freshly written message is positioned at the
+     *      end and returns null until the body is rewound, while a message parsed with readFrom is
+     *      rewound and can be read sequentially. Reading a streaming body consumes it. Use readAll to
+     *      rewind a buffered body and take everything.
      *      @param bytes the amount of data to read; the default is to read a data block of random size, and the size of the data read depends on the device
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
@@ -795,6 +1440,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -802,6 +1451,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -809,6 +1462,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream; this method is an alias of the corresponding body method
+     *
+     *      A buffered body is rewound first, so the call returns the whole body even after it was
+     *      read; a streaming body is read to the end and returns null on a second call. Returns null
+     *      when the message has no body.
      *      @return returns the data read from the stream, or null if no data is available or the connection is interrupted
      *
      */
@@ -817,9 +1474,32 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
-     *      After setting, the `data` event and `read()` return strings instead of Buffer objects,
-     *      consistent with the behavior of Node's IncomingMessage.setEncoding
-     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     *      The encoding is handed to the body stream, so the `data` event then delivers strings
+     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer,
+     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      or an unsupported encoding throws a TypeError.
+     *
+     *      Example — the data event decodes after setEncoding:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const msg = new mq.Message();
+     *      const ms = new io.MemoryStream();
+     *      ms.write('hello');
+     *      ms.rewind();
+     *      msg.body = ms;
+     *
+     *      const chunks = [];
+     *      msg.setEncoding('utf8');
+     *      msg.on('data', (chunk) => chunks.push(chunk));
+     *      msg.resume();
+     *      coroutine.sleep(10);
+     *
+     *      console.log(chunks.length, typeof chunks[0], chunks[0]); // 1 string hello
+     *      ```
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc.
      *      @return returns the current message object
      *
      */
@@ -827,7 +1507,25 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -836,7 +1534,25 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -845,7 +1561,25 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
      *      @param data the data to write
      *      @return returns the number of bytes actually written
      *
@@ -854,6 +1588,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -862,6 +1600,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -870,6 +1612,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -878,6 +1624,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -885,6 +1635,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -892,6 +1646,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as text encoding
+     *
+     *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
+     *      missing body returns an empty string. A second call on a streaming body throws TypeError
+     *      20024.
      *      @return returns the parsing result
      *
      */
@@ -899,6 +1657,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -906,6 +1668,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -913,6 +1679,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message in binary form
+     *
+     *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
      */
@@ -920,6 +1690,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -928,6 +1702,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -936,6 +1714,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Blob
+     *
+     *      Consumes the body; a missing or empty body returns an empty Blob. The argument is the MIME
+     *      type of the result and is not taken from the Content-Type header (fibjs extension: MDN
+     *      Body.blob() falls back to the header when the type is omitted).
      *      @param type the MIME type of the Blob, default is an empty string
      *      @return returns a Blob object containing the data part of the message
      *
@@ -944,6 +1726,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -951,6 +1736,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -958,6 +1746,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Returns the data part of the message as a Buffer
+     *
+     *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
+     *      streaming body throws TypeError 20024, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -965,6 +1756,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -973,6 +1768,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -981,6 +1780,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -989,6 +1792,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -996,6 +1804,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -1003,6 +1816,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as JSON
+     *
+     *      Consumes the body and parses it with the json module; a missing body returns null and
+     *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
+     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      type.").
      *      @return returns the parsing result
      *
      */
@@ -1010,6 +1828,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -1018,6 +1840,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -1026,6 +1852,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
      *      @param data the data to write
      *      @return this method does not return data
      *
@@ -1034,6 +1864,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -1041,6 +1876,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -1048,6 +1888,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Parses the data in the message as msgpack
+     *
+     *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
+     *      invalid data throws. On an HttpMessage the Content-Type header must be
+     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      raised.
      *      @return returns the parsing result
      *
      */
@@ -1055,25 +1900,42 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description The length of the data part of the message
+     *
+     *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
+     *      streaming body (a response body received from a client), whose size is unknown until it is
+     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *
      */
     readonly length: number;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
     end(): Promise<number>;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
     endSync(): number;
 
     /**
-     * @description Sets the end of current message processing; the Chain handler no longer continues with subsequent transactions
+     * @description Marks the message as ended
+     *
+     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
+     *      the state of its response when one is attached.
      *      @return returns 0 on success
      *
      */
@@ -1081,6 +1943,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -1089,6 +1954,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -1097,6 +1965,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
      *      @param data the data to write
      *      @return returns 0 on success
      *
@@ -1105,6 +1976,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -1114,6 +1988,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -1123,6 +2000,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
      *      @return returns 0 on success
@@ -1132,6 +2012,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -1141,6 +2024,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -1150,6 +2036,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
      *      @return returns 0 on success
@@ -1159,6 +2048,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Queries whether the current message has ended
+     *
+     *      True after any end() overload. It is not used by Chain or Routing to decide whether to
+     *      continue; HttpRequest.isEnded reports the state of its response when one is attached,
+     *      otherwise the request message state.
      *      @return returns true if ended
      *
      */
@@ -1166,11 +2059,44 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Clears the content of the message
+     *
+     *      Resets the value, params, body and the end flag; type and lastError are preserved. An
+     *      HttpMessage additionally resets protocol (back to HTTP/1.1), keepAlive, headers, trailers,
+     *      stream and socket state.
+     *
      */
     clear(): void;
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -1179,6 +2105,34 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -1187,6 +2141,34 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Sends a formatted message to the given stream object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. For an HttpResponse the options may contain
+     *      header_only (write the start line and the headers only, default false) and content_length
+     *      (add the Content-Length header when header_only is true, default true; it is an error
+     *      otherwise). HttpRequest ignores the options and always writes the complete request.
+     *
+     *      Example — serialize a request and parse it back (on http.Request, which implements the
+     *      member; the same round trip works on http.Response):
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const req = new http.Request();
+     *      req.address = '/ping';
+     *      req.appendHeader('X-Trace', 'demo');
+     *
+     *      const wire = new io.MemoryStream();
+     *      req.sendTo(wire);
+     *      console.log(req.headersSent); // true
+     *
+     *      wire.rewind();
+     *      const bs = new io.BufferedStream(wire);
+     *      bs.EOL = '\r\n';
+     *      const parsed = new http.Request();
+     *      parsed.readFrom(bs);
+     *      console.log(parsed.address, parsed.firstHeader('X-Trace')); // /ping demo
+     *      ```
      *      @param stm the stream object that receives the formatted message
      *      @param options the sending options
      *
@@ -1195,6 +2177,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -1203,6 +2190,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -1211,6 +2203,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
+     *
+     *      The base Message does not implement the wire format and throws 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
+     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
      *
@@ -1219,16 +2216,43 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Queries the stream object used when the message was read from
+     *
+     *      The base Message throws 20009; on an HttpMessage and a WebSocketMessage it is the buffered
+     *      stream the message was parsed from, and null when the message was built in memory. It is
+     *      distinct from socket, the underlying device stream of an HTTP message.
+     *
      */
     readonly stream: Class_StreamPromise;
 
     /**
      * @description Queries and sets the last error of message processing
+     *
+     *      A free-form string, empty by default; the base message never writes it, handler layers
+     *      such as Chain record a failure here. clear() preserves it.
+     *
      */
     lastError: string;
 
     /**
      * @description Copies the current message object
+     *
+     *      The base Message and HttpMessage are not cloneable directly and throw 20009; HttpRequest,
+     *      HttpResponse and WebSocketMessage return a deep copy with its own body, headers and
+     *      metadata, so the copy can be read and modified independently.
+     *
+     *      Example — clone a response and read both copies:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.statusCode = 201;
+     *      res.appendHeader('X-Id', '7');
+     *      res.write('created');
+     *
+     *      const copy = res.clone();
+     *      console.log(copy.statusCode, copy.firstHeader('X-Id'), copy.text()); // 201 7 created
+     *      console.log(res.text()); // created (the original is unchanged)
+     *      ```
      *      @return returns the copied message object
      *
      */
@@ -1236,13 +2260,19 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Switches the message body stream to flowing read mode
+     *
+     *      The body starts emitting `data` events and pipe destinations receive data; a buffered body
+     *      is read from its current position. Returns the message itself, so the call can be chained.
      *      @return returns the message object
      *
      */
     resume(): Class_Message;
 
     /**
-     * @description Pauses the automatic reading mode of the message body stream. This method is for compatibility only and has no actual effect when called
+     * @description Pauses the automatic reading mode of the message body stream
+     *
+     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
      */
@@ -1250,6 +2280,33 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Pipes the message body stream data to a destination stream
+     *
+     *      Data is forwarded through the `data` events of the body, so a streaming body flows
+     *      automatically while a buffered body is copied from its current position (rewind it first
+     *      when it was just written). The options are handed to the underlying pipe helper; end:
+     *      false leaves the destination open when the body ends. Returns the destination, like Node's
+     *      readable.pipe.
+     *
+     *      Example — copy a buffered body into another stream:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const ms = new io.MemoryStream();
+     *      ms.write('piped data');
+     *      ms.rewind();
+     *
+     *      const msg = new mq.Message();
+     *      msg.body = ms;
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(msg.pipe(dst) === dst); // true
+     *      coroutine.sleep(20);
+     *
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // piped data
+     *      ```
      *      @param destination the destination stream object
      *      @param options pipe options, optional
      *      @return returns the destination stream object
@@ -1258,7 +2315,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Removes all pipe destinations of the message body stream. This method is for compatibility only and has no actual effect when called
+     * @description Removes all pipe destinations of the message body stream
+     *
+     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      already established.
      *      @param destination a specific writable destination to unpipe
      *
      */
@@ -1266,6 +2326,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Forwarded from the message body stream; it fires while the body is flowing (`resume`,
+     *      `pipe`, or a listener attached before the data is produced). The argument is a Buffer, or a
+     *      String once setEncoding was called.
      *      @param data the data read
      *
      */
@@ -1273,11 +2337,18 @@ declare class Class_MessagePromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Forwarded from the body stream when it is closed; a message built in memory does not emit
+     *      it by itself.
+     *
      */
     onclose: (()=>void) | null;
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
+     *
+     *      Forwarded from the body stream; the listener receives the error payload of the stream,
+     *      whose code is the error number.
      *      @param code error code
      *
      */

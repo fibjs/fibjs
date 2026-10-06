@@ -1,115 +1,246 @@
-/*! @brief HttpCookie is a cookie object encapsulated by the HTTP protocol. It provides access to the various properties of a cookie and also supports organizing and handling multiple cookies; it is an important property supported by both the http.Request and http.Response objects
+/*! @brief HttpCookie represents one HTTP cookie: a name/value pair with the domain, path, expiry and security attributes that scope it
 
-On the server side, HttpRequest.cookies can be used to get all cookies in an HTTP request. Each cookie here is an HttpCookie object, and its properties or methods can be used to get or set the related cookie information.
-For example, we can read the corresponding properties from a cookie sent by the client with the following code:
+A cookie travels between client and server in the `Cookie` and `Set-Cookie` headers. fibjs
+exposes it as a mutable value object: build one with `new http.Cookie(...)`, parse an
+existing header with parse or parseRaw, test the scope of a URL with match, and serialize it
+back with toString. `http.Response#cookies` returns the cookies of a response as an array of
+HttpCookie objects, while `http.Request#cookies` is an HttpCollection with the name/value
+pairs of the incoming Cookie header; add a cookie to a response by appending its serialized
+form to the Set-Cookie header.
+
+Concepts:
+
+- **Attributes**: name and value are the payload; domain and path scope where the cookie is
+  sent (a domain matches itself and its subdomains, a path matches itself and its subpaths);
+  expires is the time after which the client drops the cookie; secure limits it to HTTPS and
+  httpOnly hides it from scripts.
+- **Not an HttpCollection**: a single HttpCookie is a value object, not a container of
+  cookies; the cookie jar of a request is the HttpCollection returned by
+  `http.Request#cookies`, and a response carries an array of HttpCookie.
+- **Encoding**: toString percent-encodes the name and value and writes expires as a GMT
+  date; parse decodes the percent-encoding so it round-trips with toString, while parseRaw
+  keeps the header bytes unchanged as required by RFC 6265 for Set-Cookie values.
+- **Limits**: the object models only name, value, domain, path, expires, secure and httpOnly.
+  SameSite and Max-Age are not supported: parse ignores them and toString never writes them.
+  Node.js has no Cookie class; the same fields appear in the Set-Cookie header and in
+  userland cookie packages.
+
+Obtained from:
+- `new http.Cookie(name, value, options)` — build a cookie from scratch;
+- `new http.Cookie(options)` — build one from a properties object;
+- `parse(header)` / `parseRaw(header)` — fill an empty object from a header value;
+- `http.Response#cookies` — the cookies read from a response (array);
+- `http.Request#cookies` — the parsed Cookie header (HttpCollection of name/value pairs).
+
+Example 1 — build, serialize and match a cookie:
 ```JavaScript
 const http = require('http');
-const server = new http.Server(8080, function(request) {
-    const cookies = request.cookies;
-    const name = cookies.get('name');
-    request.response.write(`Hello ${name}!`);
-});
-server.start();
-```
-Here we use the HttpRequest.cookies property to get all cookies in the request, and then use the cookies.get method, passing the cookie name, to get the value of that cookie.
 
-To send a cookie to the client, a new cookie can be created through the HttpCookie object and added to the HttpReponse.cookies collection. The following is an example:
+const cookie = new http.Cookie('session', 'abc 123', {
+    expires: new Date(Date.UTC(2030, 0, 2, 3, 4, 5)),
+    domain: 'example.com',
+    path: '/app',
+    secure: true,
+    httpOnly: true
+});
+
+console.log(cookie.name, cookie.value); // session abc 123
+console.log(cookie.match('https://www.example.com/app/home')); // true
+console.log(cookie.match('https://example.com/other')); // false
+```
+
+Example 2 — parse a Set-Cookie header and inspect the attributes:
 ```JavaScript
 const http = require('http');
-const server = new http.Server(8080, function(request) {
-    const cookies = request.cookies;
-    let name = cookies.get('name');
 
-    if (name) {
-        request.response.write(`Hello ${name} again!`);
-    } 
-    else {
-        name = 'User';
-        request.response.cookies.add(new http.Cookie('name', name, { expires: new Date(Date.now() + 900000) }));
-        request.response.write(`Welcome ${name}!`);
-    }
-});
+const cookie = new http.Cookie();
+cookie.parseRaw('session=abc%20123; Path=/app; Domain=example.com; HttpOnly; Secure');
 
-server.start();
+console.log(cookie.name, cookie.value); // session abc%20123
+console.log(cookie.path, cookie.domain); // /app example.com
+console.log(cookie.httpOnly, cookie.secure); // true true
+
+const decoded = new http.Cookie();
+decoded.parse('session=abc%20123');
+console.log(decoded.value); // abc 123
 ```
-In the example above, we first get HttpServletRequest.cookies and then try to read the value of the cookie named name from it. If the cookie exists, we send a response to the request and use the cookie value to greet the client. If the cookie does not exist, we create a new cookie object and add it to the HttpServletResponse.cookies collection. The first parameter with name and value is used to specify the cookie name and its corresponding value. The expires property is used to specify the expiration time of the cookie; here the expiration time is set to the current time plus 15 minutes. Finally, we append a welcome message to the returned content.
- */
+
+Example 3 — read request cookies and set a response cookie:
+```JavaScript
+const http = require('http');
+
+const server = new http.Server(0, (req) => {
+    const name = req.cookies.get('name') || 'guest';
+    req.response.appendHeader('Set-Cookie',
+        new http.Cookie('name', name, { httpOnly: true }).toString());
+    req.response.write('Hello ' + name);
+});
+server.start();
+
+const resp = http.getSync('http://127.0.0.1:' + server.socket.localPort + '/');
+console.log(resp.text()); // Hello guest
+console.log(resp.cookies[0].name, resp.cookies[0].value); // name guest
+server.stop();
+```
+*/
 interface HttpCookie : object
 {
-    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+    /*! @brief Creates a cookie from a properties object
 
-     The options that can be set in opts are as follows:
+     Every field of the cookie may be given; missing fields keep their default, so path is
+     `/`, expires is an invalid Date (getTime() returns NaN) and secure/httpOnly are false.
+     The constructor accepts no header syntax: pass each field separately, or use parse to
+     read a `name=value; attribute` header. Passing a string to this overload fails with a
+     type error (20005).
+
+     Supported fields:
      ```JavaScript
-     {
-         "name": "", // specify the name of the cookie
-         "value": "", // specify the value of the cookie
-         "expires": Date, // specify the expires time of the cookie
-         "domain": "", // specify the domain of the cookie
-         "path": "", // specify the path of the cookie
-         "secure": false, // specify the secure of the cookie
-         "httpOnly": false, // specify the httpOnly of the cookie
-     }
+     // fragment: option fields
+     ({
+         "name": "", // cookie name
+         "value": "", // cookie value
+         "expires": new Date(), // expiry time, a Date or a date string
+         "domain": "", // domain scope, for example "example.com"
+         "path": "/", // path scope, default "/"
+         "secure": false, // send only over HTTPS
+         "httpOnly": false // hide from scripts
+     });
      ```
-     @param opts specifies the properties of the cookie to create
+
+     @param opts properties of the cookie to create
     */
     HttpCookie(Object opts = {});
 
-    /*! @brief HttpCookie constructor, creates a new HttpCookie object
+    /*! @brief Creates a cookie from a name, a value and an optional properties object
 
-     The options that can be set in opts are as follows:
+     The name and value are stored as given without encoding; the options accept the
+     attributes expires, domain, path, secure and httpOnly. As in the other constructor,
+     path defaults to `/`, expires to an invalid Date and both flags to false.
+
+     Supported fields:
      ```JavaScript
-     {
-         "expires": Date, // specify the expires time of the cookie
-         "domain": "", // specify the domain of the cookie
-         "path": "", // specify the path of the cookie
-         "secure": false, // specify the secure of the cookie
-         "httpOnly": false, // specify the httpOnly of the cookie
-     }
+     // fragment: option fields
+     ({
+         "expires": new Date(), // expiry time, a Date or a date string
+         "domain": "", // domain scope, for example "example.com"
+         "path": "/", // path scope, default "/"
+         "secure": false, // send only over HTTPS
+         "httpOnly": false // hide from scripts
+     });
      ```
-     @param name specifies the name of the cookie to create
-     @param value specifies the value of the cookie to create
-     @param opts specifies the other properties of the cookie to create
+
+     @param name cookie name
+     @param value cookie value
+     @param opts other properties of the cookie to create
     */
     HttpCookie(String name, String value, Object opts = {});
 
-    /*! @brief parses the given string and fills the cookie object
-     @param header specifies the header string to parse
+    /*! @brief Parses a `name=value; attribute` header into this object, decoding name and value
+
+     The name and value are decoded with the URL rules, so `%20` becomes a space while a
+     `+` stays a `+`; this matches the encoding that toString performs and keeps the two
+     round-tripping. The attributes expires, domain, path, secure and HttpOnly are read;
+     any other attribute, including Max-Age and SameSite, is ignored. A header without a
+     name or without `=` throws `HttpCookie: bad cookie format.` (20024). Parsing into an
+     existing object only overwrites the fields present in the header, so use parseRaw for
+     a remote Set-Cookie value whose %XX sequences must stay as written.
+
+     Example — decode a header and read the attributes:
+     ```JavaScript
+     const http = require('http');
+
+     const cookie = new http.Cookie();
+     cookie.parse('theme=dark%20blue; Path=/; HttpOnly');
+     console.log(cookie.name, cookie.value, cookie.httpOnly); // theme dark blue true
+     ```
+
+     @param header header string to parse
     */
     parse(String header);
 
-    /*! @brief parses the given string and fills the cookie object, without URL-decoding name and value
+    /*! @brief Parses a header into this object without decoding name and value
 
-     According to RFC 6265, cookie values are opaque strings, and %XX in the Set-Cookie header should be preserved as is.
-     Use this method when parsing the raw Set-Cookie header sent by the server;
-     the parse method performs URL decoding and round-trips with toString.
-     @param header specifies the header string to parse
+     According to RFC 6265 a cookie value is an opaque string and the %XX sequences of a
+     Set-Cookie header must be preserved as they are, so `session=abc%20123` yields the
+     value `abc%20123`. `http.Response#cookies` parses headers with this method. The
+     accepted syntax and the error behaviour are the same as parse.
+
+     @param header header string to parse
     */
     parseRaw(String header);
 
-    /*! @brief checks whether the given url matches the current settings
-     @param url specifies the url to test
-     @return returns true on a successful match
+    /*! @brief Tests whether a URL matches the domain and path of the cookie
+
+     The URL is parsed and its hostname and pathname are compared with the domain and path.
+     An empty domain or path matches everything; a domain matches the host itself and its
+     subdomains, with leading dots ignored; a path matches itself, its subpaths and with
+     trailing slashes ignored. A single-label domain other than `localhost` never matches,
+     mirroring the way browsers reject cookies for public suffixes. A URL that cannot be
+     parsed fails with the parser error.
+
+     Example — scope a cookie to a host and a path:
+     ```JavaScript
+     const http = require('http');
+
+     const cookie = new http.Cookie('sid', '1', { domain: 'example.com', path: '/app' });
+     console.log(cookie.match('https://www.example.com/app/home')); // true
+     console.log(cookie.match('https://example.com/other')); // false
+     console.log(cookie.match('https://other.com/app')); // false
+     ```
+
+     @param url URL to test
+     @return true when the URL matches the domain and path
     */
     Boolean match(String url);
 
-    /*! @brief queries and sets the cookie name */
+    /*! @brief Cookie name; encoded by toString and decoded by parse
+
+     The name is stored as given; toString percent-encodes the characters that are not
+     allowed in a cookie name and parse reverses that encoding. An empty name is accepted
+     by the object but such a cookie is invalid on the wire and servers reject it.
+     */
     String name;
 
-    /*! @brief queries and sets the cookie value */
+    /*! @brief Cookie value; encoded by toString and decoded by parse
+
+     With parseRaw the value keeps the raw header text. An empty value is valid and marks
+     a cookie that the client deletes only when it also carries an expiry in the past.
+     */
     String value;
 
-    /*! @brief queries and sets the domain scope of the cookie */
+    /*! @brief Domain scope of the cookie
+
+     Stored as given and not validated; an empty domain matches every host. match treats a
+     leading dot as optional and also accepts a bare host for its subdomains.
+     */
     String domain;
 
-    /*! @brief queries and sets the path scope of the cookie */
+    /*! @brief Path scope of the cookie
+
+     Defaults to `/` in both constructors; an empty path matches every path. match ignores
+     trailing slashes, so `/app/` and `/app` behave the same.
+     */
     String path;
 
-    /*! @brief queries and sets the expiration time of the cookie */
+    /*! @brief Expiry time of the cookie
+
+     A Date; when unset the getter returns an invalid Date (getTime() returns NaN) and
+     toString omits the attribute. When set, toString writes `; expires=<GMT date>`, which
+     asks the client to drop the cookie after that instant.
+     */
     Date expires;
 
-    /*! @brief queries and sets whether the cookie is only allowed for http requests, default false */
+    /*! @brief Whether the cookie is only allowed for HTTP requests, default false
+
+     When true, toString appends the `HttpOnly` attribute and scripts cannot read the
+     cookie. It does not affect the matching performed by match.
+     */
     Boolean httpOnly;
 
-    /*! @brief queries and sets whether the cookie is only transmitted over https, default false */
+    /*! @brief Whether the cookie is only transmitted over HTTPS, default false
+
+     When true, toString appends the `Secure` attribute; clients then send the cookie only
+     over a secure connection. It does not affect the matching performed by match.
+     */
     Boolean secure;
 };

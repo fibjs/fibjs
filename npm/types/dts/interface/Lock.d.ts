@@ -1,53 +1,146 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description Lock is a built-in object that can be used to control concurrent access from fibers; one fiber can acquire the lock to prevent other fibers from acquiring it at the same time. A Lock can be created with the coroutine.Lock() function
+ * @description A reentrant mutual-exclusion lock between fibers
  *
- * A common case is that in a multi-threaded scenario, when multiple threads want to modify the same data, data inconsistency occurs. For example, if two threads both want to modify the same value in the same data, improper control may lead to inconsistent results. In this case, using a Lock object achieves mutually exclusive access to the same data.
+ *  A Lock is owned by one fiber at a time. `acquire` takes ownership and suspends the
+ *  other fibers that ask for it until the owner calls `release`; a fiber that already
+ *  owns the lock may acquire it again, and it must then release it as many times as it
+ *  acquired. Locks protect state that is shared between fibers, the role a mutex plays in
+ *  a threaded program.
  *
- * The following is a simple example that uses Lock to make two fibers execute alternately, where the value of the shared variable v is not 300.
+ *  Concepts:
  *
- * ```JavaScript
- * var coroutine = require("coroutine")
+ *  - **What a lock protects**: JavaScript statements are never interleaved, but a fiber
+ *  can be suspended between two of them — at `sleep`, at I/O, at `join`, at `wait` and at
+ *  `acquire` itself. Any read-modify-write sequence that contains such a suspension point
+ *  can race with another fiber, so it must be wrapped in acquire/release.
+ *  - **Blocking**: `acquire()` suspends the calling fiber until the lock is free, and
+ *  `acquire(false)` returns false immediately when the lock is taken by another fiber
+ *  instead of waiting. The `blocking` argument defaults to true.
+ *  - **Reentrancy**: the same fiber may acquire the lock several times; only the matching
+ *  number of `release` calls frees it. From the owning fiber `acquire(false)` therefore
+ *  returns true even while other fibers are waiting.
+ *  - **Ownership**: `release` must be called by the owning fiber. Ownership is verified
+ *  only in debug builds, so in a release build releasing a lock you do not own silently
+ *  corrupts its state instead of throwing; keep acquire/release balanced, preferably with
+ *  `try`/`finally`.
+ *  - **Diagnostics**: `count()` reports how many fibers are blocked in acquire — not the
+ *  recursion depth — so it is safe for monitoring but must not be used for
+ *  synchronization.
+ *  - **Scope**: a lock orders the fibers of one isolate only; code running in another
+ *  Worker is not affected (use worker_threads messages or `Atomics` for that).
+ *  - **Related primitives**: use the Semaphore class when permits have to be counted, for
+ *  example to limit concurrency; use the Condition class to wait for a state change
+ *  instead of polling; the Event class is a one-shot broadcast gate and provides no
+ *  mutual exclusion.
+ *  - **Node.js**: Node.js has no fiber-level lock. The closest concepts are `Atomics` in
+ *  workers and the browser Web Locks API, neither of which is available in fibjs on the
+ *  same objects.
  *
- * var l = new coroutine.Lock()
- * var v = 100
- * function f() {
- *     l.acquire()
- *     v = 200
- *     coroutine.sleep(1)
- *     v = 300
- *     l.release()
- * }
- * coroutine.start(f)
+ *  Obtained from:
+ *  - `new coroutine.Lock()` — creates a lock owned by no fiber.
  *
- * coroutine.sleep(1)
+ *  Example 1 — a critical section makes the counter update atomic:
+ *  ```JavaScript
+ *  const coroutine = require('coroutine');
  *
- * l.acquire()
- * assert.notEqual(300, v)
- * assert.equal(200, v)
- * l.release()
- * ```
+ *  const lock = new coroutine.Lock();
+ *  let value = 0;
  *
- * First a Lock object is created, then fiber f is entered, which acquires the lock, modifies variable v, and then releases the lock. In the main thread, fiber f is waited for first... After fiber f releases the Lock, the main thread starts to acquire the Lock, ensuring that the value of variable v has been changed to 300.
+ *  function bump() {
+ *      lock.acquire();
+ *      const current = value;
+ *      coroutine.sleep(1); // a suspension point inside the critical section
+ *      value = current + 1;
+ *      lock.release();
+ *  }
+ *
+ *  const fibers = [];
+ *  for (let i = 0; i < 4; i++)
+ *      fibers.push(coroutine.start(bump));
+ *
+ *  fibers.forEach((f) => f.join());
+ *  console.log('value:', value);
+ *  ```
+ *  will output:
+ *  ```sh
+ *  value: 4
+ *  ```
+ *
+ *  Example 2 — a blocked waiter and the waiter count:
+ *  ```JavaScript
+ *  const coroutine = require('coroutine');
+ *
+ *  const lock = new coroutine.Lock();
+ *  lock.acquire();
+ *
+ *  const child = coroutine.start(function () {
+ *      lock.acquire(); // blocks until the main fiber releases
+ *      console.log('child acquired');
+ *      lock.release();
+ *  });
+ *
+ *  coroutine.sleep(5);
+ *  console.log('waiters:', lock.count());
+ *
+ *  lock.release();
+ *  child.join();
+ *  console.log('child done');
+ *  ```
+ *  will output:
+ *  ```sh
+ *  waiters: 1
+ *  child acquired
+ *  child done
+ *  ```
  *
  */
 declare class Class_Lock extends Class_object {
     /**
-     * @description Constructor
+     * @description Creates a lock owned by no fiber
+     *
+     *      The lock starts free, is reentrant for the fiber that acquires it and holds no name or options.
+     *
      */
     constructor();
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquire(blocking?: boolean): boolean;
@@ -55,44 +148,104 @@ declare class Class_Lock extends Class_object {
     acquire(blocking?: boolean, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquireSync(blocking?: boolean): boolean;
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquireAsync(blocking?: boolean): Promise<boolean>;
 
     /**
-     * @description Releases ownership of the lock
+     * @description Releases the lock
      *
-     *      This method releases ownership of the lock; if the current fiber does not own the lock, this method throws an error.
+     *      Removes one level of ownership from the calling fiber; the lock becomes free for other
+     *      fibers when the last level is released, and one of the waiting fibers is resumed.
+     *      Releasing a lock that the calling fiber does not own is a programming error: debug
+     *      builds abort on the assertion, while release builds silently corrupt the lock state,
+     *      so keep the calls balanced with `try`/`finally`. The call returns undefined.
      *
      */
     release(): void;
 
     /**
-     * @description Queries the number of currently waiting tasks
-     *      @return returns the number of tasks
+     * @description Number of fibers blocked in acquire
+     *
+     *      The value covers the waits on this lock only: the owning fiber and fibers that used
+     *      `acquire(false)` are not counted, and the recursion depth of the owner is not
+     *      reported. Use it for diagnostics and monitoring, never as a synchronization condition.
+     *      @return number of fibers waiting for the lock
      *
      */
     count(): number;
@@ -107,63 +260,152 @@ declare class Class_Lock extends Class_object {
  */
 declare class Class_LockPromise extends Class_object {
     /**
-     * @description Constructor
+     * @description Creates a lock owned by no fiber
+     *
+     *      The lock starts free, is reentrant for the fiber that acquires it and holds no name or options.
+     *
      */
     constructor();
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquire(blocking?: boolean): Promise<boolean>;
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquireSync(blocking?: boolean): boolean;
 
     /**
-     * @description Acquires ownership of the lock
+     * @description Acquires the lock
      *
-     *      The acquire method acquires ownership of the lock; when the lock is available, this method immediately returns true.
+     *      When the lock is free the call returns true at once. When another fiber owns it and
+     *      `blocking` is true (the default), the calling fiber is suspended until that fiber
+     *      releases the lock, and the call then returns true; when `blocking` is false the call
+     *      returns false immediately without waiting. The owner may acquire the lock again, so
+     *      `acquire(false)` from the owning fiber returns true even if other fibers are waiting.
+     *      The argument is coerced to boolean, and `acquireAsync()` is the promise form that does
+     *      not block the calling fiber.
      *
-     *      When the lock is unavailable and blocking is true, the current fiber sleeps; after another fiber releases the lock, this method returns true.
+     *      Example — the same fiber may re-enter the lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
      *
-     *      When the lock is unavailable and blocking is false, the method returns false.
-     *      @param blocking whether to wait; waits when true, default is true
-     *      @return returns whether the lock was successfully acquired; true means acquired successfully
+     *      const lock = new coroutine.Lock();
+     *
+     *      console.log('first acquire:', lock.acquire());
+     *      console.log('acquire again in the same fiber:', lock.acquire());
+     *      lock.release();
+     *      console.log('after one release, acquire(false):', lock.acquire(false));
+     *      lock.release();
+     *      lock.release();
+     *
+     *      console.log('fibers waiting:', lock.count());
+     *      ```
+     *      will output:
+     *      ```sh
+     *      first acquire: true
+     *      acquire again in the same fiber: true
+     *      after one release, acquire(false): true
+     *      fibers waiting: 0
+     *      ```
+     *
+     *      @param blocking true to wait for the lock, false to return immediately
+     *      @return true when the lock was acquired, false only with `blocking` false
      *
      */
     acquireAsync(blocking?: boolean): Promise<boolean>;
 
     /**
-     * @description Releases ownership of the lock
+     * @description Releases the lock
      *
-     *      This method releases ownership of the lock; if the current fiber does not own the lock, this method throws an error.
+     *      Removes one level of ownership from the calling fiber; the lock becomes free for other
+     *      fibers when the last level is released, and one of the waiting fibers is resumed.
+     *      Releasing a lock that the calling fiber does not own is a programming error: debug
+     *      builds abort on the assertion, while release builds silently corrupt the lock state,
+     *      so keep the calls balanced with `try`/`finally`. The call returns undefined.
      *
      */
     release(): void;
 
     /**
-     * @description Queries the number of currently waiting tasks
-     *      @return returns the number of tasks
+     * @description Number of fibers blocked in acquire
+     *
+     *      The value covers the waits on this lock only: the owning fiber and fibers that used
+     *      `acquire(false)` are not counted, and the recursion depth of the owner is not
+     *      reported. Use it for diagnostics and monitoring, never as a synchronization condition.
+     *      @return number of fibers waiting for the lock
      *
      */
     count(): number;

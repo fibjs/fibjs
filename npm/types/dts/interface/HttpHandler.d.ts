@@ -3,35 +3,179 @@
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
 /**
- * @description http protocol conversion handler
+ * @description Turns a stream carrying HTTP messages into request/response handling
  *
- *   Used to convert a data stream into http protocol messages. It can be created with:
- *   ```JavaScript
- *   var hdlr = new mq.HttpHandler(...);
- *   ```
- *   or:
- *   ```JavaScript
- *   var hdlr = new http.Handler(...);
- *   ```
+ *  An HttpHandler wraps a request handler and runs the HTTP server side of a data
+ *  stream: it reads requests from the stream, calls the wrapped handler once per
+ *  request and writes the response back to the same stream, taking care of
+ *  keep-alive, the body framing and the response options (compression, CORS and
+ *  the size limits). `http.Server` and `net.TcpServer` build one around the
+ *  handler they are given, so the class is created directly only to serve an
+ *  arbitrary stream or to configure those options.
+ *
+ *  Concepts:
+ *  - **Wrapped handler forms**: the wrapped handler follows the usual forms — a
+ *    Handler object, an array (a Chain), a function `(req, res)`, a routing map
+ *    object (a Routing) and a path/address string (a static file handler or a
+ *    repeater). With a routing map the function values are called as
+ *    `(req, ...captures, res)`, which is what an HTTP router needs.
+ *  - **Request lifecycle**: invoke takes a stream (or a message that carries a
+ *    stream) and serves it until the connection closes: read a request, invoke
+ *    the wrapped handler, send the response, then repeat while keep-alive is on.
+ *    The 500 response on a handler error and the 400 response on a malformed
+ *    request are produced by this class.
+ *  - **Limits**: maxHeadersCount (number of header fields), maxHeaderSize (bytes
+ *    of the header block) and maxBodySize (MB of the body) guard the request
+ *    parser; a request over any of them is answered with 400 Bad Request and the
+ *    connection is closed.
+ *  - **Response options**: enableEncoding compresses a suitable response when the
+ *    request accepts gzip/deflate, serverName sets the Server header, and
+ *    enableCrossOrigin answers the CORS preflight and adds the CORS headers.
+ *
+ *  Obtained from:
+ *  - `new mq.HttpHandler(hdlr)` / `new http.Handler(hdlr)` — the same class under
+ *    two names;
+ *  - `new http.Server(port, hdlr)` / `http.createServer(hdlr)` — the server
+ *    wraps the handler in an HttpHandler internally;
+ *  - `http.fileHandler(...)` returns a file handler (a concrete handler object,
+ *    not an HttpHandler).
+ *
+ *  Example 1 — wrap a function and drive it with a raw request:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const io = require('io');
+ *
+ *  const handler = new http.Handler((req, res) => {
+ *      res.write('hello ' + req.address);
+ *  });
+ *
+ *  // a raw request drives the handler through a memory stream
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('GET /world HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n'));
+ *  stm.rewind();
+ *
+ *  handler.invoke(stm);
+ *
+ *  stm.rewind();
+ *  const text = stm.readAll().toString();
+ *  console.log(text.slice(text.indexOf('\r\n\r\n') + 4));
+ *  ```
+ *
+ *  Example 2 — read the options and set the server name:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const io = require('io');
+ *
+ *  const handler = new http.Handler((req, res) => {
+ *      res.json({ ok: true });
+ *  });
+ *
+ *  console.log(handler.maxHeadersCount, handler.maxHeaderSize, handler.maxBodySize); // 128 8192 64
+ *  console.log(handler.enableEncoding); // false
+ *
+ *  handler.serverName = 'demo-server';
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n'));
+ *  stm.rewind();
+ *  handler.invoke(stm);
+ *  stm.rewind();
+ *  console.log(stm.readAll().toString().indexOf('Server: demo-server') >= 0); // true
+ *  ```
+ *
+ *  Example 3 — enableEncoding compresses the response:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const io = require('io');
+ *  const zlib = require('zlib');
+ *
+ *  const handler = new http.Handler((req, res) => {
+ *      res.setHeader('Content-Type', 'text/plain');
+ *      res.write('x'.repeat(200));
+ *  });
+ *  handler.enableEncoding = true;
+ *
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\n' +
+ *      'Accept-Encoding: gzip\r\nConnection: close\r\n\r\n'));
+ *  stm.rewind();
+ *  handler.invoke(stm);
+ *
+ *  stm.rewind();
+ *  const raw = stm.readAll();
+ *  const text = raw.toString('binary');
+ *  const headEnd = text.indexOf('\r\n\r\n', text.indexOf('\r\n\r\n') + 4);
+ *  const head = text.slice(text.indexOf('\r\n\r\n') + 4, headEnd);
+ *  console.log(head.indexOf('Content-Encoding: gzip') >= 0); // true
+ *  console.log(zlib.gunzipSync(raw.slice(headEnd + 4)).length); // 200
+ *  ```
+ *
+ *  Notes:
+ *  - The request bytes and the response bytes share the stream, so a memory
+ *    stream used as the transport contains the request first and the response
+ *    after it; slice the response out as the examples do.
+ *  - A response over 500 produced by a handler error and the 400 of a malformed
+ *    request are sent by this class; the handler does not see them.
  *
  */
 declare class Class_HttpHandler extends Class_Handler {
     /**
-     * @description creates an http protocol handler object, converting the data of a stream object into http message objects
+     * @description Creates an http protocol handler over a stream of http messages
      *
-     *     hdlr may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-     *     @param hdlr the request handler
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and
+     *        the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are
+     *        handlers in these same forms (see mq.Routing); a function value is
+     *        called as `(req, ...captures, res) => any`, with the captured groups
+     *        between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an
+     *        `http(s)://` address forwarded by a repeater.
+     *
+     *      The constructed object is the class exposed as both mq.HttpHandler and
+     *      http.Handler; the wrapped handler is available through the handler
+     *      property.
+     *
+     *      @param hdlr the request handler
      *
      */
     constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
+     *
+     *      Turns the handler into a CORS endpoint: when a request carries an Origin
+     *      header, the response receives Access-Control-Allow-Credentials: true and
+     *      Access-Control-Allow-Origin set to that origin, and an OPTIONS preflight
+     *      is answered by the handler itself with Access-Control-Allow-Methods: *,
+     *      Access-Control-Max-Age: 1728000 and Access-Control-Allow-Headers set to
+     *      allowHeaders. The wrapped handler is not called for the preflight.
+     *
+     *      Example — answer a preflight for a custom header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => {
+     *          res.write('body');
+     *      });
+     *      handler.enableCrossOrigin('Content-Type, X-Token');
+     *
+     *      // the preflight request is answered by the handler itself
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('OPTIONS /submit HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Origin: http://app.example.com\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const response = stm.readAll().toString();
+     *      const origin = 'Access-Control-Allow-Origin: http://app.example.com';
+     *      const headers = 'Access-Control-Allow-Headers: Content-Type, X-Token';
+     *      console.log(response.indexOf(origin) >= 0); // true
+     *      console.log(response.indexOf(headers) >= 0); // true
+     *      ```
      *      @param allowHeaders specifies the accepted http header fields
      *
      */
@@ -39,31 +183,190 @@ declare class Class_HttpHandler extends Class_Handler {
 
     /**
      * @description queries and sets the maximum number of request headers, default is 128
+     *
+     *      The limit counts the header fields of one request; a request with more
+     *      fields is answered with 400 Bad Request and the connection is closed.
+     *      Clients that send many cookies or a long header set may need a larger
+     *      value; lower it to reject abusive requests early.
+     *
+     *      Example — the limit is enforced by the parser:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.maxHeadersCount = 2;
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: x\r\nA: 1\r\nB: 2\r\n' +
+     *          'C: 3\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxHeadersCount: number;
 
     /**
      * @description queries and sets the maximum request header length, default is 8192
+     *
+     *      The limit is the size in bytes of the whole header block of one request; a
+     *      request whose header block is larger is answered with 400 Bad Request and
+     *      the connection is closed. It bounds the memory a single request can use
+     *      for its headers independently of the field count.
+     *
+     *      Example — a header block over the limit is rejected:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: x\r\nX-Big: ' +
+     *          'a'.repeat(9000) + '\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxHeaderSize: number;
 
     /**
      * @description queries and sets the maximum body size in MB, default is 64
+     *
+     *      The limit is expressed in megabytes and applies to the request body; a
+     *      body over it is answered with 400 Bad Request and the connection is
+     *      closed. Raise it for upload endpoints, or lower it when the body is known
+     *      to be small.
+     *
+     *      Example — a body over the limit is rejected:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.maxBodySize = 1;
+     *      const body = 'x'.repeat(2 * 1024 * 1024);
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('POST / HTTP/1.1\r\nHost: x\r\nContent-Length: ' +
+     *          body.length + '\r\nConnection: close\r\n\r\n' + body));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      const response = text.slice(text.indexOf('\r\n\r\n') + 4 + body.length);
+     *      console.log(response.indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxBodySize: number;
 
     /**
      * @description switch for the automatic decompression feature, disabled by default
+     *
+     *      When enabled, a response whose body is longer than 128 bytes and shorter
+     *      than 64 MB is compressed with gzip or deflate when the request advertises
+     *      it through Accept-Encoding and the response has a compressible content
+     *      type (text/* or one of the known document, script and archive types); the
+     *      Content-Encoding header is added and an existing one disables the
+     *      compression. The body must be seekable, which the standard response body
+     *      is.
+     *
+     *      Example — gzip an accepted response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *      const zlib = require('zlib');
+     *
+     *      const handler = new http.Handler((req, res) => {
+     *          res.setHeader('Content-Type', 'text/plain');
+     *          res.write('x'.repeat(200));
+     *      });
+     *      handler.enableEncoding = true;
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Accept-Encoding: deflate\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const raw = stm.readAll();
+     *      const text = raw.toString('binary');
+     *      const headEnd = text.indexOf('\r\n\r\n', text.indexOf('\r\n\r\n') + 4);
+     *      const head = text.slice(text.indexOf('\r\n\r\n') + 4, headEnd);
+     *      console.log(head.indexOf('Content-Encoding: deflate') >= 0); // true
+     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 200
+     *      ```
+     *
      */
     enableEncoding: boolean;
 
     /**
      * @description queries and sets the server name, default is: fibjs/0.x.0
+     *
+     *      The value is written to the Server header of every response unless the
+     *      handler or the wrapped code has already set one. The default is
+     *      `fibjs/` followed by the runtime version.
+     *
+     *      Example — the value appears in the response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.serverName = 'fibjs-demo';
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString().indexOf('Server: fibjs-demo') >= 0); // true
+     *      ```
+     *
      */
     serverName: string;
 
     /**
      * @description the current event handling interface object of the http protocol conversion handler
+     *
+     *      The property is the handler wrapped at construction time; set it to
+     *      replace the handler of a running object. The setter accepts the same forms
+     *      as the constructor (a Handler object, an array, a function, a routing map
+     *      or a path/address string), so the server can be reconfigured without
+     *      rebuilding the object.
+     *
+     *      Example — swap the inner handler for a routing map:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('first'));
+     *      console.log(handler.handler.isRouting()); // false
+     *
+     *      // the property accepts the same forms as the constructor
+     *      handler.handler = { '/second': (req, res) => res.write('second') };
+     *      console.log(handler.handler.isRouting()); // true
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET /second HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Connection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString().indexOf('second') >= 0); // true
+     *      ```
+     *
      */
     handler: Class_Handler;
 
@@ -79,21 +382,63 @@ declare class Class_HttpHandler extends Class_Handler {
  */
 declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
     /**
-     * @description creates an http protocol handler object, converting the data of a stream object into http message objects
+     * @description Creates an http protocol handler over a stream of http messages
      *
-     *     hdlr may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *     - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-     *     @param hdlr the request handler
+     *      hdlr may be given in any of these forms:
+     *      - a Handler object, invoked as it is;
+     *      - an array of handlers, wrapped in a Chain and invoked in order;
+     *      - a handler function `(req, res) => any`, called with the HttpRequest and
+     *        the HttpResponse of each request;
+     *      - a routing map object, whose keys are match patterns and whose values are
+     *        handlers in these same forms (see mq.Routing); a function value is
+     *        called as `(req, ...captures, res) => any`, with the captured groups
+     *        between the request and the response (also readable as req.params);
+     *      - a path or address string: a directory served as static files, or an
+     *        `http(s)://` address forwarded by a repeater.
+     *
+     *      The constructed object is the class exposed as both mq.HttpHandler and
+     *      http.Handler; the wrapped handler is available through the handler
+     *      property.
+     *
+     *      @param hdlr the request handler
      *
      */
     constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description enables cross-origin requests
+     *
+     *      Turns the handler into a CORS endpoint: when a request carries an Origin
+     *      header, the response receives Access-Control-Allow-Credentials: true and
+     *      Access-Control-Allow-Origin set to that origin, and an OPTIONS preflight
+     *      is answered by the handler itself with Access-Control-Allow-Methods: *,
+     *      Access-Control-Max-Age: 1728000 and Access-Control-Allow-Headers set to
+     *      allowHeaders. The wrapped handler is not called for the preflight.
+     *
+     *      Example — answer a preflight for a custom header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => {
+     *          res.write('body');
+     *      });
+     *      handler.enableCrossOrigin('Content-Type, X-Token');
+     *
+     *      // the preflight request is answered by the handler itself
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('OPTIONS /submit HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Origin: http://app.example.com\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const response = stm.readAll().toString();
+     *      const origin = 'Access-Control-Allow-Origin: http://app.example.com';
+     *      const headers = 'Access-Control-Allow-Headers: Content-Type, X-Token';
+     *      console.log(response.indexOf(origin) >= 0); // true
+     *      console.log(response.indexOf(headers) >= 0); // true
+     *      ```
      *      @param allowHeaders specifies the accepted http header fields
      *
      */
@@ -101,31 +446,190 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
 
     /**
      * @description queries and sets the maximum number of request headers, default is 128
+     *
+     *      The limit counts the header fields of one request; a request with more
+     *      fields is answered with 400 Bad Request and the connection is closed.
+     *      Clients that send many cookies or a long header set may need a larger
+     *      value; lower it to reject abusive requests early.
+     *
+     *      Example — the limit is enforced by the parser:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.maxHeadersCount = 2;
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: x\r\nA: 1\r\nB: 2\r\n' +
+     *          'C: 3\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxHeadersCount: number;
 
     /**
      * @description queries and sets the maximum request header length, default is 8192
+     *
+     *      The limit is the size in bytes of the whole header block of one request; a
+     *      request whose header block is larger is answered with 400 Bad Request and
+     *      the connection is closed. It bounds the memory a single request can use
+     *      for its headers independently of the field count.
+     *
+     *      Example — a header block over the limit is rejected:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: x\r\nX-Big: ' +
+     *          'a'.repeat(9000) + '\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxHeaderSize: number;
 
     /**
      * @description queries and sets the maximum body size in MB, default is 64
+     *
+     *      The limit is expressed in megabytes and applies to the request body; a
+     *      body over it is answered with 400 Bad Request and the connection is
+     *      closed. Raise it for upload endpoints, or lower it when the body is known
+     *      to be small.
+     *
+     *      Example — a body over the limit is rejected:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.maxBodySize = 1;
+     *      const body = 'x'.repeat(2 * 1024 * 1024);
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('POST / HTTP/1.1\r\nHost: x\r\nContent-Length: ' +
+     *          body.length + '\r\nConnection: close\r\n\r\n' + body));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const text = stm.readAll().toString();
+     *      const response = text.slice(text.indexOf('\r\n\r\n') + 4 + body.length);
+     *      console.log(response.indexOf('400 Bad Request') >= 0); // true
+     *      ```
+     *
      */
     maxBodySize: number;
 
     /**
      * @description switch for the automatic decompression feature, disabled by default
+     *
+     *      When enabled, a response whose body is longer than 128 bytes and shorter
+     *      than 64 MB is compressed with gzip or deflate when the request advertises
+     *      it through Accept-Encoding and the response has a compressible content
+     *      type (text/* or one of the known document, script and archive types); the
+     *      Content-Encoding header is added and an existing one disables the
+     *      compression. The body must be seekable, which the standard response body
+     *      is.
+     *
+     *      Example — gzip an accepted response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *      const zlib = require('zlib');
+     *
+     *      const handler = new http.Handler((req, res) => {
+     *          res.setHeader('Content-Type', 'text/plain');
+     *          res.write('x'.repeat(200));
+     *      });
+     *      handler.enableEncoding = true;
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Accept-Encoding: deflate\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *
+     *      stm.rewind();
+     *      const raw = stm.readAll();
+     *      const text = raw.toString('binary');
+     *      const headEnd = text.indexOf('\r\n\r\n', text.indexOf('\r\n\r\n') + 4);
+     *      const head = text.slice(text.indexOf('\r\n\r\n') + 4, headEnd);
+     *      console.log(head.indexOf('Content-Encoding: deflate') >= 0); // true
+     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 200
+     *      ```
+     *
      */
     enableEncoding: boolean;
 
     /**
      * @description queries and sets the server name, default is: fibjs/0.x.0
+     *
+     *      The value is written to the Server header of every response unless the
+     *      handler or the wrapped code has already set one. The default is
+     *      `fibjs/` followed by the runtime version.
+     *
+     *      Example — the value appears in the response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('ok'));
+     *      handler.serverName = 'fibjs-demo';
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString().indexOf('Server: fibjs-demo') >= 0); // true
+     *      ```
+     *
      */
     serverName: string;
 
     /**
      * @description the current event handling interface object of the http protocol conversion handler
+     *
+     *      The property is the handler wrapped at construction time; set it to
+     *      replace the handler of a running object. The setter accepts the same forms
+     *      as the constructor (a Handler object, an array, a function, a routing map
+     *      or a path/address string), so the server can be reconfigured without
+     *      rebuilding the object.
+     *
+     *      Example — swap the inner handler for a routing map:
+     *      ```JavaScript
+     *      const http = require('http');
+     *      const io = require('io');
+     *
+     *      const handler = new http.Handler((req, res) => res.write('first'));
+     *      console.log(handler.handler.isRouting()); // false
+     *
+     *      // the property accepts the same forms as the constructor
+     *      handler.handler = { '/second': (req, res) => res.write('second') };
+     *      console.log(handler.handler.isRouting()); // true
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('GET /second HTTP/1.1\r\nHost: example.com\r\n' +
+     *          'Connection: close\r\n\r\n'));
+     *      stm.rewind();
+     *      handler.invoke(stm);
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString().indexOf('second') >= 0); // true
+     *      ```
+     *
      */
     handler: Class_HandlerPromise;
 

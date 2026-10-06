@@ -2,51 +2,182 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/HeapGraphEdge.d.ts" />
 /**
- * @description HeapGraphNode represents a node in the heap view
+ * @description A single object node in a heap snapshot graph
+ *
+ * A node describes one value in the captured heap: its `type`, `name`, `id` and
+ * `shallowSize`. The references held by the value are exposed as outgoing
+ * `HeapGraphEdge` objects through `childs`. Nodes are read-only views into the
+ * `HeapSnapshot` they came from; keep that snapshot referenced while the nodes are in
+ * use.
+ *
+ * Concepts:
+ *
+ * - **Types**: the `v8.Node_*` constants name the classic V8 node types. The bundled
+ *   V8 reports more types than the constants enumerate: 13 is BigInt (whose legacy
+ *   constant name is `v8.Node_SimdValue`), 14 is the shape of an object (no constant),
+ *   and `description` falls back to `Unknown` for unknown values.
+ * - **Names**: for objects the name is the constructor (class) name, for closures the
+ *   function name, for strings the string value itself and for internal nodes a label
+ *   such as `system / ScopeInfo`. Code and some synthetic nodes have an empty name, so
+ *   a name is a hint, not a unique key.
+ * - **Sizes**: `shallowSize` is the memory held by the node itself, not by the objects
+ *   it references; no retained-size property exists, compute it by walking `childs`.
+ * - **description**: a convenience string `name[Type]` (for example
+ *   `HeapMarker[Object]`); it is also the grouping key used by the `details` of
+ *   `HeapSnapshot.diff`.
+ * - **childs**: the outgoing edges, named `childs` rather than the `children`/`edges`
+ *   of Node.js heap tools. Each access re-wraps the edges, so cache the array when
+ *   iterating.
+ *
+ * Obtained from:
+ *  - `snapshot.nodes` — the flat list of all nodes;
+ *  - `snapshot.root` — the synthetic root node;
+ *  - `HeapSnapshot.getNodeById(id)` — lookup by id;
+ *  - `edge.getFromNode()` / `edge.getToNode()` — the endpoints of an edge.
+ *
+ * Example 1 — locate an object by class name and follow a property edge:
+ * ```JavaScript
+ * const v8 = require('v8');
+ *
+ * class NodeMarker42 { constructor() { this.payload = [1, 2, 3]; } }
+ * const probe = new NodeMarker42(); // reachable from this scope
+ *
+ * const nodes = v8.takeSnapshot().nodes; // cache it: the getter rebuilds the array
+ * const objectNode = nodes.find((n) => n.type === v8.Node_Object && n.name === 'NodeMarker42');
+ *
+ * const edge = objectNode.childs.find((e) => e.type === v8.Edge_Property && e.name === 'payload');
+ * const payload = edge.getToNode();
+ * console.log(payload.name);              // Array
+ * console.log(payload.childs.length > 0); // true
+ * ```
+ *
+ * Example 2 — survey the first nodes of a graph:
+ * ```JavaScript
+ * const v8 = require('v8');
+ *
+ * const snapshot = v8.takeSnapshot();
+ * const nodes = snapshot.nodes; // cache it: the getter rebuilds the array on each access
+ *
+ * // The first node is the root; the next ones are the entry groups of the graph.
+ * for (const node of nodes.slice(0, 5)) {
+ *     console.log(node.id, node.type, JSON.stringify(node.name), node.description);
+ * }
+ *
+ * // Names are empty for some internal nodes, so type is the reliable classifier.
+ * console.log(nodes.every((node) => typeof node.type === 'number')); // true
+ * ```
+ *
  */
 declare class Class_HeapGraphNode extends Class_object {
     /**
-     * @description Node type, possible values:
-     *      - profiler.Node_Hidden,         Hidden node, can be filtered out when shown to the user
-     *      - profiler.Node_Array,          Array
-     *      - profiler.Node_String,         String
-     *      - profiler.Node_Object,         JS object (other than strings and arrays)
-     *      - profiler.Node_Code,           Compiled code
-     *      - profiler.Node_Closure,        Function closure
-     *      - profiler.Node_RegExp,         Regular expression
-     *      - profiler.Node_HeapNumber,     Sorted number in the heap
-     *      - profiler.Node_Native,         Native object (not on the v8 heap)
-     *      - profiler.Node_Synthetic,      Synthetic object
-     *      - profiler.Node_ConsString,     Concatenated string
-     *      - profiler.Node_SlicedString,   Sliced string
-     *      - profiler.Node_Symbol,         Symbol (ES6)
-     *      - profiler.Node_SimdValue,      Sorted SIMD value in the heap (ES7)
+     * @description Node type, one of the v8.Node_* constants:
+     *      - v8.Node_Hidden,         Hidden node, filtered out when shown to the user
+     *      - v8.Node_Array,          Element storage of an array
+     *      - v8.Node_String,         String
+     *      - v8.Node_Object,         JS object, including arrays and functions
+     *      - v8.Node_Code,           Compiled code
+     *      - v8.Node_Closure,        Function closure
+     *      - v8.Node_RegExp,         Regular expression
+     *      - v8.Node_HeapNumber,     Number stored in the heap (a boxed double)
+     *      - v8.Node_Native,         Native object (not from the v8 heap)
+     *      - v8.Node_Synthetic,      Synthetic object, used to group snapshot items
+     *      - v8.Node_ConsString,     Concatenated string
+     *      - v8.Node_SlicedString,   Sliced string
+     *      - v8.Node_Symbol,         Symbol (ES6)
+     *      - v8.Node_SimdValue,      Legacy name of type 13, which current V8 uses for BigInt
+     *
+     *      Values beyond this list can appear with newer V8 versions; see the class Concepts
+     *      section. The property is cheap to read, but every node is a view into its
+     *      snapshot, so cache the node array before iterating.
      *
      */
     readonly type: number;
 
     /**
      * @description Node name
+     *
+     *      The constructor (class) name for objects, the function name for closures, the
+     *      string value for strings and a label such as `system / ScopeInfo` for internal
+     *      nodes. Code and some synthetic nodes report an empty string, so treat the name as
+     *      a search hint rather than as a unique key.
+     *
      */
     readonly name: string;
 
     /**
      * @description Node description
+     *
+     *      A convenience form of the node for logs and grouping: the name followed by the
+     *      type in brackets, for example `HeapMarker[Object]`. For nodes without a name the
+     *      name part is empty, as in `[Synthetic]`; unknown type values are rendered as
+     *      `Unknown`. It is the grouping key of the `details` array returned by
+     *      `HeapSnapshot.diff`.
+     *
+     *      Example — describe an object found by class name:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      class DescMarker42 { constructor() { this.payload = [1, 2, 3]; } }
+     *      const probe = new DescMarker42();
+     *
+     *      const nodes = v8.takeSnapshot().nodes;
+     *      const objectNode = nodes.find((n) => n.type === v8.Node_Object && n.name === 'DescMarker42');
+     *
+     *      console.log(objectNode.description);             // DescMarker42[Object]
+     *      console.log(objectNode.name);                    // DescMarker42
+     *      console.log(objectNode.type === v8.Node_Object); // true
+     *      ```
+     *
      */
     readonly description: string;
 
     /**
      * @description Node ID
+     *
+     *      A numeric identifier assigned by V8. It stays the same for the same heap object
+     *      across snapshots of one isolate, which lets `HeapSnapshot.diff` match nodes and
+     *      `HeapSnapshot.getNodeById` find a node again. Ids are not stable across processes,
+     *      and loaded snapshots preserve the ids stored in the file.
+     *
      */
     readonly id: number;
 
     /**
      * @description Node size, in bytes
+     *
+     *      The memory held by this node itself, not counting the objects it references: for
+     *      a JS object this is the object header and its inline fields, while the element
+     *      storage it points at is a separate node. No retained-size property exists,
+     *      compute it by summing the nodes reachable through `childs`.
+     *
      */
     readonly shallowSize: number;
 
     /**
      * @description Child node list, composed of HeapGraphEdge type objects
+     *
+     *      The outgoing references of the node; each edge reaches the referenced value
+     *      through `getToNode`. The list is rebuilt on every access, so store it in a local
+     *      variable when iterating. There is no reverse list: to find who references a node,
+     *      search the snapshot for edges whose destination is that node.
+     *
+     *      Example — follow a property edge of an object and inspect the element storage:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      class ChildMarker42 { constructor() { this.payload = [1, 2, 3]; } }
+     *      const probe = new ChildMarker42();
+     *
+     *      const nodes = v8.takeSnapshot().nodes;
+     *      const objectNode = nodes.find((n) => n.type === v8.Node_Object && n.name === 'ChildMarker42');
+     *      const children = objectNode.childs;
+     *      const edge = children.find((e) => e.type === v8.Edge_Property && e.name === 'payload');
+     *      const arrayNode = edge.getToNode();
+     *
+     *      console.log(arrayNode.childs.length > 0);                              // true
+     *      console.log(arrayNode.childs.some((e) => e.type === v8.Edge_Internal)); // true
+     *      ```
+     *
      */
     readonly childs: Class_HeapGraphEdge[];
 

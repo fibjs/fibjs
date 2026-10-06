@@ -4,172 +4,369 @@
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description WebSocket is a full-duplex communication protocol based on TCP; it establishes a persistent connection between browser and server, enabling real-time bidirectional data transmission and supporting data in any format. In fibjs, the WebSocket support module provides corresponding API interfaces for developing WebSocket servers and clients
+ * @description A WebSocket client and server endpoint, the fibjs implementation of the WebSocket API
  *
- * The WebSocket support module is only an implementation of the WebSocket protocol and needs to work on top of the HTTP protocol. On the server side, HTTP requests can be converted into WebSocket connections through the upgrade function; on the client side, the server address to connect is specified via a WebSocket protocol URL.
+ *  A WebSocket connection starts as an HTTP/1.1 request carrying an Upgrade
+ *  handshake and, after the server answers 101, becomes a full-duplex message
+ *  channel between exactly two peers. fibjs exposes both ends of the protocol
+ *  through this interface:
  *
- * Example of starting a WebSocket server:
- * ```JavaScript
- * var http = require('http');
+ *  - a client is created by the `WebSocket` constructor with a `ws://` or
+ *    `wss://` URL; the handshake runs asynchronously and the `open` event
+ *    reports success;
+ *  - a server object is produced by the `WebSocket.upgrade` handler, which
+ *    converts matching HTTP upgrade requests into connected sockets.
  *
- * var svr = new http.Server(80, {
- *     '/ws': WebSocket.upgrade({
- *         protocols: ['json', 'text']
- *     }, conn => {
- *         conn.onmessage = e => {
- *             conn.send('fibjs:' + e.data);
- *         };
- *     })
- * });
- * svr.start();
- * ```
- * Example of establishing a connection to the above server from a client:
- * ```JavaScript
- * var conn = new WebSocket("ws://127.0.0.1/ws", ['json', 'text']);
- * // emit open event
- * conn.onopen = () => {
- *     console.log("websocket connected with protocol:", conn.protocol);
- *     conn.send("hi");
- * };
- * // emit close event
- * conn.onmessage = evt => {
- *     console.log("websocket receive: " + evt.data);
- * };
- * ```
+ *  Concepts:
+ *  - Handshake: the client sends `Upgrade: websocket`, `Connection: Upgrade`,
+ *    `Sec-WebSocket-Version: 13` and a random `Sec-WebSocket-Key`; the server
+ *    answers 101 with the matching `Sec-WebSocket-Accept` header. A failed
+ *    handshake raises the `error` event and then the `close` event.
+ *  - Frame types: TEXT (1), BINARY (2), CLOSE (8), PING (9), PONG (10) and
+ *    CONTINUE (0) fragments. Received fragments are re-assembled into one
+ *    WebSocketMessage before the `message` event fires.
+ *  - Text and binary data: `msg.data` is a String for TEXT messages and a
+ *    Buffer for BINARY messages. `send` accepts a Buffer, a typed array, an
+ *    ArrayBuffer or a Blob and sends a BINARY frame; every other value is
+ *    sent as its string form in a TEXT frame, so `send(null)` sends the text
+ *    "null" and `send(123)` sends "123".
+ *  - Ping/pong keep-alive: a PING frame from the peer is answered with a PONG
+ *    frame automatically and PONG frames are consumed silently; there is no
+ *    manual ping API.
+ *  - Closing: `close(code, reason)` sends a CLOSE frame; close codes are
+ *    limited to 1000 or 3000-4999. When the peer drops the connection without
+ *    a close handshake, the `close` event reports code 1006, "Abnormal
+ *    Closure".
+ *  - permessage-deflate: compression is negotiated only when the client
+ *    enables the `perMessageDeflate` option and the server enables it in
+ *    `WebSocket.upgrade`; on a compressed connection a compressed message
+ *    reports `WebSocketMessage.compress` as true.
+ *  - Sub-protocols: the client may offer a list of protocols and the server
+ *    selects one of its own; the selected value is available as `protocol`.
+ *    When the client offers protocols and the server does not select one, the
+ *    client aborts the handshake.
+ *  - Server-side sockets have empty `url` and `origin`; the handshake request
+ *    received by the accept callback carries the original header values.
+ *  - Node.js and the DOM expose only the client role, so the
+ *    `WebSocket.upgrade` handler is a fibjs extension. The `message` event
+ *    delivers the WebSocketMessage object itself rather than a DOM
+ *    MessageEvent, and binary payloads are Buffers rather than ArrayBuffers.
+ *
+ *  Obtained from:
+ *  - `new WebSocket(url, ...)` — client connection; `url` must use the `ws://`
+ *    or `wss://` scheme;
+ *  - `WebSocket.upgrade(opts, accept)` — protocol handler for an HttpServer
+ *    route, a Routing table or a Chain; the accept callback receives the
+ *    connected WebSocket.
+ *
+ *  Notes:
+ *  - An `error` event with no registered listener is re-thrown as an unhandled
+ *    error, so bind `onerror` whenever the handshake may fail.
+ *
+ *  Example 1 — an echo server and a client exchanging text and binary frames:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, {
+ *      '/ws': WebSocket.upgrade((conn) => {
+ *          conn.onmessage = (msg) => conn.send(msg.data); // echo the payload as it arrived
+ *      })
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws');
+ *  let count = 0;
+ *  sock.onopen = () => sock.send('hello');
+ *  sock.onmessage = (msg) => {
+ *      console.log(typeof msg.data, msg.data); // string hello on the first call
+ *      if (count++ === 0)
+ *          sock.send(Buffer.from([1, 2, 3]));
+ *      else
+ *          sock.close(1000, 'done');
+ *  };
+ *  sock.onclose = (ev) => {
+ *      console.log(ev.code, ev.reason); // 1000 done
+ *      server.stop();
+ *  };
+ *  ```
+ *
+ *  Example 2 — sub-protocol selection and permessage-deflate compression:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, {
+ *      '/ws': WebSocket.upgrade({
+ *          protocols: ['json', 'text'],
+ *          perMessageDeflate: true
+ *      }, (conn) => {
+ *          console.log(conn.protocol); // json: selected from the client offer
+ *          conn.onmessage = (msg) => {
+ *              console.log(msg.compress, msg.data.length); // true 88
+ *              conn.send(msg.data);
+ *          };
+ *      })
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws', {
+ *      protocols: ['json', 'text'],
+ *      perMessageDeflate: true
+ *  });
+ *  sock.onopen = () => sock.send('deflate me '.repeat(8)); // 88 characters
+ *  sock.onmessage = (msg) => {
+ *      console.log(sock.protocol, msg.compress); // json true
+ *      sock.close();
+ *  };
+ *  sock.onclose = () => server.stop();
+ *  ```
+ *
+ *  Example 3 — a failed handshake reported through error and close:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, (req) => {
+ *      req.response.write('plain HTTP, not a websocket endpoint');
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const sock = new WebSocket('ws://127.0.0.1:' + port + '/');
+ *  sock.onopen = () => console.log('never fires');
+ *  sock.onerror = (ev) => console.log('error', ev.code, ev.reason); // 1002 server error.
+ *  sock.onclose = (ev) => {
+ *      console.log('close', ev.code, ev.reason); // 1006 Abnormal Closure
+ *      server.stop();
+ *  };
+ *  ```
  *
  */
 declare class Class_WebSocket extends Class_EventEmitter {
     /**
-     * @description WebSocket constructor
-     *      @param url specifies the server to connect
-     *      @param protocols specifies the list of candidate sub-protocols for the handshake
-     *      @param origin specifies the origin to simulate during the handshake, default is ""
+     * @description Creates a client and starts the handshake with a list of sub-protocols
+     *
+     *      The connection is asynchronous: the constructor returns with readyState
+     *      CONNECTING, the handshake runs in the background and `open` fires after
+     *      the server accepted. A rejected upgrade, a missing Sec-WebSocket-Accept
+     *      header, or a server that does not select one of the offered protocols
+     *      raises `error` and then `close` instead.
+     *
+     *      The three constructor forms differ only in how the handshake is
+     *      described: this one offers a protocol list, the single-protocol form
+     *      offers one value and the options form collects everything in one
+     *      object. When the server selects a protocol it is reported by the
+     *      `protocol` property.
+     *
+     *      `origin` is sent as the `Origin` header and stored in the `origin`
+     *      property; an empty string omits the header.
+     *
+     *      @param url the server address, using the `ws://` or `wss://` scheme
+     *      @param protocols the list of sub-protocols offered to the server
+     *      @param origin the origin to simulate during the handshake, "" by default
      *
      */
     constructor(url: string, protocols: string[], origin?: string);
 
     /**
-     * @description WebSocket constructor
+     * @description Creates a client with all handshake options in one object
+     *
      *      opts contains additional options for the request, the supported contents are as follows:
      *      ```JavaScript
-     *      {
-     *          "protocol": "", // specify the sub-protocol, default is ""
-     *          "protocols": [], // specify candidate sub-protocols, takes precedence over protocol when provided
-     *          "origin": "", // specify the origin, default is ""
-     *          "perMessageDeflate": false, // specify whether to enable permessage-deflate, default is false
-     *          "maxPayload": 67108864, // specify the max payload size, default is 64MB
-     *          "httpClient": hc, // specify the http client, default is null, use the global http client
-     *          "headers": // specify the http headers, default is {}
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "protocol": "", // a single sub-protocol, "" when omitted
+     *          "protocols": [], // a list of sub-protocols, takes precedence over protocol
+     *          "origin": "", // the value of the Origin header, "" when omitted
+     *          "perMessageDeflate": false, // request permessage-deflate compression
+     *          "maxPayload": 67108864, // max accepted message size in bytes (64 MB)
+     *          "httpClient": null, // the HttpClient used for the handshake, the global one by default
+     *          "headers": {} // extra headers sent with the handshake request
+     *      })
      *      ```
-     *      @param url specifies the server to connect
-     *      @param opts connection options, default is {}
+     *      Both protocol forms end up in the `Sec-WebSocket-Protocol` request
+     *      header and the server may select one of them. `maxPayload` limits
+     *      incoming messages; a larger message fails the connection with error
+     *      code 1009 (see the WebSocketMessage maxSize property).
+     *
+     *      @param url the server address, using the `ws://` or `wss://` scheme
+     *      @param opts connection options, {} by default
      *
      */
     constructor(url: string, opts: FIBJS.GeneralObject);
 
     /**
-     * @description WebSocket constructor
-     *      @param url specifies the server to connect
-     *      @param protocol specifies the handshake protocol, default is ""
-     *      @param origin specifies the origin to simulate during the handshake, default is ""
+     * @description Creates a client and starts the handshake with a single sub-protocol
+     *
+     *      This form is equivalent to passing a one-element protocols array to the
+     *      first constructor, and the selected protocol is reported by `protocol`.
+     *      Unlike the options form, `perMessageDeflate` and extra headers cannot be
+     *      set here.
+     *
+     *      @param url the server address, using the `ws://` or `wss://` scheme
+     *      @param protocol the single sub-protocol offered to the server, "" by default
+     *      @param origin the origin to simulate during the handshake, "" by default
      *
      */
     constructor(url: string, protocol?: string, origin?: string);
 
     /**
-     * @description specifies WebSocket message type 0, representing a continuation frame
+     * @description Frame type of a continuation frame; fragments carry the rest of a message
      */
     static readonly CONTINUE: 0;
 
     /**
-     * @description specifies WebSocket message type 1, representing a text frame
+     * @description Frame type of a text frame whose payload is a UTF-8 string
      */
     static readonly TEXT: 1;
 
     /**
-     * @description specifies WebSocket message type 2, representing a binary frame
+     * @description Frame type of a binary frame whose payload is binary data
      */
     static readonly BINARY: 2;
 
     /**
-     * @description specifies WebSocket message type 8, connection close
+     * @description Frame type of a close frame carrying the close code and reason
      */
     static readonly CLOSE: 8;
 
     /**
-     * @description specifies WebSocket message type 9, representing a ping frame
+     * @description Frame type of a ping frame, answered with a pong frame automatically
      */
     static readonly PING: 9;
 
     /**
-     * @description specifies WebSocket message type 10, representing a pong frame
+     * @description Frame type of a pong frame, consumed silently by the protocol layer
      */
     static readonly PONG: 10;
 
     /**
-     * @description specifies the WebSocket state, indicating connecting
+     * @description Connection state: the handshake is in progress (0)
      */
     static readonly CONNECTING: 0;
 
     /**
-     * @description specifies the WebSocket state, indicating connected
+     * @description Connection state: the handshake completed and data can be exchanged (1)
      */
     static readonly OPEN: 1;
 
     /**
-     * @description specifies the WebSocket state, indicating closing
+     * @description Connection state: a close frame is being exchanged (2)
      */
     static readonly CLOSING: 2;
 
     /**
-     * @description specifies the WebSocket state, indicating closed
+     * @description Connection state: the connection is closed and no more data can be exchanged (3)
      */
     static readonly CLOSED: 3;
 
     /**
-     * @description queries the server the current object is connected to
+     * @description Queries the URL of the server the client connected to
+     *
+     *      For a client socket this is the URL passed to the constructor. A socket
+     *      created by `WebSocket.upgrade` has no URL of its own and reports "";
+     *      read the requested address from the HttpRequest received by the accept
+     *      callback instead.
+     *
      */
     readonly url: string;
 
     /**
-     * @description queries the protocol used when the current object connected
+     * @description Queries the sub-protocol negotiated during the handshake
+     *
+     *      The value is "" before the handshake completes and stays "" when no
+     *      sub-protocol was selected. On a client it comes from the
+     *      `Sec-WebSocket-Protocol` response header; on a server socket it is the
+     *      protocol selected by `WebSocket.upgrade` from the client offer.
+     *
      */
     readonly protocol: string;
 
     /**
-     * @description queries the origin the current object connected with
+     * @description Queries the origin used during the handshake
+     *
+     *      The value is the `origin` constructor argument or option, which is also
+     *      sent as the `Origin` request header. Server-side sockets report "";
+     *      read the `Origin` header from the handshake HttpRequest instead.
+     *
      */
     readonly origin: string;
 
     /**
-     * @description queries the connection state of the current object, see ws
+     * @description Queries the connection state: CONNECTING, OPEN, CLOSING or CLOSED
+     *
+     *      A client starts in CONNECTING, becomes OPEN when the handshake completes
+     *      and moves to CLOSING while a close frame is exchanged. The state is
+     *      CLOSED after a normal close, after a failed handshake and after an
+     *      abnormal loss of the connection, once the `close` event has fired.
+     *
      */
     readonly readyState: number;
 
     /**
-     * @description closes the current connection; this operation sends a CLOSE packet to the peer and waits for its response
-     *      @param code specifies the close code, allowed values are 3000-4999 or 1000, default is 1000
-     *      @param reason specifies the reason for closing, default is ""
+     * @description Closes the connection by sending a CLOSE frame to the peer
+     *
+     *      The close code must be 1000 or a value between 3000 and 4999; any other
+     *      value throws. The call returns immediately and the socket is released in
+     *      the background, then the `close` event reports the code and the reason.
+     *
+     *      Calling close() when the socket is not OPEN is a no-op: in particular a
+     *      close() during CONNECTING does not cancel the handshake, and calling
+     *      close() a second time after it started is harmless.
+     *
+     *      @param code the close code: 1000 or 3000-4999, 1000 by default
+     *      @param reason the close reason carried by the CLOSE frame, "" by default
      *
      */
     close(code?: number, reason?: string): void;
 
     /**
-     * @description sends data to the peer
+     * @description Sends data to the peer; binary values use a BINARY frame, other values a text frame
      *
-     *      Binary data (a Buffer, a typed array, an ArrayBuffer or a blob) is sent as
-     *      a binary frame; every other value is sent as a text frame of its string
-     *      form, the way the DOM WebSocket and the ws module of node render it:
-     *      send(123) sends the text "123", send(null) sends "null".
+     *      A Buffer, a typed array, an ArrayBuffer or a Blob is sent as a BINARY
+     *      frame; every other value is converted to its string form and sent as a
+     *      TEXT frame, so `send(123)` sends the text "123", `send(null)` sends
+     *      "null" and `send(['a', 'b'])` sends "a,b". Frames are queued and sent
+     *      in call order; there is no per-message completion callback and failures
+     *      of the local state (for example when the socket is not OPEN) throw.
      *
-     *      @param data specifies the data to send
+     *      Sending while the socket is CONNECTING, CLOSING or CLOSED throws, the
+     *      same restriction the DOM WebSocket has.
+     *
+     *      Example — the accepted data forms and the frame each one produces:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, {
+     *          '/ws': WebSocket.upgrade((conn) => {
+     *              conn.onmessage = (msg) => console.log(msg.type, String(msg.data));
+     *          })
+     *      });
+     *      server.start();
+     *      const port = server.socket.localPort;
+     *
+     *      const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws');
+     *      sock.onopen = () => {
+     *          sock.send('text'); // WebSocket.TEXT "text"
+     *          sock.send(Buffer.from('binary')); // WebSocket.BINARY "binary"
+     *          sock.send(new Uint8Array([65, 66])); // WebSocket.BINARY "AB"
+     *          sock.send(null); // WebSocket.TEXT "null"
+     *          sock.close();
+     *      };
+     *      sock.onclose = () => server.stop();
+     *      ```
+     *
+     *      @param data the data to send
      *
      */
     send(data: any): void;
 
     /**
-     * @description queries and binds the connection success event, equivalent to on("open", func); the listener receives no argument
+     * @description Queries and binds the open event, equivalent to on("open", func)
+     *
+     *      The listener receives no argument. On a client the handshake completed
+     *      and `protocol` is final; on a server socket the connection is ready when
+     *      the accept callback runs.
      *
      */
     on(event: "open", listener: ()=>void): this;
@@ -191,13 +388,23 @@ declare class Class_WebSocket extends Class_EventEmitter {
     prependOnceListener(event: "open", listener: ()=>void): this;
 
     /**
-     * @description queries and binds the connection success event, equivalent to on("open", func); the listener receives no argument
+     * @description Queries and binds the open event, equivalent to on("open", func)
+     *
+     *      The listener receives no argument. On a client the handshake completed
+     *      and `protocol` is final; on a server socket the connection is ready when
+     *      the accept callback runs.
      *
      */
     onopen: (()=>void) | null;
 
     /**
-     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func); the listener receives the WebSocketMessage of the peer
+     * @description Queries and binds the message event, equivalent to on("message", func)
+     *
+     *      The listener receives the received WebSocketMessage itself, not a DOM
+     *      MessageEvent: `msg.type` is the frame type and `msg.data` is a String for
+     *      TEXT messages or a Buffer for BINARY messages. PING and PONG frames are
+     *      handled by the protocol layer and never reach this event.
+     *
      *      @param msg the received message
      *
      */
@@ -220,15 +427,27 @@ declare class Class_WebSocket extends Class_EventEmitter {
     prependOnceListener(event: "message", listener: (msg: Class_WebSocketMessage)=>void): this;
 
     /**
-     * @description queries and binds the event of receiving a message from the peer, equivalent to on("message", func); the listener receives the WebSocketMessage of the peer
+     * @description Queries and binds the message event, equivalent to on("message", func)
+     *
+     *      The listener receives the received WebSocketMessage itself, not a DOM
+     *      MessageEvent: `msg.type` is the frame type and `msg.data` is a String for
+     *      TEXT messages or a Buffer for BINARY messages. PING and PONG frames are
+     *      handled by the protocol layer and never reach this event.
+     *
      *      @param msg the received message
      *
      */
     onmessage: ((msg: Class_WebSocketMessage)=>void) | null;
 
     /**
-     * @description queries and binds the connection close event, equivalent to on("close", func); the listener receives the event object carrying the close code and reason
-     *      @param ev the event object
+     * @description Queries and binds the close event, equivalent to on("close", func)
+     *
+     *      The listener receives the fibjs event object: `ev.code` is the close code
+     *      reported by the peer (1000 or 3000-4999) or 1006 when the connection was
+     *      lost without a closing handshake, and `ev.reason` is the close reason or
+     *      "Abnormal Closure". readyState is CLOSED when the event fires.
+     *
+     *      @param ev the event object carrying the close code and reason
      *
      */
     on(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
@@ -250,15 +469,30 @@ declare class Class_WebSocket extends Class_EventEmitter {
     prependOnceListener(event: "close", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description queries and binds the connection close event, equivalent to on("close", func); the listener receives the event object carrying the close code and reason
-     *      @param ev the event object
+     * @description Queries and binds the close event, equivalent to on("close", func)
+     *
+     *      The listener receives the fibjs event object: `ev.code` is the close code
+     *      reported by the peer (1000 or 3000-4999) or 1006 when the connection was
+     *      lost without a closing handshake, and `ev.reason` is the close reason or
+     *      "Abnormal Closure". readyState is CLOSED when the event fires.
+     *
+     *      @param ev the event object carrying the close code and reason
      *
      */
     onclose: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description queries and binds the error event, equivalent to on("error", func); the listener receives the event object carrying the error code and reason
-     *      @param ev the event object
+     * @description Queries and binds the error event, equivalent to on("error", func)
+     *
+     *      The listener receives the fibjs event object: `ev.code` is the protocol or
+     *      transport error code (1001 going away, 1002 protocol error, 1007 invalid
+     *      payload, 1009 message too big, for example) and `ev.reason` describes the
+     *      failure when the protocol layer supplies one. Transport failures also
+     *      carry fields such as `errno`, `syscall` and `hostname`. The event fires
+     *      before `close`, and an error event with no listener registered is
+     *      re-thrown as an unhandled error.
+     *
+     *      @param ev the event object carrying the error code and reason
      *
      */
     on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
@@ -280,52 +514,96 @@ declare class Class_WebSocket extends Class_EventEmitter {
     prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description queries and binds the error event, equivalent to on("error", func); the listener receives the event object carrying the error code and reason
-     *      @param ev the event object
+     * @description Queries and binds the error event, equivalent to on("error", func)
+     *
+     *      The listener receives the fibjs event object: `ev.code` is the protocol or
+     *      transport error code (1001 going away, 1002 protocol error, 1007 invalid
+     *      payload, 1009 message too big, for example) and `ev.reason` describes the
+     *      failure when the protocol layer supplies one. Transport failures also
+     *      carry fields such as `errno`, `syscall` and `hostname`. The event fires
+     *      before `close`, and an error event with no listener registered is
+     *      re-thrown as an unhandled error.
+     *
+     *      @param ev the event object carrying the error code and reason
      *
      */
     onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description keeps the fibjs process from exiting, preventing the fibjs process from exiting while the object is bound
-     *      @return returns the current object
+     * @description Keeps the fibjs process alive while this socket is bound
+     *
+     *      The socket holds the event loop open until it is closed; `unref` releases
+     *      it again. Returns the socket itself, so calls can be chained.
+     *
+     *      @return the socket itself
      *
      */
     ref(): Class_WebSocket;
 
     /**
-     * @description allows the fibjs process to exit, allowing the fibjs process to exit while the object is bound
-     *      @return returns the current object
+     * @description Allows the fibjs process to exit while this socket is bound
+     *
+     *      The socket no longer holds the event loop open; `ref` restores the
+     *      default. Returns the socket itself, so calls can be chained.
+     *
+     *      @return the socket itself
      *
      */
     unref(): Class_WebSocket;
 
     /**
-     * @description the WebSocketMessage class, used to create WebSocket protocol messages, see the WebSocketMessage object
+     * @description The WebSocketMessage class, reachable as `WebSocket.Message`
+     *
+     *      The class is not a global variable; use this property (or
+     *      `new WebSocket.Message()`) to build protocol messages by hand, as the
+     *      WebSocketMessage examples do.
+     *
      */
     static Message: Class_WebSocketMessage;
 
     /**
-     * @description creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
-     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
-     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
+     * @description Creates a WebSocket protocol handler with default options
+     *
+     *      The returned handler turns an HTTP upgrade request into a connected
+     *      WebSocket and calls accept(conn, req) after the 101 response has been
+     *      sent. A request without a valid WebSocket handshake is answered with an
+     *      error status. When accept runs, `conn.protocol` is already final and
+     *      `req` is the HttpRequest of the handshake, useful to read headers such as
+     *      Origin or the requested address.
+     *
+     *      The handler is a routing handler: use it as the value of an HttpServer
+     *      route, inside a Routing table or in a Chain.
+     *
+     *      @param accept called with the connected WebSocket and the handshake HttpRequest
+     *      @return the protocol handler
      *
      */
     static upgrade(accept: (conn: Class_WebSocket, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;
 
     /**
-     * @description creates a WebSocket protocol handler that receives http upgrade requests and performs the handshake, generating a WebSocket object
-     *      opts supports using `protocol` or `protocols` to specify the sub-protocols acceptable to the server, and writes back `Sec-WebSocket-Protocol` when the handshake succeeds, for example:
+     * @description Creates a WebSocket protocol handler with explicit options
+     *
+     *      opts contains additional options for the handshake, the supported contents are as follows:
      *      ```JavaScript
-     *      WebSocket.upgrade({
-     *          protocols: ['json', 'text']
-     *      }, conn => {
-     *          console.log(conn.protocol); // selected sub-protocol
+     *      // fragment: options
+     *      ({
+     *          "protocol": "", // a single sub-protocol accepted by the server
+     *          "protocols": [], // a list of accepted sub-protocols, takes precedence over protocol
+     *          "perMessageDeflate": false, // accept permessage-deflate compression
+     *          "maxPayload": 67108864 // max accepted message size in bytes (64 MB)
      *      })
      *      ```
-     *      @param opts connection options, default is {}
-     *      @param accept the connection success handler; the callback will receive two parameters, the first is the received WebSocket object and the second is the HttpRequest object of the handshake
-     *      @return returns the protocol handler, which can be used with HttpServer, Chain, Routing, etc.
+     *      The server selects the first protocol of the client offer that appears
+     *      in its own list and echoes it in `Sec-WebSocket-Protocol`; when nothing
+     *      matches, the handshake succeeds without a sub-protocol and a client that
+     *      offered one aborts the connection. permessage-deflate is enabled only
+     *      when the client requests it too. A message larger than maxPayload fails
+     *      the connection: the local `error` event reports code 1009 and `close`
+     *      reports 1006.
+     *
+     *      @param opts connection options, {} by default
+     *      @param accept called with the connected WebSocket and the handshake HttpRequest
+     *      @return the protocol handler
      *
      */
     static upgrade(opts: FIBJS.GeneralObject, accept: (conn: Class_WebSocket, req: Class_HttpRequest | Class_HttpRequestPromise)=>void): Class_Handler;

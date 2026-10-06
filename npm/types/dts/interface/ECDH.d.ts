@@ -2,14 +2,117 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description The ECDH object
+ * @description Elliptic-curve Diffie-Hellman key-agreement object
  *
+ *  An ECDH instance owns one side of a key exchange over a named elliptic curve. Each
+ *  party generates a key pair, sends its public key to the other and derives the same
+ *  shared secret from its own private key and the peer's public key; the secret itself
+ *  is never transmitted. Use crypto.diffieHellman for one-shot agreement between
+ *  KeyObject keys, and crypto.hkdf or crypto.scrypt to turn the secret into cipher
+ *  keys.
+ *
+ *  Concepts:
+ *  - **The exchange**: `crypto.createECDH(curve)` -> `generateKeys()` -> send the
+ *    returned public key -> `computeSecret(peerPublicKey)`. Both parties must use the
+ *    same curve. A party that already owns a private key can import it with
+ *    setPrivateKey, which recomputes the matching public key.
+ *  - **Curves and key sizes**: the accepted names come from crypto.getCurves, for
+ *    example 'prime256v1' (alias 'secp256r1'), 'secp384r1', 'secp521r1', 'secp256k1'
+ *    and 'SM2'. Public keys are EC points: 65 bytes uncompressed (0x04 prefix), 33
+ *    bytes compressed (0x02/0x03) or 65 bytes hybrid (0x06/0x07). Private keys are
+ *    fixed-length big-endian integers padded to the curve order (32 bytes for
+ *    prime256v1, 48 for secp384r1, 66 for secp521r1).
+ *  - **Encodings**: key arguments may be Buffers or strings in 'hex', 'base64' or
+ *    'base58', and results may be returned in the same encodings ('buffer' means a
+ *    Buffer). String keys default to 'hex' unless the call documents otherwise.
+ *  - **One key pair per object**: setPublicKey stores a public key without its private
+ *    key. Once it is called on an instance that already has a private key, the object
+ *    describes a broken pair and computeSecret reports "Invalid key pair"; generate or
+ *    import the private key and give computeSecret only the peer's public key.
+ *
+ *  Obtained from:
+ *  - `crypto.createECDH(curve)` — the only constructor; instances cannot be created
+ *    with `new`.
+ *  - The static convertKey helper lives on the ECDH class object. The crypto module
+ *    does not publish that object (`crypto.ECDH` is undefined), so reach it through an
+ *    instance: `crypto.createECDH('secp256k1').constructor.convertKey(...)`; Node.js
+ *    exposes it as `crypto.ECDH.convertKey`.
+ *
+ *  Example 1 — two parties agree on the same secret:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  // Both sides must use the same curve.
+ *  const alice = crypto.createECDH('prime256v1');
+ *  const bob = crypto.createECDH('prime256v1');
+ *
+ *  const alicePublic = alice.generateKeys(); // 65-byte uncompressed point
+ *  const bobPublic = bob.generateKeys();
+ *
+ *  // Exchange public keys over the wire, then derive the shared secret locally.
+ *  const shared1 = alice.computeSecret(bobPublic);
+ *  const shared2 = bob.computeSecret(alicePublic);
+ *  console.log(shared1.equals(shared2), shared1.length); // true 32
+ *  ```
+ *
+ *  Example 2 — key formats and encodings:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  const ecdh = crypto.createECDH('prime256v1');
+ *  console.log(ecdh.curveName); // prime256v1
+ *
+ *  const publicKey = ecdh.generateKeys();
+ *  console.log(publicKey.length);                                 // 65
+ *  console.log(ecdh.generateKeys('buffer', 'compressed').length); // 33
+ *  console.log(ecdh.generateKeys('hex').length);                  // 130
+ *  console.log(ecdh.getPrivateKey().length);                      // 32
+ *  console.log(ecdh.getPrivateKey('base58').length);              // 44
+ *  ```
+ *
+ *  Example 3 — importing an existing private key:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  // An RFC 6979 P-256 test vector: setting the private key derives its public key.
+ *  const ecdh = crypto.createECDH('prime256v1');
+ *  const privateKey = 'c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721';
+ *  ecdh.setPrivateKey(privateKey, 'hex');
+ *  console.log(ecdh.getPublicKey('hex'));
+ *  // 0460fed4ba255a9d31c961eb74c6356d68c049b8923b61fa6ce669622e60f29fb679
+ *  // 03fe1008b8bc99a41ae9e95628bc64f2f1b20c2d7e9f5177a3c294d4462299
+ *  ```
  *
  */
 declare class Class_ECDH extends Class_object {
     /**
-     * @description Converts a public key to the specified format
-     *      key may be a Buffer, or a string decoded with inputEncoding.
+     * @description Converts an EC public key between point formats (static)
+     *
+     *      Reads key as a point of curve using inputEncoding and writes it back in the
+     *      requested point format encoded with outputEncoding; both encodings accept
+     *      'buffer', 'hex', 'base64' and 'base58'. format is 'uncompressed' (default),
+     *      'compressed' or 'hybrid'. The key must be a valid point on the curve, otherwise
+     *      an Error is thrown. Node.js exposes this helper as `crypto.ECDH.convertKey`;
+     *      fibjs leaves the class object unpublished, so call it through an instance
+     *      constructor, as in the example. See the class documentation for the point
+     *      formats.
+     *
+     *      Example: uncompressing a compressed secp256k1 point:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const ECDH = crypto.createECDH('secp256k1').constructor;
+     *      const compressed =
+     *          '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
+     *      const uncompressed =
+     *          '04672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3' +
+     *          '2e02c7f93d13dc2732b760ca377a5897b9dd41a1c1b29dc0442fdce6d0a04d1d';
+     *
+     *      const converted = ECDH.convertKey(compressed, 'secp256k1', 'hex', 'hex', 'uncompressed');
+     *      console.log(converted === uncompressed); // true
+     *      console.log(ECDH.convertKey(compressed, 'secp256k1', 'hex', 'buffer').length); // 65
+     *      ```
+     *
      *      @param key the public key to convert
      *      @param curve the predefined elliptic curve to use
      *      @param inputEncoding the encoding of key: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -21,8 +124,33 @@ declare class Class_ECDH extends Class_object {
     static convertKey(key: Class_Buffer | string, curve: string, inputEncoding?: string, outputEncoding?: string, format?: string): any;
 
     /**
-     * @description Computes the shared secret from another public key
-     *      otherPublicKey may be a Buffer, or a string decoded with inputEncoding.
+     * @description Derives the shared secret from the peer's public key
+     *
+     *      Requires a private key on this instance (generateKeys or setPrivateKey). The
+     *      peer key may be compressed, uncompressed or hybrid; a Buffer is used as is and a
+     *      string is decoded with inputEncoding (default 'hex'). The result is a Buffer by
+     *      default or a string in outputEncoding, and its length is the field size of the
+     *      curve (32 bytes for prime256v1). Calling it without a private key throws
+     *      "Private key not set", after setPublicKey on the same instance it throws
+     *      "Invalid key pair", and an off-curve peer key throws "Public key is not valid
+     *      for specified curve". Treat the peer key as untrusted input and handle the
+     *      error. Node.js requires a Buffer when inputEncoding is omitted.
+     *
+     *      Example: both sides derive the same secret:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const alice = crypto.createECDH('prime256v1');
+     *      const bob = crypto.createECDH('prime256v1');
+     *      const alicePublic = alice.generateKeys();
+     *      const bobPublic = bob.generateKeys();
+     *
+     *      const aliceSecret = alice.computeSecret(bobPublic);
+     *      const bobSecret = bob.computeSecret(alice.getPublicKey('hex'), 'hex');
+     *      console.log(aliceSecret.equals(bobSecret), aliceSecret.length); // true 32
+     *      console.log(alice.computeSecret(bobPublic, 'buffer', 'hex').length); // 64
+     *      ```
+     *
      *      @param otherPublicKey the other party's public key
      *      @param inputEncoding the encoding of otherPublicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
@@ -32,41 +160,75 @@ declare class Class_ECDH extends Class_object {
     computeSecret(otherPublicKey: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
-     * @description Generates a key pair
-     *         @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
-     *         @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
-     *         @return returns the generated public key
+     * @description Generates a new key pair and returns the public key
+     *
+     *      Replaces any key material already held by the instance, then returns the public
+     *      key to send to the peer; the private key stays inside and is read with
+     *      getPrivateKey. format selects the point encoding ('uncompressed' default,
+     *      'compressed' or 'hybrid') and outputEncoding the string form; without an
+     *      encoding a Buffer is returned. An unknown encoding throws "Unknown charset" and
+     *      an unknown format throws "Invalid ECDH format". All three point formats are
+     *      accepted. Calling it again generates a fresh pair and invalidates the previous
+     *      keys.
+     *
+     *      @param outputEncoding the encoding of the result: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+     *      @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
+     *      @return returns the generated public key
      *
      */
     generateKeys(outputEncoding?: string, format?: string): any;
 
     /**
-     * @description Gets the name of the elliptic curve
-     *         @return returns the name of the elliptic curve
+     * @description The curve name passed to crypto.createECDH
+     *
+     *      The name is returned exactly as given ('secp256r1' is not rewritten to
+     *      'prime256v1'), whether or not keys have been generated. Read-only.
+     *
+     *      @return returns the name of the elliptic curve
      *
      */
     readonly curveName: string;
 
     /**
-     * @description Gets the private key
-     *         @param encoding the encoding of the private key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
-     *         @return returns the private key
+     * @description Returns the private key of this instance
+     *
+     *      Valid after generateKeys() or setPrivateKey(). The result is a Buffer by default
+     *      or a string with the given encoding, holding a fixed-length big-endian integer
+     *      padded with leading zeros to the curve order size (32 bytes for prime256v1).
+     *      Before a key exists it throws "Failed to get ECDH private key". The value is
+     *      secret: export it only to trusted storage or a KeyObject.
+     *
+     *      @param encoding the encoding of the private key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+     *      @return returns the private key
      *
      */
     getPrivateKey(encoding?: string): any;
 
     /**
-     * @description Gets the public key
-     *         @param encoding the encoding of the public key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
-     *         @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
-     *         @return returns the public key
+     * @description Returns the public key of this instance
+     *
+     *      Valid after generateKeys(), setPrivateKey() (which derives the matching public
+     *      key) or setPublicKey(). format selects the point encoding: 65 bytes
+     *      uncompressed, 33 bytes compressed or 65 bytes hybrid. Before a key exists it
+     *      throws "Failed to get ECDH public key". All three formats are accepted.
+     *
+     *      @param encoding the encoding of the public key: 'buffer', 'hex', 'base64', 'base58'; default 'buffer'
+     *      @param format the format of the public key: 'compressed', 'uncompressed', 'hybrid'; default 'uncompressed'
+     *      @return returns the public key
      *
      */
     getPublicKey(encoding?: string, format?: string): any;
 
     /**
-     * @description Sets the private key
-     *      privateKey may be a Buffer, or a string decoded with encoding.
+     * @description Imports a private key and derives its public key
+     *
+     *      privateKey is a Buffer or a string decoded with encoding (default 'hex'). The
+     *      value must satisfy 0 < key < curve order, otherwise "Private key is not valid
+     *      for specified curve" is thrown, and it must belong to the curve of this
+     *      instance. The matching public key is computed and stored, and any public key
+     *      previously imported with setPublicKey is cleared, so computeSecret works after
+     *      this call. Node.js derives the public key the same way.
+     *
      *      @param privateKey the private key data
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
@@ -74,8 +236,16 @@ declare class Class_ECDH extends Class_object {
     setPrivateKey(privateKey: Class_Buffer | string, encoding?: string): void;
 
     /**
-     * @description Sets the public key
-     *      publicKey may be a Buffer, or a string decoded with encoding.
+     * @description Imports a public key without its private key
+     *
+     *      publicKey is a Buffer or a string decoded with encoding (default 'hex'), in any
+     *      of the three point formats, and must be a valid point on the curve of this
+     *      instance ("Failed to convert Buffer to EC_POINT" or "Public key is not valid
+     *      for specified curve" otherwise). This is for inspecting or converting a point;
+     *      after calling it, computeSecret on the same instance reports "Invalid key pair"
+     *      because the object then holds a private key and an unrelated public key.
+     *      Deprecated in Node.js for the same reason.
+     *
      *      @param publicKey the public key data
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *

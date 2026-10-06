@@ -2,32 +2,95 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Message digest object
+ * @description Streaming message-digest (hash) object, also used for HMAC
  *
- * A Digest object can be used like this:
+ *  A Digest computes a fixed-length fingerprint of a byte stream. crypto.createHash
+ *  returns an unkeyed digest of a chosen algorithm (for example 'sha256'), while
+ *  crypto.createHmac returns the same class computing a keyed digest; for short data
+ *  the one-shot crypto.hash function is usually simpler.
  *
- * ```
- * const crypto = require('crypto');
- * // create a SHA-512 digest object
- * const digest = crypto.createHash('sha512');
- * // update digest with data
- * digest.update('hello');
- * digest.update('world');
- * // get digest result
- * const result = digest.digest();
- * console.log(result);
+ *  Concepts:
+ *  - **Streaming vs one-shot**: feed the object with any number of update() calls and
+ *    finish with digest(). update() returns the object, so calls can be chained;
+ *    digest() is a terminal operation that returns the fingerprint.
+ *  - **One-shot rule**: after digest() the object is finalized. Any further update(),
+ *    digest() or size access throws "digest has been called" (Node.js throws
+ *    ERR_CRYPTO_HASH_FINALIZED). Create a new object to compute another value.
+ *  - **Encodings**: update() decodes string data with its codec argument; digest()
+ *    encodes the result with the requested codec. Next to the Buffer encodings ('hex',
+ *    'base64', 'utf8', ...) fibjs accepts 'base32', 'base58' and the iconv character
+ *    sets; Node.js returns a Buffer for an encoding it does not know.
+ *  - **Algorithms and size**: names come from crypto.getHashes and are matched
+ *    case-insensitively ('sha256', 'SHA-256' and 'sha-256' all work). `size` reports
+ *    the output length in bytes, including the default length of XOF algorithms such
+ *    as shake128. HMAC binds the message to a secret key; compare tags with
+ *    crypto.timingSafeEqual instead of ==.
  *
- * // output result in hex and base64
- * console.log(result.toString('hex'));
- * console.log(result.toString('base64'));
- * ```
- * In the code above, a SHA-512 digest object is created with the `crypto.createHash()` method; data to be digested can be added incrementally with the `update()` method, and the digest result is obtained with the `digest()` method.
+ *  Obtained from:
+ *  - `crypto.createHash(algorithm)` — unkeyed digest;
+ *  - `crypto.createHmac(algorithm, key)` — keyed digest (HMAC);
+ *  - `crypto.hash(algorithm, data[, options])` — one-shot digest for short data (there
+ *    is no one-shot HMAC helper; use createHmac).
+ *
+ *  Example 1 — streaming SHA-512 with chunked updates:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  // update() returns the object, so calls can be chained.
+ *  const digest = crypto.createHash('sha512').update('hello').update('world');
+ *  console.log(digest.digest('hex'));
+ *  // 1594244d52f2d8c12b142bb61f47bc2eaf503d6d9ca8480cae9fcf112f66e496
+ *  // 7dc5e8fa98285e36db8af1b8ffa8b84cb15e0fbcf836c3deb803c13f37659a60
+ *  console.log(crypto.createHash('sha256').size); // 32
+ *  ```
+ *
+ *  Example 2 — digest() is terminal:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  const digest = crypto.createHash('sha256').update('abc');
+ *  console.log(digest.digest('hex').slice(0, 8)); // ba7816bf
+ *
+ *  try {
+ *      digest.update('def');
+ *  } catch (e) {
+ *      console.log(e.message); // digest has been called
+ *  }
+ *  ```
+ *
+ *  Example 3 — HMAC and alternate encodings:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  // An HMAC mixes in a secret key, so only key holders can recompute the tag.
+ *  const tag = crypto.createHmac('sha256', 'key')
+ *      .update('The quick brown fox jumps over the lazy dog')
+ *      .digest('hex');
+ *  console.log(tag);
+ *  // f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8
+ *
+ *  // A secret KeyObject gives the same tag as the raw bytes.
+ *  const same = crypto.createHmac('sha256', crypto.createSecretKey('key'))
+ *      .update('The quick brown fox jumps over the lazy dog')
+ *      .digest('hex') === tag;
+ *  console.log(same); // true
+ *
+ *  // fibjs also accepts base32 and base58 output encodings.
+ *  console.log(crypto.createHash('sha256').update('abc').digest('base32'));
+ *  // xj4bnp4pahh6uqkbidpf3lrceoyagyndsylxvhfucd7wd4qacwwq
+ *  ```
  *
  */
 declare class Class_Digest extends Class_object {
     /**
      * @description Updates the digest information with the given data
-     *      data may be a Buffer, or a string decoded with codec.
+     *
+     *      data may be a Buffer or a string decoded with codec (default "utf8"); a Buffer
+     *      ignores codec. Returns the Digest itself, so update().update().digest() chains.
+     *      It may be called any number of times before digest(); an unknown codec throws
+     *      "encoding: Unknown charset" and calling it after digest() throws "digest has
+     *      been called". The HMAC form returned by crypto.createHmac behaves identically.
+     *
      *      @param data the data block
      *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
      *      @return returns the message digest object itself
@@ -37,6 +100,26 @@ declare class Class_Digest extends Class_object {
 
     /**
      * @description Computes and returns the digest
+     *
+     *      The result is a Buffer by default or a string in codec; next to the Buffer
+     *      encodings, 'base32', 'base58' and the iconv character sets are accepted. It may
+     *      be called only once: a second digest(), a later update() or a size access throws
+     *      "digest has been called", so create a fresh object to hash more data. For HMAC
+     *      digests the result is the authentication tag, which should be compared with
+     *      crypto.timingSafeEqual. Node.js follows the same one-shot rule.
+     *
+     *      Example: the same digest in three encodings:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      console.log(crypto.createHash('sha256').update('abc').digest('hex'));
+     *      // ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+     *      console.log(crypto.createHash('sha256').update('abc').digest('base64'));
+     *      // ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=
+     *      console.log(crypto.createHash('sha256').update('abc').digest('base32'));
+     *      // xj4bnp4pahh6uqkbidpf3lrceoyagyndsylxvhfucd7wd4qacwwq
+     *      ```
+     *
      *      @param codec the encoding format; allowed values are: "buffer", "hex", "base32", "base58", "base64", "utf8", or a character set supported by the iconv module
      *      @return returns the digest representation in the specified encoding
      *
@@ -45,6 +128,12 @@ declare class Class_Digest extends Class_object {
 
     /**
      * @description Queries the digest size in bytes of the current message digest algorithm
+     *
+     *      For example 32 for sha256, 64 for sha512 and 16 for the default shake128 output.
+     *      Accessing it after digest() throws "digest has been called". Read-only.
+     *
+     *      @return returns the digest size in bytes
+     *
      */
     readonly size: number;
 

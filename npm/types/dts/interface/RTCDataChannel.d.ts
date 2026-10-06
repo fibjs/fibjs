@@ -2,44 +2,238 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description the RTCDataChannel interface defines a bidirectional data channel
+ * @description RTCDataChannel is one bidirectional data channel of an RTCPeerConnection
+ *
+ *  A channel carries text and binary messages between the two peers of a session. The application
+ *  obtains it by creating it locally with `RTCPeerConnection.createDataChannel` or from the
+ *  `datachannel` event when the peer creates one; it cannot be constructed directly
+ *  (`new RTCDataChannel()` throws a TypeError). A channel has no `readyState` member: the `open`,
+ *  `message` and `close` events are the observable states of its life cycle.
+ *
+ *  Concepts:
+ *
+ *  - **Transport and ordering**: a channel is an SCTP stream over the DTLS transport of its
+ *    connection. The default channel is ordered and reliable; the creation options trade ordering
+ *    (`ordered: false`) or retransmission (`maxPacketLifeTime`, `maxRetransmits`) for latency, as
+ *    in the WebRTC standard, and `negotiated`/`id` create the same channel on both sides without an
+ *    in-band announcement.
+ *  - **Message forms**: `send` takes a `String`, which travels as utf8 text, or a `Buffer`, which
+ *    travels as binary; the receiver gets a string or a Buffer in `ev.data` respectively, so binary
+ *    payloads stay binary and are not re-encoded.
+ *  - **Buffering**: `send` queues the message and returns immediately; `bufferedAmount` reports the
+ *    bytes still queued. The `bufferedamountlow` event exists but fibjs has no threshold setter, so
+ *    the application cannot request it at a chosen queue level.
+ *  - **Life cycle**: a channel exists before the transport is ready, opens only after ICE and DTLS
+ *    complete, and closes by `close()`, by the peer, or by closing the connection. Sending outside
+ *    the open state throws 20024, and the `close` event reports either side closing.
+ *
+ *  Obtained from:
+ *  - `RTCPeerConnection#createDataChannel` — the local side creates the channel;
+ *  - the `channel` property of the `datachannel` event of RTCPeerConnection — the peer created it.
+ *
+ *  Example 1 — echo a text message between two peers:
+ *  ```JavaScript
+ *  const rtc = require('rtc');
+ *  const coroutine = require('coroutine');
+ *
+ *  const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const toPc1 = [];
+ *  const toPc2 = [];
+ *  pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+ *  pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+ *
+ *  const dc1 = pc1.createDataChannel('chat');
+ *  pc2.ondatachannel = (ev) => {
+ *      const dc2 = ev.channel;
+ *      console.log('peer channel:', dc2.label, dc2.id); // peer channel: chat 1
+ *      dc2.onmessage = (mev) => dc2.send('echo: ' + mev.data);
+ *  };
+ *
+ *  let reply = null;
+ *  dc1.onopen = () => dc1.send('hello');
+ *  dc1.onmessage = (ev) => { reply = ev.data; };
+ *
+ *  pc1.createOffer()
+ *      .then((offer) => pc1.setLocalDescription(offer).then(() => pc2.setRemoteDescription(offer)))
+ *      .then(() => pc2.createAnswer())
+ *      .then((answer) => pc2.setLocalDescription(answer)
+ *          .then(() => pc1.setRemoteDescription(answer)))
+ *      .then(() => {
+ *          const deadline = Date.now() + 8000;
+ *          while (reply === null && Date.now() < deadline) {
+ *              while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+ *              while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+ *              coroutine.sleep(10);
+ *          }
+ *          pc1.close();
+ *          pc2.close();
+ *          if (reply !== 'echo: hello') {
+ *              console.error('the peers did not exchange a message');
+ *              process.exit(1);
+ *          }
+ *          console.log(reply); // echo: hello
+ *      })
+ *      .catch((err) => {
+ *          console.error(err.message);
+ *          process.exit(1);
+ *      });
+ *  ```
+ *
+ *  Example 2 — binary messages and the close handshake:
+ *  ```JavaScript
+ *  const rtc = require('rtc');
+ *  const coroutine = require('coroutine');
+ *
+ *  const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const toPc1 = [];
+ *  const toPc2 = [];
+ *  pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+ *  pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+ *
+ *  const dc1 = pc1.createDataChannel('blob');
+ *  let closed = false;
+ *  dc1.onclose = () => { closed = true; };
+ *  pc2.ondatachannel = (ev) => {
+ *      const dc2 = ev.channel;
+ *      dc2.onmessage = (mev) => {
+ *          console.log('receiver got a Buffer:', Buffer.isBuffer(mev.data));
+ *          dc2.send(Buffer.from('ack'));
+ *          dc2.close();
+ *      };
+ *  };
+ *
+ *  let ack = false;
+ *  dc1.onopen = () => dc1.send(Buffer.from([0, 1, 2]));
+ *  dc1.onmessage = () => { ack = true; };
+ *
+ *  pc1.createOffer()
+ *      .then((offer) => pc1.setLocalDescription(offer).then(() => pc2.setRemoteDescription(offer)))
+ *      .then(() => pc2.createAnswer())
+ *      .then((answer) => pc2.setLocalDescription(answer)
+ *          .then(() => pc1.setRemoteDescription(answer)))
+ *      .then(() => {
+ *          const deadline = Date.now() + 8000;
+ *          while (!closed && Date.now() < deadline) {
+ *              while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+ *              while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+ *              coroutine.sleep(10);
+ *          }
+ *          pc1.close();
+ *          pc2.close();
+ *          if (!ack || !closed) {
+ *              console.error('the channel did not carry the binary message');
+ *              process.exit(1);
+ *          }
+ *          console.log('the peer closed the channel'); // the peer closed the channel
+ *      })
+ *      .catch((err) => {
+ *          console.error(err.message);
+ *          process.exit(1);
+ *      });
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - The channel does not expose the creation options back: there is no `readyState`, `binaryType`,
+ *    `ordered`, `maxPacketLifeTime`, `maxRetransmits` or `negotiated` member.
+ *
  */
 declare class Class_RTCDataChannel extends Class_EventEmitter {
     /**
-     * @description sends data to the remote end; a Buffer is sent as binary data and a string as text data
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description sends data to the remote end
+     *
+     *      A `Buffer` is sent as binary data and a `String` is encoded as utf8 and sent as text data;
+     *      the peer receives the same kind in the `data` property of the `message` event. The message is
+     *      queued on the channel and the call returns immediately; `bufferedAmount` reports how much is
+     *      still queued. Sending before the channel is open throws 20024 (`DataChannel not open`),
+     *      sending after it is closed throws 20024 (`DataChannel is closed`), and an argument of any
+     *      other type throws 20005.
+     *
+     *      Example — walk the states of a fresh channel:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *
+     *      const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const dc = pc.createDataChannel('chat');
+     *      console.log(dc.id); // 65535: not negotiated yet
+     *      try {
+     *          dc.send('too early');
+     *      } catch (err) {
+     *          console.log('rejected:', err.message); // rejected: DataChannel not open
+     *      }
+     *      dc.close();
+     *      try {
+     *          dc.send('too late');
+     *      } catch (err) {
+     *          console.log('rejected:', err.message); // rejected: DataChannel is closed
+     *      }
+     *      pc.close();
+     *      ```
+     *
      *      @param data the data to send
      *
      */
     send(data: Class_Buffer | string): void;
 
     /**
-     * @description closes the channel; this method is used to close the channel
+     * @description closes the channel
+     *
+     *      Closes the channel in both directions: data already queued may still be delivered, the peer
+     *      sees its `close` event and afterwards `send` throws 20024. Closing an already closed channel
+     *      is a no-op, and closing a channel does not close its connection or the other channels.
+     *
      */
     close(): void;
 
     /**
-     * @description returns the ID number that uniquely identifies the RTCDataChannel
+     * @description gets the id that uniquely identifies the data channel
+     *
+     *      Returns the SCTP stream id between 0 and 65534, or 65535 while no id has been assigned, that
+     *      is before the channel is negotiated; a channel created with an explicit `id` option reports
+     *      it immediately. See the `id` option of `RTCPeerConnection.createDataChannel`.
+     *
      */
     readonly id: number;
 
     /**
-     * @description returns a string containing the name describing the data channel
+     * @description gets the name of the data channel
+     *
+     *      Returns the label passed to `RTCPeerConnection.createDataChannel`; it is informational and
+     *      identical on both sides, the peer sees it on the channel delivered by the `datachannel`
+     *      event.
+     *
      */
     readonly label: string;
 
     /**
-     * @description returns a string containing the name of the sub-protocol in use
+     * @description gets the name of the sub-protocol in use
+     *
+     *      Returns the `protocol` string given at creation, empty by default. The value is not
+     *      negotiated on the wire: both sides must agree on it out of band.
+     *
      */
     readonly protocol: string;
 
     /**
-     * @description returns the number of bytes of data currently queued to be sent over the data channel
+     * @description gets the number of bytes of data currently queued to be sent
+     *
+     *      Reports the size in bytes of the send queue of the channel: it grows while messages wait for
+     *      the transport and returns to 0 when everything has been handed over. fibjs exposes no
+     *      `bufferedAmountLowThreshold`, so the `bufferedamountlow` event fires only at the internal
+     *      threshold of the library.
+     *
      */
     readonly bufferedAmount: number;
 
     /**
      * @description channel open event, emitted when the channel is opened
+     *
+     *      Fired when the channel becomes usable: the SCTP association is established and, for a
+     *      channel created locally, the peer has acknowledged it. `send` is only valid from this point
+     *      on. The event carries no payload.
+     *
      */
     on(event: "open", listener: ()=>void): this;
 
@@ -61,11 +255,21 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel open event, emitted when the channel is opened
+     *
+     *      Fired when the channel becomes usable: the SCTP association is established and, for a
+     *      channel created locally, the peer has acknowledged it. `send` is only valid from this point
+     *      on. The event carries no payload.
+     *
      */
     onopen: (()=>void) | null;
 
     /**
      * @description channel message event, emitted when a message is received
+     *
+     *      Fired for every message received from the peer. The event object carries the payload in its
+     *      `data` property: a string for a text message and a Buffer for a binary one. Delivery is
+     *      ordered for a channel created with `ordered: true`, which is the default.
+     *
      *      @param ev the event object, carrying the received data in its data property
      *
      */
@@ -89,6 +293,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel message event, emitted when a message is received
+     *
+     *      Fired for every message received from the peer. The event object carries the payload in its
+     *      `data` property: a string for a text message and a Buffer for a binary one. Delivery is
+     *      ordered for a channel created with `ordered: true`, which is the default.
+     *
      *      @param ev the event object, carrying the received data in its data property
      *
      */
@@ -96,6 +305,10 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel close event, emitted when the channel is closed
+     *
+     *      Fired when the channel is closed, whether by the local `close()` call or by the peer. The
+     *      event carries no payload; after it, `send` throws 20024.
+     *
      */
     on(event: "close", listener: ()=>void): this;
 
@@ -117,11 +330,20 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel close event, emitted when the channel is closed
+     *
+     *      Fired when the channel is closed, whether by the local `close()` call or by the peer. The
+     *      event carries no payload; after it, `send` throws 20024.
+     *
      */
     onclose: (()=>void) | null;
 
     /**
      * @description channel error event, emitted when an error occurs on the channel
+     *
+     *      Fired when the underlying SCTP stack reports an error on the channel. The event object
+     *      carries the message in its `error` property as a string; it is not an RTCErrorEvent or a
+     *      DOMException as in the standard.
+     *
      *      @param ev the event object, carrying the error message in its error property
      *
      */
@@ -145,13 +367,23 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     /**
      * @description channel error event, emitted when an error occurs on the channel
+     *
+     *      Fired when the underlying SCTP stack reports an error on the channel. The event object
+     *      carries the message in its `error` property as a string; it is not an RTCErrorEvent or a
+     *      DOMException as in the standard.
+     *
      *      @param ev the event object, carrying the error message in its error property
      *
      */
     onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description channel buffered amount low event, emitted when the channel buffered amount is low
+     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     *
+     *      Fired when the send queue of the channel falls below the internal threshold of the library.
+     *      fibjs has no `bufferedAmountLowThreshold` setter, so the event cannot be requested at a
+     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *
      */
     on(event: "bufferedamountlow", listener: ()=>void): this;
 
@@ -172,7 +404,12 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     prependOnceListener(event: "bufferedamountlow", listener: ()=>void): this;
 
     /**
-     * @description channel buffered amount low event, emitted when the channel buffered amount is low
+     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     *
+     *      Fired when the send queue of the channel falls below the internal threshold of the library.
+     *      fibjs has no `bufferedAmountLowThreshold` setter, so the event cannot be requested at a
+     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *
      */
     onbufferedamountlow: (()=>void) | null;
 

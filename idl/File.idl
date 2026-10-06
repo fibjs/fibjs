@@ -1,80 +1,123 @@
-/*! @brief The File object represents a file in the file system, compatible with the Web standard File API.
+/*! @brief An in-memory file: a Blob with a file name and a modification time
 
-File inherits from Blob; besides all the binary data capabilities of Blob, it adds properties such as the file name (name) and last modification time (lastModified), and is commonly used in scenarios such as file upload, download and Web API interaction.
+ File implements the Web File API on top of Blob, so it has every Blob capability (size,
+ type, slice, text, arrayBuffer) plus the read-only name and lastModified properties. It is
+ the value type behind upload, download and FormData flows, and it never touches the disk:
+ use fs.readFile to load bytes from a real file and wrap them in a File only when the Web API
+ shape is needed.
 
-Key features:
-1. Inherits from Blob and supports all binary data operations, slicing, asynchronous reading, etc.
-2. Read-only property name: represents the file name, typically used when displaying, uploading or saving the file.
-3. Read-only property lastModified: represents the last modification time of the file (in milliseconds since 1970-01-01 00:00:00 UTC).
-4. The constructor requires the file name parameter, otherwise it throws a TypeError.
-5. Options such as type, endings and lastModified can be specified at construction; the behavior is consistent with the Web File API.
+ Concepts:
 
-Common usage examples:
-```JavaScript
-// Create File object
-const file = new File(["hello"], "greeting.txt", { type: "text/plain" });
+ - **Blob first**: File only adds metadata to Blob; slice() still returns a Blob, text() and
+   arrayBuffer() are still promises. `File` is a global class in fibjs.
+ - **Immutable snapshot**: the parts are concatenated into one buffer at construction. A
+   string part contributes its utf8 bytes, Buffer/TypedArray/Blob parts contribute their
+   bytes, and any other value contributes its DOM string form (null becomes 'null'). name and
+   lastModified are read-only afterwards.
+ - **Options**: `type` is lowercased and defaults to an empty string; `lastModified` is a
+   number of milliseconds since the Unix epoch and defaults to the current time. A Date is
+   rejected, unlike Node.js, where it is converted (plans/compat-differences.md 2.17).
+ - **Not in Node.js**: the single-object constructor `new File({ data, name, ... })` is a
+   fibjs extension; Node.js also exports the class as `buffer.File`, which fibjs does not
+   provide.
 
-// Read filename and type
-console.log(file.name); // "greeting.txt"
-console.log(file.type); // "text/plain"
+ Obtained from:
+ - `new File(blobParts, name[, options])` — an array of parts;
+ - `new File(blobData, name[, options])` — one Buffer or string, utf8 for a string;
+ - `new File(options)` — fibjs extension, `data` is required and `name` defaults to '';
+ - FormData values (`FormData#get`, `FormData#getAll`) are File objects when the entry was
+   appended as a File.
 
-// Get last modified time
-console.log(file.lastModified);
+ Example 1 — create a text file and read it back:
+ ```JavaScript
+ const file = new File(['hello'], 'greeting.txt', { type: 'text/plain' });
+ console.log(file.name, file.type, file.size); // greeting.txt text/plain 5
 
-// Slice
-const part = file.slice(0, 2);
+ file.text().then((text) => console.log(text)); // hello
+ ```
 
-// Read content asynchronously
-file.text().then(txt => console.log(txt));
-```
-*/
+ Example 2 — Blob inheritance: slice a binary file and read the slice:
+ ```JavaScript
+ const file = new File([Buffer.from('hello world')], 'data.bin');
+ const part = file.slice(6, 11); // slice() still returns a Blob
+ console.log(part.size, file instanceof Blob); // 5 true
+
+ part.text().then((text) => console.log(text)); // world
+ ```
+
+ Example 3 — build a File from one piece of data with explicit metadata:
+ ```JavaScript
+ const file = new File({
+     data: 'notes',
+     name: 'notes.txt',
+     lastModified: 1600000000000
+ });
+ console.log(file.name, file.size, file.lastModified);
+ // notes.txt 5 1600000000000
+ ```
+ */
 interface File : Blob
 {
-    /*!@brief File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+    /*! @brief Creates a File from an array of Blob parts
 
-    options supports the following properties:
-       - type: the MIME type (e.g. "text/plain"), default is an empty string.
-       - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-    
-     @param blobParts the initial data array, may contain strings, ArrayBuffers, TypedArrays, Blobs, etc.
-     @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     The parts are concatenated in order into one buffer; see the class for how each part
+     type contributes bytes. name must be a string and may be empty, while a missing or
+     non-string name throws a TypeError. options supports the properties below; the type is
+     lowercased before it is stored.
+
+     The other constructors differ only in how the data is passed: one Buffer|String
+     blobData (string parts are encoded as utf8), or a single options object whose `data`
+     property is required and whose `name` property defaults to an empty string.
+
+     options supports the following properties:
+     ```JavaScript
+     // fragment: options
+     ({
+         "type": "", // the MIME type, lowercased; default an empty string
+         "lastModified": 0 // ms since the Unix epoch; default the current time
+     })
+     ```
+
+     @param blobParts the initial data array: strings, Buffers, TypedArrays, Blobs and other values
+     @param name the file name, a string such as "a.txt"
      @param options optional parameter object
-    */
+     */
     File(Array blobParts, String name, Object options = {});
 
-    /*!@brief File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types; a string blobData is encoded as utf8
+    /*! @brief Creates a File from one Buffer or string
 
-    options supports the following properties:
-       - type: the MIME type (e.g. "text/plain"), default is an empty string.
-       - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-     blobData may be a Buffer or another binary data type; a string is encoded as utf8.
+     blobData is the whole content: a string is encoded as utf8 and a Buffer is used as it
+     is. name must be a string and options is the same object as in the parts form. Use this
+     form when the bytes are already available, for example from fs.readFile.
      @param blobData the initial binary data
-     @param name the file name, must be a string and cannot be empty, e.g. "a.txt".
+     @param name the file name, a string such as "a.txt"
      @param options optional parameter object
      */
     File(Buffer|String blobData, String name, Object options = {});
 
-    /*!@brief File constructor, creates a new File instance. File inherits from Blob and supports all Blob data types.
+    /*! @brief Creates a File from a single options object (fibjs extension)
 
-    options supports the following properties:
-       - data: the initial binary data, can be a Buffer or another binary data type.
-       - name: the file name, must be a string and cannot be empty, e.g. "a.txt".
-       - type: the MIME type (e.g. "text/plain"), default is an empty string.
-       - lastModified: the last modification time (timestamp in milliseconds), default is the current time.
-    
+     `data` is required and is treated as one Buffer|String part; `name` is optional and
+     defaults to an empty string, unlike the positional forms. The remaining properties are
+     the same options as in the parts form. This form is not part of the Web File API or
+     Node.js.
      @param options optional parameter object
-    */
+     */
     File(Object options = {});
 
-    /*!@brief File name, read-only property, returns the name of the file.
-    
-     This property identifies the file, and is typically used when displaying, uploading or saving it.
+    /*! @brief File name, a read-only string
+
+     Identifies the file in display, upload and download flows. It is a name, not a path, and
+     it is never resolved against the file system. Read-only: an assignment throws in strict
+     mode. Same property as the Web File API and Node.js `buffer.File`.
      */
     readonly String name;
 
-    /*!@brief Last modification timestamp, read-only property, returns the last modification time of the file (in milliseconds).
-    
-     This property represents the last modification time of the file, in milliseconds since 1970-01-01 00:00:00 UTC.
+    /*! @brief Last modification time in milliseconds since the Unix epoch
+
+     Set from the `lastModified` option at construction and defaulted to the current time.
+     Only a number is accepted; Node.js also converts a Date (plans/compat-differences.md
+     2.17). Read-only.
      */
     readonly Number lastModified;
 };

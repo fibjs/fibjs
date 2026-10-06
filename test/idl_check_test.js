@@ -12,11 +12,14 @@
 
 var { describe, it } = require('node:test');
 var assert = require('assert');
+var fs = require('fs');
+var os = require('os');
 var path = require('path');
 
 var check_unions = require('../tools/util/check_unions');
 var check_overloads = require('../tools/util/check_overloads');
 var check_callback_shapes = require('../tools/util/check_callback_shapes');
+var check_idl_docs = require('../tools/util/check_idl_docs');
 
 function makeDef(members) {
     return {
@@ -199,6 +202,221 @@ describe('check_callback_shapes', () => {
     });
 });
 
+// ---- check_idl_docs: synthetic definitions --------------------------------
+// The documentation checker (X1-X10, plans/idl-doc-completion-plan-2026-10-05.md
+// section 7.1) is a pure function of the parsed IDL too; `baseline: null` runs
+// it in absolute mode, where every rule is zero tolerance.
+
+var ABSOLUTE = { baseline: null, report: false };
+
+function docOf(descript, detail, params, ret) {
+    var doc = { descript: descript, detail: detail || [], params: params || [] };
+    if (ret)
+        doc['return'] = { descript: ret };
+    return doc;
+}
+
+function jsBlock(code) {
+    return '```JavaScript\n' + code + '\n```';
+}
+
+function declDoc(blocks) {
+    return docOf('Sample definition', [
+        'A long enough declaration-level explanation: it says what the definition is',
+        'for, when to use it and how to obtain an instance, so the declaration passes',
+        'the X5 detail and length requirements without depending on the blocks below.',
+        '',
+        blocks.join('\n\n')
+    ]);
+}
+
+function docDef(name, kind, declareDoc, members) {
+    return {
+        declare: { name: name, type: kind, extend: 'object', doc: declareDoc },
+        members: members || []
+    };
+}
+
+function docMember(name, doc, options) {
+    options = options || {};
+    return {
+        memType: options.memType || 'method',
+        name: name,
+        static: !!options.static,
+        type: options.type !== undefined ? options.type : 'Integer',
+        params: (options.params || []).map(function (n) {
+            return { type: 'String', name: n, default: null };
+        }),
+        doc: doc
+    };
+}
+
+// a definition that satisfies every rule in absolute mode
+function compliantDef(name) {
+    var memberDoc = docOf('Echoes the value', [
+        'Returns the value unchanged; the longer wording keeps the member doc above',
+        'the thin threshold and gives X4 a detail section to find.'
+    ], [{ name: 'value', descript: 'the value to echo back' }], 'the value');
+
+    return docDef(name, 'module', declDoc([jsBlock('console.log("first");'), jsBlock('console.log("second");')]), [
+        docMember('doIt', memberDoc, { params: ['value'] })
+    ]);
+}
+
+function runDocs(def, options) {
+    options = options || ABSOLUTE;
+    var defs = {};
+    defs[def.declare.name] = def;
+    return check_idl_docs(defs, options);
+}
+
+function problemsOf(def, rule, options) {
+    return runDocs(def, options).filter(function (p) { return p.rule === rule; });
+}
+
+describe('check_idl_docs', () => {
+    it('accepts a fully documented definition in absolute mode', () => {
+        assert.deepStrictEqual(runDocs(compliantDef('Good')), []);
+    });
+
+    it('reports X7 when a definition carries fewer than two examples', () => {
+        var def = compliantDef('Few');
+        def.declare.doc = declDoc([jsBlock('console.log("only one");')]);
+        var x7 = problemsOf(def, 'X7');
+        assert.equal(x7.length, 1);
+        assert.ok(/needs at least 2/.test(x7[0].message));
+    });
+
+    it('requires three examples for a big definition', () => {
+        var members = [];
+        for (var i = 0; i < 20; i++)
+            members.push(docMember('m' + i, compliantDef('X').members[0].doc, { params: ['value'] }));
+        var def = docDef('Big', 'interface', declDoc([jsBlock('console.log("a");'), jsBlock('console.log("b");')]), members);
+        var x7 = problemsOf(def, 'X7');
+        assert.equal(x7.length, 1);
+        assert.ok(/needs at least 3/.test(x7[0].message));
+    });
+
+    it('reports malformed and unknown example markers (X6)', () => {
+        var def = compliantDef('Marked');
+        def.declare.doc = declDoc([
+            jsBlock('// fragment:\nvar a = 1;'),
+            jsBlock('// requires: postgres\nvar b = 2;')
+        ]);
+        var x6 = problemsOf(def, 'X6');
+        assert.equal(x6.length, 2);
+        assert.ok(x6.some(function (p) { return /non-empty reason/.test(p.message); }));
+        assert.ok(x6.some(function (p) { return /not one of/.test(p.message); }));
+    });
+
+    it('accepts fragment/requires markers and a top-level await block (X6)', () => {
+        var def = compliantDef('Marked');
+        def.declare.doc = declDoc([
+            jsBlock('// fragment: constructor shape only\nnew Something(1, 2);'),
+            jsBlock('// requires: redis\nvar c = redis.createClient();'),
+            jsBlock('await Promise.resolve();')
+        ]);
+        assert.deepStrictEqual(runDocs(def), []);
+    });
+
+    it('reports an unmarked block that is not valid JavaScript (X6)', () => {
+        var def = compliantDef('Broken');
+        def.declare.doc = declDoc([
+            jsBlock('const broken = ;'),
+            jsBlock('console.log("fine");')
+        ]);
+        var x6 = problemsOf(def, 'X6');
+        assert.equal(x6.length, 1);
+        assert.ok(/not valid JavaScript/.test(x6[0].message));
+    });
+
+    it('reports X9 when a member example constructs an abstract base class', () => {
+        var def = compliantDef('Base');
+        def.members[0].doc.detail.push(jsBlock('var s = new Stream();'));
+        var x9 = problemsOf(def, 'X9');
+        assert.equal(x9.length, 1);
+        assert.equal(x9[0].member, 'doIt');
+        assert.ok(/`Stream`/.test(x9[0].message));
+    });
+
+    it('does not mistake a longer class name for a base class (X9)', () => {
+        var def = compliantDef('Base');
+        def.members[0].doc.detail.push(jsBlock('var s = new StreamReader();'));
+        assert.equal(problemsOf(def, 'X9').length, 0);
+    });
+
+    it('reports X10 when a base class member example skips the concrete subclasses', () => {
+        var def = compliantDef('Stream');
+        def.members[0].doc.detail.push(jsBlock('var s = getStream();'));
+        var x10 = problemsOf(def, 'X10');
+        assert.equal(x10.length, 1);
+        assert.ok(/io\.MemoryStream/.test(x10[0].message));
+    });
+
+    it('accepts a base class member example built on a concrete subclass (X10)', () => {
+        var def = compliantDef('Stream');
+        def.members[0].doc.detail.push(jsBlock('var s = new io.MemoryStream();'));
+        assert.equal(problemsOf(def, 'X10').length, 0);
+    });
+
+    it('reports X2 when @param names do not match the declaration', () => {
+        var def = compliantDef('Sig');
+        def.members[0].doc.params = [{ name: 'valeu', descript: 'the value' }];
+        var x2 = problemsOf(def, 'X2');
+        assert.equal(x2.length, 1);
+        assert.ok(/`value`/.test(x2[0].message));
+    });
+
+    it('reports X2 when the @param count does not match the declaration', () => {
+        var def = compliantDef('Sig');
+        def.members[0].doc.params = [
+            { name: 'value', descript: 'the value' },
+            { name: 'extra', descript: 'not declared' }
+        ];
+        var x2 = problemsOf(def, 'X2');
+        assert.equal(x2.length, 1);
+        assert.ok(/@param count 2/.test(x2[0].message));
+    });
+
+    it('reports X2 for @return on a declaration without a return type', () => {
+        var def = compliantDef('Void');
+        def.members[0].type = null;
+        var x2 = problemsOf(def, 'X2');
+        assert.equal(x2.length, 1);
+        assert.ok(/no return type/.test(x2[0].message));
+    });
+
+    it('exempts const members from X3/X4', () => {
+        var def = compliantDef('Consts');
+        def.members.push(docMember('MAX', docOf('The maximum', [], []), { memType: 'const' }));
+        assert.deepStrictEqual(runDocs(def), []);
+    });
+
+    it('tolerates baseline counts and still rejects a definition outside the baseline', () => {
+        var oldDef = compliantDef('Old');
+        oldDef.declare.doc = declDoc([jsBlock('console.log("one");')]);
+        assert.ok(runDocs(oldDef).some(function (p) { return p.rule === 'X7'; }));
+
+        var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'idl-docs-'));
+        var baselinePath = path.join(dir, 'baseline.json');
+        fs.writeFileSync(baselinePath, JSON.stringify({
+            global: { X7: 1 },
+            definitions: { Old: { X7: 1 } }
+        }));
+        try {
+            assert.deepStrictEqual(runDocs(oldDef, { baseline: baselinePath, report: false }), []);
+
+            var newDef = compliantDef('New');
+            newDef.declare.doc = declDoc([jsBlock('console.log("one");')]);
+            var problems = runDocs(newDef, { baseline: baselinePath, report: false });
+            assert.ok(problems.some(function (p) { return p.rule === 'X7'; }));
+        } finally {
+            fs.unlinkSync(baselinePath);
+            try { fs.rmdirSync(dir); } catch (e) { /* the tmp dir is disposable */ }
+        }
+    });
+});
+
 // The corpus itself: idlc runs the same three validators before generating, so
 // a failure here means the checks stopped reporting rather than the corpus
 // turning bad (idlc would have failed first).
@@ -218,5 +436,14 @@ describe('IDL corpus', { skip: !parser }, () => {
         assert.deepStrictEqual(check_unions(defs), []);
         assert.deepStrictEqual(check_overloads(defs), []);
         assert.deepStrictEqual(check_callback_shapes(defs), []);
+    });
+
+    it('passes the documentation ratchet against the checked-in baseline', () => {
+        var defs = parser(path.resolve(__dirname, '../idl'));
+
+        assert.deepStrictEqual(check_idl_docs(defs, {
+            baseline: path.resolve(__dirname, '../tools/util/idl_docs_baseline.json'),
+            report: false
+        }), []);
     });
 });

@@ -1,92 +1,258 @@
-/*! @brief Redis database client Hash object; this object is a client bound to the given key and only calling its methods operates on the database
+/*! @brief A view of one Redis hash key: field and value operations without repeating the key
 
- Used to operate on a Redis Hash object. To create one:
+ RedisHash is the object returned by Redis#getHash. It captures the key name once and
+ exposes the hash command family, where every member maps to one H* command: set is HSET,
+ setNX is HSETNX, mset is HMSET, get is HGET, mget is HMGET, incr is HINCRBY, getAll is
+ HGETALL, keys is HKEYS, len is HLEN, exists is HEXISTS and del is HDEL. Obtaining the view
+ sends nothing to the server: the binding is resolved when its members run.
+
+ Concepts:
+
+ - **A view, not a copy**: the object stores the key only. A hash created after the view
+   was obtained is visible through it, and a missing key is not an error - the members
+   report the empty result (get returns null, len returns 0, keys returns an empty array)
+   until the key exists again.
+ - **Field and value types**: fields and values are declared Buffer|String and a Buffer is
+   sent byte-for-byte, so non-UTF-8 data round-trips through set/get. The variadic
+   mset/mget/del forms instead convert each argument through its JavaScript string form:
+   a number is rejected with error 20005 and a Buffer is decoded as UTF-8 text.
+ - **Creating and counting**: set, setNX and mset create the key when it is missing, get
+   returns null for a missing field, and incr starts from 0 for a missing field. len counts
+   the fields and exists tests one of them.
+ - **Type conflicts**: a member called on a key that holds another type fails with the
+   server error (number 20024).
+
+ Obtained from:
+ - `rdb.getHash(key)` — the only factory, where rdb is the Redis object returned by
+   db.openRedis. The key is captured at call time and may be a Buffer.
+
+ Example 1 — store, read and count fields:
  ```JavaScript
- var db = require("db");
- var rdb = new db.openRedis("redis-server");
- var hash = rdb.getHash("test");
+ // requires: redis
+ const db = require('db');
+ const rdb = db.openRedis('redis://127.0.0.1:6379');
+ const hash = rdb.getHash('user:1');
+
+ hash.set('name', 'alice');
+ hash.set('age', '30');
+ console.log(hash.get('name').toString()); // alice
+ console.log(hash.len()); // 2
+ console.log(hash.exists('age')); // true
+ console.log(hash.exists('mail')); // false
+ console.log(hash.get('mail')); // null
+
+ rdb.del('user:1');
+ rdb.close();
+ ```
+
+ Example 2 — several fields at once, then an increment:
+ ```JavaScript
+ // requires: redis
+ const db = require('db');
+ const rdb = db.openRedis('redis://127.0.0.1:6379');
+ const hash = rdb.getHash('scores');
+
+ hash.mset({ math: '90', art: '80' });
+ hash.mset('physics', '70', 'chemistry', '60');
+ console.log(hash.len()); // 4
+ console.log(hash.keys().length); // 4 - HKEYS returns the field names unpaired
+ console.log(hash.incr('math', 5)); // 95
+
+ const values = hash.mget('math', 'missing');
+ console.log(values[0].toString(), values[1]); // 95 null
+
+ rdb.del('scores');
+ rdb.close();
  ```
  */
 interface RedisHash : object
 {
-    /*! @brief Sets the field in the hash table to value; if the field already exists in the hash table the old value is overwritten
+    /*! @brief Stores value in field, replacing the previous value
 
-     field and value may each be a Buffer or a string; a string is encoded as utf8.
-     @param field the field to modify
-     @param value the value to modify
+     HSET. The key is created when it is missing and the previous value of the field is
+     discarded. field and value are sent byte-for-byte as Buffers and as UTF-8 text as
+     strings. The member reports no result.
+
+     @param field the field to write
+     @param value the value to store
      */
     set(Buffer|String field, Buffer|String value);
 
-    /*! @brief Sets the field in the hash table to value only when the field does not exist. If the field already exists, the operation has no effect
+    /*! @brief Stores value in field only when the field is missing
 
-     field and value may each be a Buffer or a string; a string is encoded as utf8.
-     @param field the field to modify
-     @param value the value to modify
+     HSETNX. The command does nothing when the field already exists, and the member reports
+     no result, so read the field back to know whether the write happened.
+
+     @param field the field to write
+     @param value the value to store
      */
     setNX(Buffer|String field, Buffer|String value);
 
-    /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
-     @param kvs the field/value object to set*/
+    /*! @brief Stores several field/value pairs at once, replacing the fields
+
+     HMSET. The property names of kvs are the fields and the property values are the
+     values, in property order; the command is atomic. Each value is converted through its
+     JavaScript string form, so a number is rejected with error 20005 and a Buffer is
+     decoded as UTF-8 text. The member reports no result.
+
+     @param kvs the field/value pairs to write, as property names and values
+     */
     mset(Object kvs);
 
-    /*! @brief Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
-     @param kvs the field/value list to set*/
+    /*! @brief Stores several field/value pairs at once from a flat argument list
+
+     HMSET. The arguments alternate field and value: mset('a', '1', 'b', '2') is the same
+     command as mset({ a: '1', b: '2' }); an odd argument count reaches the server, which
+     rejects the command. Values follow the string conversion of the object form. The
+     member reports no result.
+
+     Example — two fields, then read them back:
+     ```JavaScript
+     // requires: redis
+     const db = require('db');
+     const rdb = db.openRedis('redis://127.0.0.1:6379');
+     const hash = rdb.getHash('user:1');
+
+     hash.mset('name', 'alice', 'mail', 'alice@example.com');
+     const values = hash.mget('name', 'mail');
+     console.log(values[0].toString(), values[1].toString()); // alice alice@example.com
+
+     rdb.del('user:1');
+     rdb.close();
+     ```
+
+     @param kvs the flat field/value list to write
+     */
     mset(...kvs);
 
-    /*! @brief Returns the value of the given field in the hash table
+    /*! @brief Returns the value stored in field
 
-     field may be a Buffer or a string; a string is encoded as utf8.
-     @param field the field to query
-     @return the value of the given field; returns null when the given field does not exist or the given key does not exist
+     HGET. A missing field or a missing key returns null; the value is a Buffer.
+
+     @param field the field to read
+     @return the value as a Buffer, or null when the field or the key does not exist
      */
     Buffer get(Buffer|String field);
 
-    /*! @brief Returns the values of one or more given fields in the hash table
-     @param fields the array of fields to query
-     @return a list containing the values of all the given fields */
+    /*! @brief Returns the values of the given fields, one element per field
+
+     HMGET. A missing field yields null in its position, so the result has the same length
+     as the field list. The fields go through the JavaScript string conversion of a
+     variadic argument: a number is rejected with error 20005 and a Buffer is decoded as
+     UTF-8 text. The values are Buffers.
+
+     @param fields the array of fields to read
+     @return an array with one Buffer or null per field, in the given order
+     */
     NArray mget(Array fields);
 
-    /*! @brief Returns the values of one or more given fields in the hash table
-     @param fields the list of fields to query
-     @return a list containing the values of all the given fields */
+    /*! @brief Returns the values of the given fields, one element per field
+
+     HMGET. This is the flat form of mget(Array); the two are the same command and both
+     follow the string conversion described there.
+
+     @param fields the fields to read, as a flat argument list
+     @return an array with one Buffer or null per field, in the given order
+     */
     NArray mget(...fields);
 
-    /*! @brief Adds the increment to the value stored in the field
+    /*! @brief Adds num to the integer stored in field
 
-     field may be a Buffer or a string; a string is encoded as utf8.
+     HINCRBY. The value is a signed 64-bit integer; a missing field starts at 0 and a
+     missing key is created, so incr('views') on a new hash returns 1. A value that is not
+     an integer string or an overflow fails with the server error.
+
+     Example — a counter field in an existing hash:
+     ```JavaScript
+     // requires: redis
+     const db = require('db');
+     const rdb = db.openRedis('redis://127.0.0.1:6379');
+     const hash = rdb.getHash('metrics');
+
+     console.log(hash.incr('views')); // 1 - a missing field starts at 0
+     console.log(hash.incr('views', 9)); // 10
+
+     rdb.del('metrics');
+     rdb.close();
+     ```
+
      @param field the field to modify
-     @param num the number to add
-     @return the value of the field after adding num
+     @param num the amount to add
+     @return the value of the field after the addition
      */
     Long incr(Buffer|String field, Long num = 1);
 
-    /*! @brief Returns all fields and values in the hash table
-     @return returns a list containing all fields in the hash table */
+    /*! @brief Returns every field and value of the hash
+
+     HGETALL. The result is one flat array that alternates field and value:
+     [field1, value1, field2, value2, ...], with both as Buffers. The order is chosen by
+     the server and is not the insertion order; a missing key returns an empty array.
+
+     Example — the flat pair layout:
+     ```JavaScript
+     // requires: redis
+     const db = require('db');
+     const rdb = db.openRedis('redis://127.0.0.1:6379');
+     const hash = rdb.getHash('user:1');
+
+     hash.mset({ name: 'alice', age: '30' });
+     const pairs = hash.getAll();
+     console.log(pairs.length); // 4 - two fields, two values
+     console.log(pairs[0].toString(), pairs[1].toString()); // name alice
+
+     rdb.del('user:1');
+     rdb.close();
+     ```
+
+     @return a flat array of alternating field and value Buffers
+     */
     NArray getAll();
 
-    /*! @brief Returns all fields in the hash table
-     @return in the returned value, each field name (field name) is immediately followed by the field value (value), so the length of the returned value is twice the size of the hash table */
+    /*! @brief Returns every field name of the hash
+
+     HKEYS. Unlike getAll, the field names are returned alone: the result has one element
+     per field, with no values interleaved. The order is chosen by the server and a missing
+     key returns an empty array.
+
+     @return an array of the field names as Buffers
+     */
     NArray keys();
 
-    /*! @brief Returns the number of fields in the hash table
-     @return returns the number of fields in the hash table */
+    /*! @brief Returns the number of fields in the hash
+
+     HLEN. A missing key returns 0.
+
+     @return the number of fields
+     */
     Integer len();
 
-    /*! @brief Checks whether the given field exists in the hash table
+    /*! @brief Checks whether the hash contains the given field
 
-     field may be a Buffer or a string; a string is encoded as utf8.
-     @param field the field to query
-     @return returns true if the hash table contains the given field; returns false if the hash table does not contain the given field or the key does not exist
+     HEXISTS. A missing key returns false.
+
+     @param field the field to test
+     @return true when the field exists
      */
     Boolean exists(Buffer|String field);
 
-    /*! @brief Removes one or more given fields from the hash table; non-existing fields are ignored
+    /*! @brief Removes the given fields from the hash
+
+     HDEL. Missing fields are ignored and the number of removed fields is returned. The
+     fields go through the JavaScript string conversion of a variadic argument: a number is
+     rejected with error 20005 and a Buffer is decoded as UTF-8 text.
+
      @param fields the array of fields to remove
-     @return the number of fields removed */
+     @return the number of fields that were removed
+     */
     Integer del(Array fields);
 
-    /*! @brief Removes one or more given fields from the hash table; non-existing fields are ignored
-     @param fields the list of fields to remove
-     @return the number of fields removed */
+    /*! @brief Removes the given fields from the hash
+
+     HDEL. This is the flat form of del(Array); the two are the same command and both
+     follow the string conversion described there.
+
+     @param fields the fields to remove, as a flat argument list
+     @return the number of fields that were removed
+     */
     Integer del(...fields);
 };

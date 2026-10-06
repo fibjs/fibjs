@@ -1,26 +1,99 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description The PerformanceEntry interface provides the common properties of performance entries
+ * @description The base class of a timeline record, describing one mark or measure
+ *
+ *  PerformanceEntry is the common shape of every timeline record and corresponds to the MDN
+ *  PerformanceEntry interface. It is never constructed directly; the concrete instances are
+ *  PerformanceMark (`entryType` `mark`) and PerformanceMeasure (`entryType` `measure`), and both
+ *  add a `detail` property.
+ *
+ *  Concepts:
+ *
+ *  - **Timeline model**: an entry pairs a `name` with a `startTime` on the same monotonic clock as
+ *    performance.now(), plus a `duration`. Marks always have duration 0; measures have
+ *    endTime - startTime, which may be negative.
+ *  - **entryType**: the kind of record; only `mark` and `measure` exist in fibjs.
+ *  - **detail**: the payload attached when the mark or measure was created; the base
+ *    PerformanceEntry does not declare it, see PerformanceMark and PerformanceMeasure.
+ *  - **Lifetime**: mark entries are retained by name in the timeline and can be queried repeatedly;
+ *    measure entries are transient and reachable only from a PerformanceObserver delivery. All
+ *    properties are read-only.
+ *
+ *  Obtained from:
+ *  - `performance.getEntries()`, `performance.getEntriesByType('mark')` and
+ *    `performance.getEntriesByName(name)` — the retained marks;
+ *  - `observer.takeRecords()` — the records queued for an observer (marks and measures);
+ *  - the PerformanceObserverEntryList passed to an observer callback, whose `getEntries`,
+ *    `getEntriesByName` and `getEntriesByType` return PerformanceEntry arrays.
+ *
+ *  Example 1 — read the fields of a mark:
+ *  ```JavaScript
+ *  const { performance } = require('perf_hooks');
+ *
+ *  performance.clearMarks();
+ *  performance.mark('db-query', { startTime: 12 });
+ *
+ *  const entry = performance.getEntriesByName('db-query')[0];
+ *  console.log(entry.name, entry.entryType, entry.startTime, entry.duration); // db-query mark 12 0
+ *  ```
+ *
+ *  Example 2 — marks and measures share the same shape:
+ *  ```JavaScript
+ *  const { performance, PerformanceObserver } = require('perf_hooks');
+ *
+ *  performance.clearMarks();
+ *  performance.mark('p1');
+ *  performance.mark('p2');
+ *  const observer = new PerformanceObserver(() => {});
+ *  observer.observe({ entryTypes: ['measure'] });
+ *  performance.measure('p1-p2', 'p1', 'p2');
+ *
+ *  const record = observer.takeRecords()[0];
+ *  console.log(record.name, record.entryType, record.startTime >= 0, record.duration >= 0);
+ *  // p1-p2 measure true true
+ *  observer.disconnect();
+ *  ```
+ *
  */
 declare class Class_PerformanceEntry extends Class_object {
     /**
-     * @description The name of the performance entry.
+     * @description The name of the entry
+     *
+     *      The mark or measure name passed to performance.mark/performance.measure. Mark names are
+     *      unique in the timeline (a repeated name replaces the previous mark), while measure names can
+     *      be reused; the name is never empty and is not prefixed by the entry type.
+     *
      */
     readonly name: string;
 
     /**
-     * @description The type of the performance entry.
+     * @description The type of the entry
+     *
+     *      The kind of timeline record: `mark` for a PerformanceMark and `measure` for a
+     *      PerformanceMeasure. Node.js offers further types such as `resource`, `function` and `gc`;
+     *      fibjs produces only these two.
+     *
      */
     readonly entryType: string;
 
     /**
-     * @description The start time of the performance entry.
+     * @description The start time of the entry, in milliseconds on the monotonic performance.now() clock
+     *
+     *      For a mark it is the time recorded by performance.mark (the `startTime` option when given,
+     *      otherwise the current clock reading); for a measure it is the resolved start of the interval,
+     *      which is 0 when no start was supplied. The value is not related to wall-clock time.
+     *
      */
     readonly startTime: number;
 
     /**
-     * @description The duration of the performance entry.
+     * @description The duration of the entry, in milliseconds
+     *
+     *      Always 0 for a mark. For a measure it is end - start, computed from marks, explicit numbers or
+     *      the `duration` option, and it can be negative when the end lies before the start; fibjs does
+     *      not reject such a measure.
+     *
      */
     readonly duration: number;
 

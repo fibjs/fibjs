@@ -2,40 +2,124 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /**
- * @description The DOMParser interface provides the ability to parse XML or HTML source strings into DOM Documents
+ * @description DOMParser parses an HTML or XML source string into an XmlDocument; the class is a global and Node.js has no equivalent
  *
- *  DOMParser can parse XML or HTML source in a string into a DOM document:
+ *  `new DOMParser().parseFromString(source, mimeType)` returns a full XmlDocument that can be
+ *  navigated with the xml DOM API (documentElement, getElementById, querySelector, childNodes...)
+ *  and serialized again with XMLSerializer. There is no module to require, and
+ *  `instanceof DOMParser` recognizes the instances.
+ *
+ *  Concepts:
+ *
+ *  - **HTML and XML modes**: text/html selects the tolerant HTML parser: tag and attribute names
+ *    are lowercased, html/head/body wrappers are created when they are missing, and elements
+ *    expose the HTML-only properties such as style, dataset and classList. The XML modes are
+ *    strict and namespace-aware, preserve letter case, and expose those HTML-only properties as
+ *    Error [20009] instead.
+ *  - **MIME gate**: only the exact strings text/html, text/xml, application/xml,
+ *    application/xhtml+xml and image/svg+xml are accepted (the four XML variants parse
+ *    identically as XML). The comparison is case-sensitive and rejects parameters, so 'TEXT/XML'
+ *    or 'text/xml; charset=utf-8' throw Error [20024].
+ *  - **Parse errors**: an XML syntax error throws Error [20024] with the parser location
+ *    ("XmlParser: error on line N at column M: ..."), where browsers instead return a document
+ *    containing a parsererror element. HTML parsing is tolerant and rarely fails.
+ *  - **Parse limits**: the third options argument is a fibjs extension over the two-argument MDN
+ *    signature; it accepts maxElementDepth (default 1000) and maxNodeCount (default 1000000),
+ *    exactly like xml.parse. A value of 0, a negative value or Infinity disables the limit,
+ *    exceeding one throws Error [20024], and a non-numeric option throws TypeError [20004].
+ *
+ *  Obtained from:
+ *  - `new DOMParser()` — the constructor takes no arguments; the global also lets code recognize
+ *    the class with instanceof.
+ *
+ *  Example 1 — parse HTML and navigate the result:
+ *  ```JavaScript
+ *  const doc = new DOMParser().parseFromString(
+ *      '<div id="box"><b>hello</b></div>', 'text/html');
+ *
+ *  console.log(doc.documentElement.nodeName);          // HTML
+ *  console.log(doc.body.firstChild.tagName);           // DIV
+ *  console.log(doc.getElementById('box').textContent); // hello
+ *  ```
+ *
+ *  Example 2 — parse XML with a namespace:
+ *  ```JavaScript
+ *  const doc = new DOMParser().parseFromString(
+ *      '<rss xmlns:dc="urn:dc"><item dc:id="7">text</item></rss>', 'text/xml');
+ *  const item = doc.documentElement.firstChild;
+ *
+ *  console.log(doc.documentElement.nodeName); // rss
+ *  console.log(item.getAttribute('dc:id'));   // 7
+ *  console.log(item.textContent);             // text
+ *  ```
+ *
+ *  Example 3 — MIME validation and parse limits:
  *  ```JavaScript
  *  const parser = new DOMParser();
  *
- *  // parses HTML
- *  const htmlDoc = parser.parseFromString('<html><body>Hello</body></html>', 'text/html');
- *  console.log(htmlDoc.body.textContent); // output: Hello
+ *  try {
+ *      parser.parseFromString('<a/>', 'text/plain');
+ *  } catch (e) {
+ *      console.log(e.message); // DOMParser: Invalid MIME type: text/plain
+ *  }
  *
- *  // parses XML
- *  const xmlDoc = parser.parseFromString('<root><item>data</item></root>', 'text/xml');
- *  console.log(xmlDoc.documentElement.nodeName); // output: root
+ *  try {
+ *      parser.parseFromString('<a><b/></a>', 'text/xml', { maxElementDepth: 1 });
+ *  } catch (e) {
+ *      console.log(e.number); // 20024
+ *  }
  *  ```
- *
- *  Supported MIME types include:
- *  - text/html - parses as an HTML document
- *  - text/xml - parses as an XML document
- *  - application/xml - parses as an XML document
- *  - application/xhtml+xml - parses as an XHTML document
- *  - image/svg+xml - parses as an SVG document
  *
  */
 declare class Class_DOMParser extends Class_object {
     /**
      * @description Constructs a DOMParser object
+     *
+     *      The constructor takes no arguments; calling it with any argument throws TypeError [20001].
+     *      The parser it creates is stateless, so one instance can be reused for any number of
+     *      parseFromString calls.
+     *
+     *      Example — create a parser:
+     *      ```JavaScript
+     *      const parser = new DOMParser();
+     *      console.log(parser instanceof DOMParser); // true
+     *      ```
+     *
      */
     constructor();
 
     /**
      * @description Parses a string into a DOM document
-     *      @param string the HTML or XML string to parse
-     *      @param mimeType the text type, supporting "text/html", "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml"
-     *      @param options the parse limits, consistent with xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *
+     *      The MIME type selects the parser and must be one of the five exact strings listed by the
+     *      class description; invalid values throw Error [20024]. Invalid XML throws Error [20024]
+     *      with the parser location as well. The optional options argument is a fibjs extension that
+     *      overrides the parse limits of xml.parse.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "maxElementDepth": 1000,    // maximum element nesting, error above it
+     *          "maxNodeCount": 1000000     // maximum node count, error above it
+     *      })
+     *      ```
+     *
+     *      Example — parse XML and navigate the result:
+     *      ```JavaScript
+     *      const parser = new DOMParser();
+     *      const doc = parser.parseFromString('<root><item id="1">data</item></root>', 'text/xml');
+     *
+     *      console.log(doc.documentElement.nodeName);      // root
+     *      console.log(doc.documentElement.firstChild.id); // 1
+     *      console.log(doc.documentElement.textContent);   // data
+     *      ```
+     *
+     *      @param string the HTML or XML source string; a Buffer is accepted and decoded as UTF-8
+     *      @param mimeType the text type; one of "text/html", "text/xml", "application/xml",
+     *      "application/xhtml+xml" or "image/svg+xml"
+     *      @param options the parse limits, consistent with xml.parse, default { maxElementDepth:
+     *      1000, maxNodeCount: 1000000 }
      *      @return returns the parsed XmlDocument object
      *
      */

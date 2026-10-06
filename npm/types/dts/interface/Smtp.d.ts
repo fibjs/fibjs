@@ -2,18 +2,92 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description Smtp object
+ * @description A minimal SMTP client that talks to a mail server command by command
  *
+ *  Smtp speaks the SMTP protocol over a TCP or TLS connection and exposes the
+ *  protocol step by step: connect reads the server greeting, hello identifies the
+ *  client, login authenticates, from/to build the envelope and data transfers the
+ *  message text. The object does not build MIME messages and does not manage a
+ *  queue; it is the protocol layer, so the caller decides the header text and the
+ *  command order (the raw command member covers servers that need a custom
+ *  sequence).
+ *
+ *  Concepts:
+ *  - **Session order**: after connect the server has already sent its greeting;
+ *    the usual order is hello, login (when the server requires authentication),
+ *    from, one or more to calls, data and quit. Each member returns when the
+ *    corresponding server answer has been read, and throws when the answer
+ *    carries a 5xx code, so an error surfaces at the command that caused it.
+ *  - **Transport and TLS**: connect accepts `tcp://host:port` and
+ *    `ssl://host:port`. With `tcp://` the client also offers STARTTLS after the
+ *    greeting and upgrades the connection when the server accepts; `ssl://`
+ *    starts the TLS handshake immediately.
+ *  - **Message text**: data sends the given text and terminates it with the
+ *    `CRLF.CRLF` sequence; the headers (From, To, Subject, ...) are part of that
+ *    text. Make sure the text uses CRLF line endings yourself.
+ *  - **timeout**: milliseconds; 0 (the default) means no timeout. It is used for
+ *    the connection and stored on the socket.
+ *
+ *  Obtained from:
+ *  - `new net.Smtp()` — an unconnected client;
+ *  - `net.openSmtp(url, timeout)` — creates the client and connects, returning it
+ *    ready for the protocol commands;
+ *  - `net.Smtp` — the class entry point exposed by the net module.
+ *
+ *  Example 1 — a complete session:
+ *  ```JavaScript
+ *  // requires: network
+ *  const net = require('net');
+ *
+ *  const smtp = new net.Smtp();
+ *  smtp.timeout = 10000;
+ *  smtp.connect('tcp://smtp.example.com:25');
+ *  smtp.hello('client.example.com');
+ *  smtp.login('sender@example.com', 'password');
+ *  smtp.from('sender@example.com');
+ *  smtp.to('first@example.com');
+ *  smtp.to('second@example.com');
+ *  smtp.data('Subject: hello\r\n\r\nThis is the message body.');
+ *  smtp.quit();
+ *  ```
+ *
+ *  Example 2 — net.openSmtp and a raw command:
+ *  ```JavaScript
+ *  // requires: network
+ *  const net = require('net');
+ *
+ *  const smtp = net.openSmtp('ssl://smtp.example.com:465', 10000);
+ *  const caps = smtp.command('EHLO', 'client.example.com');
+ *  console.log(caps.split('\r\n')[0].slice(0, 3)); // the status code, e.g. 250
+ *  smtp.quit();
+ *  ```
  *
  */
 declare class Class_Smtp extends Class_object {
     /**
      * @description Smtp object constructor
+     *
+     *      Creates an unconnected client with no timeout (0 means no timeout) and no
+     *      socket; connect must be called before any protocol member. The object is
+     *      normally built through `new net.Smtp()` or net.openSmtp, which connects it
+     *      immediately; see the class description for the session order and the
+     *      accepted transports.
+     *
      */
     constructor();
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
@@ -23,6 +97,16 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
@@ -30,13 +114,41 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
     connectAsync(url: string): Promise<void>;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -47,7 +159,25 @@ declare class Class_Smtp extends Class_object {
     command(cmd: string, arg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -56,7 +186,25 @@ declare class Class_Smtp extends Class_object {
     commandSync(cmd: string, arg: string): string;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -66,6 +214,13 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
@@ -75,6 +230,13 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
@@ -82,13 +244,36 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
     helloAsync(hostname?: string): Promise<void>;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -98,7 +283,23 @@ declare class Class_Smtp extends Class_object {
     login(username: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -106,7 +307,23 @@ declare class Class_Smtp extends Class_object {
     loginSync(username: string, password: string): void;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -115,6 +332,10 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -124,6 +345,10 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -131,6 +356,10 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -138,6 +367,11 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -147,6 +381,11 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -154,6 +393,11 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -161,6 +405,12 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -170,6 +420,12 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -177,6 +433,12 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -184,6 +446,11 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quit(): void;
 
@@ -191,21 +458,54 @@ declare class Class_Smtp extends Class_object {
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quitSync(): void;
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quitAsync(): Promise<void>;
 
     /**
      * @description Queries and sets the timeout in milliseconds
+     *
+     *      The value bounds the connection attempt and is applied to the socket;
+     *      0 (the default) means no timeout. Set it before connect.
+     *
+     *      Example — no connection is needed to use the property:
+     *      ```JavaScript
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.timeout = 5000;
+     *      console.log(smtp.timeout); // 5000
+     *
+     *      // no connection has been made yet
+     *      console.log(smtp.socket); // null
+     *      ```
+     *
      */
     timeout: number;
 
     /**
      * @description Queries the Socket currently connected to the Smtp object
+     *
+     *      Returns the underlying stream, a net.Socket or a TLSSocket depending on
+     *      the protocol, or null before connect (and after the connection has been
+     *      closed by the peer). The stream can be used for the transport level
+     *      operations that the command members do not cover; a null value is the
+     *      reliable test for "not connected".
+     *
      */
     readonly socket: Class_Stream;
 
@@ -221,11 +521,28 @@ declare class Class_Smtp extends Class_object {
 declare class Class_SmtpPromise extends Class_object {
     /**
      * @description Smtp object constructor
+     *
+     *      Creates an unconnected client with no timeout (0 means no timeout) and no
+     *      socket; connect must be called before any protocol member. The object is
+     *      normally built through `new net.Smtp()` or net.openSmtp, which connects it
+     *      immediately; see the class description for the session order and the
+     *      accepted transports.
+     *
      */
     constructor();
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
@@ -233,6 +550,16 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
@@ -240,13 +567,41 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Establishes a connection to the specified server
+     *
+     *      Parses url and opens the connection, then reads the server greeting. The
+     *      url must contain the protocol and the port: `tcp://host:port` or
+     *      `ssl://host:port`. For a `tcp://` url the client also offers STARTTLS
+     *      after the greeting and switches to TLS when the server accepts, so a
+     *      server that refuses it (or a plain-text session) continues unencrypted.
+     *
+     *      Throws when the object is already connected and on connection or URL
+     *      errors; the timeout member bounds the connection attempt.
+     *
      *      @param url the connection protocol, which can be: tcp://host:port or ssl://host:port
      *
      */
     connectAsync(url: string): Promise<void>;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -255,7 +610,25 @@ declare class Class_SmtpPromise extends Class_object {
     command(cmd: string, arg: string): Promise<string>;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -264,7 +637,25 @@ declare class Class_SmtpPromise extends Class_object {
     commandSync(cmd: string, arg: string): string;
 
     /**
-     * @description Sends the specified command and returns the response; throws an error if the server reports an error
+     * @description Sends a command and returns the response; a 5xx answer throws
+     *
+     *      Sends `cmd` and `arg` separated by a space and terminated with CRLF, then
+     *      reads the whole response: a multi-line reply is returned with the lines
+     *      joined by CRLF. A reply whose first line starts with `5` (a permanent
+     *      error) throws with the server line as the message; 2xx, 3xx and 4xx
+     *      replies are returned to the caller.
+     *
+     *      Example — identify the client with the extended hello:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      const response = smtp.command('EHLO', 'client.example.com');
+     *      console.log(response.split('\r\n')[0].slice(0, 3)); // e.g. 250
+     *      smtp.quit();
+     *      ```
      *      @param cmd command name
      *      @param arg parameter
      *      @return returns the server response on success
@@ -274,6 +665,13 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
@@ -281,6 +679,13 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
@@ -288,13 +693,36 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
+     *
+     *      Sends `HELO <hostname>` and reads the answer. For a `tcp://` connection
+     *      the member also performs the STARTTLS offer, so it is normally the first
+     *      command after connect; the default hostname is "localhost". Use command
+     *      with EHLO when the server only advertises its extensions through the
+     *      extended hello.
+     *
      *      @param hostname host name, default is "localhost"
      *
      */
     helloAsync(hostname?: string): Promise<void>;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -302,7 +730,23 @@ declare class Class_SmtpPromise extends Class_object {
     login(username: string, password: string): Promise<void>;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -310,7 +754,23 @@ declare class Class_SmtpPromise extends Class_object {
     loginSync(username: string, password: string): void;
 
     /**
-     * @description Logs in to the server with the specified user and password; throws an error if the server reports an error
+     * @description Logs in with the specified user and password; a 5xx answer throws
+     *
+     *      Runs the AUTH LOGIN exchange: the user name and the password are sent
+     *      base64-encoded in two steps, exactly as the server requests them. A
+     *      permanent error answer (5xx, for example wrong credentials) throws.
+     *
+     *      Example — authenticate before building the envelope:
+     *      ```JavaScript
+     *      // requires: network
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.connect('tcp://smtp.example.com:25');
+     *      smtp.hello();
+     *      smtp.login('sender@example.com', 'password');
+     *      smtp.quit();
+     *      ```
      *      @param username user name
      *      @param password password
      *
@@ -319,6 +779,10 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -326,6 +790,10 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -333,6 +801,10 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the sender mailbox; throws an error if the server reports an error
+     *
+     *      Sends `MAIL FROM:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member must be called before to.
+     *
      *      @param address sender mailbox
      *
      */
@@ -340,6 +812,11 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -347,6 +824,11 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -354,6 +836,11 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Specifies the recipient mailbox; throws an error if the server reports an error
+     *
+     *      Sends `RCPT TO:<address>`; the angle brackets are added when the given
+     *      address does not already contain `<`. The member may be called several
+     *      times, once per recipient, and requires from before it.
+     *
      *      @param address recipient mailbox
      *
      */
@@ -361,6 +848,12 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -368,6 +861,12 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -375,6 +874,12 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Sends text to the recipient; throws an error if the server reports an error
+     *
+     *      Sends DATA, waits for the intermediate answer and transfers the text
+     *      followed by the terminating `CRLF.CRLF` line. The text is sent as given —
+     *      headers and body — so use CRLF line endings and separate the headers from
+     *      the body with an empty line.
+     *
      *      @param txt the text to send
      *
      */
@@ -382,26 +887,64 @@ declare class Class_SmtpPromise extends Class_object {
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quit(): Promise<void>;
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quitSync(): void;
 
     /**
      * @description Quits and closes the connection; throws an error if the server reports an error
+     *
+     *      Sends QUIT and reads the answer; the server normally closes the
+     *      connection afterwards. Call it at the end of a session to release the
+     *      socket promptly.
+     *
      */
     quitAsync(): Promise<void>;
 
     /**
      * @description Queries and sets the timeout in milliseconds
+     *
+     *      The value bounds the connection attempt and is applied to the socket;
+     *      0 (the default) means no timeout. Set it before connect.
+     *
+     *      Example — no connection is needed to use the property:
+     *      ```JavaScript
+     *      const net = require('net');
+     *
+     *      const smtp = new net.Smtp();
+     *      smtp.timeout = 5000;
+     *      console.log(smtp.timeout); // 5000
+     *
+     *      // no connection has been made yet
+     *      console.log(smtp.socket); // null
+     *      ```
+     *
      */
     timeout: number;
 
     /**
      * @description Queries the Socket currently connected to the Smtp object
+     *
+     *      Returns the underlying stream, a net.Socket or a TLSSocket depending on
+     *      the protocol, or null before connect (and after the connection has been
+     *      closed by the peer). The stream can be used for the transport level
+     *      operations that the command members do not cover; a null value is the
+     *      reliable test for "not connected".
+     *
      */
     readonly socket: Class_StreamPromise;
 

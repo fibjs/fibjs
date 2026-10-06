@@ -1,96 +1,251 @@
-/*! @brief HttpServer is one of the built-in objects; it is the object used to create an HTTP server. An HttpServer object contains two required parameters: a port and an event handling interface object. In the event handling interface object, the concrete implementation can be a simple callback function, or complex routing, a chained handling array, etc.
+/*! @brief The HTTP server object: a TcpServer plus HttpHandler that serves requests by handlers
 
- The http server object combines and encapsulates TcpServer and HttpHandler to make it easy to build a server quickly; logically, it is equivalent to:
+ `new http.Server(port, hdlr)` binds the port immediately; the constructor forms without
+ a port only store the handler and need listen() before connections are accepted. The
+ embedded HttpHandler parses requests, invokes the handler, applies the limits, automatic
+ headers, CORS and optional compression, and keeps the connection alive for the next
+ request. HttpsServer is the TLS variant of the same object.
+
+ Concepts:
+
+ - **Handler contract**: hdlr may be a Handler object, an array of handlers (wrapped in a
+   Chain and invoked in order), a function, a routing map of pattern to handler, or a
+   path/address string that serves static files or forwards to another server. A function
+   is called with the HttpRequest, the capture groups of a routing map and the
+   HttpResponse: `(req, ...captures, res)`, so `(req)` and `(req, res)` both work. Write
+   the reply through res (or req.response, the same object). A returned value is treated
+   as the **next handler**, not as the response body: returning a function chains it,
+   returning a string tries to serve it as a file path or an http(s) address, and any
+   other value fails the reply with an internal error (500), so use a block body for
+   `(req) => { ... }` handlers.
+ - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
+   request and its response are reused across keep-alive requests. An exception thrown by
+   the handler is caught, logged as `HttpHandler: <error>` and answered with an empty 500;
+   a request that cannot be parsed (bad request line, header or body above a limit) is
+   answered with 400 and the connection is closed. There is no built-in 404: an untouched
+   response is a 200 with an empty body.
+ - **Automatic headers**: a Server header is added unless the handler set one (serverName,
+   default `fibjs/<version>`), a plain 200 without Last-Modified or Cache-Control gets
+   `Cache-Control: no-cache, no-store` and `Expires: -1`, and a HEAD request receives
+   headers only. There is no automatic Date header.
+ - **CORS**: enableCrossOrigin serves the CORS protocol for every handler: a request with
+   an Origin header gets Access-Control-Allow-Credentials and
+   Access-Control-Allow-Origin, and an OPTIONS preflight is answered directly with
+   Allow-Methods `*`, the configured Allow-Headers and Max-Age 1728000, without invoking
+   the handler.
+ - **Limits and compression**: maxHeadersCount, maxHeaderSize and maxBodySize bound the
+   parsed request (a request over a limit is answered with 400); enableEncoding
+   compresses eligible text replies transparently when the client accepts gzip or
+   deflate. Node.js has no body limit and no automatic compression.
+ - **Node.js differences**: Node passes `(req, res)` to a createServer listener and emits
+   request/upgrade/clientError events; fibjs accepts the handler forms above, adds
+   `req.response`, and forwards the TcpServer events.
+
+ Obtained from:
+ - `new http.Server(port, hdlr)` / `new http.Server(addr, port, hdlr)` — bound, ready for
+   start();
+ - `new http.Server(hdlr)` / `new http.Server(addr, hdlr)` — call listen() to bind;
+ - `http.createServer(hdlr)` — the same class without a port; listen() to start;
+ - `http.Server` and `http.HttpsServer` — the module aliases of the two server classes.
+
+ Example 1 — a routing map with captured segments:
  ```JavaScript
- var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
-    ...
- }));
+ const http = require('http');
+
+ const server = new http.Server(0, {
+     '/hello/:name': (req, name) => {
+         req.response.write('Hello ' + name);
+     },
+     '/add/:a/:b': (req, a, b) => {
+         req.response.json({ sum: Number(a) + Number(b) });
+     }
+ });
+ server.start();
+ const port = server.socket.localPort;
+
+ console.log(http.getSync('http://127.0.0.1:' + port + '/hello/fibjs').text()); // Hello fibjs
+ console.log(http.getSync('http://127.0.0.1:' + port + '/add/2/3').json().sum); // 5
+
+ server.stop();
  ```
 
-The following is a minimal HttpServer application example; it simply returns the string hello world for all requests.
-```JavaScript
-const http = require('http');
-var svr = new http.Server(8080, (req) => {
-    req.response.write('hello, world');
-});
-svr.start();
-```
+ Example 2 — a handler chain that shares work before the reply:
+ ```JavaScript
+ const http = require('http');
 
-As can be seen from the code, first we import the built-in http module. Then we create a new HttpServer object and pass two necessary parameters: a port number and a concrete event handling interface object. In this example, we use a simple callback function as the event handling interface to respond to data from HTTP requests. `req.response.write('hello, world')` is used to respond with our string hello world to the client.
+ const server = new http.Server(0, [
+     (req) => {
+         req.response.setHeader('X-Server', 'fibjs');
+     },
+     (req) => {
+         if (req.address === '/echo')
+             req.response.write(req.text());
+         else
+             req.response.write('pass-through');
+     }
+ ]);
+ server.start();
+ const port = server.socket.localPort;
 
-After creating the HttpServer object, use `svr.start()` to start the server, so that we can receive HTTP requests from the Internet through this server.
- */
+ const res = http.postSync('http://127.0.0.1:' + port + '/echo', { body: 'payload' });
+ console.log(res.text(), res.firstHeader('X-Server')); // payload fibjs
+
+ server.stop();
+ ```
+
+ Example 3 — handler errors and the request body limit:
+ ```JavaScript
+ const http = require('http');
+
+ const server = new http.Server(0, (req) => {
+     if (req.address === '/boom')
+         throw new Error('handler failed');
+     req.response.write('ok');
+ });
+ server.maxBodySize = 1; // MB
+ server.start();
+ const port = server.socket.localPort;
+
+ console.log(http.getSync('http://127.0.0.1:' + port + '/').text()); // ok
+ console.log(http.getSync('http://127.0.0.1:' + port + '/boom').statusCode); // 500
+
+ const big = http.postSync('http://127.0.0.1:' + port + '/', { body: 'x'.repeat(2 * 1024 * 1024) });
+ console.log(big.statusCode); // 400
+
+ server.stop();
+ ```
+*/
 interface HttpServer : TcpServer
 {
-    /*! @brief HttpServer constructor, listens on all local addresses
+    /*! @brief Creates an HTTP server bound to a port
 
-    hdlr may be given in any of these forms:
-    - a Handler object, invoked as it is;
-    - an array of handlers, wrapped in a Chain and invoked in order;
-    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-    @param port specifies the port on which the http server listens
-    @param hdlr the request handler
-   */
+     Port 0 asks the operating system for a free port (read it back from
+     socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
+     handler function `(req, res) => ...`, a routing map or a path/address string; see
+     the class documentation for the contract. start() begins serving after the
+     constructor bound the port; listen() is not needed and start() after listen() throws
+     error 20009.
+     @param port specifies the port on which the http server listens
+     @param hdlr the request handler
+     */
     HttpServer(Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
-    /*! @brief HttpServer constructor
+    /*! @brief Creates an HTTP server bound to an address and a port
 
-    hdlr may be given in any of these forms:
-    - a Handler object, invoked as it is;
-    - an array of handlers, wrapped in a Chain and invoked in order;
-    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-    @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
-    @param port specifies the port on which the http server listens
-    @param hdlr the request handler
-   */
+     addr is the local address to bind: "" or "0.0.0.0" listens on every IPv4 interface,
+     "::" on every IPv6 interface and a literal such as "127.0.0.1" or "::1" on one
+     interface. Port 0 selects a free port. The handler forms and the lifecycle are the
+     same as the other constructors; see the class documentation.
+     @param addr the listening address; "" listens on all local addresses
+     @param port specifies the port on which the http server listens
+     @param hdlr the request handler
+     */
     HttpServer(String addr, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
-    /*! @brief HttpServer constructor
+    /*! @brief Creates an HTTP server, taking the port from the address when it carries one
 
-    hdlr may be given in any of these forms:
-    - a Handler object, invoked as it is;
-    - an array of handlers, wrapped in a Chain and invoked in order;
-    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-    @param addr specifies the address on which the http server listens; if "" it listens on all local addresses
-    @param hdlr the request handler
-   */
+     When addr contains a port (for example "127.0.0.1:8080") the server binds it
+     immediately; otherwise the address is stored and listen() must be called. The
+     handler forms and the lifecycle are the same as the other constructors; see the
+     class documentation.
+     @param addr the listening address, optionally with a :port suffix
+     @param hdlr the request handler
+     */
     HttpServer(String addr, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
-    /*! @brief HttpServer constructor, does not bind a port; listen() must be called to start
+    /*! @brief Creates an HTTP server without binding a port; listen() must be called to start
 
-    hdlr may be given in any of these forms:
-    - a Handler object, invoked as it is;
-    - an array of handlers, wrapped in a Chain and invoked in order;
-    - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-    - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-    - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
-    @param hdlr the request handler
-   */
+     The handler is stored and the listener is created; call listen(port, addr) to bind
+     and begin serving. This is the form http.createServer() uses. Do not call start()
+     after listen(): the port is already bound and start() throws error 20009.
+     @param hdlr the request handler
+     */
     HttpServer(Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
 
-    /*! @brief enables cross-origin requests
+    /*! @brief Enables automatic CORS handling, including preflight requests
+
+     Turns on the embedded handler's CORS mode: requests carrying an Origin header get
+     Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
+     origin, and an OPTIONS preflight is answered directly (200) with
+     Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
+     and Access-Control-Max-Age: 1728000, without invoking the handler. Node.js has no
+     built-in CORS support.
+
+     Example — answer a preflight:
+     ```JavaScript
+     const http = require('http');
+
+     const server = new http.Server(0, (req) => { req.response.write('cors'); });
+     server.enableCrossOrigin('X-Custom');
+     server.start();
+     const port = server.socket.localPort;
+
+     const res = http.requestSync('OPTIONS', 'http://127.0.0.1:' + port + '/', {
+         headers: { Origin: 'http://example.com' }
+     });
+     console.log(res.statusCode); // 200
+     console.log(res.firstHeader('Access-Control-Allow-Origin')); // http://example.com
+     console.log(res.firstHeader('Access-Control-Allow-Headers')); // X-Custom
+
+     server.stop();
+     ```
      @param allowHeaders specifies the accepted http header fields
      */
     enableCrossOrigin(String allowHeaders = "Content-Type");
 
-    /*! @brief queries and sets the maximum number of request headers, default is 128 */
+    /*! @brief Queries and sets the maximum number of request headers, default 128
+
+     Applied when each request is parsed; a request with more header lines is answered
+     with 400 and the connection is closed. A negative value throws a RangeError (20006).
+     Node.js has http.Server.maxHeadersCount for the same purpose.
+     */
     Integer maxHeadersCount;
 
-    /*! @brief queries and sets the maximum request header length, default is 8192 */
+    /*! @brief Queries and sets the maximum length of one header line in bytes, default 8192
+
+     A longer line makes the parser fail and the request is answered with 400; a negative
+     value throws a RangeError (20006). Node.js uses the process-wide
+     --max-http-header-size option instead.
+     */
     Integer maxHeaderSize;
 
-    /*! @brief queries and sets the maximum body size in MB, default is 64 */
+    /*! @brief Queries and sets the maximum request body size in MB, default 64
+
+     A Content-Length or chunked body larger than this is rejected while parsing and the
+     request is answered with 400; -1 disables the limit and 0 refuses every body. Node.js
+     has no built-in body limit.
+     */
     Integer maxBodySize;
 
-    /*! @brief switch for the automatic decompression feature, disabled by default */
+    /*! @brief Enables automatic response compression, disabled by default
+
+     When on, a reply larger than 128 bytes and smaller than 64 MB is compressed with
+     gzip or deflate when the client sent a matching Accept-Encoding and the
+     Content-Type is text/* or a known compressible type; the handler adds
+     Content-Encoding and replaces the body with the compressed one. An existing
+     Content-Encoding disables it. Node.js has no automatic compression.
+     */
     Boolean enableEncoding;
 
-    /*! @brief queries and sets the server name, default is: fibjs/0.x.0 */
+    /*! @brief Queries and sets the automatic Server header, default fibjs/<version>
+
+     Written when the handler did not set a Server header itself; an empty value writes
+     an empty header. Node.js does not add a Server header.
+
+     Example — replace the default server name:
+     ```JavaScript
+     const http = require('http');
+
+     const server = new http.Server(0, (req) => { req.response.write('named'); });
+     server.serverName = 'my-app/1.0';
+     server.start();
+     const port = server.socket.localPort;
+
+     const res = http.getSync('http://127.0.0.1:' + port + '/');
+     console.log(res.firstHeader('Server')); // my-app/1.0
+
+     server.stop();
+     ```
+     */
     String serverName;
 };

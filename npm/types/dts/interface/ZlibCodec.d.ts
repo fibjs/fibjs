@@ -2,21 +2,110 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description ZlibCodec is the base class of zlib compression and decompression codecs, providing the constructors of zlib-like codecs
+ * @description ZlibCodec is the base class of the Node.js compatible zlib codec classes; build
+ *  one through Gzip, Gunzip, Deflate, Inflate, DeflateRaw, InflateRaw or Unzip
  *
- *  ZlibCodec inherits from EventEmitter and can be used by npm packages such as minizlib. Subclasses include Gzip, Gunzip, Deflate, Inflate, DeflateRaw, InflateRaw and Unzip.
+ *  The codec classes are synchronous state machines kept for the npm ecosystem (minizlib and
+ *  tar use them): they process one chunk at a time with an explicit zlib flush flag and are
+ *  not streams. New code that moves data between fibjs streams should prefer the stream
+ *  factories (`zlib.createGzip(to)` and friends) or the one-shot functions. ZlibCodec itself
+ *  is abstract: it has no public constructor, and every example below obtains an instance
+ *  from a concrete subclass.
  *
+ *  Concepts:
+ *  - **State machine**: `_processChunk(chunk, flushFlag)` feeds one chunk and returns the
+ *    bytes produced so far; the flush flag selects Z_NO_FLUSH (buffer), Z_SYNC_FLUSH (emit
+ *    the pending output) or Z_FINISH (end the stream). A call may return an empty Buffer.
+ *    When the stream ends the codec resets itself, so the same instance can process a new
+ *    message without an explicit `reset`.
+ *  - **Constructor parameters**: `level` (default Z_DEFAULT_COMPRESSION, -1), `windowBits`
+ *    (default per class: gzip 31, zlib 15, raw -15, unzip 47), `memLevel` (1 to 9, default 8)
+ *    and `strategy` (default Z_DEFAULT_STRATEGY, 0) are passed to zlib unchanged, so an
+ *    invalid value leaves the codec closed and the first use throws ERR_ZLIB_BINDING_CLOSED.
+ *    `params(level, strategy)` changes the parameters of a deflating codec after creation.
+ *  - **Close semantics**: `close` releases the zlib state and is idempotent; afterwards
+ *    `_processChunk` and `params` throw ERR_ZLIB_BINDING_CLOSED while `reset` becomes a
+ *    no-op. The `_handle` property is a compatibility shim whose `close()` method does
+ *    nothing.
+ *  - **No events**: the class inherits EventEmitter for API compatibility, but no codec
+ *    emits events. Unlike the Node.js zlib streams there are no 'data'/'end'/'error' events,
+ *    no pipe and no readable side.
+ *
+ *  Obtained from:
+ *  - `new zlib.Gzip(opts)` — compress to the gzip container;
+ *  - `new zlib.Gunzip(opts)` — decompress gzip data;
+ *  - `new zlib.Deflate(opts)` / `new zlib.Inflate(opts)` — the zlib format;
+ *  - `new zlib.DeflateRaw(opts)` / `new zlib.InflateRaw(opts)` — raw deflate;
+ *  - `new zlib.Unzip(opts)` — decompress gzip or zlib data with format detection.
+ *
+ *  Example 1 — a codec pair compresses and decompresses in memory:
  *  ```JavaScript
  *  const zlib = require('zlib');
- *  const gzip = new zlib.Gzip({});
- *  const result = gzip._processChunk(Buffer.from('hello'), zlib.constants.Z_FINISH);
+ *  const C = zlib.constants;
+ *
+ *  const gzip = new zlib.Gzip(); // no options: default level
+ *  const packed = gzip._processChunk('hello, world', C.Z_FINISH);
+ *
+ *  const gunzip = new zlib.Gunzip();
+ *  console.log(gunzip._processChunk(packed, C.Z_FINISH).toString()); // hello, world
+ *  ```
+ *
+ *  Example 2 — chunked processing with explicit flush flags:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const gzip = new zlib.Gzip();
+ *  // Z_NO_FLUSH absorbs the first chunk; Z_SYNC_FLUSH would emit it immediately.
+ *  const first = gzip._processChunk('hello, ', C.Z_NO_FLUSH);
+ *  const last = gzip._processChunk('world', C.Z_FINISH);
+ *  const packed = Buffer.concat([first, last]);
+ *
+ *  console.log(zlib.gunzip(packed).toString()); // hello, world
+ *  ```
+ *
+ *  Example 3 — one instance handles several messages:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const gzip = new zlib.Gzip();
+ *  // Z_FINISH resets the codec, so a second message can follow without reset().
+ *  const first = gzip._processChunk('first', C.Z_FINISH);
+ *  const second = gzip._processChunk('second', C.Z_FINISH);
+ *
+ *  console.log(zlib.gunzip(first).toString(), zlib.gunzip(second).toString());
+ *  // first second
  *  ```
  *
  */
 declare class Class_ZlibCodec extends Class_EventEmitter {
     /**
-     * @description Processes a chunk of data synchronously; a string chunk is encoded as utf8
-     *      chunk may be a Buffer or a string; a string is encoded as utf8.
+     * @description Processes one chunk of data synchronously and returns the bytes produced so far
+     *
+     *      `chunk` may be a Buffer or a string; a string is encoded as utf8. `flushFlag` is one
+     *      of the zlib flush flags from `zlib.constants`: Z_NO_FLUSH buffers the input and the
+     *      return value may then be an empty Buffer; Z_SYNC_FLUSH emits everything produced so
+     *      far and keeps the stream decodable; Z_FINISH ends the message, writes the trailer and
+     *      resets the codec, which can then process a new message. Both arguments are required.
+     *      Corrupt input, or an out-of-range flush flag on a deflating codec, throws an Error
+     *      with `code` `Z_DATA_ERROR` or `Z_STREAM_ERROR`; after `close` the error is
+     *      ERR_ZLIB_BINDING_CLOSED. The Node.js codec streams also accept a callback, which
+     *      fibjs does not.
+     *
+     *      Example — two writes and a finish through a Gzip codec:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const C = zlib.constants;
+     *
+     *      const gzip = new zlib.Gzip();
+     *      const part1 = gzip._processChunk(Buffer.from('hello '), C.Z_NO_FLUSH);
+     *      const part2 = gzip._processChunk(Buffer.from('world'), C.Z_FINISH);
+     *
+     *      console.log(zlib.gunzip(Buffer.concat([part1, part2])).toString());
+     *      // hello world
+     *      ```
+     *
      *      @param chunk the data to process
      *      @param flushFlag flush flag, see zlib.constants.Z_NO_FLUSH and others
      *      @return returns the processed data
@@ -25,22 +114,93 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
     _processChunk(chunk: Class_Buffer | string, flushFlag: number): Class_Buffer;
 
     /**
-     * @description Closes the codec and releases resources
+     * @description Closes the codec and releases its zlib state
+     *
+     *      `close` is idempotent. Afterwards `_processChunk` and `params` throw
+     *      ERR_ZLIB_BINDING_CLOSED ("zlib binding closed") and `reset` does nothing. A codec
+     *      that was left closed by an invalid constructor option can still be closed. Node.js
+     *      accepts a callback here and emits a 'close' event; fibjs does neither.
+     *
+     *      Example — the codec rejects work after close:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const C = zlib.constants;
+     *
+     *      const gzip = new zlib.Gzip();
+     *      gzip.close();
+     *      try {
+     *          gzip._processChunk('hello', C.Z_FINISH);
+     *      } catch (e) {
+     *          console.log(e.code, e.number); // ERR_ZLIB_BINDING_CLOSED 20024
+     *      }
+     *      ```
+     *
      */
     close(): void;
 
     /**
-     * @description Resets the codec state
+     * @description Resets the codec state so that it starts a new stream
+     *
+     *      For a deflating codec the compression state and dictionary are discarded; for an
+     *      inflating codec the decoder is rewound. `reset` is rarely needed because a codec
+     *      resets itself when Z_FINISH reaches the end of the stream; after `close` it is a
+     *      no-op, and it never throws.
+     *
+     *      Example — reuse a Deflate codec for two messages:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const C = zlib.constants;
+     *
+     *      const deflate = new zlib.Deflate();
+     *      const first = deflate._processChunk('first', C.Z_FINISH);
+     *      deflate.reset();
+     *      const second = deflate._processChunk('second', C.Z_FINISH);
+     *
+     *      console.log(zlib.inflate(first).toString(), zlib.inflate(second).toString());
+     *      // first second
+     *      ```
+     *
      */
     reset(): void;
 
     /**
-     * @description The underlying handle object, used for internal compatibility
+     * @description A compatibility handle object
+     *
+     *      In Node.js `_handle` exposes the native zlib binding. fibjs returns a plain object
+     *      that only carries a no-op `close()` method, and the property can be read or
+     *      overwritten without affecting the codec; it exists so packages that probe
+     *      `_handle.close` keep working.
+     *
      */
     _handle: any;
 
     /**
-     * @description Dynamically updates compression parameters
+     * @description Dynamically updates the compression parameters of a deflating codec
+     *
+     *      Only `Gzip`, `Deflate` and `DeflateRaw` accept this call; an inflating codec
+     *      (`Gunzip`, `Inflate`, `InflateRaw`, `Unzip`) throws the invalid-call error [20009],
+     *      and a closed codec throws ERR_ZLIB_BINDING_CLOSED. `level` and `strategy` are passed
+     *      to zlib's deflateParams, which can only apply them between blocks and does not
+     *      recover output that was pending, so call `params` before feeding data or between
+     *      messages. The return value of the underlying call is ignored: an invalid level or
+     *      strategy is silently discarded. Node.js has the same method on its zlib streams, but
+     *      takes a callback.
+     *
+     *      Example — switching a Gzip codec to level 1 changes the next message:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const C = zlib.constants;
+     *
+     *      const gzip = new zlib.Gzip();
+     *      const first = gzip._processChunk('hello', C.Z_FINISH); // XFL byte 0 (default)
+     *      gzip.params(zlib.BEST_SPEED, C.Z_DEFAULT_STRATEGY);
+     *      const second = gzip._processChunk('hello', C.Z_FINISH); // XFL byte 4 (fastest)
+     *
+     *      console.log(first[8], second[8]); // 0 4
+     *      console.log(zlib.gunzip(first).toString(), zlib.gunzip(second).toString());
+     *      // hello hello
+     *      ```
+     *
      *      @param level compression level
      *      @param strategy compression strategy
      *

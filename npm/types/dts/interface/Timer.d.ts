@@ -1,11 +1,69 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description Timer handler object
+ * @description Timer is the handle returned by every timer scheduling function; it controls the timer lifecycle: keep-alive, cancellation and state
+ *
+ *  A Timer represents one scheduled callback. The same class is used for a one-time timeout, a
+ *  repeating interval, a high-resolution interval and an immediate, and each scheduling function
+ *  returns it so the callback can be cancelled or detached from the process lifetime.
+ *
+ *  The callback of a one-time timer runs with `this` set to the Timer object, so it can clear
+ *  itself, and the `stopped` property reports whether the callback has fired or the timer has
+ *  been cleared.
+ *
+ *  Concepts:
+ *
+ *  - **Keep-alive**: a pending timer keeps the process alive, so a script whose only pending work is
+ *    a timer exits after the timer has fired. `unref` drops that hold without cancelling the timer:
+ *    the callback then runs only when something else keeps the process running. `ref` restores the
+ *    default; both return the timer itself, so calls can be chained with the scheduling function.
+ *  - **Stopping**: `clear` cancels a pending timer whether it is one-time or repeating. It is
+ *    idempotent and has no effect after the timer has fired; the standalone clear functions of the
+ *    timers module are equivalent to it.
+ *  - **State**: `stopped` is false while the timer is pending, becomes true when it is cleared or
+ *    after a one-time callback returns, and stays false inside the callback itself while it runs.
+ *
+ *  Obtained from:
+ *  - `setTimeout(callback[, timeout[, ...args]])` — one-time timer;
+ *  - `setInterval(callback, timeout[, ...args])` and `setHrInterval(...)` — repeating timers;
+ *  - `setImmediate(callback[, ...args])` — immediate timer;
+ *  - `v8.start(...)` — sampling timer (stop it with `clear()`).
+ *
+ *  Example 1 — one-time timer lifecycle:
+ *  ```JavaScript
+ *  const timers = require('timers');
+ *
+ *  const timer = timers.setTimeout(() => console.log('fired'), 10);
+ *  console.log(timer.stopped); // false
+ *
+ *  const canceled = timers.setTimeout(() => console.log('never printed'), 10);
+ *  canceled.clear();
+ *  console.log(canceled.stopped); // true
+ *  ```
+ *
+ *  Example 2 — reference counting with unref and ref:
+ *  ```JavaScript
+ *  const timers = require('timers');
+ *
+ *  const timer = timers.setTimeout(() => console.log('printed if referenced'), 30);
+ *
+ *  // unref/ref return the timer itself and can be chained
+ *  if (timer.unref().ref() === timer) {
+ *      console.log('still referenced'); // printed
+ *  }
+ *  timer.unref(); // the process may exit before the callback runs
+ *  ```
+ *
  */
 declare class Class_Timer extends Class_object {
     /**
      * @description Keeps the fibjs process alive; prevents the fibjs process from exiting during the timer wait
+     *
+     *      A timer keeps the process alive by default, so ref is normally needed only after an `unref`
+     *      call to restore the default behavior; repeated calls have no additional effect. The method
+     *      returns the timer itself, which makes it chainable with the scheduling function (for example
+     *      `setTimeout(...).unref()`). Node.js `Timeout#ref` behaves the same way.
+     *
      *      @return returns the timer object
      *
      */
@@ -13,6 +71,22 @@ declare class Class_Timer extends Class_object {
 
     /**
      * @description Allows the fibjs process to exit; permits the fibjs process to exit during the timer wait
+     *
+     *      The timer is not cancelled: the callback still runs if some other timer, socket or fiber keeps
+     *      the process alive long enough, but the process is allowed to exit while this timer is pending.
+     *      Repeated calls have no additional effect, and `ref` undoes it. This is the usual way to let a
+     *      periodic maintenance timer run only while the rest of the program is busy.
+     *
+     *      Example — a periodic timer that does not keep the process alive by itself:
+     *      ```JavaScript
+     *      const timers = require('timers');
+     *
+     *      let n = 0;
+     *      const maintenance = timers.setInterval(() => n++, 1000);
+     *      maintenance.unref(); // the process exits when nothing else is left
+     *      console.log(maintenance.stopped); // false, the timer is still scheduled
+     *      ```
+     *
      *      @return returns the timer object
      *
      */
@@ -20,11 +94,32 @@ declare class Class_Timer extends Class_object {
 
     /**
      * @description Cancels the current timer
+     *
+     *      Cancels a pending one-time or repeating timer; the callback will not run and `stopped` becomes
+     *      true. It is idempotent, has no effect on a timer that already fired, and is equivalent to the
+     *      matching clear function of the timers module (`clearTimeout`, `clearInterval`, `clearImmediate`
+     *      or `clearHrInterval`), which all accept any Timer object.
+     *
+     *      Example — cancel a pending timer and observe the state:
+     *      ```JavaScript
+     *      const timers = require('timers');
+     *
+     *      const timer = timers.setTimeout(() => console.log('never printed'), 20);
+     *      timer.clear();
+     *      console.log(timer.stopped); // true
+     *      ```
+     *
      */
     clear(): void;
 
     /**
      * @description Queries whether the current timer has been stopped
+     *
+     *      The value is false while the timer is pending. It becomes true after the timer is cleared or,
+     *      for a one-time timer, after the callback returns; inside the callback itself it is still false
+     *      for a one-time timer and can be set to true by `clear` while a repeating callback is running.
+     *      Node.js exposes no equivalent property on `Timeout`/`Immediate`.
+     *
      */
     readonly stopped: boolean;
 

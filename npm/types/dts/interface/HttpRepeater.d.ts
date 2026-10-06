@@ -2,36 +2,121 @@
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
 /**
- * @description HttpRepeater is an HTTP request forwarder that can forward HTTP requests to a specified backend server and obtain responses. It is often used in complex systems where the front end interacts with multiple servers, or for load balancing
+ * @description An HTTP request forwarder (reverse proxy) to one or more backend servers
  *
- * Using HttpRepeater is very simple; just provide the URL of the backend server or an array of load-balancing URLs when creating the instance.
+ *  HttpRepeater is a handler that forwards the HTTP requests it receives to a
+ *  backend server and copies the backend response back. With several urls it also
+ *  balances the requests and with a target path it rewrites the address, so the
+ *  class covers front-end/back-end separation, a service that hides several
+ *  internal servers, and simple load balancing.
  *
- * The following is an example using a single backend:
- * ```JavaScript
- * var http = require('http');
- * var serverUrl = 'http://localhost:' + actualPort + '/example'
- * var repeater = new http.Repeater(serverUrl)
+ *  Concepts:
+ *  - **Rotation**: the urls are used one per request in round-robin order; after
+ *    the last one the first is used again. load replaces the whole list and
+ *    restarts the rotation.
+ *  - **Address rewriting**: the target pathname is prefixed to the request
+ *    address, while the method, the headers (minus Host and Connection), the
+ *    query string and the body are forwarded. The backend status code, status
+ *    message, headers and body are copied to the response, so the client sees the
+ *    backend's answer.
+ *  - **URL validation**: every url must contain a hostname and must not contain a
+ *    query string or a fragment; an empty url array is rejected. load validates
+ *    the whole list before replacing the current urls, so a failed load leaves
+ *    the previous list in place.
+ *  - **The inner client**: requests are sent by a dedicated HttpClient with
+ *    cookies, automatic redirects and automatic decoding disabled and an empty
+ *    user agent, so a backend sees what the client sent; adjust it through client
+ *    when a backend needs different behavior.
  *
- * var server = new http.Server(8081, repeater);
- * server.start();
- * ```
- * The following is an example using a URL array to implement load balancing:
- * ```JavaScript
- * var serverURLs = [
- *   'http://server1.example.com',
- *   'http://server2.example.com',
- *   'http://server3.example.com'
- * ]
- * var repeater = new http.Repeater(serverURLs)
+ *  Obtained from:
+ *  - `new http.Repeater(url)` / `new http.Repeater(urls)` — the class is exposed
+ *    as `http.Repeater` and as HttpRepeater;
+ *  - `new mq.Handler('http://host/...')` — the address form of the Handler
+ *    constructor returns a repeater.
  *
- * var server = new http.Server(8081, repeater);
- * server.start();
- * ```
+ *  Example 1 — single backend and path prefixing:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  // a backend that reports the path it received
+ *  const backend = new http.Server(0, (req, res) => {
+ *      res.write('backend ' + req.address);
+ *  });
+ *  backend.start();
+ *
+ *  // the target path is prefixed to the request path
+ *  const repeater = new http.Repeater('http://127.0.0.1:' + backend.socket.localPort + '/api');
+ *
+ *  const req = new http.Request();
+ *  req.address = req.value = '/users';
+ *  repeater.invoke(req);
+ *  console.log(req.response.read().toString()); // backend /api/users
+ *
+ *  backend.stop();
+ *  ```
+ *
+ *  Example 2 — load balancing with a url array:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const a = new http.Server(0, (req, res) => {
+ *      res.write('A');
+ *  });
+ *  const b = new http.Server(0, (req, res) => {
+ *      res.write('B');
+ *  });
+ *  a.start();
+ *  b.start();
+ *
+ *  // the urls are used in rotation, one request each
+ *  const repeater = new http.Repeater([
+ *      'http://127.0.0.1:' + a.socket.localPort,
+ *      'http://127.0.0.1:' + b.socket.localPort
+ *  ]);
+ *
+ *  for (let i = 0; i < 4; i++) {
+ *      const req = new http.Request();
+ *      req.address = req.value = '/';
+ *      repeater.invoke(req);
+ *      console.log(req.response.read().toString()); // A B A B
+ *  }
+ *
+ *  a.stop();
+ *  b.stop();
+ *  ```
+ *
+ *  Example 3 — url validation and the inner client configuration:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const repeater = new http.Repeater('http://127.0.0.1:8080/root');
+ *  console.log(repeater.urls.length); // 1
+ *  console.log(repeater.client.userAgent === ''); // true
+ *
+ *  try {
+ *      new http.Repeater([]);
+ *  } catch (e) {
+ *      console.log(e.name); // TypeError
+ *  }
+ *
+ *  try {
+ *      new http.Repeater('http://127.0.0.1:8080/?q=1');
+ *  } catch (e) {
+ *      console.log(e.number); // 20024
+ *  }
+ *  ```
  *
  */
 declare class Class_HttpRepeater extends Class_Handler {
     /**
      * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *
+     *      Parses url and builds the forwarder around it; the url must contain a
+     *      hostname and must not contain a query string or a fragment, otherwise the
+     *      constructor throws. A single url means no balancing: every request goes to
+     *      the same backend, with the target pathname prefixed to the request
+     *      address.
+     *
      *      @param url specifies a backend server url
      *
      */
@@ -39,6 +124,21 @@ declare class Class_HttpRepeater extends Class_Handler {
 
     /**
      * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *
+     *      Takes the same url form as the single-url constructor and accepts a list,
+     *      in which case the requests are rotated through the urls. The list must not
+     *      be empty and every url is validated the same way.
+     *
+     *      Example — two backends behind one handler:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater([
+     *          'http://127.0.0.1:8080/',
+     *          'http://127.0.0.1:8081/base'
+     *      ]);
+     *      console.log(repeater.urls.length); // 2
+     *      ```
      *      @param urls specifies a group of backend server urls
      *
      */
@@ -46,6 +146,29 @@ declare class Class_HttpRepeater extends Class_Handler {
 
     /**
      * @description loads a new group of backend urls
+     *
+     *      Validates the whole list and then replaces the current urls in one step,
+     *      so a validation error leaves the previous list active. The rotation
+     *      restarts from the first url of the new list. An empty list is rejected
+     *      like it is in the constructor.
+     *
+     *      Example — replace the urls and keep them on error:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater('http://127.0.0.1:8080/root');
+     *      console.log(repeater.urls.length); // 1
+     *
+     *      repeater.load(['http://127.0.0.1:8081/a', 'http://127.0.0.1:8082/b']);
+     *      console.log(repeater.urls.length); // 2
+     *
+     *      try {
+     *          repeater.load([]);
+     *      } catch (e) {
+     *          console.log(e.name); // TypeError, the previous urls are kept
+     *      }
+     *      console.log(repeater.urls.length); // 2
+     *      ```
      *      @param urls specifies a group of backend server urls
      *
      */
@@ -53,11 +176,41 @@ declare class Class_HttpRepeater extends Class_Handler {
 
     /**
      * @description queries the current list of backend server urls
+     *
+     *      Returns one string per url, in the same form they were given (the
+     *      normalized url produced by parsing). The rotation index and the internal
+     *      client are not part of the value.
+     *
+     *      Example — read the list back:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater(['http://127.0.0.1:8080/']);
+     *      console.log(repeater.urls[0]); // http://127.0.0.1:8080/
+     *      ```
+     *
      */
     readonly urls: string[];
 
     /**
      * @description the HttpClient object used internally by the request forwarding handler
+     *
+     *      The client is created with cookies, automatic redirects and automatic
+     *      decoding disabled and with an empty user agent, so the forwarded request
+     *      stays close to the original one. Change its properties (for example
+     *      userAgent, timeout or keepAlive) to configure the backend calls; the same
+     *      client is reused for every request of the repeater.
+     *
+     *      Example — configure the backend calls:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater('http://127.0.0.1:8080/');
+     *      console.log(repeater.client.autoRedirect); // false
+     *      repeater.client.userAgent = 'my-proxy';
+     *      console.log(repeater.client.userAgent); // my-proxy
+     *      ```
+     *
      */
     readonly client: Class_HttpClient;
 
@@ -73,6 +226,13 @@ declare class Class_HttpRepeater extends Class_Handler {
 declare class Class_HttpRepeaterPromise extends Class_HandlerPromise {
     /**
      * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *
+     *      Parses url and builds the forwarder around it; the url must contain a
+     *      hostname and must not contain a query string or a fragment, otherwise the
+     *      constructor throws. A single url means no balancing: every request goes to
+     *      the same backend, with the target pathname prefixed to the request
+     *      address.
+     *
      *      @param url specifies a backend server url
      *
      */
@@ -80,6 +240,21 @@ declare class Class_HttpRepeaterPromise extends Class_HandlerPromise {
 
     /**
      * @description HttpRepeater constructor, creates a new HttpRepeater object
+     *
+     *      Takes the same url form as the single-url constructor and accepts a list,
+     *      in which case the requests are rotated through the urls. The list must not
+     *      be empty and every url is validated the same way.
+     *
+     *      Example — two backends behind one handler:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater([
+     *          'http://127.0.0.1:8080/',
+     *          'http://127.0.0.1:8081/base'
+     *      ]);
+     *      console.log(repeater.urls.length); // 2
+     *      ```
      *      @param urls specifies a group of backend server urls
      *
      */
@@ -87,6 +262,29 @@ declare class Class_HttpRepeaterPromise extends Class_HandlerPromise {
 
     /**
      * @description loads a new group of backend urls
+     *
+     *      Validates the whole list and then replaces the current urls in one step,
+     *      so a validation error leaves the previous list active. The rotation
+     *      restarts from the first url of the new list. An empty list is rejected
+     *      like it is in the constructor.
+     *
+     *      Example — replace the urls and keep them on error:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater('http://127.0.0.1:8080/root');
+     *      console.log(repeater.urls.length); // 1
+     *
+     *      repeater.load(['http://127.0.0.1:8081/a', 'http://127.0.0.1:8082/b']);
+     *      console.log(repeater.urls.length); // 2
+     *
+     *      try {
+     *          repeater.load([]);
+     *      } catch (e) {
+     *          console.log(e.name); // TypeError, the previous urls are kept
+     *      }
+     *      console.log(repeater.urls.length); // 2
+     *      ```
      *      @param urls specifies a group of backend server urls
      *
      */
@@ -94,11 +292,41 @@ declare class Class_HttpRepeaterPromise extends Class_HandlerPromise {
 
     /**
      * @description queries the current list of backend server urls
+     *
+     *      Returns one string per url, in the same form they were given (the
+     *      normalized url produced by parsing). The rotation index and the internal
+     *      client are not part of the value.
+     *
+     *      Example — read the list back:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater(['http://127.0.0.1:8080/']);
+     *      console.log(repeater.urls[0]); // http://127.0.0.1:8080/
+     *      ```
+     *
      */
     readonly urls: string[];
 
     /**
      * @description the HttpClient object used internally by the request forwarding handler
+     *
+     *      The client is created with cookies, automatic redirects and automatic
+     *      decoding disabled and with an empty user agent, so the forwarded request
+     *      stays close to the original one. Change its properties (for example
+     *      userAgent, timeout or keepAlive) to configure the backend calls; the same
+     *      client is reused for every request of the repeater.
+     *
+     *      Example — configure the backend calls:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const repeater = new http.Repeater('http://127.0.0.1:8080/');
+     *      console.log(repeater.client.autoRedirect); // false
+     *      repeater.client.userAgent = 'my-proxy';
+     *      console.log(repeater.client.userAgent); // my-proxy
+     *      ```
+     *
      */
     readonly client: Class_HttpClientPromise;
 

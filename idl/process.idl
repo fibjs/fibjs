@@ -1,140 +1,377 @@
-/*! @brief Process handling module, used to manage the resources of the current process
+/*! @brief The process module describes and controls the current fibjs process: its arguments and environment, working directory, resources, exit and standard streams; useful for command line tools, service entry points and diagnostics
 
- Main capabilities of the module:
+ Main capabilities:
 
- - **Process information**: properties such as `argv`, `execArgv`, `version`, `execPath`, `arch`, `platform`, `pid`, `ppid`, `env`;
- - **Process control**: `exit` exits the process, `exitCode` exit code, `cwd`/`chdir` working path, `umask`, `uptime`, `hrtime` timing, `kill` sends a signal;
- - **Resource reports**: `cpuUsage`, `memoryUsage`, `resourceUsage`;
- - **Scheduling**: `nextTick` starts a fiber to execute a function;
- - **Standard streams**: `stdin`, `stdout`, `stderr`;
- - **Parent-child process communication**: `send`, `disconnect`, `connected`;
- - **Process events**: `beforeExit`, `exit`, `unhandledRejection`, `warning`, signal events (see below for details).
+ - **Runtime identity**: `argv`, `execArgv`, `execPath`, `version`, `versions`, `release`,
+   `arch`, `platform`, `pid`, `ppid`;
+ - **Environment**: `env` (a live view of the operating system environment) and `loadEnvFile`;
+ - **Control and exit**: `exit`, `exitCode`, `cwd`/`chdir`, `umask`, `kill`,
+   `getuid`/`getgid`/`setuid`/`setgid`;
+ - **Timing and resources**: `uptime`, `hrtime`, `cpuUsage`, `memoryUsage`, `resourceUsage`;
+ - **Scheduling**: `nextTick` runs a callback on a new fiber after the current synchronous block;
+ - **Standard streams**: `stdin`, `stdout`, `stderr`, on descriptors 0/1/2;
+ - **Parent-child channel**: `send`, `connected`, `disconnect` in a child started with an IPC channel;
+ - **Diagnostics and extensions**: `emitWarning`, `dlopen`, `binding`, `getBuiltinModule`.
 
- Usage:
+ Concepts:
+
+ - **Process lifetime and the fiber task queue**: JavaScript runs on fibers scheduled by the
+   runtime, so there is no single event loop; the process stays alive while the task queue
+   has work (timers, pending I/O, ref'd workers). When the queue drains, the `beforeExit`
+   event fires with the current `exitCode` and the process terminates unless a listener
+   starts new work. Calling `process.exit` or leaving a rejected promise with no handler
+   skips `beforeExit` and terminates at once, while an uncaught error still runs
+   `beforeExit` (with the value of `exitCode`) before the process exits with code 1.
+ - **Exit semantics**: `exitCode` defaults to 0 and is what `exit()` with no argument
+   reports; `exit(code)` assigns the code first. Every exit path emits the `exit` event
+   synchronously with that code and then terminates, so only synchronous cleanup runs in
+   its listeners. The code reaches the operating system unchanged, while a shell observes
+   its low 8 bits. A rejected promise with no handler logs the reason and exits with code 1
+   unless a `unhandledRejection` listener exists.
+ - **Event model**: the module object is an EventEmitter; use `on`/`once`/`off`/`emit`/
+   `listeners` from the EventEmitter class for `beforeExit`, `exit`, `unhandledRejection`,
+   `warning`, `disconnect`, `message` and the signal events. Signal delivery is preemptive:
+   on POSIX only `SIGINT` and `SIGTERM` reach a JavaScript listener, `SIGPIPE` is ignored
+   and every other signal keeps its operating system default action (which usually
+   terminates the process), and a `SIGINT`/`SIGTERM` without a listener terminates with
+   code 1 as well. On Windows the console control events are mapped to `SIGINT`.
+ - **Arguments and environment**: `argv` holds the runner path, the script path and the
+   user arguments, while fibjs runtime options (such as `--no-js-thread-affinity`) are
+   removed and reported by `execArgv`. `env` is backed by the operating system environment
+   instead of being a copy: reads, assignments, `delete`, `in` and `Object.keys` all reach
+   the process environment, values are strings, assigning `undefined` unsets a variable,
+   and assigning `TZ` or `LANG` applies the time zone or locale to the isolate at once.
+   `loadEnvFile` follows dotenv syntax and never overwrites a variable that is already set.
+ - **Standard streams**: `stdin`, `stdout` and `stderr` are Stream objects on descriptors
+   0/1/2; when a descriptor is a terminal its stream is a TTYInputStream or
+   TTYOutputStream with `isTTY` and terminal control methods. The console module writes to
+   these streams.
+ - **Parent-child IPC**: only a child started with an IPC channel (child_process.fork, or
+   `stdio: 'ipc'`) receives NODE_CHANNEL_FD and with it `send`, `connected` and
+   `disconnect`; in any other process the three members are `undefined`, matching Node.js.
+   Messages are JSON-encoded and newline-framed, and a child reads
+   them lazily once a `message` listener is registered, so an IPC child without such a
+   listener is not kept alive by the channel.
+ - **Node.js differences**: `uptime` measures the system uptime, not the time since the
+   process started; `version`/`versions` describe fibjs (the bundled Node-API version is
+   `versions.napi`); `release.name` stays `'node'` for compatibility and
+   `release.venderUrl` is a fibjs extension; `title` is writable but does not change the
+   operating system process name; `binding` is an internal compatibility shim;
+   `getuid`/`getgid` return 0 and `setuid`/`setgid` do nothing on Windows. `emitWarning`
+   is dropped silently when no `warning` listener is attached, while Node.js prints it to
+   stderr.
+
+ Import:
  ```JavaScript
- var process = require('process');
+ const process = require('process'); // also available as a global
  ```
 
- ## Process events
- The process module object is an instance of EventEmitter; process-level events can be responded to by registering event listeners.
-
- ### beforeExit event
- **When fibjs's task queue is empty and no extra work has been added, the `beforeExit` event is triggered**
+ Example 1 — inspect the runtime identity:
  ```JavaScript
- process.on('beforeExit', exitCode => {});
+ const process = require('process');
+
+ console.log(process.argv); // [runner, script, ...arguments]
+ console.log(process.execPath);
+ console.log(process.version, process.versions.fibjs, process.versions.node);
+ console.log(process.pid, process.ppid, process.arch, process.platform);
+ console.log(process.release.name); // node, kept for compatibility
  ```
- Normally, if no extra work is added to the task queue, the fibjs process exits. However, if the callback of a listener bound to the `beforeExit` event starts a new task, such as starting a fiber, the fibjs process continues to run.
 
- process.exitCode is passed as the only argument to the callback of the `beforeExit` event listener. If the process is about to terminate for an explicit reason, such as calling process.exit directly or throwing an uncaught exception, the `beforeExit` event is not triggered.
-
- ### unhandledRejection event
- **When a Promise is rejected and no error handler is bound, the `unhandledRejection` event is triggered**
+ Example 2 — read, set and delete environment variables:
  ```JavaScript
- process.on('unhandledRejection', (reason, promise) => {});
+ const process = require('process');
+
+ process.env.FIBJS_DEMO = 'hello';
+ console.log(process.env.FIBJS_DEMO, typeof process.env.FIBJS_DEMO); // hello string
+ console.log('FIBJS_DEMO' in process.env); // true
+
+ process.env.FIBJS_DEMO = undefined; // unsets the variable
+ console.log('FIBJS_DEMO' in process.env); // false
  ```
- The callback of the `unhandledRejection` event listener has two arguments: the first is the rejection reason `reason`, and the second is the rejected `promise` object.
 
- If no listener is bound to the `unhandledRejection` event, fibjs terminates the process with exit code 1 after printing the error (consistent with the behavior of node >= 15); the `beforeExit` event is not triggered.
-
- ### exit event
- **When fibjs exits, the `exit` event is triggered; once all listeners bound to the `exit` event have finished executing, the process terminates**
+ Example 3 — load a dotenv file without overwriting existing variables:
  ```JavaScript
- process.on('exit', exitCode => {});
- ```
- The callback of the `exit` event listener has only one argument, whose value can be the value of the process.exitCode property, or the `exitCode` value passed when calling the process.exit method.
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+ const process = require('process');
 
- ### Signal event
- **When the fibjs process receives a signal, a signal event is triggered; currently supported signals are SIGINT and SIGTERM. Each event name is the signal name in uppercase (for example, the event 'SIGINT' corresponds to the signal SIGINT).**
- 
- Signal events differ from other process events: signal events are preemptive. When a signal occurs, the corresponding event is triggered as soon as possible, whether the current operation is io or JavaScript computation. For example, you can use the following code to interrupt the current application and output the running state:
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-process-'));
+ const file = path.join(dir, '.env');
+ fs.writeFile(file, 'FIBJS_DEMO=from-file\nEXISTING=from-file\n');
+
+ process.env.EXISTING = 'from-env';
+ process.loadEnvFile(file);
+ console.log(process.env.FIBJS_DEMO, process.env.EXISTING); // from-file from-env
+
+ delete process.env.FIBJS_DEMO;
+ delete process.env.EXISTING;
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
+
+ Example 4 — change the working directory and measure elapsed time:
  ```JavaScript
- var coroutine = require('coroutine');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+ const process = require('process');
 
- process.on('SIGINT', () => {
-    coroutine.fibers.forEach(f => console.error("Fiber %d:\n%s", f.id, f.stack));
-    process.exit();
- });
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-process-'));
+ const previous = process.cwd();
+ const start = process.hrtime();
+
+ try {
+     process.chdir(dir);
+     fs.writeFile('relative.txt', 'resolved against the new directory');
+     console.log(fs.readFile('relative.txt', 'utf8'));
+ } finally {
+     process.chdir(previous);
+ }
+
+ const elapsed = process.hrtime(start);
+ console.log('chdir and write took about', elapsed[0] * 1e3 + elapsed[1] / 1e6, 'ms');
+
+ fs.rmSync(dir, { recursive: true, force: true });
  ```
- The signal names and their meanings are as follows:
- * SIGINT: Supported on all platforms when running in a terminal; usually triggered by CTRL+C.
- * SIGTERM: This signal is triggered when the process is killed. Not supported on Windows.
+
+ Example 5 — run code from the exit events:
+ ```JavaScript
+ const process = require('process');
+
+ process.on('beforeExit', (code) => console.log('beforeExit', code));
+ process.on('exit', (code) => console.log('exit', code));
+
+ process.exitCode = 0; // the natural exit reports this code
+ console.log('the process ends when the task queue is empty');
+ ```
+
+ Process events:
+
+ - **`beforeExit`** — emitted with the current `exitCode` when the task queue drains; work
+   started by a listener keeps the process alive and the event can fire again later. It is
+   skipped by `exit` and by an unhandled rejection, but an uncaught error runs it before
+   the exit code becomes 1.
+ - **`exit`** — emitted synchronously with the exit code on every termination path; only
+   synchronous work runs in its listeners.
+ - **`unhandledRejection`** — emitted with `(reason, promise)` for every rejected promise
+   without a handler when the outermost scope ends; without a listener the process logs
+   the reason and exits with code 1.
+ - **`warning`** — receives the Error object built by `emitWarning`, with `name`,
+   `message`, `code` and `detail` properties.
+ - **`disconnect`** and **`message`** — only in a child with an IPC channel; see
+   `connected` and `send`.
+ - **`SIGINT`** and **`SIGTERM`** — preemptive, and the listener receives no arguments;
+   `SIGINT` also covers the Windows console control events.
+
+ Notes:
+
+ - `process.exit` does not return: a normal end of the program, an uncaught error and an
+   explicit exit all pass through the `exit` event, so flush or release resources before
+   returning from it.
+ - The module object is shared by every script of an isolate; assigning `argv` or
+   `exitCode` changes the values seen by the whole isolate, and a worker isolate has its
+   own `process` object.
+ - On Windows `umask`, `getuid`/`getgid` and `setuid`/`setgid` are limited as described on
+   the members; signals other than `SIGINT` and `SIGTERM` cannot be observed from
+   JavaScript.
  */
 module process : EventEmitter
 {
-    /*! @brief Returns the command line arguments of the current process */
+    /*! @brief Returns the command line arguments of the current process
+
+     The array holds the runner path, the script path and the arguments after the script;
+     fibjs runtime options are removed and reported by `execArgv` instead. The property is
+     writable: assigning an array replaces the reported arguments for the whole isolate, and
+     a worker isolate starts with its own list.
+     */
     static Array argv;
 
-    /*! @brief Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment */
+    /*! @brief Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment
+
+     The fibjs runtime options are extracted before `argv` is built, so they never appear
+     there; the array is empty when the process was started without options. Node.js reports
+     the Node.js options through the same property.
+     */
     static readonly String[] execArgv;
 
-    /*! @brief Returns the fibjs version string */
+    /*! @brief Returns the fibjs version string
+
+     The value carries a leading `v` (for example `v0.38.0-dev`) and describes fibjs, not
+     Node.js; use `versions.node` for the bundled Node-API compatibility version, because a
+     feature test based on Node.js version numbers is not portable here.
+     */
     static readonly String version;
 
-    /*! @brief Returns version information of fibjs and its components */
+    /*! @brief Returns version information of fibjs and its components
+
+     The object contains `fibjs`, `node` (the Node.js version of the bundled Node-API
+     headers), `platform`, `arch`, `git` (release builds), the compiler
+     (`clang`/`gcc`/`msvc`), `date`, `debug` (debug builds only), `modules`, `napi`, the
+     `vender` object with the bundled library versions and `builtins` with the names of the
+     embedded modules.
+     */
     static readonly Object versions;
 
-    /*! @brief Queries the full path of the currently running executable file */
+    /*! @brief Queries the full path of the currently running executable file
+
+     The path comes from the operating system, so it is absolute even when the runner was
+     started through `PATH`, and it names the fibjs executable rather than the script; see
+     `argv` for the script path.
+     */
     static readonly String execPath;
 
-    /*! @brief Queries the environment variables of the current process */
+    /*! @brief Queries the environment variables of the current process
+
+     The returned object is a live view of the operating system environment: reading,
+     assigning, `delete`, the `in` operator and `Object.keys` all operate on the real
+     environment, values are always strings, and assigning `undefined` unsets a variable.
+     Assigning `TZ` or `LANG` applies the time zone or locale to the isolate immediately.
+     See `loadEnvFile` for loading a dotenv file.
+     */
     static readonly Object env;
 
-    /*! @brief Queries the current cpu environment; possible results are 'amd64', 'arm', 'arm64', 'ia32' */
+    /*! @brief Queries the CPU architecture of the runtime environment
+
+     Possible results are 'x64', 'ia32', 'arm', 'arm64', 'mips', 'mips64', 'ppc64',
+     'riscv64' and 'loong64'. The value is the build target of the fibjs binary and matches
+     `os.arch` and `versions.arch`; Node.js reports the same names for the architectures it
+     supports.
+     */
     static readonly String arch;
 
-    /*! @brief Queries the current platform name; possible results are 'darwin', 'freebsd', 'linux', or 'win32' */
+    /*! @brief Queries the platform name of the runtime environment
+
+     Possible results are 'linux', 'win32', 'darwin', 'freebsd', 'android' (Android) and
+     'ios' (iPhone); the value is the build target of the binary and matches `os.platform`
+     and `versions.platform`. Node.js uses the same names for these platforms.
+     */
     static readonly String platform;
 
-    /*! @brief Returns the release metadata of the current build; name is set to 'node' */
+    /*! @brief Returns the release metadata of the current build; name is set to 'node'
+
+     The object has three fields: `name` is always 'node' so that libraries probing the
+     Node.js release keep working, `sourceUrl` points to the fibjs repository and
+     `venderUrl` to the dependency mirror (a fibjs extension). Node.js exposes a different
+     set of fields, so only `name` is portable.
+     */
     static readonly (String name, String sourceUrl, String venderUrl) release;
 
-    /*! @brief Title of the current process, fixed to 'fibjs' */
+    /*! @brief Title of the current process, initialized to 'fibjs'
+
+     The property is writable, but fibjs does not change the operating system process name
+     when it is assigned, unlike Node.js where `process.title` renames the process; the
+     initial value is 'fibjs'.
+     */
     const title = "fibjs";
 
-    /*! @brief Reads the id of the process the current object points to */
+    /*! @brief Returns the process id of the current process
+
+     The value is the operating system process id, stable for the lifetime of the process;
+     see `kill` for sending signals to a process id and `ppid` for the parent.
+     */
     static readonly Integer pid;
 
-    /*! @brief Reads the id of the parent process the current object points to */
+    /*! @brief Returns the process id of the parent process
+
+     The value is read from the operating system on each access; on POSIX a process whose
+     parent has exited is reparented, so the reported id can change. Available on Windows
+     as well.
+     */
     static readonly Integer ppid;
 
-    /*! @brief Queries the standard input object of the current process; in a tty it is TTYInputStream, otherwise Stream */
+    /*! @brief Queries the standard input object of the current process; in a tty it is TTYInputStream, otherwise Stream
+
+     The descriptor is 0 and the object is shared by every script of the isolate. When the
+     descriptor is a terminal the object is a TTYInputStream with `isTTY` and terminal
+     control methods, otherwise it is a plain Stream; a child whose descriptor 0 carries
+     the IPC channel reports the channel here. Read it through the stream interface, for
+     example with an io.BufferedStream wrapper.
+     */
     static readonly Stream stdin;
 
-    /*! @brief Queries the standard output object of the current process; in a tty it is TTYOutputStream, otherwise Stream */
+    /*! @brief Queries the standard output object of the current process; in a tty it is TTYOutputStream, otherwise Stream
+
+     The descriptor is 1; the console module writes here, as does `stdout.write`, and `fd`
+     reports 1. In a terminal the object is a TTYOutputStream with `isTTY`, `columns` and
+     `rows`, otherwise a plain Stream whose `isTTY` is false, so progress output should
+     test `isTTY` before using terminal control sequences.
+     */
     static readonly Stream stdout;
 
-    /*! @brief Queries the standard error output object of the current process; in a tty it is TTYOutputStream, otherwise Stream */
+    /*! @brief Queries the standard error output object of the current process; in a tty it is TTYOutputStream, otherwise Stream
+
+     The descriptor is 2; the console module writes `console.error` output and uncaught
+     errors here, so diagnostics stay visible when stdout is redirected. The same TTY
+     rules as stdout apply.
+     */
     static readonly Stream stderr;
 
-    /*! @brief Queries and sets the exit code of the current process */
+    /*! @brief Queries and sets the exit code of the current process
+
+     The value defaults to 0 and is reported by `exit()` with no argument and by the
+     `beforeExit` and `exit` events. It is also the status of a natural end of the program:
+     an uncaught error or a rejected promise with no handler replaces it with 1 before
+     terminating.
+     */
     static Integer exitCode;
 
     /*! @brief Changes the current umask; not supported on Windows
+
+     The mask removes permission bits from newly created files and directories. A string
+     mask is read as an octal number ("0664" and "664" are the same); any character
+     outside '0'-'7' makes the call throw Error 20024 ("process: invalid octal string"),
+     while a numeric mask is used as it is. The previous mask is returned and the new mask
+     applies to the whole process.
      @param mask the new mask: a number, or an octal string (e.g: "0664")
      @return returns the previous mask
     */
     static Integer umask(String|Integer mask);
 
     /*! @brief Returns the current umask; not supported on Windows
+
+     The mask is read (and restored) without changing it; see the other form for how a
+     string mask is interpreted. On Windows the underlying CRT mask keeps only the read and
+     write bits, so every mask reads back as 0o600.
      @return returns the current mask value
     */
     static Integer umask();
 
     /*! @brief Returns the system high-resolution time; this time is unrelated to the current time and is only used for high-precision timing
+
+     The result is a two-element array `[seconds, nanoseconds]` from a monotonic clock that
+     starts at system boot, so it never jumps when the wall clock is adjusted. Pass a
+     previous result as diff to get the elapsed time; only an array of exactly two elements
+     is subtracted, other arrays are ignored, and a value that is not an array throws a type
+     error. `hrtime.bigint()` returns the same clock as one BigInt number of nanoseconds,
+     matching Node.js.
      @param diff the initial time to compare against
      @return returns the measured time in the format [seconds, nanoseconds]
     */
     static Array hrtime(Array diff = []);
 
-    /*! @brief Exits the current process, using exitCode as the process result     */
+    /*! @brief Exits the current process, using exitCode as the process result
+
+     The `exit` event is emitted synchronously first, then the process terminates and the
+     call never returns. Inside a worker isolate it stops that worker and reports the code
+     to the parent through its exit event, leaving the main process running. The other
+     overload takes the code directly and assigns it to `exitCode` before exiting.
+     */
     static exit();
 
     /*! @brief Exits the current process and returns the result
+
+     The code is assigned to `exitCode` and the process follows the same path as `exit()`:
+     the `exit` event is emitted and the process terminates, so this call never returns.
+     Use `exitCode` alone to end the program from normal code instead.
      @param code the process result to return
      */
     static exit(Integer code);
 
     /*! @brief Returns the current working path of the operating system
+
+     The path is absolute and starts as the directory the process was started in; it is
+     cached and refreshed by `chdir`, so every module sees the new value at once. Relative
+     paths passed to the fs module are resolved against this directory.
      @return returns the current system path
      */
     static String cwd();
@@ -158,28 +395,88 @@ module process : EventEmitter
     static dlopen(Object module, String filename, Integer flags = 1);
 
     /*! @brief Changes the current working path of the operating system
+
+     The path may be absolute or relative to the current directory and must name an
+     existing directory, otherwise the call throws (Error 2, "no such file or directory").
+     The change applies to the whole process because fs resolves relative paths against it.
+
+     Example — change into a temporary directory and restore afterwards:
+     ```JavaScript
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-chdir-'));
+     const previous = process.cwd();
+
+     try {
+         process.chdir(dir);
+         fs.writeFile('note.txt', 'relative to the new directory');
+         console.log(fs.readFile('note.txt', 'utf8'));
+     } finally {
+         process.chdir(previous);
+     }
+
+     fs.rmSync(dir, { recursive: true, force: true });
+     ```
      @param directory specifies the new path to set
      */
     static chdir(String directory);
 
     /*! @brief Loads environment variables from a dotenv file into process.env
+
+     The file uses `KEY=value` lines: blank lines and lines starting with `#` are ignored,
+     `export KEY=value` is accepted, a value may be quoted, and a trailing comment after
+     whitespace is stripped. Variables already present in the environment are not
+     overwritten, and `TZ`/`LANG` values apply immediately. A missing file throws ENOENT;
+     see the `--env-file-if-exists` command line option for the optional variant.
+
+     Example — load a file while one variable is already set:
+     ```JavaScript
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-envfile-'));
+     const file = path.join(dir, 'app.env');
+     fs.writeFile(file, 'FROM_FILE=yes\nKEPT=file\n');
+
+     process.env.KEPT = 'env';
+     process.loadEnvFile(file);
+     console.log(process.env.FROM_FILE, process.env.KEPT); // yes env
+
+     delete process.env.FROM_FILE;
+     delete process.env.KEPT;
+     fs.rmSync(dir, { recursive: true, force: true });
+     ```
      @param path specifies the dotenv file path; when empty, reads .env in the current directory by default
      */
     static loadEnvFile(String path = "");
 
     /*! @brief Queries the uptime of the runtime environment, in seconds
+
+     The value is the uptime of the operating system counted by the monotonic clock, not
+     the time since the fibjs process started as in Node.js, so a freshly started process
+     can already report a very large number. Use `hrtime` for elapsed time inside the
+     process.
      @return returns a numeric value representing the time
     */
     static Number uptime();
 
     /*! @brief Queries the time spent by the current process in user and system code, in microseconds (one millionth of a second)
 
+     The result is cumulative and has `user` and `system` fields; pass a previous result as
+     previousValue to receive the difference since then. Both fields of previousValue must
+     be numbers, otherwise the call throws Error 20005. Node.js reports the same units, so
+     the values are portable.
+
      The report is generated similar to the following:
      ```JavaScript
-     {
+     // fragment: report shape
+     ({
        "user": 132379,
        "system": 50507
-     }
+     })
      ```
      Where:
      - user returns the time the process spent in user code
@@ -191,30 +488,48 @@ module process : EventEmitter
 
     /*! @brief Queries the memory usage report of the current process
 
+     All values are in bytes:
+     - rss returns the physical memory currently occupied by the process
+     - heapTotal returns the heap memory size of the V8 engine
+     - heapUsed returns the heap memory currently used by the V8 engine
+     - external returns the memory kept by JavaScript objects outside the V8 heap
+     - nativeObjects returns an object counting the live native objects by class name
+     - ExtStrings returns the number of external strings currently alive
+
+     Node.js returns rss/heapTotal/heapUsed/external/arrayBuffers, so `nativeObjects` and
+     `ExtStrings` are fibjs extensions and `arrayBuffers` is not provided.
+
      The report is generated similar to the following:
      ```JavaScript
-     {
+     // fragment: report shape
+     ({
        "rss": 8622080,
        "heapTotal": 4083456,
-       "heapUsed": 1621800
-     }
+       "heapUsed": 1621800,
+       "external": 52737,
+       "nativeObjects": {},
+       "ExtStrings": 874
+     })
      ```
-     Where:
-     - rss returns the physical memory currently occupied by the process
-     - heapTotal returns the heap memory size of the v8 engine
-     - heapUsed returns the heap memory currently used by the v8 engine
      @return returns the memory report
      */
     static Object memoryUsage();
 
     /*! @brief Queries the resource usage report of the current process
 
+     The report maps the operating system rusage counters: CPU times are in microseconds,
+     maxRSS is in kilobytes on Linux and in bytes on macOS/BSD (the unit of the underlying
+     rusage), and the remaining counters are plain numbers. Fields the kernel does not
+     expose are 0 (marked below). The field names match Node.js resourceUsage(); only the
+     maxRSS unit follows the platform as described above.
+
      resourceUsage generates results similar to the following:
      ```JavaScript
-     {
+     // fragment: report shape
+     ({
        "userCPUTime": 132379,      // User CPU time (microseconds), same as process.cpuUsage().user
-       "systemCPUTime": 50507,     // System CPU time (microseconds), same as process.cpuUsage().system
-       "maxRSS": 8622080,          // Maximum physical memory usage (KB)
+       "systemCPUTime": 50507,  // System CPU time (microseconds)
+       "maxRSS": 39384,            // Maximum physical memory usage (KB on Linux)
        "sharedMemorySize": 0,      // Shared memory size (not supported)
        "unsharedDataSize": 0,      // Unshared data size (not supported)
        "unsharedStackSize": 0,     // Unshared stack size (not supported)
@@ -226,9 +541,9 @@ module process : EventEmitter
        "ipcSent": 0,               // Number of IPC messages sent (not supported)
        "ipcReceived": 0,           // Number of IPC messages received (not supported)
        "signalsCount": 0,          // Number of signals received (not supported)
-       "voluntaryContextSwitches": 1000,    // Number of voluntary context switches (not supported on Windows)
-       "involuntaryContextSwitches": 500    // Number of involuntary context switches (not supported on Windows)
-     }
+       "voluntaryContextSwitches": 1000,   // Voluntary switches (not on Windows)
+       "involuntaryContextSwitches": 500   // Involuntary switches (not on Windows)
+     })
      ```
      @return returns an object containing the resource usage report
      */
@@ -236,71 +551,122 @@ module process : EventEmitter
 
     /*! @brief Starts a fiber to execute the specified function
 
-     The callback is started after the current synchronous code finishes executing; multiple nextTick callbacks are executed in registration order; the arguments in args are passed to the function.
+     The callback starts after the current synchronous block finishes; callbacks run in
+     registration order and args are passed through to the function. The nextTick queue is
+     drained before the V8 micro-tasks (promise jobs and queueMicrotask) and then the
+     timers, as described in the global module. An exception thrown by the callback is an
+     uncaught error of the isolate.
+
+     Example — ordering of synchronous code, nextTick and a promise:
+     ```JavaScript
+     const process = require('process');
+
+     console.log('sync');
+     process.nextTick(() => console.log('nextTick'));
+     Promise.resolve().then(() => console.log('microtask'));
+     ```
      @param func specifies the function executed by the fiber
      @param args variable argument sequence, passed to the function inside the fiber
      */
     static nextTick(Function(...args) func, ...args);
 
     /*! @brief Gets the internal module with the specified name
+
+     `'process'` returns the process module itself, `'EventEmitter'` and `'Buffer'` return
+     those classes, and any other name is looked up among the registered native modules
+     (for example `'fs'` or `'net'`); an unknown name returns undefined. This is an internal
+     compatibility shim, not the Node.js process.binding API.
      @param name specifies the name of the internal module to query
      @return returns the specified internal module
      */
     static Value binding(String name);
 
     /*! @brief Gets the built-in module with the specified name; returns undefined if the module does not exist
+
+     Built-in ids may be given with or without the `node:` prefix; `fibjs:` is accepted as
+     well, and sub-path modules such as `path/posix`, `fs/promises` or `stream/web` resolve
+     too. The returned object is identical to the one require(id) returns (Node.js
+     compatibility, v22.3 and later).
+
+     Example — the result is the same object require returns:
+     ```JavaScript
+     const process = require('process');
+
+     console.log(process.getBuiltinModule('path') === require('path')); // true
+     console.log(process.getBuiltinModule('fs/promises') === require('fs/promises')); // true
+     console.log(process.getBuiltinModule('no/such/module')); // undefined
+     ```
      @param id specifies the name of the built-in module to get; the "node:" prefix may be omitted or included, and subpaths are supported, such as "path", "node:path/posix", "fs/promises"
      @return returns the built-in module object, or undefined if the module does not exist
      */
     static Value getBuiltinModule(String id);
 
     /*! @brief Queries the group id of the current process
+
+     On POSIX the value is the effective group id used for file access checks; on Windows
+     the call returns 0 because group ids do not exist there. See `setgid` for changing
+     it.
      @return returns the group id of the current process
      */
     static Integer getgid();
 
     /*! @brief Queries the user id of the current process
+
+     On POSIX the value is the effective user id used for file access checks; on Windows
+     the call returns 0 because user ids do not exist there. See `setuid` for changing
+     it.
      @return returns the user id of the current process
      */
     static Integer getuid();
 
     /*! @brief Sets the group id of the current process
+
+     Only a privileged process can change its group id; when the underlying call fails
+     (for example without the required privileges) the error is ignored and the ids stay
+     unchanged, unlike Node.js which reports the failure. On Windows the call does
+     nothing.
      @param id specifies the group id to set
      */
     static setgid(Integer id);
 
     /*! @brief Sets the user id of the current process
+
+     Only a privileged process can change its user id; when the underlying call fails
+     (for example without the required privileges) the error is ignored and the ids stay
+     unchanged, unlike Node.js which reports the failure. On Windows the call does
+     nothing.
      @param id specifies the user id to set
      */
     static setuid(Integer id);
 
     /*! @brief Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
 
-     The options include the following:
-     ```JavaScript
-     {
-       "type": "Warning", // specifies the name of the type of warning issued. Default value: 'Warning'
-       "code": "", // specify the unique identifier of the warning instance issued
-       "detail": "" // specify additional text for warnings
-     }
-     ```
-     Usage is as follows:
-     ```JavaScript
-     const { emitWarning } = require('process');
+     A string warning is wrapped in an Error, while any other non-Error value throws Error
+     20003. The warning is delivered asynchronously to the `warning` listeners of the
+     process object; without a listener it is dropped silently, whereas Node.js prints it
+     to stderr. options may be omitted, and it supports the following properties:
 
-     // Emit a warning with a code and additional detail.
-     emitWarning('Something happened!', {
-       code: 'MY_WARNING',
-       detail: 'This is some additional information',
-     });
+     ```JavaScript
+     // fragment: options
+     ({
+       "type": "Warning", // name of the warning; default 'Warning'
+       "code": "", // unique identifier of this warning instance
+       "detail": "" // additional text stored on the warning
+     })
+     ```
+
+     The listener receives an Error with `name`, `message`, `stack`, `code` and `detail`
+     properties. The second overload takes type and code as plain arguments.
+
+     Example — collect a warning through the warning event:
+     ```JavaScript
+     const process = require('process');
 
      process.on('warning', (warning) => {
-       console.warn(warning.name);    // 'Warning'
-       console.warn(warning.message); // 'Something happened!'
-       console.warn(warning.code);    // 'MY_WARNING'
-       console.warn(warning.stack);   // Stack trace
-       console.warn(warning.detail);  // 'This is some additional information'
+         console.log(warning.name, warning.message, warning.code, warning.detail);
      });
+
+     process.emitWarning('Disk almost full', { code: 'DISK_LOW', detail: '92% used' });
      ```
      @param warning specifies the warning to emit
      @param options specifies the options of the warning
@@ -308,6 +674,10 @@ module process : EventEmitter
     static emitWarning(Value warning, Object options);
 
     /*! @brief Emits a custom or application-specific process warning. These events can be listened to by adding a handler to the 'warning' event
+
+     Shorthand form of the options overload: type defaults to 'Warning' and code to an
+     empty string, and the warning carries no `detail`. The listener receives the same
+     Error shape described there.
      @param warning specifies the warning to emit
      @param type specifies the name of the type of warning issued. Default value: 'Warning'
      @param code specifies the unique identifier of the warning instance issued
@@ -315,19 +685,53 @@ module process : EventEmitter
     static emitWarning(Value warning, String type = "Warning", String code = "");
 
     /*! @brief Sends a signal to the specified process
+
+     pid is an operating system process id; signal is a number or a signal name such as
+     'SIGTERM' (the default), 'SIGKILL' or 'SIGUSR1'. Signal 0 only checks whether the
+     process exists. An unknown name throws Error 20024 ("process: Unknown signal: ..."),
+     and a failed delivery also throws Error 20024 with the operating system message. On
+     Windows only the signals the platform can emulate (SIGINT/SIGTERM/SIGKILL and 0)
+     work, and the pid must be positive.
+
+     Example — check that this process is alive and report an unknown signal:
+     ```JavaScript
+     const process = require('process');
+
+     console.log(process.kill(process.pid, 0)); // undefined, the signal was sent
+     try {
+         process.kill(process.pid, 'NOT_A_SIGNAL');
+     } catch (e) {
+         console.log(e.number, e.message); // 20024 process: Unknown signal: NOT_A_SIGNAL
+     }
+     ```
      @param pid specifies the process id
-     signal may be a number, or a name such as "SIGTERM"; the default is SIGTERM.
-     @param signal the signal to send
+     @param signal the signal to send: a number, or a name such as "SIGTERM"; the default is SIGTERM
     */
     static kill(Integer pid, String|Integer signal = "SIGTERM");
 
-    /*! @brief Queries whether the pipe to the parent process is properly connected */
+    /*! @brief Queries whether the pipe to the parent process is properly connected
+
+     The property only exists in a child process started with an IPC channel (see
+     child_process.fork and the 'ipc' stdio type); it is true while the channel is open and
+     false after `disconnect`. In any other process the member is undefined, as in
+     Node.js.
+     */
     static readonly Boolean connected;
 
-    /*! @brief Closes the ipc pipe to the parent process */
+    /*! @brief Closes the ipc pipe to the parent process
+
+     Available only in a child with an IPC channel. The `disconnect` event is emitted,
+     `connected` becomes false and further `send` calls throw; calling it when no channel
+     is open throws Error 20024. The child itself keeps running after the channel closes.
+     */
     static disconnect();
 
     /*! @brief Sends a message to the parent process
+
+     Available only in a child with an IPC channel; the message is JSON-encoded and
+     newline-framed, so it must be JSON-serializable. The parent receives it as a `message`
+     event. After `disconnect` (or in a process without a channel) the call throws Error
+     20009 ("process.send: IPC channel is not available.").
      @param msg specifies the message to send
     */
     static send(Value msg);

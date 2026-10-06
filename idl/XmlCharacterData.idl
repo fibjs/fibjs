@@ -1,18 +1,143 @@
-/*! @brief The XmlCharacterData interface provides the common functionality of XmlText and XmlComment nodes
+/*! @brief The abstract interface that provides the character-handling members shared by
+ text, comment and CDATA nodes
 
-XmlCharacterData is the superinterface of XmlText and XmlComment nodes. Documents never contain XmlCharacterData nodes; they contain only XmlText nodes and XmlComment nodes. But since these two kinds of nodes have similar functionality, the functions are defined here so that XmlText and XmlComment can inherit them.
-*/
+ XmlCharacterData is the superinterface of XmlText and XmlComment nodes. Documents never
+ contain XmlCharacterData nodes; they contain only XmlText, XmlComment and
+ XmlCDATASection nodes. The interface is abstract: fibjs does not export it (typeof
+ XmlCharacterData is undefined) and it cannot be constructed, so the members are
+ documented here once and used through the concrete classes.
+
+ The node family (see the XmlNode class comment for the tree members):
+ - XmlText (nodeType 3, nodeName `#text`) — plain text in an element or attribute;
+ - XmlComment (8, `#comment`) — a comment;
+ - XmlCDATASection (4, `#cdata-section`) — unparsed character data; it extends XmlText,
+   so it inherits both this interface and splitText.
+
+ Concepts:
+
+ - **data, nodeValue and textContent**: data is the string stored in the node and is
+   writable; nodeValue (declared by XmlNode) is an alias for the same storage on these
+   nodes. textContent is an alias only on XmlText: on XmlComment and XmlCDATASection
+   fibjs returns an empty string and ignores assignments (the standard returns the
+   data), so read data or nodeValue instead.
+ - **Offsets and lengths are UTF-16 code units**: length, offset and count are measured
+   like JavaScript string indices, so a character outside the basic multilingual plane
+   counts as two units and may be split by an offset that lands between its surrogate
+   halves.
+ - **Boundaries**: an offset greater than the current length throws a RangeError with
+   number 20012 (the standard throws IndexSizeError); offset === length is valid and
+   produces an empty string or a no-op. A count larger than the remaining text is
+   clamped to the end, and a negative count is treated as "to the end" rather than
+   rejected (the standard throws IndexSizeError). Only strings are accepted for data
+   and arg; other types throw a type error (20005) instead of being converted.
+ - **Not included**: the standard also lists ProcessingInstruction as an implementer of
+   this interface, but in fibjs XmlProcessingInstruction is a plain XmlNode with its own
+   target and data members, so it does not inherit the members below. The horizontal
+   ChildNode helpers before, after, replaceWith and remove come from XmlNode instead.
+
+ Obtained from (through the concrete classes):
+ - text: `xml.parse('<a>t</a>').documentElement.firstChild`,
+   `document.createTextNode(text)`, or `textNode.splitText(offset)`;
+ - comments: `xml.parse('<r><!--c--></r>').documentElement.firstChild` or
+   `document.createComment(data)`;
+ - CDATA: `xml.parse('<r><![CDATA[d]]></r>').documentElement.firstChild` or
+   `document.createCDATASection(data)`.
+
+ Example 1 — the data members on a text node created with createTextNode:
+ ```JavaScript
+ const xml = require('xml');
+
+ const doc = new xml.Document();
+ const text = doc.createTextNode('hello');
+
+ console.log(text.length);              // 5
+ console.log(text.substringData(1, 3)); // ell
+ text.appendData(' world');
+ text.insertData(5, ',');
+ console.log(text.data);                // hello, world
+ text.replaceData(6, 6, 'there');
+ console.log(text.data);                // hello,there
+ text.deleteData(5, 1);
+ console.log(text.data);                // hellothere
+ ```
+
+ Example 2 — the same members on a comment:
+ ```JavaScript
+ const xml = require('xml');
+
+ const doc = xml.parse('<root><!--draft--><a/></root>');
+ const comment = doc.documentElement.firstChild;
+
+ console.log(comment.nodeName); // #comment
+ console.log(comment.data);     // draft
+ comment.replaceData(0, 5, 'final');
+ console.log(String(doc.documentElement)); // <root><!--final--><a/></root>
+ ```
+
+ Example 3 — UTF-16 indexing and an out-of-range offset:
+ ```JavaScript
+ const xml = require('xml');
+
+ const doc = new xml.Document();
+ const text = doc.createTextNode('a\u{1F600}b');
+
+ console.log(text.length);              // 4, the emoji counts as two code units
+ console.log(text.substringData(1, 2)); // the emoji character
+
+ try {
+     text.insertData(9, 'x');
+ } catch (err) {
+     console.log(err.name);   // RangeError
+     console.log(err.number); // 20012
+ }
+ ```
+ */
 interface XmlCharacterData : XmlNode
 {
-    /*! @brief The text contained in this node
+    /*! @brief Reads and writes the text contained in this node
+
+     The setter replaces the whole character data and accepts only a string; any other
+     value throws a type error (20005). On text, comment and CDATA nodes the same
+     storage is exposed as nodeValue.
+
+     Example — change the data of a text node:
+     ```JavaScript
+     const xml = require('xml');
+
+     const doc = new xml.Document();
+     const text = doc.createTextNode('draft');
+
+     console.log(text.data);      // draft
+     text.data = 'final';
+     console.log(text.nodeValue); // final
+     ```
     */
     String data;
 
     /*! @brief The number of characters contained in this node
+
+     The count is in UTF-16 code units, matching the JavaScript string length, so a
+     character outside the basic multilingual plane counts as two.
     */
     readonly Integer length;
 
     /*! @brief Extracts a substring from the node
+
+     Count is clamped to the end of the data, and a negative count extracts everything
+     from offset to the end. An offset greater than length throws a RangeError (20012);
+     offset === length returns an empty string.
+
+     Example — extract with clamping:
+     ```JavaScript
+     const xml = require('xml');
+
+     const text = xml.parse('<r>abcdef</r>').documentElement.firstChild;
+
+     console.log(text.substringData(2, 3));        // cde
+     console.log(text.substringData(4, 99));       // ef
+     console.log(text.substringData(6, 1).length); // 0
+     ```
+
      @param offset the position of the first character to return
      @param count the number of characters in the substring to return
      @return returns the extracted string
@@ -20,23 +145,41 @@ interface XmlCharacterData : XmlNode
     String substringData(Integer offset, Integer count);
 
     /*! @brief Appends a string to the node
+
+     The argument is appended verbatim (it is not parsed as markup); a non-string
+     argument throws a type error (20005).
+
      @param arg the string to append to the node
     */
     appendData(String arg);
 
     /*! @brief Inserts a string into the node
+
+     The characters are inserted before the character currently at offset; offset may
+     equal length to append. An offset greater than length throws a RangeError (20012).
+
      @param offset the character position at which to insert the string into the node
      @param arg the string to insert
     */
     insertData(Integer offset, String arg);
 
     /*! @brief Deletes text from the node
+
+     Count is clamped to the end of the data; a negative count is treated as "to the
+     end". An offset greater than length throws a RangeError (20012), while deleting at
+     offset === length is a no-op.
+
      @param offset the position of the first character to delete
      @param count the number of characters to delete
     */
     deleteData(Integer offset, Integer count);
 
     /*! @brief Replaces the characters of the node with the given string
+
+     The count characters starting at offset are replaced by arg; count is clamped to
+     the end of the data and a negative count replaces to the end. An offset greater
+     than length throws a RangeError (20012).
+
      @param offset the character position in the node to replace
      @param count the number of characters to replace
      @param arg the string to insert

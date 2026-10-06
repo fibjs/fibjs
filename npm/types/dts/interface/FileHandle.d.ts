@@ -3,28 +3,124 @@
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description File handle object
+ * @description An open file descriptor: reads, writes and inspects one open file by position
  *
+ *  A FileHandle keeps a native descriptor open between calls, so one handle can alternate
+ *  between reading and writing, use random access, or stay open for a long time. Reach for it
+ *  when one operation is not enough: fs.readFile/fs.writeFile open, transfer and close the file
+ *  in a single call, while fs.open returns a handle that lives until close(). A handle can also
+ *  be passed to the descriptor functions of the fs module (fstat, fchmod, futimes, read, write
+ *  and so on).
+ *
+ *  Concepts:
+ *
+ *  - **Descriptor and position**: the handle owns one descriptor with one file position.
+ *    read/write without a position continue at the current position; an explicit position
+ *    (greater than -1) seeks the descriptor first, so a positioned call also moves the position
+ *    for the next sequential call. In Node.js a positioned call leaves the position untouched
+ *    (plans/compat-differences.md 2.14).
+ *  - **Lifetime**: the descriptor stays open until close() is called, even when the handle
+ *    becomes unreachable, so an unclosed handle keeps a file busy. No other member closes it.
+ *    After close() the fd property is -1 and the members report an invalid handle; closing an
+ *    already closed handle throws in fibjs while Node.js resolves (2.16).
+ *  - **Call forms**: every member marked async works synchronously (the fiber blocks), with a
+ *    trailing callback, or through fs.promises.open. read and write return a result object with
+ *    bytesRead/bytesWritten and buffer in all three forms.
+ *  - **writeFile replaces, appendFile does not seek**: writeFile seeks to 0 and truncates before
+ *    writing, appendFile writes at the current position; open with the 'a' flag when appendFile
+ *    must always append. Node.js writeFile writes in place instead (2.15).
+ *
+ *  Obtained from:
+ *  - `fs.open(path[, flags[, mode]])` — synchronous/callback entry point, flags default to 'r';
+ *  - `fs.promises.open(path[, flags[, mode]])` — promise entry point;
+ *  - `new FileHandle(fd)` — the IDL constructor wraps an existing descriptor, but the class is
+ *    not exposed as a JavaScript global in fibjs, so user code obtains handles from the open
+ *    functions.
+ *
+ *  Example 1 — write and read one file through a handle with explicit positions:
  *  ```JavaScript
- *  var fd = fs.open('test.txt');
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-handle-'));
+ *  const file = path.join(dir, 'data.txt');
+ *
+ *  const handle = fs.open(file, 'w+');
+ *  handle.write(Buffer.from('hello world'), 0, -1, 0);
+ *  const read = handle.read(Buffer.alloc(5), 0, 5, 6);
+ *  console.log(read.bytesRead, read.buffer.toString()); // 5 world
+ *
+ *  handle.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 2 — replace, append and inspect the file through the same handle:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-handle-'));
+ *  const file = path.join(dir, 'log.txt');
+ *
+ *  const handle = fs.open(file, 'a+');
+ *  console.log(handle.writeFile('first')); // 5, the content is replaced and truncated
+ *  handle.appendFile(' second');           // the 'a' flag appends at the end
+ *  console.log(handle.readFile('utf8'));   // first second
+ *  console.log(handle.stat().size);        // 12
+ *
+ *  handle.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 3 — the promise form closes the descriptor through await:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-handle-'));
+ *  const file = path.join(dir, 'async.txt');
+ *
+ *  (async () => {
+ *      const handle = await fs.promises.open(file, 'w+');
+ *      await handle.writeFile('async data');
+ *      console.log(await handle.readFile('utf8')); // async data
+ *      await handle.close();
+ *      fs.rmSync(dir, { recursive: true, force: true });
+ *  })();
  *  ```
  *
  */
 declare class Class_FileHandle extends Class_object {
     /**
-     * @description FileHandle constructor, creates a file handle from a file descriptor
+     * @description Wraps an existing file descriptor in a FileHandle
+     *
+     *      The descriptor is used as it is and is owned by the returned handle: close() closes it
+     *      and every other member reports an invalid handle afterwards. fibjs does not expose the
+     *      class as a JavaScript global (`typeof FileHandle` is 'undefined'), so in practice handles
+     *      are obtained from fs.open and fs.promises.open.
      *      @param fd the file descriptor value
      *
      */
     constructor(fd: number);
 
     /**
-     * @description Queries the current file descriptor
+     * @description File descriptor number of the open handle
+     *
+     *      A positive integer while the handle is open and -1 after close(). The number can be
+     *      passed to the descriptor functions of the fs module (fs.fstat, fs.read, fs.write,
+     *      fs.fsync, fs.close and others), which accept an integer or a FileHandle alike.
+     *
      */
     readonly fd: number;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
@@ -33,21 +129,31 @@ declare class Class_FileHandle extends Class_object {
     chmod(mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
     chmodSync(mode: number): void;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
     chmodAsync(mode: number): Promise<void>;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
@@ -56,21 +162,75 @@ declare class Class_FileHandle extends Class_object {
     stat(callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
     statSync(): Class_Stat;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
     statAsync(): Promise<Class_Stat>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -89,7 +249,53 @@ declare class Class_FileHandle extends Class_object {
     })=>any): void;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -103,7 +309,53 @@ declare class Class_FileHandle extends Class_object {
     };
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -117,17 +369,11 @@ declare class Class_FileHandle extends Class_object {
     }>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -143,17 +389,11 @@ declare class Class_FileHandle extends Class_object {
     })=>any): void;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -164,17 +404,11 @@ declare class Class_FileHandle extends Class_object {
     };
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -185,7 +419,37 @@ declare class Class_FileHandle extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -204,7 +468,37 @@ declare class Class_FileHandle extends Class_object {
     })=>any): void;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -218,7 +512,37 @@ declare class Class_FileHandle extends Class_object {
     };
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -232,7 +556,10 @@ declare class Class_FileHandle extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -250,7 +577,10 @@ declare class Class_FileHandle extends Class_object {
     })=>any): void;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -263,7 +593,10 @@ declare class Class_FileHandle extends Class_object {
     };
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -276,16 +609,40 @@ declare class Class_FileHandle extends Class_object {
     }>;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -295,16 +652,40 @@ declare class Class_FileHandle extends Class_object {
     readFile(options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -312,16 +693,40 @@ declare class Class_FileHandle extends Class_object {
     readFileSync(options?: FIBJS.GeneralObject | string): any;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -329,17 +734,46 @@ declare class Class_FileHandle extends Class_object {
     readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -349,17 +783,46 @@ declare class Class_FileHandle extends Class_object {
     writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -367,17 +830,46 @@ declare class Class_FileHandle extends Class_object {
     writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -385,9 +877,10 @@ declare class Class_FileHandle extends Class_object {
     writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -397,9 +890,10 @@ declare class Class_FileHandle extends Class_object {
     utimes(atime: any, mtime: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -407,9 +901,10 @@ declare class Class_FileHandle extends Class_object {
     utimesSync(atime: any, mtime: any): void;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -417,7 +912,10 @@ declare class Class_FileHandle extends Class_object {
     utimesAsync(atime: any, mtime: any): Promise<void>;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -427,7 +925,10 @@ declare class Class_FileHandle extends Class_object {
     chown(uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -435,7 +936,10 @@ declare class Class_FileHandle extends Class_object {
     chownSync(uid: number, gid: number): void;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -443,9 +947,10 @@ declare class Class_FileHandle extends Class_object {
     chownAsync(uid: number, gid: number): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     sync(): void;
@@ -453,25 +958,28 @@ declare class Class_FileHandle extends Class_object {
     sync(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     syncSync(): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     syncAsync(): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasync(): void;
@@ -479,23 +987,28 @@ declare class Class_FileHandle extends Class_object {
     datasync(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasyncSync(): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasyncAsync(): Promise<void>;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
@@ -504,21 +1017,51 @@ declare class Class_FileHandle extends Class_object {
     truncate(len?: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
     truncateSync(len?: number): void;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
     truncateAsync(len?: number): Promise<void>;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -528,7 +1071,31 @@ declare class Class_FileHandle extends Class_object {
     appendFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -536,7 +1103,31 @@ declare class Class_FileHandle extends Class_object {
     appendFileSync(data: Class_Buffer | string): number;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -544,19 +1135,34 @@ declare class Class_FileHandle extends Class_object {
     appendFileAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     closeSync(): void;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     closeAsync(): Promise<void>;
 
@@ -572,61 +1178,138 @@ declare class Class_FileHandle extends Class_object {
  */
 declare class Class_FileHandlePromise extends Class_object {
     /**
-     * @description FileHandle constructor, creates a file handle from a file descriptor
+     * @description Wraps an existing file descriptor in a FileHandle
+     *
+     *      The descriptor is used as it is and is owned by the returned handle: close() closes it
+     *      and every other member reports an invalid handle afterwards. fibjs does not expose the
+     *      class as a JavaScript global (`typeof FileHandle` is 'undefined'), so in practice handles
+     *      are obtained from fs.open and fs.promises.open.
      *      @param fd the file descriptor value
      *
      */
     constructor(fd: number);
 
     /**
-     * @description Queries the current file descriptor
+     * @description File descriptor number of the open handle
+     *
+     *      A positive integer while the handle is open and -1 after close(). The number can be
+     *      passed to the descriptor functions of the fs module (fs.fstat, fs.read, fs.write,
+     *      fs.fsync, fs.close and others), which accept an integer or a FileHandle alike.
+     *
      */
     readonly fd: number;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
     chmod(mode: number): Promise<void>;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
     chmodSync(mode: number): void;
 
     /**
-     * @description Queries the access permission of the current file; not supported on Windows
+     * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
+     *
+     *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
+     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
      *      @param mode the access permission to set
      *
      */
     chmodAsync(mode: number): Promise<void>;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
     stat(): Promise<Class_Stat>;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
     statSync(): Class_Stat;
 
     /**
-     * @description Queries the basic information of the current file
+     * @description Reads the status of the open file (fstat)
+     *
+     *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
+     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
+     *      filehandle.stat().
      *      @return returns the basic information of the file
      *
      */
     statAsync(): Promise<Class_Stat>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -640,7 +1323,53 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -654,7 +1383,53 @@ declare class Class_FileHandlePromise extends Class_object {
     };
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file into a Buffer, optionally at a given position
+     *
+     *      Bytes are read into buffer starting at buffer[offset]; at most length bytes are read and
+     *      a short read only happens at the end of the file. The default length 0 reads nothing and
+     *      returns bytesRead 0; the options form below instead defaults to buffer.length - offset.
+     *      position greater than -1 seeks the descriptor before reading (so the position is left
+     *      after the data), the default -1 reads from the current position. The result object holds
+     *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
+     *
+     *      The options form read(options) takes the properties below; its buffer is allocated with
+     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
+     *      the result shape and the default buffer are the same, but an explicit position does not
+     *      move the current position (plans/compat-differences.md 2.14).
+     *
+     *      options supports the following properties:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "buffer": Buffer.alloc(16384), // the destination; allocated when not provided
+     *          "offset": 0, // the write offset inside the buffer, default 0
+     *          "length": 0, // bytes to read; default buffer.length - offset in this form
+     *          "position": -1 // the file position to read from, default the current position
+     *      })
+     *      ```
+     *
+     *      Throws RangeError when offset is negative or length is larger than buffer.length -
+     *      offset; an invalid or closed handle reports a bad file descriptor error instead.
+     *
+     *      Example — read a middle slice and then continue sequentially:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'read.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      const first = handle.read(Buffer.alloc(3), 0, 3, 0);
+     *      const next = handle.read(Buffer.alloc(2), 0, 2);
+     *      console.log(first.buffer.toString(), next.buffer.toString()); // 012 34
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write the read result into
      *      @param offset the Buffer write offset, default is 0
      *      @param length the number of bytes to read from the file, default is 0
@@ -668,17 +1443,11 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -689,17 +1458,11 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -710,17 +1473,11 @@ declare class Class_FileHandlePromise extends Class_object {
     };
 
     /**
-     * @description Reads file content by file descriptor
+     * @description Reads bytes from the file with all parameters in one options object
      *
-     *      options supports the following properties:
-     *      ```JavaScript
-     *      {
-     *          "buffer": Buffer.alloc(16384), // the Buffer object to write the read result into; allocated automatically when not provided
-     *          "offset": 0, // the Buffer write offset, default is 0
-     *          "length": 0, // the number of bytes to read, default is buffer.length - offset
-     *          "position": -1 // the file read position, default is the current file position
-     *      }
-     *      ```
+     *      Equivalent to read(buffer, offset, length, position) with the properties of options
+     *      filling the parameters; see the first form for the result shape, the defaults (a
+     *      16384-byte buffer when buffer is missing) and the position rules.
      *      @param options the read options
      *      @return returns an object containing the bytesRead and buffer properties
      *
@@ -731,7 +1488,37 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -745,7 +1532,37 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -759,7 +1576,37 @@ declare class Class_FileHandlePromise extends Class_object {
     };
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes bytes from a Buffer, optionally at a given position
+     *
+     *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
+     *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
+     *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
+     *      write also leaves the position after the data (Node.js keeps it, see
+     *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
+     *      result object holds bytesWritten and buffer.
+     *
+     *      The string form write(string, position, encoding) encodes the string first and then
+     *      writes the resulting bytes with the same position rules.
+     *
+     *      Example — overwrite a range in the middle of a file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'write.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      const result = handle.write(Buffer.from('AB'), 0, 2, 4);
+     *      console.log(result.bytesWritten);     // 2
+     *      console.log(handle.readFile('utf8'));  // 0123AB6789
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param buffer the Buffer object to write
      *      @param offset the Buffer data read offset, default is 0
      *      @param length the number of bytes to write to the file, default is -1
@@ -773,7 +1620,10 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -786,7 +1636,10 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -799,7 +1652,10 @@ declare class Class_FileHandlePromise extends Class_object {
     };
 
     /**
-     * @description Writes content to the file by file descriptor
+     * @description Writes a string, encoding it and optionally seeking first
+     *
+     *      The string is encoded with encoding (utf8 by default) and the bytes are written with
+     *      the same position rules and result shape as the Buffer form.
      *      @param string the string to write
      *      @param position the file write position, default is the current file position
      *      @param encoding the decoding method, utf8 by default
@@ -812,16 +1668,40 @@ declare class Class_FileHandlePromise extends Class_object {
     }>;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -829,16 +1709,40 @@ declare class Class_FileHandlePromise extends Class_object {
     readFile(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -846,16 +1750,40 @@ declare class Class_FileHandlePromise extends Class_object {
     readFileSync(options?: FIBJS.GeneralObject | string): any;
 
     /**
-     * @description Reads the entire content of the file
+     * @description Reads the whole file from the beginning and leaves the handle open
+     *
+     *      Seeks to position 0, reads to the end of the file and leaves the position at the end;
+     *      the handle stays open. options is either an encoding or an object with an `encoding`
+     *      property: an empty encoding (the default) returns a Buffer and any other value decodes
+     *      the bytes into a string. Unlike the fs.readFile descriptor form, the options object of
+     *      this method does not default to utf8: readFile({}) still returns a Buffer.
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding to use; empty (the default) returns a Buffer
+     *      })
      *      ```
-     *      An encoding string is empty by default, no decoding is performed and a Buffer object is returned; a descriptor read with an options object decodes as utf8 unless the encoding option says otherwise.
-     *      options may be the decoding method string, or the read options object.
+     *
+     *      Example — the same content as a Buffer and as a string:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readfile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const handle = fs.open(file, 'r');
+     *      console.log(Buffer.isBuffer(handle.readFile()));    // true
+     *      console.log(handle.readFile({ encoding: 'utf8' })); // hello
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param options the decoding method or the read options
      *      @return returns the file content
      *
@@ -863,17 +1791,46 @@ declare class Class_FileHandlePromise extends Class_object {
     readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -881,17 +1838,46 @@ declare class Class_FileHandlePromise extends Class_object {
     writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -899,17 +1885,46 @@ declare class Class_FileHandlePromise extends Class_object {
     writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
     /**
-     * @description Writes data to the file, replacing its content
+     * @description Replaces the content of the file and returns the number of bytes written
+     *
+     *      Seeks to position 0, writes the data and truncates the file at the end of the written
+     *      content, so the previous content is gone; the handle stays open and the position is left
+     *      after the data. opt is the encoding of string data (utf8 by default) or an options
+     *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
+     *      are written as they are.
+     *
+     *      Node.js filehandle.writeFile writes in place at the current position and returns
+     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding to use, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "encoding": "utf8" // the encoding of string data, default utf8
+     *      })
      *      ```
-     *      opt is the encoding of string data, utf8 by default, and an options object carries the encoding instead; the encoding of a Buffer is validated but not used.
+     *
+     *      Example — replace a long file with short content:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-writefile-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'a much longer content');
+     *
+     *      const handle = fs.open(file, 'r+');
+     *      console.log(handle.writeFile('short')); // 5
+     *      console.log(handle.readFile('utf8'));   // short
+     *      console.log(handle.stat().size);        // 5
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
-     *      opt may be the encoding of string data, or the write options object.
      *      @param opt the encoding or the write options
      *      @return the number of bytes actually written
      *
@@ -917,9 +1932,10 @@ declare class Class_FileHandlePromise extends Class_object {
     writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -927,9 +1943,10 @@ declare class Class_FileHandlePromise extends Class_object {
     utimes(atime: any, mtime: any): Promise<void>;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -937,9 +1954,10 @@ declare class Class_FileHandlePromise extends Class_object {
     utimesSync(atime: any, mtime: any): void;
 
     /**
-     * @description Modifies the access and modification times of the file
+     * @description Sets the access and modification times of the open file (futimes)
      *
-     *     Time parameters can be a Date object, a Unix timestamp (in seconds) or a date string, consistent with Node.js.
+     *      Accepts a Date, a number of seconds since the Unix epoch or a numeric string, the same
+     *      forms as fs.utimes; both times must be given.
      *      @param atime the last access time of the file
      *      @param mtime the last modification time of the file
      *
@@ -947,7 +1965,10 @@ declare class Class_FileHandlePromise extends Class_object {
     utimesAsync(atime: any, mtime: any): Promise<void>;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -955,7 +1976,10 @@ declare class Class_FileHandlePromise extends Class_object {
     chown(uid: number, gid: number): Promise<void>;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -963,7 +1987,10 @@ declare class Class_FileHandlePromise extends Class_object {
     chownSync(uid: number, gid: number): void;
 
     /**
-     * @description Modifies the owner of the file; not supported on Windows
+     * @description Changes the owner of the open file (fchown); effective on POSIX systems only
+     *
+     *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
+     *      the group list. Node.js calls this filehandle.chown().
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -971,76 +1998,115 @@ declare class Class_FileHandlePromise extends Class_object {
     chownAsync(uid: number, gid: number): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     sync(): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     syncSync(): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data and metadata to the storage device (fsync)
      *
-     *     Synchronizes file data and metadata, ensuring written content is persisted.
+     *      Ensures that everything written through the descriptor survives a crash; a more
+     *      expensive operation than datasync where the platform distinguishes the two.
      *
      */
     syncAsync(): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasync(): Promise<void>;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasyncSync(): void;
 
     /**
-     * @description Synchronizes data to disk
+     * @description Flushes file data to the storage device (fdatasync)
      *
-     *     Synchronizes only the file data portion, not the file metadata; less expensive than sync.
+     *      Skips the metadata that is not needed to read the data back and is therefore often
+     *      cheaper than sync. Same name as Node.js filehandle.datasync.
      *
      */
     datasyncAsync(): Promise<void>;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
     truncate(len?: number): Promise<void>;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
     truncateSync(len?: number): void;
 
     /**
-     * @description Modifies the file size
+     * @description Truncates the file to the given length (ftruncate)
+     *
+     *      A negative length is treated as 0 and the default 0 empties the file; extending a file
+     *      fills the new range with zero bytes on POSIX systems. The file position is not changed.
      *      @param len the file size to set, default is 0
      *
      */
     truncateAsync(len?: number): Promise<void>;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -1048,7 +2114,31 @@ declare class Class_FileHandlePromise extends Class_object {
     appendFile(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -1056,7 +2146,31 @@ declare class Class_FileHandlePromise extends Class_object {
     appendFileSync(data: Class_Buffer | string): number;
 
     /**
-     * @description Appends content
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param data the data to write
      *      @return the number of bytes actually written
      *
@@ -1064,17 +2178,32 @@ declare class Class_FileHandlePromise extends Class_object {
     appendFileAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     close(): Promise<void>;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     closeSync(): void;
 
     /**
-     * @description Closes the current file handle
+     * @description Releases the descriptor and closes the file
+     *
+     *      After close() the handle reports fd -1 and every other member fails with an invalid
+     *      handle error; the file data itself is unaffected. A second close() throws a bad file
+     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *
      */
     closeAsync(): Promise<void>;
 

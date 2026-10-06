@@ -58,6 +58,26 @@ if (unionProblems.length) {
 } else
     console.log('✅ No union type problems');
 
+// The documentation checker runs before the generation: a definition that is
+// being changed must be fully documented (X1-X10, plans/idl-doc-completion-
+// plan-2026-10-05.md 7.1), so the generated manual never regresses.
+console.log('\n🔎 Checking documentation (X1-X10)...');
+var docProblems = require('./util/check_idl_docs')(defs, {
+    baseline: path.resolve(__dirname, 'util/idl_docs_baseline.json'),
+    changed: true,
+    report: path.resolve(__dirname, '../temp/idl_examples_report.json')
+});
+if (docProblems.length) {
+    console.log(`   ❌ ${docProblems.length} documentation problem(s):`);
+    docProblems.slice(0, 50).forEach((p) => {
+        console.log(`      [${p.rule}] ${p.def}${p.member ? '.' + p.member : ''}: ${p.message}`);
+    });
+    if (docProblems.length > 50)
+        console.log(`      ... and ${docProblems.length - 50} more (see tools/util/check_idl_docs.js)`);
+    process.exit(1);
+} else
+    console.log('✅ No documentation problems');
+
 console.log('\n💾 Recording IDL JSON...');
 record_idljson(defs);
 console.log('✅ IDL JSON recorded');

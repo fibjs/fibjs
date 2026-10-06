@@ -1,104 +1,133 @@
-/*! @brief Headers is a container class dedicated to handling HTTP header information, inheriting from HttpCollection
+/*! @brief The case-insensitive HTTP header collection of the Fetch API, inheriting from
+HttpCollection
 
-Headers implements the standard HTTP Headers API and serves both as the global Headers object and as the implementation class of http.Headers. It provides complete HTTP header management functionality, supports standard HTTP header field operations, and inherits all the functionality of HttpCollection, including adding, setting, querying and deleting header fields.
+ Headers is both the global Headers class and http.Headers (the two names refer to the same
+ class), so the standard constructor and the fibjs module entry produce interchangeable
+ objects. It stores header fields as name/value pairs, compares names case-insensitively,
+ keeps them in lower case on the wire side and preserves every value of a repeated field.
 
-Headers supports the following ways of use:
+ Concepts:
 
-1. Use as the global Headers API (Web standard):
+ - **Case-insensitive multi-map**: append() adds a value without touching the existing ones,
+   set() replaces every value of a name, and has()/get()/delete() accept any casing. get()
+   joins the values of a repeated field with ", " the way the Fetch API does; first() and
+   all() (from HttpCollection) return the raw values, and getSetCookie() returns the
+   Set-Cookie values separately because that header must not be joined.
+ - **Values**: values are converted to strings and stored as given; the Fetch normalization
+   that trims leading/trailing HTTP whitespace is not applied, so "  a  " stays padded
+   (plans/compat-differences.md).
+ - **Names**: an empty name throws `TypeError [20004] Invalid argument.` Names are otherwise
+   stored as given apart from the lower case form. The iteration helpers visit the entries in
+   sorted name order, because Headers sorts before iterating (see HttpCollection).
+ - **Construction**: from an object, an array of [name, value] pairs or another Headers; an
+   element that is not a pair throws `TypeError [20005] Failed to construct 'Headers':
+   sequence elements must be pairs.` A Map or any other iterable of pairs is not accepted,
+   unlike the Web standard.
+ - **No guard modes**: the Fetch immutable/request/response guards (forbidden header names,
+   read-only response headers) are not implemented; names and values can always be changed.
 
-```JavaScript
-// Create empty Headers object
-const headers = new Headers();
+ Obtained from:
+ - `new Headers()` / `new Headers(init)` — the two constructors;
+ - `http.Headers` — the same class exported by the http module;
+ - `http.Request#headers` / `HttpMessage#headers` — the headers of a message;
+ - `http.Response#headers` — the headers of a response.
 
-// Initialize with object
-const headers = new Headers({
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-});
+ Example 1 — build headers and read them case-insensitively:
+ ```JavaScript
+ const headers = new Headers();
+ headers.append('Content-Type', 'text/plain');
+ headers.append('X-Tag', 'a');
+ headers.append('x-tag', 'b');
 
-// Initialize with array
-const headers = new Headers([
-    ['Content-Type', 'application/json'],
-    ['Accept', 'application/json']
-]);
+ console.log(headers.get('CONTENT-TYPE')); // text/plain
+ console.log(headers.get('x-tag'));        // a, b (get joins the values)
+ console.log(headers.first('X-Tag'));      // a
+ console.log(headers.has('missing'));      // false
+ headers.delete('content-type');
+ console.log(headers.has('Content-Type')); // false
+ ```
 
-// Copy from another Headers object
-const copy = new Headers(headers);
-```
+ Example 2 — initialize from an object or an array of pairs and copy:
+ ```JavaScript
+ const fromObject = new Headers({ 'Content-Type': 'application/json', 'X-Trace': 42 });
+ const fromPairs = new Headers([['Accept', 'text/html'], ['Accept', 'application/xml']]);
 
-2. Use as http.Headers (fibjs extension):
+ console.log(fromObject.get('x-trace'));  // 42
+ console.log(fromPairs.getAll('accept')); // [ 'text/html', 'application/xml' ]
 
-```JavaScript
-const headers = new http.Headers({
-    'User-Agent': 'fibjs/1.0',
-    'Accept': 'text/html'
-});
-```
+ const copy = new Headers(fromPairs);
+ copy.set('accept', 'text/plain');
+ console.log(fromPairs.getAll('accept').length, copy.getAll('accept').length); // 2 1
+ ```
 
-Example of standard Headers API methods:
+ Example 3 — iterate in sorted order and read Set-Cookie separately:
+ ```JavaScript
+ const headers = new Headers({ 'B-Header': '2', 'A-Header': '1' });
+ headers.append('Set-Cookie', 'a=1');
+ headers.append('set-cookie', 'b=2');
 
-```JavaScript
-// Standard Headers API methods
-headers.set('Content-Type', 'text/html; charset=utf-8');
-headers.append('Accept', 'application/json');
-headers.get('Content-Type');  // 'text/html; charset=utf-8'
-headers.has('Accept');        // true
-headers.delete('User-Agent');
+ const lines = [];
+ for (const [name, value] of headers)
+     lines.push(name + ': ' + value);
+ console.log(lines.join(', '));
+ // a-header: 1, b-header: 2, set-cookie: a=1, set-cookie: b=2
 
-// Iterator support
-for (const [name, value] of headers) {
-    console.log(`${name}: ${value}`);
-}
-
-// Iterate over keys
-for (const name of headers.keys()) {
-    console.log(name);
-}
-
-// Iterate over values
-for (const value of headers.values()) {
-    console.log(value);
-}
-
-// forEach method
-headers.forEach((value, name) => {
-    console.log(`${name}: ${value}`);
-});
-```
-
-Example of fibjs extension methods (inherited from HttpCollection):
-
-```JavaScript
-// Add multiple values (without overwriting existing)
-headers.add('Cache-Control', 'no-cache');
-
-// Get first value
-const auth = headers.first('Authorization');
-
-// Get all values
-const cookies = headers.all('Set-Cookie');
-
-// Set multiple cookies
-headers.set('Set-Cookie', [
-    'sessionId=abc123; Path=/',
-    'userId=456; Path=/; HttpOnly'
-]);
-```
-
-Headers automatically handles the case-insensitive nature of header field names, fully following the HTTP protocol specification and the Web standard Headers API.
+ console.log(headers.get('set-cookie')); // a=1, b=2 (joined)
+ console.log(headers.getSetCookie());   // [ 'a=1', 'b=2' ]
+ ```
  */
 interface Headers : HttpCollection
 {
-    /*! @brief Headers constructor, creates a new empty HTTP headers container */
+    /*! @brief Creates an empty Headers collection
+
+     No header fields are stored; the collection is ready for append()/set(). Equivalent to
+     `new Headers({})`.
+    */
     Headers();
 
-    /*! @brief Headers constructor, initializes the HTTP headers container from an object, an array of pairs or another Headers
-     @param init the initial headers: an object whose keys are header field names and values are header field values, an array whose elements are [name, value] pairs, or another Headers container to copy
+    /*! @brief Creates a Headers collection from an object, an array of pairs or another Headers
+
+     The init argument is converted as follows:
+     - an object's own enumerable properties become fields in enumeration order; each value is
+       converted to a string (42 becomes "42") and a repeated name can only be produced with
+       append();
+     - an array must contain [name, value] pairs of exactly two elements; any other element
+       throws `TypeError [20005] Failed to construct 'Headers': sequence elements must be
+       pairs.` Several pairs with the same name append several values;
+     - another Headers copies every entry into an independent collection, lower-casing the
+       names on the way.
+     A Map or another iterable of pairs is not accepted, unlike the Web standard.
+
+     Example — initialize from an array of pairs:
+     ```JavaScript
+     const headers = new Headers([['Content-Type', 'text/html'], ['Accept', 'text/html']]);
+
+     console.log(headers.get('content-type')); // text/html
+     console.log(headers.has('accept'));       // true
+     ```
+
+     @param init the initial fields: an object, an array of [name, value] pairs or another Headers
      */
     Headers(Object|Array|Headers init);
 
-    /*! @brief returns an array composed of all Set-Cookie header values
-     @return returns an array containing all Set-Cookie values
+    /*! @brief Returns every Set-Cookie value as a separate array element
+
+     get('set-cookie') joins the values with ", " like any repeated field, which is not
+     usable for Set-Cookie; this member returns the raw values in insertion order instead,
+     as the Fetch API specifies. An empty array is returned when the header is absent. The
+     member is available on the global Headers class and on http.Headers alike.
+
+     Example — collect the cookies of a response:
+     ```JavaScript
+     const headers = new Headers();
+     headers.append('Set-Cookie', 'sid=a; Path=/');
+     headers.append('Set-Cookie', 'theme=dark; Path=/');
+
+     console.log(headers.getSetCookie());
+     // [ 'sid=a; Path=/', 'theme=dark; Path=/' ]
+     ```
+
+     @return an array with every Set-Cookie value
      */
     String[] getSetCookie();
 };

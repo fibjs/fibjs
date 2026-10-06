@@ -5,102 +5,281 @@
 /// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
- * @description Http2Server is a high-concurrency HTTP/2 server
+ * @description an HTTP/2 server: it accepts TLS connections that negotiate the `h2` ALPN protocol
  *
- * Http2Server handles HTTP/2 connections over TLS (h2). When a client connects, the server creates an Http2Session for each connection and emits a 'stream' event for each request.
+ *  Http2Server is the server side of the http2 module. It extends TcpServer, so listen,
+ *  start, stop, close, address, timeout and the `listening`/`connection`/`close`/`error`
+ *  events come from the TCP server base. For every accepted connection the server creates
+ *  an Http2Session, emits a `session` event with it and keeps the connection fiber alive
+ *  until the session ends.
  *
- * ```JavaScript
- * const http2 = require('http2');
+ *  Concepts:
  *
- * const server = http2.createServer({
- *     key: ...,
- *     cert: ...
- * }, function(req) {
- *     req.response.write('Hello, HTTP/2!');
- * });
- * server.listen(8443);
- * server.start();
- * ```
+ *  - **Session dispatch**: requests are not passed to a request handler. The server emits
+ *    `session` once per connection, and each request is emitted as a `stream` event on that
+ *    session: `session.on('stream', (stream, headers) => ...)`. Register the `stream`
+ *    listener synchronously inside the `session` event, before the session starts reading
+ *    (the server emits `session` before starting the loops on purpose). The `hdlr`
+ *    argument of the constructors and of http2.createServer is accepted for API
+ *    compatibility but is not invoked by the current implementation.
+ *  - **Serving a stream**: a server stream carries the request headers (`stream.headers`
+ *    and the `headers` argument of the `stream` event); answer with `stream.respond`
+ *    (a missing `:status` is sent as 200), write the body with `stream.write`/`end` and
+ *    finish with `stream.close()`. `stream.rstStream(code)` cancels the stream instead.
+ *  - **Lifecycle**: a constructor with a port/address binds the socket but does not accept
+ *    until start(); listen(port[, addr[, backlog]]) binds and starts in one call, so do not
+ *    call start() afterwards (it throws 20009); stop()/close() stops accepting and destroys
+ *    every live session. `secureContext` returns the context in use and can be replaced with
+ *    setSecureContext for later connections; established sessions keep the context they
+ *    started with.
+ *  - **ALPN and certificates**: the SecureContext must be a TLS server context and should
+ *    advertise the `h2` protocol (`alpnProtocols: ['h2']`). Clients created by http2.connect
+ *    always offer `h2`; without it the TLS handshake negotiates no protocol (a fibjs client
+ *    still speaks HTTP/2, a Node.js client refuses the connection).
+ *  - **Node.js differences**: Http2Server always uses TLS - there is no h2c server, no
+ *    separate Http2SecureServer and no `allowHTTP1` fallback; requests are handled through
+ *    the session/stream events instead of a server-level `stream` event; and server push is
+ *    not implemented.
+ *
+ *  Obtained from:
+ *  - `http2.createServer(options|ctx, hdlr)` — creates the server from TLS options or a
+ *    SecureContext; bind later with listen();
+ *  - `new http2.Server(ctx, [addr,] port, hdlr)` — binds in the constructor, then start();
+ *  - `new http2.Server(options, hdlr)` — builds the SecureContext from options, then
+ *    listen().
+ *
+ *  Example 1 — a server that answers through the session/stream pipeline:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const tls = require('tls');
+ *  const crypto = require('crypto');
+ *
+ *  const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const ca = crypto.createCertificateRequest({
+ *      key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+ *  }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+ *  const crt = crypto.createCertificateRequest({
+ *      key: srvKey.privateKey, subject: { CN: 'localhost' }
+ *  }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+ *  const ctx = tls.createSecureContext({
+ *      key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+ *  }, true);
+ *
+ *  const server = new http2.Server(ctx, 0, function () { });
+ *  server.on('session', (session) => {
+ *      session.on('stream', (stream, headers) => {
+ *          stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+ *          stream.write('path=' + headers[':path']);
+ *          stream.close();
+ *      });
+ *  });
+ *  server.start();
+ *
+ *  const session = http2.connect('https://localhost:' + server.address().port, {
+ *      rejectUnauthorized: false, rejectUnverified: false
+ *  });
+ *  const stream = session.request({ ':method': 'GET', ':path': '/hello' });
+ *  console.log(stream.read().toString()); // path=/hello
+ *
+ *  session.close();
+ *  server.stop();
+ *  ```
+ *
+ *  Example 2 — the server counts its connections and reports the port and context:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const tls = require('tls');
+ *  const crypto = require('crypto');
+ *
+ *  const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const ca = crypto.createCertificateRequest({
+ *      key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+ *  }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+ *  const crt = crypto.createCertificateRequest({
+ *      key: srvKey.privateKey, subject: { CN: 'localhost' }
+ *  }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+ *  const ctx = tls.createSecureContext({
+ *      key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+ *  }, true);
+ *
+ *  let sessions = 0;
+ *  const server = new http2.Server(ctx, 0, function () { });
+ *  server.on('session', (session) => {
+ *      sessions += 1;
+ *      session.on('stream', (stream, headers) => {
+ *          stream.respond({ ':status': 200 });
+ *          stream.write('session ' + sessions);
+ *          stream.close();
+ *      });
+ *  });
+ *  server.start();
+ *  console.log('listening on', server.address().port);
+ *  console.log('secure context set:', server.secureContext !== null);
+ *
+ *  const opts = { rejectUnauthorized: false, rejectUnverified: false };
+ *  const first = http2.connect('https://localhost:' + server.address().port, opts);
+ *  console.log(first.request({ ':method': 'GET', ':path': '/' }).read().toString());
+ *  first.close();
+ *
+ *  const second = http2.connect('https://localhost:' + server.address().port, opts);
+ *  console.log(second.request({ ':method': 'GET', ':path': '/' }).read().toString());
+ *  second.close();
+ *
+ *  server.stop();
+ *  ```
  *
  */
 declare class Class_Http2Server extends Class_TcpServer {
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext, without binding a port
      *
-     *      hdlr accepts the same forms as http.createServer:
+     *      This is the first of four constructor forms; the shared handler forms of
+     *      http.createServer are:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a handler function `(req, res) => any`;
+     *      - a routing map object whose keys are match patterns (see mq.Routing);
      *      - a path/address string.
+     *
+     *      The handler is accepted for compatibility, but the HTTP/2 implementation does not
+     *      invoke it: requests are delivered as `stream` events on the session emitted by the
+     *      `session` event, so pass a no-op handler and register
+     *      `session.on('stream', ...)` instead.
+     *
+     *      The four forms differ in how the server is created and bound:
+     *      - `new http2.Server(ctx, hdlr)`: no port, call listen(port[, addr]) before start();
+     *      - `new http2.Server(ctx, port, hdlr)`: binds the port, then call start();
+     *      - `new http2.Server(ctx, addr, port, hdlr)`: binds an explicit address and port;
+     *      - `new http2.Server(options, hdlr)`: builds the SecureContext from the
+     *        tls.createSecureContext options first, also without binding a port.
+     *
      *      @param context SecureContext secure context
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext and binds a port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
+     *      The socket is bound immediately, so listen() must not be called; start() begins
+     *      accepting connections. See the first constructor for the handler forms and the
+     *      session/stream dispatch; the handler is accepted but not invoked.
+     *
      *      @param context SecureContext secure context
      *      @param port listening port
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext and binds an address and port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
+     *      The socket is bound immediately, so listen() must not be called; start() begins
+     *      accepting connections. See the first constructor for the handler forms and the
+     *      session/stream dispatch; the handler is accepted but not invoked.
+     *
      *      @param context SecureContext secure context
      *      @param addr listening address
      *      @param port listening port
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor, creates the SecureContext from options
+     * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
-     *      @param options the options for creating the SecureContext, may contain address and port
-     *      @param hdlr the request handler
+     *      The options create the SecureContext (key, cert, ca, requestCert, alpnProtocols,
+     *      ...) and are not used to bind: unlike TLSServer, `address`/`port` are not read from
+     *      them, so call listen(port[, addr]) before start(). See the first constructor for the
+     *      handler forms; the handler is accepted but not invoked.
+     *
+     *      @param options the options for creating the SecureContext
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description queries the SecureContext used by the current Http2Server
+     * @description queries the SecureContext used by this server
+     *
+     *      Returns the context passed to the constructor, or the one created from its options;
+     *      setSecureContext replaces it for future connections. The property and the C++
+     *      context are the same object. Throws 20009 when queried on a server that has not been
+     *      created with a context yet.
+     *
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description sets the SecureContext used by the current Http2Server
+     * @description replaces the SecureContext used for future connections
+     *
+     *      The new context is used by the TLS layer for connections accepted after this call;
+     *      sessions that are already established keep the context they were created with. The
+     *      argument must be a server SecureContext; invalid contexts fail at the next
+     *      handshake. This overload takes a ready SecureContext object.
+     *
+     *      Example — refresh the certificate of a running server:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const keyA = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const keyB = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crtA = crypto.createCertificateRequest({
+     *          key: keyA.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const crtB = crypto.createCertificateRequest({
+     *          key: keyB.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const makeCtx = (key, cert) => tls.createSecureContext({
+     *          key: key.privateKey.export(), cert: cert.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(makeCtx(keyA, crtA), 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200 });
+     *              stream.write('served with ' + (server.secureContext === ctxB ? 'B' : 'A'));
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const ctxB = makeCtx(keyB, crtB);
+     *      server.setSecureContext(ctxB); // later connections use the new certificate
+     *
+     *      const opts = { rejectUnauthorized: false, rejectUnverified: false };
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, opts);
+     *      const stream = session.request({ ':method': 'GET', ':path': '/' });
+     *      console.log(stream.read().toString()); // served with B
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
      *      @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
-     * @description sets the SecureContext used by the current Http2Server
+     * @description replaces the SecureContext used for future connections, from options
+     *
+     *      This form creates the new context with tls.createSecureContext(options, true) first;
+     *      accepted options are the tls.createSecureContext options (key, cert, ca,
+     *      requestCert, alpnProtocols, ...). Otherwise identical to the SecureContext
+     *      overload: established sessions keep the old context.
+     *
      *      @param options the options for creating a new SecureContext
      *
      */
@@ -120,82 +299,153 @@ declare class Class_Http2Server extends Class_TcpServer {
  */
 declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext, without binding a port
      *
-     *      hdlr accepts the same forms as http.createServer:
+     *      This is the first of four constructor forms; the shared handler forms of
+     *      http.createServer are:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
+     *      - a handler function `(req, res) => any`;
+     *      - a routing map object whose keys are match patterns (see mq.Routing);
      *      - a path/address string.
+     *
+     *      The handler is accepted for compatibility, but the HTTP/2 implementation does not
+     *      invoke it: requests are delivered as `stream` events on the session emitted by the
+     *      `session` event, so pass a no-op handler and register
+     *      `session.on('stream', ...)` instead.
+     *
+     *      The four forms differ in how the server is created and bound:
+     *      - `new http2.Server(ctx, hdlr)`: no port, call listen(port[, addr]) before start();
+     *      - `new http2.Server(ctx, port, hdlr)`: binds the port, then call start();
+     *      - `new http2.Server(ctx, addr, port, hdlr)`: binds an explicit address and port;
+     *      - `new http2.Server(options, hdlr)`: builds the SecureContext from the
+     *        tls.createSecureContext options first, also without binding a port.
+     *
      *      @param context SecureContext secure context
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext and binds a port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
+     *      The socket is bound immediately, so listen() must not be called; start() begins
+     *      accepting connections. See the first constructor for the handler forms and the
+     *      session/stream dispatch; the handler is accepted but not invoked.
+     *
      *      @param context SecureContext secure context
      *      @param port listening port
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor
+     * @description creates an HTTP/2 server from a SecureContext and binds an address and port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
+     *      The socket is bound immediately, so listen() must not be called; start() begins
+     *      accepting connections. See the first constructor for the handler forms and the
+     *      session/stream dispatch; the handler is accepted but not invoked.
+     *
      *      @param context SecureContext secure context
      *      @param addr listening address
      *      @param port listening port
-     *      @param hdlr the request handler
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description Http2Server constructor, creates the SecureContext from options
+     * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
      *
-     *      hdlr accepts the same forms as http.createServer:
-     *      - a Handler object, invoked as it is;
-     *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, res) => any`, called with the HttpRequest and the HttpResponse of each request;
-     *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); a function value is called as `(req, ...captures, res) => any`, with the captured groups between the request and the response (also readable as req.params);
-     *      - a path/address string.
-     *      @param options the options for creating the SecureContext, may contain address and port
-     *      @param hdlr the request handler
+     *      The options create the SecureContext (key, cert, ca, requestCert, alpnProtocols,
+     *      ...) and are not used to bind: unlike TLSServer, `address`/`port` are not read from
+     *      them, so call listen(port[, addr]) before start(). See the first constructor for the
+     *      handler forms; the handler is accepted but not invoked.
+     *
+     *      @param options the options for creating the SecureContext
+     *      @param hdlr the request handler, accepted for compatibility
      *
      */
     constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description queries the SecureContext used by the current Http2Server
+     * @description queries the SecureContext used by this server
+     *
+     *      Returns the context passed to the constructor, or the one created from its options;
+     *      setSecureContext replaces it for future connections. The property and the C++
+     *      context are the same object. Throws 20009 when queried on a server that has not been
+     *      created with a context yet.
+     *
      */
     readonly secureContext: Class_SecureContextPromise;
 
     /**
-     * @description sets the SecureContext used by the current Http2Server
+     * @description replaces the SecureContext used for future connections
+     *
+     *      The new context is used by the TLS layer for connections accepted after this call;
+     *      sessions that are already established keep the context they were created with. The
+     *      argument must be a server SecureContext; invalid contexts fail at the next
+     *      handshake. This overload takes a ready SecureContext object.
+     *
+     *      Example — refresh the certificate of a running server:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const keyA = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const keyB = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crtA = crypto.createCertificateRequest({
+     *          key: keyA.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const crtB = crypto.createCertificateRequest({
+     *          key: keyB.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const makeCtx = (key, cert) => tls.createSecureContext({
+     *          key: key.privateKey.export(), cert: cert.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(makeCtx(keyA, crtA), 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200 });
+     *              stream.write('served with ' + (server.secureContext === ctxB ? 'B' : 'A'));
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const ctxB = makeCtx(keyB, crtB);
+     *      server.setSecureContext(ctxB); // later connections use the new certificate
+     *
+     *      const opts = { rejectUnauthorized: false, rejectUnverified: false };
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, opts);
+     *      const stream = session.request({ ':method': 'GET', ':path': '/' });
+     *      console.log(stream.read().toString()); // served with B
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
      *      @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
-     * @description sets the SecureContext used by the current Http2Server
+     * @description replaces the SecureContext used for future connections, from options
+     *
+     *      This form creates the new context with tls.createSecureContext(options, true) first;
+     *      accepted options are the tls.createSecureContext options (key, cert, ca,
+     *      requestCert, alpnProtocols, ...). Otherwise identical to the SecureContext
+     *      overload: established sessions keep the old context.
+     *
      *      @param options the options for creating a new SecureContext
      *
      */

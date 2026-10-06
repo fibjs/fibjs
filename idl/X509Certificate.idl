@@ -1,147 +1,472 @@
-/*! @brief Encapsulates an X509 certificate and provides information reading
+/*! @brief A parsed X.509 certificate: reads the subject, issuer, validity, extensions,
+ public key and fingerprints, and checks host names, IP addresses, e-mail addresses and
+ signatures
 
-```JavaScript
-const crypto = require('crypto');
-const cert = new crypto.X509Certificate(Buffer.from('...'));
-```
+ An X509Certificate wraps one certificate, plus the rest of the chain when the input holds
+ several certificates (walk it with next()). It is the object fibjs hands back wherever a
+ certificate is read: the TLS layer exposes the peer certificate through
+ TLSSocket#getPeerX509Certificate(), a SecureContext exposes its leaf chain and trusted CAs
+ through cert and ca, and X509CertificateRequest#issue() returns the certificate it signed.
+ The getters only read; trust decisions are made by the explicit check and verify members.
+
+ Concepts:
+
+ - **Subject and issuer**: each is a distinguished name (DN) printed as one RDN per line
+   with short attribute names (`C=CN`, `O=Example`, `CN=example.com`, `emailAddress=...`).
+   The subject names the owner, the issuer names the signer; they are equal for a
+   self-signed certificate. Reading an empty DN throws instead of returning an empty string.
+ - **Validity window**: validFrom and validTo are UTC timestamps formatted as
+   `Mmm d HH:MM:SS YYYY GMT` and accepted by `new Date(...)`. No member enforces the window.
+ - **Subject alternative names**: the SAN extension is the authoritative source for host
+   names, IP addresses, e-mail addresses and URIs; the CN is only a legacy fallback used
+   when the relevant SAN entry type is absent. checkHost('a.example.com') returns the
+   matching name (for example `*.example.com`) or undefined.
+ - **Fingerprints**: SHA-1, SHA-256 and SHA-512 digests of the DER encoding, printed as
+   uppercase hex bytes separated by colons (59, 95 and 191 characters long).
+ - **PEM and DER**: fibjs parses PEM only, in the constructor and in checkIssued alike; a
+   DER Buffer is rejected with ERR_OSSL_NO_START_LINE. raw returns the DER of the first
+   certificate, pem returns the PEM of the whole chain.
+ - **Explicit trust**: checkIssued compares the issuer name, the key identifiers and (when
+   the issuer asserts one) its key usage, but does not verify the signature; verify checks
+   the signature with a public key; checkPrivateKey proves that a private key belongs to
+   the certified public key. Expiry, revocation and the chain are never validated here.
+
+ Obtained from:
+ - `new crypto.X509Certificate(pem)` — one PEM string or Buffer, possibly holding several
+   certificates; the first is returned and next() walks the rest;
+ - `new crypto.X509Certificate([pem1, pem2, ...])` — a chain built from PEM strings and
+   Buffers, in order;
+ - `X509CertificateRequest#issue(options)` — the certificate created from a request;
+ - `TLSSocket#getPeerX509Certificate()` / `TLSSocket#getX509Certificate()` — the peer and
+   local certificates of a TLS connection;
+ - `SecureContext#cert` / `SecureContext#ca` — the leaf chain and trusted CAs of a context;
+ - `crypto.X509Certificate` — the class reference on the crypto module.
+
+ Example 1 — create a self-signed certificate and read its fields:
+ ```JavaScript
+ const crypto = require('crypto');
+
+ const { privateKey } = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+ const req = crypto.createCertificateRequest({
+     key: privateKey,
+     subject: { C: 'CN', O: 'Example', CN: 'example.com' }
+ });
+ const cert = req.issue({
+     key: privateKey,
+     issuer: { C: 'CN', O: 'Example', CN: 'example.com' },
+     days: 30,
+     ca: true,
+     keyUsage: ['digitalSignature', 'keyCertSign']
+ });
+
+ console.log(cert.subject.includes('CN=example.com'));       // true
+ console.log(cert.ca, cert.pathlen);                          // true -1
+ console.log(Math.round((new Date(cert.validTo) - new Date(cert.validFrom)) / 86400000)); // 30
+ console.log(/^[0-9A-F]+$/.test(cert.serialNumber));          // true
+ console.log(cert.keyUsage); // [ 'digitalSignature', 'keyCertSign' ]
+ console.log(cert.publicKey.type, cert.publicKey.asymmetricKeyType); // public ec
+ console.log(cert.checkPrivateKey(privateKey));               // true
+ console.log(cert.fingerprint.length, cert.fingerprint256.length,
+     cert.fingerprint512.length); // 59 95 191
+ console.log(new crypto.X509Certificate(cert.pem).raw.equals(cert.raw)); // true
+ ```
+
+ Example 2 — assemble a chain and check signatures:
+ ```JavaScript
+ const crypto = require('crypto');
+
+ const caKeys = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+ const caCert = crypto.createCertificateRequest(
+     { key: caKeys.privateKey, subject: { CN: 'Demo CA' } })
+     .issue({ key: caKeys.privateKey, issuer: { CN: 'Demo CA' }, ca: true, pathlen: 0 });
+
+ const leafKeys = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+ const leafCert = crypto.createCertificateRequest(
+     { key: leafKeys.privateKey, subject: { CN: 'leaf.example.com' } })
+     .issue({ key: caKeys.privateKey, issuer: { CN: 'Demo CA' } });
+
+ console.log(leafCert.issuer.includes('CN=Demo CA'));          // true
+ console.log(leafCert.checkIssued(caCert));                    // true
+ console.log(leafCert.verify(caKeys.publicKey));               // true
+ console.log(leafCert.checkPrivateKey(leafKeys.privateKey));   // true
+
+ const chain = new crypto.X509Certificate([leafCert.pem, caCert.pem]);
+ console.log(chain.pem === leafCert.pem + caCert.pem);          // true
+ console.log(chain.next().subject.includes('CN=Demo CA'));      // true
+ console.log(chain.next().next());                              // undefined
+ console.log(chain.raw.equals(leafCert.raw));                   // true
+ ```
+
+ Example 3 — parse a certificate with subject alternative names:
+ ```JavaScript
+ const crypto = require('crypto');
+
+ // A certificate issued outside fibjs, with DNS, IP and e-mail subjectAltName entries
+ const PEM = `-----BEGIN CERTIFICATE-----
+ MIIB2DCCAX6gAwIBAgIUdetNWr4pDA8JQT1XAQ9AVkPm9d8wCgYIKoZIzj0EAwIw
+ HTEbMBkGA1UEAwwSc2FuLWNuLmV4YW1wbGUuY29tMB4XDTI2MTAwNjA1MDc0MloX
+ DTI5MTAwNTA1MDc0MlowHTEbMBkGA1UEAwwSc2FuLWNuLmV4YW1wbGUuY29tMFkw
+ EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhP/TRsA3cf3NqxwJEh6+wf2IBaqy1WWx
+ fxDRuE1448Q2dxl180VtZlKEdn63LsGrMXFEqHHUj7ryx3Lk8tDA6aOBmzCBmDAd
+ BgNVHQ4EFgQU91b+ED5YvlkahKXdCJJPYAU7/vEwHwYDVR0jBBgwFoAU91b+ED5Y
+ vlkahKXdCJJPYAU7/vEwDwYDVR0TAQH/BAUwAwEB/zBFBgNVHREEPjA8gg9zYW4u
+ ZXhhbXBsZS5jb22HBH8AAAGHEAAAAAAAAAAAAAAAAAAAAAGBEWFkbWluQGV4YW1w
+ bGUuY29tMAoGCCqGSM49BAMCA0gAMEUCIQCLlHxsdz8hVv4qfcjwdjM3OPJg48dL
+ ZMILA2v12CInzwIgbUAH+Xpk9fXMhvJ0i8qVx9WRMF9Fv4tt6N7jsNWfomw=
+ -----END CERTIFICATE-----`;
+
+ const cert = new crypto.X509Certificate(PEM);
+ console.log(cert.subject);                                          // CN=san-cn.example.com
+ console.log(cert.subjectAltName.includes('IP Address:127.0.0.1'));  // true
+ console.log(cert.checkHost('san.example.com'));                     // san.example.com
+ console.log(cert.checkHost('san-cn.example.com'));                  // undefined, SAN wins
+ console.log(cert.checkHost('san-cn.example.com', { subject: 'always' })); // san-cn.example.com
+ console.log(cert.checkIP('127.0.0.1'), cert.checkIP('::1'));        // 127.0.0.1 ::1
+ console.log(cert.checkEmail('admin@example.com'));                  // admin@example.com
+ ```
+
+ Compared with Node.js, fibjs parses PEM only (Node.js accepts PEM or DER as well), adds
+ the pem member, next(), the Netscape type and pathlen, and accepts PEM text or a PEM
+ Buffer in checkIssued instead of requiring an X509Certificate. Node.js members that fibjs
+ does not provide: issuerCertificate, validFromDate, validToDate, signatureAlgorithm,
+ signatureAlgorithmOid and toLegacyObject; use validFrom/validTo with `new Date(...)` and
+ pem instead.
 */
 interface X509Certificate : object
 {
-    /*! @brief Creates an X509Certificate object from a certificate
+    /*! @brief Creates an X509Certificate from PEM data
 
-    If cert contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate
-
-     cert may be the PEM/DER data of the certificate, or the PEM text as a string.
-     @param cert the certificate data
-    @return returns an X509Certificate object
+     The string form is encoded as UTF-8 and parsed as PEM, so a Buffer holding PEM text
+     works as well. When the input contains several concatenated certificates the object is
+     the first one and next() returns the others. DER is not accepted: a DER Buffer throws
+     ERR_OSSL_NO_START_LINE, exactly like invalid or empty data. Use PEM text or PEM bytes,
+     for example `new crypto.X509Certificate(fs.readFileSync('cert.pem'))`.
+     @param cert the certificate data as PEM text or PEM bytes
     */
     X509Certificate(Buffer|String cert);
 
-    /*! @brief Creates an X509Certificate object from a group of certificates
+    /*! @brief Creates an X509Certificate chain from a list of PEM certificates
 
-    If certs contains multiple certificates, the returned object will contain the first certificate, and the next() method will return the next certificate; a chain may mix strings and buffers
-
-    @param certs the array of certificates in PEM format
-    @return returns an X509Certificate object
+     The entries are parsed in order and concatenated, so the object is the first
+     certificate and next() walks the rest. The list may mix strings and Buffers, and empty
+     entries are skipped. An empty array or a list without a valid certificate throws
+     ERR_OSSL_NO_START_LINE. Use this form when the chain pieces are kept apart; the
+     single-argument form accepts the same chain concatenated into one PEM text.
+     @param certs the array of certificates as PEM text or PEM bytes
     */
     X509Certificate(Buffer|String certs[]);
 
-    /*! @brief The subject of the certificate */
+    /*! @brief The subject distinguished name of the certificate
+
+     One RDN per line in RFC 2253 form with short attribute names, in the order they appear
+     in the certificate, for example `C=US\nO=Example\nCN=example.com`. Reading an empty
+     subject throws error 20024 instead of returning an empty string. Node.js prints the
+     same format.
+    */
     readonly String subject;
 
-    /*! @brief The serial number of the certificate */
+    /*! @brief The serial number of the certificate as uppercase hexadecimal
+
+     Produced by OpenSSL from the DER integer, so leading zero bytes are dropped and the
+     length is not fixed, for example `CDC1903C210924D7`. Together with the issuer name it
+     identifies a certificate in OCSP and CRL exchanges.
+    */
     readonly String serialNumber;
 
-    /*! @brief The certified public key of the certificate */
+    /*! @brief The public key certified by this certificate
+
+     Returned as a public KeyObject: type is 'public' and asymmetricKeyType reports the
+     algorithm. The object is created on first access and cached, so repeated reads return
+     the same instance. Pass it to verify, to createPublicKey, or export it with
+     `KeyObject.export`.
+    */
     readonly KeyObject publicKey;
 
-    /*! @brief The subject alternative names of the certificate */
+    /*! @brief The subject alternative names as a single comma-separated line
+
+     The OpenSSL text form: `DNS:name`, `IP Address:1.2.3.4`, `email:...`, `URI:...`,
+     `DirName:...`, `Registered ID:...` and `othername:...`, for example
+     `DNS:example.com, IP Address:127.0.0.1, email:admin@example.com`. Values that contain
+     separators or control characters are quoted and escaped as `\uXXXX`. Returns undefined
+     when the extension is absent, which is the common case for the certificates created by
+     X509CertificateRequest.issue, since it does not add SAN entries.
+    */
     readonly String subjectAltName;
 
-    /*! @brief The information access extension of the certificate; returns a newline-separated list of access descriptions. Each line begins with the access method and the type of the access location, followed by a colon and the value associated with the access location */
+    /*! @brief The authority information access extension, one entry per line
+
+     Each line is `<method> - <location>`, for example
+     `OCSP - URI:http://ocsp.example.com/` or
+     `CA Issuers - URI:http://ca.example.com/ca.cert`; several entries are separated by
+     newlines. Returns undefined when the extension is absent. Node.js exposes the same
+     text under the same member name.
+    */
     readonly String infoAccess;
 
-    /*! @brief The issuer of the certificate */
+    /*! @brief The issuer distinguished name of the certificate
+
+     Same one-RDN-per-line format as subject, and equal to the subject for a self-signed
+     certificate. The issuer is metadata of the signature: it says who signed the
+     certificate, not whether the signer is trusted. Reading a certificate whose issuer
+     name is empty (an issue call without an issuer) throws error 20024.
+    */
     readonly String issuer;
 
-    /*! @brief Whether the certificate is a CA certificate */
+    /*! @brief Whether the certificate is a CA certificate
+
+     True when the basic constraints extension marks the certificate as a CA (CA:TRUE),
+     false when the extension is absent or marks a leaf. X.509 requires the CA flag on
+     certificates that sign other certificates; a certificate made by
+     X509CertificateRequest.issue is not a CA unless the ca option is passed.
+    */
     readonly Boolean ca;
 
-    /*! @brief The path length constraint of the certificate */
+    /*! @brief The path length constraint of the CA certificate
+
+     The `pathlen` value of the basic constraints extension: the number of intermediate CA
+     certificates allowed below this one. Returns -1 when the extension or the constraint
+     is absent, and 0 when the certificate must sign end-entity certificates directly.
+     Meaningful only when ca is true.
+    */
     readonly Integer pathlen;
 
-    /*! @brief The key usage of the certificate */
+    /*! @brief The key usage extension as an array of names
+
+     Values follow the OpenSSL bit order, so the array is sorted by bit position and not by
+     the order given to X509CertificateRequest.issue: 'digitalSignature', 'nonRepudiation',
+     'keyEncipherment', 'dataEncipherment', 'keyAgreement', 'keyCertSign', 'cRLSign' and
+     'encipherOnly'. Returns undefined when the extension is absent. 'decipherOnly' is
+     listed by older documentation but is rejected by issue as an unknown item.
+    */
     readonly String[] keyUsage;
 
-    /*! @brief The Netscape type of the certificate */
+    /*! @brief The Netscape certificate type extension as an array of names
+
+     The legacy Netscape type list, in bit order: 'client', 'server', 'email', 'objsign',
+     'reserved', 'sslCA', 'emailCA' and 'objCA'. Returns undefined when the extension is
+     absent; set it with the type option of X509CertificateRequest.issue. This member is a
+     fibjs extension: Node.js only exposes the raw fields through toLegacyObject.
+    */
     readonly String[] type;
 
-    /*! @brief The start time of the certificate validity period */
+    /*! @brief The start of the validity period as a UTC timestamp
+
+     The OpenSSL text form `Mmm d HH:MM:SS YYYY GMT`, already in UTC and accepted by
+     `new Date(...)`. The window is not enforced anywhere: compare the value with the
+     current time yourself when validity matters.
+    */
     readonly String validFrom;
 
-    /*! @brief The end time of the certificate validity period */
+    /*! @brief The end of the validity period as a UTC timestamp
+
+     Same format as validFrom. For certificates created by X509CertificateRequest.issue it
+     is controlled by the validTo option, or by days when validTo is not given. Expiry is
+     not enforced: a TLS handshake checks it, these getters do not.
+    */
     readonly String validTo;
 
-    /*! @brief The raw binary data of the certificate */
+    /*! @brief The DER encoding of the first certificate
+
+     A Buffer with the raw certificate, independent of the input form. For a chain only the
+     first certificate is returned; use pem for the whole chain. The DER can be written to
+     a file or embedded in a protocol, but it cannot be passed back to the constructor,
+     which accepts PEM only.
+    */
     readonly Buffer raw;
 
-    /*! @brief The PEM encoding of the certificate */
+    /*! @brief The PEM encoding of the certificate, or of the whole chain
+
+     For a certificate built from one PEM block this is that block; for a chain (array input
+     or several concatenated PEM blocks) all certificates are re-encoded and concatenated in
+     order, so the value can be passed back to the constructor. toString() and toJSON()
+     return the same text. Node.js has no pem member: its toString() and toJSON() print a
+     single certificate.
+    */
     readonly String pem;
 
-    /*! @brief The SHA-1 fingerprint of the certificate */
+    /*! @brief The SHA-1 fingerprint of the DER encoding
+
+     Uppercase hexadecimal bytes separated by colons, 59 characters long, for example
+     `B0:69:4C:35:...`. Fingerprints are stable identifiers used to pin a certificate;
+     prefer fingerprint256 for new code because SHA-1 is no longer collision resistant.
+    */
     readonly String fingerprint;
 
-    /*! @brief The SHA-256 fingerprint of the certificate */
+    /*! @brief The SHA-256 fingerprint of the DER encoding
+
+     Uppercase hexadecimal bytes separated by colons, 95 characters long. This is the
+     fingerprint to pin or compare in new code; Node.js reports it in the same form.
+    */
     readonly String fingerprint256;
 
-    /*! @brief The SHA-512 fingerprint of the certificate */
+    /*! @brief The SHA-512 fingerprint of the DER encoding
+
+     Uppercase hexadecimal bytes separated by colons, 191 characters long. Node.js exposes
+     the same member, added in v17.2.0 and v16.14.0, with the same format.
+    */
     readonly String fingerprint512;
 
-    /*! @brief The next certificate in the certificate chain
-     @return returns the next certificate
+    /*! @brief Returns the next certificate in the chain
+
+     Chains come from the array constructor or from several concatenated PEM blocks, in the
+     parsed order. Returns undefined at the end of the chain and for a single certificate.
+     This member is a fibjs extension: Node.js has no next(), and its pem/toString output
+     covers only the certificate it parsed.
+     @return returns the next certificate, or undefined at the end of the chain
     */
     X509Certificate next();
 
-    /*! @brief Checks whether the certificate matches the given email address
+    /*! @brief Checks whether the certificate matches an e-mail address
 
-    If the options.subject option is undefined or set to 'default', the certificate subject is considered only when the subject alternative name extension is absent or contains no email addresses.
+     Returns email when the address matches and undefined when it does not. By default the
+     SAN e-mail entries are tried first and the e-mailAddress RDN of the subject is used
+     only when the SAN extension carries no e-mail address at all; 'always' consults the
+     subject as well, and 'never' disables the subject fallback (SAN entries are still
+     matched). A non-matching address, even one that is not a valid mailbox, simply returns
+     undefined; only an address holding an embedded NUL byte throws `Invalid email
+     address`. An unknown options.subject value throws error 20024. Node.js matches the
+     same way.
 
-    If the options.subject option is set to 'always' and the subject alternative name extension is absent or contains no matching email address, the certificate subject is considered.
+     options supports the following properties:
+     - subject: 'default', 'always' or 'never'. Default: 'default'.
 
-    If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate contains no subject alternative names.
+     Example: the subject e-mailAddress entry is the fallback when the SAN has none:
+     ```JavaScript
+     const crypto = require('crypto');
 
-    @param email the email address
-    @param options the options
-    @return returns email if the certificate matches, or undefined if it does not
+     const { privateKey } = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+     const cert = crypto.createCertificateRequest({
+         key: privateKey,
+         subject: { CN: 'mailer', emailAddress: 'admin@example.com' }
+     }).issue({ key: privateKey, issuer: { CN: 'Demo CA' } });
+
+     // No SAN e-mail address: the subject emailAddress entry is the fallback
+     console.log(cert.checkEmail('admin@example.com'));                        // admin@example.com
+     console.log(cert.checkEmail('other@example.com'));                        // undefined
+     console.log(cert.checkEmail('admin@example.com', { subject: 'never' }));  // undefined
+     ```
+     @param email the e-mail address to match
+     @param options the options
+     @return returns email on a match, undefined otherwise
     */
     String checkEmail(String email, Object options = {});
 
-    /*! @brief Checks whether the certificate matches the given host name
+    /*! @brief Checks whether the certificate matches a host name
 
-    If the certificate matches the given host name, the matching subject name is returned. The returned name may be an exact match (foo.example.com) or may contain wildcards (*.example.com ). Since host name comparison is case-insensitive, the case of the returned subject name may differ from the given name.
+     Returns the name that matched (the exact name or the wildcard pattern as stored in the
+     certificate) or undefined. Matching is case-insensitive and uses the SAN DNS entries
+     first; the CN of the subject is a fallback consulted only when the SAN extension
+     contains no DNS names. A leading `*.` matches a single label and `foo*` is a partial
+     wildcard; both are matched against the certificate text, not the queried name.
 
-    options supports the following properties:
+     options supports the following properties:
      - subject: 'default', 'always' or 'never'. Default: 'default'.
-     - wildcards: default true.
-     - partialWildcards: default true.
-     - multiLabelWildcards: default false.
-     - singleLabelSubdomains: default false.
+     - wildcards: allow wildcard patterns. Default: true.
+     - partialWildcards: allow partial patterns such as `foo*`. Default: true.
+     - multiLabelWildcards: accepted for Node.js compatibility, but it does not enable
+       multi-label matching: `*.example.com` never matches `a.b.example.com` in fibjs.
+       Default: false.
+     - singleLabelSubdomains: restrict wildcards to one label, which is already the
+       effective behavior. Default: false.
 
-    If the options.subject option is undefined or set to 'default', the certificate subject is considered only when the subject alternative name extension is absent or contains no DNS names.
+     A name holding an embedded NUL byte throws `Invalid host name` (error 20024), while
+     other non-matching names, malformed or not, return undefined; an unknown subject
+     value throws error 20024. The boolean options reject non-boolean values with a
+     TypeError [20005].
 
-    If the options.subject option is set to 'always' and the subject alternative name extension is absent or contains no matching DNS names, the certificate subject is considered.
+     Example: wildcard and partial wildcard matching:
+     ```JavaScript
+     const crypto = require('crypto');
 
-    If the options.subject option is set to 'never', the certificate subject is never considered, even if the certificate contains no subject alternative names.
+     const { privateKey } = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+     const wildcard = crypto.createCertificateRequest(
+         { key: privateKey, subject: { CN: '*.example.com' } })
+         .issue({ key: privateKey, issuer: { CN: 'Demo CA' } });
 
-     @param name the host name
+     console.log(wildcard.checkHost('a.example.com'));                        // *.example.com
+     console.log(wildcard.checkHost('A.EXAMPLE.COM'));                        // *.example.com
+     console.log(wildcard.checkHost('a.b.example.com'));                      // undefined
+     console.log(wildcard.checkHost('a.example.com', { wildcards: false }));  // undefined
+
+     const partial = crypto.createCertificateRequest(
+         { key: privateKey, subject: { CN: 'foo*.example.com' } })
+         .issue({ key: privateKey, issuer: { CN: 'Demo CA' } });
+     console.log(partial.checkHost('foobar.example.com'));                     // foo*.example.com
+     console.log(partial.checkHost('foobar.example.com', { partialWildcards: false })); // undefined
+     ```
+     @param name the host name to match
      @param options the options
-     @return returns the subject name matching name, or undefined if no subject name matches name
+     @return returns the matching name from the certificate, undefined otherwise
     */
     String checkHost(String name, Object options = {});
 
-    /*! @brief Checks whether the certificate matches the given IP address (IPv4 or IPv6)
-    @param ip the IP address
-    @return returns ip if the certificate matches, or undefined if it does not
+    /*! @brief Checks whether the certificate matches an IP address
+
+     The address must appear as an iPAddress entry of the SAN extension; the subject is
+     never consulted, so a certificate that only carries a CN does not match any address and
+     address checking always requires a certificate built with IP SAN entries. IPv4 and IPv6
+     accept their usual text forms ('127.0.0.1', '::1'). Returns ip on a match and undefined
+     otherwise; a malformed address throws error 20024. Node.js behaves the same way.
+     @param ip the IPv4 or IPv6 address to match
+     @return returns ip on a match, undefined otherwise
     */
     String checkIP(String ip);
 
-    /*! @brief Checks whether this certificate was issued by the given issuer
+    /*! @brief Checks whether the certificate claims to be issued by another one
 
-    issuer may be an X509Certificate object, a PEM string, or a DER/PEM Buffer.
-    @param issuer the issuer certificate
-    @return returns true if the certificate was issued by issuer, false otherwise
+     The issuer may be an X509Certificate, a PEM string or a Buffer holding PEM text. The
+     check compares the issuer name and key identifiers and rejects an issuer whose key
+     usage extension asserts no certificate signing, but the signature, the validity
+     window and the chain are not verified, so a certificate that carries the same issuer
+     name but was signed by another key still passes. Use verify with the issuer public key
+     to check the signature. A Buffer is parsed as PEM, so DER bytes are rejected; Node.js
+     accepts only an X509Certificate object here.
+
+     Example: the issuer name matches even when the signature does not:
+     ```JavaScript
+     const crypto = require('crypto');
+
+     const caKeys = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+     const leafKeys = crypto.generateKeyPair('ec', { namedCurve: 'prime256v1' });
+     const leaf = crypto.createCertificateRequest(
+         { key: leafKeys.privateKey, subject: { CN: 'leaf.example.com' } })
+         .issue({ key: caKeys.privateKey, issuer: { CN: 'Demo CA' } });
+
+     // Another certificate that uses the same issuer name but a different key
+     const sameName = crypto.createCertificateRequest(
+         { key: leafKeys.privateKey, subject: { CN: 'Demo CA' } })
+         .issue({ key: leafKeys.privateKey, issuer: { CN: 'Demo CA' }, ca: true });
+
+     console.log(leaf.checkIssued(sameName));       // true, the issuer name matches
+     console.log(leaf.checkIssued(sameName.pem));   // true, PEM strings are accepted
+     console.log(leaf.verify(caKeys.publicKey));    // true, the real signature verifies
+     console.log(leaf.verify(sameName.publicKey));  // false, the key does not match
+     ```
+     @param issuer the issuer certificate, PEM text or PEM bytes
+     @return returns true when the issuer matches, false otherwise
     */
     Boolean checkIssued(X509Certificate|Buffer|String issuer);
 
-    /*! @brief Checks whether the certificate's public key matches the signature of the given private key
-    @param privateKey the private key
-    @return returns true if they match, false otherwise
+    /*! @brief Checks whether a private key belongs to the certificate
+
+     Returns true when privateKey is the private half of the public key certified by this
+     certificate, false for another private key. The argument must be a private KeyObject:
+     a public or secret key throws TypeError [20004]. A TLS server performs this check at
+     configuration time; see verify for signatures over the certificate.
+     @param privateKey the private key to check
+     @return returns true when the key matches, false otherwise
     */
     Boolean checkPrivateKey(KeyObject privateKey);
 
-    /*! @brief Verifies that this certificate was signed by the given public key. No other validation checks are performed on the certificate
-    @param publicKey the public key
-    @return returns true if verification succeeds, false otherwise
+    /*! @brief Verifies the certificate signature with a public key
+
+     Returns true when the signature over the certificate was made by the private key that
+     matches publicKey, false otherwise. The key must be a public KeyObject: a private key
+     throws TypeError [20004]. Only the signature is checked - the issuer name, the validity
+     window and the chain are not inspected - so combine it with checkIssued or an explicit
+     policy when validating a certificate.
+     @param publicKey the public key to verify the signature with
+     @return returns true when the signature verifies, false otherwise
     */
     Boolean verify(KeyObject publicKey);
 };

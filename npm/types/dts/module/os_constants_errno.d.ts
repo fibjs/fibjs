@@ -1,10 +1,83 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description os_constants errno submodule, containing POSIX error code constants
+ * @description The errno table of os.constants: the POSIX error codes of the running platform
  *
- *  Usage:
+ *  The object is reached through `require('os').constants.errno` and is not requireable on its
+ *  own. The names follow the C library and libuv; the numbers are the values of the host (on
+ *  Linux x86-64 they match `<asm-generic/errno-base.h>` and `<asm-generic/errno.h>` exactly).
+ *  Convert a numeric error into its name with this table, and use it to document the errors an
+ *  operation can raise; the table itself is read-only.
+ *
+ *  Concepts:
+ *
+ *  - **Errors carry the name**: a failed call throws an Error whose `code` is the symbolic name
+ *    ('ENOENT'), so compare `e.code` rather than a number. On POSIX `e.errno` is the negated
+ *    libuv code (-2 for ENOENT) while this table holds the positive system value (2): compare
+ *    `-e.errno` with the table, or rely on `e.code`.
+ *  - **Aliases**: EAGAIN and EWOULDBLOCK share one value, and so do ENOTSUP and EOPNOTSUPP
+ *    (11 and 95 on Linux); POSIX allows the unsupported-operation pair to differ, so test both
+ *    names when the code is not known.
+ *  - **Platform**: the numbers are platform-specific; on Windows libuv uses its own mapping and
+ *    adds the WSA* codes. Never hardcode a number in portable code - look it up here at
+ *    runtime or compare names.
+ *
+ *  Import:
  *  ```JavaScript
- *  var errno = require('os').constants.errno
+ *  const errno = require('os').constants.errno;
+ *  ```
+ *
+ *  Example 1 — turn a caught error into its table entry:
+ *  ```JavaScript
+ *  const errno = require('os').constants.errno;
+ *  const fs = require('fs');
+ *
+ *  try {
+ *      fs.unlink('/no-such-file-fibjs.txt');
+ *  } catch (e) {
+ *      console.log(e.code);                    // ENOENT
+ *      console.log(-e.errno, errno.ENOENT);    // 2 2
+ *      console.log(-e.errno === errno.ENOENT); // true
+ *  }
+ *  ```
+ *
+ *  Example 2 — common failures and their codes:
+ *  ```JavaScript
+ *  const errno = require('os').constants.errno;
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-errno-'));
+ *  fs.mkdir(path.join(dir, 'sub'));
+ *  fs.writeFile(path.join(dir, 'sub', 'file.txt'), 'x');
+ *
+ *  function codeOf(fn) {
+ *      try {
+ *          fn();
+ *      } catch (e) {
+ *          return e.code;
+ *      }
+ *      return 'no error';
+ *  }
+ *  console.log(codeOf(() => fs.mkdir(path.join(dir, 'sub'))));      // EEXIST
+ *  console.log(codeOf(() => fs.rmdir(path.join(dir, 'sub'))));      // ENOTEMPTY
+ *  console.log(codeOf(() => fs.unlink(path.join(dir, 'missing')))); // ENOENT
+ *  console.log(errno.EEXIST, errno.ENOTEMPTY);                      // 17 39
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 3 — representative values and aliases:
+ *  ```JavaScript
+ *  const errno = require('os').constants.errno;
+ *
+ *  // Permission, existence and timeout codes as reported by the host.
+ *  console.log(errno.EACCES, errno.ENOENT, errno.ETIMEDOUT); // 13 2 110
+ *
+ *  // Each alias pair shares a single value.
+ *  console.log(errno.EAGAIN === errno.EWOULDBLOCK);          // true
+ *  console.log(errno.ENOTSUP === errno.EOPNOTSUPP);          // true
+ *  console.log(Object.keys(errno).length);                   // 79 on Linux
  *  ```
  *
  */

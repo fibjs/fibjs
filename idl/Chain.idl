@@ -1,40 +1,163 @@
-/*! @brief Message handler chain object
+/*! @brief A message handler chain that runs a series of handlers in order
 
- The Chain object is a message handler chain object in fibjs, used to link a series of message handlers and process them in a chain in the specified order. A Chain object is created as follows:
+ Chain links several handlers into one handler: the value is passed to each
+ element in turn, each element may change it, and the chain ends when the queue
+ is exhausted or the value is ended. It is the object behind the array form of
+ every handler parameter — `new mq.Handler([a, b])`, the handler array of an
+ http server and the array returned by a handling function all become a Chain —
+ so the class is usually reached through that conversion rather than
+ constructed by name.
 
-```
-var chain = new mq.Chain([
-    func1, func2
-]);
-```
+ Concepts:
+ - **Order**: the elements run in the order they were given; append adds to the
+   end. A handler returning nothing finishes its own stage and the chain moves
+   to the next element, so a chain of plain functions behaves like a pipeline.
+ - **Ending the chain**: calling end() on a Message or response.end() on an
+   http.Request marks the value as finished; the chain stops before the next
+   element, which is the way a middle handler short-circuits a request.
+ - **Returning a handler**: a handling function may return another handler,
+   function, array (a nested Chain) or routing map (a nested Routing); the
+   returned handler runs before the next element of the queue.
+ - **Fibers**: plain functions run in the fiber that invoked the chain, while a
+   handler object (another Chain, a Routing, a repeater) runs in its own
+   fiber, which matters when the elements share mutable state.
 
-In this creation method, func1 and func2 are both message handler function objects. The Chain object links these handlers together in order to form a handler chain. When processing each message, a handler can customize the processing of the message and then pass the message to the next handler. In this way, a message can be processed step by step to its final state.
+ Obtained from:
+ - `new mq.Chain([...])` — the constructor below;
+ - `new mq.Handler([...])` — the array form of the Handler constructor returns
+   a Chain (see Handler);
+ - any array passed where a handler is expected (http.Server, net.TcpServer,
+   Routing.append, mq.invoke) is converted through the same path.
 
-The invoke() function of the Chain object processes a message or object. When this function is called, the Chain object passes the message or object to each handler in turn and processes them in the order of the handlers until all handlers have finished. During this process, each handler can customize the processing of the message or object, and may also choose to pass the message or object to the next handler for processing.
+ Example 1 — handlers run in order and may change the value:
+ ```JavaScript
+ const mq = require('mq');
 
-In practice, the Chain object can be applied to various scenarios; for example, in a web framework, request messages can be passed to each handler in turn for processing, and in a message queue, a batch of messages can be passed to each handler in turn for processing. The Chain object is very flexible to use and can be customized according to actual needs, with high extensibility and reusability.
- */
+ const order = [];
+ const chain = new mq.Chain([
+     (v) => {
+         order.push('first');
+     },
+     (v) => {
+         order.push('second');
+     },
+     (v) => {
+         order.push('third');
+     }
+ ]);
+
+ mq.invoke(chain, new mq.Message());
+ console.log(order.join(' -> ')); // first -> second -> third
+ ```
+
+ Example 2 — end() stops the chain:
+ ```JavaScript
+ const mq = require('mq');
+ const http = require('http');
+
+ const seen = [];
+ const chain = new mq.Chain([
+     (v) => {
+         seen.push('before');
+     },
+     (v) => {
+         v.end();
+     },
+     (v) => {
+         seen.push('after');
+     }
+ ]);
+
+ mq.invoke(chain, new mq.Message());
+ console.log(seen.join(',')); // before
+
+ // the response form ends an http pipeline the same way
+ const seen2 = [];
+ const chain2 = new mq.Chain([
+     (req) => {
+         seen2.push('request');
+     },
+     (req) => {
+         req.response.end();
+     },
+     (req) => {
+         seen2.push('unreachable');
+     }
+ ]);
+
+ mq.invoke(chain2, new http.Request());
+ console.log(seen2.join(',')); // request
+ ```
+*/
 interface Chain : Handler
 {
     /*! @brief Constructs a message handler chain object
-     @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
-     */
+
+     Every element is converted with the same rules as a single handler: a
+     Handler object is used as it is, an array becomes a nested Chain, a
+     function becomes a JavaScript handler called with the message the chain
+     receives, a routing map object becomes a Routing, and a path/address
+     string becomes a file handler or an http(s) repeater. The elements run in
+     order; see the class description for the chain semantics.
+
+     Example — a chain mixing the accepted forms:
+     ```JavaScript
+     const mq = require('mq');
+
+     const chain = new mq.Chain([
+         (v) => {
+             console.log('function');
+         },
+         new mq.Handler((v) => {
+             console.log('handler');
+         }),
+         { '/': (v) => console.log('nested map') }
+     ]);
+
+     const msg = new mq.Message();
+     msg.value = '/';
+     mq.invoke(chain, msg);
+     ```
+
+     @param hdlrs the handlers to link, each converted like a single handler
+    */
     Chain(Handler hdlrs[]);
 
-    /*! @brief Adds a handler array
-     @param hdlrs handler array; each element is converted like a single handler (a Handler object, an array of handlers, a handler function called with the same message the chain receives, a routing map object, or a path/address string)
-     */
+    /*! @brief Adds a handler array to the end of the chain
+
+     The elements are converted like the constructor argument and appended in
+     order, so they run after the handlers already in the chain. The member
+     returns nothing; the chain is modified in place.
+
+     Example — extend a chain and run it:
+     ```JavaScript
+     const mq = require('mq');
+
+     const chain = new mq.Chain([() => console.log('one')]);
+     chain.append([() => console.log('two'), () => console.log('three')]);
+     chain.append(() => console.log('four'));
+
+     mq.invoke(chain, new mq.Message());
+     ```
+
+     @param hdlrs the handlers to append, each converted like a single handler
+    */
     append(Handler hdlrs[]);
 
-    /*! @brief Adds a handler
+    /*! @brief Adds a handler to the end of the chain
 
      hdlr may be given in any of these forms:
      - a Handler object, invoked as it is;
      - an array of handlers, wrapped in a nested Chain and invoked in order;
-     - a handler function `(req, ...params) => any`, called with the same message the chain receives;
+     - a handler function `(req, ...params) => any`, called with the same
+       message the chain receives;
      - a routing map object, whose values are handlers in these same forms;
      - a path/address string, converted through the Handler constructor.
+
+     The handler is appended after the existing elements and runs when its turn
+     comes; the member returns nothing.
+
      @param hdlr the handler appended to the chain
-     */
+    */
     append(Handler|Handler[]|Function(object req, ...params) => Value|Object|String hdlr);
 };

@@ -1,9 +1,100 @@
-/*! @brief Common constants definition module
+/*! @brief The legacy aggregate constants module: dynamic library flags, error codes, process
+ priorities, signal numbers and the file system flags in one object
 
- Reference method:
+ The module predates the split of the constant surface into os_constants and fs_constants and
+ mirrors the historical Node.js `constants` module. Its numbers are a frozen BSD/macOS set
+ shared by every platform, so they are not the native values of the host: use
+ `os.constants.errno`, `os.constants.signals`, `os.constants.priority` and
+ `os.constants.dlopen` for the numbers the system APIs actually use, and fs_constants (or the
+ fs module) for file flags. The file open flags, seek modes, type bits, permission bits and
+ copy flags carry the same portable values as fs_constants and are accepted by fs.open.
+
+ Concepts:
+
+ - **Frozen BSD numbering**: the error and signal values follow the BSD/macOS convention
+   (EAGAIN is 35, SIGUSR1 is 30, SIGBUS is 10), not the host's `<errno.h>`/`<signal.h>` (on
+   Linux EAGAIN is 11, SIGUSR1 is 10, SIGBUS is 7). A value that coincides on two systems
+   (EACCES is 13) does not make the module portable: compare against the os.constants table
+   that belongs to the API that produced or consumes the number.
+ - **Portable file flags**: O_RDONLY/O_WRONLY/O_RDWR are 0/1/2, O_APPEND 8, O_CREAT 512,
+   O_TRUNC 1024, O_EXCL 2048, O_NONBLOCK 4, O_SYNC 128, O_DSYNC 4194304, O_NOCTTY 131072,
+   O_DIRECTORY 1048576, O_NOFOLLOW 256 and O_SYMLINK 2097152; fs.open translates them to the
+   flags of the host, so pass the constant rather than a native system literal.
+ - **Library loading flags**: RTLD_LAZY/RTLD_NOW are 1/2, but RTLD_GLOBAL is 8 and
+   RTLD_LOCAL is 4 instead of the POSIX dlfcn values 256/0; do not pass them to
+   process.dlopen (8 is RTLD_DEEPBIND on glibc) - use `os.constants.dlopen` there.
+ - **Shared file objects**: the S_IF* type bits, the S_IRWX* permission bits,
+   F_OK/R_OK/W_OK/X_OK for fs.access, the UV_DIRENT_* directory entry ids and the
+   COPYFILE_* flags all match fs_constants and the fs module.
+
+ Import:
  ```JavaScript
- var constants = require('constants');
+ const constants = require('constants');
  ```
+
+ Example 1 — open a file with the portable flags:
+ ```JavaScript
+ const constants = require('constants');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-constants-'));
+ const file = path.join(dir, 'note.txt');
+
+ // O_WRONLY | O_CREAT | O_TRUNC is built from the BSD values 1, 512 and 1024.
+ const handle = fs.open(file, constants.O_WRONLY | constants.O_CREAT |
+     constants.O_TRUNC, 0o644);
+ handle.write('hello constants');
+ handle.close();
+
+ console.log(fs.readFile(file, 'utf8'));                  // hello constants
+ console.log(constants.O_CREAT === fs.constants.O_CREAT); // true
+
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
+
+ Example 2 — classify paths by the S_IF* type bits:
+ ```JavaScript
+ const constants = require('constants');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-constants-'));
+ fs.writeFile(path.join(dir, 'data.bin'), 'x');
+ fs.mkdir(path.join(dir, 'sub'));
+ fs.symlink(path.join(dir, 'data.bin'), path.join(dir, 'link'));
+
+ function kind(file) {
+     const mode = fs.lstat(file).mode;
+     if ((mode & constants.S_IFMT) === constants.S_IFLNK) return 'link';
+     if ((mode & constants.S_IFMT) === constants.S_IFDIR) return 'dir';
+     return 'file';
+ }
+ console.log(kind(path.join(dir, 'data.bin')), kind(path.join(dir, 'sub')),
+     kind(path.join(dir, 'link'))); // file dir link
+
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
+
+ Example 3 — the frozen numbers next to the platform ones:
+ ```JavaScript
+ const constants = require('constants');
+ const os = require('os');
+
+ // The module keeps the BSD/macOS numbers on every platform.
+ console.log(constants.EAGAIN, constants.EWOULDBLOCK); // 35 35
+ console.log(constants.SIGUSR1, constants.SIGTERM);    // 30 15
+
+ // os.constants reports the numbers of the running platform.
+ console.log(os.constants.errno.EAGAIN, os.constants.signals.SIGUSR1); // 11 10 on Linux
+ console.log(constants.EACCES === os.constants.errno.EACCES); // true, 13 on both
+
+ // Use os.constants for values that cross an API boundary.
+ ```
+
+ The module is kept for compatibility only; prefer os.constants and fs.constants in new code.
  */
 module constants
 {

@@ -1,14 +1,114 @@
-/*! @brief Basic object; all objects inherit from it*/
+/*! @brief The base class of every native object and the hooks used to convert one
+
+ Every class exposed by fibjs (Buffer, Message, Socket, Server and the like)
+ inherits from object, so the two members declared here are the conversion hooks
+ of the whole runtime: toString for the textual form and toJSON for
+ serialization. object itself has no constructor; its members are shown through
+ concrete classes and every conversion described below comes from one of them.
+
+ Concepts:
+ - **String conversion**: toString is the hook behind explicit and implicit
+   conversions. A class whose value has a natural text form overrides it
+   (Buffer returns its content, HttpCookie returns "name=value", and so on); a
+   class without one reports "<Class>: the object can not be converted to
+   string." instead of "[object Object]", so a wrong conversion fails at the
+   point of use instead of producing a meaningless string.
+ - **JSON serialization**: JSON.stringify calls toJSON(key) when the member
+   exists and serializes the value it returns in place of the object. The
+   default implementation collects the readable properties of the instance into
+   a plain object, so native objects are serializable without per-class code;
+   a class with a portable shape (Buffer) overrides it, and a JavaScript class
+   may define its own toJSON in the same way.
+ - **Implicit use**: the hooks are called by the language, not only by direct
+   calls: console.log prints the string form of a native object,
+   JSON.stringify walks toJSON through nested values, and property conversion
+   uses the same lookup.
+
+ Notes:
+ - object is one of the abstract base classes of the manual and has no
+   constructor; use a concrete class (Buffer, Date, Message, a user-defined
+   class overriding the hooks) to try the members.
+ - Both members may be called with an argument by their owner class:
+   Buffer.toString accepts an encoding, toJSON receives the property key. The
+   declarations here describe the base behavior only.
+
+ Example 1 — the string form of concrete classes:
+ ```JavaScript
+ const mq = require('mq');
+
+ console.log(new Buffer('hello').toString()); // hello
+
+ try {
+     new mq.Message().toString();
+ } catch (e) {
+     console.log(e.message); // Message: the object can not be converted to string.
+ }
+ ```
+
+ Example 2 — the default JSON form and an override:
+ ```JavaScript
+ const mq = require('mq');
+
+ const msg = new mq.Message();
+ msg.value = '/hello';
+ console.log(JSON.parse(JSON.stringify(msg)).value); // /hello
+
+ // Buffer overrides toJSON with its portable form
+ console.log(JSON.stringify(new Buffer('hi'))); // {"type":"Buffer","data":[104,105]}
+ ```
+
+ Example 3 — a user class overriding toJSON:
+ ```JavaScript
+ class Point {
+     constructor(x, y) {
+         this.x = x;
+         this.y = y;
+     }
+     toJSON() {
+         return { x: this.x, y: this.y };
+     }
+ }
+
+ console.log(JSON.stringify(new Point(1, 2))); // {"x":1,"y":2}
+ ```
+*/
 interface object
 {
-    /*! @brief Returns the string representation of the object, which is generally "[Native Object]"; objects can reimplement this according to their own characteristics
-     @return returns the string representation of the object
+    /*! @brief Returns the string form of the object
+
+     The base implementation reports an error: a native object has no implicit
+     text form, and only the classes whose value can be written as a string
+     override the member. Buffer returns its content decoded with the given
+     encoding, HttpCookie returns "name=value", and so on; an override commonly
+     accepts optional arguments (Buffer.toString takes encoding, start and
+     end) that are not part of this declaration.
+
+     Calling the member on a class that does not override it throws
+     "<Class>: the object can not be converted to string.", which is the
+     behavior to rely on when probing whether a value has a string form. See
+     toJSON for the serialization hook.
+
+     @return returns the string form of the object
     */
     String toString();
 
-    /*! @brief Returns the JSON representation of the object, which is generally the set of readable properties defined by the object
-     @param key unused
+    /*! @brief Returns the JSON representation of the object
+
+     JSON.stringify(value) calls value.toJSON(key) when the member exists and
+     serializes the returned value in its place; the key argument carries the
+     property name of the value inside its parent object (an empty string at
+     the top level) and may be used to build a keyed form. The base
+     implementation returns a plain object holding the readable properties of
+     the instance, so a native object serializes without per-class code; a
+     class with a portable shape such as Buffer overrides it, and a JavaScript
+     class may override it in the same way.
+
+     The member is normally reached through JSON.stringify rather than called
+     directly; calling it returns the same value JSON.stringify would
+     serialize.
+
+     @param key the property name of the value being serialized
      @return returns the JSON-serializable value
-     */
+    */
     Value toJSON(String key = "");
 };

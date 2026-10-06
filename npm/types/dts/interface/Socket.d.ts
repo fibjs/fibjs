@@ -2,67 +2,217 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description network socket object
+ * @description A network socket: a TCP, unix socket or Windows pipe endpoint used to connect, listen and transfer data
  *
- *  Socket belongs to the net module and provides connection, listening and data transfer capabilities for TCP, unix socket and Windows pipe. It can be created with:
+ *  Socket is the concrete stream endpoint behind net.connect and TcpServer. It plays three roles:
+ *  - **client**: `connect` establishes a connection, then `send`/`recv` or the inherited stream
+ *    methods move data;
+ *  - **server**: `bind`, `listen` and `accept` implement a listening socket that hands out one
+ *    connected Socket per client (TcpServer is the higher-level wrapper with a per-connection fiber);
+ *  - **accepted connection**: the objects delivered to a TcpServer handler and returned by accept
+ *    are Sockets.
+ *
+ *  Socket inherits the read/write/end/close/destroy methods and the 'data', 'end', 'close' and
+ *  'error' events of Stream; send/recv, isAlive, abort and the address properties are the
+ *  socket-specific additions.
+ *
+ *  Concepts:
+ *
+ *  - **Data flow**: a connected socket is a byte stream. read(n) waits for exactly n bytes (or
+ *    returns null at the end of file) while recv(n) returns as soon as some bytes arrive (at most n,
+ *    or null at the end of file); both throw when the configured timeout expires. Register 'data'
+ *    listeners (or call resume()) to consume data in flowing mode; write/send queue the whole buffer
+ *    and apply back-pressure when the peer does not read.
+ *  - **Connecting**: connect without a listener blocks the fiber and throws on failure; with a
+ *    connectListener it returns immediately and reports the result through 'connect'/'error'. The
+ *    timeout argument is the connect timer, while the `timeout` property applies to every later
+ *    operation.
+ *  - **Timeouts**: an expired operation throws error number 20021 and the socket stays open, so the
+ *    caller can retry with the same or another timeout. Node.js instead emits 'timeout' for an idle
+ *    socket; in fibjs the callback passed to setTimeout is registered as a once 'timeout' listener
+ *    but the current implementation reports the timeout as an operation error and does not emit it.
+ *  - **Closing**: the peer closing its side makes read/recv return null and emits 'end'; with the
+ *    default auto-destroy the write side is finished and 'close' follows. close() shuts both
+ *    directions down and aborts pending operations; abort() only cancels the pending operations
+ *    (error 20022) and leaves the socket usable.
+ *  - **Address information**: remoteAddress/remotePort describe the peer and localAddress/localPort
+ *    the local endpoint. Before the socket is connected or bound they throw or return
+ *    backend-specific placeholders, see the property descriptions.
+ *  - **Node.js differences**: Node.js returns from connect immediately and never throws, accepts a
+ *    path and many options in connect and has an idle 'timeout' event; fibjs blocks by default,
+ *    accepts only host/port/timeout in the options object and reports timeouts as operation errors.
+ *    Node.js also has no send/recv/isAlive/abort/family members; its address properties return
+ *    undefined after a disconnect instead of throwing.
+ *
+ *  Obtained from:
+ *  - `new net.Socket(family)` — an unconnected socket of the given family (AF_INET by default);
+ *  - `net.connect(...)` — a connected socket, or a TLSSocket for an ssl:// URL;
+ *  - `socket.accept()` or a `TcpServer` handler — a socket accepted from a listening endpoint.
+ *
+ *  Example 1 — the synchronous role of a client against a local server:
  *  ```JavaScript
- *  var s = new net.Socket();
+ *  const net = require('net');
+ *
+ *  const server = net.createServer((conn) => {
+ *      conn.send(conn.recv());
+ *      conn.close();
+ *  });
+ *  server.listen(0, '127.0.0.1');
+ *
+ *  const socket = new net.Socket();
+ *  socket.connect(server.address().port, '127.0.0.1');
+ *  socket.send('hello');
+ *  console.log(socket.recv().toString()); // hello
+ *  console.log(socket.remotePort === server.address().port); // true
+ *
+ *  socket.close();
+ *  server.stop();
  *  ```
  *
- *  Socket inherits from Stream and provides streaming read/write capabilities, plus the following network features:
+ *  Example 2 — the event-driven form with the data and close events:
+ *  ```JavaScript
+ *  const net = require('net');
  *
- *  - **Connection**: `connect` establishes connections in multiple forms; after connecting, `send`/`recv` can be used to transfer data;
- *  - **Server**: `bind` binds an address and port, `listen` starts listening, `accept` accepts connections;
- *  - **Tuning**: `setKeepAlive` keeps the connection alive, `setNoDelay` disables the Nagle algorithm, `setTimeout`/`timeout` control timeouts;
- *  - **Status**: `remoteAddress`/`remotePort`/`localAddress`/`localPort` query connection address information, `isAlive` checks connection availability.
+ *  const server = net.createServer((conn) => {
+ *      conn.write('welcome');
+ *      conn.close();
+ *  });
+ *  server.listen(0, '127.0.0.1');
+ *
+ *  const socket = new net.Socket();
+ *  const chunks = [];
+ *  socket.on('data', (data) => chunks.push(data.toString()));
+ *  socket.on('close', () => {
+ *      console.log(chunks.join('')); // welcome
+ *      server.stop();
+ *  });
+ *  socket.connect(server.address().port, '127.0.0.1', () => {
+ *      socket.resume();
+ *  });
+ *  ```
+ *
+ *  Example 3 — a timeout fails the operation, not the connection:
+ *  ```JavaScript
+ *  const net = require('net');
+ *
+ *  const server = net.createServer((conn) => {
+ *      conn.recv(); // wait for the request and never answer
+ *      conn.close();
+ *  });
+ *  server.listen(0, '127.0.0.1');
+ *
+ *  const socket = net.connect(server.address().port, '127.0.0.1');
+ *  socket.timeout = 100; // milliseconds, applies to the next operation
+ *  try {
+ *      socket.recv();
+ *  } catch (err) {
+ *      console.log(err.number); // 20021 (CALL_E_TIMEOUT)
+ *  }
+ *
+ *  socket.timeout = 0; // disable the timer and reuse the socket
+ *  socket.send('ping'); // unblocks the handler, which closes the connection
+ *  socket.close();
+ *  server.stop();
+ *  ```
  *
  */
 declare class Class_Socket extends Class_Stream {
     /**
-     * @description Socket constructor, creates a new Socket object
+     * @description Socket constructor, creates a new unconnected Socket object of the given address family
+     *
+     *      The socket is created but neither connected nor bound; call connect, or bind and listen to
+     *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
+     *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
+     *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
+     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
+     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
     constructor(family?: number);
 
     /**
-     * @description queries the address family of the current Socket object
+     * @description Queries the address family of the current Socket object
+     *
+     *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
+     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
+     *      connection family as the strings remoteFamily/localFamily instead.
+     *
      */
     readonly family: number;
 
     /**
-     * @description queries the remote address of the current connection
+     * @description Queries the remote address of the current connection
+     *
+     *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
+     *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
+     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
+     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *
      */
     readonly remoteAddress: string;
 
     /**
-     * @description queries the remote port of the current connection
+     * @description Queries the remote port of the current connection
+     *
+     *      The peer port of a TCP connection; it is 0 for a unix socket or Windows pipe. Like
+     *      remoteAddress it throws (syscall 'getpeername') when the socket is not connected.
+     *
      */
     readonly remotePort: number;
 
     /**
-     * @description queries the local address of the current connection
+     * @description Queries the local address of the current connection or binding
+     *
+     *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
+     *      that is not connected or bound the result is backend dependent: the platform engine returns
+     *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
+     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
+     *      disconnect.
+     *
      */
     readonly localAddress: string;
 
     /**
-     * @description queries the local port of the current connection
+     * @description Queries the local port of the current connection or binding
+     *
+     *      After bind (including port 0) and listen this is the port assigned by the operating system,
+     *      which is how the ephemeral port of a listening socket is discovered. It is 0 when the socket
+     *      is neither connected nor bound and for a unix socket or pipe, where ports do not apply.
+     *
      */
     readonly localPort: number;
 
     /**
-     * @description queries and sets the timeout in milliseconds
+     * @description Queries and sets the timeout in milliseconds
+     *
+     *      The value is applied to each connect, read/recv and write/send operation started after the
+     *      assignment; 0 (the default) disables the timer. An expired operation throws error number
+     *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
+     *      TcpServer copies its timeout to each accepted connection before invoking the handler.
+     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
+     *
      */
     timeout: number;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -72,13 +222,23 @@ declare class Class_Socket extends Class_Stream {
     connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -86,13 +246,23 @@ declare class Class_Socket extends Class_Stream {
     connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -100,8 +270,18 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -109,8 +289,18 @@ declare class Class_Socket extends Class_Stream {
     connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -118,8 +308,18 @@ declare class Class_Socket extends Class_Stream {
     connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -127,7 +327,9 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -136,7 +338,9 @@ declare class Class_Socket extends Class_Stream {
     connect(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -145,7 +349,9 @@ declare class Class_Socket extends Class_Stream {
     connectSync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -154,7 +360,9 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -164,7 +372,9 @@ declare class Class_Socket extends Class_Stream {
     connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -174,7 +384,9 @@ declare class Class_Socket extends Class_Stream {
     connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -184,7 +396,11 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -195,7 +411,11 @@ declare class Class_Socket extends Class_Stream {
     connect(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -206,7 +426,11 @@ declare class Class_Socket extends Class_Stream {
     connectSync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -217,7 +441,13 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -229,7 +459,13 @@ declare class Class_Socket extends Class_Stream {
     connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -239,7 +475,13 @@ declare class Class_Socket extends Class_Stream {
     connectSync(port: number, host?: string, timeout?: number): Class_Stream;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -249,7 +491,12 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(port: number, host?: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -260,7 +507,12 @@ declare class Class_Socket extends Class_Stream {
     connect(path: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -269,7 +521,12 @@ declare class Class_Socket extends Class_Stream {
     connectSync(path: string, timeout?: number): Class_Stream;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -278,7 +535,9 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(path: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -287,7 +546,9 @@ declare class Class_Socket extends Class_Stream {
     connect(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -296,7 +557,9 @@ declare class Class_Socket extends Class_Stream {
     connectSync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -305,7 +568,9 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -315,7 +580,9 @@ declare class Class_Socket extends Class_Stream {
     connect(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -325,7 +592,9 @@ declare class Class_Socket extends Class_Stream {
     connectSync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -335,7 +604,14 @@ declare class Class_Socket extends Class_Stream {
     connectAsync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description binds the current Socket to the specified port on all local addresses
+     * @description Binds the current Socket to the specified port on all local addresses
+     *
+     *      Prepares a listening socket: call listen and accept afterwards. SO_REUSEADDR is enabled on
+     *      non-Windows platforms. For an AF_INET6 socket allowIPv4 controls dual stack: true (the
+     *      default) accepts IPv4-mapped connections by clearing IPV6_V6ONLY, false keeps the socket
+     *      IPv6-only; on some operating systems this parameter has no effect. Errors such as EADDRINUSE
+     *      carry syscall 'bind'. Pass port 0 to let the operating system assign a port, then read it
+     *      from localPort after listen.
      *      @param port specifies the port to bind
      *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
      *
@@ -343,7 +619,12 @@ declare class Class_Socket extends Class_Stream {
     bind(port: number, allowIPv4?: boolean): void;
 
     /**
-     * @description binds the current Socket to the specified port on the specified address
+     * @description Binds the current Socket to the specified port on the specified address
+     *
+     *      addr is an IP literal for a TCP socket, or a path for an AF_UNIX/AF_PIPE socket (the port is
+     *      then ignored and comes back as 0). The remaining behavior matches the port-only overload:
+     *      SO_REUSEADDR, the dual-stack flag and the 'bind' syscall in errors. bind("", port) is
+     *      equivalent to bind(port).
      *      @param addr specifies the address to bind, which can also refer to a unix socket or Windows pipe path
      *      @param port specifies the port to bind; this parameter is ignored when binding a unix socket or Windows pipe
      *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
@@ -352,14 +633,26 @@ declare class Class_Socket extends Class_Stream {
     bind(addr: string, port?: number, allowIPv4?: boolean): void;
 
     /**
-     * @description starts listening for connection requests
+     * @description Starts listening for connection requests
+     *
+     *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
+     *      fails with an invalid-call error. backlog is passed to the operating system as the queued
+     *      connection limit; requests beyond it may be rejected. After listen, accept returns client
+     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
+     *      Socket directly, it wraps one in net.Server.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
     listen(backlog?: number): void;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
@@ -368,21 +661,39 @@ declare class Class_Socket extends Class_Stream {
     accept(callback: (err: Error | undefined | null, retVal: Class_Socket)=>any): void;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
     acceptSync(): Class_Socket;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
     acceptAsync(): Promise<Class_SocketPromise>;
 
     /**
-     * @description enables or disables the TCP keep-alive mechanism
+     * @description Enables or disables the TCP keep-alive mechanism
+     *
+     *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
+     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
+     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
      *
@@ -390,24 +701,56 @@ declare class Class_Socket extends Class_Stream {
     setKeepAlive(enable?: boolean, initialDelay?: number): void;
 
     /**
-     * @description enables or disables the Nagle algorithm
+     * @description Enables or disables the Nagle algorithm
+     *
+     *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
+     *      is what request/response protocols usually want; pass false to re-enable it. The default of
+     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
     setNoDelay(noDelay?: boolean): void;
 
     /**
-     * @description checks whether the socket currently appears to be still usable
+     * @description Checks whether the socket currently appears to be still usable
      *
      *      This method performs a best-effort non-blocking check and does not consume any received data.
-     *      Returning false means the socket is definitely unusable; returning true only means no closed state has been detected so far.
+     *      Returning false means the socket is definitely unusable; returning true only means no closed
+     *      state has been detected so far, a peer that just disconnected can still be reported as alive
+     *      for a moment. It returns false before connect, after close, after destroy and after the end
+     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
+     *      not the same check.
+     *
+     *      Example — the flag follows the state of the peer connection:
+     *      ```JavaScript
+     *      const net = require('net');
+     *      const coroutine = require('coroutine');
+     *
+     *      const server = net.createServer((conn) => {
+     *          conn.close(); // close immediately after accepting
+     *      });
+     *      server.listen(0, '127.0.0.1');
+     *
+     *      const socket = net.connect(server.address().port, '127.0.0.1');
+     *      console.log(socket.isAlive()); // true
+     *      coroutine.sleep(50); // let the peer close arrive
+     *      console.log(socket.isAlive()); // false
+     *
+     *      socket.close();
+     *      server.stop();
+     *      ```
      *      @return returns whether the socket currently appears to be still usable
      *
      */
     isAlive(): boolean;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -417,7 +760,12 @@ declare class Class_Socket extends Class_Stream {
     recv(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -425,7 +773,12 @@ declare class Class_Socket extends Class_Stream {
     recvSync(bytes?: number): Class_Buffer;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -433,8 +786,13 @@ declare class Class_Socket extends Class_Stream {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -444,8 +802,13 @@ declare class Class_Socket extends Class_Stream {
     send(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -453,8 +816,13 @@ declare class Class_Socket extends Class_Stream {
     sendSync(data: Class_Buffer | string): number;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -462,16 +830,23 @@ declare class Class_Socket extends Class_Stream {
     sendAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description aborts all ongoing operations on the current socket
+     * @description Aborts all ongoing operations on the current socket
      *
-     *      This method cancels all pending asynchronous operations (connect, recv, send, etc.),
-     *      and the canceled operations return an error. The socket itself is not closed and can continue to be used.
+     *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
+     *      the canceled operations fail with error number 20022; if no operation is pending the call has
+     *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
+     *      no equivalent, its destroy() would also close the connection.
      *
      */
     abort(): void;
 
     /**
-     * @description sets the socket timeout
+     * @description Sets the socket timeout
+     *
+     *      Assigns the timeout property and returns this socket, so calls can be chained. Equivalent to
+     *      `socket.timeout = timeout`, and also usable on an accepted socket to change its inherited
+     *      timeout.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @return returns the current Socket object
      *
@@ -479,7 +854,13 @@ declare class Class_Socket extends Class_Stream {
     setTimeout(timeout: number): Class_Socket;
 
     /**
-     * @description sets the socket timeout and registers a one-time 'timeout' event listener
+     * @description Sets the socket timeout and registers a one-time 'timeout' event listener
+     *
+     *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
+     *      current net implementation reports an expired operation as error number 20021 from the
+     *      pending call and does not emit the 'timeout' event, so the callback is registered but never
+     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
+     *      whose idle timeout emits 'timeout' and keeps the connection open.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object
@@ -498,50 +879,101 @@ declare class Class_Socket extends Class_Stream {
  */
 declare class Class_SocketPromise extends Class_StreamPromise {
     /**
-     * @description Socket constructor, creates a new Socket object
+     * @description Socket constructor, creates a new unconnected Socket object of the given address family
+     *
+     *      The socket is created but neither connected nor bound; call connect, or bind and listen to
+     *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
+     *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
+     *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
+     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
+     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
     constructor(family?: number);
 
     /**
-     * @description queries the address family of the current Socket object
+     * @description Queries the address family of the current Socket object
+     *
+     *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
+     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
+     *      connection family as the strings remoteFamily/localFamily instead.
+     *
      */
     readonly family: number;
 
     /**
-     * @description queries the remote address of the current connection
+     * @description Queries the remote address of the current connection
+     *
+     *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
+     *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
+     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
+     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *
      */
     readonly remoteAddress: string;
 
     /**
-     * @description queries the remote port of the current connection
+     * @description Queries the remote port of the current connection
+     *
+     *      The peer port of a TCP connection; it is 0 for a unix socket or Windows pipe. Like
+     *      remoteAddress it throws (syscall 'getpeername') when the socket is not connected.
+     *
      */
     readonly remotePort: number;
 
     /**
-     * @description queries the local address of the current connection
+     * @description Queries the local address of the current connection or binding
+     *
+     *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
+     *      that is not connected or bound the result is backend dependent: the platform engine returns
+     *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
+     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
+     *      disconnect.
+     *
      */
     readonly localAddress: string;
 
     /**
-     * @description queries the local port of the current connection
+     * @description Queries the local port of the current connection or binding
+     *
+     *      After bind (including port 0) and listen this is the port assigned by the operating system,
+     *      which is how the ephemeral port of a listening socket is discovered. It is 0 when the socket
+     *      is neither connected nor bound and for a unix socket or pipe, where ports do not apply.
+     *
      */
     readonly localPort: number;
 
     /**
-     * @description queries and sets the timeout in milliseconds
+     * @description Queries and sets the timeout in milliseconds
+     *
+     *      The value is applied to each connect, read/recv and write/send operation started after the
+     *      assignment; 0 (the default) disables the timer. An expired operation throws error number
+     *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
+     *      TcpServer copies its timeout to each accepted connection before invoking the handler.
+     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
+     *
      */
     timeout: number;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -549,13 +981,23 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -563,13 +1005,23 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(options: FIBJS.GeneralObject): Class_Stream;
 
     /**
-     * @description establishes a connection
+     * @description Establishes a connection on this socket (blocking form)
      *
-     *      The options parameter can contain the following properties:
-     *       - port: specifies the remote port
-     *       - host: specifies the remote address or host name
-     *       - timeout: specifies the timeout in milliseconds, default is 0
-     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
+     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -577,8 +1029,18 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -586,8 +1048,18 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -595,8 +1067,18 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
+     *
+     *      The method returns immediately and the connection continues in the background;
+     *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
+     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
+     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
+     *      listener form exists for the options object only; the port/host/path overloads have their own
+     *      listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
+     *       - port: specifies the remote port
+     *       - host: specifies the remote address or host name
+     *       - timeout: specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -604,7 +1086,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -613,7 +1097,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -622,7 +1108,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with the default host 'localhost' and no fibjs connect timer.
      *      @param port specifies the remote port
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -631,7 +1119,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(port: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -641,7 +1131,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -651,7 +1143,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form of connect(port, host, 0, listener).
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param connectListener specifies the once connect event listener
@@ -661,7 +1155,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(port: number, host: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -672,7 +1170,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -683,7 +1185,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking form with a connect timer: an expired attempt is delivered to 'error' as the
+     *      event object instead of being thrown. The timeout here bounds the connection attempt; the
+     *      `timeout` property of the socket governs the data operations that follow.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -694,7 +1200,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(port: number, host: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -704,7 +1216,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(port: number, host?: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -714,7 +1232,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(port: number, host?: string, timeout?: number): Class_Stream;
 
     /**
-     * @description establishes a tcp connection
+     * @description Establishes a TCP connection (blocking form)
+     *
+     *      The fiber waits (bounded by timeout when it is greater than 0) and the method returns this
+     *      socket already connected. The host may be an IPv4/IPv6 literal or a name resolved as part of
+     *      the connection; with timeout 0 the operating system timeout is in charge and can be minutes
+     *      on an unreachable address. Equivalent to connect({port, host, timeout}). See net.connect for
+     *      the resolution and error details.
      *      @param port specifies the remote port
      *      @param host specifies the remote address or host name, default is localhost
      *      @param timeout specifies the timeout in milliseconds, default is 0
@@ -724,7 +1248,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(port: number, host?: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -733,7 +1262,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(path: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -742,7 +1276,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(path: string, timeout?: number): Class_Stream;
 
     /**
-     * @description establishes a unix socket or Windows pipe connection
+     * @description Establishes a unix socket or Windows pipe connection (blocking form)
+     *
+     *      Unlike the module-level net.connect, the path is taken literally and no scheme is required:
+     *      '/tmp/app.sock' connects a unix socket and '\\\\.\\pipe\\name' a Windows named pipe. timeout
+     *      is in milliseconds, 0 disables the timer. The method blocks the fiber and returns this
+     *      socket; failures carry syscall 'connect' (for example ENOENT for a missing socket file).
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @return returns the connected Socket object
@@ -751,7 +1290,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(path: string, timeout?: number): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -760,7 +1301,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -769,7 +1312,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form without a fibjs connect timer.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
@@ -778,7 +1323,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(path: string, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -788,7 +1335,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connect(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -798,7 +1347,9 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectSync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
-     * @description establishes a connection and triggers the connect event after the connection is established
+     * @description Establishes a connection and triggers the connect event after the connection is established
+     *
+     *      The non-blocking path form with a connect timer; the result arrives through 'connect'/'error'.
      *      @param path specifies the unix socket or Windows pipe path
      *      @param timeout specifies the timeout in milliseconds, default is 0
      *      @param connectListener specifies the once connect event listener
@@ -808,7 +1359,14 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     connectAsync(path: string, timeout: number, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
-     * @description binds the current Socket to the specified port on all local addresses
+     * @description Binds the current Socket to the specified port on all local addresses
+     *
+     *      Prepares a listening socket: call listen and accept afterwards. SO_REUSEADDR is enabled on
+     *      non-Windows platforms. For an AF_INET6 socket allowIPv4 controls dual stack: true (the
+     *      default) accepts IPv4-mapped connections by clearing IPV6_V6ONLY, false keeps the socket
+     *      IPv6-only; on some operating systems this parameter has no effect. Errors such as EADDRINUSE
+     *      carry syscall 'bind'. Pass port 0 to let the operating system assign a port, then read it
+     *      from localPort after listen.
      *      @param port specifies the port to bind
      *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
      *
@@ -816,7 +1374,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     bind(port: number, allowIPv4?: boolean): void;
 
     /**
-     * @description binds the current Socket to the specified port on the specified address
+     * @description Binds the current Socket to the specified port on the specified address
+     *
+     *      addr is an IP literal for a TCP socket, or a path for an AF_UNIX/AF_PIPE socket (the port is
+     *      then ignored and comes back as 0). The remaining behavior matches the port-only overload:
+     *      SO_REUSEADDR, the dual-stack flag and the 'bind' syscall in errors. bind("", port) is
+     *      equivalent to bind(port).
      *      @param addr specifies the address to bind, which can also refer to a unix socket or Windows pipe path
      *      @param port specifies the port to bind; this parameter is ignored when binding a unix socket or Windows pipe
      *      @param allowIPv4 specifies whether to accept ipv4 connections, default is true. This parameter is effective for ipv6 and depends on the operating system
@@ -825,35 +1388,65 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     bind(addr: string, port?: number, allowIPv4?: boolean): void;
 
     /**
-     * @description starts listening for connection requests
+     * @description Starts listening for connection requests
+     *
+     *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
+     *      fails with an invalid-call error. backlog is passed to the operating system as the queued
+     *      connection limit; requests beyond it may be rejected. After listen, accept returns client
+     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
+     *      Socket directly, it wraps one in net.Server.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
     listen(backlog?: number): void;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
     accept(): Promise<Class_SocketPromise>;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
     acceptSync(): Class_Socket;
 
     /**
-     * @description waits for and accepts a connection
+     * @description Waits for and accepts a connection
+     *
+     *      Blocking: the fiber waits for the next client and returns a connected Socket of the same
+     *      family; the caller owns it and must close it. Several fibers may accept concurrently. When the
+     *      listening socket is closed by another fiber the pending accept fails (EBADF on the platform
+     *      engine, CALL_E_CLOSED_SOCKET on the libuv backend). TcpServer builds this loop in and hands
+     *      each accepted socket to the listener in its own fiber.
      *      @return returns the accepted connection object
      *
      */
     acceptAsync(): Promise<Class_SocketPromise>;
 
     /**
-     * @description enables or disables the TCP keep-alive mechanism
+     * @description Enables or disables the TCP keep-alive mechanism
+     *
+     *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
+     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
+     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
      *
@@ -861,24 +1454,56 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     setKeepAlive(enable?: boolean, initialDelay?: number): void;
 
     /**
-     * @description enables or disables the Nagle algorithm
+     * @description Enables or disables the Nagle algorithm
+     *
+     *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
+     *      is what request/response protocols usually want; pass false to re-enable it. The default of
+     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
     setNoDelay(noDelay?: boolean): void;
 
     /**
-     * @description checks whether the socket currently appears to be still usable
+     * @description Checks whether the socket currently appears to be still usable
      *
      *      This method performs a best-effort non-blocking check and does not consume any received data.
-     *      Returning false means the socket is definitely unusable; returning true only means no closed state has been detected so far.
+     *      Returning false means the socket is definitely unusable; returning true only means no closed
+     *      state has been detected so far, a peer that just disconnected can still be reported as alive
+     *      for a moment. It returns false before connect, after close, after destroy and after the end
+     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
+     *      not the same check.
+     *
+     *      Example — the flag follows the state of the peer connection:
+     *      ```JavaScript
+     *      const net = require('net');
+     *      const coroutine = require('coroutine');
+     *
+     *      const server = net.createServer((conn) => {
+     *          conn.close(); // close immediately after accepting
+     *      });
+     *      server.listen(0, '127.0.0.1');
+     *
+     *      const socket = net.connect(server.address().port, '127.0.0.1');
+     *      console.log(socket.isAlive()); // true
+     *      coroutine.sleep(50); // let the peer close arrive
+     *      console.log(socket.isAlive()); // false
+     *
+     *      socket.close();
+     *      server.stop();
+     *      ```
      *      @return returns whether the socket currently appears to be still usable
      *
      */
     isAlive(): boolean;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -886,7 +1511,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     recv(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -894,7 +1524,12 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     recvSync(bytes?: number): Class_Buffer;
 
     /**
-     * @description reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
+     *
+     *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
+     *      means no limit), and returns null once the peer has closed and all buffered data has been
+     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
+     *      a stream read; Node.js only has read()/stream events and no recv.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -902,8 +1537,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -911,8 +1551,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     send(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -920,8 +1565,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     sendSync(data: Class_Buffer | string): number;
 
     /**
-     * @description writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
-     *      data may be a Buffer or a string; a string is encoded as utf8.
+     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
+     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
+     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
+     *      has no send; its write() returns a boolean and never reports a byte count.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -929,16 +1579,23 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     sendAsync(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description aborts all ongoing operations on the current socket
+     * @description Aborts all ongoing operations on the current socket
      *
-     *      This method cancels all pending asynchronous operations (connect, recv, send, etc.),
-     *      and the canceled operations return an error. The socket itself is not closed and can continue to be used.
+     *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
+     *      the canceled operations fail with error number 20022; if no operation is pending the call has
+     *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
+     *      no equivalent, its destroy() would also close the connection.
      *
      */
     abort(): void;
 
     /**
-     * @description sets the socket timeout
+     * @description Sets the socket timeout
+     *
+     *      Assigns the timeout property and returns this socket, so calls can be chained. Equivalent to
+     *      `socket.timeout = timeout`, and also usable on an accepted socket to change its inherited
+     *      timeout.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @return returns the current Socket object
      *
@@ -946,7 +1603,13 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     setTimeout(timeout: number): Class_Socket;
 
     /**
-     * @description sets the socket timeout and registers a one-time 'timeout' event listener
+     * @description Sets the socket timeout and registers a one-time 'timeout' event listener
+     *
+     *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
+     *      current net implementation reports an expired operation as error number 20021 from the
+     *      pending call and does not emit the 'timeout' event, so the callback is registered but never
+     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
+     *      whose idle timeout emits 'timeout' and keeps the connection open.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object

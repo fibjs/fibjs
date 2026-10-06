@@ -2,52 +2,257 @@
 /// <reference path="../interface/Iterator.d.ts" />
 /// <reference path="../interface/DirEntry.d.ts" />
 /**
- * @description Directory iterator object, created by fs.opendir, used to read directory entries one by one
+ * @description Iterator over the entries of one directory, read one entry at a time
+ *
+ *  A Dir hands out DirEntry objects instead of plain names and can stop early, so it is the
+ *  right tool when a listing is large, must be classified as it is read, or must be interleaved
+ *  with other work. fs.readdir returns all names at once; fs.opendir(path) or fs.Dir(path)
+ *  create a Dir and both read the directory lazily.
+ *
+ *  Concepts:
+ *
+ *  - **Lazy scan**: creating a Dir does not touch the file system. The first read or iteration
+ *    scans the whole directory into memory and then serves entries; the scan is not repeated,
+ *    and errors such as ENOENT or ENOTDIR surface at that first call, not at construction.
+ *  - **Cursors**: read() advances one cursor of the Dir; the iteration protocol (`for...of` and
+ *    `for await...of`) uses its own cursor per loop, so each loop starts again from the first
+ *    entry and does not disturb read(). A loop that runs to the end can be started again; the
+ *    entries are kept until close().
+ *  - **End of iteration**: read() returns null when there are no more entries and after
+ *    close(); the iterator protocol reports `done`. call close() when the Dir is no longer
+ *    needed to drop the cached entries early (it does not release a system handle).
+ *  - **close is idempotent**: unlike Node.js, where read() and close() on a closed Dir throw
+ *    ERR_DIR_CLOSED, fibjs makes close() a no-op the second time and lets read() return null
+ *    (plans/compat-differences.md 2.16).
+ *
+ *  Obtained from:
+ *  - `fs.opendir(path)` — the factory used in Node.js-compatible code;
+ *  - `new fs.Dir(path)` — fibjs extension; the class is exposed as `fs.Dir` (there is no
+ *    global `Dir`) and is not constructible in Node.js user code.
+ *
+ *  Example 1 — read the entries one by one and stop at the end:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+ *  fs.writeFile(path.join(dir, 'a.txt'), 'a');
+ *  fs.mkdir(path.join(dir, 'sub'));
+ *
+ *  const iterator = fs.opendir(dir);
+ *  let entry;
+ *  while ((entry = iterator.read()) !== null)
+ *      console.log(entry.name, entry.isDirectory() ? 'dir' : 'file');
+ *  iterator.close();
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 2 — the same directory through the two iteration forms:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+ *  fs.writeFile(path.join(dir, 'a.txt'), 'a');
+ *
+ *  for (const entry of new fs.Dir(dir))
+ *      console.log('sync', entry.name);
+ *
+ *  (async () => {
+ *      for await (const entry of new fs.Dir(dir))
+ *          console.log('async', entry.name);
+ *      fs.rmSync(dir, { recursive: true, force: true });
+ *  })();
+ *  ```
+ *
  */
 declare class Class_Dir extends Class_Iterator {
     /**
-     * @description Dir constructor, creates a directory iterator object from a path
+     * @description Creates a directory iterator for a path
+     *
+     *      The directory is not read yet: the first read() or iteration scans it, and a missing
+     *      path or a path that is not a directory (ENOENT, ENOTDIR) is reported then. In fibjs the
+     *      class is exposed as `fs.Dir`; the same object is also returned by fs.opendir.
      *      @param path the directory to iterate
      *
      */
     constructor(path: string);
 
     /**
-     * @description Queries the directory path of the current iteration
+     * @description The directory path this iterator was created for
+     *
+     *      The value as it was passed to fs.opendir or the constructor, neither resolved to an
+     *      absolute path nor normalized: opening '.' reports '.'.
+     *
      */
     readonly path: string;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     read(): Class_DirEntry;
 
     read(callback: (err: Error | undefined | null, retVal: Class_DirEntry)=>any): void;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     readSync(): Class_DirEntry;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     readAsync(): Promise<Class_DirEntry>;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     closeSync(): void;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     closeAsync(): Promise<void>;
 
@@ -62,44 +267,184 @@ declare class Class_Dir extends Class_Iterator {
  */
 declare class Class_DirPromise extends Class_Iterator {
     /**
-     * @description Dir constructor, creates a directory iterator object from a path
+     * @description Creates a directory iterator for a path
+     *
+     *      The directory is not read yet: the first read() or iteration scans it, and a missing
+     *      path or a path that is not a directory (ENOENT, ENOTDIR) is reported then. In fibjs the
+     *      class is exposed as `fs.Dir`; the same object is also returned by fs.opendir.
      *      @param path the directory to iterate
      *
      */
     constructor(path: string);
 
     /**
-     * @description Queries the directory path of the current iteration
+     * @description The directory path this iterator was created for
+     *
+     *      The value as it was passed to fs.opendir or the constructor, neither resolved to an
+     *      absolute path nor normalized: opening '.' reports '.'.
+     *
      */
     readonly path: string;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     read(): Promise<Class_DirEntry>;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     readSync(): Class_DirEntry;
 
     /**
-     * @description Reads the next directory entry, returns null when iteration ends
+     * @description Reads the next directory entry
+     *
+     *      Returns null once all entries have been served and also after close(). The scan loads
+     *      the whole directory on the first call; a missing path or a non-directory path is
+     *      reported here as ENOENT/ENOTDIR. read() uses a cursor independent of the iteration
+     *      protocol, so a `for...of` loop always starts from the first entry.
+     *
+     *      Example — read one entry and observe the end of the iteration:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      fs.writeFile(path.join(dir, 'only.txt'), 'x');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      console.log(iterator.read().name); // only.txt
+     *      console.log(iterator.read());      // null, the iteration has ended
+     *      iterator.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @return the next entry, or null after the last entry and after close()
+     *
      */
     readAsync(): Promise<Class_DirEntry>;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     close(): Promise<void>;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     closeSync(): void;
 
     /**
-     * @description Closes the directory iterator object and releases the iteration state; safe to call repeatedly
+     * @description Closes the iterator and discards the cached entries
+     *
+     *      Safe to call before any read and safe to call repeatedly; after close() read() returns
+     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      plans/compat-differences.md 2.16). The directory itself is not modified.
+     *
+     *      Example — close twice and read after close:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-dir-'));
+     *      const iterator = fs.opendir(dir);
+     *      iterator.close();
+     *      iterator.close();                  // idempotent
+     *      console.log(iterator.read());      // null after close
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     closeAsync(): Promise<void>;
 

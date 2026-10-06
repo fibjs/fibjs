@@ -1,9 +1,125 @@
-/*! @brief Defines the asynchronous hooks module */
+/*! @brief The async_hooks module exposes the Node.js compatible classes for tracking asynchronous context: AsyncLocalStorage and AsyncResource
+
+ The module is an export surface: it re-exports the two classes documented in
+ the AsyncLocalStorage and AsyncResource definitions, so code written for
+ Node.js can keep using `require('async_hooks')`. Both classes propagate their
+ context through timers, callbacks, promises and fibers created inside a
+ tracked scope.
+
+ Main capabilities:
+
+ - **AsyncLocalStorage**: stores a value for an asynchronous call chain and reads it back
+   from any callback created inside it; used for request-scoped data such as a request id,
+   a user or a trace context;
+ - **AsyncResource**: captures the context of the creating fiber and restores it around a
+   callback that runs later, for wrapping third-party callback APIs.
+
+ Concepts:
+
+ - **What is implemented**: the module exports exactly the two classes;
+   `AsyncLocalStorage` and `AsyncResource` are the same constructors as the definitions of
+   the same names, and the module is also reachable as `require('node:async_hooks')`.
+ - **What is not implemented**: the Node.js `createHook` and its hook callbacks,
+   `executionAsyncId()`, the module-level `triggerAsyncId()`, `asyncWrapProviders` and
+   `defaults` are missing, so code that instruments the asynchronous lifecycle itself
+   must be adapted. There are no destroy hooks, so `emitDestroy` is a no-op and the
+   `requireManualDestroy` option is ignored.
+ - **Async ids**: `asyncId` and `triggerAsyncId` on resources are informational counters
+   provided by the classes, not the ids of the Node.js async hooks subsystem; see the
+   AsyncResource definition for the exact values.
+ - **Context propagation**: AsyncLocalStorage stores attach to the asynchronous context of
+   the current fiber, and every asynchronous operation created inside `run` inherits the
+   store. A manually created resource is the escape hatch for callbacks that fibjs cannot
+   instrument by itself.
+
+ Import:
+ ```JavaScript
+ const async_hooks = require('async_hooks'); // also require('node:async_hooks')
+ const { AsyncLocalStorage, AsyncResource } = async_hooks;
+ ```
+
+ Example 1 — request-scoped store across a timer:
+ ```JavaScript
+ const { AsyncLocalStorage } = require('async_hooks');
+ const als = new AsyncLocalStorage();
+
+ als.run({ requestId: 'req-123' }, () => {
+     setTimeout(() => console.log(als.getStore().requestId), 10); // req-123
+ });
+ console.log(als.getStore()); // undefined, outside run()
+ ```
+
+ Example 2 — wrap a callback API with AsyncResource:
+ ```JavaScript
+ const { AsyncResource, AsyncLocalStorage } = require('async_hooks');
+ const als = new AsyncLocalStorage();
+
+ function readLater(callback) {
+     const resource = new AsyncResource('Read');
+     setTimeout(() => resource.runInAsyncScope(callback, null, 'data'), 10);
+ }
+
+ als.run({ requestId: 'req-9' }, () => {
+     readLater(() => console.log(als.getStore().requestId)); // req-9
+ });
+ ```
+
+ Notes:
+
+ - The two classes are only reachable through this module; they are not global
+   variables and do not have their own module names, so
+   `require('AsyncLocalStorage')` fails with error 20024.
+ - The context-tracking API of both classes is complete; the differences from Node.js
+   are limited to diagnostics (ids, missing hook callbacks, ignored options) and are
+   documented in the class definitions.
+ */
 module async_hooks
 {
-    /*! @brief AsyncLocalStorage object, see AsyncLocalStorage */
+    /*! @brief The AsyncLocalStorage class, see the AsyncLocalStorage definition
+
+     This member is the constructor of the class, so
+     `new async_hooks.AsyncLocalStorage([options])` creates an instance. The class stores
+     one value per asynchronous execution context and is the recommended way to carry
+     request-scoped data across callbacks, promises and fibers.
+
+     Example — set a store in place and hide it temporarily with exit:
+     ```JavaScript
+     const { AsyncLocalStorage } = require('async_hooks');
+     const als = new AsyncLocalStorage();
+
+     als.enterWith('A');
+     console.log(als.getStore()); // A
+     console.log(als.exit(() => als.getStore())); // undefined
+     console.log(als.getStore()); // A
+     ```
+
+     Node.js comparison: this is the same class; the `withScope` helper for `using`
+     declarations is not provided.
+     */
     static AsyncLocalStorage;
 
-    /*! @brief AsyncResource object, see AsyncResource */
+    /*! @brief The AsyncResource class, see the AsyncResource definition
+
+     This member is the constructor of the class, so
+     `new async_hooks.AsyncResource(type[, triggerAsyncId])` captures the asynchronous
+     context of the current fiber; use `runInAsyncScope` or the static `bind` to run a
+     completion callback inside the captured context. Use it when an operation outlives the
+     context that created it and fibjs cannot instrument the callback path itself.
+
+     Example — bind a function to the context that created it:
+     ```JavaScript
+     const { AsyncResource, AsyncLocalStorage } = require('async_hooks');
+     const als = new AsyncLocalStorage();
+
+     const read = als.run({ id: 7 }, () => AsyncResource.bind(() => als.getStore().id));
+     console.log(read()); // 7
+
+     als.run({ id: 8 }, () => console.log(read())); // 7
+     ```
+
+     Node.js comparison: the constructor, runInAsyncScope, bind and the id accessors
+     match; `requireManualDestroy` is accepted but ignored because emitDestroy is a no-op.
+     See the AsyncResource definition for details.
+     */
     static AsyncResource;
 };

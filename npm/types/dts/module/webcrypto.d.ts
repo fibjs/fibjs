@@ -2,36 +2,184 @@
 /// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../module/subtle.d.ts" />
 /**
- * @description WebCrypto API module
+ * @description Web Crypto API for fibjs: random values, UUIDs, keys and subtle operations
  *
- * The WebCrypto API module provides a set of functions for encryption and decryption. It can be obtained through the webcrypto property of the global object or require("crypto").webcrypto.
+ *  The module implements the WHATWG Web Crypto API inside fibjs. Its object is available as the
+ *  global `crypto` variable and as `crypto.webcrypto` of the crypto module, so browser-oriented
+ *  code can call `crypto.getRandomValues(...)` and `crypto.subtle` without importing anything;
+ *  `require('crypto').webcrypto` is the same object, while `require('webcrypto')` is not a
+ *  module name.
+ *
+ *  Capabilities:
+ *
+ *  - **Random values and identifiers**: `getRandomValues` fills a typed array from the
+ *    operating system CSPRNG; `randomUUID` returns a version-4 UUID;
+ *  - **Key objects**: `CryptoKey` holds key material together with its algorithm,
+ *    `extractable` flag and `usages`;
+ *  - **Cryptographic operations**: `subtle` exposes digest, key generation, import and export,
+ *    signatures and ECDH key agreement as promise-based methods.
+ *
+ *  Concepts:
+ *
+ *  - **Algorithm objects**: every operation takes an algorithm that is either a plain string
+ *    ("SHA-256", "Ed25519") or an object whose `name` selects the algorithm; the other members
+ *    configure it: `namedCurve` for ECDSA and ECDH, `hash` for HMAC, `length` in bits for HMAC
+ *    generation and `public` for ECDH key agreement. Names match case-insensitively.
+ *  - **Supported algorithms**: `subtle.digest` accepts every digest name known to OpenSSL
+ *    (SHA-1, SHA-256, SHA-384, SHA-512, SHA3-256, MD5, SM3, ...). Keys can be ECDSA, Ed25519,
+ *    ECDH (P-256/P-384/P-521) and HMAC (SHA-1/SHA-256/SHA-384/SHA-512). RSA, AES, PBKDF2 and
+ *    HKDF are not implemented here: use the crypto module (`createCipheriv`, `generateKeyPair`,
+ *    `pbkdf2`, `hkdf`, ...) for those.
+ *  - **Key lifecycle**: `subtle.generateKey` creates key material and `subtle.importKey` loads
+ *    existing material into a CryptoKey; `subtle.exportKey` serializes a key as raw, pkcs8,
+ *    spki or jwk; `subtle.sign`, `subtle.verify` and `subtle.deriveBits` consume keys. A key
+ *    created with `extractable` false refuses to be exported.
+ *  - **extractable and usages**: usages is the allow-list of operations a key accepts ('sign',
+ *    'verify', 'encrypt', 'decrypt', 'wrapKey', 'unwrapKey', 'deriveKey', 'deriveBits'); using
+ *    a key for an operation outside the list throws. ECDSA and Ed25519 pairs keep 'sign' on
+ *    the private key and 'verify' on the public key, while ECDH public keys have no usages.
+ *  - **Inputs and outputs**: data and key material are accepted as a Buffer, a typed array, an
+ *    ArrayBuffer or a string (read as utf8). digest, sign and deriveBits resolve to an
+ *    ArrayBuffer, JWK exports to a plain object; the subtle methods return promises and fibjs
+ *    also generates blocking `...Sync` aliases such as `subtle.digestSync`.
+ *  - **Node.js and browser differences**: there is no separate global `webcrypto` or `subtle`
+ *    and no secure-context requirement as in browsers; the CryptoKey class is also available
+ *    as the global `CryptoKey`.
+ *
+ *  Import:
+ *  ```JavaScript
+ *  const crypto = require('crypto');   // the global crypto variable is the same object
+ *  ```
+ *
+ *  Example 1 — random bytes and a version-4 UUID:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  // getRandomValues fills the array in place and returns it
+ *  const bytes = new Uint8Array(16);
+ *  console.log(crypto.getRandomValues(bytes) === bytes, bytes.length); // true 16
+ *
+ *  // randomUUID returns a lower-case version-4 UUID
+ *  const uuid = crypto.randomUUID();
+ *  console.log(uuid.length, uuid[14]); // 36 4
+ *  ```
+ *
+ *  Example 2 — digest and signatures through the global crypto object:
+ *  ```JavaScript
+ *  const crypto = require('crypto');
+ *
+ *  console.log(global.crypto === crypto.webcrypto); // true
+ *
+ *  (async () => {
+ *      const digest = await crypto.subtle.digest('SHA-256', 'abc');
+ *      console.log(Buffer.from(digest).toString('hex').slice(0, 8)); // ba7816bf
+ *
+ *      const pair = await crypto.subtle.generateKey(
+ *          { name: 'Ed25519' }, true, ['sign', 'verify']);
+ *      const signature = await crypto.subtle.sign('Ed25519', pair.privateKey, 'abc');
+ *      console.log(signature.byteLength); // 64
+ *  })();
+ *  ```
  *
  */
 declare module 'webcrypto' {
     /**
-     * @description Generates random numbers
+     * @description Fills a typed array with cryptographically secure random bytes
      *
-     *     @param data a TypedArray object used to hold the generated random numbers.
-     *     @return returns the data object.
+     *      The array is filled in place and returned, so `crypto.getRandomValues(arr) === arr`. Any
+     *      TypedArray is accepted (Int8Array through BigUint64Array; the Float arrays are filled
+     *      with raw random bytes); a DataView, a plain array or any other value throws a TypeError.
+     *      The bytes come from the operating system CSPRNG (OpenSSL RAND_bytes) and the call is
+     *      limited to 65536 bytes, as the Web Crypto specification requires; a larger array throws
+     *      a RangeError (20006).
+     *
+     *      Example - fill and return the same array, then hit the size limit:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const bytes = new Uint8Array(16);
+     *      console.log(crypto.getRandomValues(bytes) === bytes); // true
+     *
+     *      try {
+     *          crypto.getRandomValues(new Uint8Array(65537));
+     *      } catch (err) {
+     *          console.log(err.name, err.number); // RangeError 20006
+     *      }
+     *      ```
+     *
+     *      @param data the TypedArray to fill; it is modified in place
+     *      @return the same TypedArray
      *
      */
     function getRandomValues(data: TypedArray): TypedArray;
 
     /**
-     * @description Generates a UUID
+     * @description Returns a random version-4 UUID string
      *
-     *     @return returns the generated UUID string.
+     *      The value is drawn from the operating system CSPRNG and follows the RFC 4122 version-4
+     *      layout `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`: lower case, 36 characters, the version
+     *      nibble is 4 and the variant bits are 10xx. The method takes no arguments, so passing one
+     *      (even an object) throws a TypeError; `crypto.randomUUID(options)`, the crypto module
+     *      method, is a different function and does accept options.
+     *
+     *      Example - check the shape of the returned UUID:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const uuid = crypto.randomUUID();
+     *      console.log(uuid.length, uuid[8], uuid[13], uuid[14], uuid[18], uuid[23]);
+     *      // 36 - - 4 - -
+     *      console.log(/^[0-9a-f-]{36}$/.test(uuid)); // true
+     *      ```
+     *
+     *      @return a 36-character lower-case UUID string
      *
      */
     function randomUUID(): string;
 
     /**
-     * @description The CryptoKey class represents symmetric or asymmetric keys, each exposing different features
+     * @description The class of Web Crypto key objects, see the CryptoKey definition
+     *
+     *      Instances are created by `subtle.generateKey` and `subtle.importKey`; `new
+     *      webcrypto.CryptoKey()` throws, and every key exposes `type`, `algorithm`, `extractable`
+     *      and `usages` as read-only properties. The same class is the global `CryptoKey`
+     *      (`crypto.webcrypto.CryptoKey === CryptoKey`), so `key instanceof CryptoKey` works.
+     *
+     *      Example - an instance obtained from subtle and checked against the class:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      (async () => {
+     *          const pair = await crypto.subtle.generateKey(
+     *              { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+     *          console.log(pair.privateKey instanceof CryptoKey, pair.privateKey.type);
+     *          // true private
+     *      })();
+     *      ```
+     *
      */
     const CryptoKey: typeof Class_CryptoKey;
 
     /**
-     * @description Provides access to the SubtleCrypto API
+     * @description The SubtleCrypto entry point, see the subtle module
+     *
+     *      The promise-based operation surface of the Web Crypto API. The object is the same as
+     *      `require('crypto').subtle` and `crypto.webcrypto.subtle`; calling `new
+     *      webcrypto.subtle()` throws.
+     *
+     *      Example - await a digest and repeat it with the blocking alias:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      (async () => {
+     *          const digest = await crypto.subtle.digest('SHA-256', 'abc');
+     *          console.log(Buffer.from(digest).toString('hex').slice(0, 8)); // ba7816bf
+     *
+     *          const sync = crypto.subtle.digestSync('SHA-256', 'abc');
+     *          console.log(Buffer.from(sync).toString('hex').slice(0, 8)); // ba7816bf
+     *      })();
+     *      ```
+     *
      */
     const subtle: typeof import ('subtle');
 

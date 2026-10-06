@@ -10,239 +10,505 @@
 /// <reference path="../interface/XmlProcessingInstruction.d.ts" />
 /// <reference path="../interface/XmlDocumentFragment.d.ts" />
 /**
- * @description XmlDocument is an object of the xml module; it represents the whole XML document and provides the entry point for accessing the whole document
+ * @description XmlDocument is the root of the fibjs XML/HTML DOM: it owns the node tree and
+ *  provides the factory methods that create nodes, the document-level query methods and the
+ *  entry points for parsing and serializing a whole document
  *
- * XmlDocument is the root of a document tree and contains all nodes in the whole XML document. The XmlDocument object also provides the following functions:
+ *  A document is created empty in XML mode (`new xml.Document()`), or with an html/head/body
+ *  skeleton in HTML mode (`new xml.Document('text/html')`), and is filled by load() or by
+ *  appending nodes produced by the create* factories. It is also what xml.parse() returns and
+ *  what XmlNode.ownerDocument points to. A document node may hold one document element, one
+ *  doctype, processing instructions, comments and a document fragment; text is rejected.
  *
- * 1. Creates element nodes, text nodes, comments, processing instructions, etc.
- * 2. Accesses and modifies document properties and related information (such as DTD comments and the document declaration)
- * 3. Parses XML documents
+ *  Concepts:
  *
- * The following is sample code that uses the XmlDocument object to parse an XML document:
+ *  - **Document lifecycle**: `new xml.Document()` and the global `new XMLDocument()` build an
+ *    empty XML document. In HTML mode the constructor immediately builds an `html` element
+ *    containing `head` and `body`, and load() replaces the whole tree with the parsed one. In
+ *    XML mode load() appends the parsed nodes to the current document - it does not reset it,
+ *    so a second document element is silently dropped and a failed parse leaves the partial
+ *    tree behind. xml.parse() always returns a fresh document.
+ *  - **Modes**: the mode is fixed when the document is created (`text/xml` or `text/html`).
+ *    XML mode is case-sensitive and strict (malformed input throws); HTML mode uses a tolerant
+ *    tree builder, upper-cases the tag names of parsed elements, matches tag names
+ *    case-insensitively, wraps a fragment in html/head/body and serializes empty elements with
+ *    the HTML rules. head, title and body exist only in HTML mode and throw an invalid-call
+ *    error (20009) in XML mode.
+ *  - **Creating nodes**: createElement/createElementNS, createTextNode, createComment,
+ *    createCDATASection, createProcessingInstruction and createDocumentFragment return nodes
+ *    owned by the document but detached until inserted. String parameters are validated, not
+ *    coerced, so a non-string argument throws a TypeError (20005). An element created with
+ *    createElementNS carries namespaceURI/prefix/localName but no xmlns declaration (see
+ *    XmlNode for the serialization rule).
+ *  - **Import and adopt**: importNode copies a node from another document into this one (deep
+ *    by default) and leaves the source tree unchanged; adoptNode moves it (removing it from
+ *    its old parent and changing ownerDocument). A Document node cannot be imported or
+ *    adopted. Inserting a foreign node directly also adopts it - see XmlNode.
+ *  - **Querying**: getElementsByTagName/getElementsByTagNameNS, getElementById,
+ *    getElementsByClassName and querySelector/querySelectorAll search the whole document
+ *    (documentElement included, unlike the XmlElement methods, which search descendants only).
+ *    getElementById returns the first element in document order whose id attribute matches (an
+ *    empty or unknown id gives null). Every query returns an XmlNodeList snapshot that owns
+ *    strong references to its nodes, so results do not follow later mutations; the
+ *    document-level indexes are invalidated automatically, no refresh call is needed.
+ *  - **Serialization**: toString() and xml.serialize() produce the markup of the whole
+ *    document. The XML declaration is emitted only when the document has declaration
+ *    metadata: inputEncoding is filled by parsing and xmlStandalone is optional, and setting
+ *    xmlVersion (or parsing a declaration) switches the declaration on; the standalone value
+ *    is written only when a version is present. XML mode closes empty elements as `<tag/>`,
+ *    HTML mode uses void tags or `<tag></tag>`.
  *
- * ```JavaScript
- * var xml = require('xml');
- * var fs = require('fs');
+ *  Obtained from:
+ *  - `xml.parse(source[, type][, options])` - parses and returns an XmlDocument;
+ *  - `new xml.Document([type])` or the global `new XMLDocument([type])` - an empty XML
+ *    document, or an html/head/body skeleton in HTML mode;
+ *  - `new DOMParser().parseFromString(source, mimeType)` - see the DOMParser interface;
+ *  - `document.cloneNode()` - a copy of the whole document, declaration included.
  *
- * var xmlStr = fs.readFile('test.xml');
- * var xmlDoc = xml.parse(xmlStr);
+ *  Example 1 - create a document from scratch and serialize it:
+ *  ```JavaScript
+ *  const xml = require('xml');
  *
- * // get document root node name
- * var rootName = xmlDoc.documentElement.nodeName;
- * console.log(`the document root node name is ${rootName}`);
- * ```
+ *  const doc = new xml.Document();
+ *  const root = doc.createElement('note');
+ *  root.appendChild(doc.createTextNode('hello'));
+ *  root.appendChild(doc.createComment('tail'));
+ *  doc.appendChild(root);
  *
- * In the above code, we first use the `readFile()` method of the `fs` module to read an XML file and assign the file stream to the variable `xmlStr`. Then we use the `parse()` method of the `xml` module to parse the XML file and assign the parsed `XmlDocument` object to the variable `xmlDoc`. Finally we use the `documentElement` property of `xmlDoc` to get the document root node and obtain its node name, which is output to the console.
+ *  console.log(doc.documentElement.nodeName); // note
+ *  console.log(doc.toString());                // <note>hello<!--tail--></note>
+ *  ```
  *
- * Since XmlDocument is the entry point of the whole XML document, we can get and modify related information of the document through it. For example, we can get and modify the XML version and the standalone property of the document through `xmlDoc.xmlVersion` and `xmlDoc.xmlStandalone` respectively. We can also create new processing instruction nodes with the `xmlDoc.createProcessingInstruction()` method.
+ *  Example 2 - copy a node between documents with importNode:
+ *  ```JavaScript
+ *  const xml = require('xml');
  *
- * The XmlDocument object is a very powerful type that provides great convenience for parsing XML files.
+ *  const source = xml.parse('<catalog><book id="1">XML</book></catalog>');
+ *  const target = new xml.Document();
+ *  const book = target.importNode(source.getElementById('1'), true);
+ *
+ *  target.appendChild(target.createElement('shelf')).appendChild(book);
+ *  console.log(book.ownerDocument === target);            // true
+ *  console.log(source.documentElement.childNodes.length); // 1 (source unchanged)
+ *  console.log(target.toString()); // <shelf><book id="1">XML</book></shelf>
+ *  ```
+ *
+ *  Example 3 - work with an HTML document:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = xml.parse('<html><head><title>Demo</title></head>'
+ *      + '<body><p class="x">a</p><p>b</p></body></html>', 'text/html');
+ *  doc.body.setAttribute('id', 'page');
+ *
+ *  console.log(doc.title);                                // Demo
+ *  console.log(doc.getElementById('page').nodeName);      // BODY
+ *  console.log(doc.querySelectorAll('p').length);         // 2
+ *  console.log(doc.head.parentElement === doc.documentElement); // true
+ *  ```
  *
  */
 declare class Class_XmlDocument extends Class_XmlNode {
     /**
-     * @description Constructs an XmlDocument object
-     *      @param type the type of the document object, default "text/xml"; to handle html, you need to specify "text/html"
+     * @description Constructs a document in the requested mode
+     *
+     *      The optional type selects the parsing mode and is fixed for the life of the document.
+     *      `text/xml` (the default) builds an empty XML document; `text/html` immediately builds an
+     *      html element with head and body children. Any other MIME type throws an Error (20004).
+     *      The global `XMLDocument` class is the same constructor.
+     *
+     *      @param type the document mode, either "text/xml" or "text/html"
      *
      */
     constructor(type?: string);
 
     /**
-     * @description Forms the document by parsing XML/HTML data
-     *      source may be a Buffer or a string, depending on the type the document was created with; a string is encoded as utf8.
-     *      @param source the data to parse
-     *      @param options the parsing limits, same as xml.parse, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     * @description Parses XML/HTML data into the document
+     *
+     *      source may be a string (encoded as utf8) or a Buffer. In XML mode the parsed nodes are
+     *      appended to the current document: load() does not reset it, a second document element
+     *      is silently dropped and a failed parse leaves the partial tree in place - create a
+     *      fresh document for a fresh parse. In HTML mode the existing tree is discarded and
+     *      rebuilt from the input. A Buffer in HTML mode first detects the charset from a charset
+     *      meta tag (this is what fills inputEncoding); string input is taken as utf8. The options
+     *      are the same parse limits as xml.parse.
+     *
+     *      options supports the following options (0, a negative value or Infinity disables the
+     *      corresponding limit):
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "maxElementDepth": 1000,  // maximum element nesting depth
+     *          "maxNodeCount": 1000000   // maximum number of nodes and attributes
+     *      })
+     *      ```
+     *
+     *      Exceeding a limit throws an Error (20024); malformed XML throws the same error with the
+     *      line and column in the message. A non-number option throws a TypeError (20004), and a
+     *      source that is neither string nor Buffer throws a TypeError (20005). The member returns
+     *      nothing.
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = xml.parse('<a><b/></a>');
+     *      doc.load('<c/>');
+     *      console.log(doc.documentElement.nodeName); // a (XML mode appends; second root dropped)
+     *
+     *      const page = new xml.Document('text/html');
+     *      page.load('<p>first');
+     *      page.load('<p>second');
+     *      console.log(page.body.textContent);              // second (HTML mode reloads)
+     *      console.log(page.getElementsByTagName('p').length); // 1
+     *      ```
+     *
+     *      @param source the XML or HTML data to parse
+     *      @param options the parse limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
     load(source: Class_Buffer | string, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description Returns the encoding used for the document (at parse time)
+     * @description Returns the encoding detected while parsing, or null when it is unknown
+     *
+     *      Set from the encoding pseudo-attribute of the XML declaration or, for a Buffer parsed
+     *      in HTML mode, from the charset of a meta tag (both the charset attribute and the
+     *      http-equiv form are recognized). A document built from a string in HTML mode and a
+     *      document parsed without a declaration report null. The property is read-only;
+     *      assigning to it is ignored.
      *
      */
     readonly inputEncoding: string;
 
     /**
-     * @description Sets or returns whether the document is standalone
+     * @description Reads or writes the standalone flag of the XML declaration
+     *
+     *      null when the parsed document had no standalone pseudo-attribute and the member has not
+     *      been assigned; assigning stores a boolean value and it is serialized only when the
+     *      document also has a version (see toString). It does not affect parsing.
      *
      */
     xmlStandalone: boolean;
 
     /**
-     * @description Sets or returns the XML version of the document
+     * @description Reads or writes the version of the XML declaration
+     *
+     *      Reading returns "1.0" when the document was built without a declaration (the value is
+     *      only stored once you assign one). The setter accepts a string only - a non-string
+     *      argument throws a TypeError (20005). A non-empty version makes toString() emit the
+     *      declaration, so setting it (with xmlStandalone and inputEncoding) documents the whole
+     *      declaration.
      *
      */
     xmlVersion: string;
 
     /**
-     * @description Returns the Document Type Declaration related to the document
+     * @description Returns the document type declaration, or null when the document has none
      *
-     *     For an XML document without a DTD, returns null. This property provides direct access to the XmlDocumentType object (a child node of XmlDocument).
+     *      The returned XmlDocumentType is the doctype child node itself (the same object as
+     *      `childNodes[0]` when the declaration comes first). An HTML document parsed from
+     *      `<!DOCTYPE html>` keeps it as well; a document built with the create* factories has
+     *      none. A document accepts at most one doctype - appending a second throws an Error
+     *      (20024). removeChild clears the slot, while XmlNode.remove() and adoptNode() detach the
+     *      node without clearing it, so this property then keeps reporting the detached doctype.
      *
      */
     readonly doctype: Class_XmlDocumentType;
 
     /**
-     * @description Returns the root node of the document
+     * @description Returns the document element, or null when the document has no root element
+     *
+     *      A document holds at most one element; appendChild/insertBefore/replaceChild reject a
+     *      second one with an Error (20024). removeChild (and replaceChild) release the slot: after
+     *      removing the root this property reads null and another element can be appended. The
+     *      slot is a document-level field, so the generic XmlNode.remove() and adoptNode() do not
+     *      release it - they detach the element but the document still reports it here and keeps
+     *      rejecting a second element; remove the root with removeChild when it must be replaced.
      *
      */
     readonly documentElement: Class_XmlElement;
 
     /**
-     * @description Returns the head node of an HTML document; only valid in html mode
+     * @description Returns the head element of an HTML document
+     *
+     *      Only valid in HTML mode (an invalid-call error, 20009, is thrown in XML mode). The
+     *      constructor and the HTML parser create a head element, so it is normally present; this
+     *      member returns the first head element found under the document element.
      *
      */
     readonly head: Class_XmlElement;
 
     /**
-     * @description Returns the content of the title node of an HTML document; only valid in html mode
+     * @description Returns the text of the first title element of an HTML document
+     *
+     *      Only valid in HTML mode (20009 in XML mode). Returns the title's textContent, or an
+     *      empty string when the document has no title element.
      *
      */
     readonly title: string;
 
     /**
-     * @description Returns the body node of an HTML document; only valid in html mode
+     * @description Returns the body element of an HTML document
+     *
+     *      Only valid in HTML mode (20009 in XML mode); the constructor and the HTML parser create
+     *      a body element, and parsed content is placed into it.
      *
      */
     readonly body: Class_XmlElement;
 
     /**
-     * @description Returns a node list of all elements with the specified name
+     * @description Returns a snapshot list of all elements with the specified tag name
      *
-     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document with the specified tag name, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements with the specified tag name are added to or removed from the document, its content is updated automatically as necessary.
-     *      @param tagName the tag name to retrieve. The value "*" matches all tags
-     *      @return an XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
+     *      The search covers the whole document, documentElement included (the XmlElement member
+     *      of the same name searches descendants only); `*` matches every element. In XML mode the
+     *      name is compared case-sensitively against tagName, so an unprefixed query does not
+     *      match `p:name`; in HTML mode tag names are upper-cased and compared
+     *      case-insensitively. The returned XmlNodeList is a snapshot that holds strong references
+     *      to its nodes: a later insertion or removal does not change it, query again after a
+     *      mutation. A document without a root element returns an empty list.
+     *
+     *      @param tagName the tag name to match, or `*` for every element
+     *      @return an XmlNodeList of the matching elements in document order
      *
      */
     getElementsByTagName(tagName: string): Class_XmlNodeList;
 
     /**
-     * @description Returns a node list of all elements with the specified namespace and name
+     * @description Returns a snapshot list of all elements with the specified namespace URI and
+     *      local name
      *
-     *      This method is similar to the getElementsByTagName() method, except that it retrieves elements by namespace and name.
-     *      @param namespaceURI the namespace URI to retrieve. The value "*" matches all tags
-     *      @param localName the tag name to retrieve. The value "*" matches all tags
-     *      @return an XmlNodeList collection of XmlElement nodes with the specified tag in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
+     *      Either argument may be `*`; the match uses the namespace URI and the localName, so an
+     *      element is found through its namespace regardless of the prefix it was declared with.
+     *      Like getElementsByTagName the result is a snapshot in document order.
+     *
+     *      @param namespaceURI the namespace URI to match, or `*`
+     *      @param localName the local name to match, or `*`
+     *      @return an XmlNodeList of the matching elements in document order
      *
      */
     getElementsByTagNameNS(namespaceURI: string, localName: string): Class_XmlNodeList;
 
     /**
-     * @description Returns the element with the specified id attribute
+     * @description Returns the first element whose id attribute has the specified value
      *
-     *      This method traverses the descendant nodes of the document and returns an XmlElement node object representing the first document element with the specified id attribute.
-     *      @param id the id to retrieve
-     *      @return the XmlElement node with the specified id attribute in the node tree
+     *      The whole document is searched in document order and the first match wins; matching is
+     *      case-sensitive, and an empty or unknown id returns null. The value is read from the
+     *      `id` attribute in both modes. The XmlElement interface exposes a member of the same
+     *      name that only searches its descendants.
+     *
+     *      @param id the id value to look for
+     *      @return the matching XmlElement, or null when no element has that id
      *
      */
     getElementById(id: string): Class_XmlElement;
 
     /**
-     * @description Returns a node list of all elements with the specified class name
+     * @description Returns a snapshot list of all elements with the specified class name(s)
      *
-     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document with the specified class name, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements with the specified tag name are added to or removed from the document, its content is updated automatically as necessary.
-     *      @param className the class name to retrieve
-     *      @return an XmlNodeList collection of XmlElement nodes with the specified class name in the document tree. The order of the returned element nodes is the order in which they appear in the source document.
+     *      The value is split on whitespace and an element must carry all the tokens to match
+     *      (intersection), so `"a b"` selects elements whose class attribute contains both a and
+     *      b. Matching is case-sensitive in both modes and covers the whole document; the result
+     *      is a snapshot in document order.
+     *
+     *      @param className one or more class tokens separated by whitespace
+     *      @return an XmlNodeList of the matching elements in document order
      *
      */
     getElementsByClassName(className: string): Class_XmlNodeList;
 
     /**
-     * @description Creates an element node
-     *      @param tagName the specified name of the element node
-     *      @return returns the newly created XmlElement node with the specified tag name
+     * @description Creates a detached element node
+     *
+     *      The element keeps the case of tagName in both modes; in HTML mode tag lookups remain
+     *      case-insensitive. The node belongs to the document but has no parent until it is
+     *      inserted, and an empty name is accepted. A non-string argument throws a TypeError
+     *      (20005). See XmlElement for the operations available on the result; use createElementNS
+     *      when the element has a namespace.
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = new xml.Document();
+     *      const root = doc.createElement('root');
+     *      root.appendChild(doc.createTextNode('value'));
+     *      doc.appendChild(root);
+     *
+     *      console.log(doc.documentElement.textContent); // value
+     *      console.log(doc.toString());                  // <root>value</root>
+     *      ```
+     *
+     *      @param tagName the name of the element
+     *      @return returns the new XmlElement
      *
      */
     createElement(tagName: string): Class_XmlElement;
 
     /**
-     * @description Creates an element node with the specified namespace
-     *      @param namespaceURI the namespace URI of the element node
-     *      @param qualifiedName the qualified name of the element node
-     *      @return returns the newly created XmlElement node with the specified tag name
+     * @description Creates a detached element node with a namespace
+     *
+     *      qualifiedName is split at the first colon into prefix and localName (no colon means an
+     *      empty prefix and a localName equal to the name); namespaceURI, prefix and localName are
+     *      stored on the element, but no xmlns attribute is added to the tree. Serialization adds
+     *      the declaration when it is missing, so lookupPrefix on the detached element returns
+     *      null until the subtree has been parsed with an explicit declaration. Either argument
+     *      must be a string (TypeError 20005 otherwise).
+     *
+     *      @param namespaceURI the namespace URI of the new element
+     *      @param qualifiedName the qualified name of the new element
+     *      @return returns the new XmlElement
      *
      */
     createElementNS(namespaceURI: string, qualifiedName: string): Class_XmlElement;
 
     /**
-     * @description Creates a text node
-     *      @param data the text of this node
-     *      @return returns the newly created XmlText node representing the specified data string
+     * @description Creates a detached text node
+     *
+     *      The data is stored verbatim and adjacent text nodes are not joined (call normalize()
+     *      on the parent when a canonical shape is needed, or set textContent instead). A
+     *      non-string argument throws a TypeError (20005).
+     *
+     *      @param data the character data of the new text node
+     *      @return returns the new XmlText
      *
      */
     createTextNode(data: string): Class_XmlText;
 
     /**
-     * @description Creates a comment node
-     *      @param data the comment text of this node
-     *      @return returns the newly created XmlComment node whose comment text is the specified data
+     * @description Creates a detached comment node
+     *
+     *      The data is stored verbatim and appears inside the comment markup when serialized. A
+     *      non-string argument throws a TypeError (20005).
+     *
+     *      @param data the comment text
+     *      @return returns the new XmlComment
      *
      */
     createComment(data: string): Class_XmlComment;
 
     /**
-     * @description Creates an XmlCDATASection node
-     *      @param data the CDATA data of this node
-     *      @return returns the newly created XmlCDATASection node whose content is the specified data
+     * @description Creates a detached CDATA section node
+     *
+     *      Valid in both modes; the data is stored verbatim (no escaping), is not splittable and
+     *      serializes as `<![CDATA[data]]>`. A non-string argument throws a TypeError (20005).
+     *
+     *      @param data the character data of the section
+     *      @return returns the new XmlCDATASection
      *
      */
     createCDATASection(data: string): Class_XmlCDATASection;
 
     /**
-     * @description Creates an XmlProcessingInstruction node
-     *      @param target the target of the processing instruction
-     *      @param data the content text of the processing instruction
-     *      @return the newly created ProcessingInstruction node
+     * @description Creates a detached processing-instruction node
+     *
+     *      target names the instruction and data is its content; the returned node exposes target
+     *      and data in addition to the XmlNode members, and serializes as `<?target data?>`. Both
+     *      arguments must be strings (TypeError 20005 otherwise).
+     *
+     *      @param target the instruction target (the name before the data)
+     *      @param data the instruction content
+     *      @return returns the new XmlProcessingInstruction
      *
      */
     createProcessingInstruction(target: string, data: string): Class_XmlProcessingInstruction;
 
     /**
-     * @description Creates an empty XmlDocumentFragment node
+     * @description Creates an empty document fragment
      *
-     *      DocumentFragment is a lightweight document object that can contain multiple child nodes. When a DocumentFragment is inserted into a document, what is inserted is not the DocumentFragment itself but all of its child nodes.
-     *      @return the newly created XmlDocumentFragment node
+     *      A fragment is a lightweight container with no parent: when it is appended, inserted or
+     *      used in place of a child, its children are spliced into the target and the fragment is
+     *      emptied. It reports nodeName `\#document-fragment` and has no text content of its own.
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = new xml.Document();
+     *      const root = doc.createElement('ul');
+     *      const fragment = doc.createDocumentFragment();
+     *      fragment.appendChild(doc.createElement('li'));
+     *      fragment.appendChild(doc.createElement('li'));
+     *
+     *      root.appendChild(fragment);
+     *      console.log(fragment.childNodes.length); // 0 (children were moved)
+     *      console.log(root.childNodes.length);     // 2
+     *      ```
+     *
+     *      @return returns the new XmlDocumentFragment; it is owned by this document but stays
+     *      detached from the tree - see the XmlDocumentFragment class for its full semantics
      *
      */
     createDocumentFragment(): Class_XmlDocumentFragment;
 
     /**
-     * @description Imports a node from another document into the current document
+     * @description Copies a node from another document into this document
      *
-     *      This method creates a copy of the source node and can insert it into the current document. The source node remains unchanged. If you need to move a node from another document to the current document instead of copying it, use the adoptNode method.
-     *      @param importedNode the node to import
-     *      @param deep if true, imports the whole subtree of the node recursively; if false, imports only the node itself
-     *      @return returns the new node imported into the current document
+     *      deep defaults to true, so the whole subtree is copied; false imports only the node
+     *      itself (an element still brings its attributes). The source stays in its document and
+     *      is unchanged, while the copy and its subtree are owned by this document and have no
+     *      parent. A Document node cannot be imported (Error 20024); a non-node argument throws a
+     *      TypeError (20005). Use adoptNode to move a node instead of copying it.
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const source = xml.parse('<a><b>t</b></a>');
+     *      const target = xml.parse('<c/>');
+     *      const imported = target.importNode(source.documentElement.firstChild, true);
+     *
+     *      console.log(imported.ownerDocument === target);        // true
+     *      console.log(source.documentElement.childNodes.length); // 1 (source unchanged)
+     *      console.log(xml.serialize(imported));                  // <b>t</b>
+     *      ```
+     *
+     *      @param importedNode the node to copy into this document
+     *      @param deep whether to copy the whole subtree (the default is true)
+     *      @return returns the imported node, owned by this document
      *
      */
     importNode(importedNode: Class_XmlNode, deep?: boolean): Class_XmlNode;
 
     /**
-     * @description Adopts a node from another document into the current document
+     * @description Moves a node from another document into this document
      *
-     *      This method moves a node from another document to the current document. The node is removed from the original document and its ownerDocument property is changed to the current document. Unlike importNode, adoptNode does not create a copy.
-     *      @param adoptedNode the node to adopt
-     *      @return returns the adopted node
+     *      The node is removed from its old parent, its ownerDocument becomes this document and
+     *      the same object is returned; no copy is made. Adopting the document's own root element
+     *      (or doctype) detaches it, but like XmlNode.remove() this path does not release the
+     *      document-level slot: documentElement (doctype) keeps reporting the detached node and a
+     *      second element (doctype) is rejected - use removeChild first when the node must be
+     *      replaced. A Document node cannot be adopted (Error 20024); a non-node argument throws a
+     *      TypeError (20005). Inserting a node into another document adopts it implicitly - see
+     *      XmlNode.
+     *
+     *      @param adoptedNode the node to move into this document
+     *      @return returns the adopted node, now owned by this document
      *
      */
     adoptNode(adoptedNode: Class_XmlNode): Class_XmlNode;
 
     /**
-     * @description Returns an XmlNodeList of elements matching the specified CSS selector
+     * @description Returns the first element matching a CSS selector
      *
-     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document that match the specified CSS selector, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements matching the specified selector are added to or removed from the document, its content is updated automatically as necessary.
-     *      @param selectors the CSS selector
-     *      @return the XmlElement node matching the specified CSS selector
+     *      The search covers the whole document, documentElement included, and returns the first
+     *      match in document order or null when nothing matches; a document without a root element
+     *      also returns null. An invalid selector throws a SyntaxError (20024). The supported
+     *      selector grammar is listed in the XmlElement class comment; querySelectorAll returns
+     *      every match as a snapshot. See XmlElement.querySelector for the descendant-only variant.
+     *
+     *      @param selectors the CSS selector to match
+     *      @return the first matching element, or null when there is no match
      *
      */
     querySelector(selectors: string): Class_XmlElement;
 
     /**
-     * @description Returns an XmlNodeList of all elements matching the specified CSS selector
+     * @description Returns a snapshot list of all elements matching a CSS selector
      *
-     *      This method returns an XmlNodeList object (which can be treated as a read-only array) containing all XmlElement nodes in the document that match the specified CSS selector, stored in the order in which they appear in the source document. The XmlNodeList object is "live", that is, if elements matching the specified selector are added to or removed from the document, its content is updated automatically as necessary.
-     *      @param selectors the CSS selector
-     *      @return an XmlNodeList collection of XmlElement nodes matching the specified CSS selector. The order of the returned element nodes is the order in which they appear in the source document.
+     *      The search covers the whole document, documentElement included. The returned
+     *      XmlNodeList is a snapshot in document order that holds strong references to its nodes:
+     *      a later mutation does not change it, query again after changing the tree. A document
+     *      without a root element returns null; an invalid selector throws a SyntaxError (20024).
+     *
+     *      @param selectors the CSS selector to match
+     *      @return an XmlNodeList of the matching elements in document order
      *
      */
     querySelectorAll(selectors: string): Class_XmlNodeList;

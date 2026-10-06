@@ -3,133 +3,253 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Blob.d.ts" />
 /**
- * @description FormData is a container class for managing HTTP form data (multipart/form-data), inheriting from HttpCollection.
+ * @description An ordered collection of form field names and values, inheriting from HttpCollection
  *
- * FormData provides the standard Web FormData API and supports initializing and operating form fields in multiple ways; it is suitable for scenarios such as HTTP file uploads and form data construction.
+ *  FormData implements the Web FormData API and is the value type behind form submission: the
+ *  entries are strings or File objects, keep their insertion order and may repeat a name. The
+ *  body helpers of fibjs use it directly - http.Request#form parses a request body into one,
+ *  HttpMessage#formData does the same on any message and FormData#encode produces the wire
+ *  representation of the collection.
  *
- * Main features:
- * 1. Supports initialization via an empty constructor, an object, or an existing FormData instance.
- * 2. Supports append, set and other methods to add and modify fields, with support for File (Blob) and filename parameters.
- * 3. Compatible with Web standard FormData behavior, allowing multiple values for the same field name and file uploads.
+ *  A value appended as a Blob or File is stored as a File: a plain Blob becomes a File named
+ *  "blob" with the current time as lastModified, a File keeps its name, type and lastModified.
+ *  Every other value is converted to a string. This is the WHATWG conversion and is why file
+ *  entries survive a round trip through encode() and parse.
  *
- * Common usage example:
- * ```JavaScript
- * // Create empty form data
- * const form = new FormData();
+ *  Concepts:
  *
- * // Initialize with object
- * const form = new FormData({ foo: 'bar', file: blob });
+ *  - **Fields and files**: get() returns a File for a file entry and a string otherwise;
+ *    multiple values of a name are read with getAll()/all() or the iteration helpers. Names are
+ *    compared case-sensitively and an empty name is allowed, both like the Web standard.
+ *  - **Ordering**: entries keep insertion order. set() removes every old value of the name and
+ *    appends the new one, so the name moves to the end; append() never touches existing values.
+ *  - **Wire formats**: encode() writes application/x-www-form-urlencoded by default and
+ *    multipart/form-data on request; the urlencoded form rejects file entries while the
+ *    multipart form generates a random boundary unless the type string carries one. The
+ *    parsing constructors accept the matching forms, so encode() plus a constructor is a lossless
+ *    round trip for names, values and file metadata.
+ *  - **Not in the standard**: encode() is a fibjs extension (the Web FormData API has no
+ *    serializer), as are the string and multipart constructors; Node.js only accepts the empty
+ *    constructor and an iterable of pairs.
  *
- * // Append fields
- * form.append('name', 'value');
- * form.append('file', blob, 'filename.txt');
+ *  Obtained from:
+ *  - `new FormData()` — an empty collection;
+ *  - `new FormData(init)` — fields from a urlencoded string, an object or another FormData;
+ *  - `new FormData(init, boundary)` — a multipart Buffer or Blob;
+ *  - `http.Request#form` / `HttpMessage#formData` — the parsed body of a message;
+ *  - `FormData#encode` — the wire representation as a Blob.
  *
- * // Overwrite fields
- * form.set('name', 'newValue');
- * form.set('file', blob2, 'file2.txt');
- * ```
+ *  Example 1 — build a form and read the entries back:
+ *  ```JavaScript
+ *  const form = new FormData();
+ *  form.append('name', 'lion');
+ *  form.append('tag', 'a');
+ *  form.append('tag', 'b');
+ *  form.append('avatar', new Blob(['png'], { type: 'image/png' }), 'avatar.png');
+ *
+ *  console.log(form.get('name'));   // lion
+ *  console.log(form.getAll('tag')); // [ 'a', 'b' ]
+ *  const file = form.get('avatar');
+ *  console.log(file instanceof File);            // true
+ *  console.log(file.name, file.type, file.size); // avatar.png image/png 3
+ *  ```
+ *
+ *  Example 2 — encode as urlencoded text and parse it with URLSearchParams:
+ *  ```JavaScript
+ *  const form = new FormData();
+ *  form.append('name', 'John Doe');
+ *  form.append('city', '北京');
+ *
+ *  const body = form.encode(); // application/x-www-form-urlencoded
+ *  console.log(body.type);    // application/x-www-form-urlencoded
+ *  console.log(body.textSync());
+ *  // name=John%20Doe&city=%E5%8C%97%E4%BA%AC
+ *
+ *  const parsed = new URLSearchParams(body.textSync());
+ *  console.log(parsed.get('name'), parsed.get('city')); // John Doe 北京
+ *  ```
+ *
+ *  Example 3 — multipart round trip with a file:
+ *  ```JavaScript
+ *  const form = new FormData();
+ *  form.append('note', 'hi');
+ *  form.append('doc', new File(['data'], 'd.txt', { type: 'text/plain' }));
+ *
+ *  const body = form.encode('multipart/form-data');
+ *  console.log(body.type.startsWith('multipart/form-data; boundary=')); // true
+ *
+ *  const copy = new FormData(body, ''); // the boundary comes from the Blob type
+ *  console.log(copy.get('note'));     // hi
+ *  console.log(copy.get('doc').name); // d.txt
+ *  console.log(copy.get('doc').textSync()); // data
+ *  ```
  *
  */
 declare class Class_FormData extends Class_HttpCollection {
     /**
-     * @description FormData constructor, creates a new empty HTTP form data container
-     *         Creates an empty FormData instance for dynamically adding form fields later.
+     * @description Creates an empty FormData collection
+     *
+     *      No entries are stored; fields are added later with append()/set() or by parsing a body
+     *      through the other constructors.
      *
      */
     constructor();
 
     /**
-     * @description FormData constructor, initializes form data from a Buffer. Suitable for creating a FormData instance from existing multipart/form-data data
-     *      @param init the multipart/form-data binary data used for initialization
-     *      @param boundary specifies the boundary string of the multipart/form-data, used to parse the data, in the format: multipart/form-data; boundary=${boundary}
+     * @description Creates a FormData by parsing a multipart/form-data Buffer
+     *
+     *      init must contain a complete multipart body and boundary is the boundary string, either
+     *      the bare value or a Content-Type style string such as "multipart/form-data; boundary=x"
+     *      (the boundary parameter is extracted; a value of 1-70 RFC 2046 characters is accepted).
+     *      Text fields become strings and parts with a filename become File objects. Parsing is
+     *      tolerant: a missing or malformed boundary, or data that does not start with the first
+     *      delimiter, yields an empty collection instead of throwing.
+     *      @param init the multipart/form-data binary data to parse
+     *      @param boundary the boundary string used to parse the data
      *
      */
     constructor(init: Class_Buffer, boundary: string);
 
     /**
-     * @description FormData constructor, initializes form data from a Blob. Suitable for creating a FormData instance from the result of FormData.encode() or other multipart/form-data Blob data
-     *      @param init the Blob object used for initialization, usually the result of FormData.encode()
-     *      @param boundary optional boundary string; if not specified, it is automatically parsed from the type property of the Blob (e.g. "multipart/form-data; boundary=xxx")
+     * @description Creates a FormData by parsing the bytes of a Blob
+     *
+     *      The Blob content is parsed like the Buffer form. When boundary is empty the boundary is
+     *      read from the Blob type, which is how the result of encode('multipart/form-data') is
+     *      parsed back without copying the boundary by hand; a Blob whose type carries no usable
+     *      boundary yields an empty collection.
+     *      @param init the Blob holding the multipart/form-data bytes
+     *      @param boundary optional boundary, default read from the Blob type
      *
      */
     constructor(init: Class_Blob | Class_BlobPromise, boundary?: string);
 
     /**
-     * @description FormData constructor, initializes the container from an object of fields, another FormData, or a form data string
-     *      init may be an object whose keys are field names, another FormData container, or a form data string such as "name=value&key=val".
-     *      @param init the fields
+     * @description Creates a FormData from fields, another FormData or a urlencoded string
+     *
+     *      The three accepted forms behave differently:
+     *      - an object appends every own enumerable property in enumeration order; an array value
+     *        appends one entry per element and any other value appends one entry, converted exactly
+     *        like the value argument of append();
+     *      - another FormData copies every entry into a new independent collection;
+     *      - a string is parsed as application/x-www-form-urlencoded text ("a=1&b=2"): `+` decodes
+     *        to a space, percent escapes are decoded, empty segments are skipped and repeated names
+     *        keep every value. A leading `?` is NOT stripped, so "?a=1" stores the field "?a"
+     *        (unlike the URLSearchParams constructor).
+     *      The string and object forms are fibjs extensions; the Web standard accepts only a form
+     *      element and Node.js only an iterable of pairs. A value that matches no form (a number,
+     *      null) throws TypeError 20005.
+     *
+     *      Example — initialize from a urlencoded string:
+     *      ```JavaScript
+     *      const form = new FormData('name=lion&tag=a&tag=b');
+     *
+     *      console.log(form.get('name'));    // lion
+     *      console.log(form.getAll('tag'));  // [ 'a', 'b' ]
+     *      console.log(form.get('missing')); // null
+     *      ```
+     *
+     *      @param init the fields: an object, another FormData or a urlencoded string
      *
      */
     constructor(init: FIBJS.GeneralObject | Class_FormData | string);
 
     /**
-     * @description appends a key-value entry; appending data does not modify the data of an existing key
+     * @description Appends a Blob or File value under a name, keeping existing values
      *
-     *      Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
+     *      A Blob is stored as a File named "blob" with the given bytes and type and the current
+     *      time as lastModified; a File is stored as it is, keeping its name and lastModified. The
+     *      entry is added at the end and existing values of the name are untouched, so a name may
+     *      hold several values. The name may be any string, including the empty string.
      *
-     *      @param name specifies the field name to append
-     *      @param value specifies the Blob to append
+     *      Example — append a Blob and inspect the File entry:
+     *      ```JavaScript
+     *      const form = new FormData();
+     *      form.append('doc', new Blob(['abc'], { type: 'text/plain' }));
+     *
+     *      const file = form.get('doc');
+     *      console.log(file instanceof File);            // true
+     *      console.log(file.name, file.type, file.size); // blob text/plain 3
+     *      ```
+     *
+     *      @param name the field name
+     *      @param value the Blob or File to append
      *
      */
     append(name: string, value: Class_Blob | Class_BlobPromise): void;
 
     /**
-     * @description appends a key-value entry; appending data does not modify the data of an existing key
+     * @description Appends a Blob or File value under a name with an explicit file name
      *
-     *      Appends a field to the form. If a field with the same name already exists, it is not overwritten, so multiple values with the same name are allowed.
-     *
-     *      @param name specifies the field name to append
-     *      @param value specifies the Blob/File to append; passing other types throws a TypeError
-     *      @param filename specifies the file name to append
+     *      The value must be a Blob or a File; any other value throws `TypeError [20024] Failed to
+     *      execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.` The entry is stored
+     *      as a File with the given filename (it may be empty), the bytes and type of the value and
+     *      the current time as lastModified. Use this form when the upload needs a specific name.
+     *      @param name the field name
+     *      @param value the Blob or File to append
+     *      @param filename the file name of the stored File
      *
      */
     append(name: string, value: any, filename: string): void;
 
     /**
-     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     * @description Sets a Blob or File value, replacing every existing value of the name
      *
-     *      Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
-     *
-     *      @param name specifies the field name to set
-     *      @param value specifies the Blob to set
+     *      All entries of name are removed and one entry is appended, so the name moves to the end
+     *      of the insertion order. A plain Blob is stored as a File named "blob" and a File keeps
+     *      its metadata, exactly like the Blob form of append().
+     *      @param name the field name
+     *      @param value the Blob or File to set
      *
      */
     set(name: string, value: Class_Blob | Class_BlobPromise): void;
 
     /**
-     * @description sets a key-value entry; setting data modifies the first value of the key and clears the remaining data with the same key
+     * @description Sets a Blob or File value with an explicit file name, replacing the old values
      *
-     *      Sets a form field. If a field with the same name already exists, only the first one is kept and overwritten, and the remaining fields with the same name are removed.
-     *
-     *      @param name specifies the field name to set
-     *      @param value specifies the Blob/File to set; passing other types throws a TypeError
-     *      @param filename specifies the file name to set
+     *      Like the filename form of append() but destructive: every existing value of name is
+     *      removed first, then one File with the given filename is appended. A value that is not a
+     *      Blob or File throws `TypeError [20024] Failed to execute 'set' on 'FormData': parameter 2
+     *      is not of type 'Blob'.`
+     *      @param name the field name
+     *      @param value the Blob or File to set
+     *      @param filename the file name of the stored File
      *
      */
     set(name: string, value: any, filename: string): void;
 
     /**
-     * @description encodes the current form data into a Buffer object
+     * @description Encodes the collection into a Blob
      *
-     *      Encodes the form data according to the specified content-type, supporting multiple encoding formats:
+     *      The type argument selects the wire format; matching is case-insensitive and aliases are
+     *      accepted:
+     *      - "application/x-www-form-urlencoded" (the default, also "urlencoded",
+     *        "form-urlencoded", "www-form-urlencoded") serializes the entries as name=value&...
+     *        with percent escapes. A File entry makes the call fail with `[20024] FormData encode:
+     *        field '<name>' contains non-string value (File/Blob), use multipart/form-data encoding
+     *        instead`. Spaces are encoded as %20, not as `+` like the WHATWG urlencoded serializer.
+     *      - "multipart/form-data" writes a complete multipart body and generates a random boundary
+     *        when the type string carries none; the type of the returned Blob contains the boundary
+     *        actually used ("multipart/form-data; boundary=...").
+     *      Any other type, including an empty string, throws `[20024] FormData encode: unsupported
+     *      content type: <type>`. The returned Blob holds the whole body; send it, write it to a
+     *      stream or parse it back with `new FormData(blob, '')`.
      *
-     *      Encoding rules:
-     *      1. When type is "multipart/form-data" and a boundary is specified:
-     *         encode in multipart/form-data format using the specified boundary
+     *      Example — inspect the generated multipart body:
+     *      ```JavaScript
+     *      const form = new FormData();
+     *      form.append('note', 'hi');
+     *      form.append('doc', new Blob(['data'], { type: 'text/plain' }), 'd.txt');
      *
-     *      2. When type is "multipart/form-data" and no boundary is specified:
-     *         automatically generate a random boundary and encode in multipart/form-data format
+     *      const body = form.encode('multipart/form-data; boundary=Fixed123');
+     *      console.log(body.type); // multipart/form-data; boundary=Fixed123
+     *      const text = body.textSync();
+     *      console.log(text.startsWith('--Fixed123\r\n'));   // true
+     *      console.log(text.includes('filename="d.txt"'));  // true
+     *      console.log(text.endsWith('--Fixed123--\r\n'));  // true
+     *      ```
      *
-     *      3. When type is "application/x-www-form-urlencoded":
-     *         encode the form data in URL encoding format (name=value&name2=value2)
-     *         supported aliases: "urlencoded", "form-urlencoded", "www-form-urlencoded"
-     *         Notes: if the form contains File/Blob objects, an error is thrown indicating the specific field name
-     *
-     *      4. Other values or unsupported formats:
-     *         throw an error
-     *
-     *      @param type specifies the content-type to encode with, supporting "multipart/form-data" and "application/x-www-form-urlencoded" (and their aliases), default is "application/x-www-form-urlencoded"
-     *      @return returns the encoded Blob object, containing the correct content-type
+     *      @param type the content type to encode with, default "application/x-www-form-urlencoded"
+     *      @return the encoded body as a Blob whose type is the content type used
      *
      */
     encode(type?: string): Class_Blob;

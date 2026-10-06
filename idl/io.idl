@@ -2,42 +2,127 @@
 
  Main capabilities:
 
- - **Stream objects**: `MemoryStream`, `BufferedStream` and `RangeStream`;
- - **Data movement**: `copyStream` copies data into a target stream, `bridge` copies both ways.
+ - **Stream objects**: `MemoryStream` (in-memory read/write), `BufferedStream`
+   (buffered reader with text helpers) and `RangeStream` (a window over another
+   stream);
+ - **Data movement**: `copyStream` copies a bounded number of bytes in one
+   direction, `bridge` copies both directions at once.
+
+ Concepts:
+
+ - **Position**: every stream has a current position used by both reads and
+   writes; `SeekableStream` exposes it through tell/seek/rewind and a length
+   through size(). Reads and writes advance the position, so rewind before
+   reading the same bytes again.
+ - **Buffered streams**: BufferedStream reads ahead in chunks from the stream
+   it wraps, so the underlying stream has already advanced before the data is
+   consumed; never read the underlying stream directly while a BufferedStream
+   is using it.
+ - **Back pressure**: `write` returns false when the stream write queue is
+   full; wait for the `drain` event before writing more (see the Stream class).
+   The io helpers do not need it: copyStream and bridge keep one chunk in
+   flight per direction.
+ - **Read forms**: `read(bytes)` returns up to bytes and null at the end;
+   `readAll` loops until the stream ends. Every async member also works
+   synchronously without a callback, with a trailing callback, and through the
+   `io.promises` namespace.
 
  Usage:
  ```JavaScript
- var io = require('io');
+ const io = require('io');
  ```
 
- Example of copying a stream:
-
+ Example 1 — read and write an in-memory stream:
  ```JavaScript
- var io = require('io');
+ const io = require('io');
 
- var src = new io.MemoryStream();
- src.write(new Buffer('hello world'));
- src.rewind();
+ const stm = new io.MemoryStream();
+ stm.write(Buffer.from('hello world'));
+ stm.rewind();
+ console.log(stm.readAll().toString()); // hello world
+ console.log(stm.size()); // 11
+ ```
 
- var dst = new io.MemoryStream();
- io.copyStream(src, dst);
+ Example 2 — copy part of one stream into another:
+ ```JavaScript
+ const io = require('io');
+
+ const from = new io.MemoryStream();
+ from.write(Buffer.from('0123456789'));
+ from.rewind();
+
+ const to = new io.MemoryStream();
+ console.log(io.copyStream(from, to, 4)); // 4
+
+ to.rewind();
+ console.log(to.readAll().toString()); // 0123
+ ```
+
+ Example 3 — read text lines through a buffered stream:
+ ```JavaScript
+ const io = require('io');
+
+ const stm = new io.MemoryStream();
+ stm.write(Buffer.from('one\ntwo\n'));
+ stm.rewind();
+
+ const reader = new io.BufferedStream(stm);
+ console.log(reader.readLines()); // ['one', 'two']
  ```
  */
 module io
 {
-    /*! @brief Creates a memory stream, see MemoryStream */
+    /*! @brief Creates a memory stream, see MemoryStream
+
+     The MemoryStream constructor exposed as a module static, so
+     `new io.MemoryStream()` builds the same class that `clone()` returns. The
+     stream lives in memory, supports random access and never blocks; see
+     MemoryStream for its members.
+     */
     static MemoryStream;
 
-    /*! @brief Creates a buffered stream, see BufferedStream */
+    /*! @brief Creates a buffered stream, see BufferedStream
+
+     The BufferedStream constructor exposed as a module static; it wraps
+     another stream and adds buffered text reading on top of it. See
+     BufferedStream for the text members and the buffering model.
+     */
     static BufferedStream;
 
-    /*! @brief Creates a range stream, see RangeStream */
+    /*! @brief Creates a range stream, see RangeStream
+
+     The RangeStream constructor exposed as a module static; it restricts
+     another stream to a byte range. See RangeStream for the range forms and
+     the seekable/length-limited modes.
+     */
     static RangeStream;
 
     /*! @brief Copies the data of a stream into a target stream
 
-     bytes specifies the number of bytes to copy; -1 by default, which copies all the data of
-     the source stream. The number of bytes actually copied is returned once the copy is done.
+     Bytes are moved from the current position of `from` to the current
+     position of `to`, in chunks of up to 64 KiB, and both positions advance by
+     the number of bytes copied. `bytes` limits the transfer: -1 (the default)
+     copies until the source ends, 0 copies nothing and returns 0. The copy
+     also stops when the source has no more data (read returns null) or when
+     the target reports an error; it never closes either stream. The return
+     value is the number of bytes actually written, and the call works
+     synchronously, with a trailing callback and through `io.promises`.
+
+     Example — copy a four-byte prefix into another stream:
+     ```JavaScript
+     const io = require('io');
+
+     const from = new io.MemoryStream();
+     from.write(Buffer.from('0123456789'));
+     from.rewind();
+
+     const to = new io.MemoryStream();
+     console.log(io.copyStream(from, to, 4)); // 4
+
+     to.rewind();
+     console.log(to.readAll().toString()); // 0123
+     ```
+
      @param from the source stream
      @param to the target stream
      @param bytes the number of bytes to copy
@@ -47,8 +132,25 @@ module io
 
     /*! @brief Copies data in both directions until no data is left or a stream is closed
 
-     stm1 and stm2 are the input and output of each other; the copy stops as a whole when
-     either direction ends.
+     stm1 and stm2 are the input and output of each other: two copies run at
+     the same time, stm1 to stm2 and stm2 to stm1, until one direction reaches
+     the end of its input. That direction then closes the other stream, which
+     ends the opposite copy as well; a write error or an externally closed
+     stream stops the whole call in the same way. Use it to connect two
+     endpoints of a connection pair (a client socket and its upstream, or two
+     memory streams related by a protocol) so that each side sees the other's
+     data.
+
+     Example — forward a client socket to an upstream socket (fragment; a
+     bridge needs two live bidirectional streams):
+     ```JavaScript
+     // fragment: a bridge needs two live bidirectional streams
+     const io = require('io');
+
+     // everything the client sends goes upstream, and vice versa
+     io.bridge(clientSocket, upstreamSocket);
+     ```
+
      @param stm1 the first stream
      @param stm2 the second stream
      */

@@ -1,11 +1,60 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gzip compression codec, compresses data with the gzip algorithm
+ * @description Gzip is the Node.js compatible codec that compresses data to the gzip container
+ *
+ *  `new zlib.Gzip(opts)` builds a synchronous codec; feed chunks with `_processChunk` and
+ *  the zlib flush flags. The gzip container is what `zlib.gzip` writes and `zlib.gunzip`
+ *  reads, with the 1f 8b magic and a CRC-32 trailer. For the fibjs stream API use
+ *  `zlib.createGzip(to)` instead; the codec class exists for packages such as minizlib and
+ *  tar. It inherits the members of ZlibCodec.
+ *
+ *  Concepts:
+ *  - **Options**: `level` (default Z_DEFAULT_COMPRESSION, and unlike `zlib.gzip` it is not
+ *    clamped: an out-of-range value leaves the codec closed), `windowBits` (default 31 for
+ *    the gzip container; an explicit value selects another format, so 15 writes zlib format
+ *    and -15 raw deflate), `memLevel` (1 to 9, default 8) and `strategy` (default
+ *    Z_DEFAULT_STRATEGY). Unknown keys are ignored.
+ *  - **Streaming**: each `_processChunk` call appends to the current message; Z_FINISH ends
+ *    it and writes the trailer while resetting the codec for the next message. Use
+ *    Z_SYNC_FLUSH when the consumer must see the data before the message ends.
+ *
+ *  Example 1 — compress and decompress through concrete codecs:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const gzip = new zlib.Gzip({ level: 9 });
+ *  const packed = gzip._processChunk('hello, world', C.Z_FINISH);
+ *  console.log(packed[0].toString(16), packed[1].toString(16)); // 1f 8b
+ *
+ *  const gunzip = new zlib.Gunzip();
+ *  console.log(gunzip._processChunk(packed, C.Z_FINISH).toString()); // hello, world
+ *  ```
+ *
+ *  Example 2 — the output integrates with the module-level helpers:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  // The default codec and zlib.gzip produce interchangeable streams.
+ *  const packed = new zlib.Gzip()._processChunk('hello, world', C.Z_FINISH);
+ *  console.log(packed.equals(zlib.gzip('hello, world'))); // true
+ *  console.log(zlib.gunzip(packed).toString());           // hello, world
+ *  ```
+ *
  */
 declare class Class_Gzip extends Class_ZlibCodec {
     /**
-     * @description Gzip constructor
+     * @description Creates a gzip codec
+     *
+     *      `opts` may be omitted or empty. The recognized options are `level` (default
+     *      Z_DEFAULT_COMPRESSION, not clamped, so an out-of-range value makes the codec
+     *      unusable), `windowBits` (default 31; 15 writes the zlib format and -15 raw deflate),
+     *      `memLevel` (1 to 9, default 8) and `strategy` (default Z_DEFAULT_STRATEGY 0). Other
+     *      keys are ignored. Creation never throws for a bad option: the codec is left closed
+     *      and the first `_processChunk` throws ERR_ZLIB_BINDING_CLOSED.
+     *
      *      @param opts compression options
      *
      */

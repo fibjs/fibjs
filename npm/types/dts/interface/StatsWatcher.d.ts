@@ -3,27 +3,130 @@
 /**
  * @description File Stats watcher object
  *
- *  When `fs.watchFile(target, onchange)` is called successfully, an object of this type is returned
+ *  A StatsWatcher polls the status of one file on a timer, detects changes and
+ *  reports them as `(curStat, prevStat)` pairs, the same model as Node.js
+ *  fs.watchFile. It is obtained from `fs.watchFile(target[, options], listener)`
+ *  and stops with close()/stop() or `fs.unwatchFile(target)`.
+ *
+ *  Concepts:
+ *
+ *  - **Polling**: the watcher calls stat on the target every `interval`
+ *    milliseconds (default 5007, the Node.js default; values below 20 fall back
+ *    to that default) and claims the process as long as it is active. It does not
+ *    use inotify-style events, so a fast change can be missed between polls and a
+ *    slow file system delays the report.
+ *  - **Change detection**: only the modification time (mtime) of the target is
+ *    compared; a pure size or permission change with an unchanged mtime is not
+ *    reported. The first poll always reports, with a zero Stat as prevStat (both
+ *    values are zero when the target does not exist yet); after that, a created
+ *    or re-created target reports once with the previous Stat, and a deleted
+ *    target reports nothing until it exists again.
+ *  - **Timestamp granularity**: mtime carries sub-millisecond precision but the
+ *    file system stamps writes with a coarse clock, so a write made within the
+ *    same tick as the previous poll keeps the same mtime and is missed. When a
+ *    change must be observed, leave at least one interval between the initial
+ *    callback and the write.
+ *  - **One watcher per path**: watchFile keeps a single watcher per resolved
+ *    path, so watching the same file twice returns the same object and adds a
+ *    listener; interval and persistent only apply when the watcher is created.
+ *    `fs.unwatchFile(target, listener)` removes one listener, and when the last
+ *    one is gone the watcher closes; `fs.unwatchFile(target)` removes them all
+ *    and closes the watcher.
+ *  - **Lifetime**: `ref()`/`unref()` add or drop the hold on the process; a
+ *    `persistent` watcher is already ref'd, so only call unref() when the watcher
+ *    should not keep the process alive. close() stops polling, forgets the
+ *    watcher and emits `close`.
+ *
+ *  Obtained from:
+ *  - `fs.watchFile(target[, options], listener)` — creates or reuses the watcher
+ *    of the resolved path and binds listener to the `change` event;
+ *  - `fs.unwatchFile(target)` / `StatsWatcher#close` / `StatsWatcher#stop` — stop
+ *    it again.
+ *
+ *  Example 1 — react to the first content change:
  *  ```JavaScript
- *  var fs = require("fs");
- *  var statsWatcher = fs.watchFile(target, (curStat, prevStat) => {
- *     // process
- *     // ...
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *  const coroutine = require('coroutine');
  *
- *     statsWatcher.unref();
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-watchfile-'));
+ *  const file = path.join(dir, 'log.txt');
+ *  fs.writeFile(file, 'one');
+ *
+ *  const seen = new coroutine.Event();
+ *  const watcher = fs.watchFile(file, { interval: 50 }, (cur, prev) => {
+ *      if (!seen.isSet()) {
+ *          seen.set(); // the first poll reports the status already on disk
+ *          return;
+ *      }
+ *      console.log(prev.size, '->', cur.size); // 3 -> 6
+ *      watcher.close();
+ *      fs.rmSync(dir, { recursive: true, force: true });
  *  });
+ *
+ *  seen.wait();
+ *  coroutine.sleep(150); // let the first poll's timestamp age before the write
+ *  fs.writeFile(file, 'first!');
  *  ```
- *  **Notes** The onchange callback is triggered if and **only if** the mtime property of the watched target file changes
  *
- *  Merely accessing the target file does not trigger the onchange callback.
+ *  Example 2 — stop watching and release the process:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
  *
- *  If, when `fs.watchFile(target)` is called, the file or directory represented by target does not exist yet, the onchange callback will **not** be called until the target is created, after which the callback starts being called.
- *  If the target file is deleted while the watcher is working, no further callbacks will be generated
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-watchfile-'));
+ *  const file = path.join(dir, 'count.txt');
+ *  fs.writeFile(file, '0');
+ *
+ *  const watcher = fs.watchFile(file, { interval: 100 }, () => {});
+ *  console.log(watcher.unref() === watcher); // true, unref() is chainable
+ *  watcher.close(); // stops polling and forgets the watcher
+ *  console.log(watcher.close() === undefined); // close() is idempotent
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
  *
  */
 declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
+     *
+     *      The listener receives the current Stat and the previous Stat, in that
+     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      always happens (with a zero previous Stat) on the first poll; later ones
+     *      only when mtime changed. Attaching with `on('change', fn)` behaves exactly
+     *      like passing the listener to fs.watchFile.
+     *
+     *      Example — use the event form instead of the callback argument:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const coroutine = require('coroutine');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-change-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const firstDone = new coroutine.Event();
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      watcher.on('change', (cur, prev) => {
+     *          if (!firstDone.isSet()) {
+     *              firstDone.set(); // the first poll reports the status already on disk
+     *              return;
+     *          }
+     *          console.log(prev.size, '->', cur.size); // 1 -> 2
+     *          watcher.close();
+     *          fs.rmSync(dir, { recursive: true, force: true });
+     *      });
+     *
+     *      firstDone.wait();
+     *      coroutine.sleep(150); // let the first poll's timestamp age before the write
+     *      fs.writeFile(file, 'xy');
+     *      ```
+     *
      */
     on(event: "change", listener: ()=>void): this;
 
@@ -45,17 +148,96 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
+     *
+     *      The listener receives the current Stat and the previous Stat, in that
+     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      always happens (with a zero previous Stat) on the first poll; later ones
+     *      only when mtime changed. Attaching with `on('change', fn)` behaves exactly
+     *      like passing the listener to fs.watchFile.
+     *
+     *      Example — use the event form instead of the callback argument:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const coroutine = require('coroutine');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-change-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const firstDone = new coroutine.Event();
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      watcher.on('change', (cur, prev) => {
+     *          if (!firstDone.isSet()) {
+     *              firstDone.set(); // the first poll reports the status already on disk
+     *              return;
+     *          }
+     *          console.log(prev.size, '->', cur.size); // 1 -> 2
+     *          watcher.close();
+     *          fs.rmSync(dir, { recursive: true, force: true });
+     *      });
+     *
+     *      firstDone.wait();
+     *      coroutine.sleep(150); // let the first poll's timestamp age before the write
+     *      fs.writeFile(file, 'xy');
+     *      ```
+     *
      */
     onchange: (()=>void) | null;
 
     /**
      * @description Stops watching the target file path and clears the reference count (no longer holds the process)
      *
+     *      Stops the timer, removes the watcher from the per-path table (so a later
+     *      fs.watchFile creates a fresh one) and emits `close`. Calling close() twice
+     *      is safe. The listener list is not cleared: close() is a one-way switch,
+     *      after which no change events are delivered.
+     *
+     *      Example — close from the change handler:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const coroutine = require('coroutine');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-close-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      coroutine.sleep(80);
+     *      watcher.close();
+     *      console.log(watcher.close() === undefined); // true
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      */
     close(): void;
 
     /**
      * @description Stops watching the target file path and clears the reference count (no longer holds the process); equivalent to close()
+     *
+     *      An alias with the Node.js-style name; the behavior is exactly close().
+     *
+     *      Example — stop with the alias:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-stop-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      watcher.stop();
+     *
+     *      const again = fs.watchFile(file, { interval: 50 }, () => {});
+     *      console.log(again !== watcher); // true, the stopped watcher was forgotten
+     *      again.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *
      */
     stop(): void;
@@ -64,7 +246,29 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Increments the reference count, telling fibjs not to exit the process while the watcher is still in use,
      *   A StatsWatcher obtained via `fs.watchFile()` has already called this method by default, so it holds the process by default.
      *
-     *   @return returns the StatsWatcher itself
+     *      The watcher returned by fs.watchFile is created with `persistent: true` and
+     *      is ref'd, so ref() is only needed after an unref() when the watcher must
+     *      keep the process alive again. It returns the watcher itself, so calls can
+     *      be chained.
+     *
+     *      Example — ref after an unref:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-ref-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      console.log(watcher.unref() === watcher); // true
+     *      console.log(watcher.ref() === watcher); // true, the process is held again
+     *      watcher.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns the StatsWatcher itself
      *
      */
     ref(): Class_StatsWatcher;
@@ -72,7 +276,28 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description Decrements the reference count
      *
-     *   @return returns the StatsWatcher itself
+     *      Drops one hold on the process; once no hold is left fibjs may exit even
+     *      while the watcher is active, which is the Node.js `unref()` semantics. The
+     *      timer keeps running until close() when the process stays alive. Returns
+     *      the watcher itself.
+     *
+     *      Example — let the process exit with an active watcher:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-unref-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'x');
+     *
+     *      const watcher = fs.watchFile(file, { interval: 50 }, () => {});
+     *      console.log(watcher.unref() === watcher); // true, unref() is chainable
+     *      watcher.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns the StatsWatcher itself
      *
      */
     unref(): Class_StatsWatcher;

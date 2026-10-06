@@ -1,11 +1,68 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/PerformanceEntry.d.ts" />
 /**
- * @description The PerformanceMeasure interface provides the detailed information of performance measure entries.
+ * @description A measure computed from a start and an end: a duration entry with an optional detail
+ *
+ *  PerformanceMeasure is the concrete PerformanceEntry subtype with `entryType` `measure` and
+ *  corresponds to the MDN PerformanceMeasure interface. Measures are created with
+ *  performance.measure and have `duration` equal to endTime - startTime, which may be negative.
+ *
+ *  Concepts:
+ *
+ *  - **Not retained**: fibjs does not store measures in the timeline, so they never appear in
+ *    performance.getEntries/getEntriesByType/getEntriesByName and cannot be re-read after the
+ *    callback; capture them from a PerformanceObserver instead (Node.js retains them).
+ *  - **startTime and duration**: startTime comes from the start mark, from an explicit number, or is
+ *    0 when absent; duration comes from end - start or from the `duration` option.
+ *  - **detail**: an arbitrary value attached at creation; it is `undefined` when the options object
+ *    had no `detail` (Node.js uses `null`).
+ *
+ *  Obtained from:
+ *  - the PerformanceObserverEntryList of an observer registered for `measure`;
+ *  - `observer.takeRecords()`, which returns queued measures together with any queued marks;
+ *  - there is no constructor and no global class object for PerformanceMeasure.
+ *
+ *  Example 1 — measure between two marks and drain it from an observer:
+ *  ```JavaScript
+ *  const { performance, PerformanceObserver } = require('perf_hooks');
+ *
+ *  performance.clearMarks();
+ *  const observer = new PerformanceObserver(() => {});
+ *  observer.observe({ type: 'measure' });
+ *
+ *  performance.mark('start', { startTime: 100 });
+ *  performance.mark('end', { startTime: 175 });
+ *  performance.measure('load', 'start', 'end');
+ *
+ *  const measure = observer.takeRecords()[0];
+ *  console.log(measure.name, measure.entryType); // load measure
+ *  console.log(measure.startTime, measure.duration); // 100 75
+ *  observer.disconnect();
+ *  ```
+ *
+ *  Example 2 — measure with an explicit duration and detail:
+ *  ```JavaScript
+ *  const { performance, PerformanceObserver } = require('perf_hooks');
+ *
+ *  performance.clearMarks();
+ *  const observer = new PerformanceObserver(() => {});
+ *  observer.observe({ entryTypes: ['measure'] });
+ *  performance.measure('retry-window', { start: 10, duration: 40, detail: { attempts: 3 } });
+ *
+ *  const measure = observer.takeRecords()[0];
+ *  console.log(measure.startTime, measure.duration, measure.detail.attempts); // 10 40 3
+ *  observer.disconnect();
+ *  ```
+ *
  */
 declare class Class_PerformanceMeasure extends Class_PerformanceEntry {
     /**
-     * @description The detailed information of the performance measure entry.
+     * @description The detail value attached when the measure was created
+     *
+     *      Holds whatever was passed as `detail` in the options form of performance.measure; the value is
+     *      returned by reference rather than copied. The measure(name, startMark, endMark) form cannot
+     *      attach one, so there the property is `undefined` (Node.js uses `null`).
+     *
      */
     readonly detail: any;
 

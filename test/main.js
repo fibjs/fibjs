@@ -17,6 +17,7 @@ run("./cli_help_test.js");
 run("./man_test.js");
 run("./check_builtin_types_test.js");
 run("./idl_check_test.js");
+run("./idl_examples_test.js");
 
 run("./class_test.js");
 run("./error_types_test.js");

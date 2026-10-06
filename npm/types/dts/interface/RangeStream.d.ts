@@ -4,57 +4,225 @@
 /**
  * @description Range query stream reading object
  *
- *  The RangeStream object is used to cut data from a SeekableStream object. Creation method:
- *  ```JavaScript
- *  var stm = new io.RangeStream(stream, '0-10');
- *  stm.end // 11
+ *  A RangeStream is a window over another stream: it reads only the bytes of a
+ *  range and reports that range as its own size and content. Two modes exist:
  *
- *  var stm = new io.RangeStream(stream, 0, 10);
- *  stm.end // 10
+ *  - **Over a SeekableStream** — the range [begin, end) of the underlying stream;
+ *    the underlying stream is repositioned on demand, so several RangeStreams can
+ *    share one file as long as they are read one at a time. This is the mode
+ *    behind `fs.createReadStream(path, { start, end })` (whose end is inclusive).
+ *  - **Over a plain Stream** — a length-limited reader: begin is fixed to 0 and
+ *    the range is the maximum number of bytes read from the stream. The result is
+ *    readable forward only.
+ *
+ *  The stream is read-only: write and truncate throw [20009]. RangeStream itself
+ *  is a SeekableStream, so a range can be nested in another range.
+ *
+ *  Concepts:
+ *
+ *  - **Range bounds**: the string form follows the HTTP `Range` header and counts
+ *    both ends inclusively, so '2-4' becomes begin 2, end 5; the numeric form
+ *    takes begin and end with an exclusive end, so (2, 4) is the same range.
+ *    `begin` and `end` keep the values resolved at construction (never change).
+ *  - **Position**: `tell` is relative to the range begin, and `seek` interprets
+ *    its offset in the same coordinate space (SEEK_SET from begin, SEEK_END from
+ *    the range end). A target outside the range throws [20006].
+ *  - **Clamping**: the effective size never exceeds the underlying stream: when
+ *    the file is shorter than end, size() and the readable bytes stop at the
+ *    file end, while the `end` property keeps the requested value.
+ *  - **End of stream**: eof() tests the underlying stream position against the
+ *    range end, so after a seek that was not followed by a read it may still
+ *    report false (see SeekableStream#eof).
+ *
+ *  Obtained from:
+ *  - `new io.RangeStream(stm, range)` — the string range form;
+ *  - `new io.RangeStream(stm, begin, end)` — the numeric range form;
+ *  - `new io.RangeStream(stm, end)` — the length-limited form;
+ *  - `fs.createReadStream(path, { start, end })` — a RangeStream over a file
+ *    stream when start or end is given.
+ *
+ *  Example 1 — cut a range out of a file with the HTTP-style string:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const io = require('io');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-range-'));
+ *  const file = path.join(dir, 'data.txt');
+ *  fs.writeFile(file, '0123456789');
+ *
+ *  const range = new io.RangeStream(fs.openFile(file), '2-4');
+ *  console.log(range.begin, range.end, range.readAll().toString()); // 2 5 234
+ *
+ *  range.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
  *  ```
  *
- *  A plain Stream object can also be read with a length limit; in this case begin is fixed to 0 and only the number of bytes read is limited:
+ *  Example 2 — the numeric form uses an exclusive end:
  *  ```JavaScript
- *  var stm = new io.RangeStream(stream, 1024);
- *  stm.begin // 0
- *  stm.end   // 1024
+ *  const fs = require('fs');
+ *  const io = require('io');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-range-'));
+ *  const file = path.join(dir, 'data.txt');
+ *  fs.writeFile(file, '0123456789');
+ *
+ *  const range = new io.RangeStream(fs.openFile(file), 2, 5); // [2, 5)
+ *  console.log(range.size(), range.readAll().toString()); // 3 234
+ *
+ *  range.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
  *  ```
- *  If the passed stm is a SeekableStream, it is equivalent to RangeStream(stm, 0, end).
+ *
+ *  Example 3 — limit the bytes read from a non-seekable stream:
+ *  ```JavaScript
+ *  const io = require('io');
+ *
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('abcdefghij'));
+ *  stm.rewind();
+ *
+ *  // a BufferedStream cannot seek, so only the limit is available
+ *  const limited = new io.RangeStream(new io.BufferedStream(stm), 4);
+ *  console.log(limited.readAll().toString()); // abcd
+ *  ```
  *
  */
 declare class Class_RangeStream extends Class_SeekableStream {
     /**
      * @description RangeStream constructor
-     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
-     *       @param range the string describing the range, in the format 'begin-[end]' or '[begin]-end'
+     *
+     *      Creates a window over a seekable stream from a range string in the HTTP
+     *      `Range` form: 'begin-end' (both ends inclusive), 'begin-' (from begin to
+     *      the end of the stream) or '-end' (the last end bytes). The string is
+     *      resolved against the current size of stm when the constructor runs; a
+     *      malformed string, a missing '-', a begin past the end or an end past the
+     *      size throws [20024]. The stored `end` is the parsed inclusive end plus
+     *      one, so it is exclusive like the numeric form; the equivalent call is
+     *      RangeStream(stm, begin, end).
+     *
+     *      Example — the last three bytes of a stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, '-3');
+     *      console.log(range.begin, range.readAll().toString()); // 7 789
+     *      ```
+     *
+     *      @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *      @param range the string describing the range, in the format 'begin-[end]' or '[begin]-end'
      *
      */
     constructor(stm: Class_SeekableStream | Class_SeekableStreamPromise, range: string);
 
     /**
      * @description RangeStream constructor
-     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
-     *       @param begin the start position of the content read from stm
-     *       @param end the end position of the content read from stm
+     *
+     *      The numeric form of the range constructor: begin is inclusive, end is
+     *      exclusive, so (2, 5) reads three bytes. begin must be non-negative and no
+     *      greater than the current stream size; end is not validated, an end beyond
+     *      the size is clamped when reading, and a begin greater than end yields a
+     *      negative size() and reads nothing. Unlike the string form, a begin equal
+     *      to the stream size is accepted (an empty range).
+     *
+     *      Example — an empty range at the end of a stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, 3, 3);
+     *      console.log(range.size(), range.readAll()); // 0 null
+     *      ```
+     *
+     *      @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *      @param begin the start position of the content read from stm
+     *      @param end the end position of the content read from stm
      *
      */
     constructor(stm: Class_SeekableStream | Class_SeekableStreamPromise, begin: number, end: number);
 
     /**
      * @description RangeStream constructor, used for length-limited reading of a plain Stream
-     *       @param stm the underlying stream object; if it is a SeekableStream, this is equivalent to RangeStream(stm, 0, end)
-     *       @param end the maximum number of bytes read from stm
+     *
+     *      begin is fixed to 0 and end is the maximum number of bytes read from stm.
+     *      When stm is already a SeekableStream this form is equivalent to
+     *      RangeStream(stm, 0, end) and stays seekable; otherwise the result can only
+     *      be read forward — seek, rewind, truncate and stat throw [20009], while
+     *      tell, size and eof work against the limit. end must be non-negative.
+     *
+     *      Example — read at most five bytes of a buffered stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello world'));
+     *      stm.rewind();
+     *
+     *      const limited = new io.RangeStream(new io.BufferedStream(stm), 5);
+     *      console.log(limited.size(), limited.readAll().toString()); // 5 hello
+     *      ```
+     *
+     *      @param stm the underlying stream object; if it is a SeekableStream, this is equivalent to RangeStream(stm, 0, end)
+     *      @param end the maximum number of bytes read from stm
      *
      */
     constructor(stm: Class_Stream | Class_StreamPromise, end: number);
 
     /**
      * @description Queries the range begin value
+     *
+     *      The offset of the first byte inside the underlying stream, resolved when
+     *      the RangeStream was constructed and never changed afterwards. It is 0 in
+     *      the length-limited constructor form and for the HTTP suffix ranges
+     *      ('-end') it is the computed start. The corresponding stream position 0 is
+     *      this offset, so seek(0, SEEK_SET) reads from the start of the range.
+     *
+     *      Example — inspect the resolved boundary of a suffix range:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, '-4');
+     *      console.log(range.begin, range.end); // 6 10
+     *      ```
+     *
      */
     readonly begin: number;
 
     /**
      * @description Queries the range end value
+     *
+     *      The exclusive offset of the range inside the underlying stream: for the
+     *      string form it is the parsed inclusive end plus one, for the numeric and
+     *      length-limited forms it is the value passed to the constructor. It is not
+     *      clamped to the stream size, so it can be larger than what is actually
+     *      readable; `size()` reports the clamped length instead.
+     *
+     *      Example — a range larger than the stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, 0, 100);
+     *      console.log(range.end, range.size()); // 100 3
+     *      ```
+     *
      */
     readonly end: number;
 
@@ -70,36 +238,135 @@ declare class Class_RangeStream extends Class_SeekableStream {
 declare class Class_RangeStreamPromise extends Class_SeekableStreamPromise {
     /**
      * @description RangeStream constructor
-     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
-     *       @param range the string describing the range, in the format 'begin-[end]' or '[begin]-end'
+     *
+     *      Creates a window over a seekable stream from a range string in the HTTP
+     *      `Range` form: 'begin-end' (both ends inclusive), 'begin-' (from begin to
+     *      the end of the stream) or '-end' (the last end bytes). The string is
+     *      resolved against the current size of stm when the constructor runs; a
+     *      malformed string, a missing '-', a begin past the end or an end past the
+     *      size throws [20024]. The stored `end` is the parsed inclusive end plus
+     *      one, so it is exclusive like the numeric form; the equivalent call is
+     *      RangeStream(stm, begin, end).
+     *
+     *      Example — the last three bytes of a stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, '-3');
+     *      console.log(range.begin, range.readAll().toString()); // 7 789
+     *      ```
+     *
+     *      @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *      @param range the string describing the range, in the format 'begin-[end]' or '[begin]-end'
      *
      */
     constructor(stm: Class_SeekableStream | Class_SeekableStreamPromise, range: string);
 
     /**
      * @description RangeStream constructor
-     *       @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
-     *       @param begin the start position of the content read from stm
-     *       @param end the end position of the content read from stm
+     *
+     *      The numeric form of the range constructor: begin is inclusive, end is
+     *      exclusive, so (2, 5) reads three bytes. begin must be non-negative and no
+     *      greater than the current stream size; end is not validated, an end beyond
+     *      the size is clamped when reading, and a begin greater than end yields a
+     *      negative size() and reads nothing. Unlike the string form, a begin equal
+     *      to the stream size is accepted (an empty range).
+     *
+     *      Example — an empty range at the end of a stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, 3, 3);
+     *      console.log(range.size(), range.readAll()); // 0 null
+     *      ```
+     *
+     *      @param stm the binary underlying stream object of the RangeStream, must be a SeekableStream
+     *      @param begin the start position of the content read from stm
+     *      @param end the end position of the content read from stm
      *
      */
     constructor(stm: Class_SeekableStream | Class_SeekableStreamPromise, begin: number, end: number);
 
     /**
      * @description RangeStream constructor, used for length-limited reading of a plain Stream
-     *       @param stm the underlying stream object; if it is a SeekableStream, this is equivalent to RangeStream(stm, 0, end)
-     *       @param end the maximum number of bytes read from stm
+     *
+     *      begin is fixed to 0 and end is the maximum number of bytes read from stm.
+     *      When stm is already a SeekableStream this form is equivalent to
+     *      RangeStream(stm, 0, end) and stays seekable; otherwise the result can only
+     *      be read forward — seek, rewind, truncate and stat throw [20009], while
+     *      tell, size and eof work against the limit. end must be non-negative.
+     *
+     *      Example — read at most five bytes of a buffered stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello world'));
+     *      stm.rewind();
+     *
+     *      const limited = new io.RangeStream(new io.BufferedStream(stm), 5);
+     *      console.log(limited.size(), limited.readAll().toString()); // 5 hello
+     *      ```
+     *
+     *      @param stm the underlying stream object; if it is a SeekableStream, this is equivalent to RangeStream(stm, 0, end)
+     *      @param end the maximum number of bytes read from stm
      *
      */
     constructor(stm: Class_Stream | Class_StreamPromise, end: number);
 
     /**
      * @description Queries the range begin value
+     *
+     *      The offset of the first byte inside the underlying stream, resolved when
+     *      the RangeStream was constructed and never changed afterwards. It is 0 in
+     *      the length-limited constructor form and for the HTTP suffix ranges
+     *      ('-end') it is the computed start. The corresponding stream position 0 is
+     *      this offset, so seek(0, SEEK_SET) reads from the start of the range.
+     *
+     *      Example — inspect the resolved boundary of a suffix range:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, '-4');
+     *      console.log(range.begin, range.end); // 6 10
+     *      ```
+     *
      */
     readonly begin: number;
 
     /**
      * @description Queries the range end value
+     *
+     *      The exclusive offset of the range inside the underlying stream: for the
+     *      string form it is the parsed inclusive end plus one, for the numeric and
+     *      length-limited forms it is the value passed to the constructor. It is not
+     *      clamped to the stream size, so it can be larger than what is actually
+     *      readable; `size()` reports the clamped length instead.
+     *
+     *      Example — a range larger than the stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *
+     *      const range = new io.RangeStream(stm, 0, 100);
+     *      console.log(range.end, range.size()); // 100 3
+     *      ```
+     *
      */
     readonly end: number;
 

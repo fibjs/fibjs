@@ -1,22 +1,123 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description Memory stream object
+ * @description Memory stream object: a growable in-memory buffer used as a read/write stream
  *
- *  The MemoryStream object creates a memory-based stream object. Creation method:
+ *  MemoryStream is the fibjs stream with no backing device: writing appends to an
+ *  internal buffer, reading consumes bytes and advances the position, and the
+ *  content can be re-read after rewind(). Use it as a scratch buffer, to build a
+ *  request or response body, or to test code that expects a stream without
+ *  touching the file system.
+ *
+ *  Concepts:
+ *
+ *  - **Position**: reads and writes share one cursor, the same model as the other
+ *    SeekableStream classes. `seek` clamps its target to [0, size()] instead of
+ *    failing (see SeekableStream#seek), and `truncate` rewrites the buffer,
+ *    growing it with NUL bytes, then resets the position to 0 (see
+ *    SeekableStream#truncate). `clear` empties the buffer and resets the
+ *    position too, and refreshes the reported modification time.
+ *  - **eof**: the memory stream never reads past the end of its own buffer, so
+ *    eof() always returns false (see SeekableStream#eof); compare tell() with
+ *    size() when the end matters.
+ *  - **Reading and writing**: `read`/`readAll` return null at the end; a write
+ *    at the position overwrites the existing bytes and extends the buffer when
+ *    it reaches past the end, exactly like a file.
+ *  - **clone**: clone() snapshots the current content into a read-only stream of
+ *    the same class. The snapshot does not follow later writes of the original;
+ *    write, flush, truncate and setTime throw [20009] on it, while clear only
+ *    empties the clone.
+ *  - **stat**: stat() describes the memory entry, not a file: isMemory is true,
+ *    name is empty, and mtime/ctime are the last write time or the value set by
+ *    setTime.
+ *
+ *  Obtained from:
+ *  - `new io.MemoryStream()` — a new, empty stream. There is no other factory:
+ *    the class is reachable as the `io.MemoryStream` static (and through the
+ *    `io` export from other realms);
+ *  - `MemoryStream#clone()` — a read-only snapshot of another memory stream.
+ *
+ *  Example 1 — write, rewind and read back:
  *  ```JavaScript
- *  var ms = new io.MemoryStream();
+ *  const io = require('io');
+ *
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('hello world'));
+ *  console.log(stm.size(), stm.tell()); // 11 11
+ *
+ *  stm.rewind();
+ *  console.log(stm.readAll().toString()); // hello world
+ *  console.log(stm.readAll()); // null, the stream is empty
+ *  ```
+ *
+ *  Example 2 — grow, truncate and clear the buffer:
+ *  ```JavaScript
+ *  const io = require('io');
+ *
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('0123456789'));
+ *  stm.truncate(4); // resets the position to 0 and keeps the first 4 bytes
+ *  console.log(stm.size(), stm.readAll().toString()); // 4 0123
+ *
+ *  stm.clear();
+ *  console.log(stm.size(), stm.readAll()); // 0 null
+ *  ```
+ *
+ *  Example 3 — clone is an independent read-only snapshot:
+ *  ```JavaScript
+ *  const io = require('io');
+ *
+ *  const src = new io.MemoryStream();
+ *  src.write(Buffer.from('v1'));
+ *  const snapshot = src.clone();
+ *
+ *  src.rewind();
+ *  src.write(Buffer.from('v2')); // overwrite in place, the snapshot is unaffected
+ *  src.rewind();
+ *  console.log(src.readAll().toString()); // v2
+ *  console.log(snapshot.readAll().toString()); // v1
  *  ```
  *
  */
 declare class Class_MemoryStream extends Class_SeekableStream {
     /**
      * @description MemoryStream constructor
+     *
+     *      Creates an empty stream; `new io.MemoryStream()` is the only way to obtain
+     *      one, and clone() returns the same class. The buffer starts at size 0 and
+     *      grows as data is written; nothing is allocated for a stream that is never
+     *      written to.
+     *
+     *      Example — the smallest read/write round trip:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString(), stm.size()); // abc 3
+     *      ```
+     *
      */
     constructor();
 
     /**
      * @description Forces the last update time of the memory stream object
+     *
+     *      Sets the time reported by stat().mtime and stat().ctime; the content and
+     *      the position are not touched. The default value is the time of the last
+     *      write or clear, so call setTime after the last write if the timestamp must
+     *      be fixed.
+     *
+     *      Example — pin the reported modification time:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('x'));
+     *      stm.setTime(new Date(1600000000000));
+     *      console.log(stm.stat().mtimeMs); // 1600000000000
+     *      ```
      *      @param d the time to set
      *
      */
@@ -24,6 +125,27 @@ declare class Class_MemoryStream extends Class_SeekableStream {
 
     /**
      * @description Creates a read-only copy of the current memory stream
+     *
+     *      The whole buffer is copied at call time, so the clone is a snapshot that
+     *      ignores later writes of the original. The clone starts at position 0, is
+     *      seekable, and rejects write, flush, truncate and setTime with [20009];
+     *      clear() is allowed and empties the clone only. Cloning a clone returns
+     *      another snapshot of the same content.
+     *
+     *      Example — keep a snapshot while the original changes:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('first'));
+     *      const snapshot = src.clone();
+     *
+     *      src.clear();
+     *      src.write(Buffer.from('second'));
+     *      src.rewind();
+     *      console.log(src.readAll().toString()); // second
+     *      console.log(snapshot.readAll().toString()); // first
+     *      ```
      *      @return returns a read-only memory stream object
      *
      */
@@ -31,6 +153,22 @@ declare class Class_MemoryStream extends Class_SeekableStream {
 
     /**
      * @description Clears the memory file data and resets the pointer
+     *
+     *      Empties the buffer, moves the position back to 0 and refreshes the
+     *      modification time, as if a new stream had been created. On a clone
+     *      returned by clone() only the clone is emptied.
+     *
+     *      Example — reset a buffer for reuse:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.readAll();
+     *      stm.clear();
+     *      console.log(stm.size(), stm.tell(), stm.readAll()); // 0 0 null
+     *      ```
+     *
      */
     clear(): void;
 
@@ -45,11 +183,42 @@ declare class Class_MemoryStream extends Class_SeekableStream {
 declare class Class_MemoryStreamPromise extends Class_SeekableStreamPromise {
     /**
      * @description MemoryStream constructor
+     *
+     *      Creates an empty stream; `new io.MemoryStream()` is the only way to obtain
+     *      one, and clone() returns the same class. The buffer starts at size 0 and
+     *      grows as data is written; nothing is allocated for a stream that is never
+     *      written to.
+     *
+     *      Example — the smallest read/write round trip:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abc'));
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString(), stm.size()); // abc 3
+     *      ```
+     *
      */
     constructor();
 
     /**
      * @description Forces the last update time of the memory stream object
+     *
+     *      Sets the time reported by stat().mtime and stat().ctime; the content and
+     *      the position are not touched. The default value is the time of the last
+     *      write or clear, so call setTime after the last write if the timestamp must
+     *      be fixed.
+     *
+     *      Example — pin the reported modification time:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('x'));
+     *      stm.setTime(new Date(1600000000000));
+     *      console.log(stm.stat().mtimeMs); // 1600000000000
+     *      ```
      *      @param d the time to set
      *
      */
@@ -57,6 +226,27 @@ declare class Class_MemoryStreamPromise extends Class_SeekableStreamPromise {
 
     /**
      * @description Creates a read-only copy of the current memory stream
+     *
+     *      The whole buffer is copied at call time, so the clone is a snapshot that
+     *      ignores later writes of the original. The clone starts at position 0, is
+     *      seekable, and rejects write, flush, truncate and setTime with [20009];
+     *      clear() is allowed and empties the clone only. Cloning a clone returns
+     *      another snapshot of the same content.
+     *
+     *      Example — keep a snapshot while the original changes:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('first'));
+     *      const snapshot = src.clone();
+     *
+     *      src.clear();
+     *      src.write(Buffer.from('second'));
+     *      src.rewind();
+     *      console.log(src.readAll().toString()); // second
+     *      console.log(snapshot.readAll().toString()); // first
+     *      ```
      *      @return returns a read-only memory stream object
      *
      */
@@ -64,6 +254,22 @@ declare class Class_MemoryStreamPromise extends Class_SeekableStreamPromise {
 
     /**
      * @description Clears the memory file data and resets the pointer
+     *
+     *      Empties the buffer, moves the position back to 0 and refreshes the
+     *      modification time, as if a new stream had been created. On a clone
+     *      returned by clone() only the clone is emptied.
+     *
+     *      Example — reset a buffer for reuse:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.readAll();
+     *      stm.clear();
+     *      console.log(stm.size(), stm.tell(), stm.readAll()); // 0 0 null
+     *      ```
+     *
      */
     clear(): void;
 

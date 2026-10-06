@@ -1,7 +1,61 @@
-/*! @brief Unzip decompression codec, automatically detects the gzip or deflate format and decompresses it */
+/*! @brief Unzip is the Node.js compatible codec that decompresses gzip or zlib data by
+ detecting the format
+
+ `new zlib.Unzip(opts)` builds a synchronous codec that inspects the first bytes of the
+ input: gzip (magic 1f 8b, needs at least the 10-byte header) or zlib format (first byte
+ 0x78); raw deflate and unknown formats fail with `Z_DATA_ERROR`, matching `zlib.unzip`.
+ It is the codec behind `zlib.createUnzip(to)` and exists for packages such as minizlib
+ and tar. It inherits the members of ZlibCodec.
+
+ Concepts:
+ - **Detection window**: the decision is made on the first chunk of data the codec sees.
+   Feed at least the complete header (10 bytes for gzip, 2 for zlib) with the first
+   `_processChunk` call; a smaller first chunk fails even when more data would follow,
+   unlike the buffering `zlib.unzip` one-shot. When the input arrives in small pieces,
+   use `Gunzip` or `Inflate` with the known format instead.
+ - **Options**: `windowBits` defaults to 47 (MAX_WBITS + 32), the zlib value that enables
+   gzip/zlib auto-detection; `level`, `memLevel` and `strategy` are accepted for
+   compatibility and ignored.
+ - **Behavior**: after Z_FINISH the codec resets and can detect a new message; a zero-byte
+   result is an empty Buffer.
+
+ Example 1 — detect and decode gzip data:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+
+ const packed = zlib.gzip('hello, world');
+ const unzip = new zlib.Unzip();
+ console.log(unzip._processChunk(packed, C.Z_FINISH).toString()); // hello, world
+ ```
+
+ Example 2 — detect zlib data and reject raw deflate:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+
+ const unzip = new zlib.Unzip();
+ console.log(unzip._processChunk(zlib.deflate('hello, world'), C.Z_FINISH).toString());
+ // hello, world
+
+ try {
+     new zlib.Unzip()._processChunk(zlib.deflateRaw('hello'), C.Z_FINISH);
+ } catch (e) {
+     console.log(e.code); // Z_DATA_ERROR
+ }
+ ```
+ */
 interface Unzip : ZlibCodec
 {
-    /*! @brief Unzip constructor
+    /*! @brief Creates an unzip codec that detects the container format
+
+     `opts` may be omitted or empty. `windowBits` defaults to 47 (MAX_WBITS + 32), which
+     enables gzip/zlib detection; `level`, `memLevel` and `strategy` are accepted for
+     compatibility with the other codecs and ignored. Creation never throws for a bad
+     option: the codec is left closed and the first `_processChunk` throws
+     ERR_ZLIB_BINDING_CLOSED. Feed the complete header with the first chunk (10 bytes for
+     gzip, 2 for zlib), otherwise the call fails with `Z_DATA_ERROR`.
+
      @param opts decompression options
      */
     Unzip(Object opts = {});

@@ -2,19 +2,141 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
 /**
- * @description Stream object interface with a movable current pointer
+ * @description A stream whose current position can be queried and moved
+ *
+ *  SeekableStream adds random access to Stream: `tell` reports the current
+ *  position, `seek` moves it, `rewind` returns to the start, `size` reports the
+ *  length, `truncate` resizes the storage and `eof` tests the end. It is an
+ *  abstract base class and cannot be constructed: use a concrete stream that
+ *  supports positioning — MemoryStream, RangeStream, or the FileStream returned
+ *  by fs.openFile/createReadStream/createWriteStream. Socket-like streams
+ *  (net.Socket, http bodies, pipe ends) are readable/writable, not seekable.
+ *
+ *  Concepts:
+ *
+ *  - **Position**: one cursor per stream, shared by reads and writes; reading or
+ *    writing advances it. `tell` is relative to the beginning of the stream — for
+ *    a RangeStream, to the begin of the range, not of the underlying stream.
+ *  - **seek(whence)**: offset is interpreted with fs.SEEK_SET (from the start),
+ *    fs.SEEK_CUR (from the current position) or fs.SEEK_END (from the end).
+ *    MemoryStream clamps the result to [0, size] and rejects a bad whence with
+ *    [20004]; FileStream passes the value to the operating system and may seek
+ *    past the end; RangeStream counts from the range begin and throws [20006]
+ *    when the target falls outside the range.
+ *  - **End of stream**: `eof` reports whether the position is at the end.
+ *    FileStream compares the position with the file size; MemoryStream always
+ *    returns false because it never reads past its own buffer; RangeStream
+ *    compares the underlying position with the range end, so a seek without a
+ *    following read can still report false.
+ *  - **truncate**: FileStream resizes the file and keeps the position;
+ *    MemoryStream rewrites its buffer (padding with NUL bytes when growing) and
+ *    resets the position to 0; RangeStream does not support it and throws
+ *    [20009].
+ *  - **stat**: describes the storage behind the stream — a file for FileStream
+ *    (base name in Stat#name), the outer file for RangeStream (size replaced by
+ *    the range length), an in-memory entry for MemoryStream (isMemory true,
+ *    empty name).
+ *
+ *  Obtained from (the class itself is not exposed):
+ *  - `new io.MemoryStream()` — an in-memory stream;
+ *  - `new io.RangeStream(stm, ...)` — a window over another seekable stream;
+ *  - `fs.openFile(path[, flags])`, `fs.createReadStream(path[, options])`,
+ *    `fs.createWriteStream(path[, options])` — file streams; createReadStream
+ *    with start/end returns a RangeStream over the file.
+ *
+ *  Example 1 — position an in-memory stream:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const io = require('io');
+ *
+ *  const stm = new io.MemoryStream();
+ *  stm.write(Buffer.from('0123456789'));
+ *  stm.seek(-3, fs.SEEK_END);
+ *  console.log(stm.tell(), stm.readAll().toString()); // 7 789
+ *  ```
+ *
+ *  Example 2 — random access inside a range of a file:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const io = require('io');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-seek-'));
+ *  const file = path.join(dir, 'data.txt');
+ *  fs.writeFile(file, '0123456789ABCDEF');
+ *
+ *  const range = new io.RangeStream(fs.openFile(file), 4, 12); // [4, 12)
+ *  range.seek(2, fs.SEEK_SET); // relative to the range begin
+ *  console.log(range.tell(), range.readAll().toString()); // 2 6789AB
+ *
+ *  range.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 3 — a read stream is seekable:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-seek-'));
+ *  const file = path.join(dir, 'data.txt');
+ *  fs.writeFile(file, 'hello');
+ *
+ *  const stm = fs.createReadStream(file);
+ *  stm.seek(1, fs.SEEK_SET);
+ *  console.log(stm.read(3).toString(), stm.tell()); // ell 4
+ *
+ *  stm.close();
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
  */
 declare class Class_SeekableStream extends Class_Stream {
     /**
      * @description Moves the current file operation position
-     *       @param offset the new position
-     *       @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
+     *
+     *      whence selects the base of offset (fs.SEEK_SET by default). Moving the
+     *      position never transfers data and can be done before or after reads and
+     *      writes. Bounds and errors depend on the concrete stream (see the class
+     *      Concepts): MemoryStream clamps, FileStream may go past the end, and
+     *      RangeStream keeps the target inside the range.
+     *
+     *      Example — seek back from the end of a memory stream:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abcdef'));
+     *      stm.seek(-2, fs.SEEK_END);
+     *      console.log(stm.tell(), stm.readAll().toString()); // 4 ef
+     *      ```
+     *      @param offset the new position
+     *      @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
      *
      */
     seek(offset: number, whence?: number): void;
 
     /**
      * @description Queries the current stream position
+     *
+     *      The returned value is the position of the next read or write inside the
+     *      stream, counted from the stream start (for a RangeStream, from the range
+     *      begin). The position is not reset by reading: it stays at the end after a
+     *      full read, so rewind() before reading again.
+     *
+     *      Example — watch the position advance while reading:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      stm.rewind();
+     *      stm.read(2);
+     *      console.log(stm.tell(), stm.size()); // 2 5
+     *      ```
      *      @return returns the current stream position
      *
      */
@@ -22,11 +144,52 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Moves the current position to the beginning of the stream
+     *
+     *      Equivalent to seek(0, fs.SEEK_SET), also for a RangeStream (its position
+     *      goes back to the range begin, not to the start of the underlying stream).
+     *      Use it before reading a stream a second time.
+     *
+     *      Example — re-read the same data:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('ab'));
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString()); // ab
+     *
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString()); // ab
+     *      ```
+     *
      */
     rewind(): void;
 
     /**
      * @description Queries the stream size
+     *
+     *      The total length of the stream in bytes: the file size for FileStream, the
+     *      buffer length for MemoryStream, the readable range length for RangeStream
+     *      (clamped to the underlying stream, so it can be smaller than end - begin).
+     *      An empty stream has size 0.
+     *
+     *      Example — a range shorter than the requested boundaries:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const io = require('io');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-size-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const range = new io.RangeStream(fs.openFile(file), 2, 6);
+     *      console.log(range.size(), range.readAll().length); // 4 4
+     *
+     *      range.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @return returns the stream size
      *
      */
@@ -34,7 +197,23 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncate(bytes: number): void;
@@ -43,20 +222,78 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncateSync(bytes: number): void;
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncateAsync(bytes: number): Promise<void>;
 
     /**
      * @description Queries whether the file is at the end
+     *
+     *      True once the position reached the end of the readable data. The exact
+     *      rule depends on the concrete stream (see the class Concepts): FileStream
+     *      compares the position with the file size, MemoryStream always returns
+     *      false, and RangeStream compares the underlying position with the range
+     *      end. Reading at the end returns null, so `read() === null` is the direct
+     *      way to detect the end of a stream.
+     *
+     *      Example — read a file stream to its end:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-eof-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'ab');
+     *
+     *      const stm = fs.createReadStream(file);
+     *      console.log(stm.eof()); // false
+     *      stm.readAll();
+     *      console.log(stm.eof()); // true
+     *
+     *      stm.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @return returns True if at the end
      *
      */
@@ -64,6 +301,21 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */
@@ -73,6 +325,21 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */
@@ -80,6 +347,21 @@ declare class Class_SeekableStream extends Class_Stream {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */
@@ -97,14 +379,47 @@ declare class Class_SeekableStream extends Class_Stream {
 declare class Class_SeekableStreamPromise extends Class_StreamPromise {
     /**
      * @description Moves the current file operation position
-     *       @param offset the new position
-     *       @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
+     *
+     *      whence selects the base of offset (fs.SEEK_SET by default). Moving the
+     *      position never transfers data and can be done before or after reads and
+     *      writes. Bounds and errors depend on the concrete stream (see the class
+     *      Concepts): MemoryStream clamps, FileStream may go past the end, and
+     *      RangeStream keeps the target inside the range.
+     *
+     *      Example — seek back from the end of a memory stream:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('abcdef'));
+     *      stm.seek(-2, fs.SEEK_END);
+     *      console.log(stm.tell(), stm.readAll().toString()); // 4 ef
+     *      ```
+     *      @param offset the new position
+     *      @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
      *
      */
     seek(offset: number, whence?: number): void;
 
     /**
      * @description Queries the current stream position
+     *
+     *      The returned value is the position of the next read or write inside the
+     *      stream, counted from the stream start (for a RangeStream, from the range
+     *      begin). The position is not reset by reading: it stays at the end after a
+     *      full read, so rewind() before reading again.
+     *
+     *      Example — watch the position advance while reading:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      stm.rewind();
+     *      stm.read(2);
+     *      console.log(stm.tell(), stm.size()); // 2 5
+     *      ```
      *      @return returns the current stream position
      *
      */
@@ -112,11 +427,52 @@ declare class Class_SeekableStreamPromise extends Class_StreamPromise {
 
     /**
      * @description Moves the current position to the beginning of the stream
+     *
+     *      Equivalent to seek(0, fs.SEEK_SET), also for a RangeStream (its position
+     *      goes back to the range begin, not to the start of the underlying stream).
+     *      Use it before reading a stream a second time.
+     *
+     *      Example — re-read the same data:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('ab'));
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString()); // ab
+     *
+     *      stm.rewind();
+     *      console.log(stm.readAll().toString()); // ab
+     *      ```
+     *
      */
     rewind(): void;
 
     /**
      * @description Queries the stream size
+     *
+     *      The total length of the stream in bytes: the file size for FileStream, the
+     *      buffer length for MemoryStream, the readable range length for RangeStream
+     *      (clamped to the underlying stream, so it can be smaller than end - begin).
+     *      An empty stream has size 0.
+     *
+     *      Example — a range shorter than the requested boundaries:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const io = require('io');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-size-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, '0123456789');
+     *
+     *      const range = new io.RangeStream(fs.openFile(file), 2, 6);
+     *      console.log(range.size(), range.readAll().length); // 4 4
+     *
+     *      range.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @return returns the stream size
      *
      */
@@ -124,27 +480,101 @@ declare class Class_SeekableStreamPromise extends Class_StreamPromise {
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncate(bytes: number): Promise<void>;
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncateSync(bytes: number): void;
 
     /**
      * @description Modifies the file size; if the new size is smaller than the original size, the file is truncated
-     *       @param bytes the new file size
+     *
+     *      Growing a FileStream extends the file with zero bytes; growing a
+     *      MemoryStream pads the buffer with NUL bytes. FileStream keeps the current
+     *      position, MemoryStream resets it to 0, and RangeStream throws [20009]
+     *      because a range cannot change the size of its source. Only FileStream
+     *      changes data on disk.
+     *
+     *      Example — shrink a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.truncate(4);
+     *      console.log(stm.size(), stm.readAll().toString()); // 4 0123
+     *      ```
+     *      @param bytes the new file size
      *
      */
     truncateAsync(bytes: number): Promise<void>;
 
     /**
      * @description Queries whether the file is at the end
+     *
+     *      True once the position reached the end of the readable data. The exact
+     *      rule depends on the concrete stream (see the class Concepts): FileStream
+     *      compares the position with the file size, MemoryStream always returns
+     *      false, and RangeStream compares the underlying position with the range
+     *      end. Reading at the end returns null, so `read() === null` is the direct
+     *      way to detect the end of a stream.
+     *
+     *      Example — read a file stream to its end:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-eof-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'ab');
+     *
+     *      const stm = fs.createReadStream(file);
+     *      console.log(stm.eof()); // false
+     *      stm.readAll();
+     *      console.log(stm.eof()); // true
+     *
+     *      stm.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @return returns True if at the end
      *
      */
@@ -152,6 +582,21 @@ declare class Class_SeekableStreamPromise extends Class_StreamPromise {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */
@@ -159,6 +604,21 @@ declare class Class_SeekableStreamPromise extends Class_StreamPromise {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */
@@ -166,6 +626,21 @@ declare class Class_SeekableStreamPromise extends Class_StreamPromise {
 
     /**
      * @description Queries the basic information of the current file
+     *
+     *      The Stat describes the storage, not the stream position: FileStream
+     *      reports the file (stat().name is the base name), RangeStream reports the
+     *      outer file with size replaced by the range length, MemoryStream reports an
+     *      in-memory entry (isMemory true, name empty, mode-based predicates false).
+     *      The call follows the usual async call forms.
+     *
+     *      Example — inspect the storage behind a memory stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      console.log(stm.stat().size, stm.stat().isMemory()); // 5 true
+     *      ```
      *      @return returns the Stat object describing the file information
      *
      */

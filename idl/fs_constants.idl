@@ -1,8 +1,127 @@
-/*! @brief Commonly used constants of the fs module
+/*! @brief The constants of the fs module: file open, access, seek, type, permission and copy
+ flags plus the libuv directory entry type ids
 
- Usage:
+ Reach the object through `require('fs').constants` or `require('fs/promises').constants`
+ (the same object); it is not requireable on its own. fs, FileHandle and the promise API
+ accept these values.
+
+ Concepts:
+
+ - **Portable open flags**: the O_* values use the BSD/macOS numbering (O_APPEND 8, O_CREAT
+   512, O_TRUNC 1024, O_EXCL 2048, O_NONBLOCK 4, O_SYNC 128, O_DSYNC 4194304, O_NOCTTY
+   131072, O_DIRECTORY 1048576, O_NOFOLLOW 256, O_SYMLINK 2097152) and fs.open translates
+   them to the flags of the host. They differ from `<fcntl.h>` values (on Linux O_CREAT is
+   64, O_TRUNC 512, O_APPEND 1024, O_NONBLOCK 2048): always combine these constants instead
+   of native literals, or a flag ends up meaning something else.
+ - **Access flags**: F_OK/R_OK/W_OK/X_OK are the mode bits of fs.access; F_OK only checks
+   existence, and X_OK behaves like F_OK on Windows.
+ - **File types and modes**: S_IFMT extracts the type bits of Stat#mode and S_IF* name them;
+   the S_IRWXU/S_IRUSR/... groups are the permission bits of chmod and of the mode argument
+   of fs.open.
+ - **Seek modes**: SEEK_SET/SEEK_CUR/SEEK_END (0/1/2) are exported for compatibility, but no
+   current fibjs API takes a whence argument: positioned reads and writes take an absolute
+   position, and a position of -1 means the current position.
+ - **Copy flags**: COPYFILE_EXCL, COPYFILE_FICLONE and COPYFILE_FICLONE_FORCE (1/2/4) select
+   the behavior of fs.copyFile: EXCL fails when the destination exists, and the FICLONE pair
+   requests a copy-on-write reflink (with a fallback copy unless FORCE is set).
+ - **Directory entries**: the UV_DIRENT_* ids are the libuv uv_dirent_type_t values reported
+   by the directory scan; fs.Dirent exposes the same information through isXxx().
+ - **Extensions and gaps**: O_SYMLINK, SEEK_*, the EXTENSIONLESS_FORMAT_* pair (reserved
+   format ids that mirror Node.js internals) and UV_FS_O_FILEMAP (0 here) are fibjs-specific;
+   Node's O_DIRECT and O_NOATIME are not provided.
+
+ Import:
  ```JavaScript
- var constants = require('fs').constants
+ const fs = require('fs');
+ const constants = fs.constants; // also require('fs/promises').constants
+ ```
+
+ Example 1 — create a file with the portable open flags:
+ ```JavaScript
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+ const C = fs.constants;
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fsflags-'));
+ const file = path.join(dir, 'note.txt');
+
+ // O_WRONLY | O_CREAT | O_TRUNC: 1 | 512 | 1024, translated by fs.open.
+ const handle = fs.open(file, C.O_WRONLY | C.O_CREAT | C.O_TRUNC, 0o644);
+ handle.write('written with portable flags');
+ handle.close();
+
+ console.log(fs.readFile(file, 'utf8'));        // written with portable flags
+ console.log(C.O_CREAT, C.O_TRUNC, C.O_APPEND); // 512 1024 8
+
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
+
+ Example 2 — exclusive creation and append mode:
+ ```JavaScript
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+ const C = fs.constants;
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fsflags-'));
+ const file = path.join(dir, 'log.txt');
+
+ // O_EXCL makes the second open of the same path fail.
+ const first = fs.open(file, C.O_WRONLY | C.O_CREAT | C.O_EXCL, 0o644);
+ first.write('first');
+ first.close();
+
+ try {
+     fs.open(file, C.O_WRONLY | C.O_CREAT | C.O_EXCL, 0o644);
+ } catch (e) {
+     console.log(e.code); // EEXIST
+ }
+
+ // O_APPEND writes at the end without an explicit position.
+ const appender = fs.open(file, C.O_WRONLY | C.O_APPEND);
+ appender.write(' second');
+ appender.close();
+ console.log(fs.readFile(file, 'utf8')); // first second
+
+ fs.rmSync(dir, { recursive: true, force: true });
+ ```
+
+ Example 3 — file types, access checks and directory entry ids:
+ ```JavaScript
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+ const C = fs.constants;
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fsflags-'));
+ fs.writeFile(path.join(dir, 'data.bin'), 'x');
+ fs.mkdir(path.join(dir, 'sub'));
+ fs.symlink(path.join(dir, 'data.bin'), path.join(dir, 'link'));
+
+ // S_IFMT extracts the S_IF* type bits of a Stat#mode.
+ function kind(file) {
+     const mode = fs.lstat(file).mode;
+     if ((mode & C.S_IFMT) === C.S_IFLNK) return 'link';
+     if ((mode & C.S_IFMT) === C.S_IFDIR) return 'dir';
+     return 'file';
+ }
+ console.log(kind(path.join(dir, 'data.bin')), kind(path.join(dir, 'sub')),
+     kind(path.join(dir, 'link'))); // file dir link
+
+ // F_OK checks existence; R_OK/W_OK/X_OK check the access of the current user.
+ fs.access(path.join(dir, 'data.bin'), C.F_OK | C.R_OK);
+ console.log('readable');
+ try {
+     fs.access(path.join(dir, 'data.bin'), C.X_OK);
+ } catch (e) {
+     console.log('not executable:', e.code); // not executable: EACCES (POSIX)
+ }
+
+ // The directory scan reports the UV_DIRENT_* ids for fs.Dirent.
+ console.log(C.UV_DIRENT_FILE, C.UV_DIRENT_DIR, C.UV_DIRENT_LINK); // 1 2 3
+
+ fs.rmSync(dir, { recursive: true, force: true });
  ```
  */
 module fs_constants
@@ -85,7 +204,7 @@ module fs_constants
     /*! @brief Ensure exclusive creation of the file */
     const O_EXCL = 2048;
 
-    /*! @brief File mapping flag */
+    /*! @brief File mapping flag; 0 in fibjs (used by libuv on Windows only) */
     const UV_FS_O_FILEMAP = 0;
 
     /*! @brief Do not assign a controlling terminal */
@@ -181,9 +300,9 @@ module fs_constants
     /*! @brief Forced file clone copy flag */
     const COPYFILE_FICLONE_FORCE = 4;
 
-    /*! @brief Treat extensionless modules as javascript, consistent with Node.js */
+    /*! @brief Extensionless format id for JavaScript (reserved; mirrors Node.js internals) */
     const EXTENSIONLESS_FORMAT_JAVASCRIPT = 0;
 
-    /*! @brief Treat extensionless modules as wasm, consistent with Node.js */
+    /*! @brief Extensionless format id for WebAssembly (reserved; mirrors Node.js internals) */
     const EXTENSIONLESS_FORMAT_WASM = 1;
 };

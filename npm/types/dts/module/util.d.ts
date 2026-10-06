@@ -6,20 +6,59 @@
 /// <reference path="../interface/ConsoleObject.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description The util module provides practical utility functions such as data type checking, object property copying, template string parsing and event handling
+ * @description Utility helpers for formatting, inspecting, type checks, async wrappers and collections
  *
- * The following is a detailed introduction with examples:
+ * The module groups several families of helpers:
  *
- * 1. Checking data types - `util.is[type]`
- * This module provides methods such as `isDate`, `isRegExp` and `isError` to check the data type of the passed parameter, for example:
+ * - Formatting and inspection: `format`, `formatWithOptions`, `inspect`, `styleText`,
+ *   `getStringWidth`, `stripVTControlCharacters`
+ * - Async wrappers: `sync`, `promisify`, `callbackify`
+ * - Type and value checks: the `is*` family, `isEmpty`, `isDeepEqual`,
+ *   `isDeepStrictEqual` and the `types` object
+ * - Objects and arrays: `clone`, `deepFreeze`, `extend`/`_extend`, `pick`, `omit`, `has`,
+ *   `keys`, `values`, `first`, `last`, `unique`, `union`, `intersection`, `flatten`,
+ *   `without`, `difference`, `each`, `map`, `reduce`
+ * - Diagnostics and loading: `debuglog`/`debug`, `deprecate`, `buildInfo`, `compile`,
+ *   `parseArgs`, `parseEnv`, `stripTypeScript`, `inherits`
+ * - Re-exports: `TextDecoder`, `TextEncoder`, `types`, `colors`
+ *
+ * Concepts:
+ * - Formatting: `format` converts only `%s`, `%d`, `%j` and `%%`. Other specifiers
+ *   (`%i`, `%f`, `%o`, `%O`, `%c`) are kept literally and their argument is appended at
+ *   the end as an extra value. `%s` uses String(), `%d` truncates the string form with
+ *   atoi(), and `%j` renders through the inspection formatter below.
+ * - Inspection: values are rendered with a JSON-like formatter; the defaults are depth
+ *   2, 100 array items and 10000 string characters. `depth: null` means unlimited, and
+ *   a negative `maxArrayLength`/`maxStringLength` shortens the output. Pass
+ *   `{ "table": true, "fields": [...] }` to render an array of records as a table.
+ *   `colors` defaults to true and emits ANSI codes when the terminal supports color.
+ * - Async contract: fibjs APIs are synchronous-first and most also take a trailing
+ *   error-first callback. `sync` blocks the current fiber until a callback or promise
+ *   completes, `promisify` returns a promise-returning function and `callbackify`
+ *   returns a callback-taking function. Wrapping the same function twice returns the
+ *   same wrapper, and the three wrappers recognize each other's results.
+ * - Deep equality: `isDeepEqual` is loose, `isDeepStrictEqual` is strict; dates and
+ *   regular expressions are compared by content and fibjs native objects through their
+ *   own `equals`. NaN compares unequal, 0 and -0 compare equal and prototypes are not
+ *   part of the comparison.
+ * - Node.js differences: `parseArgs` is a command-line tokenizer rather than Node's
+ *   option parser; `sync`, `compile`, `buildInfo`, `getStringWidth`, `isEmpty`, `clone`,
+ *   `deepFreeze` and the collection helpers are fibjs extensions; `deprecate` is a
+ *   no-op and `promisify.custom` is not supported.
+ *
+ * Import:
+ * ```JavaScript
+ * const util = require('util');
+ * ```
+ *
+ * Example 1 — quick type checks:
  *
  * ```JavaScript
  * var util = require('util');
  * console.log(util.isDate(new Date()));
  * console.log(util.isRegExp(/some regexp/));
  * ```
- * 2. Copying object properties - `util.inherits()`
- * This method can make one constructor inherit from another, thus implementing prototype inheritance.
+ * Example 2 — prototype inheritance with inherits():
  *
  * ```JavaScript
  * var util = require('util');
@@ -38,61 +77,112 @@
  * util.inherits(Cat, Animal);
  * ```
  *
- * Using the `Cat` constructor to inherit the instance properties and prototype properties of `Animal`, print the properties and methods of a `Cat` instance
+ * Example 3 — inspecting nested values with inspect options:
  *
  * ```JavaScript
- * var cat = new Cat();
- * console.log(cat.name);
- * console.log(cat.eat('fish'));
- * console.log(cat.sleep());
+ * var util = require('util');
+ *
+ * const nested = { a: { b: { c: 1 } } };
+ * console.log(util.inspect(nested, { colors: false }));
+ * console.log(util.inspect(nested, { colors: false, depth: null }));
+ * console.log(util.inspect([1, 2, 3], { colors: false, maxArrayLength: 1 }));
  * ```
  *
- * 3. util.format() formatted output template
+ * Example 4 — printf-style templates and trailing values:
  * ```JavaScript
  * const util = require('util');
- * const str1 = util.format('%s:%s', 'foo');
- * const str2 = util.format('%s:%s', 'foo', 'bar', 'baz');
- * console.log(str1) // => 'foo:%s'
- * console.log(str2) // => 'foo:bar baz'
+ *
+ * console.log(util.format('%s:%s', 'foo')); // foo:%s
+ * console.log(util.format('%s:%s', 'foo', 'bar')); // foo:bar
+ * console.log(util.format('%s:%s', 'foo', 'bar', 1)); // foo:bar 1
+ * console.log(util.format('%d', '42.9')); // 42 (atoi truncation)
+ * console.log(util.format('%j', { a: 1 })); // {"a":1}
+ * console.log(util.format('%o', { a: 1 })); // %o {"a":1}
  * ```
  *
- * The above are some commonly used methods of the `util` module, which can often be used to simplify the actual development process.
+ * Notes:
+ * - The module examples above cover the type checks, inheritance, inspection and
+ *   formatting paths; the async wrappers have runnable examples on their members.
+ * - `parseArgs` tokenizes a command line string; it is not Node.js's option parser.
+ * - `util.types` and `util.colors` are exposed through this module only, not as
+ *   top-level `require('types')` / `require('colors')`.
  *
  */
 declare module 'util' {
     /**
-     * @description The TextDecoder decoding object, see the TextDecoder object.
+     * @description The WHATWG TextDecoder class, re-exported for convenience
+     *
+     *      Same object as the global `TextDecoder`; see the TextDecoder interface for the
+     *      constructor options (`fatal`, `ignoreBOM`) and the supported encodings.
+     *
      */
     const TextDecoder: typeof Class_TextDecoder;
 
     /**
-     * @description The TextEncoder encoding object, see the TextEncoder object.
+     * @description The WHATWG TextEncoder class, re-exported for convenience
+     *
+     *      Same object as the global `TextEncoder`; it only encodes UTF-8 and exposes
+     *      `encoding` and `encodeInto` in addition to `encode`.
+     *
      */
     const TextEncoder: typeof Class_TextEncoder;
 
     /**
-     * @description The types module provides utility functions for data type checking.
+     * @description Utility functions for built-in type checking, exposed as `util.types`
+     *
+     *      The same functions are also available directly as `util.is*` members. Unlike
+     *      Node.js, the module is not requirable by the name `types`; use `util.types`.
+     *
      */
     const types: typeof import ('types');
 
     /**
-     * @description The colors module provides a set of color constants for setting console output colors.
+     * @description Color constants and capability information for console output
+     *
+     *      Exposed as `util.colors`; `hasColors` reports whether the terminal supports
+     *      ANSI colors, and every color constant is an empty string when it does not.
+     *      See the colors module for the full list.
+     *
      */
     const colors: typeof import ('colors');
 
     /**
-     * @description Formats variables
+     * @description Formats values with a printf-style template and returns the string
+     *
+     *      When the first argument is a string it is used as the format template; a
+     *      non-string first argument makes every argument part of a space-separated
+     *      concatenation. Only `%s`, `%d`, `%j` and `%%` are converted; any other
+     *      specifier is kept literally and its value is appended at the end instead.
+     *      `%s` applies String() (a Symbol argument throws TypeError), `%d` truncates
+     *      the string form through atoi() and `%j` renders with the inspection
+     *      formatter below, so circular values produce their inspection form and BigInt
+     *      is accepted. A specifier without an argument is left in place.
+     *
+     *      See the util module for the formatting and inspection concepts.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      console.log(util.format('%s:%s', 'foo')); // foo:%s
+     *      console.log(util.format('%s:%s', 'foo', 'bar', 'baz')); // foo:bar baz
+     *      console.log(util.format('%d', '42.9')); // 42
+     *      console.log(util.format('%o', { a: 1 })); // %o {"a":1}
+     *      ```
      *
      *      @param args optional parameter list
      *      @return returns the formatted string
-     *      When the first argument is a string it is used as the format template, see
-     *      util.format; every other value is printed as-is.
      *
      */
     function format(...args: any[]): string;
 
     /**
-     * @description Formats variables according to the specified format and inspect options
+     * @description Formats values like format, using the given options for rendered values
+     *
+     *      `fmt` is the template when it is a string and takes part in the plain
+     *      concatenation otherwise. Non-string extra values are rendered by inspect with
+     *      `options`, which accepts the inspect options (`colors`, `depth`,
+     *      `maxArrayLength`, `maxStringLength`).
      *
      *      @param options inspect options used for non-string values
      *      @param fmt the format string; any other value is formatted as-is
@@ -103,7 +193,34 @@ declare module 'util' {
     function formatWithOptions(options: FIBJS.GeneralObject, fmt: any, ...args: any[]): string;
 
     /**
-     * @description Inherits prototype functions from one constructor to another. The prototype of the constructor will be set to a new object created from the superclass (superConstructor).
+     * @description Sets up prototype inheritance between two constructors (legacy helper)
+     *
+     *      Sets `constructor.prototype` to an object created from
+     *      `superConstructor.prototype` and stores the superclass in
+     *      `constructor.super_`. Throws a TypeError (20004) when either argument is not
+     *      an object or the superclass has no prototype. Prefer the `class`/`extends`
+     *      syntax in new code; this helper matches the Node.js legacy API.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      function Animal(name) {
+     *          this.name = name;
+     *      }
+     *      Animal.prototype.eat = function (food) {
+     *          console.log(this.name + ' is eating ' + food);
+     *      };
+     *
+     *      function Cat() {
+     *          Animal.call(this, 'cat');
+     *      }
+     *      util.inherits(Cat, Animal);
+     *
+     *      var cat = new Cat();
+     *      console.log(cat instanceof Animal); // true
+     *      console.log(Cat.super_ === Animal); // true
+     *      ```
      *
      *      @param constructor the initial constructor
      *      @param superConstructor the inherited superclass
@@ -112,7 +229,23 @@ declare module 'util' {
     function inherits(constructor: any, superConstructor: any): void;
 
     /**
-     * @description Parses the raw text of a dotenv file and returns a key-value object
+     * @description Parses the raw text of a dotenv file into a null-prototype object
+     *
+     *      Supports `KEY=value`, `export KEY=value`, empty values, single, double and
+     *      backtick quoting, `\n` escapes inside double quotes and multi-line single
+     *      quoted values. A `#` outside quotes starts a comment, duplicate keys keep the
+     *      last value, `\r` is dropped and lines without `=` are skipped.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      const env = util.parseEnv('A=1\nB="two words"\nC=3 # comment\nA=4');
+     *      console.log(env.A); // 4
+     *      console.log(env.B); // two words
+     *      console.log(env.C); // 3
+     *      console.log(Object.getPrototypeOf(env) === null); // true
+     *      ```
      *
      *      @param content raw content of the dotenv file
      *      @return returns the parsed key-value object
@@ -121,20 +254,37 @@ declare module 'util' {
     function parseEnv(content: string): FIBJS.GeneralObject;
 
     /**
-     * @description Returns a string representation of obj, mainly for debugging. The additional options can be used to change certain aspects of the formatted string.
+     * @description Returns a debug representation of a value controlled by options
      *
-     *      The following parameters are supported:
+     *      Options:
      *      ```JavaScript
-     *      {
-     *          "colors": false, // specify if output should be colorized, defaults to false
-     *          "depth": 2, // specify the max depth of the output, defaults to 2
-     *          "table": false, // specify if output should be a table, defaults to false
-     *          "encode_string": true, // specify if string should be encoded, defaults to true
-     *          "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
-     *          "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
-     *          "fields": [], // specify the fields to be displayed, defaults to all
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "colors": true, // ANSI color when the terminal supports it, defaults to true
+     *          "depth": 2, // max nesting depth, null means unlimited, defaults to 2
+     *          "table": false, // render an array of records as a table, defaults to false
+     *          "encode_string": true, // encode strings instead of showing them raw
+     *          "maxArrayLength": 100, // max array items, negative hides items, 100 by default
+     *          "maxStringLength": 10000, // max string chars, negative keeps the tail
+     *          "fields": [] // table columns to display, empty means all
+     *      })
      *      ```
+     *      Strings are shown double quoted, buffers as `<Buffer ..>`, typed arrays as
+     *      `[Uint8Array]`, maps and sets with their markers, functions as
+     *      `[Function name]` and errors as their stack plus own properties; repeated
+     *      objects become `[Circular]`. Unknown options are ignored. Note that `colors`
+     *      defaults to true here while Node.js defaults to false.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      const nested = { a: { b: { c: 1 } } };
+     *      console.log(util.inspect(nested, { colors: false }));
+     *      console.log(util.inspect(nested, { colors: false, depth: null }));
+     *      console.log(util.inspect([1, 2, 3], { colors: false, maxArrayLength: 1 }));
+     *      ```
+     *
      *      @param obj the object to process
      *      @param options the format control options to use
      *      @return returns the formatted string
@@ -143,15 +293,27 @@ declare module 'util' {
     function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
-     * @description Applies ANSI color/style formatting to text
+     * @description Applies ANSI color and style codes to text
      *
-     *      When color output is not supported (such as a non-TTY environment or when NO_COLOR is set), the text is returned as-is.
+     *      `format` is either a single name or an array of names; array entries are
+     *      applied left to right, so the first name becomes the outermost wrapper. When
+     *      the terminal does not support colors (non-TTY with NO_COLOR, or no TTY at
+     *      all) the text is returned unchanged. Unknown names are ignored, unlike
+     *      Node.js which throws for them.
      *
      *      Supported formats: bold, italic, underline, strikethrough, hidden,
      *      black, red, green, yellow, blue, magenta, cyan, white,
      *      bgBlack, bgRed, bgGreen, bgYellow, bgBlue, bgMagenta, bgCyan, bgWhite,
      *      gray/grey, blackBright, redBright, greenBright, yellowBright, blueBright,
      *      magentaBright, cyanBright, whiteBright
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      const styled = util.styleText(['bold', 'green'], 'ok');
+     *      console.log(util.stripVTControlCharacters(styled)); // ok
+     *      ```
      *
      *      @param format array of format names
      *      @param text the text to format
@@ -161,7 +323,10 @@ declare module 'util' {
     function styleText(format: string[], text: string): string;
 
     /**
-     * @description Applies ANSI color/style formatting to text
+     * @description Applies a single ANSI color or style to text
+     *
+     *      Single-name form of the array overload; see `styleText(String format[], ...)`
+     *      for the supported names and the color capability rules.
      *
      *      @param format format name
      *      @param text the text to format
@@ -171,7 +336,13 @@ declare module 'util' {
     function styleText(format: string, text: string): string;
 
     /**
-     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable
+     * @description Creates a ConsoleObject that conditionally logs debug information
+     *
+     *      The returned ConsoleObject writes to stderr only when `NODE_DEBUG` contains
+     *      the section name, prefixing each line with `SECTION pid:`. Matching is
+     *      case-insensitive and `NODE_DEBUG` is a comma separated list; wildcards are
+     *      not supported (Node.js accepts `foo*`). `enabled` reports the current state
+     *      and follows later changes of the environment variable.
      *
      *      @param section the debug section to use
      *      @return returns a ConsoleObject object
@@ -180,17 +351,24 @@ declare module 'util' {
     function debuglog(section: string): Class_ConsoleObject;
 
     /**
-     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable
+     * @description Creates a ConsoleObject that conditionally logs debug information
+     *
+     *      Same as `debuglog(String section)`; `fn` is called on the first logging
+     *      call with a log function. When the section is disabled, `fn` receives a
+     *      stubbed logger whose methods are all no-ops.
      *
      *      @param section the debug section to use
-     *      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
+     *      @param fn callback invoked on the first log call with an optimized log function
      *      @return returns a ConsoleObject object
      *
      */
     function debuglog(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
-     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
+     * @description Alias of debuglog: creates a conditional debug logger
+     *
+     *      Alias of `debuglog(String section)`; see it for the `NODE_DEBUG` matching
+     *      rules and the line prefix.
      *
      *      @param section the debug section to use
      *      @return returns a ConsoleObject object
@@ -199,17 +377,24 @@ declare module 'util' {
     function debug(section: string): Class_ConsoleObject;
 
     /**
-     * @description Creates a ConsoleObject object that conditionally outputs debug information according to the NODE_DEBUG environment variable. Alias of debuglog
+     * @description Alias of debuglog: creates a conditional debug logger
+     *
+     *      Alias of `debuglog(String section, Function(ConsoleObject log) fn)`; see it
+     *      for the first-call callback behavior.
      *
      *      @param section the debug section to use
-     *      @param fn callback called the first time a log function is invoked; its argument is a more optimized log function
+     *      @param fn callback invoked on the first log call with an optimized log function
      *      @return returns a ConsoleObject object
      *
      */
     function debug(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
-     * @description Wraps the given function. This function is for compatibility only and does not output a warning
+     * @description Returns the function unchanged; kept for Node.js API compatibility
+     *
+     *      The current implementation is a no-op wrapper: the returned value is the
+     *      same function, calling it never emits a deprecation warning and `msg` and
+     *      `code` are ignored. Do not rely on it for deprecation reporting.
      *
      *      @param fn the function to wrap
      *      @param msg the warning message
@@ -222,6 +407,10 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable contains no value (no enumerable properties)
      *
+     *      True for null, undefined, empty strings, empty arrays, objects without own
+     *      property names, and primitive numbers or booleans. Node.js has no equivalent
+     *      helper.
+     *
      *      @param v the variable to check
      *      @return returns True if empty
      *
@@ -230,6 +419,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is an array
+     *
+     *      Equivalent to Array.isArray(); typed arrays and array-like objects are not
+     *      arrays.
      *
      *      @param v the variable to check
      *      @return returns True if it is an array
@@ -240,6 +432,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Boolean
      *
+     *      True for primitive booleans and for Boolean wrapper objects created with
+     *      new Boolean(); wrapper objects count as booleans here.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a Boolean
      *
@@ -248,6 +443,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is Null
+     *
+     *      True only for null; use isNullOrUndefined to cover both null and undefined.
      *
      *      @param v the variable to check
      *      @return returns True if it is Null
@@ -258,6 +455,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is Null or Undefined
      *
+     *      True for null and undefined; shorthand for the common guard.
+     *
      *      @param v the variable to check
      *      @return returns True if it is Null or Undefined
      *
@@ -266,6 +465,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a number
+     *
+     *      True for primitive numbers and Number wrapper objects; NaN and Infinity are
+     *      numbers.
      *
      *      @param v the variable to check
      *      @return returns True if it is a number
@@ -276,14 +478,18 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a BigInt
      *
+     *      True for BigInt primitives and BigInt wrapper objects.
+     *
      *      @param v the variable to check
-     *      @return returns True if it is a number
+     *      @return returns True if it is a BigInt
      *
      */
     function isBigInt(v: any): boolean;
 
     /**
      * @description Checks whether the given variable is a string
+     *
+     *      True for string primitives and String wrapper objects.
      *
      *      @param v the variable to check
      *      @return returns True if it is a string
@@ -294,6 +500,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is Undefined
      *
+     *      True only for undefined.
+     *
      *      @param v the variable to check
      *      @return returns True if it is Undefined
      *
@@ -302,6 +510,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a regular expression object
+     *
+     *      True for RegExp objects, including ones created in another context.
      *
      *      @param v the variable to check
      *      @return returns True if it is a regular expression object
@@ -312,6 +522,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an object
      *
+     *      True for every non-primitive value, functions included; null and undefined
+     *      are not objects.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an object
      *
@@ -320,6 +533,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a date object
+     *
+     *      True for Date instances, including invalid dates.
      *
      *      @param v the variable to check
      *      @return returns True if it is a date object
@@ -330,6 +545,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an error object
      *
+     *      True for Error and its built-in subclasses as created by the engine; a plain
+     *      object whose prototype chain includes Error.prototype is not matched.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an error object
      *
@@ -338,6 +556,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a primitive type
+     *
+     *      True for null, undefined, booleans, numbers, bigints, strings and symbols;
+     *      functions and all other objects are false.
      *
      *      @param v the variable to check
      *      @return returns True if it is a primitive type
@@ -348,6 +569,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Symbol type
      *
+     *      True for primitive symbols; wrapper objects created with Object(Symbol()) are
+     *      not matched.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a Symbol type
      *
@@ -356,6 +580,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a DataView type
+     *
+     *      True for DataView instances; typed arrays are buffer views but not
+     *      DataViews.
      *
      *      @param v the variable to check
      *      @return returns True if it is a DataView type
@@ -366,6 +593,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an External type
      *
+     *      True only for V8 native External values, which JavaScript code cannot
+     *      create; typically false.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an External type
      *
@@ -374,6 +604,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Map type
+     *
+     *      True for Map instances, including subclasses.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Map type
@@ -384,6 +616,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a MapIterator type
      *
+     *      True for iterators returned by Map keys(), values() and entries().
+     *
      *      @param v the variable to check
      *      @return returns True if it is a MapIterator type
      *
@@ -392,6 +626,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Promise type
+     *
+     *      True for native Promise instances, including values returned by async
+     *      functions.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Promise type
@@ -402,6 +639,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an AsyncFunction type
      *
+     *      True for async function declarations, expressions, arrow functions and
+     *      methods.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an AsyncFunction type
      *
@@ -410,6 +650,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Set type
+     *
+     *      True for Set instances, including subclasses.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Set type
@@ -420,6 +662,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a SetIterator type
      *
+     *      True for iterators returned by Set keys(), values() and entries().
+     *
      *      @param v the variable to check
      *      @return returns True if it is a SetIterator type
      *
@@ -428,6 +672,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a TypedArray type
+     *
+     *      True for every typed array kind (Uint8Array, Int32Array, Float64Array, ...);
+     *      ArrayBuffer and DataView are not typed arrays.
      *
      *      @param v the variable to check
      *      @return returns True if it is a TypedArray type
@@ -438,6 +685,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Uint8Array type
      *
+     *      True for Uint8Array instances; fibjs Buffer values match because Buffer
+     *      derives from Uint8Array.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a Uint8Array type
      *
@@ -446,6 +696,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a function object
+     *
+     *      True for functions and classes, including async and generator functions.
      *
      *      @param v the variable to check
      *      @return returns True if it is a function object
@@ -456,6 +708,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Buffer object
      *
+     *      True only for fibjs Buffer values; Node.js has no util.types.isBuffer and
+     *      uses Buffer.isBuffer instead.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a Buffer object
      *
@@ -464,6 +719,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Float16Array type
+     *
+     *      True for Float16Array instances.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Float16Array type
@@ -474,6 +731,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an ArrayBuffer or SharedArrayBuffer type
      *
+     *      True for both ArrayBuffer and SharedArrayBuffer.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an ArrayBuffer or SharedArrayBuffer type
      *
@@ -482,6 +741,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a SharedArrayBuffer type
+     *
+     *      True only for SharedArrayBuffer; a plain ArrayBuffer is matched by
+     *      isAnyArrayBuffer.
      *
      *      @param v the variable to check
      *      @return returns True if it is a SharedArrayBuffer type
@@ -492,6 +754,9 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is an arguments object
      *
+     *      True for the arguments object of a non-arrow function; arrays are not
+     *      matched.
+     *
      *      @param v the variable to check
      *      @return returns True if it is an arguments object
      *
@@ -499,7 +764,10 @@ declare module 'util' {
     function isArgumentsObject(v: any): boolean;
 
     /**
-     * @description Checks whether the given variable is a boxed primitive object (such as new Boolean(), new String(), etc.)
+     * @description Checks whether the given variable is a boxed primitive object
+     *
+     *      True for Boolean, Number, String, Symbol and BigInt wrapper objects created
+     *      with new or Object().
      *
      *      @param v the variable to check
      *      @return returns True if it is a boxed primitive object
@@ -510,6 +778,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a GeneratorFunction type
      *
+     *      True for generator function declarations, expressions and methods.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a GeneratorFunction type
      *
@@ -518,6 +788,8 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Generator object
+     *
+     *      True for the iterator returned when a generator function is called.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Generator object
@@ -528,6 +800,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Proxy instance
      *
+     *      True for Proxy instances; the underlying target is not a proxy.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a Proxy instance
      *
@@ -536,6 +810,9 @@ declare module 'util' {
 
     /**
      * @description Checks whether the given variable is a Module Namespace object
+     *
+     *      True for ES module namespace objects obtained with `import * as ns`; plain
+     *      objects are not namespaces.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Module Namespace object
@@ -546,6 +823,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a CryptoKey type
      *
+     *      True for CryptoKey objects produced by the crypto module.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a CryptoKey type
      *
@@ -555,6 +834,8 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a KeyObject type
      *
+     *      True for KeyObject instances produced by the crypto module.
+     *
      *      @param v the variable to check
      *      @return returns True if it is a KeyObject type
      *
@@ -563,6 +844,13 @@ declare module 'util' {
 
     /**
      * @description Tests whether a value is deeply equal to the expected value
+     *
+     *      Deep equality with component-wise loose comparison: dates and regular
+     *      expressions are compared by content, fibjs native objects through their own
+     *      equals, and other values with JavaScript `==` semantics (for example '1'
+     *      equals 1). NaN never equals NaN. This is a fibjs extension; Node.js only
+     *      provides isDeepStrictEqual.
+     *
      *      @param actual the value to test
      *      @param expected the expected value
      *      @return returns True if deeply equal
@@ -572,6 +860,22 @@ declare module 'util' {
 
     /**
      * @description Tests whether a value is strictly deeply equal to the expected value
+     *
+     *      Deep equality with component-wise strict comparison. Dates and regular
+     *      expressions are compared by content, fibjs native objects through their own
+     *      equals, and functions are equal only when identical. Unlike Node.js, NaN is
+     *      not equal to NaN, 0 equals -0 and constructors are not part of the
+     *      comparison.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      console.log(util.isDeepStrictEqual([1, [2, 3]], [1, [2, 3]])); // true
+     *      console.log(util.isDeepStrictEqual('1', 1)); // false
+     *      console.log(util.isDeepStrictEqual(NaN, NaN)); // false
+     *      ```
+     *
      *      @param actual the value to test
      *      @param expected the expected value
      *      @return returns True if strictly deeply equal
@@ -582,9 +886,14 @@ declare module 'util' {
     /**
      * @description Queries whether the specified object contains the given key
      *
+     *      Checks own properties only (Object.prototype.hasOwnProperty semantics),
+     *      including non-enumerable ones; null and undefined return false while other
+     *      non-objects throw TypeError 20004. A shadowed hasOwnProperty does not affect
+     *      the check. Node.js has no util.has.
+     *
      *      @param v the object to query
      *      @param key the key to query
-     *      @return returns the array of all keys of the object
+     *      @return returns True if the object has the own property
      *
      */
     function has(v: any, key: string): boolean;
@@ -592,8 +901,12 @@ declare module 'util' {
     /**
      * @description Queries the array of all keys of the specified object
      *
+     *      Returns the enumerable property names, own and inherited, with array indices
+     *      converted to strings; non-objects return an empty array. Node.js has no
+     *      util.keys (Object.keys covers own properties only).
+     *
      *      @param v the object to query
-     *      @return returns the array of all keys of the object
+     *      @return returns the array of enumerable property names
      *
      */
     function keys(v: any): any[];
@@ -601,14 +914,34 @@ declare module 'util' {
     /**
      * @description Queries the array of all values of the specified object
      *
+     *      Returns the values of the enumerable properties reported by `keys`, own and
+     *      inherited; non-objects return an empty array.
+     *
      *      @param v the object to query
-     *      @return returns the array of all values of the object
+     *      @return returns the array of enumerable property values
      *
      */
     function values(v: any): any[];
 
     /**
-     * @description Clones the given variable; if it is an object or array, copies the content to a new object
+     * @description Clones the given variable; objects and arrays are copied to a new one
+     *
+     *      Shallow copy: the result is a new object or array whose top-level properties
+     *      reference the same values, so nested objects are shared. Date, RegExp and
+     *      wrapper objects are recreated, functions and arguments objects are returned
+     *      as-is, and fibjs native objects (Buffer, Map, ...) are returned unchanged.
+     *      Node.js has no util.clone; structuredClone is a global instead.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      const source = { list: [1, 2], nested: { a: 1 } };
+     *      const copy = util.clone(source);
+     *      copy.list.push(3);
+     *      console.log(source.list); // [ 1, 2, 3 ] (the nested array is shared)
+     *      console.log(util.clone(source).nested === source.nested); // true
+     *      ```
      *
      *      @param v the variable to clone
      *      @return returns the clone result
@@ -617,7 +950,11 @@ declare module 'util' {
     function clone(v: any): any;
 
     /**
-     * @description Deeply freezes an object; the frozen object and the objects it contains can no longer be modified
+     * @description Deeply freezes an object and everything it contains
+     *
+     *      Recursively freezes the object, every array it contains and every value
+     *      reachable through enumerable properties. Returns undefined. Throws a
+     *      TypeError when a value cannot be frozen, for example a Buffer.
      *
      *      @param v the object to freeze
      *
@@ -627,6 +964,12 @@ declare module 'util' {
     /**
      * @description Extends the specified object with the key-values of one or more objects
      *
+     *      Copies the enumerable properties (own and inherited) of each source into the
+     *      first argument and returns it, with later sources winning. null and
+     *      undefined sources are skipped, a null/undefined target is returned
+     *      unchanged, and other non-objects throw TypeError 20004. `_extend` is the
+     *      Node.js-compatible alias.
+     *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
      *      @return returns the extension result
@@ -635,7 +978,9 @@ declare module 'util' {
     function extend(v: any, ...objs: any[]): any;
 
     /**
-     * @description Extends the specified object with the key-values of one or more objects. Alias of extend
+     * @description Extends an object with the key-values of one or more objects (alias)
+     *
+     *      Alias of extend, matching the deprecated Node.js util._extend.
      *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
@@ -647,6 +992,11 @@ declare module 'util' {
     /**
      * @description Returns a copy of an object containing only the property values of the specified keys
      *
+     *      Copies the listed properties from the object; each argument is a key or an
+     *      array of keys (arrays are expanded one level). Inherited enumerable
+     *      properties are included and missing keys are skipped. A null/undefined
+     *      target yields an empty object; other non-objects throw TypeError 20004.
+     *
      *      @param v the object to filter
      *      @param objs one or more keys to select
      *      @return returns the filter result
@@ -656,6 +1006,11 @@ declare module 'util' {
 
     /**
      * @description Returns a copy of an object excluding the property values of the specified keys
+     *
+     *      Copies every enumerable property except the listed ones; each argument is a
+     *      key or an array of keys, and keys are converted to strings, so
+     *      omit(['a', 'b'], 0) removes index 0. A null/undefined target yields an empty
+     *      object.
      *
      *      @param v the object to filter
      *      @param keys one or more keys to exclude
@@ -667,6 +1022,10 @@ declare module 'util' {
     /**
      * @description Gets the first element of an array
      *
+     *      Returns the first element of an array, or undefined for an empty array or a
+     *      null/undefined argument; a non-array throws TypeError 20004. The overload
+     *      with `n` returns a new array with up to `n` leading elements instead.
+     *
      *      @param v the array to get from
      *      @return returns the element
      *
@@ -675,6 +1034,9 @@ declare module 'util' {
 
     /**
      * @description Gets several elements from the beginning of an array
+     *
+     *      Array form of first: returns up to `n` leading elements, clamped to the
+     *      length; n <= 0 or a null/undefined argument yields an empty array.
      *
      *      @param v the array to get from
      *      @param n the number of elements to get
@@ -686,6 +1048,10 @@ declare module 'util' {
     /**
      * @description Gets the last element of an array
      *
+     *      Returns the last element of an array, or undefined for an empty array or a
+     *      null/undefined argument; a non-array throws TypeError 20004. The overload
+     *      with `n` returns a new array with up to `n` trailing elements instead.
+     *
      *      @param v the array to get from
      *      @return returns the element
      *
@@ -694,6 +1060,10 @@ declare module 'util' {
 
     /**
      * @description Gets several elements from the end of an array
+     *
+     *      Array form of last: returns up to `n` trailing elements in original order,
+     *      clamped to the length; n <= 0 or a null/undefined argument yields an empty
+     *      array.
      *
      *      @param v the array to get from
      *      @param n the number of elements to get
@@ -705,6 +1075,11 @@ declare module 'util' {
     /**
      * @description Gets a copy of an array with duplicate elements removed
      *
+     *      Returns a new array keeping the first occurrence of each value, compared
+     *      with strict equality. With sorted = true a single backward scan is used,
+     *      which assumes equal values are adjacent and only removes adjacent
+     *      duplicates. Non-arrays throw TypeError 20004.
+     *
      *      @param v the array to deduplicate
      *      @param sorted whether the array is sorted; if the array is sorted, a faster algorithm is used
      *      @return returns the array with duplicate elements removed
@@ -715,6 +1090,10 @@ declare module 'util' {
     /**
      * @description Merges the values of one or more arrays into an array of unique values
      *
+     *      Concatenates the arrays and removes duplicates with strict equality,
+     *      keeping the first occurrence; every argument must be an array (TypeError
+     *      20004 otherwise) and no argument produces an empty array.
+     *
      *      @param arrs one or more arrays to merge
      *      @return returns the merge result
      *
@@ -722,7 +1101,12 @@ declare module 'util' {
     function union(...arrs: any[]): any[];
 
     /**
-     * @description Returns the intersection of the arrays with the elements of one or more arrays excluded
+     * @description Returns the values present in every given array
+     *
+     *      Returns the values of the first array that also appear in every remaining
+     *      array, compared with strict equality; duplicates in the first array are
+     *      removed and empty arguments yield an empty array. Non-array arguments throw
+     *      TypeError 20004.
      *
      *      @param arrs one or more arrays used to compute the intersection
      *      @return returns the computed intersection
@@ -731,7 +1115,12 @@ declare module 'util' {
     function intersection(...arrs: any[]): any[];
 
     /**
-     * @description Flattens a multi-level nested array (nesting can be at any depth) into a single-level array. If the shallow parameter is passed, the array is flattened by only one level.
+     * @description Flattens a nested array into a single-level array; shallow stops at one level
+     *
+     *      Flattens nested arrays (and array-like objects) into a single-level array at
+     *      any depth; shallow = true flattens one level only. Circular references
+     *      throw error 20024 ("util: circular reference object.") and non-objects throw
+     *      TypeError 20004.
      *
      *      @param arr the array to convert
      *      @param shallow whether to flatten only one level, default is false
@@ -743,6 +1132,9 @@ declare module 'util' {
     /**
      * @description Returns a copy of the array with one or more elements excluded
      *
+     *      Returns a copy of an array-like value without the listed elements, compared
+     *      with strict equality; non-objects without a length throw TypeError 20004.
+     *
      *      @param arr the array to exclude from
      *      @param els one or more elements to exclude
      *      @return returns the exclusion result
@@ -753,6 +1145,10 @@ declare module 'util' {
     /**
      * @description Returns a copy of the array with the elements of the without arrays excluded
      *
+     *      Returns the values of the first array that do not appear in any of the other
+     *      arrays, compared with strict equality; non-array arguments throw TypeError
+     *      20004.
+     *
      *      @param list the array to exclude from
      *      @param arrs one or more arrays to exclude
      *      @return returns the exclusion result
@@ -761,7 +1157,11 @@ declare module 'util' {
     function difference(list: any[], ...arrs: any[]): any[];
 
     /**
-     * @description Iterates over all elements in list, outputting each element in order. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
+     * @description Iterates over the elements of list in order, calling iterator for each
+     *
+     *      Iterates an array by index or another object by property keys, calling
+     *      iterator(element, indexOrKey, list) with `context` bound to this. Returns
+     *      list itself; a non-object list is returned unchanged without iterating.
      *
      *      @param list the list or object to iterate
      *      @param iterator the callback function used for iteration
@@ -772,7 +1172,11 @@ declare module 'util' {
     function each(list: any, iterator: (element: any, index: any, list: any)=>void, context?: any): any;
 
     /**
-     * @description Maps each value in list to a new array through the transform function (iterator). If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (element, index, list)
+     * @description Maps each value in list to a new array through the transform function
+     *
+     *      Maps an array by index or another object by property keys through
+     *      iterator(element, indexOrKey, list), returning a new array of the results; a
+     *      non-object list yields an empty array.
      *
      *      @param list the list or object to transform
      *      @param iterator the callback function used for transformation
@@ -783,7 +1187,11 @@ declare module 'util' {
     function map(list: any, iterator: (element: any, index: any, list: any)=>any, context?: any): any[];
 
     /**
-     * @description Reduces the elements in list to a single value. If the context parameter is passed, iterator is bound to the context object. Each call to iterator is passed three parameters: (memo, element, index, list)
+     * @description Reduces the elements in list to a single value
+     *
+     *      Folds an array or object using iterator(memo, element, indexOrKey, list) and
+     *      returns the final memo; `memo` is required and is also returned unchanged
+     *      for a non-object list.
      *
      *      @param list the list or object to reduce
      *      @param iterator the callback function used for reduction
@@ -795,7 +1203,20 @@ declare module 'util' {
     function reduce(list: any, iterator: (memo: any, element: any, index: any, list: any)=>any, memo: any, context?: any): any;
 
     /**
-     * @description Parses a command line string and returns the parameter list
+     * @description Splits a command line string into an argument array
+     *
+     *      Honours double quotes and backslash escapes, and splits on whitespace. This
+     *      is a tokenizer, not Node.js's `parseArgs({ options })` parser: it does not
+     *      understand options, defaults or positionals.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      console.log(util.parseArgs('-a b "c d" e\\ f'));
+     *      // [ '-a', 'b', 'c d', 'e f' ]
+     *      ```
+     *
      *      @param command the command line string to parse
      *      @return returns the parsed parameter list
      *
@@ -804,9 +1225,28 @@ declare module 'util' {
 
     /**
      * @description Compiles a script into binary code
-     *      util.compile can compile a script into a v8 internal data block (not machine-executable code). After compilation, the code can be saved as *.jsc and then directly loaded and executed by run and require.
      *
-     *      Since the target code cannot be reverse-engineered to obtain the source code after compilation, programs that depend on Function.toString will not work properly.
+     *      Compiles a script into a gzipped V8 code cache (not machine-executable code)
+     *      that can be saved as a .jsc file and loaded by run or require. Mode 0 wraps
+     *      the code as a module, mode 1 as a script and mode 2 as a worker; a leading
+     *      shebang is neutralised. Syntax errors throw SyntaxError, and compiled code
+     *      cannot be recovered as source, so programs relying on Function.toString
+     *      break. Node.js has no util.compile; this is a fibjs extension.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *      var fs = require('fs');
+     *      var path = require('path');
+     *      var os = require('os');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'util-compile-'));
+     *      const file = path.join(dir, 'demo.jsc');
+     *      fs.writeFile(file, util.compile('demo', 'module.exports = 40 + 2;'));
+     *      console.log(require(file)); // 42
+     *      fs.unlink(file);
+     *      fs.rmdir(dir);
+     *      ```
      *
      *      @param srcname the name of the script to add
      *      @param script the script code to compile
@@ -819,74 +1259,61 @@ declare module 'util' {
     /**
      * @description Wraps a callback or async function for synchronous invocation
      *
-     *      util.sync converts a callback function or async function into a sync function for convenient invocation.
+     *      `func` is called with a trailing error-first callback, or is awaited when it
+     *      is an async function (or `async_func` is true). The wrapper blocks the
+     *      current fiber until the callback fires or the promise settles, then returns
+     *      the result; a callback error or promise rejection is thrown in the caller.
+     *      Wrapping the same function returns the same wrapper, shared with promisify
+     *      and callbackify of that function.
      *
-     *      Example of callback:
+     *      Example:
      *      ```JavaScript
-     *      // callback
      *      var util = require('util');
      *
      *      function cb_test(a, b, cb) {
-     *        setTimeout(() => {
-     *           cb(null, a + b);
-     *        }, 100);
+     *          setTimeout(() => cb(null, a + b), 10);
      *      }
-     *
-     *      var fn_sync = util.sync(cb_test);
-     *      console.log(fn_sync(100, 200));
-     *      ```
-     *      Example of async:
-     *      ```JavaScript
-     *      // async/await
-     *      var util = require('util');
+     *      console.log(util.sync(cb_test)(100, 200)); // 300
      *
      *      async function async_test(a, b) {
      *          return a + b;
      *      }
+     *      console.log(util.sync(async_test)(100, 200)); // 300
      *
-     *      var fn_sync = util.sync(async_test);
-     *      console.log(fn_sync(100, 200));
-     *      ```
-     *      For functions that return a promise but are not marked as async, the sync mode can be specified manually:
-     *      ```JavaScript
-     *      // async/await
-     *      var util = require('util');
-     *
-     *      function async_test(a, b) {
-     *          return new Promise(function (resolve, reject) {
-     *            resolve(a + b);
-     *          });
+     *      function promise_test(a, b) {
+     *          return Promise.resolve(a + b);
      *      }
-     *
-     *      var fn_sync = util.sync(async_test, true);
-     *      console.log(fn_sync(100, 200));
+     *      console.log(util.sync(promise_test, true)(100, 200)); // 300
      *      ```
      *
      *      @param func the function to wrap
-     *      @param async_func whether to process func as an async function; if false, it is determined automatically
+     *      @param async_func whether to treat func as an async function; if false it is
+     *      detected automatically
      *      @return returns a function that runs synchronously
      *
      */
     function sync(func: (...args: any[])=>any, async_func?: boolean): (...args: any[])=>any;
 
     /**
-     * @description Wraps a callback function for async invocation
+     * @description Wraps a callback function for promise-based invocation
      *
-     *      util.promisify converts a callback function into an async function for convenient invocation.
+     *      `func` must take an error-first callback as its last argument; the returned
+     *      function resolves with the callback's second argument and rejects with its
+     *      first. An invocation without a value resolves with undefined. Wrapped
+     *      functions are cached and shared with sync and callbackify. Node.js's
+     *      `promisify.custom` symbol is not supported.
      *
-     *      Example of callback:
+     *      Example:
      *      ```JavaScript
-     *      // callback
      *      var util = require('util');
      *
      *      function cb_test(a, b, cb) {
-     *        setTimeout(() => {
-     *           cb(null, a + b);
-     *        }, 100);
+     *          setTimeout(() => cb(null, a + b), 10);
      *      }
      *
-     *      var fn_sync = util.promisify(cb_test);
-     *      console.log(async fn_sync(100, 200));
+     *      util.promisify(cb_test)(100, 200).then(result => {
+     *          console.log(result); // 300
+     *      });
      *      ```
      *
      *      @param func the function to wrap
@@ -896,23 +1323,25 @@ declare module 'util' {
     function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise;
 
     /**
-     * @description Wraps an async function for callback invocation
+     * @description Wraps an async function for callback-based invocation
      *
-     *      util.callbackify converts an async function into a callback function for convenient invocation.
+     *      The returned function calls back with (null, value) when the promise
+     *      resolves and (reason, null) when it rejects. A function that returns a
+     *      non-promise value does not invoke the callback at all, and a rejection with
+     *      a falsy reason is passed through as-is (Node.js wraps it in an Error with a
+     *      `reason` field). Wrapped functions are cached and shared with sync and
+     *      promisify.
      *
-     *      Example of async:
+     *      Example:
      *      ```JavaScript
-     *      // async
      *      var util = require('util');
      *
      *      async function async_test(a, b) {
-     *        return a + b;
+     *          return a + b;
      *      }
      *
-     *      var fn_callback = util.callbackify(async_test);
-     *
-     *      fn_callback(100, 200, (err, result) => {
-     *        console.log(result);
+     *      util.callbackify(async_test)(100, 200, (err, result) => {
+     *          console.log(result); // 300
      *      });
      *      ```
      *
@@ -923,34 +1352,24 @@ declare module 'util' {
     function callbackify(func: (...args: any[])=>any): (...args: any[])=>void;
 
     /**
-     * @description Queries the version information of the current engine and each component
+     * @description Returns build and component version information for the engine
      *
+     *      The result carries `fibjs`, `node` (the embedded Node API version),
+     *      `platform`, `arch`, the compiler key (`clang`, `gcc` or `msvc`), `date`,
+     *      `modules` and a `vender` object with the versions of the bundled libraries
+     *      (`v8`, `uv`, `openssl`, `sqlite`, `zlib`, ...). `builtins` lists the
+     *      registered module names. This is a fibjs extension; Node.js exposes
+     *      `process.versions` instead.
+     *
+     *      Example:
      *      ```JavaScript
-     *       {
-     *         "fibjs": "0.25.0",
-     *         "clang": "9.1",
-     *         "date": "Jun 12 2018 07:22:40",
-     *         "vender": {
-     *           "ev": "4.24",
-     *           "expat": "2.2.5",
-     *           "gd": "2.2.4",
-     *           "jpeg": "8.3",
-     *           "leveldb": "1.17",
-     *           "mongo": "0.7",
-     *           "pcre": "8.21",
-     *           "png": "1.5.4",
-     *           "mbedtls": "2.6.1",
-     *           "snappy": "1.1.2",
-     *           "sqlite": "3.23.0",
-     *           "tiff": "3.9.5",
-     *           "uuid": "1.6.2",
-     *           "v8": "6.7.288.20",
-     *           "v8-snapshot": true,
-     *           "zlib": "1.2.7",
-     *           "zmq": "3.1"
-     *         }
-     *       }
+     *      var util = require('util');
+     *
+     *      const info = util.buildInfo();
+     *      console.log(info.vender.v8.length > 0); // true
+     *      console.log(info.builtins.includes('fs')); // true
      *      ```
+     *
      *      @return returns the component version object
      *
      */
@@ -959,8 +1378,9 @@ declare module 'util' {
     /**
      * @description Converts TypeScript code to JavaScript, removing all type annotations
      *
-     *      This method uses strip-only mode, replacing TypeScript type syntax with spaces while keeping the line and column positions of the source code unchanged.
-     *      This is useful for scenarios that require debugging or generating source maps.
+     *      This method uses strip-only mode, replacing TypeScript type syntax with
+     *      spaces while keeping the line and column positions of the source code
+     *      unchanged; this keeps debugging and source maps working.
      *
      *      Notes: strip-only mode does not support the following syntax:
      *      - enum (must be converted to an IIFE)
@@ -970,6 +1390,9 @@ declare module 'util' {
      *      - import = require() syntax
      *      - export = syntax
      *      - angle bracket type assertions (such as <T>expr, use the as syntax instead)
+     *
+     *      Invalid TypeScript is not validated: the stripper returns the mangled text
+     *      instead of throwing.
      *
      *      Example:
      *      ```JavaScript
@@ -986,9 +1409,20 @@ declare module 'util' {
     function stripTypeScript(code: string): string;
 
     /**
-     * @description Gets the visual width of a string, taking full-width characters, emoji and ANSI escape sequences into account
-     *      Characters with East Asian Width property Fullwidth (F) or Wide (W) count as 2, and most other characters count as 1.
-     *      Control characters and combining marks count as 0. ANSI escape sequences are skipped.
+     * @description Gets the visual width of a string in terminal columns
+     *      Characters with East Asian Width Fullwidth (F) or Wide (W) count as 2 and
+     *      most other characters as 1. Emoji with emoji presentation count as 2.
+     *      Control characters and combining marks count as 0; ANSI escape sequences
+     *      are skipped.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      console.log(util.getStringWidth('hello')); // 5
+     *      console.log(util.getStringWidth('\u4f60\u597d')); // 4
+     *      console.log(util.getStringWidth('\u001b[31mred\u001b[0m')); // 3
+     *      ```
      *
      *      @param str the string whose width is to be calculated
      *      @return returns the visual width of the string
@@ -998,6 +1432,18 @@ declare module 'util' {
 
     /**
      * @description Removes ANSI escape sequences (VT control characters) from a string
+     *
+     *      Removes CSI sequences (colors, cursor movement), OSC sequences terminated by
+     *      BEL or ST, and two-byte ESC sequences; other characters are copied
+     *      unchanged. Node.js exposes the same function.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      var util = require('util');
+     *
+     *      console.log(util.stripVTControlCharacters('\u001b[31mred\u001b[0m')); // red
+     *      console.log(util.stripVTControlCharacters('\u001b]0;title\u0007body')); // body
+     *      ```
      *
      *      @param str the string to process
      *      @return returns the string with ANSI escape sequences removed

@@ -1,83 +1,350 @@
-/*! @brief tls/ssl network socket object
+/*! @brief An encrypted stream endpoint: the TLS counterpart of a Socket, reading and writing through an established TLS session
 
-TLSSocket belongs to the tls module; creation:
+ A TLSSocket wraps an underlying transport stream (normally a net.Socket) and encrypts both
+ directions. It extends Stream, not Socket, so it uses read/write/close and the stream events
+ instead of recv/send/family/bind/listen, while the address helpers are forwarded to the
+ underlying socket. It plays two roles:
+
+ - **client**: tls.connect(...) returns one, or create it explicitly and call connect();
+ - **server**: TLSServer and TLSHandler create one per connection and call accept() on it before
+   invoking the handler with it.
+
+ Concepts:
+
+ - **Handshake**: connect and accept perform the TLS handshake before returning (or before the
+   'connect' event in the listener form). The server_name argument of connect is both the SNI
+   value and the certificate verification name; when it is empty, SNI is omitted and the peer
+   certificate is only checked against the CA chain, not against a host name.
+ - **Blocking and events**: without a listener, connect()/accept() block the fiber and throw on
+   failure; a verification failure carries the X509 code in err.code and the checked name in
+   err.args.servername. With a connectListener, connect() returns immediately and emits
+   'connect' or 'error' (the error event carries the same Error). Register 'data'/'end'/'close'
+   before calling connect() to consume the stream in flowing mode.
+ - **Verification**: the context owns the trust store and the verification flags; see the tls
+   module concepts for ca/cert/key, rejectUnverified and SNI. getPeerX509Certificate() parses the
+   certificate received from the peer, getX509Certificate() the local one (undefined when none
+   was sent).
+ - **ALPN and versions**: alpnProtocol reports the negotiated application protocol, or undefined
+   when ALPN did not run, and getProtocol() the negotiated TLS version.
+ - **Address information**: remoteAddress/remotePort and localAddress/localPort are forwarded to
+   the underlying socket; they throw an invalid-call error before the handshake and after close.
+ - **Sessions**: there is no session object and no isSessionReused(); every TLSSocket performs a
+   full handshake.
+ - **Node.js differences**: the class extends Stream rather than net.Socket, so send/recv, family
+   and bind/listen do not exist; getX509Certificate()/getPeerX509Certificate() correspond to
+   Node.js getCertificate()/getPeerCertificate(); alpnProtocol is undefined instead of false; and
+   getProtocol() already reports the context default before the handshake, where Node.js returns
+   null.
+
+ Obtained from:
+ - `new tls.TLSSocket()` / `new tls.TLSSocket(context)` / `new tls.TLSSocket(options, isServer)` —
+   an unconnected socket that wraps a stream with connect() or accept();
+ - `tls.connect(...)` — a connected client socket;
+ - a TLSServer or TLSHandler listener — the accepted server-side socket.
+
+ Example 1 — a blocking client over an explicit TLSSocket:
  ```JavaScript
- var s = new tls.TLSSocket();
+ const tls = require('tls');
+ const net = require('net');
+ const crypto = require('crypto');
+
+ const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+ const cert = crypto.createCertificateRequest({
+     key: pk.privateKey,
+     subject: { CN: 'localhost' }
+ }).issue({
+     key: pk.privateKey,
+     issuer: { CN: 'localhost' },
+     validFrom: new Date(Date.now() - 1000),
+     days: 1
+ });
+ const ctx = tls.createSecureContext({ ca: cert.pem });
+
+ const server = tls.createServer({ key: pk.privateKey, cert }, (conn) => {
+     conn.write(conn.read());
+     conn.close();
+ });
+ server.listen(0, '127.0.0.1');
+
+ // the explicit form: an unconnected TLSSocket that wraps an existing stream
+ const raw = net.connect(server.address().port, '127.0.0.1');
+ const socket = new tls.TLSSocket(ctx);
+ socket.connect(raw, 'localhost');
+ socket.write('explicit');
+ console.log(socket.read().toString()); // explicit
+ console.log(socket.remotePort === server.address().port); // true
+ console.log(socket.getProtocol()); // TLSv1.3
+
+ socket.close();
+ server.stop();
  ```
+
+ Example 2 — the event-driven form with data and close events:
+ ```JavaScript
+ const tls = require('tls');
+ const net = require('net');
+ const crypto = require('crypto');
+
+ const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+ const cert = crypto.createCertificateRequest({
+     key: pk.privateKey,
+     subject: { CN: 'localhost' }
+ }).issue({
+     key: pk.privateKey,
+     issuer: { CN: 'localhost' },
+     validFrom: new Date(Date.now() - 1000),
+     days: 1
+ });
+
+ const server = tls.createServer({ key: pk.privateKey, cert }, (conn) => {
+     conn.write('welcome');
+     conn.close();
+ });
+ server.listen(0, '127.0.0.1');
+
+ // register the listeners before connect: the data event puts the stream into
+ // flowing mode, and close stops the server when the peer is gone
+ const socket = new tls.TLSSocket(tls.createSecureContext({ ca: cert.pem }));
+ const chunks = [];
+ socket.on('data', (data) => chunks.push(data.toString()));
+ socket.on('close', () => {
+     console.log(chunks.join('')); // welcome
+     server.stop();
+ });
+ socket.connect(net.connect(server.address().port, '127.0.0.1'), 'localhost');
+ ```
+
+ Note: the convenience tls.connect() forms support blocking read() and the 'connect'/'error'
+ events, but their flowing 'data' mode is not started; create the socket explicitly and call
+ connect() (as in Example 2) when event-driven reads are needed.
 */
 interface TLSSocket : Stream
 {
-    /*! @brief creates a new TLSSocket object using the current default SecureContext */
+    /*! @brief Creates a TLSSocket with the default SecureContext
+
+     The socket is not connected yet: wrap a stream with connect() (client) or accept() (server).
+     The default context is a client context, so a socket that has to answer a handshake should
+     be given a server context instead.
+     */
     TLSSocket();
 
-    /*! @brief creates a new TLSSocket object from context
+    /*! @brief Creates a TLSSocket with the given SecureContext
+
+     The context is used for the handshake as it is; a server-side socket (one that will call
+     accept()) needs a context with a certificate and key, normally created with isServer true.
+     The socket is still unconnected.
      @param context specifies the secure context used to create TLSSocket
     */
     TLSSocket(SecureContext context);
 
-    /*! @brief creates a new TLSSocket object from options
+    /*! @brief Creates a TLSSocket from the options of tls.createSecureContext
+
+     The options are validated and converted into a context immediately, so invalid PEM material
+     throws error 20024 here and not at handshake time. isServer selects the context defaults
+     (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
+     connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
+     that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
+     socket that can accept(). Node.js takes an options object here and uses it for the socket
+     itself as well; fibjs only reads the TLS keys.
      @param options the options needed to create a secure context with tls.createSecureContext
      @param isServer whether it is in server mode
     */
     TLSSocket(Object options, Boolean isServer = false);
 
-    /*! @brief establishes a tls/ssl connection on the given connection, client mode
+    /*! @brief Establishes a client-side TLS session on an existing stream and waits for it
+
+     socket is the transport, normally a connected net.Socket. server_name is sent as the SNI
+     value and verified against the peer certificate; when it is empty, SNI is omitted and only
+     the CA chain is checked. The call blocks the fiber and throws on failure; a verification
+     failure carries the X509 code in err.code (for example HOSTNAME_MISMATCH or
+     DEPTH_ZERO_SELF_SIGNED_CERT) and the checked name in err.args.servername. The TLSSocket
+     takes over the stream, which must not be used directly afterwards. This is the form that
+     also starts the flowing 'data' mode, so register a 'data' listener before connecting.
      @param socket the given underlying connection
      @param server_name the server name, used to verify the server certificate
     */
     connect(Stream socket, String server_name = "") async;
 
-    /*! @brief establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+    /*! @brief Establishes a client-side TLS session and reports the outcome through events
+
+     A convenience form of the three-argument connect(): it returns immediately and emits
+     'connect' on success or 'error' with the failure Error. No server name is sent, so the peer
+     certificate is only checked against the CA chain.
      @param socket the given underlying connection
      @param connectListener specifies the once connect event listener
     */
     connect(Stream socket, Function(Object ev) connectListener) async;
 
-    /*! @brief establishes a tls/ssl connection on the given connection, client mode, and triggers the connect event after the connection is established
+    /*! @brief Establishes a client-side TLS session with an explicit server name, non-blocking
+
+     A convenience form of the three-argument connect(): it returns immediately and emits
+     'connect' or 'error'; server_name is sent as SNI and verified against the peer certificate.
      @param socket the given underlying connection
      @param server_name the server name, used to verify the server certificate
      @param connectListener specifies the once connect event listener
     */
     connect(Stream socket, String server_name, Function(Object ev) connectListener) async;
 
-    /*! @brief establishes a tls/ssl connection on the given connection, server mode
+    /*! @brief Establishes a server-side TLS session on a raw accepted stream and waits for it
+
+     The counterpart of connect(): socket is a raw connection accepted by a TCP server and the
+     handshake runs in server mode with the context given to the constructor. It blocks the
+     fiber until the handshake completes; a failed handshake throws (for example when the client
+     rejects the server certificate, the server side reports an OpenSSL error such as "peer did
+     not return a certificate"). TLSServer and TLSHandler call it automatically.
+
+     Example — accepting a handshake for each raw connection of a TCP server:
+     ```JavaScript
+     const tls = require('tls');
+     const net = require('net');
+     const crypto = require('crypto');
+
+     const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+     const cert = crypto.createCertificateRequest({
+         key: pk.privateKey,
+         subject: { CN: 'localhost' }
+     }).issue({
+         key: pk.privateKey,
+         issuer: { CN: 'localhost' },
+         validFrom: new Date(Date.now() - 1000),
+         days: 1
+     });
+     const serverCtx = tls.createSecureContext({ key: pk.privateKey, cert }, true);
+
+     // server mode: the handler receives the raw connection and performs the
+     // handshake on it with accept(), then echoes what the client sent
+     const server = net.createServer((conn) => {
+         const socket = new tls.TLSSocket(serverCtx);
+         socket.accept(conn);
+         console.log(socket.remoteAddress); // 127.0.0.1
+         socket.write(socket.read());
+         socket.close();
+     });
+     server.listen(0, '127.0.0.1');
+
+     const client = tls.connect(server.address().port, 'localhost', { ca: cert.pem });
+     client.write('server-mode');
+     console.log(client.read().toString()); // server-mode
+
+     client.close();
+     server.stop();
+     ```
      @param socket the given underlying connection
     */
     accept(Stream socket) async;
 
-    /*! @brief queries the underlying stream object when the tls/ssl connection was established */
+    /*! @brief The transport stream under the TLS session
+
+     The stream passed to connect() or accept(), normally a net.Socket; the socket is attached
+     during the handshake, so read the property only after it completed. A fresh unconnected
+     TLSSocket has no transport yet. The address properties below are forwarded to this stream,
+     and the memory is owned by the TLSSocket while the session lives.
+     */
     readonly Stream stream;
 
-    /*! @brief the tls/ssl protocol version negotiated by the current connection
+    /*! @brief The TLS version in use on this connection
+
+     The value is a string such as 'TLSv1.3' or 'TLSv1.2'. Before the handshake it reports the
+     version of the underlying context (the default), while Node.js returns null until the
+     handshake completed.
      @return returns the tls/ssl protocol version
     */
     String getProtocol();
 
-    /*! @brief the local certificate negotiated by the current connection
+    /*! @brief The local certificate presented by this connection
+
+     Returns undefined when the socket has no local certificate, which is the usual client case;
+     a server socket returns its configured leaf certificate. Node.js names the equivalent
+     method getCertificate().
      @return returns the local certificate
     */
     X509Certificate getX509Certificate();
 
-    /*! @brief the peer certificate negotiated by the current connection
+    /*! @brief The peer certificate received during the handshake
+
+     Returns undefined before the handshake or when the peer sent no certificate (for example a
+     client that did not present one). The X509Certificate exposes subject, issuer, validFrom
+     and validTo. Node.js names the equivalent method getPeerCertificate().
+
+     Example — reading the subject of the certificate served by a local server:
+     ```JavaScript
+     const tls = require('tls');
+     const crypto = require('crypto');
+
+     const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+     const cert = crypto.createCertificateRequest({
+         key: pk.privateKey,
+         subject: { CN: 'localhost' }
+     }).issue({
+         key: pk.privateKey,
+         issuer: { CN: 'localhost' },
+         validFrom: new Date(Date.now() - 1000),
+         days: 1
+     });
+
+     const server = tls.createServer({ key: pk.privateKey, cert }, (conn) => {
+         conn.write(conn.read());
+         conn.close();
+     });
+     server.listen(0, '127.0.0.1');
+
+     const client = tls.connect(server.address().port, 'localhost', { ca: cert.pem });
+     // the certificate the server presented, parsed as an X509Certificate object
+     console.log(client.getPeerX509Certificate().subject); // CN=localhost
+     console.log(client.getPeerX509Certificate().issuer); // CN=localhost
+     // the local certificate is undefined because this client has none
+     console.log(client.getX509Certificate()); // undefined
+     client.write('cert');
+     console.log(client.read().toString()); // cert
+
+     client.close();
+     server.stop();
+     ```
      @return returns the peer certificate
     */
     X509Certificate getPeerX509Certificate();
 
-    /*! @brief queries the SecureContext used by the current TLSSocket */
+    /*! @brief The SecureContext used by this connection
+
+     The context owns the certificates, the trust store, the verification flags and the ALPN
+     list of the session; it is the object passed to the constructor, the one built from its
+     options, or the default tls.secureContext when neither was given.
+     */
     readonly SecureContext secureContext;
 
-    /*! @brief queries the peer address of the current connection */
+    /*! @brief The peer address of the connection
+
+     Forwarded to the underlying socket: for a client it is the server address, for a server
+     socket the client address, and for a unix socket the peer path. It throws an invalid-call
+     error before the handshake and after close.
+     */
     readonly String remoteAddress;
 
-    /*! @brief queries the peer port of the current connection */
+    /*! @brief The peer port of the connection
+
+     Forwarded to the underlying socket; on the client side it equals the port the connection
+     was made to. It throws an invalid-call error before the handshake and after close.
+     */
     readonly Integer remotePort;
 
-    /*! @brief queries the local address of the current connection */
+    /*! @brief The local address of the connection
+
+     Forwarded to the underlying socket, so it is the address of the interface the connection
+     uses. It throws an invalid-call error before the handshake and after close.
+     */
     readonly String localAddress;
 
-    /*! @brief queries the local port of the current connection */
+    /*! @brief The local port of the connection
+
+     Forwarded to the underlying socket; on the server side it is the listening port the client
+     connected to. It throws an invalid-call error before the handshake and after close.
+     */
     readonly Integer localPort;
 
-    /*! @brief queries the ALPN protocol negotiated by the current connection, returns undefined if not negotiated */
+    /*! @brief The ALPN protocol negotiated by the handshake
+
+     undefined when ALPN was not used or no offered protocol matched (Node.js reports false in
+     that case). The offered list comes from the alpnProtocols option of tls.createSecureContext.
+     */
     readonly String alpnProtocol;
 };

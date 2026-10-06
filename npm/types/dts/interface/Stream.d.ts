@@ -3,51 +3,214 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/StreamReader.d.ts" />
 /**
- * @description Stream operation object, used for binary data stream read/write
+ * @description The abstract byte-stream base class shared by every fibjs stream object
  *
- * Stream is a base object that defines the standard interface for stream processing and cannot be created independently. Concrete stream objects such as FileStream, MemoryStream and Socket all inherit from Stream.
+ * Stream defines the common byte-stream interface used across the runtime:
+ * reading (`read`, `readBuffer`, `readAll`), writing (`write`, `writeBuffer`,
+ * `end`), events (`data`, `readable`, `end`, `finish`, `close`, `error`,
+ * `drain`), data movement (`copyTo`, `pipe`, `unpipe`) and lifecycle control
+ * (`flush`, `close`, `destroy`, `ref`, `unref`). It cannot be constructed
+ * directly; concrete classes put a transport or a storage behind the interface.
  *
- * Stream objects provide the following capabilities:
+ * The concrete stream classes:
+ *  - `MemoryStream`, `RangeStream` and `BufferedStream` from the `io` module;
+ *  - `FileStream` behind `fs.openFile`, `fs.createReadStream` and
+ *    `fs.createWriteStream`, plus the `RangeStream` window of a read stream;
+ *  - `Socket`/`TLSSocket` from `net`/`tls`, `Http2Stream`, and the TTY streams
+ *    of the `tty` module;
+ *  - HTTP bodies, child process stdio and the process standard streams;
+ *  - `ZlibStream` codec streams returned by the `zlib` helpers.
  *
- *  - **Reading**: `read`, `readBuffer` read data of the specified size, `readAll` reads all remaining data; `setEncoding` sets the encoding so that `read` returns strings;
- *  - **Writing**: `write`, `writeBuffer` write data, `copyTo` copies data to the destination stream;
- *  - **Events**: `data`, `close`, `error` events (inherited from EventEmitter);
- *  - **Lifecycle**: `flush` flushes data, `end` ends writing, `close` closes the stream, `destroy` destroys the stream;
- *  - **Process control**: `ref`/`unref` control whether the stream object prevents the fibjs process from exiting;
- *  - **Compatible interfaces**: `resume`, `pause`, `pipe`, `unpipe`, `getReader` (WHATWG ReadableStreamDefaultReader compatible).
+ * Obtained from:
+ *  - `new io.MemoryStream()` — an in-memory duplex stream;
+ *  - `new io.BufferedStream(stm)`, `new io.RangeStream(stm, ...)` — wrappers;
+ *  - `fs.createReadStream(path[, options])` / `fs.createWriteStream(...)` —
+ *    file-backed streams (`fs.openFile` returns a seekable one);
+ *  - `new net.Socket(net.AF_INET)` after `connect` or `accept` — a TCP stream;
+ *  - `new zlib.Gzip()` / `new zlib.Inflate()` — compression streams;
+ *  - `process.stdin`/`stdout`/`stderr`, child process stdio and HTTP message
+ *    bodies — streams owned by the runtime.
  *
- * Read methods return null when there is no data to read or the connection is interrupted.
+ * Concepts:
+ *
+ *  - **Pull reading**: without events the stream is in pull mode, and `read`/
+ *    `readBuffer` ask the device for one chunk and wait for it. File and socket
+ *    streams wait until the requested number of bytes is available or the peer
+ *    ends; MemoryStream returns what it holds and never blocks. `readAll` loops
+ *    until the end of the stream. `read` returns null at the end of the stream
+ *    or on a broken connection.
+ *  - **Push reading**: attaching a `data` or `readable` listener (or calling
+ *    `resume`) switches the stream to flowing mode, in which the runtime reads
+ *    ahead into an internal queue and emits `data`, or fills the queue and emits
+ *    `readable`; `read`/`read(n)` then return immediately from that queue. The
+ *    switch is permanent: `pause` stops delivery but does not return to pull
+ *    mode.
+ *  - **Call styles**: every async member accepts the direct call (`const chunk =
+ *    stm.read(4)`), a trailing callback (`stm.read(4, (err, chunk) => {})`) and
+ *    the promise form through `await`. The direct form returns the documented
+ *    value when the operation completes without waiting, otherwise it waits for
+ *    the operation in the current fiber.
+ *  - **Encoding**: `setEncoding` installs a decoder used by `read` and by the
+ *    `data` event, so they return strings; `readBuffer`, `readAll` and
+ *    StreamReader always return Buffers.
+ *  - **Back pressure**: `write` returns false when the queued bytes reach the
+ *    write high-water mark (16384 bytes); stop writing and wait for the `drain`
+ *    event before writing more. `pipe` applies the same rule to its destination
+ *    and pauses the source while the destination is full.
+ *  - **End of stream**: the read flow emits `end` at the end of the stream;
+ *    when the write side has finished as well the stream auto-closes and emits
+ *    `close`. A flowing read that ends emits `end`, `finish` and `close`; a
+ *    plain `close()` call releases the handle without emitting `close`.
+ *  - **Destroy**: `destroy([err])` marks the stream unusable, optionally emits
+ *    `error` (with the supplied value, usually an Error) and then `close`; it is
+ *    idempotent. `ref`/`unref` control whether pending stream work keeps the
+ *    fibjs process alive.
+ *
+ * Example 1 — write, rewind and read an in-memory stream:
+ * ```JavaScript
+ * const io = require('io');
+ *
+ * const stm = new io.MemoryStream();
+ * stm.write(Buffer.from('hello '));
+ * stm.write('world');
+ * stm.rewind();
+ *
+ * console.log(stm.read(5).toString()); // hello
+ * console.log(stm.readAll().toString()); // world
+ * ```
+ *
+ * Example 2 — copy a file into another file:
+ * ```JavaScript
+ * const fs = require('fs');
+ * const os = require('os');
+ * const path = require('path');
+ *
+ * const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-stream-'));
+ * const src = path.join(dir, 'src.txt');
+ * const dst = path.join(dir, 'dst.txt');
+ * fs.writeFile(src, 'streamed file content');
+ *
+ * const reader = fs.createReadStream(src);
+ * const writer = fs.createWriteStream(dst);
+ * console.log(reader.copyTo(writer)); // 21
+ * writer.close();
+ *
+ * console.log(fs.readFile(dst, 'utf8')); // streamed file content
+ * fs.rmSync(dir, { recursive: true, force: true });
+ * ```
+ *
+ * Example 3 — read everything a TCP peer sends:
+ * ```JavaScript
+ * const net = require('net');
+ *
+ * const server = new net.Socket(net.AF_INET);
+ * server.bind(0);
+ * server.listen();
+ *
+ * const client = new net.Socket(net.AF_INET);
+ * client.connect(server.localPort, '127.0.0.1');
+ * const conn = server.accept();
+ *
+ * conn.write('Hello from the server');
+ * conn.close();
+ *
+ * console.log(client.readAll().toString()); // Hello from the server
+ *
+ * server.close();
+ * ```
+ *
  */
 declare class Class_Stream extends Class_EventEmitter {
     /**
-     * @description Queries the file descriptor value of the Stream, implemented by subclasses
+     * @description Queries the file descriptor value of the Stream
+     *
+     *      Only streams backed by an operating-system handle implement it:
+     *      FileStream (and the streams returned by fs.openFile, fs.createReadStream
+     *      and fs.createWriteStream) reports the file descriptor, net.Socket and
+     *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
+     *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
+     *      [20009] when the property is read. Node.js exposes `fd` on file streams
+     *      only and returns undefined elsewhere.
+     *
      */
     readonly fd: number;
 
     /**
      * @description Queries whether the stream is writable
+     *
+     *      Kept for Node compatibility: this reports whether the stream has not
+     *      ended, not whether the device accepts writes. It stays true after end()
+     *      and close() and turns false only when the flowing read loop reaches the
+     *      end of the stream or destroy() is called. Test the results of write()
+     *      and end() and watch the events instead of relying on this flag.
+     *
      */
     readonly writable: boolean;
 
     /**
      * @description Queries whether the stream is readable
+     *
+     *      Node-compatible flag with the same caveats as `writable`: true until the
+     *      flowing read loop reaches the end of the stream or destroy() is called.
+     *      It does not track pause(), close(), or pull-mode reads that reached the
+     *      end of the stream.
+     *
      */
     readonly readable: boolean;
 
     /**
      * @description Queries the readable state object of the stream
+     *
+     *      A minimal Node-compatible view: an object with one `ended` property that
+     *      mirrors the internal ended flag, which becomes true when the flowing read
+     *      loop finishes or the stream is destroyed. It is not a full Node
+     *      ReadableState, and the other Node fields are absent.
+     *
      */
     readonly _readableState: FIBJS.GeneralObject;
 
     /**
      * @description Queries the writable state object of the stream
+     *
+     *      Compatibility stub: fibjs returns an empty object and keeps no Node
+     *      WritableState. Use the return value of write() and the `drain` event for
+     *      back pressure instead.
+     *
      */
     readonly _writableState: FIBJS.GeneralObject;
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     read(bytes?: number): any;
@@ -56,24 +219,85 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     readSync(bytes?: number): any;
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     readAsync(bytes?: number): Promise<any>;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBuffer(bytes?: number): Class_Buffer;
@@ -82,23 +306,55 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBufferSync(bytes?: number): Class_Buffer;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBufferAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAll(): Class_Buffer;
@@ -107,21 +363,89 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAllSync(): Class_Buffer;
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAllAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description Sets the encoding of the stream. After setting, read() returns strings instead of Buffer objects
-     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     * @description Sets the encoding of the stream; subsequent read() calls return strings
+     *
+     *      Installs a streaming decoder used by `read` and by the `data` event, so
+     *      incomplete multi-byte sequences that straddle two chunks decode correctly.
+     *      `readBuffer`, `readAll` and StreamReader keep returning Buffers. The
+     *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
+     *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
+     *      'ucs2', are accepted here but decode to empty strings, and null or a
+     *      non-string throws [20005]. Node.js rejects an unknown name with
+     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *
+     *      Example — switch to text reads, then back to binary:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8');
+     *
+     *      console.log(stm.read()); // hello: read returns a string
+     *      stm.rewind();
+     *      console.log(stm.readBuffer().toString()); // hello: readBuffer stays binary
+     *      ```
+     *
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'latin1' or 'utf16le'
      *      @return returns the current stream object
      *
      */
@@ -129,6 +453,11 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -138,6 +467,11 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -145,6 +479,11 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -152,6 +491,10 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -161,6 +504,10 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -168,6 +515,10 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -183,8 +534,33 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: Class_Buffer): boolean;
@@ -193,25 +569,80 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: Class_Buffer): boolean;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: Class_Buffer): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: Class_Buffer, encoding: string): boolean;
@@ -220,27 +651,42 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: Class_Buffer, encoding: string): boolean;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: string, encoding?: string): boolean;
@@ -249,55 +695,147 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: string, encoding?: string): boolean;
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: string, encoding?: string): Promise<boolean>;
 
     /**
-     * @description Switches the stream to flowing read mode. In fibjs, switching to flowing read mode is irreversible and cannot be switched back to non-flowing read mode.
+     * @description Switches the stream to flowing read mode
+     *
+     *      Starts the internal read loop: chunks are emitted through the `data`
+     *      event, or buffered and announced through `readable`. The switch is
+     *      permanent — pause() stops delivery, but the stream never returns to pull
+     *      mode. Registering a data/readable listener starts the loop as well, so
+     *      resume is only needed to restart delivery after pause. Returns the stream
+     *      itself.
+     *
      *      @return returns the current stream object
      *
      */
     resume(): Class_Stream;
 
     /**
-     * @description Pauses the automatic read mode of the stream. This method is for compatibility only; it currently has no effect
+     * @description Pauses the automatic read mode of the stream
+     *
+     *      Stops the flowing read loop after the current chunk: no further `data` or
+     *      `readable` events are delivered until resume(). Data already buffered is
+     *      kept. It has no effect in pull mode (before resume or a data/readable
+     *      listener) and does not undo flowing mode. Returns the stream itself.
+     *      Node.js pauses in the same way but exposes the state through isPaused().
+     *
      *      @return returns the current stream object
      *
      */
     pause(): Class_Stream;
 
     /**
-     * @description Pipes stream data to the destination stream. Data is transferred from the source stream to the destination stream in an event-driven way, with backpressure control
+     * @description Pipes stream data to the destination stream
+     *
+     *      Event-driven copy with back pressure: every `data` chunk of the source is
+     *      written to the destination; when write() reports a full queue the source
+     *      is paused until the destination emits `drain`. At the end of the source
+     *      the destination is ended (unless options.end is false); a source error is
+     *      re-emitted on the destination, and a source close that is not an end
+     *      destroys the destination. The destination receives a `pipe` event with the
+     *      source as its argument. Only the `end` option is read; the other Node.js
+     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      copy itself continues in the background — wait for the destination
+     *      `finish`/`close` before reading its result. See copyTo for a bounded
+     *      synchronous copy.
+     *
+     *      Example — pipe one stream into another:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('piped data'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      const returned = src.pipe(dst);
+     *      coroutine.sleep(20);
+     *      dst.rewind();
+     *
+     *      console.log(returned === dst); // true: pipe returns the destination
+     *      console.log(dst.readAll().toString()); // piped data
+     *      ```
+     *
      *      @param destination the destination stream object
-     *      @param options pipe options, optional
+     *      @param options pipe options, optional; only `end` is read (default true,
+     *      false leaves the destination open)
      *      @return returns the destination stream object, supporting chained calls
      *
      */
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Removes all pipe destinations, or only the specified destination. This method is for compatibility only; it currently has no effect
+     * @description Removes all pipe destinations, or only the specified destination
+     *
+     *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
+     *      ends/errors/closes or the destination closes, and there is no way to
+     *      detach one destination from an active pipe. The argument is accepted and
+     *      ignored; Node.js also emits an `unpipe` event, which fibjs does not.
+     *
      *      @param destination the specific writable destination to unpipe
      *
      */
     unpipe(destination?: Class_Stream | Class_StreamPromise): void;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(): number;
@@ -305,23 +843,85 @@ declare class Class_Stream extends Class_EventEmitter {
     end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(): number;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: Class_Buffer): number;
@@ -330,25 +930,37 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: Class_Buffer): number;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: Class_Buffer): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: Class_Buffer, encoding: string): number;
@@ -357,27 +969,39 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: Class_Buffer, encoding: string): number;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: Class_Buffer, encoding: string): Promise<number>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: string, encoding?: string): number;
@@ -386,24 +1010,40 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: string, encoding?: string): number;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: string, encoding?: string): Promise<number>;
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flush(): void;
 
@@ -411,16 +1051,40 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flushSync(): void;
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flushAsync(): Promise<void>;
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     close(): void;
 
@@ -428,16 +1092,55 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     closeSync(): void;
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     closeAsync(): Promise<void>;
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -449,6 +1152,29 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -458,6 +1184,29 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -467,6 +1216,14 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Emitted for every chunk once the stream is in flowing mode; attaching this
+     *      listener switches the stream to that mode. The payload is a Buffer, or a
+     *      string when setEncoding was called (the parameter is declared as Buffer for
+     *      the binary case). A `readable` workflow consumes the same data through
+     *      read() and emits no data events. Node.js has the same flowing-mode
+     *      semantics.
+     *
      *      @param data the data read
      *
      */
@@ -490,6 +1247,14 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Emitted for every chunk once the stream is in flowing mode; attaching this
+     *      listener switches the stream to that mode. The payload is a Buffer, or a
+     *      string when setEncoding was called (the parameter is declared as Buffer for
+     *      the binary case). A `readable` workflow consumes the same data through
+     *      read() and emits no data events. Node.js has the same flowing-mode
+     *      semantics.
+     *
      *      @param data the data read
      *
      */
@@ -497,6 +1262,12 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Emitted once after the stream has been closed: at the end of a flowing
+     *      read (auto destroy), after destroy(), or when the runtime closes the
+     *      stream. A plain close() call releases the handle without emitting it.
+     *      Node.js emits close for the same destroy/autoDestroy cases.
+     *
      */
     on(event: "close", listener: ()=>void): this;
 
@@ -518,12 +1289,25 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Emitted once after the stream has been closed: at the end of a flowing
+     *      read (auto destroy), after destroy(), or when the runtime closes the
+     *      stream. A plain close() call releases the handle without emitting it.
+     *      Node.js emits close for the same destroy/autoDestroy cases.
+     *
      */
     onclose: (()=>void) | null;
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
-     *      @param code the error code
+     *
+     *      Emitted when a read or write fails and by destroy(err). The payload is the
+     *      error value, usually an Error object with `number` and `description`; the
+     *      declared Integer parameter name is historical (destroy(err) emits exactly
+     *      the value it was given, even a non-Error one). Node.js also emits Error
+     *      objects.
+     *
+     *      @param code the error value, usually an Error object
      *
      */
     on(event: "error", listener: (code: number)=>void): this;
@@ -546,13 +1330,42 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
-     *      @param code the error code
+     *
+     *      Emitted when a read or write fails and by destroy(err). The payload is the
+     *      error value, usually an Error object with `number` and `description`; the
+     *      declared Integer parameter name is historical (destroy(err) emits exactly
+     *      the value it was given, even a non-Error one). Node.js also emits Error
+     *      objects.
+     *
+     *      @param code the error value, usually an Error object
      *
      */
     onerror: ((code: number)=>void) | null;
 
     /**
-     * @description Gets a reader for the stream, compatible with the WHATWG ReadableStreamDefaultReader interface
+     * @description Gets a reader for the stream, compatible with ReadableStreamDefaultReader
+     *
+     *      Returns a new StreamReader that pulls chunks with read(). Each call creates
+     *      an independent reader; fibjs does not enforce the single-reader lock of
+     *      the Web Streams API, so coordinate access yourself. Creating a reader does
+     *      not switch the stream to flowing mode. See StreamReader for the reader
+     *      lifecycle.
+     *
+     *      Example — pull the chunks of a stream with a reader:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      (async () => {
+     *          const stm = new io.MemoryStream();
+     *          stm.write(Buffer.from('chunk'));
+     *          stm.rewind();
+     *
+     *          const reader = stm.getReader();
+     *          console.log((await reader.read()).value.toString()); // chunk
+     *          console.log((await reader.read()).done); // true
+     *      })();
+     *      ```
+     *
      *      @return returns a StreamReader object
      *
      */
@@ -560,13 +1373,23 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Keeps the fibjs process alive, preventing it from exiting while the object is bound
+     *
+     *      The runtime references the isolate while a stream reader is active; unref
+     *      (or pause) allows the process to exit even when the stream has pending
+     *      work. Returns the stream itself for chaining.
+     *
      *      @return returns the current object
      *
      */
     ref(): Class_Stream;
 
     /**
-     * @description Allows the fibjs process to exit; allows the fibjs process to exit while the object is bound
+     * @description Allows the fibjs process to exit while the object is bound
+     *
+     *      Counterpart of ref: drops the process-liveness reference held by the
+     *      stream. The data flow is not stopped; it just no longer prevents the
+     *      process from exiting. Returns the stream itself for chaining.
+     *
      *      @return returns the current object
      *
      */
@@ -574,7 +1397,29 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *
@@ -585,7 +1430,29 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *
@@ -594,7 +1461,29 @@ declare class Class_Stream extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *
@@ -649,102 +1538,324 @@ declare class Class_Stream extends Class_EventEmitter {
  */
 declare class Class_StreamPromise extends Class_EventEmitter {
     /**
-     * @description Queries the file descriptor value of the Stream, implemented by subclasses
+     * @description Queries the file descriptor value of the Stream
+     *
+     *      Only streams backed by an operating-system handle implement it:
+     *      FileStream (and the streams returned by fs.openFile, fs.createReadStream
+     *      and fs.createWriteStream) reports the file descriptor, net.Socket and
+     *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
+     *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
+     *      [20009] when the property is read. Node.js exposes `fd` on file streams
+     *      only and returns undefined elsewhere.
+     *
      */
     readonly fd: number;
 
     /**
      * @description Queries whether the stream is writable
+     *
+     *      Kept for Node compatibility: this reports whether the stream has not
+     *      ended, not whether the device accepts writes. It stays true after end()
+     *      and close() and turns false only when the flowing read loop reaches the
+     *      end of the stream or destroy() is called. Test the results of write()
+     *      and end() and watch the events instead of relying on this flag.
+     *
      */
     readonly writable: boolean;
 
     /**
      * @description Queries whether the stream is readable
+     *
+     *      Node-compatible flag with the same caveats as `writable`: true until the
+     *      flowing read loop reaches the end of the stream or destroy() is called.
+     *      It does not track pause(), close(), or pull-mode reads that reached the
+     *      end of the stream.
+     *
      */
     readonly readable: boolean;
 
     /**
      * @description Queries the readable state object of the stream
+     *
+     *      A minimal Node-compatible view: an object with one `ended` property that
+     *      mirrors the internal ended flag, which becomes true when the flowing read
+     *      loop finishes or the stream is destroyed. It is not a full Node
+     *      ReadableState, and the other Node fields are absent.
+     *
      */
     readonly _readableState: FIBJS.GeneralObject;
 
     /**
      * @description Queries the writable state object of the stream
+     *
+     *      Compatibility stub: fibjs returns an empty object and keeps no Node
+     *      WritableState. Use the return value of write() and the `drain` event for
+     *      back pressure instead.
+     *
      */
     readonly _writableState: FIBJS.GeneralObject;
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     read(bytes?: number): Promise<any>;
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     readSync(bytes?: number): any;
 
     /**
      * @description Reads data of the specified size from the stream
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the data read from the stream. Returns a string if an encoding is set, otherwise returns a Buffer. If there is no data to read, or the connection is interrupted, returns null
+     *
+     *      In pull mode (no data/readable listener and no resume) the call asks the
+     *      device for one chunk: file and socket streams wait until `bytes` bytes are
+     *      available or the stream ends, while MemoryStream returns the bytes it holds
+     *      (fewer than `bytes` is possible) without blocking. In flowing mode the data
+     *      has already been read ahead, so the call returns from the internal queue:
+     *      with `bytes` <= 0 all buffered data is merged into one Buffer, with
+     *      `bytes` > 0 exactly `bytes` are required, otherwise null. The result is a
+     *      Buffer, or a string when setEncoding was called; null is returned at the
+     *      end of the stream, on a broken connection or when a flowing read cannot be
+     *      satisfied. read(0) returns null. The call styles are `stm.read(4)`,
+     *      `stm.read(4, (err, data) => {})` and `await stm.read(4)`.
+     *
+     *      Example — read by size until the stream ends:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('0123456789'));
+     *      stm.rewind();
+     *
+     *      console.log(stm.read(4).toString()); // 0123
+     *      console.log(stm.read(4).toString()); // 4567
+     *      console.log(stm.read(4).toString()); // 89: the stream ends first
+     *      console.log(stm.read()); // null at the end of the stream
+     *      ```
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return the data read from the stream; a string when an encoding is set,
+     *      otherwise a Buffer; null when there is no data to read
      *
      */
     readAsync(bytes?: number): Promise<any>;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBuffer(bytes?: number): Promise<Class_Buffer>;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBufferSync(bytes?: number): Class_Buffer;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
-     *      @param bytes the amount of data to read; by default a random-sized chunk is read, whose size depends on the device
-     *      @return returns the Buffer data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Identical to `read` except that the result is always a Buffer: setEncoding
+     *      and the text decoder do not apply. Use it when the consumer needs binary
+     *      data regardless of the stream encoding.
+     *
+     *      @param bytes the amount of data to read; by default one chunk sized by the device
+     *      @return returns the Buffer data read from the stream; null when there is no data to read
      *
      */
     readBufferAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAll(): Promise<Class_Buffer>;
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAllSync(): Class_Buffer;
 
     /**
      * @description Reads all remaining data from the stream
-     *      @return returns the data read from the stream; if there is no data to read, or the connection is interrupted, returns null
+     *
+     *      Reads until the end of the stream and returns everything in one Buffer, or
+     *      null when no byte could be read (an empty stream is already at its end).
+     *      setEncoding is ignored. For a live socket the call waits until the peer
+     *      closes the connection; in flowing mode the read loop is already consuming
+     *      the device, so collect the `data` chunks instead.
+     *
+     *      Example — read a whole stream and detect its end:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('all at once'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8'); // readAll ignores the encoding
+     *
+     *      const all = stm.readAll();
+     *      console.log(Buffer.isBuffer(all), all.toString()); // true all at once
+     *      console.log(stm.readAll()); // null: the stream is at its end
+     *      ```
+     *
+     *      @return the data read from the stream; null when nothing was read or the
+     *      connection is interrupted
      *
      */
     readAllAsync(): Promise<Class_Buffer>;
 
     /**
-     * @description Sets the encoding of the stream. After setting, read() returns strings instead of Buffer objects
-     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'hex', etc. Pass null to restore Buffer mode
+     * @description Sets the encoding of the stream; subsequent read() calls return strings
+     *
+     *      Installs a streaming decoder used by `read` and by the `data` event, so
+     *      incomplete multi-byte sequences that straddle two chunks decode correctly.
+     *      `readBuffer`, `readAll` and StreamReader keep returning Buffers. The
+     *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
+     *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
+     *      'ucs2', are accepted here but decode to empty strings, and null or a
+     *      non-string throws [20005]. Node.js rejects an unknown name with
+     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *
+     *      Example — switch to text reads, then back to binary:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('hello'));
+     *      stm.rewind();
+     *      stm.setEncoding('utf8');
+     *
+     *      console.log(stm.read()); // hello: read returns a string
+     *      stm.rewind();
+     *      console.log(stm.readBuffer().toString()); // hello: readBuffer stays binary
+     *      ```
+     *
+     *      @param encoding the encoding to use, such as 'utf8', 'ascii', 'latin1' or 'utf16le'
      *      @return returns the current stream object
      *
      */
@@ -752,6 +1863,11 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -759,6 +1875,11 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -766,6 +1887,11 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -773,6 +1899,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -780,6 +1910,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -787,6 +1921,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
+     *
+     *      String form of `writeBuffer`: the text is encoded with utf8 and queued as
+     *      binary data.
+     *
      *      @param data the Buffer data to write
      *
      */
@@ -800,243 +1938,595 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: Class_Buffer): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: Class_Buffer): boolean;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
      *      @param data the data to write
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: Class_Buffer): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: Class_Buffer, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: Class_Buffer, encoding: string): boolean;
 
     /**
      * @description Writes the given data to the stream
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
      *      @param data the data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     write(data: string, encoding?: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeSync(data: string, encoding?: string): boolean;
 
     /**
      * @description Writes the given string to the stream
+     *
+     *      Encodes the text with the given encoding (utf8 by default) and applies the
+     *      same queue and back-pressure rules as the Buffer overload.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return true if the stream wants the calling code to wait for the 'drain' event before writing more data; otherwise false
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
     writeAsync(data: string, encoding?: string): Promise<boolean>;
 
     /**
-     * @description Switches the stream to flowing read mode. In fibjs, switching to flowing read mode is irreversible and cannot be switched back to non-flowing read mode.
+     * @description Switches the stream to flowing read mode
+     *
+     *      Starts the internal read loop: chunks are emitted through the `data`
+     *      event, or buffered and announced through `readable`. The switch is
+     *      permanent — pause() stops delivery, but the stream never returns to pull
+     *      mode. Registering a data/readable listener starts the loop as well, so
+     *      resume is only needed to restart delivery after pause. Returns the stream
+     *      itself.
+     *
      *      @return returns the current stream object
      *
      */
     resume(): Class_Stream;
 
     /**
-     * @description Pauses the automatic read mode of the stream. This method is for compatibility only; it currently has no effect
+     * @description Pauses the automatic read mode of the stream
+     *
+     *      Stops the flowing read loop after the current chunk: no further `data` or
+     *      `readable` events are delivered until resume(). Data already buffered is
+     *      kept. It has no effect in pull mode (before resume or a data/readable
+     *      listener) and does not undo flowing mode. Returns the stream itself.
+     *      Node.js pauses in the same way but exposes the state through isPaused().
+     *
      *      @return returns the current stream object
      *
      */
     pause(): Class_Stream;
 
     /**
-     * @description Pipes stream data to the destination stream. Data is transferred from the source stream to the destination stream in an event-driven way, with backpressure control
+     * @description Pipes stream data to the destination stream
+     *
+     *      Event-driven copy with back pressure: every `data` chunk of the source is
+     *      written to the destination; when write() reports a full queue the source
+     *      is paused until the destination emits `drain`. At the end of the source
+     *      the destination is ended (unless options.end is false); a source error is
+     *      re-emitted on the destination, and a source close that is not an end
+     *      destroys the destination. The destination receives a `pipe` event with the
+     *      source as its argument. Only the `end` option is read; the other Node.js
+     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      copy itself continues in the background — wait for the destination
+     *      `finish`/`close` before reading its result. See copyTo for a bounded
+     *      synchronous copy.
+     *
+     *      Example — pipe one stream into another:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('piped data'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      const returned = src.pipe(dst);
+     *      coroutine.sleep(20);
+     *      dst.rewind();
+     *
+     *      console.log(returned === dst); // true: pipe returns the destination
+     *      console.log(dst.readAll().toString()); // piped data
+     *      ```
+     *
      *      @param destination the destination stream object
-     *      @param options pipe options, optional
+     *      @param options pipe options, optional; only `end` is read (default true,
+     *      false leaves the destination open)
      *      @return returns the destination stream object, supporting chained calls
      *
      */
     pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Removes all pipe destinations, or only the specified destination. This method is for compatibility only; it currently has no effect
+     * @description Removes all pipe destinations, or only the specified destination
+     *
+     *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
+     *      ends/errors/closes or the destination closes, and there is no way to
+     *      detach one destination from an active pipe. The argument is accepted and
+     *      ignored; Node.js also emits an `unpipe` event, which fibjs does not.
+     *
      *      @param destination the specific writable destination to unpipe
      *
      */
     unpipe(destination?: Class_Stream | Class_StreamPromise): void;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(): Promise<number>;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(): number;
 
     /**
-     * @description Ends the stream operation, optionally writing the final data
-     *      @return returns an asynchronous object
+     * @description Ends the stream operation
+     *
+     *      Flushes the queued writes so far and closes the write side, emitting
+     *      `finish`; when the read side has ended as well the stream closes and emits
+     *      `close`. The direct call returns 0 after the stream has been ended, the
+     *      callback form receives null as its error argument, and `await stm.end()`
+     *      resolves to the same 0. Writing after end is not meaningful, because the
+     *      stream is being closed. The end(data) and end(data, encoding) overloads
+     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *
+     *      Example — end a write stream and observe its events:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-end-'));
+     *      const file = path.join(dir, 'out.txt');
+     *
+     *      const stm = fs.createWriteStream(file);
+     *      const events = [];
+     *      stm.on('finish', () => events.push('finish'));
+     *      stm.on('close', () => events.push('close'));
+     *      stm.end('final data');
+     *
+     *      console.log(events.join(',')); // finish,close
+     *      console.log(fs.readFile(file, 'utf8')); // final data
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: Class_Buffer): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: Class_Buffer): number;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
      *      @param data the file buffer data to write
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: Class_Buffer): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: Class_Buffer, encoding: string): Promise<number>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: Class_Buffer, encoding: string): number;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      accepted and ignored.
+     *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: Class_Buffer, encoding: string): Promise<number>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     end(data: string, encoding?: string): Promise<number>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endSync(data: string, encoding?: string): number;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns an asynchronous object
+     *      @return returns 0 after the stream has been ended
      *
      */
     endAsync(data: string, encoding?: string): Promise<number>;
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flush(): Promise<void>;
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flushSync(): void;
 
     /**
      * @description Writes the file buffer content to the physical device
+     *
+     *      Compatibility call: MemoryStream and Socket return immediately, and for a
+     *      FileStream the implementation only checks that the handle is still open
+     *      (the underlying fflush is disabled), so it does not force data to disk.
+     *      Buffered transports such as the process standard streams wait for their
+     *      queued writes to be handed to the device. On a file stream whose handle is
+     *      already closed it throws [20009] with "FileStream: file is closed.".
+     *
      */
     flushAsync(): Promise<void>;
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     close(): Promise<void>;
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     closeSync(): void;
 
     /**
      * @description Closes the current stream object
+     *
+     *      Releases the operating-system handle or the transport. A successful call
+     *      does not emit 'close' by itself: the event comes from the auto-close after
+     *      the read flow ends, from destroy() or from the runtime. Reading or writing
+     *      a stream backed by a closed handle throws [20009]; MemoryStream and
+     *      Socket tolerate a second close(), while a FileStream rejects later
+     *      operations.
+     *
      */
     closeAsync(): Promise<void>;
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -1046,6 +2536,29 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -1055,6 +2568,29 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Copies stream data to the destination stream
+     *
+     *      Copies at most `bytes` bytes (all remaining data by default) and returns
+     *      the number of bytes actually copied; a count of 0 copies nothing. The copy
+     *      runs in the current fiber and waits for the source to end when `bytes` is
+     *      -1, which makes it a simple way to move a whole stream. The destination is
+     *      not closed at the end (call end/close yourself), and a closed source or
+     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
+     *      stream.pipeline for the event-driven form.
+     *
+     *      Example — copy the first four bytes into another stream:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(Buffer.from('0123456789'));
+     *      src.rewind();
+     *
+     *      const dst = new io.MemoryStream();
+     *      console.log(src.copyTo(dst, 4)); // 4
+     *      dst.rewind();
+     *      console.log(dst.readAll().toString()); // 0123
+     *      ```
+     *
      *      @param stm the destination stream object
      *      @param bytes the number of bytes to copy
      *      @return returns the number of bytes copied
@@ -1064,6 +2600,14 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream data event, equivalent to on("data", func);
+     *
+     *      Emitted for every chunk once the stream is in flowing mode; attaching this
+     *      listener switches the stream to that mode. The payload is a Buffer, or a
+     *      string when setEncoding was called (the parameter is declared as Buffer for
+     *      the binary case). A `readable` workflow consumes the same data through
+     *      read() and emits no data events. Node.js has the same flowing-mode
+     *      semantics.
+     *
      *      @param data the data read
      *
      */
@@ -1071,18 +2615,53 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Queries and binds the stream close event, equivalent to on("close", func);
+     *
+     *      Emitted once after the stream has been closed: at the end of a flowing
+     *      read (auto destroy), after destroy(), or when the runtime closes the
+     *      stream. A plain close() call releases the handle without emitting it.
+     *      Node.js emits close for the same destroy/autoDestroy cases.
+     *
      */
     onclose: (()=>void) | null;
 
     /**
      * @description Queries and binds the stream error event, equivalent to on("error", func);
-     *      @param code the error code
+     *
+     *      Emitted when a read or write fails and by destroy(err). The payload is the
+     *      error value, usually an Error object with `number` and `description`; the
+     *      declared Integer parameter name is historical (destroy(err) emits exactly
+     *      the value it was given, even a non-Error one). Node.js also emits Error
+     *      objects.
+     *
+     *      @param code the error value, usually an Error object
      *
      */
     onerror: ((code: number)=>void) | null;
 
     /**
-     * @description Gets a reader for the stream, compatible with the WHATWG ReadableStreamDefaultReader interface
+     * @description Gets a reader for the stream, compatible with ReadableStreamDefaultReader
+     *
+     *      Returns a new StreamReader that pulls chunks with read(). Each call creates
+     *      an independent reader; fibjs does not enforce the single-reader lock of
+     *      the Web Streams API, so coordinate access yourself. Creating a reader does
+     *      not switch the stream to flowing mode. See StreamReader for the reader
+     *      lifecycle.
+     *
+     *      Example — pull the chunks of a stream with a reader:
+     *      ```JavaScript
+     *      const io = require('io');
+     *
+     *      (async () => {
+     *          const stm = new io.MemoryStream();
+     *          stm.write(Buffer.from('chunk'));
+     *          stm.rewind();
+     *
+     *          const reader = stm.getReader();
+     *          console.log((await reader.read()).value.toString()); // chunk
+     *          console.log((await reader.read()).done); // true
+     *      })();
+     *      ```
+     *
      *      @return returns a StreamReader object
      *
      */
@@ -1090,13 +2669,23 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Keeps the fibjs process alive, preventing it from exiting while the object is bound
+     *
+     *      The runtime references the isolate while a stream reader is active; unref
+     *      (or pause) allows the process to exit even when the stream has pending
+     *      work. Returns the stream itself for chaining.
+     *
      *      @return returns the current object
      *
      */
     ref(): Class_Stream;
 
     /**
-     * @description Allows the fibjs process to exit; allows the fibjs process to exit while the object is bound
+     * @description Allows the fibjs process to exit while the object is bound
+     *
+     *      Counterpart of ref: drops the process-liveness reference held by the
+     *      stream. The data flow is not stopped; it just no longer prevents the
+     *      process from exiting. Returns the stream itself for chaining.
+     *
      *      @return returns the current object
      *
      */
@@ -1104,7 +2693,29 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *
@@ -1113,7 +2724,29 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *
@@ -1122,7 +2755,29 @@ declare class Class_StreamPromise extends Class_EventEmitter {
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
-     *      After calling, the stream can no longer be used.
+     *
+     *      Marks the stream unusable, emits 'error' with the supplied value when err
+     *      is not null/undefined, then closes the stream and emits 'close'. It is
+     *      idempotent: destroying an already destroyed stream is a no-op. Concrete
+     *      classes react differently afterwards — MemoryStream keeps buffered data
+     *      readable, a FileStream rejects later operations with [20009] — so do not
+     *      use a destroyed stream.
+     *
+     *      Example — destroy with an error and watch the events:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      stm.write(Buffer.from('data'));
+     *      stm.rewind();
+     *      stm.on('error', (err) => console.log('error:', err.message)); // error: broken
+     *      stm.on('close', () => console.log('closed')); // closed
+     *
+     *      stm.destroy(new Error('broken'));
+     *      coroutine.sleep(20);
+     *      ```
+     *
      *      @param err optional error object, emitted as the 'error' event
      *      @return returns the current object
      *

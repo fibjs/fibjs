@@ -1,293 +1,484 @@
-/*! @brief Message handler routing object
+/*! @brief Matches a message against routing rules and dispatches it to the first match
 
- The routing object is the core object of http message handling. According to the routing settings, the server matches url and method and forwards the http message to the corresponding handler, so as to complete different transactions.
+ Routing is the center of http message handling: it matches the value of a
+ message (the request address by default, the host name for host rules) and
+ forwards the message to the handler of the first matching rule. A plain object
+ of patterns used as a handler is converted into a Routing, so
+ `new mq.Routing(map)` and a routing map object are the same thing.
 
- A simple routing can be specified directly as a JSON object, for example:
+ Concepts:
+ - **Pattern syntax**: a rule pattern is an express-style path when it does not
+   start with `^`: literal text matches itself, `:name` captures one path
+   segment (`[^/]+`), `*` matches the rest of the path, `(...)` embeds a
+   regular expression, and `?`, `+`, `*` make the preceding part optional or
+   repeating; a pattern that starts with `^` is used as a raw regular
+   expression (case-insensitive, UCP). A trailing slash of the pattern is
+   ignored.
+ - **Captures**: the captured groups are URL-decoded and stored in the params
+   array of the message; `:name` groups also appear as keys on params and as
+   the extra arguments of the handler (`(req, ...captures)`). The value is
+   replaced by the last capture when the rule hands the rest of the path to a
+   nested routing, by the single capture when the match has exactly one
+   top-level group, and cleared otherwise.
+ - **Ordering**: a rule added later is matched first, so add the general rule
+   before the specific one when the specific one must win. append(route)
+   copies the rules of another Routing with their relative order and empties
+   the source.
+ - **Method and host**: the get/post/put/del/patch/find helpers (and the method
+   argument of append) accept only the given http method, `"*"` accepts every
+   method and `"host"` matches the Host header instead of the address; a host
+   pattern matches the labels of the host name with `*` and ignores the port.
+ - **Handler forms**: the value of a rule may be a Handler object, an array of
+   handlers (a Chain), a function `(req, ...captures) => any` (an http request
+   also receives its response as the last argument), a routing map object or a
+   path/address string.
+ - **No match**: mq.invoke raises `Routing: unknown routing: <value>` when no
+   rule matches, so a message never continues silently.
+
+ Obtained from:
+ - `new mq.Routing(map)` / `new mq.Routing()` — the constructors below;
+ - any plain object passed where a handler is expected is converted into a
+   Routing through the Handler constructor.
+
+ Example 1 — method helpers, named captures and the wildcard:
  ```JavaScript
- var http = require('http');
+ const mq = require('mq');
+ const http = require('http');
 
- var svr = new http.Server(8080, {
-     '/': r => r.response.write('home'),
-     '/help': r => r.response.write('help')
+ const app = new mq.Routing();
+ app.get('/hello/:name', (req, name) => console.log('hello ' + name));
+ app.post('/users/:id(\\d+)', (req, id) => console.log('user ' + id));
+ app.get('/files/*', (req, path) => console.log('file ' + path));
+
+ const req = new http.Request();
+ req.value = '/hello/fibjs';
+ mq.invoke(app, req); // hello fibjs
+
+ req.value = '/users/42';
+ req.method = 'POST';
+ mq.invoke(app, req); // user 42
+
+ req.method = 'GET';
+ req.value = '/files/a/b.txt';
+ mq.invoke(app, req); // file a/b.txt
+ ```
+
+ Example 2 — an http server with routes, using port 0 and stop():
+ ```JavaScript
+ const mq = require('mq');
+ const http = require('http');
+
+ const app = new mq.Routing();
+ app.get('/hello/:name', (req, name) => {
+     req.response.write('hello ' + name);
+ });
+ app.get('/api/:id(\\d+)', (req, id) => {
+     req.response.json({ id: Number(id) });
  });
 
+ const svr = new http.Server(0, app);
  svr.start();
+
+ const port = svr.socket.localPort;
+
+ const hello = http.getSync('http://127.0.0.1:' + port + '/hello/fibjs');
+ console.log(hello.readAll().toString()); // hello fibjs
+
+ const api = http.getSync('http://127.0.0.1:' + port + '/api/42');
+ console.log(JSON.stringify(api.json())); // {"id":42}
+
+ svr.stop();
  ```
- If more complex routing customization is needed, you can create a Routing object yourself and implement the routing strategy as needed:
+
+ Example 3 — rule priority and a nested routing:
  ```JavaScript
- var http = require('http');
- var mq = require('mq');
+ const mq = require('mq');
 
- var app = new mq.Routing();
+ // the rules added later are matched first
+ const app = new mq.Routing();
+ app.get('/api/:name', (req, name) => console.log('param ' + name));
+ app.get('/api/status', (req) => console.log('status'));
 
- app.get('/', r => r.response.write('home'));
- app.get('/help', r => r.response.write('help'));
+ const msg = new mq.Message();
+ msg.value = '/api/status';
+ mq.invoke(app, msg); // status
 
- app.post('/help', r => r.response.write('post a help.'));
+ // a routing used as a handler receives the remaining path
+ const inner = new mq.Routing();
+ inner.get('/run', (req) => console.log('run, remaining value ' + req.value));
 
- app.get('/home/:user', (r, user) => r.response.write('hello ' + user));
+ const outer = new mq.Routing();
+ outer.get('/actions', inner);
 
- app.get('/user/:id(\\d+)', (r, id) => r.response.write('get ' + id));
-
- app.get('/actions', {
-     '/run': r => r.response.write('running'),
-     '/sleep': r => r.response.write('sleeping'),
-     '(.*)': r => r.response.write('........')
- });
-
- var svr = new http.Server(8080, app);
- svr.start();
+ msg.value = '/actions/run';
+ mq.invoke(outer, msg); // run, remaining value /run
  ```
- The routing object matches messages according to the configured rules and passes the message to the first handler that matches the rules. Routing rules added later are matched with higher priority. Creation method:
- ```JavaScript
- var routing = new mq.Routing({
-   "^/func1(/.*)$": func1,
-   "^/func2(/.*)$": func2
- });
- ```
- For items matched by a regular expression, the value property of the message is modified and sub-items are stored in the params property of the message. For example:
- ```JavaScript
- var routing = new mq.Routing({
-   "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
- });
- ```
- After matching the message "/func1/123/456.html", value == "/123/456.html", params == ["123", "456"];
 
- If the match result has no sub-items, value is empty and params is empty. For example:
- ```JavaScript
- var routing = new mq.Routing({
-   "^/func1/[0-9]+/[0-9]+\.html$": func1,
- });
- ```
- After matching the message "/func1/123/456.html", value == "", params == [];
-
- If the match result has multiple first-level sub-items, value is empty and params contains the first-level sub-items. For example:
- ```JavaScript
- var routing = new mq.Routing({
-   "^/func1/([0-9]+)/([0-9]+)\.html$": func1,
- });
- ```
- After matching the message "/func1/123/456.html", value == "", params == ["123", "456"];
-
- If the match result has only one sub-item and no lower-level sub-items, both value and params are that sub-item. For example:
- ```JavaScript
- var routing = new mq.Routing({
-   "^/func1/([0-9]+)/[0-9]+\.html$": func1,
- });
- ```
- After matching the message "/func1/123/456.html", value == "123", params == ["123"];
- */
+ Notes:
+ - The match value is the request address, so a rule pattern normally starts
+   with `/`; a value without a leading slash (a bare Message) is matched as it
+   is, which is convenient for non-http messages.
+ - A rule whose handler is a routing prepends nothing: the pattern is matched,
+   `(.*)` is appended to it and the remaining path becomes the value of the
+   inner routing.
+*/
 interface Routing : Handler
 {
     /*! @brief Creates a message handler routing object
-   @param map initialization routing parameters
-   */
+
+     map maps match patterns to handlers; every accepted handler form may be
+     used as a value. An empty map (the default) builds a router without rules,
+     to be filled with append and the method helpers. The related
+     `Routing(method, map)` constructor scopes the same map to one http method.
+     The rules of a map keep their enumeration order and are matched from the
+     last to the first, like rules added one by one.
+
+     Example — a map plus a rule added afterwards:
+     ```JavaScript
+     const mq = require('mq');
+
+     const app = new mq.Routing({ '/a': (req) => console.log('a') });
+     app.get('/b', (req) => console.log('b'));
+
+     const msg = new mq.Message();
+     msg.value = '/a';
+     mq.invoke(app, msg); // a
+
+     msg.value = '/b';
+     mq.invoke(app, msg); // b
+     ```
+     @param map initialization routing parameters
+    */
     Routing(Object map = {});
 
-    /*! @brief Creates a message handler routing object
-   @param method the http request method to accept, "*" accepts all methods
-   @param map initialization routing parameters
-   */
+    /*! @brief Creates a message handler routing object with a method scope
+
+     Like `Routing(map)`, but every rule of the map accepts only the given http
+     method: `"*"` accepts all methods and `"host"` matches the Host header of
+     an http request instead of the address. The method is compared
+     case-insensitively, so "get" and "GET" are the same. Use one object per
+     method when the rules of one map need different methods, or add the rules
+     with the method helpers.
+
+     Example — a GET-only map:
+     ```JavaScript
+     const mq = require('mq');
+     const http = require('http');
+
+     const app = new mq.Routing('GET', { '/a': (req) => console.log('GET /a') });
+
+     const req = new http.Request();
+     req.value = '/a';
+     req.method = 'GET';
+     mq.invoke(app, req); // GET /a
+
+     req.method = 'POST';
+     try {
+         mq.invoke(app, req);
+     } catch (e) {
+         console.log(e.message); // Routing: unknown routing: /a
+     }
+     ```
+     @param method the http request method to accept, "*" accepts all methods
+     @param map initialization routing parameters
+    */
     Routing(String method, Object map);
 
     /*! @brief Adds rules from an existing routing object; the source routing is cleared after adding
-   @param route an initialized routing object
-   @return returns the routing object itself
-   */
+
+     The rules of route are copied into this router with their relative order
+     preserved and route is left empty, so appending the same object twice only
+     transfers the rules once. As with every append form, the transferred rules
+     are matched before the rules already present in this router.
+
+     Example — merge a sub-router:
+     ```JavaScript
+     const mq = require('mq');
+
+     const first = new mq.Routing({ '/a': (req) => console.log('first /a') });
+     const second = new mq.Routing({ '/b': (req) => console.log('second /b') });
+
+     first.append(second);
+
+     const msg = new mq.Message();
+     msg.value = '/b';
+     mq.invoke(first, msg); // second /b
+     ```
+     @param route an initialized routing object
+     @return returns the routing object itself
+    */
     Routing append(Routing route);
 
     /*! @brief Adds a group of routing rules
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule with the `"*"` method scope, exactly as
+     if the entries were appended one by one with `append(pattern, hdlr)`; the
+     entries are matched from the last to the first of the enumeration. The
+     method-specific group helpers (get, post, del, put, patch, find, all) call
+     this form with their method instead of `"*"`.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing append(Object map);
 
     /*! @brief Adds a routing rule
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     pattern is matched against the message value with the express-style syntax
+     described in the class Concepts (`:name` captures, `*`, `(...)`, `^` for a
+     raw regular expression); the captures are URL-decoded into params and
+     passed to the handler. hdlr may be given in any of these forms:
+     - a Handler object, invoked as it is;
+     - an array of handlers, wrapped in a Chain and invoked in order;
+     - a handler function `(req, ...captures) => any`, called with the routed
+       message and the captured groups (also readable as req.params); an http
+       request receives its response as the last argument;
+     - a routing map object, whose values are handlers in these same forms;
+     - a path/address string.
+     A handler that is itself a routing receives the remaining path in value.
+     The new rule is matched before the rules already present.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing append(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
-    /*! @brief Adds a routing rule
+    /*! @brief Adds a routing rule with a method scope
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     Like `append(pattern, hdlr)`, but the rule additionally matches the http
+     method of the message: `"*"` accepts every method, `"host"` matches the
+     Host header instead of the address, and any other value is the method name
+     compared case-insensitively. A message that is not an http request matches
+     a `"*"` rule and never matches a method- or host-scoped one.
+
+     Example — one method-scoped rule and one wildcard rule:
+     ```JavaScript
+     const mq = require('mq');
+     const http = require('http');
+
+     const app = new mq.Routing();
+     app.append('PUT', '/item/:id(\\d+)', (req, id) => console.log('PUT ' + id));
+     app.append('*', '/any', (req) => console.log('any method'));
+
+     const req = new http.Request();
+     req.value = '/item/7';
+     req.method = 'PUT';
+     mq.invoke(app, req); // PUT 7
+
+     req.value = '/any';
+     req.method = 'PATCH';
+     mq.invoke(app, req); // any method
+     ```
+     @param method the http request method to accept; "*" accepts all methods, "host" matches virtual host names
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing append(String method, String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules for http host names
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule with the `"host"` method scope, so the
+     patterns match the Host header of the request instead of the address; the
+     port is not part of the matched text. The entries follow the same order
+     and handler-form rules as `append(Object)`.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing host(Object map);
 
     /*! @brief Adds a routing rule that accepts http host names
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The pattern is matched against the Host header of the request with the
+     port removed; a `*` in the pattern matches one label of the host name
+     (for example `*.example.com` matches `api.example.com` but not
+     `example.com`), and the captured labels are appended to params like the
+     path captures. The remaining path stays in value and is passed to the
+     handler unchanged.
+
+     Example — virtual host dispatch:
+     ```JavaScript
+     const mq = require('mq');
+     const http = require('http');
+
+     const app = new mq.Routing();
+     app.host('*.example.com', (req, domain) => {
+         console.log('vhost: ' + domain + ' path: ' + req.value);
+     });
+     app.host('example.com', (req) => console.log('root vhost'));
+
+     const req = new http.Request();
+     req.value = '/index.html';
+     req.appendHeader('host', 'api.example.com');
+     mq.invoke(app, req); // vhost: api path: /index.html
+
+     req.value = '/';
+     req.setHeader('host', 'example.com');
+     mq.invoke(app, req); // root vhost
+     ```
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing host(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept all http methods
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule with the `"*"` method scope, which is
+     the same as `append(Object)`; the helper exists to make the intent
+     explicit next to the method-specific group helpers.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing all(Object map);
 
     /*! @brief Adds a routing rule that accepts all http methods
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     Like `append(pattern, hdlr)` with the `"*"` method scope: the rule matches
+     any http method (and a message that is not an http request), so it is
+     usually the general rule that the method-specific rules of the same
+     pattern must be added after.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing all(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of GET method routing rules
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only GET requests, the
+     group form of `get(pattern, hdlr)`. Requests with another method do not
+     match these rules and fall through to the other rules of the router.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing get(Object map);
 
     /*! @brief Adds a routing rule that accepts the http GET method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a GET request (or a
+     message without a method, which matches every method scope) continues to
+     the handler. The captures follow `append(pattern, hdlr)`; a HEAD request
+     is not matched by the rule.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing get(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http POST method
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only POST requests, the
+     group form of `post(pattern, hdlr)`. POST rules are commonly paired with
+     get rules on the same pattern to separate reading from writing.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing post(Object map);
 
     /*! @brief Adds a routing rule that accepts the http POST method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a POST request
+     continues to the handler. The captures follow `append(pattern, hdlr)`, so
+     the body of the request is available to the handler through the message.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing post(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http DELETE method
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only DELETE requests, the
+     group form of `del(pattern, hdlr)`.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing del(Object map);
 
     /*! @brief Adds a routing rule that accepts the http DELETE method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a DELETE request
+     continues to the handler. The captures follow `append(pattern, hdlr)`.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing del(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of PUT method routing rules
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only PUT requests, the
+     group form of `put(pattern, hdlr)`.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing put(Object map);
 
     /*! @brief Adds a routing rule that accepts the http PUT method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a PUT request
+     continues to the handler. The captures follow `append(pattern, hdlr)`, so
+     the request body can be read as the representation to store.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing put(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of PATCH method routing rules
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only PATCH requests, the
+     group form of `patch(pattern, hdlr)`.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing patch(Object map);
 
     /*! @brief Adds a routing rule that accepts the http PATCH method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a PATCH request
+     continues to the handler. The captures follow `append(pattern, hdlr)`.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing patch(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 
     /*! @brief Adds a group of FIND method routing rules
-   @param map routing parameters
-   @return returns the routing object itself
-   */
+
+     Every entry of map becomes a rule that accepts only FIND requests, the
+     group form of `find(pattern, hdlr)`. FIND is a fibjs extension used by
+     directory-style lookups; it is not part of the standard http methods.
+
+     @param map routing parameters
+     @return returns the routing object itself
+    */
     Routing find(Object map);
 
     /*! @brief Adds a routing rule that accepts the http FIND method
 
-   hdlr may be given in any of these forms:
-   - a Handler object, invoked as it is;
-   - an array of handlers, wrapped in a Chain and invoked in order;
-   - a handler function `(req, ...captures) => any`, called with the routed message and the captured groups (also readable as req.params); an http request receives its response as the last argument;
-   - a routing map object, whose values are handlers in these same forms;
-   - a path/address string.
-   @param pattern message match pattern
-   @param hdlr the route handler
-   @return returns the routing object itself
-   */
+     The rule matches the pattern and then the method: only a FIND request
+     continues to the handler. FIND is a fibjs extension; the captures follow
+     `append(pattern, hdlr)`.
+
+     @param pattern message match pattern
+     @param hdlr the route handler
+     @return returns the routing object itself
+    */
     Routing find(String pattern, Handler|Handler[]|Function(Message req, ...params) => Value|Object|String hdlr);
 };

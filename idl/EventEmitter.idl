@@ -1,272 +1,670 @@
-/*! @brief EventEmitter is an event-triggering object that can be used to build the observer pattern; all objects that support event triggering inherit from it
+/*! @brief EventEmitter is the observer-pattern base class of the runtime; every class that can
+ emit events inherits from it, directly or through Stream
 
-When an event is triggered, all listeners associated with that event are invoked asynchronously. It also allows us to create highly customizable and flexible code.
+ Listeners are registered per event name and called when the event is emitted. The class is the
+ base of streams and sockets, servers such as TcpServer, watchers, workers, MessagePort and the
+ process object, so the same API is used to observe runtime events everywhere.
 
-Commonly used functions include: addListener/on, once, removeListener/off, removeAllListeners and emit.
+ Concepts:
 
-The following is an example:
+ - **Registration order**: listeners of one event are stored in registration order and called in
+   that order; `prependListener` and `prependOnceListener` insert at the front of the queue.
+   `once` wraps the listener so that it removes itself before it is invoked; `listeners()` returns
+   the original function, `rawListeners()` returns the internal wrapper (whose `_func` property
+   holds the original), and `off(ev, fn)` matches either form.
+ - **Dispatch model**: emitting invokes the first listener synchronously on the emitting fiber;
+   the remaining listeners each run in a separate fiber in parallel, and `emit` returns only after
+   all of them finish (Node.js calls every listener synchronously in sequence). `emit` returns
+   true when a listener was called and false when the event has none.
+ - **Arguments**: there is no event object; the arguments of `emit` are forwarded to the listener
+   as-is and `this` is the emitter. fibjs also exposes a global DOM-style event class (see
+   DOMEvent) used by AbortSignal and fetch-style APIs, which is unrelated to this convention.
+ - **Meta events**: registering a listener emits `newListener` with the event name and the
+   listener before it is added; removing one emits `removeListener` after it is removed.
+ - **error event**: emitting `error` with no listener throws from `emit`; an Error argument is
+   thrown as-is and any other value is wrapped in `Error("Unhandled error. (...)")`.
+ - **Listener limit**: `defaultMaxListeners` (10) and `setMaxListeners`/`getMaxListeners` are kept
+   for Node.js compatibility; fibjs never warns when the limit is exceeded.
+ - **Node.js surface**: `events.errorMonitor`, `events.captureRejectionSymbol`,
+   `events.getEventListeners` and the static broadcast forms of `setMaxListeners` and
+   `getMaxListeners` are not provided; the `captureRejections` option is accepted but ignored;
+   symbol events are omitted from `eventNames()` and are not removed by `removeAllListeners()`
+   without arguments.
 
-```javascript
-var fs = require('fs');
-var EventEmitter = require('events');
-var event = new EventEmitter();
+ Obtained from:
+ - `new EventEmitter(options = {})` — creates an emitter; the options object is accepted for
+   Node.js compatibility and ignored;
+ - `require('events')` — the module itself is this class, so it doubles as the constructor:
+   `require('events').EventEmitter === require('events')`;
+ - the global `EventTarget` alias — it points to this class, not to the WHATWG EventTarget class:
+   it has no `dispatchEvent`, and events are observed with `on`/`once` and fired with `emit`.
 
-event.on('read_file', function(filename) {
-  fs.readFile(filename, 'utf8', function(err, data) {
-    if (err) {
-      event.emit('error', err);
-      return;
-    }
-    event.emit('show_content', data);
-  });
-});
+ Example 1 — subscribe, emit with arguments and read the result:
+ ```JavaScript
+ const EventEmitter = require('events');
 
-event.on('error', function(err) {
-  console.log(`Error ${err}`);
-});
+ const emitter = new EventEmitter();
 
-event.on('show_content', function(content) {
-  console.log(content);
-});
+ emitter.on('greet', function (name, times) {
+     console.log(`hello ${name} x${times}`); // hello world x2
+     console.log(this === emitter); // true
+ });
 
-event.emit('read_file', 'test.txt');
-```
+ console.log(emitter.emit('greet', 'world', 2)); // true, printed after the listener
+ console.log(emitter.emit('nobody')); // false
+ ```
 
-In the example above, when run, the event emitter instance event first listens for the 'read_file' event, and then triggers the file reading operation when the event is triggered (`event.emit('read_file', 'test.txt')`). When the read succeeds, the 'show_content' event is triggered; the function listening for the 'show_content' event is then executed and displays the file content. If an error occurs while reading the file, the 'error' event is triggered, and the failure is handled.
+ Example 2 — one-shot listeners and listener bookkeeping:
+ ```JavaScript
+ const EventEmitter = require('events');
 
-This pattern has great advantages in business scenarios dealing with asynchronous operations.
+ const emitter = new EventEmitter();
+ function onTick() {
+     console.log('tick');
+ }
+
+ emitter.once('tick', onTick);
+ console.log(emitter.listenerCount('tick')); // 1
+ console.log(emitter.rawListeners('tick')[0]._func === onTick); // true
+
+ emitter.emit('tick'); // tick
+ emitter.emit('tick'); // the listener removed itself, nothing is printed
+ console.log(emitter.listenerCount('tick')); // 0
+
+ emitter.once('tick', onTick);
+ emitter.off('tick', onTick); // off() matches the original function
+ console.log(emitter.listenerCount('tick')); // 0
+ ```
+
+ Example 3 — the error event convention and the meta events:
+ ```JavaScript
+ const EventEmitter = require('events');
+
+ const emitter = new EventEmitter();
+
+ emitter.on('newListener', (ev) => console.log(`adding ${ev}`));
+ emitter.on('removeListener', (ev) => console.log(`removing ${ev}`));
+ // adding removeListener
+
+ function onError(err) {
+     console.log(`handled: ${err.message}`);
+ }
+
+ emitter.on('error', onError);
+ // adding error
+ emitter.emit('error', new Error('disk full')); // handled: disk full
+
+ emitter.off('error', onError);
+ // removing error
+
+ try {
+     emitter.emit('error', new Error('disk full'));
+ } catch (err) {
+     console.log(`unhandled: ${err.message}`); // unhandled: disk full
+ }
+ ```
+
+ Example 4 — the Promise and async-iterator helpers:
+ ```JavaScript
+ const EventEmitter = require('events');
+
+ (async () => {
+     const emitter = new EventEmitter();
+
+     // EventEmitter.once() resolves with the array of event arguments
+     const waiting = EventEmitter.once(emitter, 'ready');
+     emitter.emit('ready', 200, 'ok');
+     console.log(JSON.stringify(await waiting)); // [200,"ok"]
+
+     // EventEmitter.on() returns an async iterator of event argument arrays
+     const iterator = EventEmitter.on(emitter, 'data', { close: ['end'] });
+     emitter.emit('data', 1);
+     emitter.emit('end');
+     console.log(JSON.stringify((await iterator.next()).value)); // [1]
+     console.log((await iterator.next()).done); // true
+ })();
+ ```
+
+ Note: calling `EventEmitter()` without `new` does not throw; it attaches the event methods to
+ the global object instead of creating an emitter, so always construct it with `new`.
  */
 interface EventEmitter : object
 {
-    /*! @brief Constructor
-     @param options options object, supports captureRejections, etc.
+    /*! @brief Creates an event emitter
+
+     The options object exists for Node.js compatibility: Node.js reads `captureRejections` from
+     it to capture rejected promises returned by listeners, while fibjs ignores the object and
+     returns a plain emitter. Every call creates an independent listener store. Always construct
+     with `new`; calling without `new` attaches the event methods to the global object instead
+     (see the class documentation).
+
+     @param options options object, accepted for Node.js compatibility and ignored
     */
     EventEmitter(Object options = {});
 
-    /*! @brief The event emitter object */
+    /*! @brief The EventEmitter class itself
+
+     `require('events')` returns this class, so the self reference keeps Node.js-style
+     `events.EventEmitter` code working: `require('events').EventEmitter === require('events')`.
+     It is a constructor, not an emitter instance.
+    */
     static EventEmitter;
 
-    /*! @brief Default global maximum number of listeners */
+    /*! @brief The process-wide default listener limit reported by getMaxListeners()
+
+     Defaults to 10. Assigning a value changes getMaxListeners() for every emitter that never
+     called setMaxListeners(); an emitter with an explicit limit keeps it. The limit is
+     informational: fibjs never warns when the number of listeners exceeds it.
+    */
     static Integer defaultMaxListeners;
 
-    /*! @brief Binds an event handler to the object
-    @param ev the event name to bind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends an event handler to the emitter
+
+     The listener is called with the arguments of emit() and `this` set to the emitter; the
+     emitter itself is returned so registrations can be chained. The same function may be
+     registered several times for one event and each copy is called. See the class documentation
+     for the dispatch order.
+
+     @param ev the event name to bind
+     @param func the event handler function, called with the emit arguments
+     @return returns the event object itself for chaining
+    */
     Object on(Value ev, Function(...args) func);
 
-    /*! @brief Binds an event handler to the object
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends several event handlers to the emitter
+
+     Every enumerable property of the map whose value is a function is registered under its
+     property name. Properties are processed in order; a value that is not a function makes the
+     call fail with an invalid-type error while entries processed before it stay registered.
+
+     Example — registering several handlers at once:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.on({
+         connect: () => console.log('connect'),
+         close: () => console.log('close')
+     });
+
+     emitter.emit('connect'); // connect
+     emitter.emit('close'); // close
+     ```
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object on(Object map);
 
-    /*! @brief Binds an event handler to the object
-    @param ev the event name to bind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends an event handler to the emitter
+
+     Alias of on(ev, func), provided for Node.js compatibility.
+
+     @param ev the event name to bind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object addListener(Value ev, Function(...args) func);
 
-    /*! @brief Binds an event handler to the object
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends several event handlers to the emitter
+
+     Alias of on(map), provided for Node.js compatibility.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object addListener(Object map);
 
-    /*! @brief Binds an event handler to the object
+    /*! @brief Appends an event handler to the emitter with an options object
 
-    The options parameter is an object that can contain the following property:
-    - once: if true, the event handler is triggered only once and is removed after being triggered
+     Web-style alias of on(); the only supported option is `once`, which registers a one-shot
+     handler exactly like once(). The listener receives the plain emit arguments and not an Event
+     object; see the DOMEvent class for the DOM-style event object used by AbortSignal and
+     fetch-style APIs.
 
-    @param ev the event name to bind
-    @param func the event handler function
-    @param options the options of the event handler
-    @return returns the event object itself for chaining
+     options supports the following option:
+     ```JavaScript
+     // fragment: options
+     ({
+         "once": false   // when true, the handler is removed before its single invocation
+     });
+     ```
+
+     Example — a one-shot DOM-style registration:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.addEventListener('ping', () => console.log('ping'), { once: true });
+
+     emitter.emit('ping'); // ping
+     console.log(emitter.emit('ping')); // false
+     console.log(emitter.listenerCount('ping')); // 0
+     ```
+
+     @param ev the event name to bind
+     @param func the event handler function, called with the emit arguments
+     @param options the options of the event handler
+     @return returns the event object itself for chaining
     */
     Object addEventListener(Value ev, Function(...args) func, Object options = {});
 
-    /*! @brief Binds an event handler to the start of the object's handler queue
-    @param ev the event name to bind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Inserts an event handler at the front of the queue
+
+     The listener is called before the listeners registered with on()/addListener() the next time
+     the event is emitted. When several prependListener() calls are made, the last one registered
+     is called first, because every call inserts at the same position.
+
+     Example — insertion at the front of the queue:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.on('order', () => console.log('on'));
+     emitter.prependListener('order', () => console.log('prepend'));
+
+     emitter.emit('order'); // prepend, then on
+     ```
+
+     @param ev the event name to bind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object prependListener(Value ev, Function(...args) func);
 
-    /*! @brief Binds an event handler to the start of the object's handler queue
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Inserts several event handlers at the front of the queue
+
+     Map form of prependListener(); every function property is inserted at the front, so the
+     properties of the map are called in reverse order.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object prependListener(Object map);
 
-    /*! @brief Binds a one-time event handler to the object; the one-time handler is triggered only once
-    @param ev the event name to bind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends a one-shot event handler to the emitter
+
+     The handler is wrapped and removes itself from the queue before it is called, so it runs at
+     most once. off() removes it when passed the original function, listeners() returns the
+     original function, and rawListeners() returns the internal wrapper whose `_func` property
+     holds the original. See Example 2 in the class documentation.
+
+     @param ev the event name to bind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object once(Value ev, Function(...args) func);
 
-    /*! @brief Binds a one-time event handler to the object; the one-time handler is triggered only once
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Appends several one-shot event handlers to the emitter
+
+     Map form of once(); every function property is registered as a one-shot listener under its
+     property name.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object once(Object map);
 
-    /*! @brief Binds an event handler to the start of the object's handler queue
-    @param ev the event name to bind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Inserts a one-shot event handler at the front of the queue
+
+     Combines prependListener() and once(): the handler is called first and only once, and it is
+     removed before its invocation.
+
+     @param ev the event name to bind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object prependOnceListener(Value ev, Function(...args) func);
 
-    /*! @brief Binds an event handler to the start of the object's handler queue
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Inserts several one-shot event handlers at the front of the queue
+
+     Map form of prependOnceListener(); every function property is inserted as a one-shot
+     listener, and the properties of the map are called in reverse order.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object prependOnceListener(Object map);
 
-    /*! @brief Removes the specified function from the object's handler queue
-    @param ev the event name to unbind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes an event handler from the emitter
+
+     The first matching listener is removed; when the same function was registered several times
+     only one copy is removed per call, so repeat the call to remove the others. A once() wrapper
+     is matched by its original function as well. Removing a listener emits the `removeListener`
+     meta event after the removal.
+
+     @param ev the event name to unbind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object off(Value ev, Function(...args) func);
 
-    /*! @brief Removes all functions from the object's handler queue
-    @param ev the event name to unbind
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes all event handlers of one event
+
+     Every listener of the event is removed and `removeListener` is emitted once per removed
+     listener. The call succeeds when the event has no listener.
+
+     Example — removing every listener of one event:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.on('data', () => console.log('first'));
+     emitter.on('data', () => console.log('second'));
+
+     emitter.off('data');
+     console.log(emitter.emit('data')); // false
+     ```
+
+     @param ev the event name to unbind
+     @return returns the event object itself for chaining
+    */
     Object off(Value ev);
 
-    /*! @brief Removes the specified function from the object's handler queue
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes several event handlers from the emitter
+
+     Every enumerable property of the map whose value is a function names an event from which
+     that function is removed (one copy per event). A value that is not a function makes the call
+     fail with an invalid-type error.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object off(Object map);
 
-    /*! @brief Removes the specified function from the object's handler queue
-    @param ev the event name to unbind
-    @param func the event handler function
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes an event handler from the emitter
+
+     Alias of off(ev, func), provided for Node.js compatibility.
+
+     @param ev the event name to unbind
+     @param func the event handler function
+     @return returns the event object itself for chaining
+    */
     Object removeListener(Value ev, Function(...args) func);
 
-    /*! @brief Removes all functions from the object's handler queue
-    @param ev the event name to unbind
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes all event handlers of one event
+
+     Alias of off(ev), provided for Node.js compatibility.
+
+     @param ev the event name to unbind
+     @return returns the event object itself for chaining
+    */
     Object removeListener(Value ev);
 
-    /*! @brief Removes the specified function from the object's handler queue
-    @param map the event mapping; object property names are used as event names and property values as event handler functions
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes several event handlers from the emitter
+
+     Alias of off(map), provided for Node.js compatibility.
+
+     @param map the event mapping; object property names are used as event names
+     and property values as event handler functions
+     @return returns the event object itself for chaining
+    */
     Object removeListener(Object map);
 
-    /*! @brief Removes the specified function from the object's handler queue
-    @param ev the event name to unbind
-    @param func the event handler function
-    @param options the options of the event handler
-    @return returns the event object itself for chaining
+    /*! @brief Removes an event handler with an options object
+
+     Web-style alias of off(ev, func); the options object is accepted and ignored, and a once()
+     wrapper is matched by its original function like off().
+
+     @param ev the event name to unbind
+     @param func the event handler function
+     @param options the options of the event handler, ignored
+     @return returns the event object itself for chaining
     */
     Object removeEventListener(Value ev, Function(...args) func, Object options = {});
 
-    /*! @brief Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
-    @param ev the event name to remove
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes all listeners of one event
+
+     Equivalent to off(ev): every listener of the event is removed, including once() wrappers
+     matched by their original function, and `removeListener` is emitted once per removal.
+
+     @param ev the event name to remove
+     @return returns the event object itself for chaining
+    */
     Object removeAllListeners(Value ev);
 
-    /*! @brief Removes all listeners of all events from the object's handler queue; if an event is specified, removes all listeners of the specified event.
-    @param evs the event names to remove
-    @return returns the event object itself for chaining
-   */
+    /*! @brief Removes all listeners of the given events, or of the whole emitter
+
+     An empty array — including the no-argument call, because the parameter defaults to [] —
+     clears every string-keyed event; symbol-keyed listeners are left in place, unlike Node.js
+     which removes them too. A non-empty array clears each named event as
+     removeAllListeners(ev) does.
+
+     Example — clearing selected events and the whole emitter:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.on('a', () => { });
+     emitter.on('b', () => { });
+     emitter.on('c', () => { });
+
+     emitter.removeAllListeners(['a', 'b']);
+     console.log(emitter.listenerCount('a'), emitter.listenerCount('c')); // 0 1
+
+     emitter.removeAllListeners();
+     console.log(emitter.eventNames().length); // 0
+     ```
+
+     @param evs the event names to remove
+     @return returns the event object itself for chaining
+    */
     Object removeAllListeners(Array evs = []);
 
-    /* The default listener limit, for compatibility only
-    @param n the number of events
-   */
+    /*! @brief Stores a per-emitter listener limit
+
+     The value is reported by getMaxListeners() and is otherwise informational: fibjs never warns
+     when the number of listeners exceeds it. This member exists for Node.js compatibility. A
+     negative value throws; 0 is accepted and stored as-is, while Node.js treats 0 as unlimited.
+
+     @param n the number of events
+    */
     setMaxListeners(Integer n);
 
-    /* Gets the default listener limit, for compatibility only
-    @return returns the default limit
-   */
+    /*! @brief Returns the listener limit of the emitter
+
+     Returns the value set by setMaxListeners(), or the process-wide defaultMaxListeners (10)
+     when no explicit value was set.
+
+     @return returns the default limit
+    */
     Integer getMaxListeners();
 
-    /*! @brief Queries the listener array of the specified event of the object
-    @param ev the event name to query
-    @return returns the listener array of the specified event
-   */
+    /*! @brief Returns a copy of the listener array of an event
+
+     One-shot wrappers are unwrapped, so the result contains the functions passed to
+     on()/once() and can be passed to off(); an unknown event produces an empty array.
+
+     Example — once() listeners are returned unwrapped:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     function onTick() {
+         console.log('tick');
+     }
+
+     emitter.once('tick', onTick);
+     console.log(emitter.listeners('tick')[0] === onTick); // true
+     console.log(emitter.rawListeners('tick')[0] === onTick); // false
+     ```
+
+     @param ev the event name to query
+     @return returns the listener array of the specified event
+    */
     Array listeners(Value ev);
 
-    /*! @brief Queries the listener array of the specified event of the object, including once wrapper functions
-    @param ev the event name to query
-    @return returns the listener array of the specified event
-   */
+    /*! @brief Returns the internal listener array of an event
+
+     The array is not unwrapped: a listener registered with once() appears as the internal
+     wrapper function whose `_func` property holds the original function. An unknown event
+     produces an empty array.
+
+     @param ev the event name to query
+     @return returns the listener array of the specified event
+    */
     Array rawListeners(Value ev);
 
-    /*! @brief Queries the number of listeners of the specified event of the object
-    @param ev the event name to query
-    @return returns the number of listeners of the specified event
-   */
+    /*! @brief Returns the number of listeners of an event
+
+     One-shot listeners count as one and an unknown event returns 0.
+
+     @param ev the event name to query
+     @return returns the number of listeners of the specified event
+    */
     Integer listenerCount(Value ev);
 
-    /*! @brief Queries the number of listeners of the specified event of the object
-    @param o the object to query
-    @param ev the event name to query
-    @return returns the number of listeners of the specified event
-   */
+    /*! @brief Returns the number of listeners of an event on another object
+
+     Counts without requiring the target to be an EventEmitter: any object with registered
+     events can be queried. The call is normally written as
+     `EventEmitter.listenerCount(target, 'data')`.
+
+     Example — counting the listeners of another object:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     const emitter = new EventEmitter();
+     emitter.on('data', () => { });
+     emitter.on('data', () => { });
+
+     console.log(EventEmitter.listenerCount(emitter, 'data')); // 2
+     ```
+
+     @param o the object to query
+     @param ev the event name to query
+     @return returns the number of listeners of the specified event
+    */
     Integer listenerCount(Value o, Value ev);
 
-    /*! @brief Queries the names of the events with listeners
-    @return returns the array of event names
-   */
+    /*! @brief Returns the names of the events with at least one listener
+
+     Only string-keyed events are reported; symbol-keyed events are omitted and numeric event
+     names are returned as numbers (Node.js also reports symbol events).
+
+     @return returns the array of event names
+    */
     Array eventNames();
 
-    /*! @brief Actively triggers an event
-    @param ev event name
-    @param args event parameters, which are passed to the event handler
-    @return returns the event trigger status; returns true if the event is responded to, otherwise false
-   */
+    /*! @brief Emits an event and returns whether a listener was called
+
+     Listeners are called as described by the dispatch model in the class documentation: the
+     first one runs synchronously on the current fiber, the remaining ones run in parallel
+     fibers, and the call returns after all of them finish; an exception raised by a listener is
+     thrown back to the caller. Emitting `error` with no listener throws instead of returning
+     false: an Error argument is thrown as-is and any other value is wrapped in
+     `Error("Unhandled error. (...)")`. Event names are strings or symbols; `emit()` does not
+     match a listener registered with a numeric name.
+
+     @param ev event name
+     @param args event parameters, which are passed to the event handler
+     @return returns whether the event had a listener to respond to it
+    */
     Boolean emit(Value ev, ...args);
 
-    /*! @brief Listens for the abort event of an AbortSignal and returns a disposable object
+    /*! @brief Registers a one-shot abort handler on an AbortSignal
 
-    The returned object contains a `[Symbol.dispose]()` method; calling it removes the listener. If the signal has already been aborted, the listener is invoked immediately.
+     The handler is called at most once when the signal is aborted, and it is removed from the
+     signal afterwards. If the signal is already aborted the handler is invoked synchronously.
+     The returned object has a `[Symbol.dispose]()` method that removes the handler, so it can be
+     released before the abort happens.
 
-    @param signal the AbortSignal object to listen to
-    @param func the handler for the abort event
-    @return returns a Disposable object containing a `[Symbol.dispose]` method
-   */
+     Example — abort handling with automatic cleanup:
+     ```JavaScript
+     const events = require('events');
+
+     const controller = new AbortController();
+     const disposable = events.addAbortListener(controller.signal,
+         () => console.log('aborted'));
+
+     controller.abort(); // aborted
+     disposable[Symbol.dispose](); // safe to call after the listener fired
+     console.log(controller.signal.listenerCount('abort')); // 0
+     ```
+
+     @param signal the AbortSignal object to listen to
+     @param func the handler for the abort event
+     @return returns a Disposable object containing a `[Symbol.dispose]` method
+    */
     static Object addAbortListener(EventEmitter signal, Function(Object ev) func);
 
-    /*! @brief Creates a Promise that resolves after the specified event is triggered once
+    /*! @brief Creates a Promise resolved by the next occurrence of an event
 
-    Returns a Promise that resolves with the array of event parameters when the target event is triggered. If the 'error' event is triggered in the meantime (and what is listened to is not the 'error' event itself), the Promise is rejected.
+     The Promise resolves with the array of the emit arguments when the event fires; it rejects
+     when `error` is emitted while waiting, unless the waited event is `error` itself, or when
+     the signal option aborts. The temporary listeners are removed when the Promise settles.
 
-    The options parameter can contain:
-    - signal: AbortSignal, used to cancel the wait
+     options supports the following option:
+     ```JavaScript
+     // fragment: options
+     ({
+         "signal": null   // AbortSignal; aborting rejects the Promise with an AbortError
+     });
+     ```
 
-    @param emitter the event emitter object to listen to
-    @param ev the event name to listen for
-    @param options optional parameter object
-    @return returns a Promise that resolves with the array of event parameters
-   */
+     Example — awaiting the next occurrence of an event:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     (async () => {
+         const emitter = new EventEmitter();
+         const waiting = EventEmitter.once(emitter, 'ready');
+
+         emitter.emit('ready', 200, 'ok');
+         console.log(JSON.stringify(await waiting)); // [200,"ok"]
+     })();
+     ```
+
+     @param emitter the event emitter object to listen to
+     @param ev the event name to listen for
+     @param options optional parameter object
+     @return returns a Promise that resolves with the array of event parameters
+    */
     static Object once(EventEmitter emitter, Value ev, Object options = {});
 
-    /*! @brief Creates an async iterator that continuously listens for the specified event
+    /*! @brief Creates an async iterator that yields event occurrences
 
-    Returns an AsyncIterator that yields the array of event parameters each time the event is triggered. If the 'error' event is triggered, the iterator throws an error.
+     Each next() resolves with `{ value: [args...], done: false }` when the event fires and with
+     `{ done: true }` after an event named in the `close` option fires or the signal aborts; an
+     `error` event rejects the pending call. The listeners are registered when the iterator is
+     created and removed when the iteration ends or the signal aborts.
 
-    The options parameter can contain:
-    - signal: AbortSignal, used to cancel the iteration
-    - close: string array, specifying the names of events that end the iteration
+     options supports the following options:
+     ```JavaScript
+     // fragment: options
+     ({
+         "signal": null,   // AbortSignal; aborting rejects pending and future next() calls
+         "close": []       // event names; the first one to fire ends the iteration
+     });
+     ```
 
-    @param emitter the event emitter object to listen to
-    @param ev the event name to listen for
-    @param options optional parameter object
-    @return returns an AsyncIterator object
-   */
+     Example — iterating the occurrences of an event:
+     ```JavaScript
+     const EventEmitter = require('events');
+
+     (async () => {
+         const emitter = new EventEmitter();
+         const iterator = EventEmitter.on(emitter, 'data', { close: ['end'] });
+
+         emitter.emit('data', 1);
+         emitter.emit('data', 2);
+         emitter.emit('end');
+
+         for await (const args of iterator)
+             console.log(JSON.stringify(args)); // [1] then [2]
+     })();
+     ```
+
+     @param emitter the event emitter object to listen to
+     @param ev the event name to listen for
+     @param options optional parameter object
+     @return returns an AsyncIterator object
+    */
     static Object on(EventEmitter emitter, Value ev, Object options = {});
 };

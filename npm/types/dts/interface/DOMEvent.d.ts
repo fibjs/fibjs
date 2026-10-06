@@ -1,22 +1,87 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description DOMEvent represents a W3C DOM event object
+ * @description DOMEvent is the DOM-style event object installed as the global `Event` class: a value
+ *  carrying an event type, the DOM event flags and the propagation/cancellation methods of the W3C
+ *  Event interface
  *
- *  DOMEvent implements the standard Web Event interface, providing standard event properties such as event type, bubbling and cancellation.
+ *  fibjs has no DOM tree and no event dispatch pipeline: EventTarget is the EventEmitter class
+ *  (on/off/emit, without dispatchEvent), so a DOMEvent is a stand-alone object that you create,
+ *  pass to listeners yourself and read; the runtime never produces one. The class exists for
+ *  Node.js and Web compatibility, where `new Event(type, init)` creates synthetic event objects.
  *
+ *  Concepts:
+ *
+ *  - **DOM event model**: an event carries `type` plus the flags `bubbles`, `cancelable` and
+ *    `composed`, and offers `preventDefault()` for cancelable events. `defaultPrevented` latches
+ *    to true at the first `preventDefault()` call on a cancelable event and stays true;
+ *    `stopPropagation()` and `stopImmediatePropagation()` are accepted no-ops because there is no
+ *    propagation path to stop.
+ *  - **No dispatch**: `target` and `currentTarget` are always null, even when the object is passed
+ *    to a listener. Nothing in fibjs constructs a DOMEvent except its own constructor.
+ *  - **Do not confuse with `coroutine.Event`**: the module-level `Event` class is the fiber
+ *    synchronization primitive (wait/set/pulse). The global name `Event` is this DOM class; the
+ *    coroutine primitive is only reachable as `coroutine.Event`. See the Event interface and the
+ *    coroutine module.
+ *  - **Initialization dictionary**: only the boolean value true enables a flag (1 and 'true' do
+ *    not); the dictionary must be an object or null, anything else throws TypeError [20005].
+ *  - **timeStamp**: milliseconds since the Unix epoch measured at construction, directly
+ *    comparable with Date.now(); MDN specifies a high-resolution timestamp relative to the time
+ *    origin instead.
+ *
+ *  Obtained from:
+ *  - `new Event(type, eventInitDict = {})` — the only way to create one; `type` is required and
+ *    unknown dictionary keys are ignored.
+ *
+ *  Example 1 — create an event and read its flags:
  *  ```JavaScript
  *  const ev = new Event('click', { bubbles: true, cancelable: true });
- *  console.log(ev.type);       // 'click'
- *  console.log(ev.bubbles);    // true
- *  console.log(ev.cancelable); // true
+ *  console.log(ev.type);        // click
+ *  console.log(ev.bubbles);     // true
+ *  console.log(ev.cancelable);  // true
+ *  console.log(ev.composed);    // false
+ *  ```
+ *
+ *  Example 2 — cancellation only works on a cancelable event:
+ *  ```JavaScript
+ *  const fixed = new Event('change', { cancelable: true });
+ *  fixed.preventDefault();
+ *  console.log(fixed.defaultPrevented); // true
+ *
+ *  const uncancelable = new Event('change');
+ *  uncancelable.preventDefault();
+ *  console.log(uncancelable.defaultPrevented); // false
+ *  ```
+ *
+ *  Example 3 — pass an event object to an EventTarget listener:
+ *  ```JavaScript
+ *  const target = new EventTarget();
+ *  target.on('tick', (ev) => {
+ *      console.log(ev.type);   // tick
+ *      console.log(ev.target); // null: fibjs does not populate the target
+ *  });
+ *  target.emit('tick', new Event('tick'));
  *  ```
  *
  */
 declare class Class_DOMEvent extends Class_object {
     /**
      * @description DOMEvent constructor
-     *      @param type event type
+     *
+     *      `type` is required and must be a string; the flags all default to false. `eventInitDict`
+     *      accepts `bubbles`, `cancelable` and `composed`; a flag is enabled only when its value is
+     *      the boolean true (the values 1 and 'true' do not count). Unknown keys are ignored and
+     *      passing null is the same as omitting the dictionary. A non-string type or a non-object
+     *      dictionary throws TypeError [20005], extra arguments throw TypeError [20001].
+     *
+     *      Example — an event with all flags enabled:
+     *      ```JavaScript
+     *      const ev = new Event('load', { bubbles: true, cancelable: true, composed: true });
+     *      console.log(ev.type, ev.bubbles, ev.cancelable, ev.composed);
+     *      // load true true true
+     *      ```
+     *
+     *      @param type event type, a required string
      *      @param eventInitDict optional event initialization dictionary
      *
      */
@@ -24,56 +89,112 @@ declare class Class_DOMEvent extends Class_object {
 
     /**
      * @description Event type
+     *
+     *      The string passed to the constructor; an empty string is allowed. The property is
+     *      read-only: assigning to it is silently ignored instead of throwing.
+     *
      */
     readonly type: string;
 
     /**
      * @description Whether the event bubbles
+     *
+     *      True when the constructor dictionary had `bubbles: true`. fibjs has no event propagation,
+     *      so the flag is informational and does not change how listeners are called.
+     *
      */
     readonly bubbles: boolean;
 
     /**
      * @description Whether the event is cancelable
+     *
+     *      True when the constructor dictionary had `cancelable: true`. Only a cancelable event can
+     *      latch `defaultPrevented` through preventDefault().
+     *
      */
     readonly cancelable: boolean;
 
     /**
      * @description Whether the event can cross Shadow DOM boundaries
+     *
+     *      True when the constructor dictionary had `composed: true`. fibjs has no DOM tree, so the
+     *      flag is informational.
+     *
      */
     readonly composed: boolean;
 
     /**
      * @description Whether preventDefault() has been called
+     *
+     *      False at construction. It becomes true at the first preventDefault() call on a cancelable
+     *      event and stays true; calling preventDefault() on a non-cancelable event leaves it false.
+     *
      */
     readonly defaultPrevented: boolean;
 
     /**
      * @description Event target
+     *
+     *      Always null in fibjs: the runtime never dispatches a DOMEvent, and passing the object to
+     *      an EventEmitter listener does not populate it.
+     *
      */
     readonly target: any;
 
     /**
      * @description Current event target
+     *
+     *      Always null in fibjs, for the same reason as target: there is no capture/bubble path that
+     *      could update it during dispatch.
+     *
      */
     readonly currentTarget: any;
 
     /**
      * @description Event creation timestamp
+     *
+     *      Milliseconds since the Unix epoch, measured when the constructor runs, so it is directly
+     *      comparable with Date.now() and fixed at construction. MDN defines timeStamp as a
+     *      high-resolution value relative to the time origin instead.
+     *
      */
     readonly timeStamp: number;
 
     /**
      * @description Stops further propagation of the event
+     *
+     *      Accepted for Web API compatibility and does nothing, because fibjs has no propagation
+     *      path to stop. It returns undefined and never throws.
+     *
      */
     stopPropagation(): void;
 
     /**
      * @description Prevents other listeners of the same event from being called
+     *
+     *      Accepted for Web API compatibility and does nothing: listeners are managed by
+     *      EventEmitter, which has no concept of immediate propagation. It returns undefined.
+     *
      */
     stopImmediatePropagation(): void;
 
     /**
      * @description Cancels the event if it is cancelable
+     *
+     *      On a cancelable event the call latches `defaultPrevented` to true; on a non-cancelable
+     *      event it is a no-op. The method returns undefined, is safe to call repeatedly, and does
+     *      not stop other listeners because fibjs has no dispatch pipeline to influence.
+     *
+     *      Example — cancellation requires cancelable: true:
+     *      ```JavaScript
+     *      const ev = new Event('submit', { cancelable: true });
+     *
+     *      ev.stopPropagation();        // accepted no-op
+     *      ev.preventDefault();
+     *      ev.preventDefault();         // idempotent
+     *      console.log(ev.defaultPrevented); // true
+     *      ```
+     *
      */
     preventDefault(): void;
 

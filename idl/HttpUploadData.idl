@@ -1,15 +1,94 @@
-/*! @brief data of one multipart entry */
+/*! @brief HttpUploadData describes one part of a multipart/form-data upload: its file name, media type, transfer encoding and content stream
+
+The interface describes a single multipart entry as older fibjs versions exposed it. No
+public API in the current runtime returns an HttpUploadData object and it cannot be built
+with `new` (doing so throws a type error); parsing a multipart body now goes through
+FormData and `http.Request#form`, which expose each part as a File/Blob: the media type and
+size are on the Blob and the file name that was passed to FormData#append is on File#name.
+
+Concepts:
+
+- **Multipart entry**: a body with Content-Type `multipart/form-data` is a sequence of
+  parts. Every part is introduced by a `Content-Disposition` header with the field name and
+  an optional `filename`, followed by optional `Content-Type` and
+  `Content-Transfer-Encoding` headers and the raw content.
+- **Field mapping**: `fileName` is the filename of the Content-Disposition header,
+  `contentType` the part media type, `contentTransferEncoding` the transfer encoding (for
+  example `binary` or `base64`) and `body` the content as a SeekableStream so it can be
+  read, rewound or copied.
+- **Replacement API**: the same information is available today through FormData;
+  `http.Request#form` returns the parsed parts, `FormData#get`/`all` return the File/Blob
+  values, `Blob#type`/`Blob#size` replace contentType and the length of body, and File#name
+  replaces fileName. Node.js has no equivalent object either; it exposes the raw bytes and
+  leaves multipart parsing to userland.
+
+Example 1 — the multipart part layout this interface describes:
+```JavaScript
+const form = new FormData();
+form.append('file', new Blob(['hello'], { type: 'text/plain' }), 'hello.txt');
+
+const body = form.encode('multipart/form-data');
+console.log(body.type.startsWith('multipart/form-data')); // true
+console.log(body.size > 0); // true
+
+// the encoded part carries the same headers the object exposes
+body.text().then((text) => {
+    console.log(text.includes('filename="hello.txt"')); // true
+    console.log(text.includes('Content-Type: text/plain')); // true
+});
+```
+
+Example 2 — receive an uploaded file with the current API:
+```JavaScript
+const http = require('http');
+
+const form = new FormData();
+form.append('file', new Blob(['hello'], { type: 'text/plain' }), 'hello.txt');
+
+const server = new http.Server(0, (req) => {
+    const file = req.form.get('file');
+    console.log(file.type, file.size); // text/plain 5
+    req.response.write('ok');
+});
+server.start();
+
+const resp = http.postSync('http://127.0.0.1:' + server.socket.localPort + '/',
+    { body: form });
+console.log(resp.statusCode, resp.text()); // 200 ok
+
+server.stop();
+```
+*/
 interface HttpUploadData : object
 {
-    /*! @brief the file name of the data of this entry */
+    /*! @brief File name of this part
+
+     The filename parameter of the part Content-Disposition header, without a path; empty
+     when the part does not carry one. In the current API the name is provided by
+     FormData#append(name, blob, filename) rather than by the part object.
+     */
     readonly String fileName;
 
-    /*! @brief the type of the data of this entry */
+    /*! @brief Media type of this part
+
+     The value of the part Content-Type header, for example `text/plain`; empty when the
+     part has no Content-Type. The current API exposes the same value as Blob#type.
+     */
     readonly String contentType;
 
-    /*! @brief the transfer encoding type of the data of this entry */
+    /*! @brief Transfer encoding of this part
+
+     The value of the part Content-Transfer-Encoding header, for example `binary` or
+     `base64`; empty when the part has no such header. The parser records the header so
+     that callers can decide how to interpret the body.
+     */
     readonly String contentTransferEncoding;
 
-    /*! @brief the stream object containing the data part of this entry */
+    /*! @brief Content stream of this part
+
+     A SeekableStream over the content of the part, so it can be read once, rewound with
+     seek and copied into another stream. The current API exposes the same content as the
+     File/Blob returned by FormData#get and FormData#all.
+     */
     readonly SeekableStream body;
 };

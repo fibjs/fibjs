@@ -1,16 +1,99 @@
-/*! @brief The XmlDocumentType object is used to access the entities defined by XML
-*/
+/*! @brief The XmlDocumentType object represents the doctype declaration of a document
+ and exposes its name and external identifiers
+
+ A document type node is created by the parser from a DOCTYPE declaration; fibjs has no
+ DOMImplementation.createDocumentType, so an XmlDocumentType can only be obtained from a
+ parsed document. It is a leaf node: appending children to it is rejected.
+
+ Concepts:
+
+ - **What is preserved**: only the doctype name, the public identifier and the system
+   identifier survive parsing. The internal subset (entity and notation declarations
+   between `[` and `]`) is not represented: entities, notations and internalSubset are
+   not implemented, external DTDs are never fetched and entity references are not
+   expanded. The three identifiers are empty strings when the declaration omits them
+   (never null).
+ - **Serialization**: String(doctype) rebuilds the declaration as `<!DOCTYPE name>`,
+   `<!DOCTYPE name SYSTEM "systemId">` or
+   `<!DOCTYPE name PUBLIC "publicId" "systemId">`. In HTML mode the HTML doctype is
+   accepted as well and reports the name `html` with empty identifiers.
+ - **Type**: nodeType is DOCUMENT_TYPE_NODE (10) and nodeName equals name; nodeValue is
+   null, textContent is always an empty string and assigning it has no effect.
+
+ Obtained from:
+ - `document.doctype` — the doctype child node, or null when the document has none;
+ - `document.childNodes` — a doctype is a child of the document, before the root
+   element, comments and processing instructions.
+
+ Example 1 — read the doctype of a parsed document:
+ ```JavaScript
+ const xml = require('xml');
+
+ const doc = xml.parse('<!DOCTYPE note SYSTEM "note.dtd"><note/>');
+ const doctype = doc.doctype;
+
+ console.log(doctype.name);       // note
+ console.log(doctype.publicId);   // empty string
+ console.log(doctype.systemId);   // note.dtd
+ console.log(doctype.nodeType);   // 10
+ console.log(doctype === doc.childNodes.item(0)); // true
+ console.log(String(doctype));    // <!DOCTYPE note SYSTEM "note.dtd">
+ ```
+
+ Example 2 — a document without a doctype and the HTML form:
+ ```JavaScript
+ const xml = require('xml');
+
+ console.log(xml.parse('<r/>').doctype); // null
+
+ const html = xml.parse('<!DOCTYPE html><html><body/></html>', 'text/html');
+ console.log(html.doctype.name);     // html
+ console.log(html.doctype.publicId); // empty string
+ console.log(html.doctype.systemId); // empty string
+ console.log(String(html.doctype));  // <!DOCTYPE html>
+ ```
+
+ Example 3 — public and system identifiers:
+ ```JavaScript
+ const xml = require('xml');
+
+ const doc = xml.parse('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0//EN" '
+     + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1.dtd"><html/>');
+
+ console.log(doc.doctype.publicId); // -//W3C//DTD XHTML 1.0//EN
+ console.log(doc.doctype.systemId); // http://www.w3.org/TR/xhtml1/DTD/xhtml1.dtd
+ ```
+ */
 interface XmlDocumentType : XmlNode
 {
     /*! @brief Returns the name of the DTD
+
+     The keyword following DOCTYPE (`note`, `html`); nodeName returns the same string.
+     Read-only.
 	*/
     readonly String name;
 
     /*! @brief Returns the public identifier of the external DTD
+
+     An empty string when the declaration has no PUBLIC literal; read-only.
 	*/
     readonly String publicId;
 
     /*! @brief Returns the system identifier of the external DTD
+
+     An empty string when the declaration has no SYSTEM literal; read-only. The
+     identifier is not resolved or fetched.
+
+     Example — distinguish a bare declaration from an external DTD:
+     ```JavaScript
+     const xml = require('xml');
+
+     const bare = xml.parse('<!DOCTYPE note><note/>').doctype;
+     const external = xml.parse('<!DOCTYPE note SYSTEM "note.dtd"><note/>').doctype;
+
+     console.log(bare.systemId);     // empty string
+     console.log(external.systemId); // note.dtd
+     ```
 	*/
     readonly String systemId;
 };

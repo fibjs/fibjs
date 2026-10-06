@@ -1,24 +1,148 @@
-/*! @brief The CryptoKey class represents symmetric or asymmetric keys, each exposing different features */
+/*! @brief Handle to a Web Crypto key: key material plus algorithm, extractable flag and usages
+
+ CryptoKey represents a secret (symmetric) key, an asymmetric private key or an asymmetric
+ public key together with the metadata that controls how it may be used. The key material
+ never leaves the object except through `subtle.exportKey`, and only when `extractable` is
+ true.
+
+ Obtained from:
+ - `subtle.generateKey` — one CryptoKey for HMAC and a `{ publicKey, privateKey }` pair for
+   ECDSA, Ed25519 and ECDH;
+ - `subtle.importKey` — wraps existing raw, pkcs8, spki or JWK material.
+
+ CryptoKey is not constructible (`new CryptoKey()` throws) and its four properties are
+ read-only snapshots: mutating `algorithm` or `usages` has no effect on the key.
+
+ Concepts:
+
+ - **type**: 'secret' for HMAC keys, 'public' or 'private' for asymmetric keys.
+ - **algorithm**: an object describing the key: `{ name: 'ECDSA', namedCurve: 'P-256' }`,
+   `{ name: 'Ed25519' }`, `{ name: 'ECDH', namedCurve: 'P-256' }` or
+   `{ name: 'HMAC', hash: { name: 'SHA-256' }, length: 512 }`; `length` in bits appears on
+   generated HMAC keys.
+ - **extractable**: whether `subtle.exportKey` may serialize the key. Public keys are
+   always extractable; private and secret keys follow the extractable argument of
+   generateKey/importKey.
+ - **usages**: the operations the key accepts ('sign', 'verify', 'encrypt', 'decrypt',
+   'wrapKey', 'unwrapKey', 'deriveKey', 'deriveBits'). The order of the array is not
+   guaranteed, so treat it as a set. Using a key for an operation outside its usages
+   throws.
+
+ Example 1 — inspect the two halves of a generated pair:
+ ```JavaScript
+ const crypto = require('crypto');
+
+ (async () => {
+     const pair = await crypto.subtle.generateKey(
+         { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+
+     console.log(pair.privateKey.type, pair.privateKey.extractable); // private false
+     console.log(pair.publicKey.type, pair.publicKey.extractable);   // public true
+     console.log(JSON.stringify(pair.privateKey.algorithm));
+     // {"name":"ECDSA","namedCurve":"P-256"}
+     console.log(JSON.stringify(pair.publicKey.usages)); // ["verify"]
+ })();
+ ```
+
+ Example 2 — import a secret key and read its metadata:
+ ```JavaScript
+ const crypto = require('crypto');
+
+ (async () => {
+     const key = await crypto.subtle.importKey('raw', Buffer.from('key material'),
+         { name: 'HMAC', hash: 'SHA-256' }, true, ['sign', 'verify']);
+
+     console.log(key.type, key.extractable); // secret true
+     console.log(key.usages.slice().sort().join(',')); // sign,verify
+ })();
+ ```
+*/
 interface CryptoKey : object
 {
-    /*! @brief The type of the key; for secret (symmetric) keys this property is 'secret', for public (asymmetric) keys it is 'public' or 'private' */
+    /*! @brief The type of the key
+
+     One of 'secret' (an HMAC key), 'public' or 'private' (an asymmetric key). The property
+     is read-only; assigning to it has no effect.
+
+     Example - the two halves of a generated pair report different types:
+     ```JavaScript
+     const crypto = require('crypto');
+
+     (async () => {
+         const pair = await crypto.subtle.generateKey(
+             { name: 'Ed25519' }, false, ['sign', 'verify']);
+         console.log(pair.privateKey.type, pair.publicKey.type); // private public
+     })();
+     ```
+     */
     readonly String type;
 
-    /*! @brief The key's algorithm information */
+    /*! @brief The algorithm the key was created for, as a plain object
+
+     The shape depends on the key type: `{ name: 'ECDSA', namedCurve: 'P-256' }`,
+     `{ name: 'Ed25519' }`, `{ name: 'ECDH', namedCurve: 'P-256' }`, or
+     `{ name: 'HMAC', hash: { name: 'SHA-256' }, length: 512 }` where `length` is in bits
+     and only present on generated HMAC keys (an imported HMAC key reports just name and
+     hash). The value is a snapshot: modifying it does not change the key.
+
+     Example - the HMAC length resolved by generateKey is reported here:
+     ```JavaScript
+     const crypto = require('crypto');
+
+     (async () => {
+         const key = await crypto.subtle.generateKey(
+             { name: 'HMAC', hash: 'SHA-256', length: 256 }, false, ['sign']);
+         console.log(JSON.stringify(key.algorithm));
+         // {"name":"HMAC","hash":{"name":"SHA-256"},"length":256}
+     })();
+     ```
+     */
     readonly Object algorithm;
 
-    /*! @brief Whether the key can be exported */
+    /*! @brief Whether the key may be exported by `subtle.exportKey`
+
+     Public keys are always extractable; private and secret keys are extractable only when
+     the extractable argument of generateKey/importKey was true. Exporting a key whose
+     extractable is false rejects with `Key is not extractable` (Error 20024). The property
+     is read-only.
+
+     Example - a non-extractable secret key cannot be exported:
+     ```JavaScript
+     const crypto = require('crypto');
+
+     (async () => {
+         const key = await crypto.subtle.importKey('raw', Buffer.from('key material'),
+             { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+         console.log(key.extractable); // false
+
+         try {
+             await crypto.subtle.exportKey('raw', key);
+         } catch (err) {
+             console.log(err.message); // Key is not extractable
+         }
+     })();
+     ```
+     */
     readonly Boolean extractable;
 
-    /*! @brief The usages of the key, which can be an array of the following values:
-        - 'encrypt'
-        - 'decrypt'
-        - 'sign'
-        - 'verify'
-        - 'deriveKey'
-        - 'deriveBits'
-        - 'wrapKey'
-        - 'unwrapKey'
-    */
+    /*! @brief The operations the key is allowed to perform
+
+     Each entry is one of 'sign', 'verify', 'encrypt', 'decrypt', 'wrapKey', 'unwrapKey',
+     'deriveKey' and 'deriveBits'; only the subset the algorithm supports can be requested
+     (HMAC keys accept 'sign'/'verify', ECDSA and Ed25519 private keys accept 'sign', their
+     public keys 'verify', and ECDH private keys 'deriveKey'/'deriveBits'). The order is
+     not guaranteed and the property is read-only; using the key outside its usages throws.
+
+     Example - a key imported with both usages:
+     ```JavaScript
+     const crypto = require('crypto');
+
+     (async () => {
+         const key = await crypto.subtle.importKey('raw', Buffer.from('key material'),
+             { name: 'HMAC', hash: 'SHA-256' }, true, ['sign', 'verify']);
+         console.log(key.usages.slice().sort().join(',')); // sign,verify
+     })();
+     ```
+     */
     readonly String[] usages;
 };

@@ -4,35 +4,221 @@
 /// <reference path="../interface/RTCSessionDescription.d.ts" />
 /// <reference path="../interface/RTCIceCandidate.d.ts" />
 /**
- * @description RTCPeerConnection defines the methods and properties of a WebRTC connection
+ * @description RTCPeerConnection manages one WebRTC session: it negotiates the session through descriptions, gathers ICE candidates and hosts the data channels that carry the application data
  *
- * RTCPeerConnection is the core object of WebRTC connections, used to create WebRTC connections, manage connection states, and send and receive media data, etc.
+ *  The class is the entry point of the rtc module and the only object that talks to the network;
+ *  every data channel, session description and ICE candidate belongs to it. Use it whenever two
+ *  endpoints must talk directly - browser to browser, browser to fibjs, fibjs to fibjs - and a
+ *  central relay is not required.
  *
- * The RTCPeerConnection object is created as follows:
- * ```JavaScript
- * const rtc = require('rtc');
- * var pc = new rtc.RTCPeerConnection();
- * ```
+ *  Concepts:
+ *
+ *  - **Session description (SDP)**: a text document that describes the session, made of origin and
+ *    timing lines, the DTLS fingerprint, the ICE credentials, one `m=` line per data channel or
+ *    media stream and a candidate list. `createOffer`/`createAnswer` produce it and
+ *    `setLocalDescription`/`setRemoteDescription` apply it; it travels as a plain object with the
+ *    fields `type`, `sdp` and `usernameFragment` (see RTCSessionDescription for the wrapper class).
+ *  - **ICE**: after a description is applied, candidates are gathered from the local interfaces,
+ *    exchanged through the application and checked pair by pair; the first pair that succeeds
+ *    carries the DTLS handshake and then the SCTP association that data channels use. Two peers that
+ *    can reach each other need host candidates only; STUN and TURN servers extend the reach to NATed
+ *    peers.
+ *  - **Negotiation direction**: the offerer creates a data channel and calls `createOffer`, the
+ *    answerer applies the offer and calls `createAnswer`, and both sides then trickle their
+ *    candidates to each other. None of this is transported in band: descriptions and candidates must
+ *    be carried by the application through its own signaling channel.
+ *  - **Lifecycle**: `connectionState` reaches `connected` after ICE and DTLS complete, then the
+ *    channels emit `open` and carry messages. `close()` releases the session, the process hold
+ *    installed by a remote description and every channel of the connection.
+ *
+ *  Obtained from:
+ *  - `new rtc.RTCPeerConnection(options)` — creates a session, optionally with ICE servers,
+ *    certificates, a fixed local port and forced ICE credentials.
+ *
+ *  Example 1 — connect two peers in one process and echo a text message:
+ *  ```JavaScript
+ *  const rtc = require('rtc');
+ *  const coroutine = require('coroutine');
+ *
+ *  const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const toPc1 = [];
+ *  const toPc2 = [];
+ *  pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+ *  pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+ *  pc1.onconnectionstatechange = (ev) => console.log('pc1 is', ev.state);
+ *
+ *  const dc1 = pc1.createDataChannel('chat');
+ *  pc2.ondatachannel = (ev) => {
+ *      const dc2 = ev.channel;
+ *      dc2.onmessage = (mev) => dc2.send('echo: ' + mev.data);
+ *  };
+ *
+ *  let reply = null;
+ *  dc1.onopen = () => dc1.send('hello');
+ *  dc1.onmessage = (ev) => { reply = ev.data; };
+ *
+ *  pc1.createOffer()
+ *      .then((offer) => pc1.setLocalDescription(offer).then(() => pc2.setRemoteDescription(offer)))
+ *      .then(() => pc2.createAnswer())
+ *      .then((answer) => pc2.setLocalDescription(answer).then(() => pc1.setRemoteDescription(answer)))
+ *      .then(() => {
+ *          const deadline = Date.now() + 8000;
+ *          while (reply === null && Date.now() < deadline) {
+ *              while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+ *              while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+ *              coroutine.sleep(10);
+ *          }
+ *          pc1.close();
+ *          pc2.close();
+ *          if (reply !== 'echo: hello') {
+ *              console.error('the peers did not exchange a message');
+ *              process.exit(1);
+ *          }
+ *          console.log(reply); // echo: hello
+ *      })
+ *      .catch((err) => {
+ *          console.error(err.message);
+ *          process.exit(1);
+ *      });
+ *  ```
+ *
+ *  Example 2 — carry binary data and observe the channel close:
+ *  ```JavaScript
+ *  const rtc = require('rtc');
+ *  const coroutine = require('coroutine');
+ *
+ *  const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  const toPc1 = [];
+ *  const toPc2 = [];
+ *  pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+ *  pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+ *
+ *  const dc1 = pc1.createDataChannel('binary');
+ *  let dc2 = null;
+ *  let closed = false;
+ *  dc1.onclose = () => { closed = true; };
+ *  pc2.ondatachannel = (ev) => {
+ *      dc2 = ev.channel;
+ *      dc2.onmessage = (mev) => {
+ *          console.log('peer received a Buffer:', Buffer.isBuffer(mev.data));
+ *          dc2.close();
+ *      };
+ *  };
+ *
+ *  let reply = null;
+ *  dc1.onopen = () => dc1.send(Buffer.from([1, 2, 3]));
+ *  dc1.onmessage = (ev) => { reply = ev.data; };
+ *
+ *  pc1.createOffer()
+ *      .then((offer) => pc1.setLocalDescription(offer).then(() => pc2.setRemoteDescription(offer)))
+ *      .then(() => pc2.createAnswer())
+ *      .then((answer) => pc2.setLocalDescription(answer).then(() => pc1.setRemoteDescription(answer)))
+ *      .then(() => {
+ *          const deadline = Date.now() + 8000;
+ *          while (!closed && Date.now() < deadline) {
+ *              while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+ *              while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+ *              coroutine.sleep(10);
+ *          }
+ *          console.log('pc1 states:', pc1.connectionState,
+ *              pc1.iceConnectionState, pc1.signalingState);
+ *          // pc1 states: connected connected stable
+ *          pc1.close();
+ *          pc2.close();
+ *          if (!closed) {
+ *              console.error('the peer did not close the channel');
+ *              process.exit(1);
+ *          }
+ *      })
+ *      .catch((err) => {
+ *          console.error(err.message);
+ *          process.exit(1);
+ *      });
+ *  ```
+ *
+ *  Example 3 — inspect a locally generated offer and its candidates, without a peer:
+ *  ```JavaScript
+ *  const rtc = require('rtc');
+ *  const coroutine = require('coroutine');
+ *
+ *  const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+ *  pc.onicecandidate = (ev) => {
+ *      if (ev.candidate) console.log('candidate', ev.candidate.type, ev.candidate.transport);
+ *  };
+ *  const dc = pc.createDataChannel('chat');
+ *  console.log('id before open:', dc.id); // id before open: 65535
+ *
+ *  pc.createOffer().then((offer) => {
+ *      console.log('offer type:', offer.type); // offer type: offer
+ *      console.log('plain object:', !(offer instanceof rtc.RTCSessionDescription));
+ *      // plain object: true
+ *      console.log('first line:', offer.sdp.split('\r\n')[0]); // first line: v=0
+ *      return pc.setLocalDescription(offer);
+ *  }).then(() => {
+ *      const deadline = Date.now() + 5000;
+ *      while (pc.iceGatheringState !== 'complete' && Date.now() < deadline)
+ *          coroutine.sleep(10);
+ *      console.log('gathering:', pc.iceGatheringState); // gathering: complete
+ *      console.log('signaling:', pc.signalingState); // signaling: have-local-offer
+ *      pc.close();
+ *  }).catch((err) => {
+ *      console.error(err.message);
+ *      process.exit(1);
+ *  });
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - fibjs exposes data channels only: there is no `addTrack`, `addTransceiver` or media API, so
+ *    the `track` event never fires.
+ *  - The state properties and descriptions are plain values rather than the MDN object graph: see
+ *    each property for the exact shape.
+ *  - A connection with a remote description holds the process alive until `close()`; `close()` on a
+ *    dead connection is safe and idempotent.
  *
  */
 declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description constructs a new WebRTC connection object and initializes the basic parameters
      *
-     *      The options parameter is an object containing the following properties:
-     *         - certificateType: certificate type, optional values are 'rsa', 'ecdsa', default is 'ecdsa'
-     *         - iceTransportPolicy: ICE transport policy, optional values are 'all', 'relay', default is 'all'
-     *         - iceServers: list of ICE servers used for NAT traversal, in the format [{urls: 'stun:stun.l.google.com:19302'}]
-     *         - maxMessageSize: maximum message size, used to specify the maximum message size of the data channel
-     *         - enableIceUdpMux: whether to enable ICE UDP multiplexing
-     *         - disableFingerprintVerification: whether to disable fingerprint verification
-     *         - bindAddress: binding address, used to specify the local IP address
-     *         - port: local port number, used to specify the local port
-     *         - iceUfrag: ICE username
-     *         - icePwd: ICE password
-     *         - certPem: certificate in PEM format
-     *         - keyPem: private key in PEM format
-     *         - keyPass: private key passphrase
+     *      Creates the underlying peer connection immediately: the DTLS certificate and the ICE agent
+     *      are prepared at construction, before any description exists. The options object accepts the
+     *      following fields; fields that are not given keep the library default:
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
+     *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
+     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
+     *          "disableFingerprintVerification": false, // skip DTLS verification (insecure, tests only)
+     *          "bindAddress": "",            // local address to bind, empty binds every interface
+     *          "port": 0,                    // fixed local UDP port, 0 uses the ephemeral range
+     *          "iceUfrag": "",               // forced local ICE username sent in the description
+     *          "icePwd": "",                 // forced local ICE password, used with iceUfrag
+     *          "certPem": "",                // certificate as PEM text or as a path to a PEM file
+     *          "keyPem": "",                 // private key as PEM text or as a path to a PEM file
+     *          "keyPass": ""                 // passphrase of an encrypted private key file
+     *      })
+     *      ```
+     *
+     *      When `iceServers` is omitted the constructor registers the public server
+     *      `stun:stun.l.google.com:19302`, so a session may try to reach that host; pass `iceServers: []`
+     *      for a fully local connection. In an entry `urls` is a string or an array of strings and
+     *      `username`/`credential` are sent when the URL is a TURN address. `port` fixes the local UDP
+     *      port (otherwise the library picks one between 1024 and 65535) and `bindAddress` restricts the
+     *      interfaces used for candidate gathering.
+     *
+     *      `certPem` and `keyPem` accept either the PEM text or a path to a PEM file and must be given
+     *      together: giving only one of them, or material that cannot be read, aborts the process in the
+     *      underlying library instead of raising a JavaScript error. `iceUfrag`/`icePwd` override the
+     *      generated ICE credentials and are needed when answering a peer whose description is built by
+     *      the application itself (see rtc.listen).
      *
      *      @param options initialization parameters
      *
@@ -42,15 +228,39 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description creates a new channel linked to a remote peer
      *
-     *      Creates a new channel linked to a remote peer through which any type of data can be transmitted. This is useful for reverse channel content such as images, file transfers, text chat, game update packets, etc.
+     *      Creates a data channel on this connection and, unless it is negotiated, announces it to the
+     *      peer, where it appears as a `datachannel` event. A channel can carry arbitrary data: file
+     *      transfers, text chat, game update packets and so on.
      *
-     *      The options parameter is an object containing the following properties:
-     *         - ordered: whether the order of packets is guaranteed, default is true
-     *         - maxPacketLifeTime: maximum packet lifetime, default is 0
-     *         - maxRetransmits: maximum number of packet retransmits, default is 0
-     *         - protocol: channel protocol, default is ''
-     *         - negotiated: whether it is a negotiated channel, default is false
-     *         - id: channel ID, default is 0
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "ordered": true,        // false allows unordered delivery and lowers latency
+     *          "maxPacketLifeTime": 0, // milliseconds a message may be retransmitted, 0 disables it
+     *          "maxRetransmits": 0,    // retransmissions allowed per message, 0 disables them
+     *          "protocol": "",         // subprotocol name exposed to the peer
+     *          "negotiated": false,    // true creates the channel without in-band negotiation
+     *          "id": 0                 // channel id, applied by fibjs even when negotiated is false
+     *      })
+     *      ```
+     *
+     *      The standard treats `maxPacketLifeTime` and `maxRetransmits` as mutually exclusive; fibjs
+     *      forwards both when both are given and the library applies its own precedence. An explicit
+     *      `id` is returned by `RTCDataChannel.id` immediately, while a channel without one reports
+     *      65535 until the id is negotiated. Wrong option types throw 20005.
+     *
+     *      Example — create a channel and inspect it before the connection starts:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *
+     *      const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const dc = pc.createDataChannel('chat', { ordered: false, protocol: 'json' });
+     *      console.log(dc.label);    // chat
+     *      console.log(dc.protocol); // json
+     *      console.log(dc.id);       // 65535: no id has been negotiated yet
+     *      pc.close();
+     *      ```
      *
      *      @param label channel name
      *      @param options channel parameters
@@ -62,7 +272,10 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescription(): Promise<void>;
@@ -70,7 +283,10 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescriptionSync(): void;
@@ -78,7 +294,10 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescriptionAsync(): Promise<void>;
@@ -86,9 +305,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -97,9 +324,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -108,9 +343,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -119,9 +362,16 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -130,9 +380,16 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -141,51 +398,88 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
     setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -194,9 +488,15 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createOffer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -205,9 +505,15 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createOfferSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -216,9 +522,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createOfferAsync(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -227,9 +538,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createAnswer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -238,9 +554,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     createAnswerSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -251,7 +572,73 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -261,7 +648,73 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -271,7 +724,73 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -279,47 +798,100 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     getStatsAsync(): Promise<FIBJS.GeneralObject>;
 
     /**
-     * @description closes the connection; this method closes the connection and releases all resources
+     * @description closes the connection and releases all resources
+     *
+     *      Closes the peer connection: channels that are not open yet are closed, the process hold
+     *      installed by a remote description is released and the state moves to `closed`, which is
+     *      announced by `connectionstatechange`. The call returns immediately and may be repeated; a
+     *      closed connection cannot be reused or reopened.
+     *
      */
     close(): void;
 
     /**
-     * @description gets the connection state, returns a connection state string, possible values are: 'new', 'connecting', 'connected', 'disconnected', 'failed', 'closed'
+     * @description gets the connection state of the peer connection
+     *
+     *      Possible values are `new`, `connecting`, `connected`, `disconnected`, `failed` and `closed`.
+     *      The value read right after `close()` may still be `connected` until the transition event is
+     *      processed; watch `connectionstatechange` for the effective changes.
+     *
      */
     readonly connectionState: string;
 
     /**
-     * @description gets the ICE connection state, returns an ICE connection state string, possible values are: 'new', 'checking', 'connected', 'completed', 'failed', 'disconnected', 'closed'
+     * @description gets the ICE connection state
+     *
+     *      Possible values are `new`, `checking`, `connected`, `completed`, `failed`, `disconnected`
+     *      and `closed`. It follows the connectivity checks of the candidate pairs and is announced by
+     *      `iceconnectionstatechange`.
+     *
      */
     readonly iceConnectionState: string;
 
     /**
-     * @description gets the ICE gathering state, returns an ICE gathering state string, possible values are: 'new', 'gathering', 'complete'
+     * @description gets the ICE gathering state
+     *
+     *      Possible values are `new`, `in-progress` and `complete`. Gathering normally completes within
+     *      a fraction of a second when only host candidates are needed; the transport already tries the
+     *      gathered candidates while more arrive (trickle ICE). The change is announced by
+     *      `icegatheringstatechange`.
+     *
      */
     readonly iceGatheringState: string;
 
     /**
-     * @description gets the local description, returns the local description object
+     * @description gets the local description of the session
+     *
+     *      Returns a plain object with the fields `type`, `sdp` and, when the description has one,
+     *      `usernameFragment`; it is `undefined` before a local description is applied. The value is not
+     *      an RTCSessionDescription instance, wrap it with `new rtc.RTCSessionDescription(...)` when a
+     *      class instance is required. The `sdp` is regenerated by the library, so it is the effective
+     *      description rather than the exact text that was passed in.
+     *
      */
     readonly localDescription: FIBJS.GeneralObject;
 
     /**
-     * @description gets the remote description, returns the remote description object
+     * @description gets the remote description of the session
+     *
+     *      Returns a plain object with the fields `type`, `sdp` and, when the description has one,
+     *      `usernameFragment`; it is `undefined` until `setRemoteDescription` succeeds. Like
+     *      `localDescription` it is a plain value, not an RTCSessionDescription instance.
+     *
      */
     readonly remoteDescription: FIBJS.GeneralObject;
 
     /**
-     * @description gets the remote fingerprint, returns the remote fingerprint object
+     * @description gets the DTLS certificate fingerprint of the remote peer
+     *
+     *      Returns a plain object `{ algorithm, fingerprint }`, for example
+     *      `{ algorithm: 'SHA-256', fingerprint: '4A:...' }`. Before a remote description is applied the
+     *      object still exists but holds the library default (`algorithm: 'SHA-1'` and an empty
+     *      fingerprint), and it only becomes meaningful once the DTLS transport is connected. The
+     *      member is a fibjs extension: MDN exposes the remote certificates through
+     *      `RTCPeerConnection.getRemoteCertificates()`, which fibjs does not implement.
+     *
      */
     readonly remoteFingerprint: FIBJS.GeneralObject;
 
     /**
-     * @description gets the signaling state, returns a signaling state string, possible values are: 'stable', 'have-local-offer', 'have-remote-offer', 'have-local-pranswer', 'have-remote-pranswer', 'closed'
+     * @description gets the signaling state of the connection
+     *
+     *      Possible values are `stable`, `have-local-offer`, `have-remote-offer`, `have-local-pranswer`
+     *      and `have-remote-pranswer`. Any other value of the underlying library is reported as
+     *      `unknown`; in particular fibjs never reports `closed`, because closing the connection does
+     *      not reset the signaling state.
+     *
      */
     readonly signalingState: string;
 
     /**
      * @description connection state change event
+     *
+     *      Fired for every transition of `connectionState`; the first firing is the move to
+     *      `connecting`, the last one is the move to `closed`. The event object carries the new state
+     *      in its `state` property, which equals the property value at that moment.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -343,6 +915,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description connection state change event
+     *
+     *      Fired for every transition of `connectionState`; the first firing is the move to
+     *      `connecting`, the last one is the move to `closed`. The event object carries the new state
+     *      in its `state` property, which equals the property value at that moment.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -350,6 +927,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description data channel event
+     *
+     *      Fired when the peer opens a channel in band; the event object carries it in its `channel`
+     *      property as an RTCDataChannel. A channel that was created locally with `negotiated: true`
+     *      is not announced in band, so it does not fire this event on the peer side.
+     *
      *      @param ev the event object, carrying the data channel in its channel property
      *
      */
@@ -373,6 +955,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description data channel event
+     *
+     *      Fired when the peer opens a channel in band; the event object carries it in its `channel`
+     *      property as an RTCDataChannel. A channel that was created locally with `negotiated: true`
+     *      is not announced in band, so it does not fire this event on the peer side.
+     *
      *      @param ev the event object, carrying the data channel in its channel property
      *
      */
@@ -380,6 +967,15 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE candidate event
+     *
+     *      Fired for every candidate gathered for the local end, in the order the interfaces are
+     *      enumerated. The event object carries the candidate in its `candidate` property as a plain
+     *      object with the fields `candidate`, `sdpMid`, `priority`, `type` and, once the candidate is
+     *      resolved, `transport`, `address` and `port`. It is not an RTCIceCandidate instance, although
+     *      the constructor accepts it: `new rtc.RTCIceCandidate(ev.candidate)` works. Use
+     *      `iceGatheringState === 'complete'` or a timeout to detect the end of gathering, because
+     *      fibjs never delivers an end-of-candidates event.
+     *
      *      @param ev the event object, carrying the candidate
      *
      */
@@ -403,6 +999,15 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE candidate event
+     *
+     *      Fired for every candidate gathered for the local end, in the order the interfaces are
+     *      enumerated. The event object carries the candidate in its `candidate` property as a plain
+     *      object with the fields `candidate`, `sdpMid`, `priority`, `type` and, once the candidate is
+     *      resolved, `transport`, `address` and `port`. It is not an RTCIceCandidate instance, although
+     *      the constructor accepts it: `new rtc.RTCIceCandidate(ev.candidate)` works. Use
+     *      `iceGatheringState === 'complete'` or a timeout to detect the end of gathering, because
+     *      fibjs never delivers an end-of-candidates event.
+     *
      *      @param ev the event object, carrying the candidate
      *
      */
@@ -410,6 +1015,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE connection state change event
+     *
+     *      Fired for every transition of `iceConnectionState`, from `checking` through `connected` to
+     *      the final state of the connection. The event object carries the new state in its `state`
+     *      property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -433,6 +1043,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE connection state change event
+     *
+     *      Fired for every transition of `iceConnectionState`, from `checking` through `connected` to
+     *      the final state of the connection. The event object carries the new state in its `state`
+     *      property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -440,6 +1055,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE gathering state change event
+     *
+     *      Fired for every transition of `iceGatheringState`. The event object carries the new state in
+     *      its `state` property; because the event is dispatched asynchronously, the property may
+     *      already show the final value (`complete`) when the handler runs.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -463,13 +1083,25 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description ICE gathering state change event
+     *
+     *      Fired for every transition of `iceGatheringState`. The event object carries the new state in
+     *      its `state` property; because the event is dispatched asynchronously, the property may
+     *      already show the final value (`complete`) when the handler runs.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
     onicegatheringstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description local description change event
+     * @description local description event
+     *
+     *      Fired whenever the library produces the local description, that is for the offer of the
+     *      offering side and for the answer of the answering side. The event object carries the
+     *      description in its `description` property, in the same shape as `localDescription`. The
+     *      event is a fibjs extension kept for compatibility with the earlier WebRTC API; current MDN
+     *      does not define it.
+     *
      *      @param ev the event object, carrying the local description
      *
      */
@@ -492,7 +1124,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     prependOnceListener(event: "localdescription", listener: (ev: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description local description change event
+     * @description local description event
+     *
+     *      Fired whenever the library produces the local description, that is for the offer of the
+     *      offering side and for the answer of the answering side. The event object carries the
+     *      description in its `description` property, in the same shape as `localDescription`. The
+     *      event is a fibjs extension kept for compatibility with the earlier WebRTC API; current MDN
+     *      does not define it.
+     *
      *      @param ev the event object, carrying the local description
      *
      */
@@ -500,6 +1139,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description signaling state change event
+     *
+     *      Fired for every transition of `signalingState`, for example when a local offer moves the
+     *      connection to `have-local-offer` and the remote answer returns it to `stable`. The event
+     *      object carries the new state in its `state` property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -523,13 +1167,22 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     /**
      * @description signaling state change event
+     *
+     *      Fired for every transition of `signalingState`, for example when a local offer moves the
+     *      connection to `have-local-offer` and the remote answer returns it to `stable`. The event
+     *      object carries the new state in its `state` property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
     onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description media track event
+     * @description media track event, reserved and never emitted by fibjs
+     *
+     *      The event exists for interface compatibility only: fibjs exposes data channels, there is no
+     *      addTrack/addTransceiver API and therefore no remote media track can ever be reported.
+     *
      */
     on(event: "track", listener: ()=>void): this;
 
@@ -550,7 +1203,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     prependOnceListener(event: "track", listener: ()=>void): this;
 
     /**
-     * @description media track event
+     * @description media track event, reserved and never emitted by fibjs
+     *
+     *      The event exists for interface compatibility only: fibjs exposes data channels, there is no
+     *      addTrack/addTransceiver API and therefore no remote media track can ever be reported.
+     *
      */
     ontrack: (()=>void) | null;
 
@@ -605,20 +1262,42 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description constructs a new WebRTC connection object and initializes the basic parameters
      *
-     *      The options parameter is an object containing the following properties:
-     *         - certificateType: certificate type, optional values are 'rsa', 'ecdsa', default is 'ecdsa'
-     *         - iceTransportPolicy: ICE transport policy, optional values are 'all', 'relay', default is 'all'
-     *         - iceServers: list of ICE servers used for NAT traversal, in the format [{urls: 'stun:stun.l.google.com:19302'}]
-     *         - maxMessageSize: maximum message size, used to specify the maximum message size of the data channel
-     *         - enableIceUdpMux: whether to enable ICE UDP multiplexing
-     *         - disableFingerprintVerification: whether to disable fingerprint verification
-     *         - bindAddress: binding address, used to specify the local IP address
-     *         - port: local port number, used to specify the local port
-     *         - iceUfrag: ICE username
-     *         - icePwd: ICE password
-     *         - certPem: certificate in PEM format
-     *         - keyPem: private key in PEM format
-     *         - keyPass: private key passphrase
+     *      Creates the underlying peer connection immediately: the DTLS certificate and the ICE agent
+     *      are prepared at construction, before any description exists. The options object accepts the
+     *      following fields; fields that are not given keep the library default:
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
+     *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
+     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
+     *          "disableFingerprintVerification": false, // skip DTLS verification (insecure, tests only)
+     *          "bindAddress": "",            // local address to bind, empty binds every interface
+     *          "port": 0,                    // fixed local UDP port, 0 uses the ephemeral range
+     *          "iceUfrag": "",               // forced local ICE username sent in the description
+     *          "icePwd": "",                 // forced local ICE password, used with iceUfrag
+     *          "certPem": "",                // certificate as PEM text or as a path to a PEM file
+     *          "keyPem": "",                 // private key as PEM text or as a path to a PEM file
+     *          "keyPass": ""                 // passphrase of an encrypted private key file
+     *      })
+     *      ```
+     *
+     *      When `iceServers` is omitted the constructor registers the public server
+     *      `stun:stun.l.google.com:19302`, so a session may try to reach that host; pass `iceServers: []`
+     *      for a fully local connection. In an entry `urls` is a string or an array of strings and
+     *      `username`/`credential` are sent when the URL is a TURN address. `port` fixes the local UDP
+     *      port (otherwise the library picks one between 1024 and 65535) and `bindAddress` restricts the
+     *      interfaces used for candidate gathering.
+     *
+     *      `certPem` and `keyPem` accept either the PEM text or a path to a PEM file and must be given
+     *      together: giving only one of them, or material that cannot be read, aborts the process in the
+     *      underlying library instead of raising a JavaScript error. `iceUfrag`/`icePwd` override the
+     *      generated ICE credentials and are needed when answering a peer whose description is built by
+     *      the application itself (see rtc.listen).
      *
      *      @param options initialization parameters
      *
@@ -628,15 +1307,39 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description creates a new channel linked to a remote peer
      *
-     *      Creates a new channel linked to a remote peer through which any type of data can be transmitted. This is useful for reverse channel content such as images, file transfers, text chat, game update packets, etc.
+     *      Creates a data channel on this connection and, unless it is negotiated, announces it to the
+     *      peer, where it appears as a `datachannel` event. A channel can carry arbitrary data: file
+     *      transfers, text chat, game update packets and so on.
      *
-     *      The options parameter is an object containing the following properties:
-     *         - ordered: whether the order of packets is guaranteed, default is true
-     *         - maxPacketLifeTime: maximum packet lifetime, default is 0
-     *         - maxRetransmits: maximum number of packet retransmits, default is 0
-     *         - protocol: channel protocol, default is ''
-     *         - negotiated: whether it is a negotiated channel, default is false
-     *         - id: channel ID, default is 0
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "ordered": true,        // false allows unordered delivery and lowers latency
+     *          "maxPacketLifeTime": 0, // milliseconds a message may be retransmitted, 0 disables it
+     *          "maxRetransmits": 0,    // retransmissions allowed per message, 0 disables them
+     *          "protocol": "",         // subprotocol name exposed to the peer
+     *          "negotiated": false,    // true creates the channel without in-band negotiation
+     *          "id": 0                 // channel id, applied by fibjs even when negotiated is false
+     *      })
+     *      ```
+     *
+     *      The standard treats `maxPacketLifeTime` and `maxRetransmits` as mutually exclusive; fibjs
+     *      forwards both when both are given and the library applies its own precedence. An explicit
+     *      `id` is returned by `RTCDataChannel.id` immediately, while a channel without one reports
+     *      65535 until the id is negotiated. Wrong option types throw 20005.
+     *
+     *      Example — create a channel and inspect it before the connection starts:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *
+     *      const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const dc = pc.createDataChannel('chat', { ordered: false, protocol: 'json' });
+     *      console.log(dc.label);    // chat
+     *      console.log(dc.protocol); // json
+     *      console.log(dc.id);       // 65535: no id has been negotiated yet
+     *      pc.close();
+     *      ```
      *
      *      @param label channel name
      *      @param options channel parameters
@@ -648,7 +1351,10 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescription(): Promise<void>;
@@ -656,7 +1362,10 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescriptionSync(): void;
@@ -664,7 +1373,10 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      The no-argument overload resolves immediately and changes nothing; it exists for API
+     *      compatibility with the standard, where it would apply an implicitly created offer or answer.
+     *      fibjs requires the description produced by `createOffer` to be passed explicitly, see the
+     *      other overload.
      *
      */
     setLocalDescriptionAsync(): Promise<void>;
@@ -672,9 +1384,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -683,9 +1403,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -694,9 +1422,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      This method specifies the properties of the local end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the local description of the session. Only an `offer` has an effect: the library
+     *      takes the offer created by `createOffer`, announces it to the peer and starts gathering
+     *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
+     *      resolves without changing anything, because the library creates and applies the answer when
+     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
+     *      data channel or track) rejects with 20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -705,9 +1441,16 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -716,9 +1459,16 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
@@ -727,51 +1477,88 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the remote description associated with the connection
      *
-     *      This method specifies the properties of the remote end of the connection, including media formats. The method takes a single parameter (session description) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Applies the description received from the peer: the SDP is parsed and its ICE credentials,
+     *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
+     *      installs a hold on the process, so the connection keeps running until `close()` is called.
+     *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
+     *      20024.
      *
-     * description may be an RTCSessionDescription object, or an options object the RTCSessionDescription constructor accepts (type, sdp).
+     *      The description may be an RTCSessionDescription object, or a plain object with the same
+     *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
+     *      (both fields are then required).
+     *
      *      @param description the session description
      *
      */
     setRemoteDescriptionAsync(description: Class_RTCSessionDescription | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidate(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidateSync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): void;
 
     /**
-     * @description adds an ICE candidate
+     * @description adds an ICE candidate received from the remote peer
      *
-     *      This method adds an ICE candidate to the remote end of the connection. The method takes a single parameter (ICE candidate) and returns a Promise that is fulfilled once the candidate is changed asynchronously.
+     *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
+     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      that arrive early must be queued by the application until the description is applied. The
+     *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
+     *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
+     *      `address` and `port`.
      *
-     * candidate may be an RTCIceCandidate object, or an options object the RTCIceCandidate constructor accepts (candidate, sdpMid, sdpMLineIndex).
+     *      The candidate may be an RTCIceCandidate object, or a plain object with the same `candidate`
+     *      and `sdpMid` fields, which is converted through the RTCIceCandidate constructor (both fields
+     *      are then required, and the MDN `sdpMLineIndex` field is ignored).
+     *
      *      @param candidate the ICE candidate
      *
      */
     addIceCandidateAsync(candidate: Class_RTCIceCandidate | FIBJS.GeneralObject): Promise<void>;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -780,9 +1567,15 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     createOffer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -791,9 +1584,15 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     createOfferSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description creates an Offer description
+     * @description creates an Offer description used to initiate a connection
      *
-     *      This method creates an Offer description used to initiate a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local offer once the library has generated it. The offer is a plain object
+     *      of the shape `{ type: 'offer', sdp, usernameFragment }`, not an RTCSessionDescription
+     *      instance; wrap it with `new rtc.RTCSessionDescription(offer)` when the signaling channel
+     *      needs a class instance. The connection must have something to negotiate - at least one data
+     *      channel - otherwise the returned promise never settles and keeps the process alive. The
+     *      offer is generated once: later calls resolve with the same description. The options object is
+     *      accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -802,9 +1601,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     createOfferAsync(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -813,9 +1617,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     createAnswer(options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -824,9 +1633,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     createAnswerSync(options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description creates an Answer description
+     * @description creates an Answer description used to answer a connection
      *
-     *      This method creates an Answer description used to answer a connection. The method takes an optional parameter (options object) and returns a Promise that is fulfilled once the description is changed asynchronously.
+     *      Resolves with the local answer, a plain object of the same shape as the offer
+     *      (`{ type: 'answer', sdp, usernameFragment }`). The answer exists only after the peer's offer
+     *      has been applied with `setRemoteDescription`: the library generates it at that moment, so a
+     *      call made before it only registers a waiter and the promise never settles on a connection
+     *      that has not seen an offer. Repeated calls resolve with the same answer. The options object
+     *      is accepted for compatibility with the standard but is ignored.
      *
      *      @param options options object, not yet supported, only for compatibility
      *      @return returns the description object
@@ -837,7 +1651,73 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -847,7 +1727,73 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -857,7 +1803,73 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description gets the statistics of the connection
      *
-     *      This method gets the statistics of the connection and returns a Promise that is fulfilled once the statistics are ready.
+     *      Resolves with an NMap - a Map subclass, so use `size`, `get(id)` and `entries()` rather than
+     *      property access - that holds four plain objects:
+     *         - `RTCIceCandidate_<local id>` - the selected local candidate, `type: 'localcandidate'`,
+     *           with `candidateType`, `ip` and `port`;
+     *         - `RTCIceCandidate_<remote id>` - the selected remote candidate, `type: 'remotecandidate'`;
+     *         - `RTCIceCandidatePair_<local id>_<remote id>` - the selected pair, with
+     *           `state: 'succeeded'`, `nominated`, `writable`, `bytesSent`, `bytesReceived`,
+     *           `totalRoundTripTime` and `currentRoundTripTime`;
+     *         - `RTCTransport_0_1` - the transport, with `dtlsState: 'connected'`,
+     *           `selectedCandidatePairId` and `selectedCandidatePairChanges`.
+     *
+     *      Every entry also carries `id`, `type` and a `timestamp` in milliseconds. The counters start
+     *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
+     *      completes.
+     *
+     *      A candidate pair must have been selected before the call: invoking this method before
+     *      `connectionState` becomes `connected` aborts the process inside the underlying library (an
+     *      uncaught C++ `std::bad_optional_access` that JavaScript cannot catch), so call it only after
+     *      the connection is up.
+     *
+     *      Example — inspect the statistics of a connected pair:
+     *      ```JavaScript
+     *      const rtc = require('rtc');
+     *      const coroutine = require('coroutine');
+     *
+     *      const pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+     *      const toPc1 = [];
+     *      const toPc2 = [];
+     *      pc1.onicecandidate = (ev) => { if (ev.candidate) toPc2.push(ev.candidate); };
+     *      pc2.onicecandidate = (ev) => { if (ev.candidate) toPc1.push(ev.candidate); };
+     *      let connected = false;
+     *      pc1.onconnectionstatechange = (ev) => { connected = ev.state === 'connected'; };
+     *
+     *      pc1.createDataChannel('stats');
+     *      pc1.createOffer()
+     *          .then((offer) => pc1.setLocalDescription(offer)
+     *              .then(() => pc2.setRemoteDescription(offer)))
+     *          .then(() => pc2.createAnswer())
+     *          .then((answer) => pc2.setLocalDescription(answer)
+     *              .then(() => pc1.setRemoteDescription(answer)))
+     *          .then(() => {
+     *              const deadline = Date.now() + 8000;
+     *              while (!connected && Date.now() < deadline) {
+     *                  while (toPc1.length) pc1.addIceCandidate(toPc1.shift());
+     *                  while (toPc2.length) pc2.addIceCandidate(toPc2.shift());
+     *                  coroutine.sleep(10);
+     *              }
+     *              if (!connected) throw new Error('the peers did not connect');
+     *              return pc1.getStats();
+     *          })
+     *          .then((stats) => {
+     *              const types = [];
+     *              for (const stat of stats.values()) types.push(stat.type);
+     *              console.log('entries:', stats.size, types.sort().join(', '));
+     *              // entries: 4 candidate-pair, localcandidate, remotecandidate, transport
+     *              const pairId = Array.from(stats.keys())
+     *                  .find((id) => id.startsWith('RTCIceCandidatePair_'));
+     *              console.log('pair state:', stats.get(pairId).state); // pair state: succeeded
+     *              pc1.close();
+     *              pc2.close();
+     *          })
+     *          .catch((err) => {
+     *              console.error(err.message);
+     *              process.exit(1);
+     *          });
+     *      ```
      *
      *      @return returns the statistics
      *
@@ -865,47 +1877,100 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     getStatsAsync(): Promise<FIBJS.GeneralObject>;
 
     /**
-     * @description closes the connection; this method closes the connection and releases all resources
+     * @description closes the connection and releases all resources
+     *
+     *      Closes the peer connection: channels that are not open yet are closed, the process hold
+     *      installed by a remote description is released and the state moves to `closed`, which is
+     *      announced by `connectionstatechange`. The call returns immediately and may be repeated; a
+     *      closed connection cannot be reused or reopened.
+     *
      */
     close(): void;
 
     /**
-     * @description gets the connection state, returns a connection state string, possible values are: 'new', 'connecting', 'connected', 'disconnected', 'failed', 'closed'
+     * @description gets the connection state of the peer connection
+     *
+     *      Possible values are `new`, `connecting`, `connected`, `disconnected`, `failed` and `closed`.
+     *      The value read right after `close()` may still be `connected` until the transition event is
+     *      processed; watch `connectionstatechange` for the effective changes.
+     *
      */
     readonly connectionState: string;
 
     /**
-     * @description gets the ICE connection state, returns an ICE connection state string, possible values are: 'new', 'checking', 'connected', 'completed', 'failed', 'disconnected', 'closed'
+     * @description gets the ICE connection state
+     *
+     *      Possible values are `new`, `checking`, `connected`, `completed`, `failed`, `disconnected`
+     *      and `closed`. It follows the connectivity checks of the candidate pairs and is announced by
+     *      `iceconnectionstatechange`.
+     *
      */
     readonly iceConnectionState: string;
 
     /**
-     * @description gets the ICE gathering state, returns an ICE gathering state string, possible values are: 'new', 'gathering', 'complete'
+     * @description gets the ICE gathering state
+     *
+     *      Possible values are `new`, `in-progress` and `complete`. Gathering normally completes within
+     *      a fraction of a second when only host candidates are needed; the transport already tries the
+     *      gathered candidates while more arrive (trickle ICE). The change is announced by
+     *      `icegatheringstatechange`.
+     *
      */
     readonly iceGatheringState: string;
 
     /**
-     * @description gets the local description, returns the local description object
+     * @description gets the local description of the session
+     *
+     *      Returns a plain object with the fields `type`, `sdp` and, when the description has one,
+     *      `usernameFragment`; it is `undefined` before a local description is applied. The value is not
+     *      an RTCSessionDescription instance, wrap it with `new rtc.RTCSessionDescription(...)` when a
+     *      class instance is required. The `sdp` is regenerated by the library, so it is the effective
+     *      description rather than the exact text that was passed in.
+     *
      */
     readonly localDescription: FIBJS.GeneralObject;
 
     /**
-     * @description gets the remote description, returns the remote description object
+     * @description gets the remote description of the session
+     *
+     *      Returns a plain object with the fields `type`, `sdp` and, when the description has one,
+     *      `usernameFragment`; it is `undefined` until `setRemoteDescription` succeeds. Like
+     *      `localDescription` it is a plain value, not an RTCSessionDescription instance.
+     *
      */
     readonly remoteDescription: FIBJS.GeneralObject;
 
     /**
-     * @description gets the remote fingerprint, returns the remote fingerprint object
+     * @description gets the DTLS certificate fingerprint of the remote peer
+     *
+     *      Returns a plain object `{ algorithm, fingerprint }`, for example
+     *      `{ algorithm: 'SHA-256', fingerprint: '4A:...' }`. Before a remote description is applied the
+     *      object still exists but holds the library default (`algorithm: 'SHA-1'` and an empty
+     *      fingerprint), and it only becomes meaningful once the DTLS transport is connected. The
+     *      member is a fibjs extension: MDN exposes the remote certificates through
+     *      `RTCPeerConnection.getRemoteCertificates()`, which fibjs does not implement.
+     *
      */
     readonly remoteFingerprint: FIBJS.GeneralObject;
 
     /**
-     * @description gets the signaling state, returns a signaling state string, possible values are: 'stable', 'have-local-offer', 'have-remote-offer', 'have-local-pranswer', 'have-remote-pranswer', 'closed'
+     * @description gets the signaling state of the connection
+     *
+     *      Possible values are `stable`, `have-local-offer`, `have-remote-offer`, `have-local-pranswer`
+     *      and `have-remote-pranswer`. Any other value of the underlying library is reported as
+     *      `unknown`; in particular fibjs never reports `closed`, because closing the connection does
+     *      not reset the signaling state.
+     *
      */
     readonly signalingState: string;
 
     /**
      * @description connection state change event
+     *
+     *      Fired for every transition of `connectionState`; the first firing is the move to
+     *      `connecting`, the last one is the move to `closed`. The event object carries the new state
+     *      in its `state` property, which equals the property value at that moment.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -913,6 +1978,11 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description data channel event
+     *
+     *      Fired when the peer opens a channel in band; the event object carries it in its `channel`
+     *      property as an RTCDataChannel. A channel that was created locally with `negotiated: true`
+     *      is not announced in band, so it does not fire this event on the peer side.
+     *
      *      @param ev the event object, carrying the data channel in its channel property
      *
      */
@@ -920,6 +1990,15 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description ICE candidate event
+     *
+     *      Fired for every candidate gathered for the local end, in the order the interfaces are
+     *      enumerated. The event object carries the candidate in its `candidate` property as a plain
+     *      object with the fields `candidate`, `sdpMid`, `priority`, `type` and, once the candidate is
+     *      resolved, `transport`, `address` and `port`. It is not an RTCIceCandidate instance, although
+     *      the constructor accepts it: `new rtc.RTCIceCandidate(ev.candidate)` works. Use
+     *      `iceGatheringState === 'complete'` or a timeout to detect the end of gathering, because
+     *      fibjs never delivers an end-of-candidates event.
+     *
      *      @param ev the event object, carrying the candidate
      *
      */
@@ -927,6 +2006,11 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description ICE connection state change event
+     *
+     *      Fired for every transition of `iceConnectionState`, from `checking` through `connected` to
+     *      the final state of the connection. The event object carries the new state in its `state`
+     *      property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
@@ -934,13 +2018,25 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description ICE gathering state change event
+     *
+     *      Fired for every transition of `iceGatheringState`. The event object carries the new state in
+     *      its `state` property; because the event is dispatched asynchronously, the property may
+     *      already show the final value (`complete`) when the handler runs.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
     onicegatheringstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description local description change event
+     * @description local description event
+     *
+     *      Fired whenever the library produces the local description, that is for the offer of the
+     *      offering side and for the answer of the answering side. The event object carries the
+     *      description in its `description` property, in the same shape as `localDescription`. The
+     *      event is a fibjs extension kept for compatibility with the earlier WebRTC API; current MDN
+     *      does not define it.
+     *
      *      @param ev the event object, carrying the local description
      *
      */
@@ -948,13 +2044,22 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
 
     /**
      * @description signaling state change event
+     *
+     *      Fired for every transition of `signalingState`, for example when a local offer moves the
+     *      connection to `have-local-offer` and the remote answer returns it to `stable`. The event
+     *      object carries the new state in its `state` property.
+     *
      *      @param ev the event object, carrying the new state in its state property
      *
      */
     onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description media track event
+     * @description media track event, reserved and never emitted by fibjs
+     *
+     *      The event exists for interface compatibility only: fibjs exposes data channels, there is no
+     *      addTrack/addTransceiver API and therefore no remote media track can ever be reported.
+     *
      */
     ontrack: (()=>void) | null;
 

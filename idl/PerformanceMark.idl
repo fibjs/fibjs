@@ -1,6 +1,56 @@
-/*! @brief The PerformanceMark interface provides the detailed information of performance mark entries.*/
+/*! @brief A mark recorded in the performance timeline: a named timestamp with an optional detail
+
+ PerformanceMark is the concrete PerformanceEntry subtype with `entryType` `mark` and corresponds
+ to the MDN PerformanceMark interface. Marks are created with performance.mark, always have
+ duration 0 and are retained in the timeline, one entry per name: marking a name again replaces the
+ previous mark. They are the only entries returned by the performance getEntries family.
+
+ Concepts:
+
+ - **startTime**: the recorded timestamp in milliseconds on the monotonic clock returned by
+   performance.now(); it can be overridden with the `startTime` option of performance.mark.
+ - **detail**: an arbitrary value attached at creation; it is `undefined` when the mark was created
+   without one (Node.js uses `null`).
+
+ Obtained from:
+ - `performance.getEntries()`, `performance.getEntriesByType('mark')` and
+   `performance.getEntriesByName(name)` — the retained marks;
+ - `observer.takeRecords()` and the PerformanceObserverEntryList of a `mark` observer — the same
+   objects;
+ - PerformanceMark is not constructible from JavaScript and has no exported class object.
+
+ Example 1 — mark with a detail and a custom offset:
+ ```JavaScript
+ const { performance } = require('perf_hooks');
+
+ performance.clearMarks();
+ performance.mark('cache', { startTime: 7.5, detail: 'warm' });
+
+ const mark = performance.getEntriesByName('cache')[0];
+ console.log(mark.entryType, mark.startTime, mark.duration, mark.detail); // mark 7.5 0 warm
+ ```
+
+ Example 2 — a mark delivered to an observer:
+ ```JavaScript
+ const { performance, PerformanceObserver } = require('perf_hooks');
+
+ performance.clearMarks();
+ const observer = new PerformanceObserver(() => {});
+ observer.observe({ type: 'mark' });
+ performance.mark('observed', { detail: { id: 1 } });
+
+ const mark = observer.takeRecords()[0];
+ console.log(mark.name, mark.detail.id); // observed 1
+ observer.disconnect();
+ ```
+ */
 interface PerformanceMark : PerformanceEntry
 {
-    /*! @brief The detailed information of the performance mark entry. */
+    /*! @brief The detail value attached when the mark was created
+
+     Holds whatever was passed as `detail` to performance.mark: any type can be used, including
+     objects and functions, and the value is returned by reference rather than copied. When the
+     option was omitted the property is `undefined` (Node.js uses `null`).
+     */
     readonly Value detail;
 };

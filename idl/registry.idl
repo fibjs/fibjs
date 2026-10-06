@@ -1,193 +1,396 @@
-/*! @brief The `registry` module is a module for operating the Windows Registry. It provides methods and constants for accessing the registry, supporting read, modify, delete, add and other operations. The ways of operating provided by the `registry` module are similar to those used by Windows applications, but they are provided as capabilities in FibJS. The constants include common Root and data type constants, as well as some constants used as return values for different operations
+/*! @brief The registry module accesses the Windows Registry: it reads, writes, enumerates and deletes keys and values; the module exists only in Windows builds
 
-The `registry` module is a module for operating the Windows Registry. The registry is a hierarchical database used to store configuration information of the system and applications. The Windows operating system and many applications rely on the registry to store and retrieve configuration information.
+ Main capabilities:
 
-The Windows Registry contains multiple root keys (Root Key), and each root key contains multiple sub keys (Sub Key) and values (Value). Common root keys include:
+ - **Roots and value types**: `CLASSES_ROOT`, `CURRENT_USER`, `LOCAL_MACHINE`, `USERS`,
+   `CURRENT_CONFIG`, `SZ`, `EXPAND_SZ`, `DWORD`, `QWORD`;
+ - **Reading**: `get` returns a string, number, string array or Buffer according to the
+   stored registry value type;
+ - **Writing**: `set` writes numbers, strings, string arrays and binary data, and creates
+   a missing key automatically;
+ - **Checking and deleting**: `has` tests whether a value exists and `del` removes values
+   and keys;
+ - **Enumerating**: `listSubKey` and `listValue` list the direct children of a key.
 
-- `HKEY_CLASSES_ROOT`: stores information about file types and their associated applications.
-- `HKEY_CURRENT_USER`: stores configuration information of the current user.
-- `HKEY_LOCAL_MACHINE`: stores configuration information of all users on the computer.
-- `HKEY_USERS`: stores configuration information of all users.
-- `HKEY_CURRENT_CONFIG`: stores information about the current hardware configuration.
+ Concepts:
 
-Data types in the registry include string (SZ), expanded string (EXPAND_SZ), 32-bit value (DWORD), 64-bit value (QWORD), etc.
+ - **Hives**: the registry is a hierarchical database of configuration data organized in
+   hives, each identified by a root key such as `HKEY_LOCAL_MACHINE` (settings for all
+   users) or `HKEY_CURRENT_USER` (settings of the current user). The module exposes hives
+   as the root constants; their numeric values are internal indices rather than Win32
+   handles, so always pass the constants.
+ - **Keys and values**: a hive contains a tree of keys (like directories); each key stores
+   named values (like files) that carry the data, and may also store one unnamed value
+   called the default value. Components of a key path are separated with `\`, for example
+   `Software\Microsoft\Windows\CurrentVersion`.
+ - **Value types**: `SZ` and `EXPAND_SZ` are strings (`EXPAND_SZ` is not expanded on
+   read), `DWORD` is a 32-bit number, `QWORD` is a 64-bit number returned as a JavaScript
+   number whose precision is limited to 2^53-1, and string arrays and binary buffers are
+   written and read by the corresponding `set` and `get` overloads.
+ - **Value paths**: in the two-argument `get`, `has` and `del` forms and in the `set`
+   forms without a `name` argument, the last component of the path is the value name and
+   the preceding components are the key path, for example
+   `get(root, 'Software\\MyApp\\Name')` reads the value `Name` under the key
+   `Software\MyApp`; a trailing `\` addresses the default value. The forms that take a
+   separate `name` receive the key path and the value name independently.
+ - **32/64-bit views**: keys are opened with the default access rights and without a
+   `KEY_WOW64_32KEY` or `KEY_WOW64_64KEY` flag, so a 32-bit process works on the redirected
+   WOW64 view and a 64-bit process on the native view; the module cannot select the view.
+ - **Errors**: a missing key or value makes `get`, `listSubKey`, `listValue` and `del`
+   throw the mapped Win32 error while `has` reports false; `set` creates the key and any
+   missing intermediate keys, and invalid arguments such as an unknown root throw.
 
-The `registry` module provides a series of functions for reading, modifying, deleting and adding registry entries. Common functions include:
+ Platform: the module is registered only by Windows builds. On other platforms
+ `require('registry')` throws `Cannot find module 'registry'` (verified with the Linux
+ release build), so guard the require or the call site when the code must also run
+ elsewhere; the test suite keeps registry tests behind a `process.platform == 'win32'`
+ guard.
 
-- `get(root, key[, flags])`: gets the value of the specified registry entry.
-- `set(root, key, value[, type])`: sets the value of the specified registry entry.
-- `del(root, key)`: deletes the specified registry entry.
+ Import:
+ ```JavaScript
+ // requires: windows
+ // the require itself fails on other platforms
+ const registry = require('registry');
+ ```
 
-The following is example code using the `registry` module, showing how to verify whether a registry entry exists, write the entry if it does not exist, and read its value:
+ Example 1 — write and read back named values of different types:
+ ```JavaScript
+ // requires: windows
+ const registry = require('registry');
 
-```JavaScript
-var registry = require('registry');
+ const key = 'Software\\Fibjs\\Docs\\Demo';
 
-// Specify key name
-var key = "Software\\Fibjs\\Test\\KeyName";
+ registry.set(registry.CURRENT_USER, key, 'Greeting', 'hello');
+ registry.set(registry.CURRENT_USER, key, 'Answer', 42);
+ registry.set(registry.CURRENT_USER, key, 'Big', 1234567890, registry.QWORD);
+ registry.set(registry.CURRENT_USER, key, 'Tags', ['alpha', 'beta']);
+ registry.set(registry.CURRENT_USER, key, 'Raw', Buffer.from([1, 2, 3]));
 
-// Check if registry key exists
-if (!registry.get(registry.CLASSES_ROOT, key)) {
-    // If not exists, write to registry
-    registry.set(registry.CLASSES_ROOT, key, "test_value");
-}
+ console.log(registry.get(registry.CURRENT_USER, key, 'Greeting')); // hello
+ console.log(registry.get(registry.CURRENT_USER, key, 'Tags').join(',')); // alpha,beta
+ console.log(registry.get(registry.CURRENT_USER, key, 'Raw').length); // 3
 
-// Read registry key value
-var value = registry.get(registry.CLASSES_ROOT, key);
-console.log(value);
-```
+ // remove the key again, it has no subkeys
+ registry.del(registry.CURRENT_USER, key);
+ ```
 
-The program first checks whether the registry entry `Software\Fibjs\Test\KeyName` exists; if it does not exist, it sets its value to `test_value`. Finally, it reads the value of the registry entry and outputs it to the console.
+ Example 2 — enumerate a key and read a value by its full value path:
+ ```JavaScript
+ // requires: windows
+ const registry = require('registry');
 
-The `registry` module provides a convenient interface for operating the Windows Registry in FibJS. Through this module, information in the registry can be easily read, modified, added and deleted, so as to manage the configuration of the system and applications.
+ const key = 'Software\\Microsoft\\Windows\\CurrentVersion';
+
+ // direct subkeys and value names of the key
+ console.log(registry.listSubKey(registry.LOCAL_MACHINE, key));
+ console.log(registry.listValue(registry.LOCAL_MACHINE, key));
+
+ // the last path component is the value name
+ console.log(registry.get(registry.LOCAL_MACHINE, key + '\\ProgramFilesDir'));
+
+ // has() reports a missing value instead of throwing
+ console.log(registry.has(registry.LOCAL_MACHINE, key + '\\NoSuchValue')); // false
+ ```
+
+ Example 3 — address the default value and delete values and keys:
+ ```JavaScript
+ // requires: windows
+ const registry = require('registry');
+
+ const key = 'Software\\Fibjs\\Docs\\Defaults';
+
+ // a trailing backslash addresses the unnamed (default) value
+ registry.set(registry.CURRENT_USER, key + '\\', 'default data');
+ console.log(registry.get(registry.CURRENT_USER, key + '\\')); // default data
+ console.log(registry.listValue(registry.CURRENT_USER, key)); // [ '' ]
+
+ registry.set(registry.CURRENT_USER, key, 'Temp', 'to be removed');
+ registry.del(registry.CURRENT_USER, key, 'Temp');
+ console.log(registry.has(registry.CURRENT_USER, key, 'Temp')); // false
+ registry.del(registry.CURRENT_USER, key);
+ ```
+
+ Notes:
+
+ - `set` writes through the default value when the value name is empty and gives a newly
+   created key a permissive DACL; `listSubKey` and `listValue` return names rather than
+   full paths, and the enumeration order is not sorted.
+ - `del` deletes a value with the given name first and falls back to deleting a subkey
+   with that name, so a key that still has subkeys cannot be removed.
+ - `get` throws for registry types outside the supported set (for example `REG_LINK`), and
+   `has` only tests values: a missing key and an existing key without the requested value
+   both report false.
  */
 module registry
 {
-    /*! @brief Registry root; stores a detailed list of file types recognized by Windows and their associated programs */
+    /*! @brief Registry root for file type and association data (HKEY_CLASSES_ROOT) */
     const CLASSES_ROOT = 0;
 
-    /*! @brief Registry root; stores information about the current user settings */
+    /*! @brief Registry root for the current user settings (HKEY_CURRENT_USER) */
     const CURRENT_USER = 1;
 
-    /*! @brief Registry root; contains information about the hardware and software installed on the computer */
+    /*! @brief Registry root for all-user settings (HKEY_LOCAL_MACHINE) */
     const LOCAL_MACHINE = 2;
 
-    /*! @brief Registry root; contains information about the users using the computer */
+    /*! @brief Registry root for loaded user profiles (HKEY_USERS) */
     const USERS = 3;
 
-    /*! @brief Registry root; this branch contains the current hardware configuration information of the computer */
+    /*! @brief Registry root for the current hardware profile (HKEY_CURRENT_CONFIG) */
     const CURRENT_CONFIG = 5;
 
-    /*! @brief Registry data type, string */
+    /*! @brief Registry value type, null-terminated string (REG_SZ) */
     const SZ = 1;
 
-    /*! @brief Registry data type, expanded string */
+    /*! @brief Registry value type, expandable string, not expanded on read (REG_EXPAND_SZ) */
     const EXPAND_SZ = 2;
 
-    /*! @brief Registry data type, 32-bit value */
+    /*! @brief Registry value type, 32-bit number (REG_DWORD) */
     const DWORD = 4;
 
-    /*! @brief Registry data type, 64-bit value */
+    /*! @brief Registry value type, 64-bit number (REG_QWORD) */
     const QWORD = 11;
 
-    /*! @brief Returns all sub keys under the specified key
-     @param root the registry root to use
-     @param key the key to use
-     @return returns all sub keys under the key
+    /*! @brief Returns the names of the direct subkeys of a key
+
+     The key path is opened for reading and only the immediate children are returned; names
+     are relative to the key, full paths are not included, and the enumeration order
+     follows the registry rather than being sorted. A missing key throws the mapped Win32
+     error and an unknown root throws an invalid argument error.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path whose subkeys are listed
+     @return the subkey names; an empty array when the key has no subkeys
      */
     static String[] listSubKey(Integer root, String key);
 
-    /*! @brief Returns the keys of all data under the specified key
-     @param root the registry root to use
-     @param key the key to use
-     @return returns the keys of all data under the key
+    /*! @brief Returns the names of the values stored directly in a key
+
+     Only the value names are returned, not their data; the default (unnamed) value is
+     reported as an empty string. Like listSubKey, the key is opened for reading, the
+     enumeration order is not sorted and a missing key throws.
+
+     Example — list the value names of a key, including the default value:
+     ```JavaScript
+     // requires: windows
+     const registry = require('registry');
+
+     const key = 'Software\\Fibjs\\Docs\\ListDemo';
+     registry.set(registry.CURRENT_USER, key + '\\', 'default');
+     registry.set(registry.CURRENT_USER, key, 'Named', 'value');
+
+     // the default value is listed as an empty string
+     console.log(registry.listValue(registry.CURRENT_USER, key).sort()); // [ '', 'Named' ]
+
+     registry.del(registry.CURRENT_USER, key, 'Named');
+     registry.del(registry.CURRENT_USER, key);
+     ```
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path whose value names are listed
+     @return the value names, an empty string for the default value; an empty array when none
      */
     static String[] listValue(Integer root, String key);
 
-    /*! @brief Queries the value of the specified key
-     @param root the registry root to use
-     @param key the key to use
-     @return returns the value of the specified key
+    /*! @brief Reads a value from the registry
+
+     In this two-argument form the last component of key is the value name and the preceding
+     components are the key path, so get(root, 'Software\\MyApp\\Name') reads the value Name
+     under the key Software\MyApp; a trailing backslash addresses the default value of the
+     key. The three-argument form receives the value name separately.
+
+     The JavaScript result follows the registry type: SZ and EXPAND_SZ become a string
+     (EXPAND_SZ is not expanded), DWORD and QWORD a number (QWORD precision is limited to
+     2^53-1), REG_MULTI_SZ an array of strings and REG_BINARY or REG_NONE a Buffer; other
+     registry types throw. A missing key or value throws the mapped Win32 error.
+
+     Example — write and read back a string through a value path:
+     ```JavaScript
+     // requires: windows
+     const registry = require('registry');
+
+     const key = 'Software\\Fibjs\\Docs\\ReadDemo';
+
+     // set() creates the key and the value ReadDemo under Software\Fibjs\Docs
+     registry.set(registry.CURRENT_USER, key, 'value path form');
+
+     // the last component of the path is the value name
+     console.log(registry.get(registry.CURRENT_USER, key)); // value path form
+
+     registry.del(registry.CURRENT_USER, key);
+     ```
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @return the value data, typed according to the registry type
      */
     static Value get(Integer root, String key);
 
-    /*! @brief Queries the value of the specified key
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @return returns the value of the specified key
+    /*! @brief Reads a named value from the registry
+
+     The key path and the value name are given separately; an empty name addresses the
+     default value of the key. The value data is converted by registry type exactly as in
+     the two-argument form.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string addresses the default value
+     @return the value data, typed according to the registry type
      */
     static Value get(Integer root, String key, String name);
 
-    /*! @brief Sets the specified key to a number
-     @param root the registry root to use
-     @param key the key to use
-     @param value the number to set
-     @param type the type to use; allowed types are DWORD and QWORD, default DWORD
+    /*! @brief Writes a number to a registry value
+
+     type must be DWORD (the default) or QWORD; any other type throws an invalid argument
+     error. The number is truncated to an integer and a DWORD keeps its low 32 bits. This
+     form takes the value name from the last component of key; the overloads below receive
+     it separately. The key and any missing intermediate keys are created automatically.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @param value the number to write
+     @param type the registry value type, DWORD by default, QWORD for 64-bit data
      */
     static set(Integer root, String key, Number value, Integer type = DWORD);
 
-    /*! @brief Sets the specified key to a multi-string
-     @param root the registry root to use
-     @param key the key to use
-     @param values the multi-string array to set
+    /*! @brief Writes an array of strings to a registry value as REG_MULTI_SZ
+
+     The elements are stored null-separated; as in the Win32 multi-string format an empty
+     element terminates the list, so embedded empty strings are not preserved when the
+     value is read back. The value name is the last component of key and the key is created
+     when missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @param values the strings to write
      */
     static set(Integer root, String key, String values[]);
 
-    /*! @brief Sets the specified key to binary
-     @param root the registry root to use
-     @param key the key to use
-     @param value the binary data to set
+    /*! @brief Writes binary data to a registry value as REG_BINARY
+
+     The Buffer bytes are stored as they are, which is the way to persist arbitrary data;
+     an empty Buffer is allowed. The value name is the last component of key and the key is
+     created when missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @param value the bytes to write
      */
     static set(Integer root, String key, Buffer value);
 
-    /*! @brief Sets the specified key to a string
-     @param root the registry root to use
-     @param key the key to use
-     @param value the string to set
-     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+    /*! @brief Writes a string to a registry value
+
+     type must be SZ (the default) or EXPAND_SZ; any other type throws an invalid argument
+     error. EXPAND_SZ stores environment references such as %SystemRoot% unexpanded, exactly
+     as get returns them. The value name is the last component of key and the key is created
+     when missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @param value the string to write
+     @param type the registry value type, SZ by default, EXPAND_SZ for an expandable string
      */
     static set(Integer root, String key, String value, Integer type = SZ);
 
-    /*! @brief Sets the specified key to a number
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @param value the number to set
-     @param type the type to use; allowed types are DWORD and QWORD, default DWORD
+    /*! @brief Writes a number to a named registry value
+
+     key is a key path and name is the value name; an empty name addresses the default value.
+     type must be DWORD (the default) or QWORD, otherwise an invalid argument error is
+     thrown. The key and any missing intermediate keys are created automatically.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string addresses the default value
+     @param value the number to write
+     @param type the registry value type, DWORD by default, QWORD for 64-bit data
      */
     static set(Integer root, String key, String name, Number value, Integer type = DWORD);
 
-    /*! @brief Sets the specified key to a multi-string
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @param values the multi-string array to set
+    /*! @brief Writes an array of strings to a named registry value as REG_MULTI_SZ
+
+     Elements are stored null-separated and an empty element terminates the list when read
+     back. name may be empty to address the default value and the key is created when
+     missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string addresses the default value
+     @param values the strings to write
      */
     static set(Integer root, String key, String name, String values[]);
 
-    /*! @brief Sets the specified key to binary
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @param value the binary data to set
+    /*! @brief Writes binary data to a named registry value as REG_BINARY
+
+     The Buffer bytes are stored as they are; an empty Buffer is allowed. name may be empty
+     to address the default value and the key is created when missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string addresses the default value
+     @param value the bytes to write
      */
     static set(Integer root, String key, String name, Buffer value);
 
-    /*! @brief Sets the specified key to a string
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @param value the string to set
-     @param type the type to use; allowed types are SZ and EXPAND_SZ, default SZ
+    /*! @brief Writes a string to a named registry value
+
+     type must be SZ (the default) or EXPAND_SZ, otherwise an invalid argument error is
+     thrown; EXPAND_SZ is stored unexpanded. name may be empty to address the default value
+     and the key is created when missing.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string addresses the default value
+     @param value the string to write
+     @param type the registry value type, SZ by default, EXPAND_SZ for an expandable string
      */
     static set(Integer root, String key, String name, String value, Integer type = SZ);
 
-    /*! @brief Checks whether the specified key exists
-     @param root the registry root to use
-     @param key the key to use
-     @return returns whether the key exists
+    /*! @brief Tests whether a value exists
+
+     In this two-argument form the last component of key is the value name and the preceding
+     components are the key path. A missing key, a missing value and a key without that
+     value all report false instead of throwing; only invalid arguments such as an unknown
+     root throw. The three-argument form receives the value name separately.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path: key path plus value name
+     @return true when the value exists, the default value counts as a value
      */
     static Boolean has(Integer root, String key);
 
-    /*! @brief Checks whether the specified key exists
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
-     @return returns whether the key exists
+    /*! @brief Tests whether a named value exists
+
+     key is the key path and name is the value name; an empty name tests the default value.
+     A missing key and a missing value both report false, so has cannot distinguish them.
+     Only invalid arguments throw.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value name; an empty string tests the default value
+     @return true when the value exists
      */
     static Boolean has(Integer root, String key, String name);
 
-    /*! @brief Deletes the value of the specified key
-     @param root the registry root to use
-     @param key the key to use
+    /*! @brief Deletes a value, or a subkey when no such value exists
+
+     In this two-argument form the last component of key is the name to delete: del removes
+     a value with that name under the preceding key path, and when no such value exists it
+     removes a subkey with that name instead. A key that still has subkeys cannot be
+     removed, and a missing target throws the mapped Win32 error. Write access is required.
+
+     @param root the registry root to use, one of the root constants
+     @param key the value path, or the key path when a subkey is deleted
      */
     static del(Integer root, String key);
 
-    /*! @brief Deletes the value of the specified key
-     @param root the registry root to use
-     @param key the key to use
-     @param name the value name to use
+    /*! @brief Deletes a named value, or a subkey when no such value exists
+
+     key is the key path and name is first deleted as a value of that key; when no value
+     with the name exists, a subkey with that name is deleted instead, exactly like the
+     two-argument form. An empty name addresses the default value; a missing target throws.
+
+     @param root the registry root to use, one of the root constants
+     @param key the full key path
+     @param name the value or subkey name to delete
      */
     static del(Integer root, String key, String name);
 };

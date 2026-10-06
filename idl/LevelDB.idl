@@ -1,217 +1,410 @@
-/*! @brief LevelDB is a database operation object built into fibjs for creating and managing key-value dictionaries. With the LevelDB object, key-value data can be stored, queried, deleted and enumerated easily. It is based on Google's open source LevelDB implementation and offers high efficiency, reliability and scalability
+/*! @brief An embedded key-value store backed by LevelDB and kept in a directory
 
-Creating a LevelDB object is very simple: call the db.openLevelDB method to create a database object with the given name. For example:
+ LevelDB is the object returned by db.openLevelDB(connString): an embedded, file-based
+ key-value store, not a database server. It is one keyspace of byte-string keys to
+ byte-string values kept in key order, with no SQL, no table and no column - every key is
+ addressed directly, and the whole store lives in one directory. The object is not a
+ DbConnection.
 
-```JavaScript
-var db = require("db");
-var test = db.openLevelDB("test.db");
-```
+ The members cover the whole surface of a store:
 
-Here db is the fibjs database operation object, the openLevelDB method opens the leveldb database, test.db is the database name, and the returned test object is the object for operating on the database.
+ - Single records: `has`, `get`, `set` and `remove` read and write one key.
+ - Batches: `mget` reads an array of keys, while `mset` and `mremove` apply many writes
+   as one atomic batch.
+ - Key order: `firstKey` and `lastKey` return the smallest and largest key.
+ - Enumeration: the `forEach` overloads walk the store in key order with `from`/`to`
+   bounds and `skip`/`limit`/`reverse` options.
+ - Write batches: `begin` returns a transaction object, `commit` applies its buffered
+   writes atomically and `close` finishes the store or discards a transaction.
 
-The main operations supported by the LevelDB object include:
+ Concepts:
 
-- set(key, value): sets a key-value pair; inserts new data if the key does not exist.
-- get(key): queries the value of the given key.
-- has(key): checks whether the given key exists.
-- remove(key): removes all values of the given key.
-- forEach(func): enumerates all key-value pairs in the database.
-- between(from, to, func): enumerates key-value pairs whose keys are between from and to.
-- toJSON(key): returns the JSON representation of the object, generally the readable property set defined by the object.
-- begin(): starts a transaction on the current database.
-- commit(): commits the current transaction.
-- close(): closes the current database connection or transaction.
+ - **Keys and values are byte strings**: a key or value may be a Buffer or a String. A
+   String is encoded as UTF-8 and a Buffer is stored byte-for-byte, so binary keys and
+   values round-trip through the single-record members. Keys are compared as unsigned
+   bytes, so the order is byte order, not the locale or numeric order of the text.
+ - **One directory, one writer**: the store is a directory of LevelDB files, created when
+   missing. Only one process may open a directory at a time - a second open fails with
+   the LevelDB lock error (number 20024) - and close releases the lock. The store is
+   durable across process restarts; a write is atomic, and the default write options
+   leave it in the operating system buffer until the log is flushed, so only a system
+   level crash can lose recent writes.
+ - **Write batches**: mset and mremove are atomic batches, and begin returns a transaction
+   object that buffers set, remove, mset and mremove. The buffered writes are not visible
+   to reads - not even from the transaction itself - until commit applies the whole batch;
+   close discards it. The transaction becomes closed afterwards.
+ - **Iteration is a consistent view**: a forEach walk sees the store as of its start, so
+   writes made by other fibers during the walk are not observed. The callback receives
+   (value, key) as Buffers, and returning a truthy value stops the walk.
+ - **Closed state**: after close every member fails with error 20009 ("LevelDB: database
+   is closed."), while close itself is idempotent. The declared async members are
+   fiber-synchronous like every other fibjs database call - there is no callback form.
 
-For example:
+ Obtained from:
+ - `db.openLevelDB(connString)` — the only factory; see the db module for the accepted
+   forms (a directory path or `leveldb:` followed by it).
 
-```JavaScript
-var db = require("db");
-var test = db.openLevelDB("test.db");
+ Example 1 — write, read and remove records:
+ ```JavaScript
+ const db = require('db');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
 
-test.set("test_key", "test_value");
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+ const store = db.openLevelDB(dir);
 
-var value = test.get("test_key");
-console.log("test_key:", value.toString());
+ store.set('name', 'fibjs');
+ console.log(store.has('name')); // true
+ console.log(store.get('name').toString()); // fibjs
+ console.log(store.get('missing')); // null
 
-test.remove("test_key");
+ store.remove('name');
+ console.log(store.has('name')); // false
 
-console.log("has test_key:", test.has("test_key"));
+ store.close();
+ fs.rm(dir, { recursive: true });
+ ```
 
-test.close();
-```
+ Example 2 — batch writes and a transaction:
+ ```JavaScript
+ const db = require('db');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
 
-The above covers the basic usage of the LevelDB object with examples, making key-value data easy and flexible to operate on. In practice it can be used for storage, caching, logging and other scenarios, improving data read/write efficiency, simplifying program logic and reducing development complexity.
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+ const store = db.openLevelDB(dir);
+
+ store.mset({ a: '1', b: '2' }); // one atomic batch
+ const values = store.mget(['a', 'b', 'missing']);
+ console.log(values[0].toString(), values[1].toString(), values[2]); // 1 2 null
+
+ const tr = store.begin();
+ tr.set('c', '3');
+ tr.remove('a');
+ console.log(store.has('c')); // false - the batch is not applied yet
+ tr.commit(); // the batch becomes visible atomically
+ console.log(store.has('c'), store.has('a')); // true false
+
+ store.close();
+ fs.rm(dir, { recursive: true });
+ ```
+
+ Example 3 — enumerate the store in key order:
+ ```JavaScript
+ const db = require('db');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+ const store = db.openLevelDB(dir);
+
+ store.mset({ a: '1', b: '2', c: '3', d: '4' });
+
+ const keys = [];
+ store.forEach((value, key) => { keys.push(key.toString()); });
+ console.log(keys.join(',')); // a,b,c,d - byte order
+
+ const page = [];
+ store.forEach('b', 'd', (value, key) => { page.push(key.toString()); });
+ console.log(page.join(',')); // b,c - from is included, to is not
+
+ const last = [];
+ store.forEach({ reverse: true, limit: 2 }, (value, key) => { last.push(key.toString()); });
+ console.log(last.join(',')); // d,c
+
+ store.close();
+ fs.rm(dir, { recursive: true });
+ ```
  */
 interface LevelDB : object
 {
-    /*! @brief Checks whether data with the given key exists in the database
+    /*! @brief Tests whether a key exists in the store
 
-     key may be a Buffer or a string; a string is encoded as utf8.
-     @param key the key to check
-     @return returns whether the key exists
+     The key is read like get and only its presence is reported. key is a Buffer|String
+     union: a String is encoded as UTF-8 and a Buffer is used byte-for-byte, so a binary
+     key can be tested. A missing key is not an error; after close the call fails with
+     error 20009.
+
+     @param key the key to test
+     @return true when the key exists
      */
     Boolean has(Buffer|String key) async;
 
-    /*! @brief Queries the value of the given key
+    /*! @brief Returns the value stored under key
 
-     key may be a Buffer or a string; a string is encoded as utf8.
-     @param key the key to query
-     @return returns the value of the key, or null if it does not exist
+     The result is a Buffer with the exact stored bytes, or null when the key is missing.
+     key is a Buffer|String union: a String is encoded as UTF-8 and a Buffer is used
+     byte-for-byte. Reads do not see the buffered writes of an open transaction (see
+     begin), and after close the call fails with error 20009.
+
+     @param key the key to read
+     @return the value as a Buffer, or null when the key is missing
      */
     Buffer get(Buffer|String key) async;
 
-    /*! @brief Queries the values of the given keys
-     @param keys the array of keys to query
-     @return returns an array containing the values of the keys
+    /*! @brief Returns the values of several keys, one element per key
+
+     The result follows the given order: a Buffer for a key that exists and null for one
+     that does not, so its length equals the key count. Unlike get, each element is
+     converted through its JavaScript string form - a Buffer key is rendered as UTF-8
+     text - so a binary key finds nothing here; read those with get one by one. An empty
+     keys array returns null rather than an empty array, and the reads are individual
+     lookups, not one batch.
+
+     Example — a value or null per key:
+     ```JavaScript
+     const db = require('db');
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+     const store = db.openLevelDB(dir);
+
+     store.mset({ a: '1', b: '2' });
+     const values = store.mget(['a', 'b', 'missing']);
+     console.log(values.length); // 3
+     console.log(values[0].toString(), values[1].toString(), values[2]); // 1 2 null
+
+     store.close();
+     fs.rm(dir, { recursive: true });
+     ```
+
+     @param keys the array of keys to read
+     @return an array with one Buffer or null per key
      */
     NArray mget(Array keys);
 
-    /*! @brief Sets a key-value pair; inserts new data if the key does not exist
+    /*! @brief Stores value under key, replacing any previous value
 
-     key and value may each be a Buffer or a string; a string is encoded as utf8.
-     @param key the key to set
-     @param value the value to set
+     The write is atomic and immediately visible to later reads. key and value are each a
+     Buffer|String union: a String is stored as its UTF-8 bytes and a Buffer
+     byte-for-byte, so binary records round-trip through set and get. On a transaction
+     object the write is buffered until commit instead.
+
+     @param key the key to write
+     @param value the value to store
      */
     set(Buffer|String key, Buffer|String value) async;
 
-    /*! @brief Sets a group of key-value pairs; inserts new data if the keys do not exist
-     @param map the key-value dictionary to set
+    /*! @brief Stores several key/value pairs as one atomic batch
+
+     The property names of map are the keys and the property values are the values; the
+     whole object is applied in one write batch, so either every pair is stored or none.
+     Unlike set, each value is converted through its JavaScript string form: a Buffer is
+     rendered as UTF-8 text and a number is rejected with error 20005, so use set for
+     binary values. On a transaction object the batch is buffered until commit.
+
+     @param map the key/value pairs to store, as property names and values
      */
     mset(Object map);
 
-    /*! @brief Removes the values of the given keys
+    /*! @brief Removes several keys as one atomic batch
+
+     The keys are removed in one write batch, and missing keys are ignored. Each element
+     is converted through its JavaScript string form: a Buffer is rendered as UTF-8 text,
+     so a binary key written with set is not found here; use remove for those. On a
+     transaction object the removal is buffered until commit.
+
      @param keys the array of keys to remove
      */
     mremove(Array keys);
 
-    /*! @brief Removes all values of the given key
+    /*! @brief Removes key and its value
 
-     key may be a Buffer or a string; a string is encoded as utf8.
+     The write is atomic and removing a missing key is not an error. key is a
+     Buffer|String union and a Buffer is used byte-for-byte. On a transaction object the
+     removal is buffered until commit; after close the call fails with error 20009.
+
      @param key the key to remove
      */
     remove(Buffer|String key) async;
 
-    /* @brief Queries the smallest key
-      @return returns the smallest key
+    /*! @brief Returns the smallest key in the store
+
+     Keys are compared as unsigned bytes, so this is the first key in byte order, not in
+     text or numeric order. A Buffer with the key bytes is returned, or null when the
+     store is empty. Buffered writes of an open transaction are not visible here.
+
+     @return the smallest key as a Buffer, or null when the store is empty
      */
     Buffer firstKey() async;
 
-    /* @brief Queries the largest key
-    @return returns the largest key */
+    /*! @brief Returns the largest key in the store
+
+     Keys are compared as unsigned bytes, so this is the last key in byte order, not in
+     text or numeric order. A Buffer with the key bytes is returned, or null when the
+     store is empty. Buffered writes of an open transaction are not visible here.
+
+     @return the largest key as a Buffer, or null when the store is empty
+     */
     Buffer lastKey() async;
 
-    /*! @brief Enumerates all key-value pairs in the database
+    /*! @brief Enumerates the key/value pairs in key order
 
-     The callback function takes two parameters, (value, key)
+     The callback receives (value, key), both Buffers, and returning a truthy value stops
+     the walk. The walk is a consistent view of the store as of its start. The overloads
+     differ in their bounds and options:
 
+     - `forEach(func)` walks every pair;
+     - `forEach(from, func)` starts at from, which is included;
+     - `forEach(from, to, func)` also stops before to, which is excluded;
+     - `forEach(opt, func)` takes the options below;
+     - `forEach(from, opt, func)` and `forEach(from, to, opt, func)` combine both.
+
+     opt supports the following options:
      ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach(function(value, key){
-        ...
-     });
+     // fragment: options
+     ({
+         skip: 0,        // number of pairs to drop before the first callback
+         limit: -1,      // maximum number of pairs; 0 or a missing value means no limit
+         reverse: false  // walk in descending key order
+     })
      ```
-     @param func the enumeration callback function
+
+     A limit explicitly set to 0 is rejected with error 20024 ("limit must be greater
+     than 0"); a negative limit means no limit. from and to are Buffer|String unions and
+     a Buffer bound is used byte-for-byte. With reverse the walk starts at from
+     (included) and descends to the smallest key; to is compared only against the
+     starting key and does not act as a lower bound, so pass only from for a descending
+     walk. Buffered writes of an open transaction are not visible.
+
+     Example — a bounded page with a limit:
+     ```JavaScript
+     const db = require('db');
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+     const store = db.openLevelDB(dir);
+
+     store.mset({ a: '1', b: '2', c: '3', d: '4' });
+     const page = [];
+     store.forEach('b', 'd', { limit: 1 }, (value, key) => {
+         page.push(key.toString());
+     });
+     console.log(page.join(',')); // b - from included, to excluded, limit stops the walk
+
+     store.close();
+     fs.rm(dir, { recursive: true });
+     ```
+
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Function(Buffer value, Buffer key) func);
 
-    /*! @brief Enumerates all key-value pairs in the database; a string from is encoded as utf8
+    /*! @brief Enumerates the key/value pairs from a starting key
 
-     The callback function takes two parameters, (value, key)
+     This is the (from, func) form of forEach; see the first overload for the callback,
+     the bounds and the options.
 
-     ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach("aaa", "bbb", function(value, key){
-        ...
-     });
-     ```
-     @param from the smallest key to enumerate; this key is included in the enumeration
-     @param func the enumeration callback function
+     @param from the first key to enumerate, included in the walk
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Buffer|String from, Function(Buffer value, Buffer key) func);
 
-    /*! @brief Enumerates all key-value pairs in the database
+    /*! @brief Enumerates the key/value pairs with enumeration options
 
-     The callback function takes two parameters, (value, key)
+     This is the (opt, func) form of forEach; see the first overload for the callback and
+     the options.
 
-     ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach(function(value, key){
-        ...
-     });
-     ```
      @param opt the enumeration options, supporting skip, limit and reverse
-     @param func the enumeration callback function
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Object opt, Function(Buffer value, Buffer key) func);
 
-    /*! @brief Enumerates all key-value pairs in the database; a string from is encoded as utf8
+    /*! @brief Enumerates the key/value pairs from a starting key with options
 
-     The callback function takes two parameters, (value, key)
+     This is the (from, opt, func) form of forEach; see the first overload for the
+     callback, the bounds and the options.
 
-     ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach("aaa", "bbb", function(value, key){
-        ...
-     });
-     ```
-     @param from the smallest key to enumerate; this key is included in the enumeration
+     @param from the first key to enumerate, included in the walk
      @param opt the enumeration options, supporting skip, limit and reverse
-     @param func the enumeration callback function
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Buffer|String from, Object opt, Function(Buffer value, Buffer key) func);
 
-    /*! @brief Enumerates all key-value pairs in the database; strings are encoded as utf8
+    /*! @brief Enumerates the key/value pairs between two keys
 
-     The callback function takes two parameters, (value, key)
+     This is the (from, to, func) form of forEach; see the first overload for the callback
+     and the bounds.
 
-     ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach("aaa", "bbb", function(value, key){
-        ...
-     });
-     ```
-     @param from the smallest key to enumerate; this key is included in the enumeration
-     @param to the largest key to enumerate; this key is not included in the enumeration
-     @param func the enumeration callback function
+     @param from the first key to enumerate, included in the walk
+     @param to the key to stop before, excluded from the walk
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Buffer|String from, Buffer|String to, Function(Buffer value, Buffer key) func);
 
-    /*! @brief Enumerates all key-value pairs in the database; strings are encoded as utf8
+    /*! @brief Enumerates the key/value pairs between two keys with options
 
-     The callback function takes two parameters, (value, key)
+     This is the (from, to, opt, func) form of forEach; see the first overload for the
+     callback, the bounds and the options.
 
-     ```JavaScript
-     var db = require("db");
-     var test = new db.openLevelDB("test.db");
-
-     test.forEach("aaa", "bbb", function(value, key){
-        ...
-     });
-     ```
-     @param from the smallest key to enumerate; this key is included in the enumeration
-     @param to the largest key to enumerate; this key is not included in the enumeration
+     @param from the first key to enumerate, included in the walk
+     @param to the key to stop before, excluded from the walk
      @param opt the enumeration options, supporting skip, limit and reverse
-     @param func the enumeration callback function
+     @param func the callback invoked with (value, key) as Buffers
      */
     forEach(Buffer|String from, Buffer|String to, Object opt, Function(Buffer value, Buffer key) func);
 
-    /*! @brief Starts a transaction on the current database
-     @return returns the started transaction object */
+    /*! @brief Starts a write batch and returns the transaction object
+
+     The result is another LevelDB object that shares this store and buffers its writes:
+     set, remove, mset and mremove record into the batch instead of the store, so reads -
+     even from the transaction itself - do not see them. commit applies the whole batch
+     atomically and close discards it; the transaction is closed afterwards. begin on a
+     closed store fails with error 20009.
+
+     Example — writes stay invisible until commit:
+     ```JavaScript
+     const db = require('db');
+     const fs = require('fs');
+     const os = require('os');
+     const path = require('path');
+
+     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-'));
+     const store = db.openLevelDB(dir);
+
+     store.set('k', 'before');
+     const tr = store.begin();
+     tr.set('k', 'after');
+     tr.mset({ extra: '1' });
+     console.log(store.get('k').toString()); // before - still the committed value
+     console.log(tr.get('k').toString()); // before - the batch is not readable
+     console.log(store.has('extra')); // false
+
+     tr.commit();
+     console.log(store.get('k').toString()); // after
+     console.log(store.has('extra')); // true
+
+     store.close();
+     fs.rm(dir, { recursive: true });
+     ```
+
+     @return the transaction object
+     */
     LevelDB begin();
 
-    /*! @brief Commits the current transaction */
+    /*! @brief Applies the buffered writes of a transaction atomically
+
+     Every set, remove, mset and mremove buffered on the transaction is written in one
+     batch, and the transaction becomes closed: later calls on it fail with error 20009.
+     On the store object itself there is no batch, so commit fails with error 20009
+     ("LevelDB: database is closed or no active transaction."). The writes become visible
+     to readers when the call returns.
+     */
     commit();
 
-    /*! @brief Closes the current database connection or transaction */
+    /*! @brief Closes the store or discards a transaction
+
+     On the store object close shuts the database down and releases the directory lock, so
+     another process may open it; the call is idempotent, and later member calls fail with
+     error 20009. On a transaction object close drops the buffered writes without applying
+     them and leaves the shared store open.
+     */
     close() async;
 };

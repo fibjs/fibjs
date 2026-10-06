@@ -7,41 +7,85 @@
  */
 declare module 'gui/promises' {
     /**
-     * @description Browser window object; WebView is a window component with an embedded browser
+     * @description The WebView class, used for type checks of window objects
+     *
+     *      The property exposes the class itself, not an instance: `gui.open` and
+     *      `gui.openFile` return objects of this type, and `win instanceof gui.WebView`
+     *      is true. The constructor is not usable (`new gui.WebView()` throws "not a
+     *      constructor"); see the WebView interface for the window API.
+     *
      */
     const WebView: typeof Class_WebView;
 
     /**
      * @description Opens a window and visits the specified url
      *
-     *      The following parameters are supported:
+     *      The native window is created asynchronously on the GUI thread and the
+     *      returned WebView is usable immediately; the members that need the window
+     *      wait for it in the calling fiber. An explicit url overrides the `url` and
+     *      `file` properties of the options object, and openFile is the form that
+     *      clears the options `url` and loads a local file. With width and height but
+     *      without left/top the window is centered; without a size the platform
+     *      chooses it.
+     *
+     *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
-     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
-     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
-     *          "width": 100, // specify the width of the window, default is system auto set
-     *          "height": 100, // specify the height of the window, default is system auto set
-     *          "visible": true, // specify whether the window is visible, default is true
-     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
-     *          "minWidth": 0, // specify the minimum width of the window, default is 0
-     *          "minHeight": 0, // specify the minimum height of the window, default is 0
-     *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
-     *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
-     *          "frame": true, // specify whether the window has frame, default is true
-     *          "titlebar": "show" | {  // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "style": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "height": "nprmal" // specify the titlebar height: "normal" (default), "tall", not work in macos
-     *          },
-     *          "resizable": true, // specify whether the window is resizable, default is true
-     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
-     *          "maximize": false, // specify whether the window is maximized, default is false
-     *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
-     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "url": "about:blank",        // initial page when open(options) is used
+     *          "file": "",                  // local file or archive.zip$/dir/page.html
+     *          "icon": "/path/to/file.png", // window icon, read when the window is created
+     *          "left": 100,                 // window position, centered when omitted
+     *          "top": 100,                  // window position, centered when omitted
+     *          "width": 640,                // window size, decided by the platform when omitted
+     *          "height": 480,
+     *          "visible": true,             // show the window when it is created
+     *          "hideOnClose": false,        // hide instead of closing on the close button
+     *          "minWidth": 0,               // minimum size, 0 means no limit
+     *          "minHeight": 0,
+     *          "maxWidth": 2000,            // maximum size, unset means no limit
+     *          "maxHeight": 2000,
+     *          "frame": true,               // draw the window frame and title bar
+     *          "titlebar": "show",          // "show" | "hide" | "transparent" or { style, height }
+     *          "resizable": true,           // allow the user to resize the window
+     *          "maximize": false,           // start maximized
+     *          "fullscreen": false,         // start fullscreen
+     *          "devtools": false,           // enable the engine developer tools
+     *          "menu": null,                // a Menu object or a menu template array
+     *          "app": {},                   // object exposed as window.app in the page
+     *          "onloading": null,           // shortcut for win.on("loading", fn)
+     *          "onload": null,              // shortcut for win.on("load", fn)
+     *          "onclose": null,             // shortcut for win.on("close", fn)
+     *          "onmove": null,              // shortcut for win.on("move", fn)
+     *          "onresize": null,            // shortcut for win.on("resize", fn)
+     *          "onfocus": null,             // shortcut for win.on("focus", fn)
+     *          "onblur": null,              // shortcut for win.on("blur", fn)
+     *          "onmessage": null            // shortcut for win.on("message", fn)
+     *      })
      *      ```
-     *      When width and height are set but left or right is not set, the window is automatically centered
+     *
+     *      Malformed options throw before the window is created: an unknown `titlebar`
+     *      style or height, a missing icon file (ENOENT) and wrong property types
+     *      (TypeError 20005). The titlebar and window icon options are ignored on
+     *      platforms that do not support them (gtk4 ignores the icon and the initial
+     *      position). See the WebView interface for the events and the app bridge.
+     *
+     *      Example — open a hidden window and close it when the page has loaded
+     *      (requires a desktop session):
+     *      ```JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const win = gui.open({ width: 320, height: 200, visible: false });
+     *
+     *      win.on('load', function () {
+     *          win.close();
+     *      });
+     *
+     *      win.loadUrl('data:text/html;charset=utf-8,<title>Ready</title>');
+     *      win.waitFor();
+     *      ```
+     *
      *      @param url the url to visit
      *      @param opt window opening parameters
      *      @return returns the opened window object
@@ -50,38 +94,13 @@ declare module 'gui/promises' {
     function open(url: string, opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
-     * @description Opens a browser window; if url or file is specified, the specified resource is loaded
+     * @description Opens a window with the content selected by the options object
      *
-     *      The following parameters are supported:
-     *      ```JavaScript
-     *      {
-     *          "url": , // specify the url of the window, default is about:blank
-     *          "file": , // specify the file of the window
-     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
-     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
-     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
-     *          "width": 100, // specify the width of the window, default is system auto set
-     *          "height": 100, // specify the height of the window, default is system auto set
-     *          "visible": true, // specify whether the window is visible, default is true
-     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
-     *          "minWidth": 0, // specify the minimum width of the window, default is 0
-     *          "minHeight": 0, // specify the minimum height of the window, default is 0
-     *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
-     *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
-     *          "frame": true, // specify whether the window has frame, default is true
-     *          "titlebar": "show" | {  // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "style": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "height": "nprmal" // specify the titlebar height: "normal" (default), "tall", not work in macos
-     *          },
-     *          "resizable": true, // specify whether the window is resizable, default is true
-     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
-     *          "maximize": false, // specify whether the window is maximized, default is false
-     *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
-     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
-     *      }
-     *      ```
-     *      When width and height are set but left or right is not set, the window is automatically centered
+     *      Without a url argument the initial content comes from the `url` or `file`
+     *      property of the options, defaulting to about:blank (`url` wins when both are
+     *      given). The options are the same as for the url form, see open(url, opt) for
+     *      the full list and the platform notes.
+     *
      *      @param opt window opening parameters
      *      @return returns the opened window object
      *
@@ -89,36 +108,13 @@ declare module 'gui/promises' {
     function open(opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
-     * @description Opens a window and visits the specified file
+     * @description Opens a window and loads the specified local file
      *
-     *      The following parameters are supported:
-     *      ```JavaScript
-     *      {
-     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
-     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
-     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
-     *          "width": 100, // specify the width of the window, default is system auto set
-     *          "height": 100, // specify the height of the window, default is system auto set
-     *          "visible": true, // specify whether the window is visible, default is true
-     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
-     *          "minWidth": 0, // specify the minimum width of the window, default is 0
-     *          "minHeight": 0, // specify the minimum height of the window, default is 0
-     *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
-     *          "maxHeight": 0, // specify the maximum height of the window, default is no limit
-     *          "frame": true, // specify whether the window has frame, default is true
-     *          "titlebar": "show" | {  // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "style": "show", // specify the titlebar style: "show" (default), "hide", "transparent"
-     *             "height": "nprmal" // specify the titlebar height: "normal" (default), "tall", not work in macos
-     *          },
-     *          "resizable": true, // specify whether the window is resizable, default is true
-     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
-     *          "maximize": false, // specify whether the window is maximized, default is false
-     *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
-     *          "app": {}, // specify the app object that can be remote call in WebView, default is undefined
-     *      }
-     *      ```
-     *      When width and height are set but left or right is not set, the window is automatically centered
+     *      The file becomes the initial content instead of the options `url`, which is
+     *      discarded. A path inside a zip archive mounted with fs.setZipFS is written as
+     *      `archive.zip$/dir/page.html`. The options are the same as for the url form,
+     *      see open(url, opt) for the full list and the platform notes.
+     *
      *      @param file the file to load
      *      @param opt window opening parameters
      *      @return returns the opened window object
@@ -127,34 +123,29 @@ declare module 'gui/promises' {
     function openFile(file: string, opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
-     * @description Creates a menu object
+     * @description Creates a Menu from an array of item descriptors
      *
-     *     The following menu item types are supported:
-     *     - normal
-     *         - type: "normal"
-     *         - label: required
-     *         - tooltip, icon, enabled: optional
-     *         - cannot have submenu or checked
-     *     - checkbox
-     *         - type: "checkbox"
-     *         - label: required
-     *         - checked: optional
-     *         - tooltip, icon, enabled: optional
-     *         - cannot have submenu
-     *     - submenu
-     *         - type: "submenu"
-     *         - label, submenu: required
-     *         - tooltip, icon, enabled: optional
-     *         - cannot have checked
-     *     - separator
-     *         - type: "separator"
-     *         - cannot have label, submenu, checked, icon or tooltip
+     *      Every element is a plain object descriptor (or an existing MenuItem); the
+     *      accepted properties, the type inference and the validation rules are
+     *      described in MenuItem. Item icons are read when the menu is created, so a
+     *      missing icon file fails here with ENOENT. The array may be empty; submenu
+     *      arrays and nested Menu objects are converted recursively.
      *
-     *     If a menu item does not specify type, its type is inferred from the other properties. The inference rules are:
-     *     - If the submenu property exists, type is set to "submenu".
-     *     - If the checked property exists, type is set to "checkbox".
-     *     - If the passed object is empty, type is set to "separator".
-     *     - If none of the above conditions is met, type is set to "normal".
+     *      Example — build a menu with all item types:
+     *      ```JavaScript
+     *      const gui = require('gui');
+     *
+     *      const menu = gui.createMenu([
+     *          { id: 'open', label: 'Open' },
+     *          { label: 'Auto save', checked: true },
+     *          { label: 'Recent', submenu: [{ label: 'notes.txt' }] },
+     *          { type: 'separator' }
+     *      ]);
+     *
+     *      console.log(menu.length); // 4
+     *      console.log(menu.getMenuItemById('open').label); // Open
+     *      console.log(menu[1].type + ' checked=' + menu[1].checked); // checkbox checked=true
+     *      ```
      *
      *      @param items menu item array
      *      @return returns the created menu object
@@ -163,17 +154,25 @@ declare module 'gui/promises' {
     function createMenu(items?: FIBJS.GeneralObject[]): Class_Menu;
 
     /**
-     * @description Creates a tray icon object
+     * @description Creates a Tray icon from the given options
      *
-     *      The following parameters are supported:
+     *      The icon file is required and read immediately (a PNG file); the native icon
+     *      is created asynchronously on the GUI thread, so a desktop session is needed.
+     *      The menu option accepts a Menu object or a template array and the tray keeps
+     *      the resulting object; see the Tray interface for the platform differences of
+     *      title and tooltip and for the tray lifecycle.
+     *
+     *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "icon": "/path/to/file.png", // specify the icon of the tray, must be a png file
-     *          "title": "", // specify the title of the tray, if not set, it will not be displayed
-     *          "tooltip": "", // specify the tooltip of the tray, if not set, it will not be displayed
-     *          "menu": menu, // specify the menu of the tray, default is null
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "icon": "/path/to/file.png", // required; icon file, must be a PNG
+     *          "title": "",                 // optional text next to the icon, not on Windows
+     *          "tooltip": "",               // optional hover text, not on Windows
+     *          "menu": null                 // a Menu object or a template array
+     *      })
      *      ```
+     *
      *      @param opt tray creation parameters
      *      @return returns the created tray icon object
      *
@@ -181,28 +180,47 @@ declare module 'gui/promises' {
     function createTray(opt?: FIBJS.GeneralObject): Class_Tray;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box
+     *
+     *      Blocks the calling fiber until the user dismisses the dialog; the generated
+     *      alertAsync form returns a Promise instead. The one-argument form uses an
+     *      empty window title. Requires a desktop session.
+     *
      *      @param message message content
      *
      */
     function alert(message: string): Promise<void>;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box
+     *
+     *      Blocks the calling fiber until the user dismisses the dialog; the generated
+     *      alertAsync form returns a Promise instead. The one-argument form uses an
+     *      empty window title. Requires a desktop session.
+     *
      *      @param message message content
      *
      */
     function alertSync(message: string): void;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box
+     *
+     *      Blocks the calling fiber until the user dismisses the dialog; the generated
+     *      alertAsync form returns a Promise instead. The one-argument form uses an
+     *      empty window title. Requires a desktop session.
+     *
      *      @param message message content
      *
      */
     function alertAsync(message: string): Promise<void>;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box with the given title
+     *
+     *      The blocking behaviour, the Promise form and the desktop requirement are
+     *      described on alert(message).
+     *
      *      @param title message title
      *      @param message message content
      *
@@ -210,7 +228,11 @@ declare module 'gui/promises' {
     function alert(title: string, message: string): Promise<void>;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box with the given title
+     *
+     *      The blocking behaviour, the Promise form and the desktop requirement are
+     *      described on alert(message).
+     *
      *      @param title message title
      *      @param message message content
      *
@@ -218,7 +240,11 @@ declare module 'gui/promises' {
     function alertSync(title: string, message: string): void;
 
     /**
-     * @description Pops up a message box
+     * @description Pops up a modal message box with the given title
+     *
+     *      The blocking behaviour, the Promise form and the desktop requirement are
+     *      described on alert(message).
+     *
      *      @param title message title
      *      @param message message content
      *
@@ -226,7 +252,12 @@ declare module 'gui/promises' {
     function alertAsync(title: string, message: string): Promise<void>;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box
+     *
+     *      Returns true when the user confirms with OK and false for Cancel or a closed
+     *      dialog; blocks the calling fiber until the dialog is dismissed. Requires a
+     *      desktop session.
+     *
      *      @param message message content
      *      @return returns the user's choice
      *
@@ -234,7 +265,12 @@ declare module 'gui/promises' {
     function confirm(message: string): Promise<boolean>;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box
+     *
+     *      Returns true when the user confirms with OK and false for Cancel or a closed
+     *      dialog; blocks the calling fiber until the dialog is dismissed. Requires a
+     *      desktop session.
+     *
      *      @param message message content
      *      @return returns the user's choice
      *
@@ -242,7 +278,12 @@ declare module 'gui/promises' {
     function confirmSync(message: string): boolean;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box
+     *
+     *      Returns true when the user confirms with OK and false for Cancel or a closed
+     *      dialog; blocks the calling fiber until the dialog is dismissed. Requires a
+     *      desktop session.
+     *
      *      @param message message content
      *      @return returns the user's choice
      *
@@ -250,7 +291,11 @@ declare module 'gui/promises' {
     function confirmAsync(message: string): Promise<boolean>;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box with the given title
+     *
+     *      See confirm(message) for the result, the blocking behaviour and the Promise
+     *      form.
+     *
      *      @param title message title
      *      @param message message content
      *      @return returns the user's choice
@@ -259,7 +304,11 @@ declare module 'gui/promises' {
     function confirm(title: string, message: string): Promise<boolean>;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box with the given title
+     *
+     *      See confirm(message) for the result, the blocking behaviour and the Promise
+     *      form.
+     *
      *      @param title message title
      *      @param message message content
      *      @return returns the user's choice
@@ -268,7 +317,11 @@ declare module 'gui/promises' {
     function confirmSync(title: string, message: string): boolean;
 
     /**
-     * @description Pops up a confirmation box
+     * @description Pops up a modal confirmation box with the given title
+     *
+     *      See confirm(message) for the result, the blocking behaviour and the Promise
+     *      form.
+     *
      *      @param title message title
      *      @param message message content
      *      @return returns the user's choice
@@ -277,7 +330,12 @@ declare module 'gui/promises' {
     function confirmAsync(title: string, message: string): Promise<boolean>;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box
+     *
+     *      The password argument masks the entered text. Cancelling the dialog returns
+     *      undefined instead of a string; the dialog blocks the calling fiber until it
+     *      is dismissed. Requires a desktop session.
+     *
      *      @param message message content
      *      @param password whether this is a password input, default is false
      *      @return returns the content entered by the user
@@ -286,7 +344,12 @@ declare module 'gui/promises' {
     function input(message: string, password?: boolean): Promise<string>;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box
+     *
+     *      The password argument masks the entered text. Cancelling the dialog returns
+     *      undefined instead of a string; the dialog blocks the calling fiber until it
+     *      is dismissed. Requires a desktop session.
+     *
      *      @param message message content
      *      @param password whether this is a password input, default is false
      *      @return returns the content entered by the user
@@ -295,7 +358,12 @@ declare module 'gui/promises' {
     function inputSync(message: string, password?: boolean): string;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box
+     *
+     *      The password argument masks the entered text. Cancelling the dialog returns
+     *      undefined instead of a string; the dialog blocks the calling fiber until it
+     *      is dismissed. Requires a desktop session.
+     *
      *      @param message message content
      *      @param password whether this is a password input, default is false
      *      @return returns the content entered by the user
@@ -304,7 +372,11 @@ declare module 'gui/promises' {
     function inputAsync(message: string, password?: boolean): Promise<string>;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box with the given title
+     *
+     *      See input(message, password) for the behaviour, the cancel result and the
+     *      Promise form.
+     *
      *      @param title message title
      *      @param message message content
      *      @param password whether this is a password input, default is false
@@ -314,7 +386,11 @@ declare module 'gui/promises' {
     function input(title: string, message: string, password?: boolean): Promise<string>;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box with the given title
+     *
+     *      See input(message, password) for the behaviour, the cancel result and the
+     *      Promise form.
+     *
      *      @param title message title
      *      @param message message content
      *      @param password whether this is a password input, default is false
@@ -324,7 +400,11 @@ declare module 'gui/promises' {
     function inputSync(title: string, message: string, password?: boolean): string;
 
     /**
-     * @description Pops up an input box
+     * @description Pops up a modal input box with the given title
+     *
+     *      See input(message, password) for the behaviour, the cancel result and the
+     *      Promise form.
+     *
      *      @param title message title
      *      @param message message content
      *      @param password whether this is a password input, default is false
@@ -334,14 +414,41 @@ declare module 'gui/promises' {
     function inputAsync(title: string, message: string, password?: boolean): Promise<string>;
 
     /**
-     * @description Pops up a file chooser dialog
+     * @description Pops up a modal file chooser and returns the selected paths
      *
-     *      options supports the following parameters:
-     *       - title: dialog title
-     *       - type: dialog type, "openFile", "openDirectory" or "saveFile", default is "openFile"
-     *       - defaultPath: the default path to open
-     *       - multiple: whether multiple selection is allowed, default is false
-     *       - filters: file filter array; each element is an object containing the name and extensions properties, where extensions is an array of extensions
+     *      Cancelling the dialog returns undefined. The result is always an array, also
+     *      for a single selection; saveFile returns at most one path, openFile and
+     *      openDirectory return one or more paths according to multiSelections. Requires
+     *      a desktop session.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "title": "",              // dialog title
+     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
+     *          "defaultPath": "",        // directory shown when the dialog opens
+     *          "multiSelections": false, // allow several files, ignored by saveFile
+     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
+     *      })
+     *      ```
+     *      Filter extensions are written without the leading dot. An unknown type and,
+     *      on Windows, an invalid defaultPath throw an Error.
+     *
+     *      Example — pick one or more images (requires a desktop session):
+     *      ```JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const files = gui.chooseFile({
+     *          title: 'Select images',
+     *          type: 'openFile',
+     *          multiSelections: true,
+     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     *      });
+     *
+     *      console.log(files ? files.length : 'cancelled');
+     *      ```
      *
      *      @param options file chooser dialog parameters
      *      @return returns the array of files chosen by the user
@@ -350,14 +457,41 @@ declare module 'gui/promises' {
     function chooseFile(options: FIBJS.GeneralObject): Promise<any[]>;
 
     /**
-     * @description Pops up a file chooser dialog
+     * @description Pops up a modal file chooser and returns the selected paths
      *
-     *      options supports the following parameters:
-     *       - title: dialog title
-     *       - type: dialog type, "openFile", "openDirectory" or "saveFile", default is "openFile"
-     *       - defaultPath: the default path to open
-     *       - multiple: whether multiple selection is allowed, default is false
-     *       - filters: file filter array; each element is an object containing the name and extensions properties, where extensions is an array of extensions
+     *      Cancelling the dialog returns undefined. The result is always an array, also
+     *      for a single selection; saveFile returns at most one path, openFile and
+     *      openDirectory return one or more paths according to multiSelections. Requires
+     *      a desktop session.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "title": "",              // dialog title
+     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
+     *          "defaultPath": "",        // directory shown when the dialog opens
+     *          "multiSelections": false, // allow several files, ignored by saveFile
+     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
+     *      })
+     *      ```
+     *      Filter extensions are written without the leading dot. An unknown type and,
+     *      on Windows, an invalid defaultPath throw an Error.
+     *
+     *      Example — pick one or more images (requires a desktop session):
+     *      ```JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const files = gui.chooseFile({
+     *          title: 'Select images',
+     *          type: 'openFile',
+     *          multiSelections: true,
+     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     *      });
+     *
+     *      console.log(files ? files.length : 'cancelled');
+     *      ```
      *
      *      @param options file chooser dialog parameters
      *      @return returns the array of files chosen by the user
@@ -366,14 +500,41 @@ declare module 'gui/promises' {
     function chooseFileSync(options: FIBJS.GeneralObject): any[];
 
     /**
-     * @description Pops up a file chooser dialog
+     * @description Pops up a modal file chooser and returns the selected paths
      *
-     *      options supports the following parameters:
-     *       - title: dialog title
-     *       - type: dialog type, "openFile", "openDirectory" or "saveFile", default is "openFile"
-     *       - defaultPath: the default path to open
-     *       - multiple: whether multiple selection is allowed, default is false
-     *       - filters: file filter array; each element is an object containing the name and extensions properties, where extensions is an array of extensions
+     *      Cancelling the dialog returns undefined. The result is always an array, also
+     *      for a single selection; saveFile returns at most one path, openFile and
+     *      openDirectory return one or more paths according to multiSelections. Requires
+     *      a desktop session.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "title": "",              // dialog title
+     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
+     *          "defaultPath": "",        // directory shown when the dialog opens
+     *          "multiSelections": false, // allow several files, ignored by saveFile
+     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
+     *      })
+     *      ```
+     *      Filter extensions are written without the leading dot. An unknown type and,
+     *      on Windows, an invalid defaultPath throw an Error.
+     *
+     *      Example — pick one or more images (requires a desktop session):
+     *      ```JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const files = gui.chooseFile({
+     *          title: 'Select images',
+     *          type: 'openFile',
+     *          multiSelections: true,
+     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     *      });
+     *
+     *      console.log(files ? files.length : 'cancelled');
+     *      ```
      *
      *      @param options file chooser dialog parameters
      *      @return returns the array of files chosen by the user

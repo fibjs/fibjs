@@ -1,35 +1,111 @@
-/*! @brief punycode internationalized domain name conversion module
+/*! @brief The punycode module converts internationalized domain names between Unicode and the ASCII-compatible Punycode encoding of RFC 3492
 
- Punycode is a character encoding scheme defined by RFC 3492, mainly used for internationalized domain names. Because hostnames in URLs are restricted to ASCII characters only, hostnames containing non-ASCII characters must be converted to ASCII using the punycode algorithm.
+`encode`/`decode` convert one label with the raw Bootstring algorithm, while
+`toASCII`/`toUnicode` convert a whole domain name and add or remove the `xn--` prefix (the ACE
+prefix) only on labels that contain non-ASCII characters.
 
- Usage:
- ```JavaScript
- var punycode = require('punycode');
- ```
- */
+Concepts:
+
+- **Punycode** is the RFC 3492 encoding for Bootstring: it represents non-ASCII Unicode code
+  points with ASCII letters, digits and hyphens so that they fit into DNS labels, which are
+  limited to ASCII characters.
+- **IDN and the ACE prefix**: an internationalized domain name is stored in DNS as an
+  ASCII-compatible encoding (ACE) label that starts with `xn--`; for example `bücher.example`
+  becomes `xn--bcher-kva.example`. toASCII and toUnicode handle the prefix per label and
+  leave labels that are already ASCII unchanged, while encode/decode work on the raw encoded
+  label and never touch the prefix.
+- **Deprecation**: Node.js marks its bundled `punycode` module as deprecated (DEP0040) and
+  recommends userland packages or `url.domainToASCII`; the fibjs module is not deprecated,
+  but url.domainToASCII and url.domainToUnicode are the preferred entry points for IDN
+  handling because they apply the full UTS #46 mapping.
+- The conversion accepts code points beyond the Basic Multilingual Plane; malformed input is
+  decoded leniently instead of being rejected, so validate the result before using it in
+  security-sensitive contexts.
+
+Import:
+```JavaScript
+const punycode = require('punycode');
+```
+
+Example 1 — encode and decode a single label:
+```JavaScript
+const punycode = require('punycode');
+
+const encoded = punycode.encode('mañana');
+console.log(encoded); // maana-pta
+console.log(punycode.decode(encoded)); // mañana
+console.log(punycode.encode('abc')); // abc-
+```
+
+Example 2 — convert an internationalized domain name:
+```JavaScript
+const punycode = require('punycode');
+
+const ascii = punycode.toASCII('mañana.com');
+console.log(ascii); // xn--maana-pta.com
+console.log(punycode.toUnicode(ascii)); // mañana.com
+
+// labels that are already ASCII are not modified
+console.log(punycode.toASCII('example.com')); // example.com
+```
+*/
 module punycode
 {
-    /*! @brief converts a Unicode string into an equivalent Punycode string containing only ASCII characters
-	 @param domain the given Unicode string
-	 @return returns the encoded Punycode string containing only ASCII characters
-	 */
+    /*! @brief Encodes a Unicode string into a raw Punycode label
+
+     The whole argument is encoded as one label and no `xn--` prefix is added; the result is
+     the Bootstring form used inside an ACE label, not a complete domain name, so encode
+     each label separately or use toASCII for a domain name. An ASCII-only string still gets
+     the trailing delimiter, for example `abc` becomes `abc-`. Prefer toASCII for host names
+     because encode does not apply the IDNA mapping.
+
+     Example — round-trip one label:
+     ```JavaScript
+     const punycode = require('punycode');
+
+     const label = punycode.encode('中文');
+     console.log(punycode.decode(label) === '中文'); // true
+     ```
+
+     @param domain Unicode string to encode
+     @return the raw Punycode encoding of the string
+     */
     static String encode(String domain);
 
-    /*! @brief converts a Punycode string into an equivalent Unicode string
-	 @param domain the given Unicode string
-	 @return returns the decoded Unicode string
-	 */
+    /*! @brief Decodes a raw Punycode label back into Unicode
+
+     The argument is the encoded part of a label without the `xn--` prefix, as produced by
+     encode; use toUnicode for a complete domain name. Input that contains no encoded part
+     decodes to an empty string instead of raising an error.
+
+     @param domain raw Punycode label to decode
+     @return the decoded Unicode string
+     */
     static String decode(String domain);
 
-    /*! @brief converts a Unicode string representing a domain name into a string containing only ASCII characters. Only the non-ASCII parts representing the domain name are converted. That is, it is also fine to call this on a string that has already been converted to ASCII.
-	 @param domain the given Unicode string
-	 @return returns the encoded ASCII string
-	 */
+    /*! @brief Converts the labels of a domain name to the ASCII-compatible encoding (ACE)
+
+     Each label is encoded only when it contains non-ASCII characters, so labels that are
+     already ASCII are copied unchanged, and encoded labels receive the `xn--` prefix. The
+     conversion applies the UTS #46 mapping through the URL parser and normalizes the case,
+     for example `BÜCHER.com` becomes `xn--bcher-kva.com` (Node.js keeps the original case).
+     Malformed or unsupported input is returned unchanged instead of raising an error, so
+     validate the result.
+
+     @param domain domain name to convert, possibly containing Unicode characters
+     @return the ASCII (ACE) form of the domain name
+     */
     static String toASCII(String domain);
 
-    /*! @brief converts a Punycode string representing a domain name into a Unicode string. Only the Punycode parts representing the domain name are converted. That is, it is also fine to call this on a string that has already been converted to Unicode.
-	 @param domain the given ASCII string
-	 @return returns the decoded Unicode string
-	 */
+    /*! @brief Converts the ACE labels of a domain name back to Unicode
+
+     Only labels that carry the `xn--` prefix are converted; all other labels are copied
+     unchanged, so the function can be applied to a domain that is already Unicode. The
+     prefix test is case-sensitive in fibjs: an upper-case `XN--` label is left as is,
+     while Node.js decodes it.
+
+     @param domain ASCII (ACE) domain name to convert
+     @return the Unicode form of the domain name
+     */
     static String toUnicode(String domain);
 };

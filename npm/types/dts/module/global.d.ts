@@ -32,210 +32,588 @@
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
- * @description The global object, the base object every script can access
+ * @description The global object, the base object that every script and module can access directly
  *
- *  The global object provides:
+ *  The global object is available under two names: `globalThis`, the standard
+ *  JavaScript name, and `global`, a read-only alias kept for Node.js compatibility;
+ *  both refer to the same object (`global === globalThis` is true).
  *
- *  - **Web standard objects**: `Buffer`, `URL`, `URLSearchParams`, `Blob`, `File`, `Headers`, `FormData`, `Request`, `Response`, `TextDecoder`, `TextEncoder`, `AbortController`, `AbortSignal`, `Event`, `EventTarget`, `MessagePort`, `MessageChannel`, `Worker`, `WebSocket`, `DOMParser`, `XMLSerializer` and more;
- *  - **Core modules**: `console`, `process`, `performance`, `crypto`;
- *  - **Module loading**: `require` loads modules, `run` runs scripts;
- *  - **Timers**: `setTimeout`, `setInterval`, `setImmediate` and so on, behaving like the same-named functions of the timers module;
- *  - **Helpers**: `btoa`/`atob` encoding, `structuredClone` deep copy, `fetch` requests, `queueMicrotask` micro-task scheduling.
+ *  Main capabilities:
+ *
+ *  - **Web standard classes**: `Buffer`, `URL`, `URLSearchParams`, `Blob`, `File`,
+ *    `Headers`, `FormData`, `Request`, `Response`, `TextDecoder`, `TextEncoder`,
+ *    `AbortController`, `AbortSignal`, `Event`, `EventTarget`, `MessageEvent`,
+ *    `MessagePort`, `MessageChannel`, `Worker`, `WebSocket`, `CryptoKey`,
+ *    `DOMParser`, `CSSStyleDeclaration`, `DOMStringMap`, `XMLSerializer` and
+ *    `XMLDocument`;
+ *  - **Core modules**: `console`, `process`, `performance`, `PerformanceObserver`
+ *    and `crypto`;
+ *  - **Module loading**: `require` loads modules and `run` runs scripts;
+ *  - **Timers**: `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`,
+ *    `setHrInterval`, `clearHrInterval`, `setImmediate` and `clearImmediate`;
+ *  - **Helpers**: `btoa`, `atob`, `structuredClone`, `fetch` and `queueMicrotask`.
+ *
+ *  Concepts:
+ *
+ *  - **One global scope per sandbox**: a script runs in a sandbox whose global
+ *    object forwards property reads and writes to the sandbox. `globalThis.x = 1`
+ *    makes `x` visible as an implicit global in every script of the sandbox, while
+ *    top-level `var` and `function` declarations stay in the module scope (like
+ *    Node.js CommonJS modules) and do not become globals.
+ *  - **Timers and process lifetime**: each pending timer keeps the process alive
+ *    until it fires or is cleared, so a repeating timer that is never cleared
+ *    prevents the process from exiting. Scheduling is fiber-based: the callback
+ *    runs on its own fiber and the clear functions may be called from the callback
+ *    itself or from any other fiber. `Timer#unref` drops the liveness hold without
+ *    cancelling the timer. See the coroutine module for the fiber model.
+ *  - **Task ordering**: after the current task, `process.nextTick` callbacks run
+ *    first, then the V8 micro-tasks (promise jobs and `queueMicrotask`), then
+ *    `setImmediate` callbacks, then timers.
+ *  - **Error values**: `structuredClone` throws a `DOMException` (`DataCloneError`);
+ *    `fetch` aborts with an `AbortError` and times out with a `TimeoutError`, both
+ *    plain `Error` subclasses. `btoa` and `atob` throw plain `Error` objects,
+ *    while Node.js throws a `DOMException` named `InvalidCharacterError`.
+ *  - **Node.js compatibility**: most globals match the same-named Node.js global
+ *    objects, with these differences: `Request` and `Response` are `HttpRequest`
+ *    and `HttpResponse` instead of the WHATWG fetch classes; `EventTarget` is the
+ *    `EventEmitter` class, so `addEventListener`/`removeEventListener` are aliases
+ *    of `on`/`off` and `dispatchEvent` is not provided; `Worker` takes a script
+ *    path like `worker_threads.Worker` instead of a URL; `setHrInterval` and `run`
+ *    are fibjs extensions. Node.js globals that are not available include
+ *    `BroadcastChannel`, `CustomEvent`, `EventSource` (as a global), `navigator`,
+ *    `localStorage`, `sessionStorage`, `CompressionStream`, `DecompressionStream`,
+ *    `TextEncoderStream` and `TextDecoderStream`.
+ *
+ *  Import:
+ *  ```JavaScript
+ *  // no import is needed, both names are already in scope
+ *  console.log(globalThis === global); // true
+ *  ```
+ *
+ *  Example 1 — timers with cleanup:
+ *  ```JavaScript
+ *  console.log('start');
+ *
+ *  // cancel a pending one-time timer
+ *  const timeout = setTimeout((name) => console.log('late', name), 30, 'timer');
+ *  setTimeout(() => {
+ *      clearTimeout(timeout);
+ *      console.log('cancelled');
+ *  }, 5);
+ *
+ *  // a repeating timer must be cleared, or the process never exits
+ *  let ticks = 0;
+ *  const interval = setInterval(() => {
+ *      ticks++;
+ *      console.log('tick', ticks);
+ *      if (ticks === 3) {
+ *          clearInterval(interval);
+ *      }
+ *  }, 10);
+ *  ```
+ *
+ *  Example 2 — encoding and structured clone helpers:
+ *  ```JavaScript
+ *  // btoa/atob convert the value to its string form and use the Latin1 range
+ *  const encoded = btoa('fibjs');
+ *  console.log(encoded, atob(encoded)); // ZmlianM fibjs
+ *
+ *  // structuredClone deep-copies values, including cycles, Map, Set and Date
+ *  const original = { name: 'global', tags: new Map([['kind', 'runtime']]), when: new Date(0) };
+ *  original.self = original;
+ *  const copy = structuredClone(original);
+ *  console.log(copy !== original, copy.self === copy, copy.tags.get('kind'), copy.when.getTime());
+ *
+ *  // the transfer list moves an ArrayBuffer instead of copying it
+ *  const buffer = new ArrayBuffer(8);
+ *  const moved = structuredClone({ buffer }, { transfer: [buffer] });
+ *  console.log(buffer.byteLength, moved.buffer.byteLength); // 0 8
+ *  ```
+ *
+ *  Example 3 — load modules and scripts:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-global-'));
+ *
+ *  fs.writeFile(path.join(dir, 'math.js'), 'module.exports = { add: (a, b) => a + b };\n');
+ *  console.log(require(path.join(dir, 'math.js')).add(2, 3)); // 5
+ *
+ *  fs.writeFile(path.join(dir, 'data.json'), '{"port": 8080}');
+ *  console.log(require(path.join(dir, 'data.json')).port); // 8080
+ *
+ *  fs.writeFile(path.join(dir, 'boot.js'), 'console.log("boot", __filename !== undefined);\n');
+ *  run(path.join(dir, 'boot.js')); // boot true
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 4 — fetch from a local server and abort a request:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, (req) => {
+ *      req.response.json({ path: req.address });
+ *  });
+ *  server.start();
+ *  const base = 'http://127.0.0.1:' + server.address().port;
+ *
+ *  (async () => {
+ *      const res = await fetch(base + '/hello');
+ *      console.log(res.status, res.ok, (await res.json()).path); // 200 true /hello
+ *
+ *      const controller = new AbortController();
+ *      controller.abort();
+ *      try {
+ *          await fetch(base, { signal: controller.signal });
+ *      } catch (err) {
+ *          console.log(err.name); // AbortError
+ *      }
+ *
+ *      server.stop();
+ *  })();
+ *  ```
+ *
+ *  Example 5 — events and micro-task scheduling:
+ *  ```JavaScript
+ *  // EventTarget is the EventEmitter class, so listeners are plain callbacks
+ *  const target = new EventTarget();
+ *  target.addEventListener('ready', (value) => console.log('ready', value));
+ *  target.emit('ready', 42);
+ *
+ *  // AbortSignal delivers a standard event object to its listeners
+ *  const controller = new AbortController();
+ *  controller.signal.addEventListener('abort', (ev) => {
+ *      console.log(ev.type, ev.target === controller.signal, controller.signal.reason);
+ *  });
+ *  controller.abort('stop');
+ *
+ *  // micro-tasks run after the current task, before immediates and timers
+ *  console.log('sync');
+ *  queueMicrotask(() => console.log('microtask'));
+ *  Promise.resolve().then(() => console.log('promise'));
+ *  console.log('end');
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - The sandbox bootstrap also defines the `DOMException`, `AbortError` and
+ *    `TimeoutError` error classes, and installs `fetchAsync` as an alias of
+ *    `fetch` plus a synchronous `fetchSync`; none of them is a member declared in
+ *    this definition.
+ *  - `global` is read-only (assigning to it throws), while `globalThis` is an
+ *    ordinary writable property.
+ *
  */
 declare module 'global' {
     /**
-     * @description The binary data buffer object used for io reads and writes, see the Buffer object.
+     * @description The binary data buffer class, see Buffer
+     *
+     *      The same class as `require('buffer').Buffer` and also a global in Node.js;
+     *      it is installed when the sandbox is created, so binary data handling is
+     *      available without requiring the buffer module. Most io APIs accept and
+     *      return Buffer objects.
+     *
      */
     const Buffer: typeof Class_Buffer;
 
     /**
-     * @description Creates a URLSearchParams object, see URLSearchParams
+     * @description The URL query parameter collection class, see URLSearchParams
+     *
+     *      The same class as the url module's URLSearchParams and aligned with the
+     *      WHATWG standard; Node.js also exposes it as a global. Values are
+     *      percent-encoded when the collection is serialized.
+     *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
 
     /**
-     * @description Creates a UrlObject object, see UrlObject
+     * @description The URL parser class, see UrlObject
+     *
+     *      `new URL(input, base)` parses an absolute or relative URL according to the
+     *      WHATWG URL standard. Node.js exposes the WHATWG URL class under the same
+     *      name; fibjs maps the global to the url module's UrlObject, which implements
+     *      the standard URL API.
+     *
      */
     const URL: typeof Class_UrlObject;
 
     /**
-     * @description Creates a Blob object, see Blob
+     * @description The immutable binary data block class of the Web File API, see Blob
+     *
+     *      `new Blob(parts, { type })` builds a blob from strings, buffers and other
+     *      blobs. Node.js also exposes Blob as a global (v18+); Blob objects are
+     *      accepted as fetch bodies and form values.
+     *
      */
     const Blob: typeof Class_Blob;
 
     /**
-     * @description Creates a File object, see File
+     * @description The in-memory file class, a Blob with a name and modification time, see File
+     *
+     *      `new File(parts, name, { type, lastModified })` builds one. Node.js also
+     *      exposes File as a global (v20+); unlike a file system handle it represents
+     *      data in memory and never touches the disk.
+     *
      */
     const File: typeof Class_File;
 
     /**
-     * @description Creates a Headers object, see Headers
+     * @description The HTTP header collection class, see Headers
+     *
+     *      In fibjs it derives from HttpCollection and is shared by the fetch API and
+     *      the http module. Node.js exposes the equivalent WHATWG Headers class as a
+     *      global as well.
+     *
      */
     const Headers: typeof Class_Headers;
 
     /**
-     * @description Creates a FormData object, see FormData
+     * @description The multipart form data container used as a fetch body, see FormData
+     *
+     *      `new FormData()` creates an empty form and `append` adds fields and files.
+     *      When a FormData object is used as a request body, the multipart boundary
+     *      and the content type are generated automatically.
+     *
      */
     const FormData: typeof Class_FormData;
 
     /**
-     * @description Creates an http request object, see HttpRequest
+     * @description The HTTP request class used as the fetch request source, see HttpRequest
+     *
+     *      `new Request(url, options)` creates a request that can be passed to fetch.
+     *      This is the http module's HttpRequest class, not the WHATWG Request class
+     *      of Node.js, so the object exposes the fibjs request API (`method`,
+     *      `headers`, `body`, `response` and so on).
+     *
      */
     const Request: typeof Class_HttpRequest;
 
     /**
-     * @description Creates a Fetch API response object, see HttpResponse
+     * @description The HTTP response class returned by fetch, see HttpResponse
+     *
+     *      fetch resolves with an HttpResponse and `new Response(body, options)`
+     *      creates one for tests or synthetic replies. Node.js returns the WHATWG
+     *      Response class instead, so only the common members (`status`, `ok`,
+     *      `headers`, `text()`, `json()`) share the same names.
+     *
      */
     const Response: typeof Class_HttpResponse;
 
     /**
-     * @description The TextDecoder object, see the TextDecoder object.
+     * @description The text decoder class, see TextDecoder
+     *
+     *      `new TextDecoder(codec, options)` decodes Buffer or ArrayBuffer bytes into a
+     *      string; the codec defaults to utf8. Node.js also exposes TextDecoder as a
+     *      global.
+     *
      */
     const TextDecoder: typeof Class_TextDecoder;
 
     /**
-     * @description The TextEncoder object, see the TextEncoder object.
+     * @description The text encoder class, see TextEncoder
+     *
+     *      `new TextEncoder(codec, options)` encodes a string into UTF-8 bytes and
+     *      returns them as a Buffer; the codec defaults to utf8. Node.js also exposes
+     *      TextEncoder as a global.
+     *
      */
     const TextEncoder: typeof Class_TextEncoder;
 
     /**
-     * @description The controller object used to abort one or more Web requests on demand, see the AbortController object.
+     * @description The controller that aborts asynchronous Web requests, see AbortController
+     *
+     *      `new AbortController()` creates a controller with a fresh AbortSignal.
+     *      `abort(reason)` fires the signal's `abort` event synchronously and rejects
+     *      any fetch using that signal; when no reason is given it is the string
+     *      `"AbortError"` (Node.js uses a DOMException instead).
+     *
      */
     const AbortController: typeof Class_AbortController;
 
     /**
-     * @description The signal object used to communicate with and abort asynchronous operations, see the AbortSignal object.
+     * @description The signal that communicates cancellation to asynchronous APIs, see AbortSignal
+     *
+     *      Pass `signal` to fetch to cancel a request in flight. Static helpers create
+     *      derived signals: `AbortSignal.abort(reason)`, `AbortSignal.timeout(ms)` and
+     *      `AbortSignal.any(signals)`; a signal created by `timeout` makes fetch reject
+     *      with a `TimeoutError`.
+     *
      */
     const AbortSignal: typeof Class_AbortSignal;
 
     /**
-     * @description The DOM event object, representing a W3C standard event
+     * @description The W3C DOM event class, see DOMEvent
+     *
+     *      `new Event(type, { bubbles, cancelable })` creates an event and `type` is
+     *      required; DOMEvent exposes the standard members such as `type`, `bubbles`,
+     *      `target`, `defaultPrevented` and the prevent/stop methods. Node.js also
+     *      exposes an Event class as a global with the same constructor shape.
+     *
      */
     const Event: typeof Class_DOMEvent;
 
     /**
-     * @description The DOM event target object, providing Web standard event listening and dispatching
+     * @description The event target class, implemented by EventEmitter, see EventEmitter
+     *
+     *      This global is the events module's EventEmitter, not the WHATWG EventTarget
+     *      class of Node.js: `addEventListener`/`removeEventListener` are aliases of
+     *      `on`/`off` and take a plain listener, `dispatchEvent` is not provided, and
+     *      events are listened to and dispatched with `on`/`once`/`emit`.
+     *
      */
     const EventTarget: typeof Class_EventEmitter;
 
     /**
-     * @description The MessageEvent object, representing a message received by a target object
+     * @description The event object carrying a message delivered through MessagePort, see MessageEvent
+     *
+     *      `new MessageEvent(type, { data })` is accepted, but only the `data` payload
+     *      is exposed; Node.js additionally exposes `type`, `origin`, `lastEventId`,
+     *      `source` and `ports`.
+     *
      */
     const MessageEvent: typeof Class_MessageEvent;
 
     /**
-     * @description The MessagePort object, representing one end of a message channel
+     * @description One end of a message channel, see MessagePort
+     *
+     *      Obtained from `new MessageChannel()` or from a worker's parent port.
+     *      Messages are delivered asynchronously; when listening with
+     *      addEventListener instead of onmessage, call `start()` to begin receiving.
+     *      Call `close()` when the port is no longer needed.
+     *
      */
     const MessagePort: typeof Class_MessagePort;
 
     /**
-     * @description The MessageChannel object, providing a pair of connected MessagePort objects
+     * @description A pair of connected MessagePort objects, see MessageChannel
+     *
+     *      `new MessageChannel()` returns `port1` and `port2`; a message posted to one
+     *      port is delivered to the other with structured-clone semantics, and an
+     *      optional transfer list moves ArrayBuffers instead of copying them.
+     *
      */
     const MessageChannel: typeof Class_MessageChannel;
 
     /**
-     * @description The Worker object, used to create child threads
+     * @description The child thread class, see Worker
      *
-     *    The same class as `worker_threads.Worker` with identical semantics; equivalent to `require('worker_threads').Worker`:
+     *      `new Worker(path, opts)` starts a worker from a script path with the same
+     *      semantics as the worker_threads module's Worker; the global is installed
+     *      for convenience. Node.js also has a global Worker, but it follows the Web
+     *      Worker standard and takes a URL instead of a path.
      *
-     *    ```JavaScript
-     *    const worker = new Worker(__dirname + '/worker.js');
-     *    worker.on('message', (msg) => console.log(msg));
-     *    worker.postMessage('hello');
-     *    ```
+     *      Example — run a worker script and terminate it:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-global-'));
+     *      fs.writeFile(path.join(dir, 'worker.js'),
+     *          'const { parentPort } = require("worker_threads");\n' +
+     *          'parentPort.on("message", (msg) => parentPort.postMessage(msg + " from worker"));\n');
+     *
+     *      const worker = new Worker(path.join(dir, 'worker.js'));
+     *      worker.on('message', async (msg) => {
+     *          console.log(msg); // hello from worker
+     *          await worker.terminate();
+     *          fs.rmSync(dir, { recursive: true, force: true });
+     *      });
+     *      worker.postMessage('hello');
+     *      ```
      *
      */
     const Worker: typeof Class_Worker;
 
     /**
-     * @description The CryptoKey class represents symmetric or asymmetric keys, each kind exposing different capabilities
+     * @description The Web Crypto key class, see CryptoKey
+     *
+     *      Keys are created by `crypto.subtle.generateKey`/`importKey`; the class
+     *      cannot be constructed directly. Node.js also exposes CryptoKey as a global.
+     *
      */
     const CryptoKey: typeof Class_CryptoKey;
 
     /**
-     * @description The DOMParser interface parses strings into DOM documents, see the DOMParser object
+     * @description The DOM parser class, see DOMParser
+     *
+     *      `new DOMParser().parseFromString(source, mimeType)` parses HTML or XML into
+     *      an XmlDocument. Node.js has no built-in DOMParser global.
+     *
      */
     const DOMParser: typeof Class_DOMParser;
 
     /**
-     * @description The CSSStyleDeclaration interface represents the CSS declaration block of the style attribute of an element, see the CSSStyleDeclaration object
+     * @description The inline CSS declaration block of an element, see CSSStyleDeclaration
+     *
+     *      Not a constructor in fibjs: instances are obtained from the `style`
+     *      property of an element of a parsed document. Node.js has no counterpart.
+     *
      */
     const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
 
     /**
-     * @description The DOMStringMap interface represents the key-value map of the data-* attributes of an element, see the DOMStringMap object
+     * @description The map of the data-* attributes of an element, see DOMStringMap
+     *
+     *      Not a constructor in fibjs: instances are obtained from the `dataset`
+     *      property of an element; keys are camelCase and map to data-* attributes.
+     *
      */
     const DOMStringMap: typeof Class_DOMStringMap;
 
     /**
-     * @description The XMLSerializer interface serializes DOM nodes into strings, see the XMLSerializer object
+     * @description The serializer that turns DOM nodes into XML strings, see XMLSerializer
+     *
+     *      `new XMLSerializer().serializeToString(node)` serializes a document or
+     *      element. Node.js has no built-in counterpart.
+     *
      */
     const XMLSerializer: typeof Class_XMLSerializer;
 
     /**
-     * @description The XMLDocument interface represents an XML document, the same as XmlDocument
+     * @description The XML document class, see XmlDocument
+     *
+     *      `new XMLDocument(type)` creates an empty document that can be loaded with
+     *      `load(source)`. It is the same class as the xml module's XmlDocument.
+     *
      */
     const XMLDocument: typeof Class_XmlDocument;
 
     /**
-     * @description The WebSocket class creates and manages WebSocket connections, see the WebSocket object
+     * @description The WebSocket client and server class, see WebSocket
+     *
+     *      `new WebSocket(url, protocols, origin)` connects as a client, while
+     *      `WebSocket.upgrade(options, handler)` accepts server connections. Node.js
+     *      exposes only the client through the global of the same name.
+     *
      */
     const WebSocket: typeof Class_WebSocket;
 
     /**
-     * @description The console access object
+     * @description The console output object, see console
+     *
+     *      The same object as `require('console')` and also a global in Node.js; it
+     *      provides log/info/warn/error and the other console methods.
+     *
      */
     const console: typeof import ('console');
 
     /**
-     * @description The process object
+     * @description The process object, see process
+     *
+     *      The same object as `require('process')`, exposing argv, env, platform,
+     *      exit and the other process members; Node.js also exposes it as a global.
+     *
      */
     const process: typeof import ('process');
 
     /**
-     * @description The basic performance monitoring module
+     * @description The performance measurement object, see performance
+     *
+     *      The same object as `require('perf_hooks').performance`, providing `now()`,
+     *      `mark()`, `measure()` and the other measurements; Node.js also exposes it
+     *      as a global.
+     *
      */
     const performance: typeof import ('performance');
 
     /**
-     * @description The PerformanceObserver interface observes performance records
+     * @description The observer that receives performance entries, see PerformanceObserver
+     *
+     *      `new PerformanceObserver(callback)` plus `observe({ entryTypes })`
+     *      subscribes to performance records; Node.js also exposes the class as a
+     *      global.
+     *
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
 
     /**
-     * @description The w3c webcrypto standard crypto module
+     * @description The Web Crypto object, see the crypto module
+     *
+     *      This is not the hashing module: the global is the Web Crypto API object
+     *      (`crypto.subtle`, `crypto.getRandomValues`, `crypto.randomUUID` and the
+     *      CryptoKey class), equivalent to `require('crypto').webcrypto`. Node.js
+     *      exposes the same object globally.
+     *
      */
     const crypto: typeof import ('webcrypto');
 
     /**
-     * @description The global object
+     * @description The global object itself, a read-only alias of globalThis, see globalThis
+     *
+     *      `global === globalThis` is true. The property is an accessor without a
+     *      setter, so assigning to `global` throws a TypeError; use `globalThis` in
+     *      new code, as Node.js recommends.
+     *
      */
     const global: FIBJS.GeneralObject;
 
     /**
-     * @description The global object
+     * @description The global object itself, exposed under the standard name
+     *
+     *      In fibjs it is an ordinary writable data property, so `globalThis = value`
+     *      replaces the binding, as in Node.js. Property reads and writes through it
+     *      reach the sandbox global object, so `globalThis.x = 1` publishes `x` to
+     *      every script of the sandbox.
+     *
      */
     const globalThis: FIBJS.GeneralObject;
 
     /**
-     * @description Runs a script
+     * @description Runs a script file in the main sandbox
+     *
+     *      The file is executed synchronously in the same sandbox and global scope as
+     *      the caller, so a script that sets `globalThis.x` makes `x` visible after
+     *      the call. Relative paths are resolved against the current working
+     *      directory; a file that cannot be opened throws. The return value is
+     *      undefined. This is a fibjs extension; the closest Node.js equivalents are
+     *      `require` and `vm.runInThisContext`.
+     *
+     *      Example — run a script from a temporary directory:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-global-'));
+     *      fs.writeFile(path.join(dir, 'boot.js'),
+     *          'globalThis.booted = "yes";\nconsole.log("boot script", __filename !== undefined);\n');
+     *
+     *      run(path.join(dir, 'boot.js')); // boot script true
+     *      console.log(globalThis.booted); // yes
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
      *      @param fname the path of the script to run
      *
      */
     function run(fname: string): void;
 
     /**
-     * @description Loads a module and returns the module object, see @ref module for more information
+     * @description Loads a module and returns its exports object, see the module module
      *
-     *      require can load both internal modules and file modules.
+     *      `require` loads internal modules and file modules. Internal modules are
+     *      initialized when the sandbox is created and are referenced by id, for
+     *      example `require("net")`; the `node:` prefix is accepted for Node.js
+     *      compatibility, so `require("node:fs")` is the same as `require("fs")`.
      *
-     *      Internal modules are initialized when the sandbox is created; they are referenced by their id, for example require("net").
+     *      File modules are referenced by a path starting with ./ or ../, or by an
+     *      absolute path; the .js, .jsc and .json extensions are supported, and a .js
+     *      file written with ESM syntax is retried as an ES module. When the path is a
+     *      directory, a package.json `exports` entry takes precedence over `main`, and
+     *      when neither is usable, index.js, index.jsc or index.json under the path is
+     *      tried. A path that is not internal and does not start with ./ or ../ is
+     *      searched in the node_modules directories walking up from the requiring
+     *      module.
      *
-     *      File modules are user-defined modules, referenced by a relative path starting with ./ or ../. File modules support .js, .jsc and .json files.
-     *
-     *      File modules also support the package.json format. When the module is a directory, require first looks up main in package.json, and when it is missing, tries index.js, index.jsc or index.json under the path.
-     *
-     *      When the referenced path does not start with ./ or ../ and is not an internal module, require searches node_modules under the path of the current module, walking up the parent directories.
+     *      The function object also exposes `require.resolve(id)`, `require.cache` and
+     *      `require.main`; `require.extensions` is not provided (Node.js still exposes
+     *      the deprecated property). In fibjs `require` is available both as a global
+     *      and in the module scope, and calling it from an ES module throws.
      *
      *      The basic flow is as follows:
      *
@@ -282,31 +660,87 @@ declare module 'global' {
      *         }
      *      ```
      *
-     *      @param id the name of the module to load
+     *      Example — load a module file and a JSON file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-global-'));
+     *      fs.writeFile(path.join(dir, 'config.json'), '{"name": "fibjs"}');
+     *      fs.writeFile(path.join(dir, 'greet.js'), 'module.exports = (name) => "hello " + name;\n');
+     *
+     *      console.log(require(path.join(dir, 'config.json')).name); // fibjs
+     *      console.log(require(path.join(dir, 'greet.js'))('world')); // hello world
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @param id the name or path of the module to load
      *      @return the exported object of the loaded module
      *
      */
     function require(id: string): any;
 
     /**
-     * @description Calls a function after the given time, behaving like the same-named function of the timers module
-     *     @param callback the callback function
-     *     @param timeout the delay in milliseconds, 1 by default; values below 1 or above 2^31-1 are treated as 1ms.
-     *     @param args extra arguments passed to the callback, optional.
-     *     @return the timer object
+     * @description Calls a function after the given delay, like the same-named timers module function
+     *
+     *      The delay defaults to 1 ms; values below 1 or above 2^31-1 are clamped to
+     *      1 ms, while Node.js also emits a TimeoutOverflowWarning. Extra arguments
+     *      are passed to the callback. The returned Timer keeps the process alive
+     *      until it fires or is cleared; call `clearTimeout(timer)`, or `timer.unref()`
+     *      to let the process exit without cancelling it. Timers run after
+     *      `setImmediate` callbacks and after promise jobs.
+     *
+     *      Example — pass extra arguments to the callback:
+     *      ```JavaScript
+     *      setTimeout((name, count) => {
+     *          console.log(name, count); // job 3
+     *      }, 20, 'job', 3);
+     *      ```
+     *
+     *      @param callback the callback function
+     *      @param timeout the delay in milliseconds, 1 by default; values outside 1..2^31-1 become 1ms.
+     *      @param args extra arguments passed to the callback, optional.
+     *      @return the timer object
      *
      */
     function setTimeout(callback: (...args: any[])=>void, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the given timer
+     *
+     *      Accepts any Timer object returned by setTimeout, setInterval, setImmediate
+     *      or setHrInterval, so the four clear functions are interchangeable; clearing
+     *      a value that is not a timer is a no-op. A cleared timer releases its hold on
+     *      the process lifetime.
+     *
      *      @param t the timer to clear
      *
      */
     function clearTimeout(t: any): void;
 
     /**
-     * @description Calls a function after every given interval, behaving like the same-named function of the timers module
+     * @description Calls a function after every given delay, like the same-named timers module function
+     *
+     *      The delay is in milliseconds and is clamped like setTimeout; each call
+     *      passes the extra arguments to the callback. A repeating timer is never
+     *      released automatically: clear it with `clearInterval(timer)` or the process
+     *      will not exit, and `timer.unref()` releases the liveness hold while the
+     *      timer keeps running.
+     *
+     *      Example — a counter that stops itself after three ticks:
+     *      ```JavaScript
+     *      let ticks = 0;
+     *      const timer = setInterval(() => {
+     *          ticks++;
+     *          console.log('tick', ticks);
+     *          if (ticks === 3) {
+     *              clearInterval(timer);
+     *          }
+     *      }, 10);
+     *      ```
+     *
      *      @param callback the callback function
      *      @param timeout the interval in milliseconds; values below 1 or above 2^31-1 are treated as 1ms.
      *      @param args extra arguments passed to the callback, optional.
@@ -317,27 +751,40 @@ declare module 'global' {
 
     /**
      * @description Clears the given timer
+     *
+     *      The same operation as clearTimeout; it accepts any Timer object, so a
+     *      repeating timer created by setInterval can also be cleared through
+     *      clearTimeout and vice versa.
+     *
      *      @param t the timer to clear
      *
      */
     function clearInterval(t: any): void;
 
     /**
-     * @description Calls a function after every given interval; this is a high-precision timer that interrupts the running JavaScript script
-     *      Since the setHrInterval timer interrupts running code to execute the callback, do not modify data that may affect other modules inside the callback, and do not call any API marked as async in the callback, otherwise unpredictable results may occur. For example:
+     * @description Calls a function repeatedly with a high-precision timer that interrupts JavaScript
+     *
+     *      fibjs extension with no Node.js equivalent. Unlike setInterval, the timer
+     *      fires by interrupting the isolate, so the callback can run while a busy loop
+     *      is executing; keep the callback short and do not call async APIs or modify
+     *      state that other modules may read, otherwise unpredictable results may
+     *      occur. The compiler also assumes that a loop variable such as `cnt` does not
+     *      change during a busy loop, so `while (cnt < 10);` never ends even though the
+     *      callback changes `cnt`. Clear the timer with clearHrInterval when it is no
+     *      longer needed, otherwise the process never exits.
+     *
+     *      Example — count three ticks and clear the timer:
      *      ```JavaScript
-     *         var timers = require('timers');
-     *
-     *         var cnt = 0;
-     *         timers.setHrInterval(() => {
-     *             cnt++;
-     *         }, 100);
-     *
-     *         while (cnt < 10);
-     *
-     *         console.error("===============================> done");
+     *      let count = 0;
+     *      const timer = setHrInterval(() => {
+     *          count++;
+     *          console.log(count);
+     *          if (count >= 3) {
+     *              clearHrInterval(timer);
+     *          }
+     *      }, 100);
      *      ```
-     *      In this code, the loop on line 8 will not end when cnt changes, because when optimizing the code JavaScript assumes that cnt will not change during the loop.
+     *
      *      @param callback the callback function
      *      @param timeout the interval in milliseconds; values below 1 or above 2^31-1 are treated as 1ms.
      *      @param args extra arguments passed to the callback, optional.
@@ -348,13 +795,24 @@ declare module 'global' {
 
     /**
      * @description Clears the given timer
+     *
+     *      Like the other clear functions it accepts any Timer object; use it for
+     *      timers created by setHrInterval, which otherwise keep interrupting the
+     *      script and prevent the process from exiting.
+     *
      *      @param t the timer to clear
      *
      */
     function clearHrInterval(t: any): void;
 
     /**
-     * @description Calls the callback as soon as the next idle moment arrives
+     * @description Calls the callback as soon as the current task completes, before timers fire
+     *
+     *      Extra arguments are passed to the callback and the returned Timer can be
+     *      cleared with clearImmediate. Immediates run after promise jobs and
+     *      `queueMicrotask`, but before setTimeout/setInterval callbacks (whose
+     *      smallest delay is 1 ms). Node.js names the same phase setImmediate.
+     *
      *      @param callback the callback function
      *      @param args extra arguments passed to the callback, optional.
      *      @return the timer object
@@ -364,40 +822,89 @@ declare module 'global' {
 
     /**
      * @description Clears the given timer
+     *
+     *      The same operation as the other clear functions; it accepts any Timer
+     *      object and clears an immediate created by setImmediate.
+     *
      *      @param t the timer to clear
      *
      */
     function clearImmediate(t: any): void;
 
     /**
-     * @description Encodes data in base64
+     * @description Encodes a value into a base64 string using the Latin1 range
      *
-     *          The value is converted to its string form first, as the DOM and node
-     *          do: btoa(123) encodes "123", btoa(null) encodes "null".
+     *      The value is converted to its string form first, as the DOM and Node.js do:
+     *      `btoa(123)` encodes "123" and `btoa(null)` encodes "null". Characters above
+     *      U+00FF throw an `Error` (Node.js throws a `DOMException` named
+     *      `InvalidCharacterError`); use `Buffer.from(text).toString('base64')` for
+     *      general strings.
      *
-     *          @param data the value to encode
-     *          @return the encoded string
+     *      Example — encode a value and decode it back:
+     *      ```JavaScript
+     *      const encoded = btoa('user:pass');
+     *      console.log(encoded, atob(encoded)); // dXNlcjpwYXNz user:pass
+     *      ```
+     *
+     *      @param data the value to encode
+     *      @return the encoded string
      *
      */
     function btoa(data: any): string;
 
     /**
-     * @description Decodes a string into binary data in base64
+     * @description Decodes a base64 string into a Latin1 string
      *
-     *          The value is converted to its string form first, as the DOM and node
-     *          do: atob(123) decodes "123".
+     *      The value is converted to its string form first, as the DOM and Node.js do:
+     *      `atob(123)` decodes "123". Whitespace is ignored and invalid characters
+     *      throw an `Error` (Node.js throws a `DOMException` named
+     *      `InvalidCharacterError`); the result contains one character per decoded
+     *      byte.
      *
-     *          @param data the value to decode
-     *          @return the decoded binary data
+     *      Example — decode a base64 string:
+     *      ```JavaScript
+     *      console.log(atob('aGVsbG8=')); // hello
+     *      ```
+     *
+     *      @param data the value to decode
+     *      @return the decoded binary data
      *
      */
     function atob(data: any): string;
 
     /**
-     * @description Creates a deep copy of a value
-     *      Creates a deep copy of the given value using the structured clone algorithm. Circular references are supported.
+     * @description Creates a deep copy of a value with the structured clone algorithm
      *
-     *      The transfer option specifies the list of transferable objects (such as ArrayBuffer) to move instead of clone. Once transferred, the original objects become unusable.
+     *      Circular references, Map, Set, Date, RegExp, typed arrays, ArrayBuffer,
+     *      SharedArrayBuffer and Error objects are supported. Functions and other
+     *      values that cannot be cloned throw a `DOMException` (`DataCloneError`,
+     *      code 25), matching the Web standard and Node.js.
+     *
+     *      The `transfer` option lists ArrayBuffers to move instead of copy; a
+     *      transferred buffer is detached and its `byteLength` becomes 0. Only
+     *      ArrayBuffer entries are accepted in fibjs (Node.js also transfers
+     *      MessagePort, ReadableStream and others), any other entry throws a
+     *      TypeError.
+     *
+     *      options supports the following fields:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "transfer": [] // ArrayBuffers to move to the clone; default is an empty array
+     *      })
+     *      ```
+     *
+     *      Example — clone a cyclic object and transfer a buffer:
+     *      ```JavaScript
+     *      const original = { name: 'global' };
+     *      original.self = original;
+     *      const copy = structuredClone(original);
+     *      console.log(copy !== original, copy.self === copy); // true true
+     *
+     *      const buffer = new ArrayBuffer(8);
+     *      const moved = structuredClone({ buffer }, { transfer: [buffer] });
+     *      console.log(buffer.byteLength, moved.buffer.byteLength); // 0 8
+     *      ```
      *
      *      @param value the value to clone
      *      @param options optional options object containing the transfer array
@@ -407,10 +914,63 @@ declare module 'global' {
     function structuredClone(value: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description Sends a Fetch request given a Request object or a URL string
-     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
-     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
-     *      request may be an HttpRequest object, or the target URL of the request.
+     * @description Sends a Web Fetch request given a Request object or a URL string
+     *
+     *      `request` may be an HttpRequest object or the target URL; opts overrides the
+     *      fields of the request source (`new Request(request, init)` semantics) and
+     *      supports method, headers, body, keepAlive, timeout, redirect, signal and
+     *      streaming, documented in the http module. Following the Fetch standard a
+     *      GET or HEAD request must not carry a body, a string body is sent as
+     *      text/plain;charset=UTF-8, and `headers` replaces the headers of the request
+     *      source instead of merging them.
+     *
+     *      The returned promise resolves with an HttpResponse (not the WHATWG Response
+     *      class of Node.js). It rejects with an `AbortError` (code ABORT_ERR) when an
+     *      AbortSignal passed in opts is aborted, including during the request, and
+     *      with a `TimeoutError` when the signal comes from `AbortSignal.timeout`.
+     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      proxies, agents and other client tuning.
+     *
+     *      opts supports the following fields:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "method": "GET",      // request method
+     *          "headers": {},        // replaces the headers of the request source
+     *          "body": {},           // SeekableStream | Buffer | String | FormData
+     *          "timeout": 0,         // request timeout in milliseconds, 0 uses the client default
+     *          "redirect": "follow", // "follow" | "error" | "manual"
+     *          "signal": null,       // AbortSignal used to cancel the request
+     *          "streaming": false    // return the body in streaming mode
+     *      })
+     *      ```
+     *
+     *      Example — fetch JSON from a local server and abort a request:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.json({ path: req.address });
+     *      });
+     *      server.start();
+     *      const base = 'http://127.0.0.1:' + server.address().port;
+     *
+     *      (async () => {
+     *          const res = await fetch(base + '/hello');
+     *          console.log(res.status, (await res.json()).path); // 200 /hello
+     *
+     *          const controller = new AbortController();
+     *          controller.abort();
+     *          try {
+     *              await fetch(base, { signal: controller.signal });
+     *          } catch (err) {
+     *              console.log(err.name); // AbortError
+     *          }
+     *
+     *          server.stop();
+     *      })();
+     *      ```
+     *
      *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
@@ -419,10 +979,63 @@ declare module 'global' {
     function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
-     * @description Sends a Fetch request given a Request object or a URL string
-     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
-     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
-     *      request may be an HttpRequest object, or the target URL of the request.
+     * @description Sends a Web Fetch request given a Request object or a URL string
+     *
+     *      `request` may be an HttpRequest object or the target URL; opts overrides the
+     *      fields of the request source (`new Request(request, init)` semantics) and
+     *      supports method, headers, body, keepAlive, timeout, redirect, signal and
+     *      streaming, documented in the http module. Following the Fetch standard a
+     *      GET or HEAD request must not carry a body, a string body is sent as
+     *      text/plain;charset=UTF-8, and `headers` replaces the headers of the request
+     *      source instead of merging them.
+     *
+     *      The returned promise resolves with an HttpResponse (not the WHATWG Response
+     *      class of Node.js). It rejects with an `AbortError` (code ABORT_ERR) when an
+     *      AbortSignal passed in opts is aborted, including during the request, and
+     *      with a `TimeoutError` when the signal comes from `AbortSignal.timeout`.
+     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      proxies, agents and other client tuning.
+     *
+     *      opts supports the following fields:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "method": "GET",      // request method
+     *          "headers": {},        // replaces the headers of the request source
+     *          "body": {},           // SeekableStream | Buffer | String | FormData
+     *          "timeout": 0,         // request timeout in milliseconds, 0 uses the client default
+     *          "redirect": "follow", // "follow" | "error" | "manual"
+     *          "signal": null,       // AbortSignal used to cancel the request
+     *          "streaming": false    // return the body in streaming mode
+     *      })
+     *      ```
+     *
+     *      Example — fetch JSON from a local server and abort a request:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.json({ path: req.address });
+     *      });
+     *      server.start();
+     *      const base = 'http://127.0.0.1:' + server.address().port;
+     *
+     *      (async () => {
+     *          const res = await fetch(base + '/hello');
+     *          console.log(res.status, (await res.json()).path); // 200 /hello
+     *
+     *          const controller = new AbortController();
+     *          controller.abort();
+     *          try {
+     *              await fetch(base, { signal: controller.signal });
+     *          } catch (err) {
+     *              console.log(err.name); // AbortError
+     *          }
+     *
+     *          server.stop();
+     *      })();
+     *      ```
+     *
      *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
@@ -431,10 +1044,63 @@ declare module 'global' {
     function fetchSync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description Sends a Fetch request given a Request object or a URL string
-     *      Following the Fetch standard a GET or HEAD request must not carry a body, a string body is sent as
-     *      `text/plain;charset=UTF-8`, and `headers` replaces the headers of the request source instead of merging them
-     *      request may be an HttpRequest object, or the target URL of the request.
+     * @description Sends a Web Fetch request given a Request object or a URL string
+     *
+     *      `request` may be an HttpRequest object or the target URL; opts overrides the
+     *      fields of the request source (`new Request(request, init)` semantics) and
+     *      supports method, headers, body, keepAlive, timeout, redirect, signal and
+     *      streaming, documented in the http module. Following the Fetch standard a
+     *      GET or HEAD request must not carry a body, a string body is sent as
+     *      text/plain;charset=UTF-8, and `headers` replaces the headers of the request
+     *      source instead of merging them.
+     *
+     *      The returned promise resolves with an HttpResponse (not the WHATWG Response
+     *      class of Node.js). It rejects with an `AbortError` (code ABORT_ERR) when an
+     *      AbortSignal passed in opts is aborted, including during the request, and
+     *      with a `TimeoutError` when the signal comes from `AbortSignal.timeout`.
+     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      proxies, agents and other client tuning.
+     *
+     *      opts supports the following fields:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "method": "GET",      // request method
+     *          "headers": {},        // replaces the headers of the request source
+     *          "body": {},           // SeekableStream | Buffer | String | FormData
+     *          "timeout": 0,         // request timeout in milliseconds, 0 uses the client default
+     *          "redirect": "follow", // "follow" | "error" | "manual"
+     *          "signal": null,       // AbortSignal used to cancel the request
+     *          "streaming": false    // return the body in streaming mode
+     *      })
+     *      ```
+     *
+     *      Example — fetch JSON from a local server and abort a request:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.json({ path: req.address });
+     *      });
+     *      server.start();
+     *      const base = 'http://127.0.0.1:' + server.address().port;
+     *
+     *      (async () => {
+     *          const res = await fetch(base + '/hello');
+     *          console.log(res.status, (await res.json()).path); // 200 /hello
+     *
+     *          const controller = new AbortController();
+     *          controller.abort();
+     *          try {
+     *              await fetch(base, { signal: controller.signal });
+     *          } catch (err) {
+     *              console.log(err.name); // AbortError
+     *          }
+     *
+     *          server.stop();
+     *      })();
+     *      ```
+     *
      *      @param request the request source
      *      @param opts request options (may override the fields of request)
      *      @return the server response object
@@ -443,8 +1109,23 @@ declare module 'global' {
     function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
     /**
-     * @description Queues a micro-task for execution
-     *      The callback runs after the current task completes and before the next task starts.
+     * @description Queues a function as a micro-task
+     *
+     *      The callback runs after the current task completes and before the next task
+     *      starts, in the same V8 micro-task queue as promise jobs and in FIFO order
+     *      with them; `process.nextTick` callbacks run earlier and `setImmediate`
+     *      callbacks later. A non-function argument throws a TypeError, and an
+     *      exception thrown by the callback is reported as an uncaught exception,
+     *      matching Node.js.
+     *
+     *      Example — observe the micro-task order:
+     *      ```JavaScript
+     *      console.log('sync');
+     *      queueMicrotask(() => console.log('microtask'));
+     *      Promise.resolve().then(() => console.log('promise'));
+     *      console.log('end');
+     *      // prints: sync, end, microtask, promise
+     *      ```
      *
      *      @param callback the function to queue as a micro-task
      *

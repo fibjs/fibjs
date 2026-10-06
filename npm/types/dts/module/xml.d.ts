@@ -4,133 +4,293 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description The xml processing module; the xml module can be used to parse and process xml and html files
+ * @description The XML/HTML DOM toolkit of fibjs: it parses XML and HTML text into an
+ *  XmlDocument tree, exposes the node classes of that tree and serializes nodes back to markup
  *
- * To parse an xml file, you can use the following code:
- * ```JavaScript
- * var xml = require('xml');
- * var fs = require('fs');
+ *  The module is the entry point of the document model. Its members fall into these groups:
  *
- * var xmlStr = fs.readFile('test.xml');
- * var xmlDoc = xml.parse(xmlStr);
+ *  - parsing: `parse` builds a document from a string or Buffer in XML or HTML mode; the
+ *    `DOMParser` interface wraps the same machinery in the standard parseFromString form;
+ *  - serialization: `serialize` (and every node's own toString) produces markup; the
+ *    `XMLSerializer` interface is the standard wrapper;
+ *  - type access: `Document` is the XmlDocument class itself (also available as the global
+ *    `XMLDocument`), so documents can be constructed and recognized with instanceof;
+ *  - node type constants: `ELEMENT_NODE`, `ATTRIBUTE_NODE`, `TEXT_NODE`,
+ *    `CDATA_SECTION_NODE`, `ENTITY_REFERENCE_NODE`, `ENTITY_NODE`,
+ *    `PROCESSING_INSTRUCTION_NODE`, `COMMENT_NODE`, `DOCUMENT_NODE`, `DOCUMENT_TYPE_NODE`,
+ *    `DOCUMENT_FRAGMENT_NODE` and `NOTATION_NODE`, for use with XmlNode.nodeType.
  *
- * console.log(xmlDoc.documentElement.nodeName);  // output root node name
- * ```
- * In the above code, we use the readFile method of the fs module to read an xml file, then use the parse method of the xml module to parse the xml file and return an XmlDocument object xmlDoc. Then we can access the root element of the xml document through xmlDoc.documentElement.
+ *  Concepts:
  *
- * To parse an html file, you only need to modify the code slightly:
- * ```JavaScript
- * var xml = require('xml');
- * var fs = require('fs');
+ *  - **The document model**: parsing produces an XmlDocument whose children form a tree of
+ *    nodes. Every node implements the XmlNode tree protocol (navigation, mutation, cloning,
+ *    comparison); the concrete classes are XmlElement (elements and their attributes),
+ *    XmlText, XmlCDATASection, XmlComment, XmlProcessingInstruction, XmlDocumentType and
+ *    XmlDocumentFragment. XmlAttr (attribute nodes) is a separate interface: it has name and
+ *    value but is not part of the tree. XmlCharacterData groups the text-like nodes. See the
+ *    XmlNode class comment for the node type table and the tree rules, and the XmlElement /
+ *    XmlDocument class comments for the element and document APIs.
+ *  - **Parsing modes**: `text/xml` (the default) is strict, case-sensitive and reports syntax
+ *    errors as Error 20024 with the line and column; `text/html` uses a tolerant HTML tree
+ *    builder with upper-cased parsed tag names, case-insensitive tag matching and automatic
+ *    html/head/body wrapping of fragments. The mode is chosen per document and cannot be
+ *    changed later. A string source is taken as utf8; a Buffer keeps its bytes and (in HTML
+ *    mode) has its charset detected from a meta tag, which is what XmlDocument.inputEncoding
+ *    reports.
+ *  - **Parse limits**: parse and load accept `maxElementDepth` (default 1000) and
+ *    `maxNodeCount` (default 1000000, counting elements, attributes, text, comments, CDATA,
+ *    processing instructions and the doctype). A value of 0, a negative value or Infinity
+ *    disables the limit; a non-number throws a TypeError (20004), and exceeding a limit throws
+ *    an Error (20024).
+ *  - **Serialization**: `serialize(node)` is `node.toString()`; it works on any node - a
+ *    document, an element, a text or comment node, a fragment - and returns the markup for
+ *    that node, escaping text and attribute values. XML documents close empty elements as
+ *    `<tag/>` and emit the declaration only when the document carries declaration metadata;
+ *    HTML documents use HTML closing rules. See the XmlElement and XmlDocument class comments.
+ *  - **Events**: DOM nodes are not EventTargets and the module dispatches no events; build
+ *    event objects with the DOMEvent interface (the global Event class) and see DOMEvent for
+ *    the standalone event model.
  *
- * var htmlStr = fs.readFile('test.html');
- * var xmlDoc = xml.parse(htmlStr, 'text/html');
+ *  Import:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *  ```
  *
- * console.log(xmlDoc.documentElement.nodeName);  // output root node name
- * ```
- * Here we also use the readFile method of the fs module to read an html file, but we specify the second parameter as 'text/html' when calling the parse method of the xml module, so that the xml module parses the file according to the syntax rules of html.
+ *  Example 1 - parse an XML string and walk the tree:
+ *  ```JavaScript
+ *  const xml = require('xml');
  *
- * The parsed Xml document objects are all of type XmlDocument, and their properties and methods can be used by referring to the xml object model (DOM).
+ *  const doc = xml.parse('<?xml version="1.0"?><library><book id="1">XML</book></library>');
+ *  const library = doc.documentElement;
+ *
+ *  console.log(library.nodeName);                        // library
+ *  console.log(doc.getElementsByTagName('book').length); // 1
+ *  console.log(doc.getElementById('1').textContent);     // XML
+ *  console.log(xml.serialize(library)); // <library><book id="1">XML</book></library>
+ *  ```
+ *
+ *  Example 2 - parse HTML and query it:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = xml.parse('<div class="m"><p>one</p><p>two</p></div>', 'text/html');
+ *  const ps = doc.querySelectorAll('p');
+ *
+ *  console.log(doc.documentElement.nodeName);   // HTML
+ *  console.log(doc.body.firstChild.tagName);    // DIV
+ *  console.log(ps.length);                      // 2
+ *  console.log(ps[1].textContent);              // two
+ *  ```
+ *
+ *  Example 3 - build a document from scratch and serialize it:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = new xml.Document();
+ *  const root = doc.createElement('config');
+ *  root.setAttribute('version', '1');
+ *  root.appendChild(doc.createElement('entry')).textContent = 'a';
+ *  doc.appendChild(root);
+ *
+ *  console.log(doc.toString()); // <config version="1"><entry>a</entry></config>
+ *  doc.xmlVersion = '1.0';
+ *  console.log(doc.toString()); // <?xml version="1.0"?><config version="1">...
+ *  ```
+ *
+ *  Notes:
+ *
+ *  - fibjs does not export an XmlNode class or a global of that name; nodes are always
+ *    obtained through a document (see XmlNode for the sources).
+ *  - Tolerant HTML parsing never throws on ordinary malformed markup, but it still enforces
+ *    the parse limits and rejects input whose structure cannot be built within them.
+ *  - The serialization of a parsed HTML document reflects the parser's normalized tree
+ *    (upper-cased tag names, no whitespace added), not the exact input text.
  *
  */
 declare module 'xml' {
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlElement object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlElement object
+     *
+     *      Element nodes are the only type that can carry attributes and the main handle used to
+     *      navigate and query a document.
      *
      */
     export const ELEMENT_NODE: 1;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlAttr object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlAttr object
+     *
+     *      Attributes are not XmlNode members: XmlAttr has name and value but no nodeType, and it
+     *      is never part of the child list. The constant is declared for completeness.
      *
      */
     export const ATTRIBUTE_NODE: 2;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlText object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlText object
      *
      */
     export const TEXT_NODE: 3;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlCDATASection object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlCDATASection object
      *
      */
     export const CDATA_SECTION_NODE: 4;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an EntityReference object (deprecated)
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      EntityReference object
+     *
+     *      Entity references are not implemented in fibjs; the constant is declared for
+     *      completeness and no node reports it.
      *
      */
     export const ENTITY_REFERENCE_NODE: 5;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an Entity object (deprecated)
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      Entity object
+     *
+     *      Entities are not implemented in fibjs; the constant is declared for completeness and no
+     *      node reports it.
      *
      */
     export const ENTITY_NODE: 6;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlProcessingInstruction object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlProcessingInstruction object
      *
      */
     export const PROCESSING_INSTRUCTION_NODE: 7;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlComment object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlComment object
      *
      */
     export const COMMENT_NODE: 8;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocument object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlDocument object
      *
      */
     export const DOCUMENT_NODE: 9;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocumentType object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlDocumentType object
+     *
+     *      A document holds at most one doctype.
      *
      */
     export const DOCUMENT_TYPE_NODE: 10;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is an XmlDocumentFragment object
+     * @description The nodeType property constant of XmlNode, indicating that the node is an
+     *      XmlDocumentFragment object
      *
      */
     export const DOCUMENT_FRAGMENT_NODE: 11;
 
     /**
-     * @description The nodeType property constant of XmlNode, indicating that the node is a Notation object (deprecated)
+     * @description The nodeType property constant of XmlNode, indicating that the node is a
+     *      Notation object
+     *
+     *      Notations are not implemented in fibjs; the constant is declared for completeness and
+     *      no node reports it.
      *
      */
     export const NOTATION_NODE: 12;
 
     /**
-     * @description The xml document object, see the XmlDocument object
+     * @description The XmlDocument class itself, exposed as xml.Document
+     *
+     *      It is the same constructor as the global XMLDocument, so `new xml.Document([type])` and
+     *      `new XMLDocument([type])` are equivalent; use it to construct an empty document or with
+     *      `instanceof` to recognize one. See the XmlDocument interface for the members.
+     *
      */
     const Document: typeof Class_XmlDocument;
 
     /**
-     * @description The DOMParser interface, used to parse a string into a DOM document, see the DOMParser object
+     * @description The DOMParser class object, used to parse a string into a DOM document
+     *
+     *      See the DOMParser interface for parseFromString and the supported MIME types.
+     *
      */
     const DOMParser: typeof Class_DOMParser;
 
     /**
-     * @description Parses xml/html and creates an XmlDocument object; converts according to the specified language during parsing
-     *      source may be a Buffer or a string; a string is encoded as utf8.
-     *      @param source the data to parse
-     *      @param type the text type, default text/xml; can also be set to text/html
-     *      @param options the parsing limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
-     *      @return returns the created XmlDocument object
+     * @description Parses XML/HTML data and returns a new XmlDocument
+     *
+     *      source may be a string (encoded as utf8) or a Buffer. The type selects the parsing mode
+     *      and is case-sensitive: `text/xml` (the default) is strict and reports syntax errors as
+     *      an Error (20024) carrying the line and column; `text/html` uses the tolerant HTML tree
+     *      builder, wraps fragments in html/head/body and upper-cases the parsed tag names. Any
+     *      other MIME type throws an Error (20004). A Buffer in HTML mode has its charset detected
+     *      from a meta tag before parsing (see XmlDocument.inputEncoding). Every call returns a
+     *      fresh document; nothing is cached.
+     *
+     *      options supports the following parse limits (0, a negative value or Infinity disables a
+     *      limit):
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "maxElementDepth": 1000,  // maximum element nesting depth
+     *          "maxNodeCount": 1000000   // maximum number of nodes and attributes
+     *      })
+     *      ```
+     *
+     *      A non-number option throws a TypeError (20004); exceeding a limit throws an Error
+     *      (20024). A source that is neither a string nor a Buffer throws a TypeError (20005).
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = xml.parse('<a><b>1</b></a>');
+     *      console.log(doc.documentElement.firstChild.textContent); // 1
+     *
+     *      const html = xml.parse('<p>x', 'text/html');
+     *      console.log(html.body.textContent); // x
+     *      ```
+     *
+     *      @param source the XML or HTML data to parse
+     *      @param type the MIME type selecting the mode, "text/xml" or "text/html"
+     *      @param options the parse limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
+     *      @return returns the new XmlDocument
      *
      */
     function parse(source: Class_Buffer | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
-     * @description Serializes an XmlNode to a string
-     *      @param node the XmlNode to serialize
-     *      @return returns the serialized string
+     * @description Serializes a node to markup
+     *
+     *      Equivalent to the node's own toString(); it accepts any node - a document, an element,
+     *      a text, CDATA, comment or processing-instruction node, or a document fragment - and
+     *      returns its markup with text and attribute values escaped. An XML document emits its
+     *      declaration only when it carries declaration metadata, and closes empty elements as
+     *      `<tag/>`; an HTML document follows the HTML closing rules. See the XmlElement and
+     *      XmlDocument class comments for the mode differences, and the XMLSerializer interface for
+     *      the standard wrapper.
+     *
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = xml.parse('<r x="1"><t>text</t></r>');
+     *      console.log(xml.serialize(doc.documentElement));            // <r x="1"><t>text</t></r>
+     *      console.log(xml.serialize(doc.documentElement.firstChild)); // <t>text</t>
+     *      console.log(xml.serialize(doc));                            // <r x="1"><t>text</t></r>
+     *      ```
+     *
+     *      @param node the node to serialize
+     *      @return returns the serialized markup
      *
      */
     function serialize(node: Class_XmlNode): string;

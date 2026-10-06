@@ -2,77 +2,196 @@
 /// <reference path="../interface/HttpMessage.d.ts" />
 /// <reference path="../interface/HttpCookie.d.ts" />
 /**
- * @description HttpResponse is an HTTP response object; use the HttpRequest.response object to complete the Http server-side data response, or use http.request to request and return the server's response data
+ * @description The HTTP response message: what a handler writes and what a client receives
  *
- * The following example shows how to use it in http.Server; the sample code is as follows:
- * ```
- * const http = require('http');
+ *  An HttpResponse carries the status code and message, the live header collection, the
+ *  trailer collection and the body. A server handler writes the reply through
+ *  request.response (the same object arrives as the handler's second argument); the client
+ *  functions return an HttpResponse whose body is already readable. The header and body API
+ *  is inherited from HttpMessage and Message. Node.js has http.ServerResponse on the server
+ *  side and http.IncomingMessage for a received response; fibjs uses one class for both.
  *
- * const server = new http.Server(8080, (request) => {
- *   // retreive the response object
- *   const response = request.response;
- *   // set the status code
- *   response.statusCode = 200;
- *   // set the content type to text/plain
- *   response.setHeader('Content-Type', 'text/plain');
- *   // write the response body
- *   response.write('ok');
- * });
+ *  Concepts:
  *
- * server.start();
- * ```
+ *  - **Writing model**: write, json, writeHead and the header setters accumulate the
+ *    response; nothing is sent while the handler runs and the whole reply is serialized when
+ *    the handler returns (or when send/sendTo is called explicitly), at which point
+ *    headersSent becomes true. The default is a 200 with an empty body; a plain 200 without
+ *    Last-Modified or Cache-Control also receives Cache-Control: no-cache, no-store and
+ *    Expires: -1 from the http handler.
+ *  - **Status**: statusCode and status are the same numeric value, statusMessage and
+ *    statusText are the same reason phrase. An empty statusMessage lets the writer use the
+ *    standard phrase of the code (200 becomes "200 OK"); a custom one is written verbatim
+ *    after the code. ok is true exactly for the 2xx range.
+ *  - **Headers, cookies and trailers**: headers is the live Headers collection; cookies
+ *    collects every Set-Cookie header as HttpCookie objects and addCookie queues one more;
+ *    addTrailers queues the trailer section sent after a chunked body (see HttpMessage).
+ *  - **Fetch metadata**: on a response produced by the client, url is the final URL after
+ *    the redirects were followed, redirected reports whether that happened and type is the
+ *    Fetch type ("basic", or "error" for Response.error()); a hand-built response keeps
+ *    them empty, false and "basic".
+ *  - **Web Response form**: new http.Response(body, options) and the static json, redirect
+ *    and error factories mirror the WHATWG Response constructors; accepted bodies are
+ *    string, Buffer, Blob, FormData, URLSearchParams and seekable streams.
+ *
+ *  Obtained from:
+ *  - `request.response` in an http.Server handler — the reply of the request being served;
+ *  - `http.getSync(...)`, `http.requestSync(...)`, `http.fetch(...)` and the other client
+ *    functions — the answer, body already readable;
+ *  - `new http.Response()` / `new http.Response(body, options)` — a message built in memory
+ *    and serialized with sendTo();
+ *  - `http.Response.json()`, `http.Response.redirect()` and `http.Response.error()` — the
+ *    Web-style static factories.
+ *
+ *  Example 1 — write a status, a header and the body in a handler:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, (req) => {
+ *      const res = req.response;
+ *      res.statusCode = 201;
+ *      res.setHeader('Content-Type', 'text/plain');
+ *      res.write('created');
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const res = http.getSync('http://127.0.0.1:' + port + '/items');
+ *  console.log(res.statusCode, res.statusMessage); // 201 Created
+ *  console.log(res.text()); // created
+ *
+ *  server.stop();
+ *  ```
+ *
+ *  Example 2 — build a response in memory and serialize it:
+ *  ```JavaScript
+ *  const http = require('http');
+ *  const io = require('io');
+ *
+ *  const res = http.Response.json({ ok: true }, { status: 201, statusText: 'Created' });
+ *  console.log(res.statusCode, res.statusMessage, res.ok); // 201 Created true
+ *  console.log(res.firstHeader('Content-Type')); // application/json
+ *
+ *  const wire = new io.MemoryStream();
+ *  res.sendTo(wire);
+ *  wire.rewind();
+ *  console.log(wire.readAll().toString().split('\r\n')[0]); // HTTP/1.1 201 Created
+ *  ```
+ *
+ *  Example 3 — cookies and two writes seen by a client:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, (req) => {
+ *      const res = req.response;
+ *      res.addCookie({ name: 'seen', value: '1', httpOnly: true });
+ *      res.write('part1');
+ *      res.write('part2');
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const res = http.getSync('http://127.0.0.1:' + port + '/');
+ *  console.log(res.text()); // part1part2
+ *  console.log(res.cookies[0].name, res.cookies[0].httpOnly); // seen true
+ *
+ *  server.stop();
+ *  ```
+ *
+ *  Notes:
+ *  - write appends bytes and its return value is not the number of bytes sent; do not use
+ *    it as the handler result (see HttpServer for the handler contract).
+ *  - A response is not reusable after sendTo()/send(); readFrom() parses a received
+ *    response from a BufferedStream.
  *
  */
 declare class Class_HttpResponse extends Class_HttpMessage {
     /**
-     * @description HttpResponse constructor, creates a new HttpResponse object
+     * @description Creates an empty 200 response
+     *
+     *      The message starts with statusCode 200 and an empty statusMessage (the writer then
+     *      fills in the standard phrase), no headers, no trailers and an empty body; ok is true
+     *      and type is "basic". Assign the status and write the body with write()/json(); the
+     *      Web-style constructor and the static factories build a complete response in one
+     *      call.
+     *
      */
     constructor();
 
     /**
-     * @description HttpResponse constructor, creates a new HttpResponse object (Web API compatible)
+     * @description Creates a response from a body and options (Web API compatible)
      *
-     *      Supports the Web standard Response construction style, for example:
-     *      ```JavaScript
-     *      const response = new http.Response("Hello World", {
-     *          status: 200,
-     *          statusText: "OK",
-     *          headers: { "Content-Type": "text/plain" }
-     *      });
-     *      ```
-     *      @param body the response body content, which can be a string, Buffer or null
-     *      @param options the options object, supporting the status, statusText and headers properties
+     *      body may be null or undefined for no body, a string, Buffer, Blob, FormData,
+     *      URLSearchParams or a seekable stream; a Content-Type is added when the options do
+     *      not provide one (text/plain;charset=UTF-8 for strings, application/octet-stream for
+     *      binary data, multipart/form-data with a generated boundary for FormData and plain
+     *      objects). options supports status, statusText and headers, where headers may be an
+     *      object or a Headers collection and replaces any default. Matches the WHATWG
+     *      `new Response(body, init)`.
+     *
+     *      @param body the body: string, Buffer, Blob, FormData, URLSearchParams, stream or null
+     *      @param options the options object, supporting status, statusText and headers
      *
      */
     constructor(body: any, options?: FIBJS.GeneralObject);
 
     /**
-     * @description queries and sets the return status of the response message
+     * @description Queries and sets the numeric status code
+     *
+     *      Default 200; the value is written verbatim into the status line and drives ok and the
+     *      computed reason phrase, while the parser sets it from a received status line.
+     *      statusCode is the Node.js name and status is an alias.
+     *
      */
     statusCode: number;
 
     /**
-     * @description queries and sets the return message of the response message
+     * @description Queries and sets the reason phrase
+     *
+     *      Empty by default: the writer then derives the standard phrase of the status code
+     *      ("OK" for 200, "Not Found" for 404, "<code> Unknown" for an unknown code). A
+     *      non-empty value is written after the code as given, so it may differ from the
+     *      standard text. statusText is an alias.
+     *
      */
     statusMessage: string;
 
     /**
-     * @description queries and sets the return message of the response message, same as statusMessage (Web API compatible)
+     * @description Alias of statusMessage, provided by the Web API
+     *
+     *      Reads and writes the same value as statusMessage. MDN's Response.statusText is
+     *      always the standard phrase; in fibjs a custom value set here is written to the wire
+     *      verbatim.
+     *
      */
     statusText: string;
 
     /**
-     * @description queries and sets the return status of the response message, same as statusCode
+     * @description Alias of statusCode
+     *
+     *      Reads and writes the same numeric value as statusCode, so the two names never
+     *      disagree.
+     *
      */
     status: number;
 
     /**
-     * @description queries whether the current response is ok
+     * @description Whether the status code is in the 2xx range, read-only
+     *
+     *      Computed from the current statusCode (200-299) like the Web Response.ok;
+     *      Response.error() is the notable factory with a non-2xx status (0). It only reflects
+     *      the code: a hand-built 500 reports false and a hand-built 204 reports true.
+     *
      */
     readonly ok: boolean;
 
     /**
-     * @description sets the return status of the response message and adds response headers
+     * @description Sets the status code and appends response headers
+     *
+     *      Equivalent to assigning statusCode and then calling appendHeader(headers): existing
+     *      headers are kept and the entries of the object or Headers collection are added. The
+     *      reason phrase is left untouched. See the three-argument overload for an explicit
+     *      status message.
      *      @param statusCode specifies the return status of the response message
      *      @param headers specifies the response headers to add to the response message
      *
@@ -80,7 +199,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description sets the return status and return message of the response message, and adds response headers
+     * @description Sets the status code and reason phrase and appends response headers
+     *
+     *      Same as the two-argument overload plus an explicit statusMessage; headers are
+     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
+     *      headers]]).
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -89,55 +212,112 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description returns the list of HttpCookie objects of the current message
+     * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
+     *
+     *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
+     *      list and the whole list is serialized when the response is sent. The objects are a
+     *      read view: mutating one does not rewrite the header. Node.js has no cookie
+     *      collection on ServerResponse.
+     *
+     *      Example — collect the cookies of a response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.appendHeader('Set-Cookie', 'a=1; Path=/');
+     *      res.addCookie({ name: 'b', value: '2' });
+     *      console.log(res.cookies.map((c) => c.name).join(',')); // a,b
+     *      ```
+     *
      */
     readonly cookies: Class_HttpCookie[];
 
     /**
-     * @description adds an HttpCookie object to cookies
+     * @description Queues a cookie to be sent with the response
      *
-     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
-     *      accepts (name, value, path, domain, ...).
+     *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
+     *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
+     *      is appended as one more Set-Cookie header when the response is serialized, after the
+     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
      *      @param cookie the cookie to add
      *
      */
     addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
-     * @description sends a redirect to the client
+     * @description Sends a 302 redirect to the client
+     *
+     *      Sets statusCode to 302 and Location to the URL; the body is not touched. Equivalent
+     *      to redirect(302, url). Only 301, 302 and 307 are accepted by the explicit overload,
+     *      while the static factory Response.redirect() writes any status without validating
+     *      it.
      *      @param url the redirect address
      *
      */
     redirect(url: string): void;
 
     /**
-     * @description sends a redirect to the client
-     *      @param statusCode specifies the return status of the response message; the accepted statuses are: 301, 302, 307
+     * @description Sends a redirect with an explicit status code
+     *
+     *      Only 301, 302 and 307 are accepted; any other code throws error 20024 ("Invalid
+     *      statusCode ..., expected 301, 302, or 307."). 303 and 308 have to be set manually
+     *      with statusCode plus a Location header.
+     *      @param statusCode the return status; accepted values are 301, 302 and 307
      *      @param url the redirect address
      *
      */
     redirect(statusCode: number, url: string): void;
 
     /**
-     * @description the final URL of the Fetch API response (the address after redirections)
+     * @description The final URL of a client response, read-only
+     *
+     *      Filled by the client functions after the request completes: the address after all
+     *      followed redirects. Empty on a hand-built response. Matches the Web Response.url.
+     *
      */
     readonly url: string;
 
     /**
-     * @description whether it has been redirected
+     * @description Whether the client followed at least one redirect, read-only
+     *
+     *      False for a hand-built response and for a response received without redirects; true
+     *      when autoRedirect followed a 30x answer. The intermediate redirect responses are not
+     *      delivered; see autoRedirect in the http module. Matches the Web Response.redirected.
+     *
      */
     readonly redirected: boolean;
 
     /**
-     * @description response type ("basic", "cors", "error", etc.), overrides Message.type
+     * @description The Fetch type of the response, read-only
+     *
+     *      "basic" for a normal response and "error" for a response produced by the static
+     *      Response.error() factory; the Web values "cors" and "opaque" are never produced.
+     *      This member overrides Message.type. The names follow the Fetch standard.
+     *
      */
     readonly type: string;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     json(data: any, options?: FIBJS.GeneralObject): any;
@@ -145,25 +325,62 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     jsonSync(data: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
@@ -172,21 +389,35 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
     jsonSync(): any;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
     jsonAsync(): Promise<any>;
 
     /**
-     * @description creates a JSON response (static factory)
+     * @description Creates a response with a JSON body (static factory)
+     *
+     *      The returned response carries Content-Type: application/json, status 200 and the
+     *      given options (status, statusText and headers), like the body constructor. The Web
+     *      standard Response.json() has the same name; Node's http module has no equivalent.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object
@@ -195,7 +426,10 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description creates a redirect response (static factory)
+     * @description Creates a redirect response (static factory)
+     *
+     *      Sets statusCode to status (default 302) and Location to the URL; unlike the instance
+     *      redirect() it validates nothing. Matches the Web Response.redirect(url, status).
      *      @param url the redirect target URL
      *      @param status the redirect status code, default is 302
      *      @return returns a new HttpResponse object
@@ -204,7 +438,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     static redirect(url: string, status?: number): Class_HttpResponse;
 
     /**
-     * @description creates an error response (static factory)
+     * @description Creates an error response (static factory)
+     *
+     *      The result has statusCode 0, type "error" and ok false, matching the Web
+     *      Response.error(); its body is empty. Fetch-style callers can use it to report a
+     *      network-level failure instead of throwing.
      *      @return returns a new HttpResponse object with type="error"
      *
      */
@@ -221,54 +459,91 @@ declare class Class_HttpResponse extends Class_HttpMessage {
  */
 declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     /**
-     * @description HttpResponse constructor, creates a new HttpResponse object
+     * @description Creates an empty 200 response
+     *
+     *      The message starts with statusCode 200 and an empty statusMessage (the writer then
+     *      fills in the standard phrase), no headers, no trailers and an empty body; ok is true
+     *      and type is "basic". Assign the status and write the body with write()/json(); the
+     *      Web-style constructor and the static factories build a complete response in one
+     *      call.
+     *
      */
     constructor();
 
     /**
-     * @description HttpResponse constructor, creates a new HttpResponse object (Web API compatible)
+     * @description Creates a response from a body and options (Web API compatible)
      *
-     *      Supports the Web standard Response construction style, for example:
-     *      ```JavaScript
-     *      const response = new http.Response("Hello World", {
-     *          status: 200,
-     *          statusText: "OK",
-     *          headers: { "Content-Type": "text/plain" }
-     *      });
-     *      ```
-     *      @param body the response body content, which can be a string, Buffer or null
-     *      @param options the options object, supporting the status, statusText and headers properties
+     *      body may be null or undefined for no body, a string, Buffer, Blob, FormData,
+     *      URLSearchParams or a seekable stream; a Content-Type is added when the options do
+     *      not provide one (text/plain;charset=UTF-8 for strings, application/octet-stream for
+     *      binary data, multipart/form-data with a generated boundary for FormData and plain
+     *      objects). options supports status, statusText and headers, where headers may be an
+     *      object or a Headers collection and replaces any default. Matches the WHATWG
+     *      `new Response(body, init)`.
+     *
+     *      @param body the body: string, Buffer, Blob, FormData, URLSearchParams, stream or null
+     *      @param options the options object, supporting status, statusText and headers
      *
      */
     constructor(body: any, options?: FIBJS.GeneralObject);
 
     /**
-     * @description queries and sets the return status of the response message
+     * @description Queries and sets the numeric status code
+     *
+     *      Default 200; the value is written verbatim into the status line and drives ok and the
+     *      computed reason phrase, while the parser sets it from a received status line.
+     *      statusCode is the Node.js name and status is an alias.
+     *
      */
     statusCode: number;
 
     /**
-     * @description queries and sets the return message of the response message
+     * @description Queries and sets the reason phrase
+     *
+     *      Empty by default: the writer then derives the standard phrase of the status code
+     *      ("OK" for 200, "Not Found" for 404, "<code> Unknown" for an unknown code). A
+     *      non-empty value is written after the code as given, so it may differ from the
+     *      standard text. statusText is an alias.
+     *
      */
     statusMessage: string;
 
     /**
-     * @description queries and sets the return message of the response message, same as statusMessage (Web API compatible)
+     * @description Alias of statusMessage, provided by the Web API
+     *
+     *      Reads and writes the same value as statusMessage. MDN's Response.statusText is
+     *      always the standard phrase; in fibjs a custom value set here is written to the wire
+     *      verbatim.
+     *
      */
     statusText: string;
 
     /**
-     * @description queries and sets the return status of the response message, same as statusCode
+     * @description Alias of statusCode
+     *
+     *      Reads and writes the same numeric value as statusCode, so the two names never
+     *      disagree.
+     *
      */
     status: number;
 
     /**
-     * @description queries whether the current response is ok
+     * @description Whether the status code is in the 2xx range, read-only
+     *
+     *      Computed from the current statusCode (200-299) like the Web Response.ok;
+     *      Response.error() is the notable factory with a non-2xx status (0). It only reflects
+     *      the code: a hand-built 500 reports false and a hand-built 204 reports true.
+     *
      */
     readonly ok: boolean;
 
     /**
-     * @description sets the return status of the response message and adds response headers
+     * @description Sets the status code and appends response headers
+     *
+     *      Equivalent to assigning statusCode and then calling appendHeader(headers): existing
+     *      headers are kept and the entries of the object or Headers collection are added. The
+     *      reason phrase is left untouched. See the three-argument overload for an explicit
+     *      status message.
      *      @param statusCode specifies the return status of the response message
      *      @param headers specifies the response headers to add to the response message
      *
@@ -276,7 +551,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description sets the return status and return message of the response message, and adds response headers
+     * @description Sets the status code and reason phrase and appends response headers
+     *
+     *      Same as the two-argument overload plus an explicit statusMessage; headers are
+     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
+     *      headers]]).
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -285,100 +564,208 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
 
     /**
-     * @description returns the list of HttpCookie objects of the current message
+     * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
+     *
+     *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
+     *      list and the whole list is serialized when the response is sent. The objects are a
+     *      read view: mutating one does not rewrite the header. Node.js has no cookie
+     *      collection on ServerResponse.
+     *
+     *      Example — collect the cookies of a response:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.appendHeader('Set-Cookie', 'a=1; Path=/');
+     *      res.addCookie({ name: 'b', value: '2' });
+     *      console.log(res.cookies.map((c) => c.name).join(',')); // a,b
+     *      ```
+     *
      */
     readonly cookies: Class_HttpCookie[];
 
     /**
-     * @description adds an HttpCookie object to cookies
+     * @description Queues a cookie to be sent with the response
      *
-     *      cookie may be an HttpCookie object, or an options object the HttpCookie constructor
-     *      accepts (name, value, path, domain, ...).
+     *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
+     *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
+     *      is appended as one more Set-Cookie header when the response is serialized, after the
+     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
      *      @param cookie the cookie to add
      *
      */
     addCookie(cookie: Class_HttpCookie | FIBJS.GeneralObject): void;
 
     /**
-     * @description sends a redirect to the client
+     * @description Sends a 302 redirect to the client
+     *
+     *      Sets statusCode to 302 and Location to the URL; the body is not touched. Equivalent
+     *      to redirect(302, url). Only 301, 302 and 307 are accepted by the explicit overload,
+     *      while the static factory Response.redirect() writes any status without validating
+     *      it.
      *      @param url the redirect address
      *
      */
     redirect(url: string): void;
 
     /**
-     * @description sends a redirect to the client
-     *      @param statusCode specifies the return status of the response message; the accepted statuses are: 301, 302, 307
+     * @description Sends a redirect with an explicit status code
+     *
+     *      Only 301, 302 and 307 are accepted; any other code throws error 20024 ("Invalid
+     *      statusCode ..., expected 301, 302, or 307."). 303 and 308 have to be set manually
+     *      with statusCode plus a Location header.
+     *      @param statusCode the return status; accepted values are 301, 302 and 307
      *      @param url the redirect address
      *
      */
     redirect(statusCode: number, url: string): void;
 
     /**
-     * @description the final URL of the Fetch API response (the address after redirections)
+     * @description The final URL of a client response, read-only
+     *
+     *      Filled by the client functions after the request completes: the address after all
+     *      followed redirects. Empty on a hand-built response. Matches the Web Response.url.
+     *
      */
     readonly url: string;
 
     /**
-     * @description whether it has been redirected
+     * @description Whether the client followed at least one redirect, read-only
+     *
+     *      False for a hand-built response and for a response received without redirects; true
+     *      when autoRedirect followed a 30x answer. The intermediate redirect responses are not
+     *      delivered; see autoRedirect in the http module. Matches the Web Response.redirected.
+     *
      */
     readonly redirected: boolean;
 
     /**
-     * @description response type ("basic", "cors", "error", etc.), overrides Message.type
+     * @description The Fetch type of the response, read-only
+     *
+     *      "basic" for a normal response and "error" for a response produced by the static
+     *      Response.error() factory; the Web values "cors" and "opaque" are never produced.
+     *      This member overrides Message.type. The names follow the Fetch standard.
+     *
      */
     readonly type: string;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     json(data: any, options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     jsonSync(data: any, options?: FIBJS.GeneralObject): any;
 
     /**
-     * @description writes the given data encoded as JSON, and can set the response status and headers at the same time
+     * @description Writes data as a JSON body, optionally setting status and headers
+     *
+     *      Serializes data with the json module, appends it to the body and sets Content-Type:
+     *      application/json, replacing an existing value. options supports status, statusText
+     *      and headers, which are applied before the body so they are visible on the wire.
+     *      Calling json() without arguments instead reads the body as JSON, and the static
+     *      Response.json() builds a new response.
+     *
+     *      Example — write JSON with a status and a header:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const res = new http.Response();
+     *      res.json({ n: 1 }, { status: 202, statusText: 'Accepted', headers: { 'X-Job': '7' } });
+     *      console.log(res.statusCode, res.statusMessage, res.firstHeader('X-Job')); // 202 Accepted 7
+     *      console.log(res.text()); // {"n":1}
+     *      ```
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
-     *      @return this method does not return data
+     *      @return no data; the call writes the encoded body
      *
      */
     jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
     json(): Promise<any>;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
     jsonSync(): any;
 
     /**
-     * @description parses the data in the message as JSON
+     * @description Parses the response body as JSON
+     *
+     *      The read form inherited from Message: the body is consumed and decoded, and the
+     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
+     *      again after a rewind.
      *      @return returns the parsing result
      *
      */
     jsonAsync(): Promise<any>;
 
     /**
-     * @description creates a JSON response (static factory)
+     * @description Creates a response with a JSON body (static factory)
+     *
+     *      The returned response carries Content-Type: application/json, status 200 and the
+     *      given options (status, statusText and headers), like the body constructor. The Web
+     *      standard Response.json() has the same name; Node's http module has no equivalent.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object
@@ -387,7 +774,10 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
-     * @description creates a redirect response (static factory)
+     * @description Creates a redirect response (static factory)
+     *
+     *      Sets statusCode to status (default 302) and Location to the URL; unlike the instance
+     *      redirect() it validates nothing. Matches the Web Response.redirect(url, status).
      *      @param url the redirect target URL
      *      @param status the redirect status code, default is 302
      *      @return returns a new HttpResponse object
@@ -396,7 +786,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     static redirect(url: string, status?: number): Class_HttpResponse;
 
     /**
-     * @description creates an error response (static factory)
+     * @description Creates an error response (static factory)
+     *
+     *      The result has statusCode 0, type "error" and ok false, matching the Web
+     *      Response.error(); its body is empty. Fetch-style callers can use it to report a
+     *      network-level failure instead of throwing.
      *      @return returns a new HttpResponse object with type="error"
      *
      */

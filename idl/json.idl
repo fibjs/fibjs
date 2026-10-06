@@ -1,23 +1,114 @@
-/*! @brief json encoding and decoding module
- To require it:
+/*! @brief The json module serializes JavaScript values to and from JSON text
+
+ Main capabilities:
+
+ - **Encoding**: `encode` turns a value into JSON text;
+ - **Decoding**: `decode` parses JSON text back into a value.
+
+ Concepts:
+
+ - **Same model as the language built-in**: encode follows the semantics of the global
+   JSON.stringify: Date is written as its ISO string, Buffer objects are written through
+   their toJSON ({"type":"Buffer","data":[...]}), NaN and Infinity become null,
+   function-valued properties are omitted, and a BigInt or a circular structure throws a
+   TypeError. decode follows JSON.parse: the syntax is strict, duplicate object keys keep
+   the last value, and numbers are read as doubles.
+ - **One deviation**: for undefined and for a top-level function, encode returns the text
+   "undefined" where JSON.stringify returns the value undefined; json.decode("undefined")
+   is still a syntax error, so that text is not valid JSON.
+ - **Relation to the other codecs**: unlike base32, base58, base64 and hex, which convert
+   bytes, json converts values; `encoding.encode(value, 'json')` and
+   `encoding.decode(text, 'json')` dispatch to this module, and the msgpack module is the
+   binary counterpart.
+ - **Error reporting**: parse errors are SyntaxError objects with the same messages as
+   JSON.parse; encode failures are the TypeErrors raised by stringification.
+
+ Import:
  ```JavaScript
- var encoding = require('encoding');
- var json = encoding.json;
+ const json = require('json');
  ```
- or
+
+ Example 1 — round-trip a nested value:
  ```JavaScript
- var json = require('json');
+ const json = require('json');
+
+ const text = json.encode({ name: 'fibjs', tags: ['runtime', 'js'], ok: true });
+ console.log(text); // {"name":"fibjs","tags":["runtime","js"],"ok":true}
+ console.log(json.decode(text).tags[0]); // runtime
  ```
+
+ Example 2 — the value-to-text mappings that differ from a plain encoder:
+ ```JavaScript
+ const json = require('json');
+
+ console.log(json.encode(new Date(0))); // "1970-01-01T00:00:00.000Z"
+ console.log(json.encode(Buffer.from('abc'))); // {"type":"Buffer","data":[97,98,99]}
+ console.log(json.encode(NaN)); // null
+ console.log(json.encode(undefined)); // undefined (returned as text by fibjs)
+
+ try {
+     json.decode('{name: 1}');
+ } catch (e) {
+     console.log(e instanceof SyntaxError); // true
+ }
+ ```
+
+ Notes:
+
+ - `decode` takes a string only; any other argument type throws a type error, and the
+   input must be one complete value with no trailing characters.
+ - The module is also exported as `encoding.json`; there is no streaming or reviver form.
  */
 module json
 {
     /*! @brief Encodes a variable in json format
+
+     The value is serialized with the semantics of JSON.stringify. undefined and a
+     top-level function return the text "undefined" rather than the value undefined, which
+     is the fibjs deviation; a BigInt, a circular structure or an object whose toJSON
+     throws makes the call throw a TypeError. Date and Buffer are converted through their
+     toJSON before the text is written, and function-valued properties are omitted.
+
+     Example — a value that survives the round-trip and one that does not:
+     ```JavaScript
+     const json = require('json');
+
+     const text = json.encode({ id: 7, at: new Date(0) });
+     console.log(text); // {"id":7,"at":"1970-01-01T00:00:00.000Z"}
+     console.log(json.encode({ fn: function () {}, keep: 1 })); // {"keep":1}
+
+     try {
+         json.encode(1n);
+     } catch (e) {
+         console.log(e.message); // Do not know how to serialize a BigInt
+     }
+     ```
 	 @param data the variable to encode
 	 @return returns the encoded string
 	 */
     static String encode(Value data);
 
     /*! @brief Decodes a string into a variable using json
+
+     The text must be one complete JSON value with no trailing characters; the parser is
+     strict and rejects the extensions accepted by some libraries, such as single quotes,
+     trailing commas or comments. Duplicate object keys keep the last value and numbers are
+     read as doubles, so 1e400 decodes to Infinity as with JSON.parse. A non-string
+     argument throws a type error.
+
+     Example — duplicate keys and strict syntax:
+     ```JavaScript
+     const json = require('json');
+
+     console.log(json.decode('{"a":1,"a":2}').a); // 2
+     console.log(json.decode('  [true, null]  ')[0]); // true
+
+     try {
+         json.decode('{a:1}');
+     } catch (e) {
+         console.log(e instanceof SyntaxError); // true
+     }
+     ```
 	 @param data the string to decode
 	 @return returns the decoded variable
 	 */

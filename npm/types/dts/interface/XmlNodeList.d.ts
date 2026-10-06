@@ -2,18 +2,100 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description The XmlNodeList object represents an ordered list of nodes
+ * @description The XmlNodeList object represents an ordered list of nodes, 0-based and
+ *  accessible by index
+ *
+ *  XmlNodeList is the collection type of the fibjs XML DOM. Two kinds of lists exist: the
+ *  live structural list of a node (`childNodes`) and the snapshot result lists returned by
+ *  the query methods. The interface is not constructible and not exported as a global
+ *  (typeof XmlNodeList is undefined).
+ *
+ *  Concepts:
+ *
+ *  - **Live and snapshot lists**: `node.childNodes` is the live storage of the child list
+ *    - reading the property again returns the same object and later insertions and
+ *    removals are reflected in its length and items. `node.children` is an element-only
+ *    list computed at access time (a snapshot), and getElementsByTagName,
+ *    getElementsByClassName, getElementsByTagNameNS and querySelectorAll return snapshot
+ *    XmlNodeList objects that hold strong references to their nodes: they do not change
+ *    when the document is mutated, so query again after a change. getElementById and
+ *    querySelector return a single node, not a list.
+ *  - **Access**: item() returns null for an out-of-range index while indexed access
+ *    returns undefined; there is no negative indexing. The list is not a JavaScript Array:
+ *    it has no map/filter/slice methods, but it is iterable and provides forEach, keys,
+ *    values and entries.
+ *  - **Iteration**: keys() yields the indexes, values() the nodes and entries() the
+ *    [index, node] pairs; forEach invokes the callback synchronously with (node, index,
+ *    list) and ignores its return value. The iterators are synchronous and the same
+ *    protocol is exposed as the standard Symbol.iterator, so for...of walks the nodes.
+ *
+ *  Obtained from:
+ *  - `node.childNodes` — the live child list (the same object on every access);
+ *  - `node.children` — a snapshot of the element children;
+ *  - the document and element query methods getElementsByTagName, getElementsByTagNameNS,
+ *    getElementsByClassName and querySelectorAll — snapshots in document order.
+ *
+ *  Example 1 — walk a live child list while mutating it:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = xml.parse('<list><item>a</item><item>b</item></list>');
+ *  const list = doc.documentElement;
+ *  const children = list.childNodes;
+ *
+ *  console.log(children.length);              // 2
+ *  console.log(children.item(0).textContent); // a
+ *  list.appendChild(doc.createElement('item'));
+ *  console.log(children.length);              // 3, the same object is live
+ *  console.log(children[2].nodeName);         // item
+ *  ```
+ *
+ *  Example 2 — a query result is a snapshot:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = xml.parse('<catalog><book/></catalog>');
+ *  const before = doc.getElementsByTagName('book');
+ *
+ *  doc.documentElement.appendChild(doc.createElement('book'));
+ *  console.log(before.length);                           // 1
+ *  console.log(doc.getElementsByTagName('book').length); // 2
+ *  ```
+ *
+ *  Example 3 — iterate nodes, indexes and pairs:
+ *  ```JavaScript
+ *  const xml = require('xml');
+ *
+ *  const doc = xml.parse('<r><a/><b/><c/></r>');
+ *  const nodes = doc.documentElement.childNodes;
+ *
+ *  for (const node of nodes) {
+ *      console.log(node.nodeName); // a, then b, then c
+ *  }
+ *  console.log([...nodes.keys()].join(','));   // 0,1,2
+ *  console.log([...nodes.values()].length);    // 3
+ *  console.log([...nodes.entries()][1][0]);    // 1
+ *  nodes.forEach((node, index) => console.log(index, node.nodeName));
+ *  ```
  *
  */
 declare class Class_XmlNodeList extends Class_object {
     /**
      * @description Returns the number of nodes in the node list
      *
+     *      For a live list the value changes with the document; for a snapshot it is fixed at
+     *      the time the list was produced.
+     *
      */
     readonly length: number;
 
     /**
      * @description Returns the node at the given index in the node list
+     *
+     *      The index is 0-based and a numeric string is accepted. An out-of-range index
+     *      (including a negative one) returns null, while indexed access returns undefined in
+     *      the same case.
+     *
      *      @param index the index to query
      *      @return the node at the given index
      *
@@ -23,6 +105,9 @@ declare class Class_XmlNodeList extends Class_object {
     /**
      * @description Data can be accessed directly with an index
      *
+     *      Equivalent to item(index) except that an out-of-range index yields undefined
+     *      rather than null. The list is read-only.
+     *
      */
     [index: number]: Class_XmlNode;
 
@@ -30,13 +115,36 @@ declare class Class_XmlNodeList extends Class_object {
 
     /**
      * @description Calls the given callback function once for each node in the list
-     *      @param callback the callback function called for each node, receiving three parameters: the current node, the index and the node list itself
+     *
+     *      The callback receives the current node, its zero-based index and the list itself;
+     *      the return value of the callback is ignored and the whole list is visited unless
+     *      the callback throws.
+     *
+     *      Example — collect the names of the nodes in a child list:
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = xml.parse('<r><a/><b/><c/></r>');
+     *      const names = [];
+     *
+     *      doc.documentElement.childNodes.forEach((node, index, list) => {
+     *          names.push(index + ':' + node.nodeName);
+     *          console.log(list === doc.documentElement.childNodes); // true
+     *      });
+     *      console.log(names.join(' ')); // 0:a 1:b 2:c
+     *      ```
+     *
+     *      @param callback the function called for each node with (node, index, list)
      *
      */
     forEach(callback: (node: Class_XmlNode, index: number, list: Class_XmlNodeList)=>void): void;
 
     /**
      * @description Returns an iterator for traversing the index of each node in the node list
+     *
+     *      The indexes are yielded in ascending order, from 0 to length - 1. The iterator is
+     *      synchronous and can be used with for...of.
+     *
      *      @return returns the index iterator
      *
      */
@@ -44,13 +152,29 @@ declare class Class_XmlNodeList extends Class_object {
 
     /**
      * @description Returns an iterator for traversing the value of each node in the node list
+     *
+     *      The nodes are yielded in document order, the same sequence as iterating the list
+     *      directly with for...of.
+     *
      *      @return returns the value iterator
      *
      */
     values(): Iterator<Class_XmlNode>;
 
     /**
-     * @description Returns an iterator for traversing the [index, value] pairs of each node in the node list
+     * @description Returns an iterator for traversing the [index, value] pairs of the nodes
+     *
+     *      Example — pair each node with its index:
+     *      ```JavaScript
+     *      const xml = require('xml');
+     *
+     *      const doc = xml.parse('<r><a/><b/></r>');
+     *
+     *      for (const pair of doc.documentElement.childNodes.entries()) {
+     *          console.log(pair[0], pair[1].nodeName); // 0 a, then 1 b
+     *      }
+     *      ```
+     *
      *      @return returns the key-value pair iterator
      *
      */

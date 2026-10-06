@@ -1,165 +1,306 @@
-/*! @brief URL processing module, providing functions such as URL parsing, formatting, file path conversion and internationalized domain name handling
+/*! @brief The url module parses, formats and resolves URLs; it provides the WHATWG URL and URLSearchParams classes together with the legacy UrlObject API, file path conversion and internationalized domain name conversion
 
-The url module implements complete URL processing functionality and is compatible with the WHATWG URL standard and the traditional URL API.
-It provides the URL object, the URLSearchParams object and various practical URL manipulation functions.
+The WHATWG classes are aliases of the global `URL` and `URLSearchParams`, and the legacy
+functions (parse, format and resolve) are kept for Node.js compatibility.
 
-## Main features
+Concepts:
 
-- **URL parsing and formatting**: supports parsing and formatting various URL formats
-- **File URL handling**: provides conversion between file paths and file:// URLs
-- **Internationalized domain names**: supports conversion between ASCII and Unicode domain names
-- **Query parameter handling**: integrates URLSearchParams to provide powerful query parameter operations
-- **Relative path resolution**: supports resolution and merging of relative URLs
+- **Two APIs**: `URL` implements the WHATWG URL standard and is the recommended API;
+  `parse` returns the legacy UrlObject with the fields protocol, slashes, auth, host, port,
+  hostname, hash, search, query, pathname, path and href. Node.js deprecates the legacy
+  functions (DEP0169) because their parsing is not standardized.
+- **Encoding rules**: the WHATWG parser percent-encodes characters that are invalid in the
+  current component and normalizes the host (lower case, internationalized names to ASCII);
+  the query serializer writes a space as `+`. The legacy formatter applies the same
+  encoding to component values, encodes user names and passwords, and leaves an already
+  encoded string unchanged.
+- **Relative resolution**: a relative reference is resolved against a base URL with the
+  standard algorithm; resolve and `new URL(relative, base)` share that behavior.
+- **Query parameters**: `URL#searchParams` is a live URLSearchParams view and changing it
+  rewrites the URL; `url.parse(str, true)` returns a legacy object whose query is a
+  URLSearchParams instead of the raw string.
+- **File URLs**: pathToFileURL and fileURLToPath convert between platform paths and
+  `file:` URLs, percent-encoding or decoding the path and rejecting a non-empty host on
+  POSIX.
+- **Internationalized domain names**: domainToASCII and domainToUnicode convert a domain
+  between Unicode and the ACE (`xn--`) form with the UTS #46 mapping; `URL` applies the
+  same conversion to hosts automatically.
 
-## Basic usage
-
-### 1. Create and manipulate URL objects
-
+Import:
 ```JavaScript
-const { URL, URLSearchParams } = require('url');
+const url = require('url'); // URL and URLSearchParams are also global
+```
 
-// Create URL object
-const myURL = new URL('https://example.com:8080/path?key=value#hash');
+Example 1 — parse and modify a URL with the WHATWG API:
+```JavaScript
+const url = require('url');
 
-// Access URL parts
-console.log(myURL.protocol);  // 'https:'
-console.log(myURL.hostname);  // 'example.com'
-console.log(myURL.port);      // '8080'
-console.log(myURL.pathname);  // '/path'
-console.log(myURL.search);    // '?key=value'
-console.log(myURL.hash);      // '#hash'
+const myURL = new url.URL('https://example.com:8080/path?key=value#hash');
+console.log(myURL.protocol, myURL.hostname, myURL.port); // https: example.com 8080
+console.log(myURL.pathname, myURL.search, myURL.hash); // /path ?key=value #hash
 
-// Modify URL
 myURL.pathname = '/new-path';
-myURL.searchParams.set('new-key', 'new-value');
-console.log(myURL.href);      // 'https://example.com:8080/new-path?key=value&new-key=new-value#hash'
+myURL.searchParams.set('q', 'a b');
+console.log(myURL.href); // https://example.com:8080/new-path?key=value&q=a+b
 ```
 
-### 2. Traditional API compatibility
-
+Example 2 — the legacy parse/format/resolve API:
 ```JavaScript
 const url = require('url');
 
-// Parse URL string
-const parsed = url.parse('https://example.com/path?key=value#hash');
-console.log(parsed.hostname);  // 'example.com'
+const parsed = url.parse('https://user:pass@example.com:8080/p/a?q=1#frag');
+console.log(parsed.hostname, parsed.port, parsed.path); // example.com 8080 /p/a?q=1
 
-// Format URL object
 const formatted = url.format({
-  protocol: 'https:',
-  hostname: 'example.com',
-  pathname: '/path'
+    protocol: 'https:',
+    hostname: 'example.com',
+    pathname: '/p'
 });
-console.log(formatted);  // 'https://example.com/path'
+console.log(formatted); // https://example.com/p
 
-// Resolve relative URL
-const resolved = url.resolve('https://example.com/foo/', '../bar');
-console.log(resolved);   // 'https://example.com/bar'
+console.log(url.resolve('https://example.com/foo/', '../bar'));
+// https://example.com/bar
 ```
 
-### 3. File URL handling
-
+Example 3 — convert between file paths and file URLs:
 ```JavaScript
 const url = require('url');
 
-// Convert path to file URL
-const fileURL = url.pathToFileURL('/path/to/file.txt');
-console.log(fileURL.href);  // 'file:///path/to/file.txt'
-
-// Convert file URL to path
-const filePath = url.fileURLToPath('file:///path/to/file.txt');
-console.log(filePath);      // '/path/to/file.txt'
+const fileURL = url.pathToFileURL('/tmp/fibjs url test.txt');
+console.log(fileURL.href); // file:///tmp/fibjs%20url%20test.txt
+console.log(url.fileURLToPath(fileURL)); // /tmp/fibjs url test.txt
 ```
 
-### 4. Internationalized domain name handling
-
+Example 4 — convert internationalized domain names:
 ```JavaScript
 const url = require('url');
 
-// Convert Unicode domain to ASCII
-const ascii = url.domainToASCII('bücher.com');
-console.log(ascii);         // 'xn--bcher-kva.com'
-
-// Convert ASCII domain to Unicode
-const unicode = url.domainToUnicode('xn--bcher-kva.com');
-console.log(unicode);       // 'bücher.com'
+console.log(url.domainToASCII('mañana.com')); // xn--maana-pta.com
+console.log(url.domainToUnicode('xn--maana-pta.com')); // mañana.com
+console.log(url.domainToASCII('example.com')); // example.com, unchanged
 ```
 */
 module url
 {
-    /*! @brief constructs a URL string from a URL components object
-     @param args the URL components object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
+    /*! @brief Constructs a URL string from a URL components object, a UrlObject or a URL string
+
+     The overloads share this name and differ in the accepted input; this first entry
+     documents the differences so they stay visible in `fibjs --man`:
+
+     - format(args) builds a URL from a components object. Accepted fields are protocol,
+       slashes, auth, username, password, host, hostname, port, pathname, path, query
+       (string, array of pairs or plain object), search and hash. When hostname is present
+       but protocol is missing, `http:` is assumed, so http.request-style options can be
+       formatted directly; user names and passwords are percent-encoded.
+     - format(urlObject, options) serializes a UrlObject, a URL string or a components
+       object; `options` is accepted for Node.js compatibility (fragment, unicode, auth)
+       but is currently ignored and the full href is returned.
+     - format(href) parses href with the WHATWG parser and returns the normalized href; a
+       relative string is normalized as an absolute path (`not a url` becomes
+       `/not%20a%20url`) while an invalid absolute URL throws a type error.
+
+     Prefer `new URL(...).href` for new code; this function is the legacy formatter.
+
+     Example — format a components object:
+     ```JavaScript
+     const url = require('url');
+
+     console.log(url.format({
+         protocol: 'https:',
+         hostname: 'example.com',
+         pathname: '/p',
+         query: { a: 1 }
+     })); // https://example.com/p?a=1
+     ```
+
+     @param args URL components object to format
      @return the constructed URL string
      */
     static String format(Object args);
 
-    /*! @brief formats a URL object into a string, with formatting options
+    /*! @brief Formats a UrlObject, a URL string or a URL components object into a string
 
-     urlObject may be a UrlObject, a URL string (parsed first), or a URL components object
-     (the same fields the UrlObject constructor accepts).
-     @param urlObject the URL to format
-     @param options formatting options, supporting the fields: fragment (whether to include the fragment), unicode (whether to display domain names in Unicode), auth (whether to include authentication information)
+     See the first format overload for the differences between the call forms. urlObject
+     may be a UrlObject, a URL string (parsed first) or a components object (the same
+     fields the UrlObject constructor accepts).
+
+     @param urlObject URL to format
+     @param options Node.js formatting options; accepted but currently ignored
      @return the formatted URL string
      */
     static String format(UrlObject|String|Object urlObject, Object options = {});
 
-    /*! @brief formats a URL string into a standard URL string
-     @param href the URL string
-     @return the formatted URL string
+    /*! @brief Parses a URL string with the WHATWG parser and returns the normalized href
+
+     An absolute URL is normalized component by component; a string without a scheme is
+     treated as a relative reference and normalized as an absolute path. An invalid
+     absolute URL throws a type error (20024).
+
+     @param href URL string to normalize
+     @return the normalized URL string
      */
     static String format(String href);
 
-    /*! @brief parses a URL string into a URL object (traditional API)
-     @param url the URL string to parse
-     @param parseQueryString whether to parse the query string into an object, default is false
-     @param slashesDenoteHost whether to parse the string after '//' up to the next '/' as the host, default is false
-     @return the parsed UrlObject object
+    /*! @brief Parses a URL string into a legacy UrlObject
+
+     The returned object follows the Node.js legacy API with the fields protocol, slashes,
+     auth, host, port, hostname, hash, search, query, pathname, path and href. By default
+     query is the raw query text without the leading `?`; with parseQueryString it is a
+     URLSearchParams built from the query. The slashesDenoteHost argument is accepted for
+     compatibility but ignored, so a protocol-relative reference such as `//host/path` is
+     parsed with `host` as the host. Invalid percent-encoding throws `url: URI malformed`
+     and an unparsable URL throws `url: Invalid URL '<input>'.` (20024). Node.js returns a
+     plain object when parseQueryString is true and deprecates the function (DEP0169).
+
+     Example — legacy parse with and without query parsing:
+     ```JavaScript
+     const url = require('url');
+
+     const parsed = url.parse('https://example.com/a?x=1&x=2#top');
+     console.log(parsed.hostname, parsed.query, parsed.hash); // example.com x=1&x=2 #top
+
+     const withQuery = url.parse('https://example.com/a?x=1&x=2', true);
+     console.log(withQuery.query.getAll('x')); // [ '1', '2' ]
+     ```
+
+     @param url URL string to parse
+     @param parseQueryString parse the query into a URLSearchParams, default false
+     @param slashesDenoteHost accepted for Node.js compatibility; ignored by fibjs
+     @return the parsed UrlObject
      */
     static UrlObject parse(String url, Boolean parseQueryString = false, Boolean slashesDenoteHost = false);
 
-    /*! @brief resolves a relative URL and merges it into an absolute URL
-     @param _from the base URL string
-     @param to the relative URL string to resolve
-     @return the merged absolute URL string
+    /*! @brief Resolves a relative reference against a base URL
+
+     The two arguments are `from` (the base URL) and `to` (the reference); the result is
+     normalized with the WHATWG algorithm. An empty base resolves the reference on its own,
+     so a rooted path stays a path and a relative path is returned as a relative path. An
+     unparsable input throws `url: Invalid URL '<input>'.` (20024). Node.js deprecates this
+     function (DEP0169).
+
+     Example — resolve against a file base:
+     ```JavaScript
+     const url = require('url');
+
+     console.log(url.resolve('https://example.com/a/b', '../c')); // https://example.com/c
+     console.log(url.resolve('', '/a/b')); // /a/b
+     ```
+
+     @param _from base URL string
+     @param to relative URL string to resolve
+     @return the resolved absolute URL string
      */
     static String resolve(String _from, String to);
 
-    /*! @brief creates a URL object, see UrlObject
+    /*! @brief The WHATWG URL class, re-exported from the global scope
+
+     `url.URL` is the same class as the global `URL`; `new url.URL(...)` produces a
+     UrlObject with the standard properties and methods, including the live `searchParams`
+     view. Prefer this class over parse/format for new code.
+
+     Example — the alias and the resulting class:
+     ```JavaScript
+     const url = require('url');
+
+     console.log(url.URL === URL); // true
+     console.log(new url.URL('https://example.com/a').constructor.name); // UrlObject
+     ```
+
      @return a new UrlObject instance
      */
     static URL = UrlObject;
 
-    /*! @brief creates a URLSearchParams object, see URLSearchParams
+    /*! @brief The WHATWG URLSearchParams class, re-exported from the global scope
+
+     `url.URLSearchParams` is the same class as the global `URLSearchParams` and derives
+     from HttpCollection; see URLSearchParams for the query parameter container.
+
      @return a new URLSearchParams instance
      */
     static URLSearchParams = URLSearchParams;
 
-    /*! @brief converts a file URL (object or string) into a platform-specific file path
+    /*! @brief Converts a file URL into a platform-specific file path
 
-     url must use the file: protocol; it may be a UrlObject, a URL string, or a URL components object
-     (the same fields the UrlObject constructor accepts).
-     @param url the file URL
-     @param options conversion options; the windows field specifies whether to force the Windows path format
-     @return the converted file path string
+     url may be a UrlObject, a URL string or a components object (the same fields the
+     UrlObject constructor accepts). The scheme must be `file:`; the path is
+     percent-decoded and, on Windows, a drive letter or UNC host is handled. A non-empty
+     host on POSIX throws. The `windows` option forces the Windows or POSIX path format.
+     Errors carry a code: ERR_INVALID_URL_SCHEME for a non-file URL,
+     ERR_INVALID_FILE_URL_HOST for a host on POSIX and ERR_INVALID_FILE_URL_PATH for an
+     invalid path such as one containing an encoded slash.
+
+     Example — round-trip a path that contains spaces:
+     ```JavaScript
+     const url = require('url');
+
+     const href = url.pathToFileURL('/tmp/a b.txt').href;
+     console.log(href); // file:///tmp/a%20b.txt
+     console.log(url.fileURLToPath(href)); // /tmp/a b.txt
+     ```
+
+     @param url file URL to convert
+     @param options conversion options; the windows field forces the Windows path format
+     @return the platform-specific file path
      */
     static String fileURLToPath(UrlObject|String|Object url, Object options = {});
 
-    /*! @brief converts a file path into a file URL object
-     @param path the file path to convert
-     @param options conversion options; the windows field specifies whether the path is in Windows format
+    /*! @brief Converts a file path into a file URL object
+
+     The path is resolved to an absolute path and percent-encoded with the path rules; a
+     trailing path separator is preserved as a trailing slash, which marks the URL as a
+     directory for the consumer. On Windows the `windows` option forces Windows handling
+     and a UNC path becomes the URL host. The result is a UrlObject, so read its href for
+     the string form.
+
+     Example — build a URL and read its href:
+     ```JavaScript
+     const url = require('url');
+
+     const fileURL = url.pathToFileURL('/tmp/a b.txt');
+     console.log(fileURL.href); // file:///tmp/a%20b.txt
+     ```
+
+     @param path file path to convert
+     @param options conversion options; the windows field forces Windows path handling
      @return the converted file URL object
      */
     static UrlObject pathToFileURL(String path, Object options = {});
 
-    /*! @brief converts an internationalized domain name to ASCII encoding (Punycode)
-     @param domain the domain name to convert (may contain Unicode characters)
-     @return the ASCII-encoded domain name
+    /*! @brief Converts an internationalized domain name to its ASCII (ACE) form
+
+     The conversion applies the UTS #46 mapping of the URL parser and adds the `xn--`
+     prefix to non-ASCII labels; an ASCII name is returned unchanged. Unsupported input is
+     returned unchanged instead of raising an error, while Node.js returns an empty string
+     for a domain that fails the conversion. Use punycode.toASCII for the raw RFC 3492
+     conversion of a single label.
+
+     Example — convert a Unicode domain:
+     ```JavaScript
+     const url = require('url');
+
+     console.log(url.domainToASCII('mañana.com')); // xn--maana-pta.com
+     ```
+
+     @param domain domain name to convert, possibly containing Unicode characters
+     @return the ASCII (ACE) form of the domain name
      */
     static String domainToASCII(String domain);
 
-    /*! @brief converts an ASCII-encoded domain name to Unicode display format
-     @param domain the ASCII domain name to convert
-     @return the domain name in Unicode format
+    /*! @brief Converts an ASCII (ACE) domain name to its Unicode display form
+
+     Only labels that carry the `xn--` prefix are converted; all other labels are copied
+     unchanged. The prefix test is case-sensitive: an upper-case `XN--` label is returned
+     as is, while Node.js converts it. Invalid encoded labels are returned unchanged.
+
+     Example — convert an ACE domain:
+     ```JavaScript
+     const url = require('url');
+
+     console.log(url.domainToUnicode('xn--maana-pta.com')); // mañana.com
+     ```
+
+     @param domain ASCII domain name to convert
+     @return the domain name in Unicode form
      */
     static String domainToUnicode(String domain);
 };

@@ -1,156 +1,500 @@
-/*! @brief The uuid module provides creation and manipulation of unique ids. It can be used to generate UUIDs (Universally Unique Identifiers) meeting various requirements
+/*! @brief Generates and converts UUIDs (universally unique identifiers) as defined by RFC 9562 and its predecessor RFC 4122
 
-The `uuid` module provides several static functions that can be used to configure and generate different kinds of UUIDs.
-The following is an example of creating a uuid with md5:
-```JavaScript
-const uuid = require('uuid');
-const ns = uuid.DNS;
-const name = 'example.com';
-console.log(uuid.md5(ns, name));
-```
-In the example above, the uuid module is first imported, then the namespace and name are specified, and a UUID meeting the requirements is generated with the md5 algorithm and printed to the console.
-Similarly, we can also generate a uuid with the snowflake algorithm. The following is an example of creating a uuid with the snowflake algorithm:
-```JavaScript
-const uuid = require('uuid');
-const s = uuid.snowflake();
-console.log(s);
-```
-In the example above, the snowflake() method returns a Buffer object, which can be converted to a string and printed to the console to obtain the generated uuid.
+ Main capabilities:
+
+ - **Time-based ids**: `v1`, `v6` and `v7` return the string form, `node` returns a v1 id in
+   binary form;
+ - **Random ids**: `v4` returns the string form, `random` returns a v4 id in binary form;
+ - **Name-based ids**: `v3` (MD5) and `v5` (SHA1) return the string form, `md5` and `sha1`
+   return the same ids in binary form;
+ - **Snowflake ids**: `snowflake` returns a 64-bit time-ordered id and `hostID` configures
+   its host field;
+ - **Conversion**: `parse`, `stringify`, `v1ToV6`, `v6ToV1`;
+ - **Inspection**: `validate`, `version`;
+ - **Constants**: `NIL`, `MAX`, the integer namespace selectors `DNS`, `URL`, `OID`, `X509`
+   and the namespace strings `DNS_NAMESPACE`, `URL_NAMESPACE`.
+
+ Concepts:
+
+ - **Versions**: v1 and v6 embed the current time as 100-nanosecond intervals since
+   1582-10-15 (the Gregorian epoch) together with a node id and a clock sequence; v6
+   arranges the timestamp so that ids generated later compare greater as strings. v4 is
+   random, and v7 starts with the Unix epoch time in milliseconds so it sorts by age as
+   well. v3 and v5 derive the id deterministically by hashing a namespace UUID with a name:
+   the same pair always produces the same UUID in every process and platform, and the name
+   cannot be recovered from the id. `snowflake` is a 64-bit id
+   (`msecs << 22 | hostID << 12 | sequence`), not a UUID.
+ - **String and binary forms**: the string form is the canonical 36-character 8-4-4-4-12
+   layout with hyphens and lower-case hexadecimal digits; the binary form is a 16-byte
+   Buffer (8 bytes for snowflake). `parse` and `stringify` convert between the two, and
+   `md5`/`sha1`/`node`/`random` are the binary counterparts of `v3`/`v5`/`v1`/`v4`.
+ - **Namespaces**: name-based ids hash a 16-byte namespace UUID followed by the name. The
+   four RFC namespaces are exposed as the integer indexes `DNS`, `URL`, `OID` and `X509`
+   for `md5`/`sha1`, and as the strings `DNS_NAMESPACE` and `URL_NAMESPACE` for `v3`/`v5`;
+   `v3` and `v5` also accept any 16-byte Buffer as the namespace.
+ - **Uniqueness**: time-based ids combine a monotonic timestamp with a random node id and
+   a clock sequence, v4 and v7 add randomness, and `snowflake` combines a millisecond
+   timestamp with the 10-bit host id and a 12-bit sequence. None of them is suitable as a
+   secret or a password; use crypto when unpredictability is required.
+
+ Import:
+ ```JavaScript
+ const uuid = require('uuid');
+ ```
+
+ Example 1 — generate an id and round-trip it through the binary form:
+ ```JavaScript
+ const uuid = require('uuid');
+
+ const id = uuid.v4();
+ const bytes = uuid.parse(id);
+ console.log(bytes.length); // 16
+ console.log(uuid.stringify(bytes) === id); // true
+ console.log(uuid.version(id)); // 4
+ ```
+
+ Example 2 — deterministic name-based UUIDs with a fixed namespace:
+ ```JavaScript
+ const uuid = require('uuid');
+
+ const v3 = uuid.v3('example.com', uuid.DNS_NAMESPACE);
+ const v5 = uuid.v5('example.com', uuid.DNS_NAMESPACE);
+ console.log(v3); // 9073926b-929f-31c2-abc9-fad77ae3e8eb
+ console.log(v5); // cfbff0d1-9375-5685-968c-48ce8b15ae17
+ console.log(uuid.v5('example.com', uuid.URL_NAMESPACE) === v5); // false
+ ```
+
+ Example 3 — validate and inspect ids in common input forms:
+ ```JavaScript
+ const uuid = require('uuid');
+
+ const id = uuid.v7();
+ console.log(uuid.validate(id)); // true
+ console.log(uuid.validate(uuid.NIL)); // true
+ console.log(uuid.validate('{550e8400-e29b-41d4-a716-446655440000}')); // false
+ console.log(uuid.version(id)); // 7
+ ```
+
+ Example 4 — binary counterparts and the v1/v6 conversion:
+ ```JavaScript
+ const uuid = require('uuid');
+
+ // md5 is the binary form of v3 for the same namespace and name
+ console.log(uuid.stringify(uuid.md5(uuid.DNS, 'example.com')));
+ // 9073926b-929f-31c2-abc9-fad77ae3e8eb
+
+ const v1 = uuid.v1({ msecs: 1600000000000, nsecs: 0, clockseq: 7 });
+ const v6 = uuid.v1ToV6(v1);
+ console.log(uuid.version(v6)); // 6
+ console.log(uuid.version(uuid.v6ToV1(v6))); // 1
+ ```
+
+ Notes:
+
+ - Every generator returns a new id. With default options `v1`/`v6` keep the timestamp
+   monotonic in a process and bump the clock sequence when the clock does not advance, so
+   two calls never return the same string.
+ - `validate` returns false for a malformed string, while `parse`, `version`, `v3`, `v5`,
+   `v1ToV6` and `v6ToV1` throw a TypeError (20004) for invalid input.
+ - The `node` option of `v1`/`v6` and the `random` option of `v4` are accepted for
+   compatibility with the npm uuid package but are not applied by this implementation.
+ - The string form is accepted in upper-case hexadecimal, but every generated id and every
+   string returned by `stringify` is lower-case.
  */
 module uuid
 {
-    /*! @brief Specifies the name as a domain name when creating a uuid with md5 or sha1 */
+    /*! @brief Namespace selector for domain names, used by md5 and sha1
+
+     The value is 0. The matching string namespace for v3 and v5 is `DNS_NAMESPACE`.
+     */
     const DNS = 0;
 
-    /*! @brief Specifies the name as a url address when creating a uuid with md5 or sha1 */
+    /*! @brief Namespace selector for URLs, used by md5 and sha1
+
+     The value is 1. The matching string namespace for v3 and v5 is `URL_NAMESPACE`.
+     */
     const URL = 1;
 
-    /*! @brief Specifies the name as an ISO OID when creating a uuid with md5 or sha1 */
+    /*! @brief Namespace selector for ISO object identifiers, used by md5 and sha1
+
+     The value is 2. v3 and v5 take the namespace as a Buffer or a canonical UUID string
+     instead of a selector.
+     */
     const OID = 2;
 
-    /*! @brief Specifies the name as an X.500 DN when creating a uuid with md5 or sha1 */
+    /*! @brief Namespace selector for X.500 distinguished names, used by md5 and sha1
+
+     The value is 3; the X.500 namespace is the least common of the four predefined
+     namespaces.
+     */
     const X509 = 3;
 
-    /*! @brief An empty uuid */
+    /*! @brief The all-zero UUID, used as an empty placeholder value
+
+     `validate` accepts it and `parse` converts it to 16 zero bytes, but no v* generator
+     produces it; its version field is 0.
+     */
     const NIL = "00000000-0000-0000-0000-000000000000";
 
-    /*! @brief The maximum UUID string */
+    /*! @brief The all-ones UUID, the largest value in string comparison
+
+     Its version field is 15 and its variant bits do not follow the RFC pattern, so it is
+     a boundary value rather than an id produced by a generator.
+     */
     const MAX = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
-    /*! @brief The DNS namespace UUID for v3 and v5 */
+    /*! @brief The DNS namespace UUID `6ba7b810-9dad-11d1-80b4-00c04fd430c8` for v3 and v5
+
+     Equivalent to the `DNS` selector used by md5 and sha1; pass it as the ns argument of
+     v3 or v5 to derive ids from domain names deterministically.
+     */
     const DNS_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
-    /*! @brief The URL namespace UUID for v3 and v5 */
+    /*! @brief The URL namespace UUID `6ba7b811-9dad-11d1-80b4-00c04fd430c8` for v3 and v5
+
+     Equivalent to the `URL` selector used by md5 and sha1; use a custom 16-byte Buffer
+     when ids must be derived from a private namespace.
+     */
     const URL_NAMESPACE = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
 
-    /*! @brief Parses a uuid string
+    /*! @brief Parses a UUID string into its 16-byte binary form
+
+     The input must be exactly 36 characters in the canonical 8-4-4-4-12 layout with
+     hyphens at the fixed positions; hexadecimal digits may be upper or lower case.
+     Braces, the `urn:uuid:` prefix, compact 32-character forms and any other variant are
+     rejected. The version and variant bits are not checked, so `NIL` and `MAX` parse
+     successfully.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const bytes = uuid.parse('550e8400-e29b-41d4-a716-446655440000');
+     console.log(bytes.length); // 16
+     console.log(bytes.toString('hex')); // 550e8400e29b41d4a716446655440000
+     ```
+
      @param uuid the uuid string to parse
-     @return returns the parsed binary id
+     @return returns the parsed 16-byte Buffer
      */
     static Buffer parse(String uuid);
 
-    /*! @brief Converts a binary array to a uuid string
-     @param arr the array, Buffer or binary string containing the uuid binary data; its length must be at least 16 bytes
+    /*! @brief Converts 16 bytes of UUID data into the canonical string form
+
+     `arr` may be a Buffer or a binary string whose encoded bytes hold the id. Exactly 16
+     bytes starting at `offset` are read, so a larger buffer may contain several ids; the
+     output is always lower-case with hyphens and the bytes are not otherwise validated.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const buf = uuid.parse('01020304-0506-0708-090a-0b0c0d0e0f10');
+     const padded = Buffer.concat([Buffer.alloc(4), buf]);
+     console.log(uuid.stringify(padded, 4));
+     // 01020304-0506-0708-090a-0b0c0d0e0f10
+     console.log(uuid.stringify('0123456789abcdef'));
+     // 30313233-3435-3637-3839-616263646566
+     ```
+
+     @param arr the Buffer or binary string holding the uuid data; offset + 16 bytes are needed
      @param offset optional; the starting offset of the uuid data in the array, default 0
      @return returns the converted uuid string
      */
     static String stringify(Buffer|String arr, Integer offset = 0);
 
-    /*! @brief Creates a uuid using a timestamp
-     @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+    /*! @brief Creates a version 1 UUID from the current time, a node id and a clock sequence
+
+     The timestamp counts 100-nanosecond intervals since 1582-10-15. The node id is
+     generated randomly the first time the function runs in a process, with the multicast
+     bit set; a MAC address is never read. The clock sequence starts as a random 14-bit
+     value. With default options the timestamp is kept monotonic: when the clock does not
+     advance, the clock sequence is incremented instead.
+
+     options supports the following options:
+     ```JavaScript
+     // fragment: options
+     ({
+         "msecs": null, // Integer, Unix epoch milliseconds; fixes the time part of the id
+         "nsecs": null, // Integer, nanoseconds added to msecs (divided by 100); needs msecs
+         "clockseq": null, // Integer, 14-bit clock sequence; the low 14 bits are used
+         "node": null // Buffer, 6-byte node id; accepted for npm compatibility, not applied
+     })
+     ```
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const id = uuid.v1({ msecs: 1600000000000, nsecs: 0, clockseq: 7 });
+     console.log(id.length); // 36
+     console.log(uuid.version(id)); // 1
+     ```
+
+     @param options optional parameter object; see the options block above
      @return returns a generated uuid string
      */
     static String v1(Object options = {});
 
-    /*! @brief Creates a uuid with an MD5 namespace
+/*! @brief Creates a version 3 UUID by hashing the namespace and name with MD5
 
-     ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
+     `ns` may be a Buffer of at least 16 bytes (only the first 16 are hashed) or a
+     36-character namespace UUID string, such as `DNS_NAMESPACE`. The id is deterministic:
+     the same namespace and name always produce the same string on every process. The
+     version and variant bits are set afterwards; `md5` returns the same id in binary
+     form.
+
      @param name the name to use
-     @param ns the namespace UUID
+     @param ns the namespace UUID, as a Buffer or a canonical UUID string
      @return returns a generated uuid string
      */
     static String v3(String name, Buffer|String ns);
 
-    /*! @brief Creates a uuid using random numbers
-     @param options optional parameter object; supports the following properties: random (Buffer, random numbers), rng (Function, random number generator)
+    /*! @brief Creates a version 4 UUID from random bytes
+
+     The bytes come from the OpenSSL random generator and the version and variant bits
+     are set afterwards; the `random` option is accepted for compatibility with the npm
+     uuid package but is not applied by this implementation. `random` returns the same
+     kind of id in binary form.
+
+     options supports the following options:
+     ```JavaScript
+     // fragment: options
+     ({
+         "random": null // Buffer, 16 bytes; accepted for npm compatibility, not applied
+     })
+     ```
+
+     @param options optional parameter object; random is accepted but is not applied
      @return returns a generated uuid string
      */
     static String v4(Object options = {});
 
-    /*! @brief Creates a uuid with a SHA1 namespace
+/*! @brief Creates a version 5 UUID by hashing the namespace and name with SHA1
 
-     ns may be a Buffer holding the 16 binary bytes of the namespace UUID, or the namespace UUID string; a predefined namespace can be used as well.
+     `ns` may be a Buffer of at least 16 bytes (only the first 16 are hashed) or a
+     36-character namespace UUID string; the hash is truncated to 16 bytes and the
+     version and variant bits are set. Like `v3` the result is deterministic, but SHA1
+     makes collisions less likely; `sha1` returns the same id in binary form.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const ns = Buffer.alloc(16); // a fixed custom namespace
+     const a = uuid.v5('name', ns);
+     const b = uuid.v5('name', ns);
+     console.log(a === b); // true
+     console.log(uuid.version(a)); // 5
+     ```
+
      @param name the name to use
-     @param ns the namespace UUID
+     @param ns the namespace UUID, as a Buffer or a canonical UUID string
      @return returns a generated uuid string
      */
     static String v5(String name, Buffer|String ns);
 
-    /*! @brief Gets the version number of the uuid
+    /*! @brief Gets the version field of a UUID string
+
+     Returns the 4-bit version number (0-15) read from the fixed position of the string.
+     `NIL` reports 0 because all bits are zero and `MAX` reports 15 because its version
+     nibble was never cleared. The variant bits are not checked, so any string in the
+     canonical form is accepted; a malformed string throws a TypeError (20004) rather
+     than returning undefined.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     console.log(uuid.version(uuid.v4())); // 4
+     console.log(uuid.version(uuid.v7())); // 7
+     console.log(uuid.version(uuid.NIL)); // 0
+     ```
+
      @param uuid the uuid string to check
-     @return returns the uuid version number (0-7), or undefined if the format is invalid
+     @return returns the uuid version number (0-15)
      */
     static Integer version(String uuid);
 
-    /*! @brief Creates a uuid v6 using a reordered timestamp
-     @param options optional parameter object; supports the following properties: node (Buffer, node ID), clockseq (Integer, clock sequence), msecs (Integer, millisecond timestamp), nsecs (Integer, nanosecond timestamp)
+    /*! @brief Creates a version 6 UUID from the current time, a node id and a clock sequence
+
+     Version 6 carries the same 60-bit Gregorian timestamp, node id and clock sequence as
+     version 1 in an arrangement that makes string comparison follow generation order.
+     It accepts the same options as `v1`; the node id and clock sequence are generated
+     randomly and independently from the ones used by `v1`. See `v1` for the option list
+     and the monotonic timestamp rules.
+
+     @param options optional parameter object; see v1 for the supported properties and defaults
      @return returns a generated uuid string
      */
     static String v6(Object options = {});
 
-    /*! @brief Creates a uuid v7 using a Unix Epoch timestamp
-     @param options optional parameter object; supports the following properties: msecs (Integer, millisecond timestamp)
+    /*! @brief Creates a version 7 UUID from a Unix epoch timestamp and random bits
+
+     The 48 most significant bits hold the Unix epoch time in milliseconds, so an id
+     created later compares greater than an earlier one; the remaining bits are random
+     and the version and variant bits are set. The timestamp can be fixed through the
+     `msecs` option, which makes the example below deterministic.
+
+     options supports the following options:
+     ```JavaScript
+     // fragment: options
+     ({
+         "msecs": null // Integer, Unix epoch milliseconds; defaults to the current time
+     })
+     ```
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const early = uuid.v7({ msecs: 1000 });
+     const late = uuid.v7({ msecs: 2000 });
+     console.log(early < late); // true
+     console.log(uuid.version(late)); // 7
+     ```
+
+     @param options optional parameter object; see the options block above
      @return returns a generated uuid string
      */
     static String v7(Object options = {});
 
-    /*! @brief Converts a uuid v1 to v6
+    /*! @brief Reorders the timestamp fields of a version 1 UUID into the version 6 arrangement
+
+     The node and clock sequence bytes are copied unchanged and the version nibble is
+     rewritten to 6; the result is a valid v6 id in the canonical string form. The input
+     must be a valid UUID string whose version field is 1, otherwise a TypeError (20004)
+     is thrown. The reordering is not guaranteed to be the exact inverse of `v6ToV1`
+     byte by byte, so do not rely on the two calls returning the original bytes.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const v1 = uuid.v1({ msecs: 1600000000000, nsecs: 0, clockseq: 7 });
+     const v6 = uuid.v1ToV6(v1);
+     console.log(uuid.version(v6)); // 6
+     ```
+
      @param uuid the uuid string in v1 format
      @return returns the converted v6 uuid string
      */
     static String v1ToV6(String uuid);
 
-    /*! @brief Converts a uuid v6 to v1
+    /*! @brief Reorders the timestamp fields of a version 6 UUID back into the version 1 arrangement
+
+     The node and clock sequence bytes are copied unchanged and the version nibble is
+     rewritten to 1. The input must be a valid UUID string whose version field is 6,
+     otherwise a TypeError (20004) is thrown. See `v1ToV6`; the pair is not guaranteed to
+     be an exact byte-for-byte round trip.
+
      @param uuid the uuid string in v6 format
      @return returns the converted v1 uuid string
      */
     static String v6ToV1(String uuid);
 
-    /*! @brief Validates whether a uuid string conforms to the specification
+    /*! @brief Validates whether a string is in the canonical UUID form
+
+     Returns true only for exactly 36 characters in the 8-4-4-4-12 layout with legal
+     hexadecimal digits; the digits may be upper or lower case, the version and variant
+     bits are not checked, and compact 32-character or braced forms are rejected. Unlike
+     `parse` and `version` it returns false instead of throwing for a malformed string,
+     which makes it suitable for validating user input.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     console.log(uuid.validate(uuid.v4())); // true
+     console.log(uuid.validate('550E8400-E29B-41D4-A716-446655440000')); // true
+     console.log(uuid.validate('550e8400e29b41d4a716446655440000')); // false
+     ```
+
      @param uuid the uuid string to validate
      @return returns true if it conforms to the specification, false otherwise
      */
     static Boolean validate(String uuid);
 
-    /*! @brief Creates a uuid using the time and host name
-     @return returns a generated binary id
+    /*! @brief Creates a version 1 UUID in binary form
+
+     The layout matches `v1`, including the current timestamp, a random node id with the
+     multicast bit set and a random clock sequence, but the node id is generated
+     independently from the one used by `v1`. The result is a 16-byte Buffer.
+
+     @return returns a generated 16-byte binary id
      */
     static Buffer node();
 
-    /*! @brief Creates a uuid with md5 for a specific name
+    /*! @brief Creates a version 3 UUID in binary form with a predefined namespace
+
+     `ns` selects one of the RFC namespaces through the `DNS`, `URL`, `OID` or `X509`
+     constant and the id is deterministic. It is the binary form of
+     `v3(name, <namespace string>)`, so `stringify(md5(uuid.DNS, name))` equals
+     `v3(name, uuid.DNS_NAMESPACE)`. Values outside 0-3 throw a TypeError (20004).
+
      @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
      @param name the name to use
-     @return returns a generated binary id
+     @return returns a generated 16-byte binary id
      */
     static Buffer md5(Integer ns, String name);
 
-    /*! @brief Creates a uuid using random numbers
-     @return returns a generated binary id
+    /*! @brief Creates a version 4 UUID in binary form
+
+     It is the binary counterpart of `v4`: the same OpenSSL randomness and the same
+     version and variant bits, returned as a 16-byte Buffer instead of a string.
+
+     @return returns a generated 16-byte binary id
      */
     static Buffer random();
 
-    /*! @brief Creates a uuid with sha1 for a specific name
+    /*! @brief Creates a version 5 UUID in binary form with a predefined namespace
+
+     `ns` selects one of the RFC namespaces through the `DNS`, `URL`, `OID` or `X509`
+     constant. It is the binary form of `v5(name, <namespace string>)`, so
+     `stringify(sha1(uuid.DNS, name))` equals `v5(name, uuid.DNS_NAMESPACE)`. Values
+     outside 0-3 throw a TypeError (20004).
+
      @param ns the namespace to use; can be uuid.DNS, uuid.URL, uuid.OID, uuid.X509
      @param name the name to use
-     @return returns a generated binary id
+     @return returns a generated 16-byte binary id
      */
     static Buffer sha1(Integer ns, String name);
 
-    /*! @brief Creates a uuid using the Snowflake algorithm
-     @return returns a generated binary id
+    /*! @brief Creates a 64-bit snowflake id in binary form
+
+     The value is `msecs << 22 | hostID << 12 | sequence`: 41 bits of Unix epoch time in
+     milliseconds, the 10-bit host id and a 12-bit sequence counter that restarts every
+     millisecond. When all 4096 sequence values of a millisecond are used, the call
+     yields the fiber until the next millisecond instead of blocking the thread. The
+     result is an 8-byte Buffer and is not a UUID.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     const a = uuid.snowflake();
+     const b = uuid.snowflake();
+     console.log(a.length); // 8
+     console.log(a.toString('hex') !== b.toString('hex')); // true
+     ```
+
+     @return returns a generated 8-byte binary id
      */
     static Buffer snowflake();
 
-    /*! @brief Queries and modifies the host id of the Snowflake algorithm */
+    /*! @brief Queries or sets the 10-bit host id used by snowflake
+
+     Defaults to 0 in a new isolate. Assignment stores the low 10 bits of the value, so
+     `hostID = 1024` sets 0 and `hostID = -1` sets 1023. Give cooperating processes or
+     workers distinct ids so that ids generated in the same millisecond do not collide.
+
+     Example:
+     ```JavaScript
+     const uuid = require('uuid');
+
+     uuid.hostID = 7;
+     console.log(uuid.hostID); // 7
+     ```
+     */
     static Integer hostID;
 };

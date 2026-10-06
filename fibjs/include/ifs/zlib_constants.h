@@ -44,7 +44,7 @@ public:
         C_Z_RLE = 3,
         C_Z_FIXED = 4,
         C_Z_DEFAULT_STRATEGY = 0,
-        C_ZLIB_VERNUM = 4800,
+        C_ZLIB_VERNUM = 4880,
         C_DEFLATE = 1,
         C_INFLATE = 2,
         C_GZIP = 3,

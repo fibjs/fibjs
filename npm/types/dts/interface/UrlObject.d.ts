@@ -2,241 +2,490 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/URLSearchParams.d.ts" />
 /**
- * @description URL object, implements the WHATWG URL standard, used to parse, construct and manipulate URLs
+ * @description URL object implementing the WHATWG URL standard and the legacy URL object at once
  *
- * UrlObject provides complete URL processing functionality and is compatible with the modern Web standard URL API. It supports parsing, constructing, modifying and formatting URLs, and provides a rich set of properties and methods to operate on the various parts of a URL.
+ * `UrlObject` is the class behind the global `URL` alias (`url.URL === URL`) and the
+ * type returned by `url.parse` and `url.pathToFileURL`. A single class carries two
+ * property models, chosen by how the object is created: `new URL(...)` fills the
+ * WHATWG properties, while `url.parse(...)` marks the object as legacy so that the
+ * user information is decoded on read and the legacy fields (`slashes`, `auth`,
+ * `path`, `query`) become meaningful.
  *
- * ## Main features
- *
- * - **Standard compatibility**: implements the WHATWG URL standard
- * - **Unicode support**: full support for internationalized domain names (IDN) and Unicode characters
- * - **Query parameters**: integrates URLSearchParams to provide powerful query parameter operations
- * - **Path handling**: automatically handles path normalization and relative path resolution
- *
- * ## Creating a URL object
- *
- * ### 1. Create with a string
- *
- * ```JavaScript
- * const url = require('url');
- *
- * // Use full URL string
- * const myURL = new URL('https://user:pass@example.com:8080/path?query=value#hash');
- *
- * // Use relative URL and base URL
- * const relativeURL = new URL('/api/users', 'https://example.com');
- * console.log(relativeURL.href); // 'https://example.com/api/users'
- * ```
- *
- * ### 2. Construct with an object
- *
- * ```JavaScript
- * const myURL = new URL({
- *   protocol: 'https:',
- *   hostname: 'example.com',
- *   port: '8080',
- *   pathname: '/api/data',
- *   search: '?format=json'
- * });
- * ```
- *
- * ## URL components
- *
- * A complete URL consists of the following parts:
+ * The components of a URL:
  * ```
  * https://user:pass@example.com:8080/path/to/resource?query=value#fragment
  *  \___/   \______/ \_________/ \__/\________________/\___________/ \______/
  *    |        |         |        |          |             |          |
- * protocol   auth      host     port     pathname        search      hash
+ * protocol  userinfo   host     port     pathname        search      hash
  *           \___________________/
- *                    origin
+ *                  origin (scheme + host + port)
  * ```
  *
- * ## Common methods
+ * Concepts:
  *
+ * - **Anatomy**: `href` is the serialized URL; `protocol` (with its colon),
+ *   `username`/`password` (the userinfo), `host` (`hostname[:port]`), `hostname`,
+ *   `port` (`''` means the scheme default), `pathname`, `search` (with the leading
+ *   `?`) and `hash` (with the leading `#`); `origin` is the read-only security
+ *   tuple and `path` the legacy `pathname + search` pair.
+ * - **Parsing and normalization**: the parser lower-cases the host, converts
+ *   internationalized names to the ACE (`xn--`) form, drops a port equal to the
+ *   scheme default, resolves `.`/`..` path segments, treats `\` as `/` in the
+ *   authority and path, and percent-encodes characters that are invalid in the
+ *   component being filled.
+ * - **Encoding**: every component has its own encode set, so a space becomes `%20`
+ *   in `pathname` or `search` but `+` when `searchParams` serializes the query;
+ *   user names and passwords are percent-encoded on assignment. A WHATWG instance
+ *   reads `username`, `password` and `auth` in encoded form, a legacy object in
+ *   decoded form.
+ * - **Setters and invalidation**: assigning `href` replaces the whole URL and
+ *   drops the cached `searchParams`; component setters re-serialize at once and
+ *   ignore a value the parser rejects (an out-of-range port, a bad host, a scheme
+ *   switch between a special and a non-special protocol); `searchParams` is a
+ *   live view, so mutating it rewrites the URL on the next serialization.
+ * - **Comparison with Node.js**: Node keeps its WHATWG `URL` class and the legacy
+ *   `url.parse` object separate and rejects a relative input without a base; fibjs
+ *   merges both into `UrlObject` and accepts such an input as a rooted path, so
+ *   the legacy fields exist on every instance.
+ *
+ * Obtained from:
+ *  - `new URL(url[, base])` / `new url.URL(...)` — the WHATWG constructor; `base`
+ *    may be a string, a `UrlObject` or a components object;
+ *  - `new URL(args)` — a components object (`protocol`, `hostname`, `port`,
+ *    `pathname`, `query`, ...), a fibjs extension;
+ *  - `url.parse(url[, parseQueryString])` — the legacy parse path;
+ *  - `url.pathToFileURL(path)` — a `file:` URL object;
+ *  - `UrlObject#resolve(url)` — a new object resolved against the receiver.
+ *
+ * Example 1 — parse and inspect both models:
  * ```JavaScript
- * const myURL = new URL('https://example.com/old-path');
+ * const url = require('url');
  *
- * // Parse URL string
- * const parsed = URL.parse('https://example.com/path');
+ * const myURL = new URL('https://user:pass@example.com:8080/path?a=1#frag');
+ * console.log(myURL.protocol, myURL.hostname, myURL.port); // https: example.com 8080
+ * console.log(myURL.pathname, myURL.search, myURL.hash); // /path ?a=1 #frag
+ * console.log(myURL.origin); // https://example.com:8080
  *
- * // Check if URL is valid
- * const isValid = URL.canParse('https://example.com');
+ * const legacy = url.parse('https://user:pass@example.com:8080/path?a=1#frag');
+ * console.log(legacy.auth, legacy.path); // user:pass /path?a=1
+ * ```
  *
- * // Redirect to new path
- * const newURL = myURL.resolve('../new-path');
+ * Example 2 — mutate fields and observe normalization:
+ * ```JavaScript
+ * const myURL = new URL('http://example.com:80/a/b/../c?q=1');
+ *
+ * console.log(myURL.href); // http://example.com/a/c?q=1
+ *
+ * myURL.protocol = 'https:';
+ * myURL.port = '8443';
+ * myURL.pathname = '/a b/ü';
+ * myURL.hash = 'top';
+ * console.log(myURL.href); // https://example.com:8443/a%20b/%C3%BC?q=1#top
+ *
+ * myURL.port = '99999'; // out of range: the setter keeps the current port
+ * console.log(myURL.port); // 8443
+ * ```
+ *
+ * Example 3 — round-trip through `url.format`, and build from components:
+ * ```JavaScript
+ * const url = require('url');
+ *
+ * const myURL = new URL('https://example.com/p?q=a b#top');
+ * console.log(myURL.href); // https://example.com/p?q=a%20b#top
+ *
+ * console.log(url.format(url.parse(myURL.href))); // https://example.com/p?q=a%20b#top
+ * console.log(url.format(myURL)); // https://example.com/p?q=a%20b#top
+ * console.log(myURL.resolve('../other').href); // https://example.com/other
+ *
+ * const fromParts = new URL({ protocol: 'https:', hostname: 'example.com', pathname: '/p' });
+ * console.log(fromParts.href); // https://example.com/p
  * ```
  *
  */
 declare class Class_UrlObject extends Class_object {
     /**
-     * @description constructs a URL object from an arguments object
-     *      @param args the construction arguments object, supporting the fields: protocol, slashes, username, password, hostname, port, pathname, query, hash
+     * @description Constructs a URL object from a components object
+     *
+     *      A fibjs extension; Node.js stringifies the object instead and throws on a
+     *      plain one. The accepted fields are protocol, slashes, auth (or
+     *      username/password), host (or hostname plus port), path (or pathname),
+     *      query, search and hash, combined by the legacy serializer: a hostname
+     *      without protocol implies `http:`, user names and passwords are
+     *      percent-encoded, and query accepts a plain object whose entries are
+     *      serialized as `key=value` pairs. `new URL({})` yields an empty URL whose
+     *      href is `''`; the assembled string is parsed like the string constructor,
+     *      so a malformed protocol or host throws `url: Invalid URL '<input>'.`
+     *      ([20024]). See the class definition for a components example.
+     *
+     *      @param args components object holding the URL fields
      *
      */
     constructor(args?: FIBJS.GeneralObject);
 
     /**
-     * @description constructs a URL object from a URL string
-     *      @param url the URL string to parse, which can be an absolute or relative URL
-     *      base is used when url is a relative URL; it may be a URL string, a UrlObject, or a URL components object (the same fields the UrlObject constructor accepts).
-     *      @param base the base URL
+     * @description Constructs a URL object from a URL string
+     *
+     *      Parses url with the WHATWG URL parser. base may be a string, a UrlObject
+     *      or a components object and is used to resolve a relative url (Node.js
+     *      accepts a string or URL only). Without base, a relative string is not
+     *      rejected: it is normalized as a rooted path, so `new URL('a/b').href` is
+     *      `/a/b`, and a typo such as `ht tp://h/` silently becomes the path
+     *      `/ht%20tp://h/`, where Node.js throws ERR_INVALID_URL. A malformed
+     *      absolute input (`http://`, an out-of-range port, an invalid IPv6 host)
+     *      throws `url: Invalid URL '<input>'.` ([20024]); null and undefined yield
+     *      an empty URL, while other non-string values throw a type error ([20005]).
+     *
+     *      Example — resolve a relative reference against a base:
+     *      ```JavaScript
+     *      const myURL = new URL('../a b', 'https://example.com/x/y');
+     *
+     *      console.log(myURL.href); // https://example.com/a%20b
+     *      console.log(myURL.pathname); // /a%20b
+     *      ```
+     *
+     *      @param url URL string to parse
+     *      @param base base URL string, UrlObject or components object
      *
      */
     constructor(url: string, base?: string | Class_UrlObject | FIBJS.GeneralObject);
 
     /**
-     * @description parses a URL string and returns a URL object, or null if parsing fails
-     *      @param url the URL string to parse
-     *      @param base the base URL string, used when url is a relative URL
-     *      @return returns a UrlObject on success, or null if parsing fails
+     * @description Parses a URL string and returns a URL object
+     *
+     *      Aliases the string constructor for the Node.js `URL.parse` static (Node
+     *      22+) and accepts base as a URL string. Node.js returns `null` when the
+     *      input is invalid; fibjs throws `url: Invalid URL '<input>'.` ([20024])
+     *      instead, and accepts a relative string without a base as a rooted path.
+     *      `URL.parse('')` returns an object whose href is `''` (Node.js returns
+     *      null), and a non-string value throws a type error ([20005]).
+     *
+     *      Example — success and failure:
+     *      ```JavaScript
+     *      console.log(URL.parse('https://example.com/a?b=1').href);
+     *      // https://example.com/a?b=1
+     *
+     *      try {
+     *          URL.parse('http://');
+     *      } catch (err) {
+     *          console.log(err.number); // 20024
+     *      }
+     *      ```
+     *
+     *      @param url URL string to parse
+     *      @param base base URL string used for a relative url
+     *      @return the parsed URL object
      *
      */
     static parse(url: string, base?: string): Class_UrlObject;
 
     /**
-     * @description checks whether a URL string can be parsed successfully
-     *      @param url the URL string to check
-     *      @param base the base URL string, used when url is a relative URL
-     *      @return returns true if it can be parsed, otherwise returns false
+     * @description Checks whether a URL string can be parsed
+     *
+     *      Returns true when the matching constructor or static parse call would
+     *      succeed. fibjs is more permissive than Node.js: a relative string without
+     *      base (`/p`), an empty string and a string with spaces that cannot form an
+     *      absolute URL are treated as relative and return true, while Node.js
+     *      returns false without a base. A malformed absolute input (`http://`, a bad
+     *      port, an invalid IPv6 host) returns false, and an unusable base makes the
+     *      result false as well.
+     *
+     *      Example — the permissive and the failing cases:
+     *      ```JavaScript
+     *      console.log(URL.canParse('https://example.com/')); // true
+     *      console.log(URL.canParse('/p')); // true, relative without a base
+     *      console.log(URL.canParse('http://')); // false
+     *      console.log(URL.canParse('/p', 'http://')); // false, bad base
+     *      ```
+     *
+     *      @param url URL string to check
+     *      @param base base URL string used for a relative url
+     *      @return true when the input parses, otherwise false
      *
      */
     static canParse(url: string, base?: string): boolean;
 
     /**
-     * @description resolves a relative URL and returns a new absolute URL object
-     *      @param url the relative or absolute URL string to resolve
-     *      @return returns the new resolved UrlObject object
+     * @description Resolves a relative URL against this object and returns a new URL object
+     *
+     *      The receiver is the base and is left unchanged; url is resolved with the
+     *      WHATWG algorithm and returned as a new UrlObject. An empty url returns a
+     *      copy of the receiver, an absolute url replaces it and a reference such as
+     *      `../c` walks the base path. An unparsable url throws
+     *      `url: Invalid URL '<input>'.` ([20024]). Node.js has no method form on its
+     *      URL class and the deprecated module-level `url.resolve(from, to)` returns
+     *      a string instead.
+     *
+     *      Example — resolve against a base with a path:
+     *      ```JavaScript
+     *      const base = new URL('https://example.com/a/b');
+     *
+     *      console.log(base.resolve('./c').href); // https://example.com/a/c
+     *      console.log(base.resolve('/d?x=1#top').href); // https://example.com/d?x=1#top
+     *      console.log(base.resolve('').href); // https://example.com/a/b
+     *      ```
+     *
+     *      @param url relative or absolute URL string to resolve
+     *      @return the new resolved URL object
      *
      */
     resolve(url: string): Class_UrlObject;
 
     /**
-     * @description the complete URL string
+     * @description The complete URL string
      *
-     *      Gets or sets the complete URL string. Setting this property automatically parses and updates the other properties.
+     *      Reading href first folds any pending `searchParams` change back into the
+     *      URL. Assigning it parses the new string like the constructor, so a
+     *      relative string is normalized to a rooted path instead of throwing, and
+     *      the cached `searchParams` of the old URL is dropped. `toString()` and
+     *      `toJSON()` return the same string, and `JSON.stringify` of an object
+     *      holding a URL serializes it to href.
+     *
+     *      Example — assign and re-parse:
+     *      ```JavaScript
+     *      const myURL = new URL('https://example.com/a?x=1#top');
+     *
+     *      myURL.href = 'http://user@example.org/b?y=2';
+     *      console.log(myURL.protocol, myURL.username, myURL.search); // http: user ?y=2
+     *      console.log(myURL.href); // http://user@example.org/b?y=2
+     *
+     *      myURL.href = 'not a url';
+     *      console.log(myURL.href); // /not%20a%20url
+     *      ```
      *
      */
     href: string;
 
     /**
-     * @description the protocol part of the URL (including the colon)
+     * @description The protocol scheme of the URL, including the colon
      *
-     *      For example: 'http:', 'https:', 'ftp:', 'file:', etc.
+     *      Read/write; the parser lower-cases the scheme, so `HTTPS:` reads back as
+     *      `https:`. The setter accepts a scheme with or without the trailing colon
+     *      and adds one when missing; a malformed scheme and a switch between a
+     *      special scheme (`http:`, `https:`, `ws:` ...) and a non-special one are
+     *      ignored, keeping the current protocol instead of throwing. Assigning the
+     *      protocol re-applies the default-port rule, so `http://example.com:443/`
+     *      becomes `https://example.com/` after switching to `https:`. Node.js and
+     *      MDN define the same behavior.
      *
      */
     protocol: string;
 
     /**
-     * @description whether double slashes are included
+     * @description Whether the URL is serialized with a double slash after the scheme
      *
-     *      Indicates whether the URL uses the double-slash format (such as http://)
+     *      A legacy field, not part of the WHATWG URL interface; Node.js exposes it
+     *      on url.parse objects only. Every object built with `new URL(...)` reports
+     *      true, even for `mailto:` or `data:`, while a legacy object from
+     *      `url.parse` reports false for a non-hierarchical scheme (`mailto:`) and
+     *      true when the input carried `//`. Assigning false is a rendering switch:
+     *      the serialized URL loses the `//` (`http://h/p` becomes `http:h/p`) while
+     *      the parsed components stay the same.
      *
      */
     slashes: boolean;
 
     /**
-     * @description the origin of the URL (protocol + host + port)
+     * @description The origin of the URL, `scheme://host[:port]`
      *
-     *      Read-only property, returned in a format such as: 'https://example.com:8080'
-     *      Returns 'null' for non-network protocols (such as file:)
+     *      Read-only; assigning is silently ignored. Special schemes report the
+     *      tuple serialization with the default port dropped; `blob:` inherits the
+     *      origin of its inner URL; `file:` and other non-special schemes report the
+     *      literal string `'null'` (not null). Node.js and MDN report the same
+     *      values.
      *
      */
     readonly origin: string;
 
     /**
-     * @description authentication information (username:password)
+     * @description The userinfo of the URL, `username:password`
      *
-     *      Read-only property, returned in a format such as: 'username:password'
+     *      Read-only; assigning is silently ignored. A legacy field with two forms:
+     *      a WHATWG instance returns the percent-encoded `username[:password]` and
+     *      null when the serialized URL carries no `@`; an object from `url.parse`
+     *      returns the decoded text taken from the original input and null when the
+     *      input had no `@` at all, so `http://@h/` reads back as `''` and
+     *      `http://:@h/` as `':'`. Node.js exposes the decoded property on legacy
+     *      parse objects only.
      *
      */
     readonly auth: string;
 
     /**
-     * @description the username part
+     * @description The user name in the URL userinfo
      *
-     *      The user name in the URL, used for HTTP basic authentication
+     *      Read/write and percent-encoded in the serialized URL. The setter encodes
+     *      the assigned text with the userinfo rules (`a:b` becomes `a%3Ab`, a space
+     *      `%20`) and assigning `''` removes the name while keeping the password. A
+     *      WHATWG instance returns the encoded text; a legacy object from
+     *      `url.parse` returns the decoded text and its setter encodes the value, so
+     *      a read after a write returns the decoded form again. Node.js keeps the
+     *      same split between its URL class and the legacy object.
+     *
+     *      Example — what each model stores:
+     *      ```JavaScript
+     *      const url = require('url');
+     *      const myURL = new URL('http://example.com/');
+     *
+     *      myURL.username = 'a/b';
+     *      console.log(myURL.href); // http://a%2Fb@example.com/
+     *      console.log(myURL.username); // a%2Fb
+     *
+     *      console.log(url.parse('http://a%2Fb@example.com/').username); // a/b
+     *      ```
      *
      */
     username: string;
 
     /**
-     * @description the password part
+     * @description The password in the URL userinfo
      *
-     *      The password in the URL, used for HTTP basic authentication
+     *      Read/write and percent-encoded, with the split described at username: a
+     *      WHATWG instance returns the encoded text, a legacy `url.parse` object the
+     *      decoded text. The setter applies the userinfo encoding (`p@ss:w` becomes
+     *      `p%40ss%3Aw`); assigning `''` removes the password, and a URL that keeps a
+     *      user name is serialized as `user@host`. The value never includes the
+     *      separating colon.
      *
      */
     password: string;
 
     /**
-     * @description the host part (host name + port)
+     * @description The host of the URL, `hostname[:port]`
      *
-     *      Contains the host name and port number, in a format such as: 'example.com:8080'
+     *      Read/write; an IPv6 literal keeps its brackets (`[::1]:8080`). The setter
+     *      parses the assigned `host[:port]` with the URL rules, so an invalid host
+     *      or an out-of-range port is ignored and the previous value is kept. A URL
+     *      without an authority (`mailto:`) reports `''`. Legacy objects from
+     *      `url.parse` expose the same field.
      *
      */
     host: string;
 
     /**
-     * @description the host name part
+     * @description The host name of the URL, without the port
      *
-     *      The host name without the port number; supports IPv4, IPv6 and domain names
+     *      Read/write. The parser stores the lower-cased ASCII form and converts
+     *      internationalized names to the ACE (`xn--`) form; an IPv6 literal includes
+     *      its brackets. The setter applies the same conversion (`mañana.com`
+     *      becomes `xn--maana-pta.com`) and ignores an invalid value without
+     *      throwing. A URL without an authority reports `''`.
      *
      */
     hostname: string;
 
     /**
-     * @description the port number
+     * @description The port of the URL as a string
      *
-     *      The port number as a string; an empty string means the default port is used
+     *      Read/write; `''` means the scheme default. The parser drops a port that
+     *      equals the default (`http:80`, `https:443`), and the setter ignores an
+     *      invalid value (out of the 0-65535 range or non-numeric), keeping the
+     *      current port instead of throwing. Legacy parse objects use `''` where
+     *      Node.js uses `null`; Node.js and MDN define the same setter rules.
+     *
+     *      Example — the default-port rule and an ignored value:
+     *      ```JavaScript
+     *      const myURL = new URL('http://example.com:8080/p');
+     *
+     *      console.log(myURL.port); // 8080
+     *      myURL.port = '80';
+     *      console.log(myURL.href); // http://example.com/p
+     *
+     *      myURL.port = '99999';
+     *      console.log(myURL.port); // ''
+     *      ```
      *
      */
     port: string;
 
     /**
-     * @description the complete path (path + query string)
+     * @description The path and query of the URL, `pathname + search`
      *
-     *      Read-only property, containing pathname and search, in a format such as: '/path?query=value'
+     *      Read-only; assigning is silently ignored. Legacy field kept for Node.js
+     *      compatibility: `new URL('http://h/p?a=1#f')` reports `/p?a=1`, the
+     *      fragment is not included (read href for the complete string). The WHATWG
+     *      URL class of Node.js has no such property; its legacy parse objects do.
      *
      */
     readonly path: string;
 
     /**
-     * @description the path part of the URL
+     * @description The path part of the URL
      *
-     *      The path part of the URL, always starting with '/'
+     *      Read/write; it starts with `/` for a URL that has an authority and is
+     *      percent-encoded in the serialized URL. Parsing resolves `.`/`..` segments
+     *      and keeps repeated slashes; the setter also resolves dot segments and
+     *      percent-encodes the text, so `'/a/../b c'` becomes `/b%20c`. A
+     *      non-hierarchical scheme stores everything after the colon, so
+     *      `data:text/plain,ab` reads back as `text/plain,ab`. Node.js and MDN define
+     *      the same behavior.
      *
      */
     pathname: string;
 
     /**
-     * @description the query string (including the question mark)
+     * @description The query string of the URL, including the leading `?`
      *
-     *      In a format such as: '?key1=value1&key2=value2'; an empty string when there is no query
+     *      Read/write; `''` when there is no query. The setter accepts text with or
+     *      without the leading `?` and adds one when missing, percent-encodes the
+     *      value (a space becomes `%20`) and drops the cached `searchParams`;
+     *      assigning `'?'` alone clears the query. fibjs detail: once `searchParams`
+     *      has been materialized, the getter returns the URLSearchParams
+     *      serialization, which has no leading `?` and encodes a space as `+`, until
+     *      `search` or `href` is assigned again.
      *
      */
     search: string;
 
     /**
-     * @description the query parameter value
+     * @description The query of the URL as text or as a URLSearchParams
      *
-     *      Can be a string or an object; setting an object automatically serializes it into a query string
+     *      fibjs extension that merges the legacy `query` field with the WHATWG
+     *      parameter container. Reading returns `undefined` when the URL has no
+     *      query; otherwise the raw query text without the leading `?`, or a
+     *      URLSearchParams when the object came from `url.parse(url, true)`.
+     *      Assigning a string passes it to `search` (the leading `?` is added and the
+     *      text is percent-encoded, a space becoming `%20`); assigning a plain object
+     *      serializes its enumerable own properties as `key=value` pairs with the
+     *      legacy rules (values through toString(), a space becoming `+`), and an
+     *      empty object leaves the current query unchanged. An object that carries
+     *      methods, such as a URLSearchParams, is serialized property by property as
+     *      well - use `searchParams` for parameters. Other values (number, null)
+     *      throw `Invalid input data` ([20011]).
      *
      */
     query: any;
 
     /**
-     * @description the URL fragment identifier (including the hash sign)
+     * @description The fragment of the URL, including the leading `#`
      *
-     *      In a format such as: '#section'; an empty string when there is no fragment
+     *      Read/write; `''` when there is no fragment. The setter accepts text with
+     *      or without the leading `#` and percent-encodes it; assigning `'#'` alone
+     *      clears the fragment (it reads back as `''`) while the serialized URL keeps
+     *      the trailing `#`, matching the WHATWG and Node.js behavior.
      *
      */
     hash: string;
 
     /**
-     * @description the URL query parameters object
+     * @description The live URLSearchParams view of the URL query
      *
-     *      Read-only property, returns a URLSearchParams object for manipulating query parameters
-     *      Two-way bound to the URL object; modifications automatically update the search and query properties
+     *      Read-only; assigning is silently ignored. Every read returns the same
+     *      URLSearchParams object. Changing it (append/set/delete/sort) rewrites the
+     *      URL on the next serialization of `href`, `search` or `query`, and
+     *      assigning `href` or `search` replaces the view. The parameter serializer
+     *      writes a space as `+` and re-encodes every key and value, so touching
+     *      searchParams can change the query text: `?q=a%20b` serializes as
+     *      `?q=a+b`. See URLSearchParams for the parameter API.
+     *
+     *      Example — mutate the view and observe the URL:
+     *      ```JavaScript
+     *      const myURL = new URL('http://example.com/p?a=1');
+     *
+     *      myURL.searchParams.append('a', '2');
+     *      myURL.searchParams.set('q', 'a b');
+     *      console.log(myURL.searchParams.getAll('a')); // [ '1', '2' ]
+     *      console.log(myURL.href); // http://example.com/p?a=1&a=2&q=a+b
+     *      ```
      *
      */
     readonly searchParams: Class_URLSearchParams;

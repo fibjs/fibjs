@@ -2,11 +2,113 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/HeapGraphNode.d.ts" />
 /**
- * @description HeapSnapshots records the state of the JS heap at a certain moment
+ * @description A captured view of the V8 heap as a graph of nodes and edges
+ *
+ * A HeapSnapshot records the JavaScript heap at one moment. Every heap value becomes a
+ * `HeapGraphNode` and every reference between values becomes a `HeapGraphEdge`, so the
+ * snapshot can be traversed, filtered and compared without touching the live heap. The
+ * graph is obtained from `v8.takeSnapshot` (live heap) or `v8.loadSnapshot` (a
+ * `.heapsnapshot` file), while `v8.diff` and `HeapSnapshot.diff` return a comparison
+ * object that is not a new heap graph. A snapshot is read-only, independent of the live
+ * heap and large: a trivial process already has tens of thousands of nodes.
+ *
+ * Concepts:
+ *
+ * - **Graph model**: `nodes` is the flat list of every node; `root` is the synthetic
+ *   entry point; `childs` of a node lists its outgoing edges. Nodes are identified by a
+ *   numeric `id` that V8 keeps stable for the same heap object across snapshots of one
+ *   isolate, which is what makes comparisons possible.
+ * - **Consumption patterns**: look a node up by id (`getNodeById`), find one by class
+ *   name or label over `nodes`, walk the graph along `childs`, compare two snapshots
+ *   with `diff`, or hand the graph to Chrome DevTools with `save`. There is no reverse
+ *   index, so finding the retainers of a node means searching the graph for edges that
+ *   point at it.
+ * - **Cost**: taking a snapshot performs a full garbage collection and serializes the
+ *   whole heap; reading `nodes` rebuilds the array and re-wraps every node, and each
+ *   node or edge accessed afterwards crosses into the isolate that owns the snapshot.
+ *   Cache the arrays and filter early.
+ * - **Node.js differences**: Node.js exposes the heap as a JSON stream through
+ *   `getHeapSnapshot`/`writeHeapSnapshot` without an object model; this class and
+ *   `loadSnapshot`/`diff` are fibjs additions. The property names also differ from the
+ *   JSON fields (`shallowSize` against `self_size`, `childs` against `children`).
+ *
+ * Obtained from:
+ *  - `v8.takeSnapshot()` — capture the live heap;
+ *  - `v8.loadSnapshot(path)` — parse a `.heapsnapshot` file;
+ *  - `v8.saveSnapshot(path)` — capture and write to a file (returns nothing).
+ *
+ * Example 1 — walk down from the root to the GC roots group:
+ * ```JavaScript
+ * const v8 = require('v8');
+ *
+ * const snapshot = v8.takeSnapshot();
+ * const root = snapshot.root; // the synthetic root node of the graph
+ *
+ * // The root links to the GC roots group and the global handles.
+ * const gcRoots = root.childs.find((edge) => edge.getToNode().name === '(GC roots)').getToNode();
+ * console.log(gcRoots.description); // (GC roots)[Synthetic]
+ *
+ * // Its children are the individual root groups; element links carry a numeric index,
+ * // so use description instead of name when the type is not known.
+ * for (const edge of gcRoots.childs.slice(0, 3))
+ *     console.log(edge.type, edge.description);
+ * ```
+ *
+ * Example 2 — compare two snapshots of the same isolate through files:
+ * ```JavaScript
+ * const v8 = require('v8');
+ * const fs = require('fs');
+ * const os = require('os');
+ * const path = require('path');
+ *
+ * const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+ * const file = path.join(dir, 'compare.heapsnapshot');
+ *
+ * // Two snapshots of the same isolate share node ids, so they can be compared.
+ * v8.saveSnapshot(file);
+ * const first = v8.loadSnapshot(file);
+ * v8.saveSnapshot(file);
+ * const second = v8.loadSnapshot(file);
+ *
+ * const delta = second.diff(first);
+ * console.log(delta.change.freed_nodes >= 0);     // true
+ * console.log(delta.change.allocated_nodes >= 0); // true
+ *
+ * fs.rmSync(dir, { recursive: true, force: true });
+ * ```
+ *
  */
 declare class Class_HeapSnapshot extends Class_object {
     /**
      * @description Compares with the specified heap snapshot
+     *
+     *      Compares this snapshot as the "after" state with `before` and returns an object
+     *      with the `before`, `after` and `change` sections. `before` and `after` hold
+     *      `nodes` (the node count), `time` and the human readable `size` with its
+     *      `size_bytes`; `change` holds the net `size`/`size_bytes` difference, the
+     *      `freed_nodes` and `allocated_nodes` counts (ids present on one side only) and
+     *      `details`, an array of `{ type, size_bytes, size, "+", "-" }` entries grouped by
+     *      node description and sorted by size. Nodes are matched by id, so the two
+     *      snapshots must come from the same isolate to be meaningful; comparing unrelated
+     *      snapshots reports every node as freed and allocated. The comparison itself does
+     *      not trigger a garbage collection.
+     *
+     *      Example — compare the heap around an allocation:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      const before = v8.takeSnapshot();
+     *
+     *      const retained = [];
+     *      for (let i = 0; i < 2000; i++) retained.push({ index: i });
+     *
+     *      const after = v8.takeSnapshot();
+     *      const result = after.diff(before);
+     *
+     *      console.log(result.change.allocated_nodes > 0); // true
+     *      console.log(result.change.freed_nodes >= 0);    // true
+     *      console.log(result.change.details.length > 0);  // true
+     *      ```
      *      @param before the heap snapshot to compare with
      *      @return returns the heap snapshot comparison result
      *
@@ -15,6 +117,23 @@ declare class Class_HeapSnapshot extends Class_object {
 
     /**
      * @description Gets a heap view node by ID
+     *
+     *      Returns the node whose `id` equals the argument, or null when the snapshot has no
+     *      such node. The argument is coerced to an integer, so a numeric string is accepted
+     *      and a fractional number is truncated. Node ids are stable for the same heap
+     *      object across snapshots of one isolate, which is what `diff` and cross-snapshot
+     *      lookups rely on; they are not stable across processes.
+     *
+     *      Example — look up the root node by id:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      const root = snapshot.getNodeById(snapshot.root.id);
+     *
+     *      console.log(root.type === v8.Node_Synthetic); // true
+     *      console.log(snapshot.getNodeById(-1));        // null
+     *      ```
      *      @param id the node ID, of number type
      *      @return returns the obtained heap view node
      *
@@ -23,6 +142,33 @@ declare class Class_HeapSnapshot extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -32,6 +178,33 @@ declare class Class_HeapSnapshot extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -39,6 +212,33 @@ declare class Class_HeapSnapshot extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -46,16 +246,38 @@ declare class Class_HeapSnapshot extends Class_object {
 
     /**
      * @description Time information
+     *
+     *      Intended to hold the creation time of the snapshot as a Date. In the current
+     *      implementation the field is never populated: snapshots taken by `takeSnapshot`
+     *      and snapshots loaded by `loadSnapshot` both report an Invalid Date, and the
+     *      `time` values inside a `diff` result are invalid as well. Record `Date.now()`
+     *      around the capture when a timestamp is needed.
+     *
      */
     readonly time: Date;
 
     /**
      * @description Root node of the heap view
+     *
+     *      The synthetic entry point of the graph: its `type` is `v8.Node_Synthetic`, its
+     *      name is usually an empty string and its id is 1. Start a traversal here, or use
+     *      `getNodeById` when a specific id is known. Every access returns a new node
+     *      object, so compare nodes by `id` rather than by identity.
+     *
      */
     readonly root: Class_HeapGraphNode;
 
     /**
      * @description List composed of heap view nodes
+     *
+     *      A flat array with every node of the heap, including hidden and internal nodes
+     *      whose names start with `system /`; the snapshot has no edge list of its own, only
+     *      the `childs` of each node. The array is rebuilt (and every node re-wrapped) on
+     *      each property access, which takes milliseconds for a real heap, so read it once
+     *      into a local variable before filtering or iterating; `find` over the cached array
+     *      is the usual way to locate an object by class name. Node counts of tens of
+     *      thousands are normal for an idle process.
+     *
      */
     readonly nodes: Class_HeapGraphNode[];
 
@@ -71,6 +293,34 @@ declare class Class_HeapSnapshot extends Class_object {
 declare class Class_HeapSnapshotPromise extends Class_object {
     /**
      * @description Compares with the specified heap snapshot
+     *
+     *      Compares this snapshot as the "after" state with `before` and returns an object
+     *      with the `before`, `after` and `change` sections. `before` and `after` hold
+     *      `nodes` (the node count), `time` and the human readable `size` with its
+     *      `size_bytes`; `change` holds the net `size`/`size_bytes` difference, the
+     *      `freed_nodes` and `allocated_nodes` counts (ids present on one side only) and
+     *      `details`, an array of `{ type, size_bytes, size, "+", "-" }` entries grouped by
+     *      node description and sorted by size. Nodes are matched by id, so the two
+     *      snapshots must come from the same isolate to be meaningful; comparing unrelated
+     *      snapshots reports every node as freed and allocated. The comparison itself does
+     *      not trigger a garbage collection.
+     *
+     *      Example — compare the heap around an allocation:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      const before = v8.takeSnapshot();
+     *
+     *      const retained = [];
+     *      for (let i = 0; i < 2000; i++) retained.push({ index: i });
+     *
+     *      const after = v8.takeSnapshot();
+     *      const result = after.diff(before);
+     *
+     *      console.log(result.change.allocated_nodes > 0); // true
+     *      console.log(result.change.freed_nodes >= 0);    // true
+     *      console.log(result.change.details.length > 0);  // true
+     *      ```
      *      @param before the heap snapshot to compare with
      *      @return returns the heap snapshot comparison result
      *
@@ -79,6 +329,23 @@ declare class Class_HeapSnapshotPromise extends Class_object {
 
     /**
      * @description Gets a heap view node by ID
+     *
+     *      Returns the node whose `id` equals the argument, or null when the snapshot has no
+     *      such node. The argument is coerced to an integer, so a numeric string is accepted
+     *      and a fractional number is truncated. Node ids are stable for the same heap
+     *      object across snapshots of one isolate, which is what `diff` and cross-snapshot
+     *      lookups rely on; they are not stable across processes.
+     *
+     *      Example — look up the root node by id:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      const root = snapshot.getNodeById(snapshot.root.id);
+     *
+     *      console.log(root.type === v8.Node_Synthetic); // true
+     *      console.log(snapshot.getNodeById(-1));        // null
+     *      ```
      *      @param id the node ID, of number type
      *      @return returns the obtained heap view node
      *
@@ -87,6 +354,33 @@ declare class Class_HeapSnapshotPromise extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -94,6 +388,33 @@ declare class Class_HeapSnapshotPromise extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -101,6 +422,33 @@ declare class Class_HeapSnapshotPromise extends Class_object {
 
     /**
      * @description Saves the HeapSnapshot under the specified name
+     *
+     *      Serializes this snapshot as a Chrome DevTools `.heapsnapshot` JSON file,
+     *      replacing an existing file. Both snapshots taken from the live heap and snapshots
+     *      loaded from a file can be saved again. Because the member is async it can be
+     *      called in blocking style, with a trailing callback (`saveAsync`/`saveSync` are
+     *      the generated aliases) or awaited as a promise. The path is normalized and
+     *      resolved against the current working directory; throws an ENOENT error when the
+     *      parent directory does not exist.
+     *
+     *      Example — save a live snapshot and read the file back:
+     *      ```JavaScript
+     *      const v8 = require('v8');
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-v8-'));
+     *      const file = path.join(dir, 'live.heapsnapshot');
+     *
+     *      const snapshot = v8.takeSnapshot();
+     *      snapshot.save(file); // blocking call style; saveAsync(file, cb) is the callback form
+     *
+     *      const reloaded = v8.loadSnapshot(file);
+     *      console.log(reloaded.nodes.length > 0); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param fname the snapshot name
      *
      */
@@ -108,16 +456,38 @@ declare class Class_HeapSnapshotPromise extends Class_object {
 
     /**
      * @description Time information
+     *
+     *      Intended to hold the creation time of the snapshot as a Date. In the current
+     *      implementation the field is never populated: snapshots taken by `takeSnapshot`
+     *      and snapshots loaded by `loadSnapshot` both report an Invalid Date, and the
+     *      `time` values inside a `diff` result are invalid as well. Record `Date.now()`
+     *      around the capture when a timestamp is needed.
+     *
      */
     readonly time: Date;
 
     /**
      * @description Root node of the heap view
+     *
+     *      The synthetic entry point of the graph: its `type` is `v8.Node_Synthetic`, its
+     *      name is usually an empty string and its id is 1. Start a traversal here, or use
+     *      `getNodeById` when a specific id is known. Every access returns a new node
+     *      object, so compare nodes by `id` rather than by identity.
+     *
      */
     readonly root: Class_HeapGraphNode;
 
     /**
      * @description List composed of heap view nodes
+     *
+     *      A flat array with every node of the heap, including hidden and internal nodes
+     *      whose names start with `system /`; the snapshot has no edge list of its own, only
+     *      the `childs` of each node. The array is rebuilt (and every node re-wrapped) on
+     *      each property access, which takes milliseconds for a real heap, so read it once
+     *      into a local variable before filtering or iterating; `find` over the cached array
+     *      is the usual way to locate an object by class name. Node counts of tens of
+     *      thousands are normal for an idle process.
+     *
      */
     readonly nodes: Class_HeapGraphNode[];
 

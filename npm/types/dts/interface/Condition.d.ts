@@ -1,64 +1,156 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
- * @description Condition variable object
+ * @description A condition variable: park fibers until shared state becomes true
  *
- *  A condition variable is a mechanism for synchronization using global variables shared between fibers; it mainly involves two actions:
- *  1) one thread waits for a condition to become true and suspends itself;
- *  2) another thread makes the condition true and notifies the waiting fibers to continue execution.
+ *  A Condition lets fibers wait for a state instead of polling. `wait` releases the lock
+ *  that protects the state and parks the calling fiber, then re-acquires the lock before
+ *  returning; a fiber that changed the state calls `notify` to wake one waiter or
+ *  `notifyAll` to wake all of them. Every Condition is bound to a lock — one supplied to
+ *  the constructor or an internal one created for the condition — and derives from Lock,
+ *  so `acquire`, `release` and `count` operate on that lock.
  *
- *  To prevent races, each condition variable needs to work with a Lock (the Lock can be created explicitly and passed in, or fibjs can create it for you)
+ *  Concepts:
  *
- *  By using a condition variable, one condition variable can control the switching of a batch of fibers;
+ *  - **Lock protocol**: acquire the lock, test the condition and call `wait` while it is
+ *  false. `wait` releases the lock before parking and re-acquires it before returning, so
+ *  another fiber cannot change the state between the test and the wait. Always wait in a
+ *  `while` loop: a waiter may be woken by `notifyAll`, or the condition may already have
+ *  been consumed by another fiber.
+ *  - **notify releases the lock**: `notify` and `notifyAll` release the caller's lock
+ *  (one level, exactly like `release`) before waking the waiters, which then re-acquire
+ *  it one by one. The notifying fiber no longer holds the lock afterwards, so re-acquire
+ *  it before touching the shared state again.
+ *  - **Timeout**: `wait(ms)` returns true when it was notified and false when the timeout
+ *  elapsed first; the lock is re-acquired in both cases. The default is -1, which waits
+ *  forever.
+ *  - **Diagnostics**: `count()` reports how many fibers are parked in wait, not how many
+ *  wait for the lock.
+ *  - **Related primitives**: Condition waits for an arbitrary state, Event releases a
+ *  group of fibers at once without a lock, Semaphore counts permits; all of them park
+ *  only the calling fiber.
+ *  - **Node.js**: there is no condition variable in Node.js. The usual substitute is a
+ *  promise that the state change resolves, which cannot release a lock atomically because
+ *  Node.js has no fiber-level locks.
  *
- *  The following is an example of scheduling two fibers:
+ *  Obtained from:
+ *  - `new coroutine.Condition()` — creates the condition with its own internal lock;
+ *  - `new coroutine.Condition(lock)` — binds it to an existing lock (a Lock, or another
+ *  Lock-derived object such as a Semaphore or an Event).
+ *
+ *  Example 1 — a worker parks until the main fiber flips a flag:
  *  ```JavaScript
- *  var coroutine = require("coroutine");
- *  var cond = new coroutine.Condition();
- *  var ready = false;
- *  var state = "ready";
+ *  const coroutine = require('coroutine');
  *
- *  function funcwait() {
- *     cond.acquire();
- *     while (!ready)
- *         cond.wait();
- *     state = "go"
- *     cond.release();
- *  }
+ *  const cond = new coroutine.Condition();
+ *  let ready = false;
  *
- *  coroutine.start(funcwait);
+ *  const worker = coroutine.start(function () {
+ *      cond.acquire();
+ *      while (!ready)
+ *          cond.wait(); // releases the lock while parked
+ *      console.log('worker saw ready = true');
+ *      cond.release();
+ *  });
  *
+ *  coroutine.sleep(5);
  *  cond.acquire();
- *  console.log(state)
  *  ready = true;
- *  cond.notify();
- *  coroutine.sleep();
- *  console.log(state);
+ *  cond.notify(); // wakes the worker and releases the lock
+ *  worker.join();
+ *  console.log('main done');
  *  ```
  *  will output:
  *  ```sh
- *  ready
- *  go
+ *  worker saw ready = true
+ *  main done
+ *  ```
+ *
+ *  Example 2 — notifyAll wakes every parked fiber:
+ *  ```JavaScript
+ *  const coroutine = require('coroutine');
+ *
+ *  const cond = new coroutine.Condition();
+ *  let woken = 0;
+ *
+ *  for (let i = 0; i < 3; i++) {
+ *      coroutine.start(function () {
+ *          cond.acquire();
+ *          cond.wait(200);
+ *          woken++;
+ *          cond.release();
+ *      });
+ *  }
+ *
+ *  coroutine.sleep(5);
+ *  cond.acquire();
+ *  console.log('parked waiters:', cond.count());
+ *  cond.notifyAll();
+ *  cond.release();
+ *
+ *  coroutine.sleep(20);
+ *  console.log('woken:', woken);
+ *  ```
+ *  will output:
+ *  ```sh
+ *  parked waiters: 3
+ *  woken: 3
  *  ```
  *
  */
 declare class Class_Condition extends Class_Lock {
     /**
-     * @description Condition variable constructor (the lock needed by the condition variable is constructed internally by fibjs)
+     * @description Creates a condition variable with its own internal lock
+     *
+     *      The internal lock is created by fibjs and is only reachable through this condition, so
+     *      the acquire/release protocol of the condition also applies to it.
+     *
      */
     constructor();
 
     /**
-     * @description Condition variable constructor
-     *      @param lock use a self-constructed lock
+     * @description Creates a condition variable bound to the given lock
+     *
+     *      The supplied lock becomes the lock of the condition: `acquire` and `release` act on it
+     *      and `wait` releases and re-acquires it. Any Lock-derived object can be passed, which
+     *      allows one lock to protect several conditions or to be shared with other primitives.
+     *      The caller keeps ownership of the object and must not use a lock that is acquired
+     *      elsewhere in an incompatible way.
+     *      @param lock the lock used by the condition
      *
      */
     constructor(lock: Class_Lock | Class_LockPromise);
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     wait(timeout?: number): boolean;
@@ -66,28 +158,121 @@ declare class Class_Condition extends Class_Lock {
     wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     waitSync(timeout?: number): boolean;
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     waitAsync(timeout?: number): Promise<boolean>;
 
     /**
-     * @description Notifies one blocked fiber (the last one added to the fiber pool) to continue execution
+     * @description Wakes one parked fiber
+     *
+     *      Releases the caller's lock and resumes the fiber that has been waiting the longest, if
+     *      any; with no waiter the call only releases the lock. The call returns undefined, and
+     *      the notifying fiber must re-acquire the lock before touching the shared state again.
+     *
+     *      Example — waking a single waiter releases the caller's lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      let ready = false;
+     *
+     *      const worker = coroutine.start(function () {
+     *          cond.acquire();
+     *          while (!ready)
+     *              cond.wait();
+     *          console.log('worker released');
+     *          cond.release();
+     *      });
+     *
+     *      coroutine.sleep(5);
+     *      cond.acquire();
+     *      console.log('parked waiters:', cond.count());
+     *      ready = true;
+     *      cond.notify(); // releases the lock, so no release() below
+     *      console.log('main continues');
+     *      worker.join();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      parked waiters: 1
+     *      main continues
+     *      worker released
+     *      ```
+     *
      */
     notify(): void;
 
     /**
-     * @description Notifies all blocked fibers to continue execution
+     * @description Wakes every parked fiber
+     *
+     *      Releases the caller's lock and resumes every fiber waiting on the condition; each of
+     *      them re-acquires the lock in turn. Use it when a state change satisfies the condition
+     *      of several waiters at once, for example when a queue is closed or a batch is
+     *      published. The call returns undefined.
+     *
      */
     notifyAll(): void;
 
@@ -101,48 +286,177 @@ declare class Class_Condition extends Class_Lock {
  */
 declare class Class_ConditionPromise extends Class_LockPromise {
     /**
-     * @description Condition variable constructor (the lock needed by the condition variable is constructed internally by fibjs)
+     * @description Creates a condition variable with its own internal lock
+     *
+     *      The internal lock is created by fibjs and is only reachable through this condition, so
+     *      the acquire/release protocol of the condition also applies to it.
+     *
      */
     constructor();
 
     /**
-     * @description Condition variable constructor
-     *      @param lock use a self-constructed lock
+     * @description Creates a condition variable bound to the given lock
+     *
+     *      The supplied lock becomes the lock of the condition: `acquire` and `release` act on it
+     *      and `wait` releases and re-acquires it. Any Lock-derived object can be passed, which
+     *      allows one lock to protect several conditions or to be shared with other primitives.
+     *      The caller keeps ownership of the object and must not use a lock that is acquired
+     *      elsewhere in an incompatible way.
+     *      @param lock the lock used by the condition
      *
      */
     constructor(lock: Class_Lock | Class_LockPromise);
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     wait(timeout?: number): Promise<boolean>;
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     waitSync(timeout?: number): boolean;
 
     /**
-     * @description Waits for a condition variable
-     *      @param timeout the timeout in milliseconds, default is -1, which means never time out.
-     *      @return returns true if acquired successfully, or false on timeout
+     * @description Waits until notified or until the timeout elapses
+     *
+     *      The call must be made while the calling fiber owns the lock: it releases the lock,
+     *      parks the fiber, and re-acquires the lock before returning, which makes the
+     *      test-then-wait sequence atomic with respect to other fibers. It returns true when it
+     *      was woken by `notify`/`notifyAll` and false when the timeout elapsed first; the
+     *      default timeout is -1, which waits forever. `waitAsync(ms)` is the promise form.
+     *
+     *      Example — a timeout returns false and the lock is held again afterwards:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      cond.acquire();
+     *
+     *      const start = Date.now();
+     *      console.log('wait(20) timed out:', cond.wait(20) === false);
+     *      console.log('waited at least 15ms:', Date.now() - start >= 15);
+     *
+     *      cond.release();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      wait(20) timed out: true
+     *      waited at least 15ms: true
+     *      ```
+     *
+     *      @param timeout maximum time to wait in milliseconds, -1 waits forever
+     *      @return true when notified, false on timeout
      *
      */
     waitAsync(timeout?: number): Promise<boolean>;
 
     /**
-     * @description Notifies one blocked fiber (the last one added to the fiber pool) to continue execution
+     * @description Wakes one parked fiber
+     *
+     *      Releases the caller's lock and resumes the fiber that has been waiting the longest, if
+     *      any; with no waiter the call only releases the lock. The call returns undefined, and
+     *      the notifying fiber must re-acquire the lock before touching the shared state again.
+     *
+     *      Example — waking a single waiter releases the caller's lock:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const cond = new coroutine.Condition();
+     *      let ready = false;
+     *
+     *      const worker = coroutine.start(function () {
+     *          cond.acquire();
+     *          while (!ready)
+     *              cond.wait();
+     *          console.log('worker released');
+     *          cond.release();
+     *      });
+     *
+     *      coroutine.sleep(5);
+     *      cond.acquire();
+     *      console.log('parked waiters:', cond.count());
+     *      ready = true;
+     *      cond.notify(); // releases the lock, so no release() below
+     *      console.log('main continues');
+     *      worker.join();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      parked waiters: 1
+     *      main continues
+     *      worker released
+     *      ```
+     *
      */
     notify(): void;
 
     /**
-     * @description Notifies all blocked fibers to continue execution
+     * @description Wakes every parked fiber
+     *
+     *      Releases the caller's lock and resumes every fiber waiting on the condition; each of
+     *      them re-acquires the lock in turn. Use it when a state change satisfies the condition
+     *      of several waiters at once, for example when a queue is closed or a batch is
+     *      published. The call returns undefined.
+     *
      */
     notifyAll(): void;
 

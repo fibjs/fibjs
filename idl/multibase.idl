@@ -1,42 +1,135 @@
-/*! @brief multibase is an encoding method that introduces multiple encoding prefixes on top of Base1x encoding
+/*! @brief The multibase module encodes binary data as a self-describing string carrying its codec
+ prefix, so the encoded value can be decoded without out-of-band information
 
-multibase can encode the same data with different encodings and add a prefix indicating the encoding. multibase supports 15 encodings in total: base1, base2, base8, base10, base16, base32, base32hex, base32z, base36, base40, base56, base58flickr, base58btc, base64 and base64url. Among them, base16, base32 and base64 are the more commonly used.
+ Main capabilities:
 
-multibase can be used to change the presentation of binary data without changing the data itself. For example, encoding randomly generated binary data as a base32 string:
-```JavaScript
-const {
-    encode
-} = require('multibase');
+ - **Encoding**: `encode` turns a Buffer or string into a prefixed string under one of 11 codecs;
+ - **Decoding**: `decode` reads the prefix and turns the remaining payload back into a Buffer;
+ - **Self-describing values**: encoded strings can be stored or transmitted and decoded later
+   without carrying the codec separately, unlike the bare base32/base58/base64/hex forms.
 
-const crypto = require('crypto');
-const data = crypto.randomBytes(10); // generate 10 bytes random data
-const encodedStr = encode(data, 'base32'); // encode data to base32 string
-console.log(encodedStr); // ==> "bpgwnvztqmlbo5fy"
-```
-Decoding the above string back to the original binary data:
-```JavaScript
-const {
-    decode
-} = require('multibase');
+ Concepts:
 
-const data = decode('bpgwnvztqmlbo5fy', 'base32'); // decode base32 string to data
-console.log(data); // ==> <Buffer a7 55 3d 33 ca 97 ac 0d aa 40>
-```
-As can be seen, with multibase we encoded the original binary data as a base32 string, and we can decode this string back to the original binary data.
+ - **Prefix table**: the first character selects the codec. The module implements the following
+   11 codecs (name — prefix — payload form):
+   - `base16` (`f`) and `base16upper` (`F`) — hexadecimal, lowercase and uppercase;
+   - `base32` (`b`) and `base32upper` (`B`) — RFC 4648 base32 without padding;
+   - `base32pad` (`c`) and `base32padupper` (`C`) — base32 with `=` padding;
+   - `base58btc` (`z`) — base58 with the Bitcoin alphabet;
+   - `base64` (`m`) and `base64pad` (`M`) — standard base64 without and with padding;
+   - `base64url` (`u`) and `base64urlpad` (`U`) — URL-safe base64 without and with padding.
+   Names outside this table, including base1, base2, base8, base10, base32hex, base32z, base36,
+   base40, base56 and base58flickr, are rejected with `multibase: unknown codec`.
+ - **Family-based decoding**: decode only inspects the prefix family, so `f`/`F` are decoded as
+   hex, `b`/`B`/`c`/`C` as base32, `m`/`M`/`u`/`U` as base64 and `z` as base58. Padding and letter
+   case in the payload are left to the family decoder and are not re-validated.
+ - **Relation to base32, base58, base64 and hex**: those modules produce the bare payload, while
+   multibase with the same codec prepends exactly one prefix character to that payload, so
+   `decode` is their inverse. Use the standalone modules when both sides already agree on the
+   encoding, and multibase when the string must carry the encoding with it.
+ - **String and Buffer forms**: encode accepts a Buffer or a string (a string contributes its
+   utf8 bytes); decode always returns a Buffer. Codec names are case-sensitive.
+
+ Import:
+ ```JavaScript
+ const { encode, decode } = require('multibase');
+ ```
+
+ Example 1 — encode and decode a round-trip with the base32 codec:
+ ```JavaScript
+ const { encode, decode } = require('multibase');
+
+ const data = Buffer.from('hello');
+ const encoded = encode(data, 'base32'); // the leading "b" marks base32
+ console.log(encoded); // bnbswy3dp
+ console.log(decode(encoded).toString()); // hello
+ ```
+
+ Example 2 — the same bytes under several codecs, each with its own prefix:
+ ```JavaScript
+ const { encode } = require('multibase');
+
+ const data = Buffer.from('hello');
+ for (const codec of ['base16', 'base32', 'base58btc', 'base64', 'base64url'])
+     console.log(codec + ': ' + encode(data, codec));
+ // base16: f68656c6c6f
+ // base32: bnbswy3dp
+ // base58btc: zCn8eVZg
+ // base64: maGVsbG8
+ // base64url: uaGVsbG8
+ ```
+
+ Example 3 — decode a string built with the standalone base58 module:
+ ```JavaScript
+ const { decode } = require('multibase');
+ const base58 = require('base58');
+
+ const encoded = 'z' + base58.encode(Buffer.from('hello')); // "z" marks base58btc
+ console.log(encoded); // zCn8eVZg
+ console.log(decode(encoded).toString()); // hello
+
+ try {
+     decode('x123'); // "x" is not a known prefix
+ } catch (e) {
+     console.log(e.message); // multibase: unknown codec: 'x'.
+ }
+ ```
+
+ Notes:
+
+ - A prefix without a payload, such as `decode('b')`, returns an empty Buffer; an empty string
+   has no prefix and throws an unknown-codec error.
+ - The encoded length is the payload length of the chosen codec plus one prefix character.
  */
 module multibase
 {
-    /*! @brief Encodes data in multibase format; a string data is encoded as utf8
-     data may be a Buffer or a string; a string is encoded as utf8.
+    /*! @brief Encodes data in multibase format
+
+     The result is the prefix character of codec followed by the payload that the matching codec
+     produces, so the codec can be recovered from the string alone. data may be a Buffer or a
+     string, where a string contributes its utf8 bytes.
+
+     codec is case-sensitive and must be one of base16, base16upper, base32, base32upper,
+     base32pad, base32padupper, base58btc, base64, base64pad, base64url or base64urlpad; any
+     other name throws `multibase: unknown codec: '<name>'`. A data argument of any other type
+     throws a type error. See the module prefix table for the prefix of each codec.
+
+     Example — one payload under four codecs:
+     ```JavaScript
+     const { encode } = require('multibase');
+
+     const data = Buffer.from('hello');
+     console.log(encode(data, 'base16')); // f68656c6c6f
+     console.log(encode(data, 'base32')); // bnbswy3dp
+     console.log(encode(data, 'base58btc')); // zCn8eVZg
+     console.log(encode(data, 'base64pad')); // MaGVsbG8=
+     ```
      @param data the data to encode
-     @param codec the encoding to use, a string is encoded as utf8
-     @return returns the encoded string
+     @param codec the codec name, one of the names in the module prefix table
+     @return returns the prefixed encoded string
      */
     static String encode(Buffer|String data, String codec);
 
     /*! @brief Decodes a string into binary data in multibase format
-	 @param data the string to decode
-	 @return returns the decoded binary data
-	 */
+
+     The codec is read from the first character of data, so no codec argument is needed: f/F are
+     decoded as hex, b/B/c/C as base32, m/M/u/U as base64 and z as base58. The exact variant
+     (padding, letter case) is left to the family decoder and is not re-validated.
+
+     A string that starts with any other character, including an empty string, throws
+     `multibase: unknown codec: '<char>'`; a prefix without a payload returns an empty Buffer.
+
+     Example — decode the output of the standalone base64 module:
+     ```JavaScript
+     const { decode } = require('multibase');
+     const base64 = require('base64');
+
+     const encoded = base64.encode(Buffer.from('hello')); // aGVsbG8
+     const data = decode('m' + encoded); // the "m" prefix marks base64
+     console.log(data.toString()); // hello
+     ```
+     @param data the prefixed string to decode
+     @return returns the decoded binary data
+     */
     static Buffer decode(String data);
 };

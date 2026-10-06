@@ -1,8 +1,95 @@
-/*! @brief Module that defines the commonly used constants of the zlib module
+/*! @brief The zlib_constants module enumerates the constants of the zlib library bundled
+ with fibjs: flush codes, status and error codes, compression levels, strategies, window
+ and memory bounds, codec type ids, and the library version
 
- How to require it:
+ The module is not requireable on its own; load it through the `constants` property of the
+ zlib module. The values describe the zlib C library version 1.3.1 linked into this build
+ and are accepted by the `flush`, `level`, `windowBits`, `memLevel` and `strategy`
+ parameters of the compression classes; the codec type ids (`DEFLATE`, `GZIP`, ...) mirror
+ Node.js's zlib.constants.
+
+ Concepts:
+
+ - **Flush modes**: Z_NO_FLUSH lets the compressor buffer and decide when to emit;
+   Z_PARTIAL_FLUSH emits the pending output at a partial-block boundary; Z_SYNC_FLUSH emits
+   all pending output aligned to a byte boundary and keeps the compression dictionary, so
+   the peer can decode the piece immediately; Z_FULL_FLUSH additionally resets the
+   dictionary, so decompression can restart from that point; Z_BLOCK stops at the next
+   deflate block boundary; Z_FINISH ends the stream and writes the trailer.
+ - **Status and error codes**: Z_OK (0) and Z_STREAM_END (1) are success states; Z_NEED_DICT
+   asks for a preset dictionary; the negative values (Z_ERRNO, Z_STREAM_ERROR, Z_DATA_ERROR,
+   Z_MEM_ERROR, Z_BUF_ERROR, Z_VERSION_ERROR) are zlib return codes. A failed call throws an
+   Error whose `code` is the status name, for example 'Z_DATA_ERROR'; the numeric constant
+   is the zlib return value, not the error number.
+ - **Levels and strategies**: Z_NO_COMPRESSION (0) to Z_BEST_COMPRESSION (9) trade speed for
+   size and Z_DEFAULT_COMPRESSION (-1) lets zlib choose (level 6 today). Z_DEFAULT_STRATEGY
+   suits ordinary data, Z_FILTERED favors data produced by a filter, Z_HUFFMAN_ONLY and
+   Z_RLE restrict LZ matching, and Z_FIXED disables dynamic Huffman codes.
+ - **Bounds**: Z_MIN_WINDOWBITS through Z_MAX_WINDOWBITS and Z_MIN_MEMLEVEL through
+   Z_MAX_MEMLEVEL bound the codec options; Z_MIN_CHUNK, Z_MAX_CHUNK (-1 means unlimited in
+   fibjs, Node.js reports Infinity) and Z_DEFAULT_CHUNK describe chunk sizes.
+ - **Where options apply**: the codec classes (`new zlib.Deflate(...)`, `new zlib.Gzip(...)`
+   and the rest) read level, windowBits, memLevel and strategy; the one-shot functions only
+   read level, so pass the other options to a codec instance.
+
+ Import:
  ```JavaScript
- var constants = require('zlib').constants
+ const constants = require('zlib').constants;
+ ```
+
+ Example 1 — flush control on a streaming codec:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+
+ // _processChunk(data, flushFlag) drives one codec step at a time.
+ const deflate = new zlib.Deflate();
+ const head = deflate._processChunk('hello ', C.Z_NO_FLUSH);    // header only
+ const middle = deflate._processChunk('world', C.Z_SYNC_FLUSH); // decodable piece
+ const tail = deflate._processChunk('', C.Z_FINISH);            // trailer
+
+ console.log(head.length, middle.length, tail.length); // 2 17 6
+ const packed = Buffer.concat([head, middle, tail]);
+ console.log(zlib.inflate(packed).toString()); // hello world
+ ```
+
+ Example 2 — compression levels:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+ const text = 'abc'.repeat(1000);
+
+ // Z_NO_COMPRESSION stores, Z_BEST_COMPRESSION spends CPU to shrink.
+ const stored = zlib.deflate(text, { level: C.Z_NO_COMPRESSION });
+ const packed = zlib.deflate(text, { level: C.Z_BEST_COMPRESSION });
+ console.log(stored.length > packed.length); // true
+
+ // Without a level the one-shot uses Z_DEFAULT_COMPRESSION (-1).
+ console.log(C.Z_DEFAULT_COMPRESSION, C.Z_MIN_LEVEL, C.Z_MAX_LEVEL); // -1 -1 9
+ console.log(zlib.deflate(text).length ===
+     zlib.deflate(text, { level: C.Z_DEFAULT_COMPRESSION }).length); // true
+ ```
+
+ Example 3 — strategies and error codes:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+ const text = 'The quick brown fox jumps over the lazy dog. '.repeat(50);
+
+ // Strategies are codec-constructor options: HUFFMAN_ONLY gives up LZ matching.
+ const plain = new zlib.Deflate({ strategy: C.Z_DEFAULT_STRATEGY });
+ const huff = new zlib.Deflate({ strategy: C.Z_HUFFMAN_ONLY });
+ const a = plain._processChunk(text, C.Z_FINISH);
+ const b = huff._processChunk(text, C.Z_FINISH);
+ console.log(a.length < b.length); // true
+
+ // A failed inflate reports the zlib status name in err.code.
+ try {
+     zlib.inflate(Buffer.from('not a zlib stream'));
+ } catch (e) {
+     console.log(e.code); // Z_DATA_ERROR
+ }
+ console.log(C.Z_OK, C.Z_STREAM_END, C.Z_DATA_ERROR, C.Z_VERSION_ERROR); // 0 1 -3 -6
  ```
  */
 module zlib_constants
@@ -79,8 +166,8 @@ module zlib_constants
     /*! @brief Default compression strategy */
     const Z_DEFAULT_STRATEGY = 0;
 
-    /*! @brief zlib version number */
-    const ZLIB_VERNUM = 4800;
+    /*! @brief zlib version number (4880 is zlib 1.3.1) */
+    const ZLIB_VERNUM = 4880;
 
     /*! @brief deflate compression */
     const DEFLATE = 1;
@@ -121,7 +208,7 @@ module zlib_constants
     /*! @brief Minimum chunk size */
     const Z_MIN_CHUNK = 64;
 
-    /*! @brief Maximum chunk size */
+    /*! @brief Maximum chunk size; -1 means unlimited (Node reports Infinity) */
     const Z_MAX_CHUNK = -1;
 
     /*! @brief Default chunk size */

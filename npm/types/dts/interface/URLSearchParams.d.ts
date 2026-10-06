@@ -1,130 +1,173 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description URLSearchParams is a container class dedicated to handling URL query parameters, inheriting from HttpCollection
+ * @description The ordered query-parameter collection of the URL Standard, inheriting from
+ * HttpCollection
  *
- * URLSearchParams implements the standard URLSearchParams API, used to parse and manipulate URL query strings. It provides complete query parameter management functionality, supports standard query parameter operations, and inherits all the functionality of HttpCollection, including adding, setting, querying and deleting parameters.
+ *  URLSearchParams is both the global class and the value behind http.Request#query and
+ *  UrlObject#searchParams. It parses, builds and serializes query strings: names and values are
+ *  strings, are compared case-sensitively, an empty name is allowed and every pair keeps its
+ *  insertion position, so the serialization order follows the input order.
  *
- * URLSearchParams supports the following ways of use:
+ *  Concepts:
  *
- * 1. Use as the global URLSearchParams API (Web standard):
+ *  - **Ordered pairs**: size counts pairs, not distinct names. append() adds a pair, set()
+ *    replaces every pair of a name, delete() removes one value or every value of a name and
+ *    sort() reorders in place (stable, byte-wise by name). The inherited HttpCollection helpers
+ *    (first, all, getAll, forEach, keys, values, entries, toJSON) are available as well.
+ *  - **Encoding**: parsing decodes `+` as a space and percent escapes; toString() serializes
+ *    with the application/x-www-form-urlencoded rules - spaces become `+`, the characters
+ *    `!`, `*`, `'`, `(` and `)` stay literal and everything else is percent-encoded as UTF-8.
+ *    A single leading `?` is stripped by the constructor and `#` is an ordinary character, so
+ *    "a=1#x" stores the value "1#x".
+ *  - **Constructors**: a query string, an object, an array of pairs, another URLSearchParams or
+ *    any iterable of pairs (a Map, a Headers, a FormData ...); null and undefined create an
+ *    empty collection and other primitives are converted to a string and parsed as a query
+ *    string.
+ *  - **Value-aware has/delete**: the optional second argument restricts the operation to the
+ *    pairs with exactly that value; without it (or with undefined) the member works on the name
+ *    alone, like the HttpCollection members.
  *
- * ```JavaScript
- * // Create empty URLSearchParams object
- * const params = new URLSearchParams();
+ *  Obtained from:
+ *  - `new URLSearchParams()` / `new URLSearchParams(init)` — build from scratch or initialize;
+ *  - `http.Request#query` — the parsed query of a request;
+ *  - `UrlObject#searchParams` — the parameters of a URL (assigning changes the URL);
+ *  - `querystring.parse` — the legacy parser returns an HttpCollection, not URLSearchParams.
  *
- * // Initialize with query string
- * const params = new URLSearchParams('name=John&age=30&city=Beijing');
+ *  Example 1 — parse a query string and modify it:
+ *  ```JavaScript
+ *  const params = new URLSearchParams('?b=2&a=1&a=3');
  *
- * // Initialize with object
- * const params = new URLSearchParams({
- *     name: 'John',
- *     age: '30',
- *     city: 'Beijing'
- * });
+ *  console.log(params.size);        // 3
+ *  console.log(params.get('a'));    // 1
+ *  console.log(params.getAll('a')); // [ '1', '3' ]
  *
- * // Initialize with array
- * const params = new URLSearchParams([
- *     ['name', 'John'],
- *     ['age', '30'],
- *     ['city', 'Beijing']
- * ]);
+ *  params.append('c', '4');
+ *  params.set('a', '9'); // replaces both a=1 and a=3, the name moves to the end
+ *  console.log(params.toString()); // b=2&c=4&a=9
+ *  ```
  *
- * // Copy from another URLSearchParams object
- * const copy = new URLSearchParams(params);
- * ```
+ *  Example 2 — value-aware has and delete:
+ *  ```JavaScript
+ *  const params = new URLSearchParams('tag=a&tag=b&tag=c');
  *
- * Example of standard URLSearchParams API methods:
+ *  console.log(params.has('tag', 'b')); // true
+ *  console.log(params.has('tag', 'z')); // false
+ *  params.delete('tag', 'b');
+ *  console.log(params.getAll('tag')); // [ 'a', 'c' ]
+ *  params.delete('tag');
+ *  console.log(params.size); // 0
+ *  ```
  *
- * ```JavaScript
- * // Standard URLSearchParams API methods
- * params.set('name', 'Alice');
- * params.append('hobby', 'reading');
- * params.append('hobby', 'coding');  // Support multiple parameters with same name
- * params.get('name');        // 'Alice'
- * params.getAll('hobby');    // ['reading', 'coding']
- * params.has('age');         // true
- * params.has('hobby', 'reading'); // true
- * params.delete('city');
- * params.delete('hobby', 'coding');
+ *  Example 3 — build from an object, pairs or an iterable and serialize:
+ *  ```JavaScript
+ *  const fromObject = new URLSearchParams({ q: 'a b', page: 2 });
+ *  const fromPairs = new URLSearchParams([['tag', 'x'], ['tag', 'y']]);
+ *  const fromMap = new URLSearchParams(new Map([['m', '1']]));
  *
- * // Convert to string
- * params.toString();         // 'name=Alice&hobby=reading&hobby=coding'
- *
- * // Iterator support
- * for (const [name, value] of params) {
- *     console.log(`${name}: ${value}`);
- * }
- *
- * // Iterate over keys
- * for (const name of params.keys()) {
- *     console.log(name);
- * }
- *
- * // Iterate over values
- * for (const value of params.values()) {
- *     console.log(value);
- * }
- *
- * // forEach method
- * params.forEach((value, name) => {
- *     console.log(`${name}: ${value}`);
- * });
- *
- * // Sort parameters
- * params.sort();
- * ```
- *
- * Example of fibjs extension methods (inherited from HttpCollection):
- *
- * ```JavaScript
- * // Add multiple values (without overwriting existing)
- * params.add('tags', 'javascript');
- *
- * // Get first value
- * const firstName = params.first('name');
- *
- * // Get all values
- * const allHobbies = params.all('hobby');
- *
- * // Set multiple values
- * params.set('colors', ['red', 'green', 'blue']);
- * ```
- *
- * URLSearchParams automatically handles URL encoding and decoding, fully following the Web standard URLSearchParams API specification.
+ *  console.log(fromObject.toString()); // q=a+b&page=2
+ *  console.log(fromPairs.toString());  // tag=x&tag=y
+ *  console.log(fromMap.toString());    // m=1
+ *  console.log(new URLSearchParams(fromPairs).toString()); // tag=x&tag=y
+ *  ```
  *
  */
 declare class Class_URLSearchParams extends Class_HttpCollection {
     /**
-     * @description URLSearchParams constructor, creates a new empty query parameter container
+     * @description Creates an empty URLSearchParams collection
+     *
+     *      Equivalent to `new URLSearchParams('')`: size 0 and toString() an empty string.
+     *
      */
     constructor();
 
     /**
-     * @description URLSearchParams constructor, initializes the parameter container from an object, an array of pairs, another container, a query string or an iterable
-     *      @param init the initial parameters: an object whose keys are parameter names, an array of [name, value] pairs, another URLSearchParams container, a query string such as "name=value&key=val", or any iterable of [name, value] pairs
+     * @description Creates a collection from a query string, an object, pairs, a container or an
+     * iterable
+     *
+     *      The init argument is converted as follows:
+     *      - a string is parsed as a query string with a single leading `?` removed; `+` decodes to
+     *        a space and `#` is an ordinary character;
+     *      - an object's own enumerable properties become pairs in enumeration order, with the
+     *        values converted to strings;
+     *      - an array must contain [name, value] pairs of exactly two elements; any other element
+     *        throws `TypeError [20024] Failed to construct 'URLSearchParams': sequence elements must
+     *        be pairs.`;
+     *      - another URLSearchParams copies every pair into an independent collection;
+     *      - any other iterable of pairs (a Map, a Headers, a FormData) is materialized with
+     *        Array.from and appended;
+     *      - null and undefined create an empty collection; other values (a number, a boolean) are
+     *        converted to their string form and parsed as a query string (123 becomes "123=").
+     *
+     *      Example — the same pairs through different initializers:
+     *      ```JavaScript
+     *      console.log(new URLSearchParams('b=2&a=1').toString());      // b=2&a=1
+     *      console.log(new URLSearchParams({ b: 2, a: 1 }).toString()); // b=2&a=1
+     *      console.log(new URLSearchParams([['b', '2'], ['a', '1']]).toString()); // b=2&a=1
+     *      console.log(new URLSearchParams(new Map([['b', '2']])).toString());   // b=2
+     *      ```
+     *
+     *      @param init the initial parameters: a query string, an object, an array of pairs, a
+     *      container or an iterable of pairs
      *
      */
     constructor(init: FIBJS.GeneralObject | any[] | Class_URLSearchParams | string | any);
 
     /**
-     * @description the number of parameter pairs (multiple values with the same name are counted separately, consistent with the Web standard)
+     * @description The number of stored name/value pairs, read-only
+     *
+     *      Pairs, not names: "a=1&a=2" has size 2, every append() increases it by one and set() of
+     *      an existing name keeps it unchanged. The Web standard exposes the same property; the
+     *      other HttpCollection containers do not have it.
+     *
      */
     readonly size: number;
 
     /**
-     * @description checks whether a combination of the specified parameter name and parameter value exists in the container
-     *      @param name specifies the parameter name to check
-     *      @param value specifies the parameter value to check; when undefined is passed, the behavior is the same as has(name)
-     *      @return returns whether the specified parameter name and parameter value combination exists
+     * @description Checks whether a name/value combination is present
+     *
+     *      With a value, only the pairs whose value equals the argument are considered; the value
+     *      is converted to a string first, so has('n', 2) matches the pair n=2. With one argument or
+     *      undefined the member degrades to the name-only check of HttpCollection. The comparison
+     *      is case-sensitive and exact. Note that HttpCollection also declares a one-argument has()
+     *      and man only shows this overload; the runtime accepts both call forms.
+     *
+     *      Example — distinguish a value from the name:
+     *      ```JavaScript
+     *      const params = new URLSearchParams('n=1&n=2');
+     *
+     *      console.log(params.has('n'));    // true (name-only form)
+     *      console.log(params.has('n', 2)); // true
+     *      console.log(params.has('n', 3)); // false
+     *      ```
+     *
+     *      @param name the parameter name to check
+     *      @param value the parameter value to match, or undefined for the name-only check
+     *      @return whether a pair with that name (and value) exists
      *
      */
     has(name: string, value: any): boolean;
 
     /**
-     * @description deletes the combination of the specified parameter name and parameter value
-     *      @param name specifies the parameter name to delete
-     *      @param value specifies the parameter value to delete; when undefined is passed, the behavior is the same as delete(name)
+     * @description Removes the pairs of a name, or the pairs with a name/value combination
+     *
+     *      With a value, only the pairs whose value equals the argument are removed and the other
+     *      pairs of the name remain; the value is converted to a string like in has(). With one
+     *      argument or undefined every pair of the name is removed, exactly like the HttpCollection
+     *      delete. Removing a name that does not exist is not an error.
+     *
+     *      Example — remove one value and then the whole name:
+     *      ```JavaScript
+     *      const params = new URLSearchParams('n=1&n=2&n=3');
+     *
+     *      params.delete('n', 2);
+     *      console.log(params.toString()); // n=1&n=3
+     *      params.delete('n');
+     *      console.log(params.size); // 0
+     *      ```
+     *
+     *      @param name the parameter name to remove
+     *      @param value the parameter value to remove, or undefined to remove every pair of the name
      *
      */
     delete(name: string, value: any): void;

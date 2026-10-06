@@ -1,69 +1,177 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
 /**
- * @description `WebSocketMessage` is a message type in the WebSocket protocol; it encapsulates the data formats and handling methods of various messages in the WebSocket transport protocol, and can be used for communication between WebSocket clients and servers.
+ * @description The message object exchanged by WebSocket peers, a Message with frame metadata
  *
- * The constructor `WebSocketMessage` supports the specified message type parameter `type`, which has three optional values:
+ *  A WebSocketMessage bundles one complete application message: the frame type
+ *  (`type`, inherited from Message), the WebSocket flags `masked` and
+ *  `compress`, the size limit `maxSize` and the payload held by the Message
+ *  body. The `message` event of a WebSocket delivers an instance directly, and
+ *  `data` reads the payload in its natural JavaScript form.
  *
- * - `WebSocket.TEXT`: represents a text type message, the content is a string.
- * - `WebSocket.BINARY`: represents a binary type message, the content is binary data.
+ *  The class is reachable as `WebSocket.Message`: `new WebSocket.Message()`
+ *  creates an empty message that can be filled with `write`, serialized with
+ *  `sendTo` and parsed back with `readFrom`. Messages received from a socket
+ *  are created by the protocol layer, so application code mostly reads `type`
+ *  and `data`.
  *
- * In addition, the `WebSocketMessage.masked` property can be modified to specify whether a mask should be applied, and the `WebSocketMessage.compress` property specifies whether compression is needed.
+ *  Concepts:
+ *  - type: TEXT (1) or BINARY (2) for application messages. PING (9), PONG
+ *    (10) and CLOSE (8) frames are handled by the WebSocket protocol layer and
+ *    are not delivered to `message`; CONTINUE (0) fragments are re-assembled
+ *    before delivery.
+ *  - data: a String for TEXT messages and a Buffer for BINARY messages. The
+ *    getter reads the body from the beginning on every access, so it can be
+ *    called more than once.
+ *  - masked: on a received frame it reports the mask bit of the wire frame,
+ *    true for frames sent by a client and false for frames sent by a server;
+ *    on an outgoing message it selects whether the frame is masked, as the
+ *    protocol requires for each role.
+ *  - compress: true when the message was compressed with permessage-deflate,
+ *    negotiated by the `perMessageDeflate` option of the WebSocket constructor
+ *    or of WebSocket.upgrade; it is forced to false for frames that never
+ *    carry compressed payloads.
+ *  - maxSize: the maximum accepted message size in bytes, 67108864 (64 MB) by
+ *    default. A larger incoming message fails the connection: the `error`
+ *    event reports code 1009 and `close` reports 1006.
+ *  - Frame serialization: `sendTo` writes a message to a stream and `readFrom`
+ *    parses one back, which makes it possible to produce or verify the wire
+ *    format without a socket (see the examples).
  *
- * The following code is an example of a websocket server; after a client connects, the server echoes the received messages back to the client:
- * ```JavaScript
- * var http = require('http');
+ *  Obtained from:
+ *  - the `message` event of a WebSocket (`msg` argument);
+ *  - `new WebSocket.Message(type, masked, compress, maxSize)` for protocol
+ *    work such as tests or custom transports.
  *
- * var svr = new http.Server(8080, {
- *     '/websocket': WebSocket.upgrade((conn, req) => {
- *         // emit message event
- *         conn.onmessage = e => {
- *             if (e.data.type == WebSocket.TEXT) {
- *                 console.log(`received message from client ${e.data}`);
- *                 conn.send(e.data);
- *             } else {
- *                 console.error(`received unknown type message ${e.data.type}`);
- *             }
- *         }
- *         conn.onclose = e => console.log('a client left');
- *     })
- * });
- * svr.start();
- * ```
- * In this program, the built-in http module is loaded first, then an http server object is created with the request path to handle specified, and the WebSocket.upgrade function is called to upgrade requests on the corresponding path into websocket connections.
- * After the websocket connection is created, the server automatically creates a WebSocket object for each connection and provides APIs such as onopen, onmessage and onclose to handle client connection, message reception and close events.
- * When a message is received, the server checks the message type; if it is a text type, the received message is echoed back.
- * The above is a simple websocket server processing flow; modify it appropriately according to actual needs.
+ *  Example 1 — inspect the messages received by a server:
+ *  ```JavaScript
+ *  const http = require('http');
+ *
+ *  const server = new http.Server(0, {
+ *      '/ws': WebSocket.upgrade((conn) => {
+ *          conn.onmessage = (msg) => {
+ *              console.log(msg.type, msg.compress, typeof msg.data); // 1 false string
+ *              conn.send(msg.data);
+ *          };
+ *      })
+ *  });
+ *  server.start();
+ *  const port = server.socket.localPort;
+ *
+ *  const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws');
+ *  sock.onopen = () => sock.send('inspect me');
+ *  sock.onmessage = (msg) => {
+ *      console.log(msg.type === WebSocket.TEXT, msg.data); // true inspect me
+ *      sock.close();
+ *  };
+ *  sock.onclose = () => server.stop();
+ *  ```
+ *
+ *  Example 2 — build, serialize and parse a message in memory:
+ *  ```JavaScript
+ *  const io = require('io');
+ *
+ *  const out = new io.MemoryStream();
+ *  const msg = new WebSocket.Message(WebSocket.TEXT, true, false);
+ *  msg.write('payload', () => {
+ *      msg.sendTo(out, () => {
+ *          out.rewind();
+ *          const back = new WebSocket.Message();
+ *          back.readFrom(out, () => {
+ *              console.log(back.type === WebSocket.TEXT, back.data); // true payload
+ *              console.log(back.masked, back.compress); // true false
+ *          });
+ *      });
+ *  });
+ *  ```
  *
  */
 declare class Class_WebSocketMessage extends Class_Message {
     /**
-     * @description package handling message object constructor
-     * 	@param type websocket message type, default is websocket.BINARY
-     * 	@param masked websocket message mask, default is true
-     *     @param compress marks whether the message is compressed, default is false
-     * 	@param maxSize maximum package size in MB, default is 67108864(64M)
+     * @description Creates an empty message with the given frame metadata
+     *
+     *      The constructor initializes the frame header fields only; the payload is
+     *      written afterwards with `write`. compress is forced to false for frame
+     *      types other than TEXT and BINARY. Incoming messages are created by the
+     *      protocol layer, so build messages by hand to serialize frames in memory
+     *      with `sendTo` or to parse them with `readFrom`, as the class examples do.
+     *
+     *      @param type the frame type, WebSocket.BINARY by default
+     *      @param masked whether the frame is masked, true by default (clients mask frames)
+     *      @param compress whether the frame is compressed with permessage-deflate, false by default
+     *      @param maxSize the maximum accepted message size in bytes, 67108864 (64 MB) by default
      *
      */
     constructor(type?: number, masked?: boolean, compress?: boolean, maxSize?: number);
 
     /**
-     * @description queries and reads the websocket mask flag, default is true
+     * @description Queries or sets the mask flag of the frame
+     *
+     *      On a received message it reports the mask bit of the wire frame: true
+     *      for a frame sent by a client and false for a frame sent by a server. On
+     *      an outgoing message it selects whether the payload is masked, following
+     *      the protocol rule that clients mask and servers do not. Default: true.
+     *
      */
     masked: boolean;
 
     /**
-     * @description queries and reads the websocket compression state, default is false
+     * @description Queries or sets the compression flag of the frame
+     *
+     *      true when the payload is compressed with permessage-deflate; the
+     *      extension must be negotiated by the connection (see the
+     *      `perMessageDeflate` option of the WebSocket constructor and of
+     *      WebSocket.upgrade), otherwise every message reports false. The
+     *      constructor forces the flag to false for frame types other than TEXT
+     *      and BINARY. Default: false.
+     *
      */
     compress: boolean;
 
     /**
-     * @description queries and sets the maximum package size in bytes, default is 67108864(64M)
+     * @description Queries or sets the maximum accepted message size in bytes
+     *
+     *      Default: 67108864 (64 MB), the same limit the WebSocket `maxPayload`
+     *      option sets for a connection. A received message larger than the limit
+     *      fails the connection: the `error` event reports code 1009 and `close`
+     *      reports 1006. Setting a negative value throws.
+     *
      */
     maxSize: number;
 
     /**
-     * @description queries the message data. Returns a String for text messages and a Buffer for binary messages. This is a standard Web API property.
+     * @description Reads the message payload: a String for TEXT messages, a Buffer for binary messages
+     *
+     *      The getter reads the body from the beginning on every access, so it can
+     *      be called more than once, and returns null when the message has no
+     *      payload. This property is a fibjs extension: the DOM MessageEvent.data
+     *      may be a Blob or an ArrayBuffer instead, and it only exists on events.
+     *
+     *      Example — the same property in text and binary form:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, {
+     *          '/ws': WebSocket.upgrade((conn) => {
+     *              conn.onmessage = (msg) => conn.send(msg.data);
+     *          })
+     *      });
+     *      server.start();
+     *      const port = server.socket.localPort;
+     *
+     *      const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws');
+     *      let step = 0;
+     *      sock.onopen = () => sock.send(Buffer.from('bytes'));
+     *      sock.onmessage = (msg) => {
+     *          console.log(Buffer.isBuffer(msg.data), msg.data.toString()); // true bytes
+     *          if (step++ === 0)
+     *              sock.send('text'); // the next message comes back as a string
+     *          else
+     *              sock.close();
+     *      };
+     *      sock.onclose = () => server.stop();
+     *      ```
+     *
      */
     readonly data: any;
 
@@ -77,32 +185,90 @@ declare class Class_WebSocketMessage extends Class_Message {
  */
 declare class Class_WebSocketMessagePromise extends Class_MessagePromise {
     /**
-     * @description package handling message object constructor
-     * 	@param type websocket message type, default is websocket.BINARY
-     * 	@param masked websocket message mask, default is true
-     *     @param compress marks whether the message is compressed, default is false
-     * 	@param maxSize maximum package size in MB, default is 67108864(64M)
+     * @description Creates an empty message with the given frame metadata
+     *
+     *      The constructor initializes the frame header fields only; the payload is
+     *      written afterwards with `write`. compress is forced to false for frame
+     *      types other than TEXT and BINARY. Incoming messages are created by the
+     *      protocol layer, so build messages by hand to serialize frames in memory
+     *      with `sendTo` or to parse them with `readFrom`, as the class examples do.
+     *
+     *      @param type the frame type, WebSocket.BINARY by default
+     *      @param masked whether the frame is masked, true by default (clients mask frames)
+     *      @param compress whether the frame is compressed with permessage-deflate, false by default
+     *      @param maxSize the maximum accepted message size in bytes, 67108864 (64 MB) by default
      *
      */
     constructor(type?: number, masked?: boolean, compress?: boolean, maxSize?: number);
 
     /**
-     * @description queries and reads the websocket mask flag, default is true
+     * @description Queries or sets the mask flag of the frame
+     *
+     *      On a received message it reports the mask bit of the wire frame: true
+     *      for a frame sent by a client and false for a frame sent by a server. On
+     *      an outgoing message it selects whether the payload is masked, following
+     *      the protocol rule that clients mask and servers do not. Default: true.
+     *
      */
     masked: boolean;
 
     /**
-     * @description queries and reads the websocket compression state, default is false
+     * @description Queries or sets the compression flag of the frame
+     *
+     *      true when the payload is compressed with permessage-deflate; the
+     *      extension must be negotiated by the connection (see the
+     *      `perMessageDeflate` option of the WebSocket constructor and of
+     *      WebSocket.upgrade), otherwise every message reports false. The
+     *      constructor forces the flag to false for frame types other than TEXT
+     *      and BINARY. Default: false.
+     *
      */
     compress: boolean;
 
     /**
-     * @description queries and sets the maximum package size in bytes, default is 67108864(64M)
+     * @description Queries or sets the maximum accepted message size in bytes
+     *
+     *      Default: 67108864 (64 MB), the same limit the WebSocket `maxPayload`
+     *      option sets for a connection. A received message larger than the limit
+     *      fails the connection: the `error` event reports code 1009 and `close`
+     *      reports 1006. Setting a negative value throws.
+     *
      */
     maxSize: number;
 
     /**
-     * @description queries the message data. Returns a String for text messages and a Buffer for binary messages. This is a standard Web API property.
+     * @description Reads the message payload: a String for TEXT messages, a Buffer for binary messages
+     *
+     *      The getter reads the body from the beginning on every access, so it can
+     *      be called more than once, and returns null when the message has no
+     *      payload. This property is a fibjs extension: the DOM MessageEvent.data
+     *      may be a Blob or an ArrayBuffer instead, and it only exists on events.
+     *
+     *      Example — the same property in text and binary form:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, {
+     *          '/ws': WebSocket.upgrade((conn) => {
+     *              conn.onmessage = (msg) => conn.send(msg.data);
+     *          })
+     *      });
+     *      server.start();
+     *      const port = server.socket.localPort;
+     *
+     *      const sock = new WebSocket('ws://127.0.0.1:' + port + '/ws');
+     *      let step = 0;
+     *      sock.onopen = () => sock.send(Buffer.from('bytes'));
+     *      sock.onmessage = (msg) => {
+     *          console.log(Buffer.isBuffer(msg.data), msg.data.toString()); // true bytes
+     *          if (step++ === 0)
+     *              sock.send('text'); // the next message comes back as a string
+     *          else
+     *              sock.close();
+     *      };
+     *      sock.onclose = () => server.stop();
+     *      ```
+     *
      */
     readonly data: any;
 

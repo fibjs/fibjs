@@ -2,45 +2,192 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /**
- * @description tty read stream object, used to read from and write to a tty
+ * @description The readable side of a terminal: reads input and switches between cooked and raw mode
  *
- *  There is no way to create this class separately; globally there is only the `process.stdin` instance
+ *  TTYInputStream wraps a terminal descriptor. In a process attached to a terminal, process.stdin is
+ *  an instance of this class, and any terminal descriptor or FileHandle can be wrapped explicitly
+ *  with `new tty.ReadStream(fd[, opts])`. The class extends Stream, so read, readAll, close and the
+ *  event interface behave as documented there; on top of that, isTTY and readable are always true,
+ *  isRaw reports the mode last set through setRawMode, and `'data'` events deliver terminal input.
  *
+ *  Concepts:
+ *
+ *  - **Cooked versus raw input**: in the default (cooked) mode the terminal driver buffers a line
+ *    until Enter, echoes it and interprets editing keys and signals (Ctrl+C sends SIGINT). Raw mode
+ *    disables that processing and delivers every byte immediately, which is what editors, prompts and
+ *    other interactive programs need; setRawMode(false) restores the default. The mode belongs to the
+ *    terminal device, while isRaw belongs to the stream object and only changes when setRawMode is
+ *    called on that same object.
+ *  - **Reading input**: subscribe to `'data'` events instead of calling read in a loop, because a
+ *    synchronous read waits for the terminal to produce bytes; a UTF-8 character may be split across
+ *    events, so use setEncoding or a decoder when that matters. A terminal keeps the process alive
+ *    while a `'data'` listener is attached.
+ *  - **Relationship to Stream**: the underlying descriptor is the terminal device, so the stream
+ *    reports readable and writable true; writing sends bytes to the terminal output, which in fibjs
+ *    is mostly used by the child process interface.
+ *
+ *  Obtained from:
+ *  - `process.stdin` — when the standard input is a terminal (check process.stdin.isTTY);
+ *  - `new tty.ReadStream(fd[, opts])` — wrap any terminal descriptor or FileHandle;
+ *  - the standard input of a child started with `stdio: 'pty'`, or of a process attached to another
+ *    pseudo terminal.
+ *
+ *  Example 1 — read input from a child attached to a pseudo terminal:
  *  ```JavaScript
- *  process.stdin.read(1)
+ *  const child_process = require('child_process');
+ *  const io = require('io');
+ *
+ *  // The child enables raw mode and reports every chunk the parent sends it.
+ *  const code = [
+ *      'process.stdin.setRawMode(true);',
+ *      'process.stdout.write("raw: " + process.stdin.isRaw + "\\n");',
+ *      'process.stdin.on("data", (chunk) => {',
+ *      '    process.stdout.write("got: " + chunk.toString().trim() + "\\n");',
+ *      '    process.exit(0);',
+ *      '});'
+ *  ].join('\n');
+ *
+ *  const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+ *  const reader = new io.BufferedStream(bs.stdout);
+ *
+ *  console.log(reader.readLine()); // raw: true
+ *  bs.stdin.write('ping\n');
+ *  console.log(reader.readLine()); // got: ping
+ *  bs.join();
+ *  ```
+ *
+ *  Example 2 — feature detection when stdin is not a terminal:
+ *  ```JavaScript
+ *  // A piped stdin is a plain Stream: isTTY is undefined and setRawMode does
+ *  // not exist, so interactive code must check first.
+ *  if (process.stdin.isTTY) {
+ *      process.stdin.setRawMode(true);
+ *      console.log('raw mode enabled');
+ *      process.stdin.setRawMode(false);
+ *  } else {
+ *      console.log('stdin is not a TTY; raw mode is not available');
+ *  }
+ *  ```
+ *
+ *  Example 3 — follow the raw-mode flag:
+ *  ```JavaScript
+ *  const child_process = require('child_process');
+ *  const io = require('io');
+ *
+ *  // isRaw starts false, follows setRawMode and belongs to the stream object.
+ *  const code = [
+ *      'process.stdout.write("before: " + process.stdin.isRaw + "\\n");',
+ *      'process.stdin.setRawMode(true);',
+ *      'process.stdout.write("after: " + process.stdin.isRaw + "\\n");',
+ *      'process.stdin.setRawMode(false);',
+ *      'process.stdout.write("restored: " + process.stdin.isRaw + "\\n");'
+ *  ].join('\n');
+ *
+ *  const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+ *  const reader = new io.BufferedStream(bs.stdout);
+ *  console.log(reader.readLine()); // before: false
+ *  console.log(reader.readLine()); // after: true
+ *  console.log(reader.readLine()); // restored: false
+ *  bs.join();
  *  ```
  *
  */
 declare class Class_TTYInputStream extends Class_Stream {
     /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
-     *      @param opts options object passed to the Stream constructor
+     * @description Creates a TTYInputStream wrapping a terminal descriptor
+     *
+     *      The descriptor must already be a terminal: any other descriptor (a pipe, a file, a closed
+     *      FileHandle) throws `TypeError: fd N is not a TTY.` ([20004]), and a negative descriptor
+     *      throws [20009]. A FileHandle, a numeric string and a fractional number are accepted (the
+     *      last two are coerced to an integer descriptor), and the direction of the descriptor is not
+     *      checked, so a terminal descriptor opened for output can be wrapped as well.
+     *
+     *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
+     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
+     *      cannot be initialized at all.
+     *
+     *      Example — wrap descriptor 0 inside a pty child:
+     *      ```JavaScript
+     *      const child_process = require('child_process');
+     *      const io = require('io');
+     *
+     *      const code = [
+     *          'const tty = require("tty");',
+     *          'const stm = new tty.ReadStream(0);',
+     *          'process.stdout.write("isTTY: " + stm.isTTY + "\\n");'
+     *      ].join('\n');
+     *
+     *      const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+     *      console.log(new io.BufferedStream(bs.stdout).readLine()); // isTTY: true
+     *      bs.join();
+     *      ```
+     *
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object
+     *      @param opts options object, accepted for compatibility and ignored
      *
      */
     constructor(fd: number | Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description Always true
+     * @description Always true: a TTYInputStream is only created for a terminal descriptor
+     *
+     *      The property is fixed to true by the class; the real check happens when the stream is created.
+     *      When stdin is a pipe or a file, process.stdin is a plain Stream instead and its isTTY is
+     *      undefined, so `process.stdin.isTTY` still tells the two situations apart. Use tty.isatty(fd)
+     *      to test an arbitrary descriptor.
      *
      */
     readonly isTTY: boolean;
 
     /**
-     * @description Always true, indicating the stream is readable
+     * @description Always true: the stream is readable
+     *
+     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      true, because it wraps the terminal device itself; the inherited read, readAll and close
+     *      members operate on that device, while interactive input is normally consumed through `'data'`
+     *      events (see the class description).
      *
      */
     readonly readable: boolean;
 
     /**
-     * @description Queries whether it is in raw mode; when true, it means the tty is configured to operate as a raw device
+     * @description Whether raw mode was enabled through setRawMode on this object
+     *
+     *      It starts false on every new stream object, even when the terminal device is already in raw
+     *      mode because another stream set it, and it follows the last setRawMode call made on the same
+     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
+     *      as `rawMode`.
      *
      */
     readonly isRaw: boolean;
 
     /**
-     * @description Sets whether the tty works in raw mode
-     *      @param isRawMode true means it works in raw mode; otherwise it works in the default mode. `readStream.isRaw` is affected by this setting
+     * @description Switches the terminal between raw and default (cooked) mode
+     *
+     *      In raw mode input is delivered byte by byte without line buffering or echo, and special
+     *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
+     *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
+     *      string mean false and any other value means true; isRaw is set to the coerced value and the
+     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
+     *      'raw' and 'io' and tracks them in `rawMode`; fibjs supports only the boolean raw/normal pair.
+     *
+     *      Example — chain the call and read the flag back in a pty child:
+     *      ```JavaScript
+     *      const child_process = require('child_process');
+     *      const io = require('io');
+     *
+     *      const code = [
+     *          'const stm = process.stdin;',
+     *          'stm.setRawMode(true).setRawMode(false);',
+     *          'process.stdout.write("isRaw: " + stm.isRaw + "\\n");'
+     *      ].join('\n');
+     *
+     *      const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+     *      console.log(new io.BufferedStream(bs.stdout).readLine()); // isRaw: false
+     *      bs.join();
+     *      ```
+     *
+     *      @param isRawMode true enables raw mode; false restores the default mode
      *      @return returns itself
      *
      */
@@ -57,34 +204,100 @@ declare class Class_TTYInputStream extends Class_Stream {
  */
 declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
-     * @description Creates a new TTYInputStream object; the fd parameter specifies the underlying file descriptor or file object
-     *      @param fd the file descriptor; an integer descriptor or a FileHandle object, which must be a tty device
-     *      @param opts options object passed to the Stream constructor
+     * @description Creates a TTYInputStream wrapping a terminal descriptor
+     *
+     *      The descriptor must already be a terminal: any other descriptor (a pipe, a file, a closed
+     *      FileHandle) throws `TypeError: fd N is not a TTY.` ([20004]), and a negative descriptor
+     *      throws [20009]. A FileHandle, a numeric string and a fractional number are accepted (the
+     *      last two are coerced to an integer descriptor), and the direction of the descriptor is not
+     *      checked, so a terminal descriptor opened for output can be wrapped as well.
+     *
+     *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
+     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
+     *      cannot be initialized at all.
+     *
+     *      Example — wrap descriptor 0 inside a pty child:
+     *      ```JavaScript
+     *      const child_process = require('child_process');
+     *      const io = require('io');
+     *
+     *      const code = [
+     *          'const tty = require("tty");',
+     *          'const stm = new tty.ReadStream(0);',
+     *          'process.stdout.write("isTTY: " + stm.isTTY + "\\n");'
+     *      ].join('\n');
+     *
+     *      const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+     *      console.log(new io.BufferedStream(bs.stdout).readLine()); // isTTY: true
+     *      bs.join();
+     *      ```
+     *
+     *      @param fd the file descriptor; an integer descriptor or a FileHandle object
+     *      @param opts options object, accepted for compatibility and ignored
      *
      */
     constructor(fd: number | Class_FileHandle | Class_FileHandlePromise, opts?: FIBJS.GeneralObject);
 
     /**
-     * @description Always true
+     * @description Always true: a TTYInputStream is only created for a terminal descriptor
+     *
+     *      The property is fixed to true by the class; the real check happens when the stream is created.
+     *      When stdin is a pipe or a file, process.stdin is a plain Stream instead and its isTTY is
+     *      undefined, so `process.stdin.isTTY` still tells the two situations apart. Use tty.isatty(fd)
+     *      to test an arbitrary descriptor.
      *
      */
     readonly isTTY: boolean;
 
     /**
-     * @description Always true, indicating the stream is readable
+     * @description Always true: the stream is readable
+     *
+     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      true, because it wraps the terminal device itself; the inherited read, readAll and close
+     *      members operate on that device, while interactive input is normally consumed through `'data'`
+     *      events (see the class description).
      *
      */
     readonly readable: boolean;
 
     /**
-     * @description Queries whether it is in raw mode; when true, it means the tty is configured to operate as a raw device
+     * @description Whether raw mode was enabled through setRawMode on this object
+     *
+     *      It starts false on every new stream object, even when the terminal device is already in raw
+     *      mode because another stream set it, and it follows the last setRawMode call made on the same
+     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
+     *      as `rawMode`.
      *
      */
     readonly isRaw: boolean;
 
     /**
-     * @description Sets whether the tty works in raw mode
-     *      @param isRawMode true means it works in raw mode; otherwise it works in the default mode. `readStream.isRaw` is affected by this setting
+     * @description Switches the terminal between raw and default (cooked) mode
+     *
+     *      In raw mode input is delivered byte by byte without line buffering or echo, and special
+     *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
+     *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
+     *      string mean false and any other value means true; isRaw is set to the coerced value and the
+     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
+     *      'raw' and 'io' and tracks them in `rawMode`; fibjs supports only the boolean raw/normal pair.
+     *
+     *      Example — chain the call and read the flag back in a pty child:
+     *      ```JavaScript
+     *      const child_process = require('child_process');
+     *      const io = require('io');
+     *
+     *      const code = [
+     *          'const stm = process.stdin;',
+     *          'stm.setRawMode(true).setRawMode(false);',
+     *          'process.stdout.write("isRaw: " + stm.isRaw + "\\n");'
+     *      ].join('\n');
+     *
+     *      const bs = child_process.spawn(process.execPath, ['-e', code], { stdio: 'pty' });
+     *      console.log(new io.BufferedStream(bs.stdout).readLine()); // isRaw: false
+     *      bs.join();
+     *      ```
+     *
+     *      @param isRawMode true enables raw mode; false restores the default mode
      *      @return returns itself
      *
      */

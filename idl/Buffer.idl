@@ -1,550 +1,1176 @@
-/*! @brief Binary data buffer object, used for io read/write data handling
+/*! @brief Fixed-length binary data buffer used by io, hashing, compression and network protocols
 
- Buffer is a global base class and can be created with `Buffer.alloc(...)` / `Buffer.from(...)`:
+ Buffer is a subclass of Uint8Array: the content (the bytes) is mutable, while the size is
+ fixed at creation time. It is the binary counterpart of String - use a String for text with a
+ known encoding and a Buffer for raw bytes such as file content, socket payloads, digests and
+ encrypted data. Most fibjs io APIs (fs, net, crypto, zlib, http bodies) read and write Buffer.
+
+ Concepts:
+ - Allocation and pooling: `Buffer.alloc` returns a zero-filled buffer and never uses the pool;
+   `Buffer.allocUnsafe` takes uninitialized memory from an internal pool whose size is
+   `Buffer.poolSize` (8 KiB by default), and `Buffer.allocUnsafeSlow` takes uninitialized memory
+   outside the pool. Pooled buffers share one ArrayBuffer, so `buf.buffer` can be much larger
+   than `buf` and `buf.byteOffset` is usually not 0. Never rely on the content of memory
+   returned by `allocUnsafe`: it may expose bytes left by earlier allocations, which is what
+   makes it faster.
+ - View or copy: `slice` (like the inherited `subarray`) returns a view that shares memory with
+   the original buffer, so writes are visible through both; `Buffer.from(buffer)` and
+   `Buffer.from(typedArray)` copy the data, while `Buffer.from(arrayBuffer)` creates a view over
+   the caller's memory. Interop with the typed-array world goes through the standard
+   `buf.buffer` / `buf.byteOffset` / `buf.byteLength` accessors, and a Buffer can be passed
+   anywhere a Uint8Array is expected.
+ - Encodings: text and bytes are converted through an encoding (codec). The Node standard set
+   is supported ("utf8"/"utf-8", "utf16le"/"ucs2", "latin1"/"binary", "ascii", "base64",
+   "base64url", "hex") plus the fibjs extensions "utf16be" (and the UTF-16 LE/BE aliases),
+   "utf32", "base32", "base58" and every charset of the encoding module ("gbk", "big5",
+   "shift_jis"...). Conversions are not always reversible: ascii masks the high bit of every
+   byte, hex decoding stops at the first invalid character, and base64/base32/base58 decoding
+   skips invalid characters.
+ - Endianness: every multi-byte accessor carries an explicit LE (little-endian) or BE
+   (big-endian) suffix and does not depend on the host byte order; the variable-width accessors
+   (readUIntLE/readIntLE and the BE forms) take a byteLength between 1 and 6.
+ - Iteration and JSON: a Buffer is indexable (`buf[0]`) and iterable (`for (const b of buf)`),
+   and JSON.stringify produces the Node form {"type":"Buffer","data":[...]}.
+
+ Obtained from:
+ - `Buffer.alloc(size[, fill[, codec]])`, `Buffer.allocUnsafe(size)`,
+   `Buffer.allocUnsafeSlow(size)`, `Buffer.from(source[, ...])` and `Buffer.concat(list[, length])`;
+ - the legacy constructor `new Buffer(source)`, which accepts the same sources as `Buffer.from`
+   plus a number size (equivalent to `allocUnsafe`); Node discourages this form;
+ - io APIs that return Buffer objects: `fs.readFile`, `crypto.randomBytes`, `zlib.gzip`,
+   `socket.read` and many more;
+ - the `buffer` module: `require('buffer')` returns the Node-style module object (Buffer,
+   SlowBuffer, constants, kMaxLength, transcode, atob, btoa, isUtf8, isAscii, Blob), while the
+   global `Buffer` remains the class itself.
+
+ Example 1 — create buffers and convert text between encodings:
  ```JavaScript
- var buf = Buffer.from("abc");
+ const text = Buffer.from('fibjs', 'utf8');
+ const hex = Buffer.from('6669626a73', 'hex');
+ console.log(text.equals(hex));                        // true
+ console.log(text.length, text.toString('hex'));       // 5 6669626a73
+ console.log(text.toString('base64'));                 // ZmlianM=
+ console.log(Buffer.byteLength('fibjs'), Buffer.byteLength('中')); // 5 3
  ```
 
- Buffer provides static methods such as `Buffer.alloc`, `Buffer.from`, `Buffer.concat`, as well as instance methods for reading, writing, searching, slicing and encoding conversion.
+ Example 2 — build and parse a binary record with explicit endianness:
+ ```JavaScript
+ const record = Buffer.alloc(16);
+ record.writeUInt32BE(0x01020304, 0);
+ record.writeUInt16LE(0x0506, 4);
+ record.writeInt16BE(-2, 6);
+ record.writeDoubleLE(1.5, 8);
+ console.log(record.toString('hex'));                    // 010203040605fffe000000000000f83f
+ console.log(record.readUInt32BE(0));                    // 16909060
+ console.log(record.readUInt16LE(4));                    // 1286
+ console.log(record.readInt16BE(6));                     // -2
+ console.log(record.readDoubleLE(8));                    // 1.5
+ ```
 
- Notes: the `slice` method is consistent with node and returns a view that **shares memory** with the original object (`subarray` is synonymous);
- Use `Buffer.from(buf)` when a copy is needed.
+ Example 3 — search, copy and share memory:
+ ```JavaScript
+ const source = Buffer.from('hello world');
+ console.log(source.indexOf('world'));                   // 6
+ const header = Buffer.alloc(5);
+ console.log(source.copy(header, 0, 0, 5), header.toString()); // 5 hello
+ const view = source.slice(6);                           // shares memory with source
+ view[0] = 0x57;                                         // 'W'
+ console.log(source.toString());                         // hello World
+ const clone = Buffer.from(source);                      // independent copy
+ clone[0] = 0x48;                                        // 'H'
+ console.log(source.toString(), clone.toString());       // hello World Hello World
+ console.log(Buffer.compare(Buffer.from('abc'), Buffer.from('abd'))); // -1
+ ```
 
- `require('buffer')` returns a node-style module object (`Buffer`/`SlowBuffer`/`constants`/`kMaxLength`/`transcode`/`atob`/
- `btoa`/`isUtf8`/`isAscii`), and the global `Buffer` is still the class itself.
-
- Supported encodings include: node standard encodings ("utf8", "utf16le"/"ucs2", "latin1", "ascii", "base64", "base64url", "hex"),
- as well as fibjs extensions ("base32", "base58", "utf16be"/"utf32" and all charsets supported by the iconv module).
+ Notes: the global `Buffer` is the Node-compatible Uint8Array subclass from `internal/buffer`.
+ The four 64-bit accessors declared here (`readInt64LE`, `readInt64BE`, `writeInt64LE`,
+ `writeInt64BE`) are not implemented by it: use `readBigInt64LE`/`readBigUInt64LE` (BigInt
+ results) or `readIntLE(offset, 6)`. `writeUIntLE` with a byteLength of 1 or 2 currently throws
+ a ReferenceError - use `writeUInt16LE`/`writeUInt8` instead. `set` resolves to the standard
+ TypedArray setter and returns undefined. `Buffer.prototype` also carries Node-compatible
+ members that are not declared here (`includes`, `swap16`/`swap32`/`swap64`, `toJSON`,
+ `inspect`, `readBigInt64LE`...).
  */
 interface Buffer : object
 {
-    /*! @brief Binary data buffer object, used for io read/write data handling */
+    /*! @brief Creates a Buffer from a byte size, text, an array or a buffer source (legacy form)
+
+     A number size builds an uninitialized buffer taken from the internal pool, equivalent to
+     `Buffer.allocUnsafe`; a string is encoded with the optional codec argument; an Array,
+     Uint8Array or other TypedArray is copied element by element; an ArrayBuffer,
+     SharedArrayBuffer or DataView becomes a view sharing the caller's memory (a byteOffset and
+     length are honored for ArrayBuffer, ignored for typed arrays); a Date is converted with its
+     toString first and any other object is converted with the legacy V8 array-like rules (an
+     object without length becomes an empty buffer, while Node throws). A missing/null source, a
+     negative or non-numeric size or calling `Buffer(...)` without `new` throws a TypeError or
+     RangeError like Node. Prefer `Buffer.alloc`, `Buffer.from` or `Buffer.allocUnsafe`: this
+     legacy form hides which allocation strategy is used and whether the memory is zero-filled.
+    */
     static Buffer;
 
-    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+    /*! @brief Allocates a zero-filled buffer of the given size
+
+     The returned buffer is never taken from the internal pool (`buf.buffer.byteLength` equals
+     size) and its content is always zero-filled. fill may be an integer byte - only the low 8
+     bits are used (256 becomes 0) - or a Buffer/Uint8Array pattern that is repeated across the
+     whole buffer; the runtime also accepts a string plus a codec through the second overload.
+     size must be a number: a fractional size is truncated, NaN/negative/too large throws
+     ERR_OUT_OF_RANGE and another type throws ERR_INVALID_ARG_TYPE. Node parity.
+
      @param size the required length of the buffer
-     fill may be an integer byte, or a Buffer pattern. Default: 0.
      @param fill the value to pre-fill the new buffer with
      @return the filled new Buffer object
     */
     static Buffer alloc(Integer size, Buffer|Integer fill = 0);
 
-    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+    /*! @brief Allocates a zero-filled buffer of the given size, filled with a text pattern
+
+     fill is decoded with codec and the resulting bytes are repeated across the whole buffer; an
+     empty string (or a string that decodes to no bytes) leaves the buffer zero-filled. codec
+     accepts the standard and fibjs encodings listed in the class notes; an unknown codec throws
+     ERR_UNKNOWN_ENCODING. size behaves as in the previous overload. Node parity.
+
      @param size the required length of the buffer
-     @param fill the value to pre-fill the new buffer with, can be a string/buffer/integer value. Default: 0
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param fill the value to pre-fill the new buffer with
+     @param codec the encoding used to decode fill
      @return the filled new Buffer object
     */
     static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
 
-    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+    /*! @brief Allocates an uninitialized buffer of the given size from the internal pool
+
+     The content is whatever the pool memory held before, so it may expose bytes written by
+     earlier buffers. A zero length and sizes of at least half of `Buffer.poolSize` skip the
+     pool (then `buf.buffer.byteLength` equals size); smaller buffers share the pool ArrayBuffer,
+     so `buf.buffer.byteLength` is poolSize and `buf.byteOffset` is usually not 0. Use
+     `Buffer.alloc` when the content must be zeroed. Node parity.
+
      @param size the required length of the buffer
      @return a new Buffer object of the specified size
     */
     static Buffer allocUnsafe(Integer size);
 
-    /*! @brief Allocates a new buffer of the specified length. If size is 0, a zero-length buffer is created.
+    /*! @brief Allocates an uninitialized buffer of the given size outside the internal pool
+
+     Like `allocUnsafe`, the content is not zeroed, but the buffer never shares memory with
+     other buffers: `buf.buffer.byteLength` equals size and `buf.byteOffset` is 0.
+
      @param size the required length of the buffer
      @return a new Buffer object of the specified size
     */
     static Buffer allocUnsafeSlow(Integer size);
 
-    /*! @brief Creates a Buffer object from the given array
+    /*! @brief Creates a Buffer by copying an array of numbers
+
+     Each element is converted to a byte with ToUint8 semantics: values are truncated and wrapped
+     modulo 256 (256 becomes 0, -1 becomes 255, 1.7 becomes 1) and non-numeric elements are
+     coerced with Number() first. The data is copied, so later changes to the array are not
+     reflected. Node parity.
+
      @param datas the initial data array
      @return returns a Buffer instance
-     */
+    */
     static Buffer from(Array datas);
 
-    /*! @brief Creates a Buffer object from another Buffer
+    /*! @brief Creates a Buffer by copying the bytes of another Buffer
+
+     The whole source is copied into a new, independent buffer: writes to one are not visible in
+     the other. byteOffset and length belong to the legacy signature but are ignored by the
+     current runtime (Node ignores them too); use `buffer.slice(start, end)` plus `Buffer.from`
+     for a partial copy. Passing an ArrayBuffer instead creates a view over the same memory, see
+     the ArrayBuffer overload. Node parity.
+
      @param buffer the given variable of type Buffer used to create the Buffer object
      @param byteOffset the data start position, starting from 0
      @param length the data length, default -1, meaning all remaining data
      @return returns a Buffer instance
-     */
+    */
     static Buffer from(Buffer buffer, Integer byteOffset = 0, Integer length = -1);
 
-    /*! @brief Creates a Buffer object from another Buffer
+    /*! @brief Creates a Buffer from an ArrayBuffer (view) or a typed array (copy)
+
+     For an ArrayBuffer or SharedArrayBuffer the result is a view over the caller's memory, so
+     writes are visible on both sides: byteOffset selects the first byte and length the number
+     of bytes (default: to the end). A negative byteOffset throws a RangeError, a length beyond
+     the end throws ERR_BUFFER_OUT_OF_BOUNDS and a fractional length is truncated. For a
+     Uint8Array (or other typed array) the elements are copied into a new buffer and
+     byteOffset/length are ignored; a DataView is also accepted at runtime and wrapped as a
+     view. Node parity.
+
      @param datas the initial data array
      @param byteOffset the data start position, starting from 0
      @param length the data length, default -1, meaning all remaining data
      @return returns a Buffer instance
-     */
+    */
     static Buffer from(ArrayBuffer|Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
 
-    /*! @brief Creates a Buffer object from a string
-     @param str the initial string, written in utf-8 format; if omitted, an empty object is created
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+    /*! @brief Creates a Buffer from a string using the given encoding
+
+     str is decoded with codec (utf8 by default). Decoding is lenient like Node: a "hex" string
+     is cut at the first non-hex character and a trailing odd digit is dropped, while base64,
+     base64url, base32 and base58 skip invalid characters, so malformed input rarely throws. An
+     unknown codec throws ERR_UNKNOWN_ENCODING; an empty string creates an empty buffer. The
+     runtime also accepts a Date (converted with toString first). Node parity.
+
+     @param str the initial string; an empty string creates an empty buffer
+     @param codec the encoding used to decode str
      @return returns a Buffer instance
-     */
+    */
     static Buffer from(String str, String codec = "utf8");
 
-    /*! @brief Concatenates data from multiple buffers
+    /*! @brief Creates a Buffer by concatenating a list of buffers
+
+     Every entry of buflist must be a Buffer or Uint8Array; an entry of another type, or a
+     non-Array buflist, throws ERR_INVALID_ARG_TYPE. cutLength is the total number of bytes to
+     copy: when omitted it is the sum of the entry lengths, a smaller value truncates the
+     result and a larger value leaves the tail uninitialized because the result is allocated
+     with allocUnsafe. The declared default -1 only applies when the argument is omitted; an
+     explicit negative or fractional value throws ERR_OUT_OF_RANGE. An empty list returns an
+     empty buffer. Node parity.
+
+     Example — join chunks and truncate the result:
+     ```JavaScript
+     const a = Buffer.from('foo');
+     const b = Buffer.from('bar');
+     console.log(Buffer.concat([a, b]).toString());       // foobar
+     console.log(Buffer.concat([a, b], 4).toString());    // foob
+     console.log(Buffer.concat([]).length);               // 0
+     ```
+
      @param buflist the Buffer array to concatenate
      @param cutLength the number of bytes to cut, default -1, meaning concatenate all data
      @return the new Buffer object produced by concatenation
     */
     static Buffer concat(Array buflist, Integer cutLength = -1);
 
-    /*! @brief Checks whether the given variable is a Buffer object
+    /*! @brief Checks whether a value is a Buffer
+
+     The test walks the Buffer prototype chain: a Uint8Array, an ArrayBuffer or a string is not
+     a Buffer, while an object built from `Buffer.prototype` is. Node parity.
+
      @param v the given variable to check
      @return whether the passed object is a Buffer object
     */
     static Boolean isBuffer(Value v);
 
-    /*! @brief Checks whether the encoding format is supported
+    /*! @brief Checks whether an encoding name is supported
+
+     True for the Node standard encodings, matched case-insensitively ("utf8", "utf16le",
+     "ucs2", "latin1", "binary", "ascii", "base64", "base64url", "hex"), and for the
+     fibjs extensions ("utf16be", "utf32", "base32", "base58" and the encoding module
+     charsets such as "gbk"). An empty string, a name containing whitespace or a non-string
+     returns false. `Buffer.byteLength` silently treats an unknown codec as utf8, while
+     `Buffer.from` throws ERR_UNKNOWN_ENCODING. Node parity.
+
      @param codec the encoding format to check
      @return whether it is supported
-     */
+    */
     static Boolean isEncoding(String codec);
 
-    /*! @brief Returns the actual byte length of the string
-     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
+    /*! @brief Returns the byte length of a Buffer, an ArrayBuffer or a typed array
+
+     For a Buffer or Uint8Array the view length is returned; for an ArrayBuffer or a
+     SharedArrayBuffer the full byte length of the backing memory is returned and a DataView
+     reports its own view length (accepted at runtime although not in the declared union). Any
+     other value throws ERR_INVALID_ARG_TYPE. Node parity.
+
+     @param str a Buffer, Uint8Array, ArrayBuffer, DataView or SharedArrayBuffer
      @return returns the actual byte length
-     */
+    */
     static Integer byteLength(ArrayBuffer|Uint8Array|Buffer str);
 
-    /*! @brief Returns the actual byte length of the string
-     @param str the string whose bytes are measured; if str is an ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+    /*! @brief Returns the number of bytes a string occupies in the given encoding
+
+     The result depends on the codec: "utf8" counts the encoded bytes (3 per CJK character,
+     4 for a surrogate pair), "utf16le"/"ucs2" count 2 bytes per code unit, "utf32" counts 4
+     bytes per code point, "ascii"/"binary" count one byte per code unit and "hex" is
+     floor(length / 2) without validating the digits. An unknown codec is measured as utf8
+     rather than rejected, matching Node.
+
+     @param str the string whose bytes are measured
+     @param codec the encoding used for the measurement
      @return returns the actual byte length
-     */
+    */
     static Integer byteLength(String str, String codec = "utf8");
 
-    /*! @brief Compares buf1 and buf2, often used for sorting between Buffer instances. Equivalent to buf1.compare(buf2).
-    @param buf1 the buf to compare
-    @param buf2 the buf to compare
-    @return returns the comparison result: -1 if buf1 is less than buf2, 0 if equal, 1 if greater
-     */
+    /*! @brief Compares two buffers in lexicographic byte order
+
+     Equivalent to `buf1.compare(buf2)`: bytes are compared pairwise and the first difference
+     decides; a shorter buffer that is a prefix of the other sorts first. Only Buffer/Uint8Array
+     values are accepted - a string throws ERR_INVALID_ARG_TYPE. The result is normalized to -1,
+     0 or 1, so it can be returned directly from an Array#sort comparator. Node parity.
+
+     @param buf1 the buf to compare
+     @param buf2 the buf to compare
+     @return returns the comparison result: -1 if buf1 is less than buf2, 0 if equal, 1 if greater
+    */
     static Integer compare(Buffer buf1, Buffer buf2);
 
-    /*! @brief Gets the size of the buffer object */
+    /*! @brief The length of the buffer in bytes (read-only)
+
+     Equal to byteLength and to the number of addressable elements: valid indexes run from 0 to
+     `buf.length - 1`. The size is fixed when the buffer is created - use `slice` to obtain a
+     smaller or larger view of the same memory. The accessor is inherited from Uint8Array;
+     reading an out-of-range index returns undefined and writing one is silently ignored. Node
+     parity.
+    */
     readonly Integer length;
 
-    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+    /*! @brief Writes a string into the buffer and returns the number of bytes written
+
+     Writes str starting at offset (default 0), encoded with codec (utf8 by default). The write
+     never grows the buffer: it stops at the end of the buffer or after length bytes (default:
+     no explicit limit), and a multi-byte character that would not fit completely is not written
+     at all. The result is the number of bytes actually written, not the remaining capacity.
+     offset must be an integer within [0, length] and length within [0, length - offset], or a
+     RangeError (ERR_OUT_OF_RANGE) is thrown; an unknown codec throws ERR_UNKNOWN_ENCODING and a
+     non-string value throws ERR_INVALID_ARG_TYPE. The codec may also be passed as the second or
+     third argument, see the overloads. Node parity.
+
+     Example — write at an offset, with an encoding and with a length limit:
+     ```JavaScript
+     const buf = Buffer.alloc(6);
+     console.log(buf.write('hello'));           // 5
+     console.log(buf.write('XY', 5));           // 1
+     console.log(buf.write('6162', 0, 'hex'));  // 2
+     console.log(buf.write('abcdef', 2, 2));    // 2
+     console.log(buf.toString());               // ababoX
+     ```
+
      @param str the string to write
      @param offset the write start position
-     @param length the write length (in bytes, default -1); when not specified, the length of the string to write
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param length the maximum number of bytes to write; omit to write the whole string
+     @param codec the encoding used for the conversion
      @return the byte length of the data written
-     */
+    */
     Integer write(String str, Integer offset = 0, Integer length = -1, String codec = "utf8");
 
-    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+    /*! @brief Writes a string with an explicit encoding, starting at offset
+
+     Same as `write(str, offset, length, codec)` with length omitted, so the encoded string is
+     written up to the end of the buffer or the end of the data. offset defaults to 0.
+
      @param str the string to write
      @param offset the write start position
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param codec the encoding used for the conversion
      @return the byte length of the data written
-     */
+    */
     Integer write(String str, Integer offset = 0, String codec = "utf8");
 
-    /*! @brief Writes the specified string to the buffer object; the string is utf-8 by default, and only part of the data is written when it is out of bounds
+    /*! @brief Writes a string with an explicit encoding at the beginning of the buffer
+
+     Same as `write(str, offset, length, codec)` with offset 0 and no explicit length limit.
+
      @param str the string to write
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param codec the encoding used for the conversion
      @return the byte length of the data written
-     */
+    */
     Integer write(String str, String codec = "utf8");
 
-    /*! @brief Fills the Buffer object with the specified data
-     v may be a number (a byte value) or a Buffer (a byte pattern to repeat); if offset and end are not specified, the whole buffer is filled.
+    /*! @brief Fills the buffer with a byte value or a repeated byte pattern
+
+     v may be an integer (only the low 8 bits are used, 256 becomes 0) or a Buffer/Uint8Array
+     whose bytes are repeated to fill the range. The range runs from offset (default 0) to end
+     (default: the end of the buffer) and excludes end; a negative or fractional offset/end
+     throws a RangeError, an offset beyond the buffer is a no-op and an end beyond the buffer
+     throws. The runtime also accepts a string plus an optional codec (see the other overloads)
+     and coerces any other value with Number(); an empty Buffer value throws
+     ERR_INVALID_ARG_VALUE. Returns this, so calls can be chained. Node parity.
+
+     Example — a byte value, a string range and a repeated Buffer pattern:
+     ```JavaScript
+     const buf = Buffer.alloc(5);
+     buf.fill(0x61);
+     buf.fill('bc', 1, 3);
+     console.log(buf.toString());            // abcaa
+     const pat = Buffer.alloc(4);
+     pat.fill(Buffer.from('xy'));
+     pat.fill(0x2e, 0, 2);
+     console.log(pat.toString());            // ..xy
+     ```
+
      @param v the data to fill with
      @param offset the fill start position
      @param end the fill end position
      @return returns the current Buffer object
-     */
+    */
     Buffer fill(Buffer|Integer v, Integer offset = 0, Integer end = -1);
 
-    /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+    /*! @brief Fills the buffer with a string pattern decoded with the given encoding
+
+     The string is decoded with codec (utf8 by default) and the resulting bytes are repeated
+     across the range; a pattern longer than the range is truncated and a pattern that decodes
+     to no bytes (for example an empty string) fills the range with zeros. Range rules,
+     validation and the chainable return value are the same as the integer/Buffer overload.
+
+     @param v the data to fill with
      @param offset the fill start position
      @param end the fill end position
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param codec the encoding used to decode the pattern
      @return returns the current Buffer object
-     */
+    */
     Buffer fill(String v, Integer offset = 0, Integer end = -1, String codec = "utf8");
 
-    /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
+    /*! @brief Fills the buffer with a string pattern from offset to the end
+
+     Same as the four-argument form with end omitted: the range runs from offset to the end of
+     the buffer.
+
+     @param v the data to fill with
      @param offset the fill start position
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+     @param codec the encoding used to decode the pattern
      @return returns the current Buffer object
-     */
+    */
     Buffer fill(String v, Integer offset, String codec);
 
-    /*! @brief Fills the Buffer object with the specified data
-     @param v the data to fill with; if offset and end are not specified, the whole buffer is filled
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+    /*! @brief Fills the whole buffer with a string pattern
+
+     Same as the four-argument form with offset 0 and end omitted, i.e. the decoded pattern is
+     repeated over the whole buffer.
+
+     @param v the data to fill with
+     @param codec the encoding used to decode the pattern
      @return returns the current Buffer object
-     */
+    */
     Buffer fill(String v, String codec);
 
-    /*! @brief Copies data from the source buffer region to the target buffer region
+    /*! @brief Copies bytes from this buffer into another buffer and returns the byte count
+
+     Copies the source range [sourceStart, sourceEnd) - defaults 0 and the source length, with
+     sourceEnd truncated to the source length - into targetBuffer starting at targetStart
+     (default 0). targetBuffer may be any Buffer or Uint8Array. Overlapping source and target
+     regions are handled safely (memmove semantics). The result is the number of bytes copied:
+     0 when the ranges are empty or targetStart is beyond the target length. A negative or
+     non-numeric argument throws RangeError / ERR_INVALID_ARG_TYPE. Node parity.
+
+     Example — copy a range into a target and shift bytes inside one buffer:
+     ```JavaScript
+     const src = Buffer.from('hello');
+     const dst = Buffer.alloc(8);
+     console.log(src.copy(dst, 2, 0, 3));   // 3
+     console.log(dst.toString('hex'));      // 000068656c000000
+     console.log(src.copy(src, 1, 0, 4));   // 4
+     console.log(src.toString());           // hhell
+     ```
+
      @param targetBuffer the target buffer object
      @param targetStart the target buffer start copy byte position, default is 0
      @param sourceStart the source buffer start byte position, default is 0
-     @param sourceEnd the source buffer end byte position, default -1, meaning the source data length
+     @param sourceEnd the source buffer end byte position, default -1 for the source length
      @return the byte length of the data copied
-     */
+    */
     Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
 
-    /*! @brief Copies data from the source buffer region to the target buffer region
+    /*! @brief Copies a typed array into this buffer at the given offset (TypedArray set)
+
+     At runtime this member is the standard Uint8Array set method, so it accepts any typed
+     array or array-like value (not only a Buffer) and its return value is undefined - the
+     declared Integer result belongs to the legacy native class. start defaults to 0 and must
+     be a valid index; a RangeError ("offset is out of bounds") is thrown when the source does
+     not fit in the remaining space. Use `copy` for Buffer-shaped arguments and a byte count.
+     Node parity.
+
      @param src the source buffer object
      @param start the write start position of the target buffer object
-     @return the byte length of the data copied
-     */
+     @return returns undefined, not the number of bytes copied
+    */
     Integer set(Buffer src, Integer start);
 
-    /*! @brief Reads an 8-bit unsigned integer value from the buffer object
+    /*! @brief Reads an unsigned 8-bit integer from the buffer
+
+     Returns the byte at offset as a number in [0, 255]; offset defaults to 0 and does not use
+     any endianness. An out-of-range or non-integer offset throws a RangeError
+     (ERR_BUFFER_OUT_OF_BOUNDS when the width crosses the end of the buffer). Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readUInt8(Integer offset = 0);
 
-    /*! @brief Reads a 16-bit unsigned integer value from the buffer object in little-endian byte order
+    /*! @brief Reads an unsigned 16-bit integer in little-endian order from the buffer
+
+     Returns the two bytes at offset as a number in [0, 65535], low byte first; offset defaults
+     to 0. The offset is validated against the buffer length and a bad value throws a RangeError
+     like the other fixed-width readers. Node parity.
+
+     Example — the same two bytes read in both byte orders:
+     ```JavaScript
+     const buf = Buffer.from('1234', 'hex');   // bytes 0x12 0x34
+     console.log(buf.readUInt16LE(0));         // 13330
+     console.log(buf.readUInt16BE(0));         // 4660
+     ```
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readUInt16LE(Integer offset = 0);
 
-    /*! @brief Reads a 16-bit unsigned integer value from the buffer object in big-endian byte order
+    /*! @brief Reads an unsigned 16-bit integer in big-endian order from the buffer
+
+     Returns the two bytes at offset as a number in [0, 65535], high byte first; offset defaults
+     to 0. The offset is validated against the buffer length and a bad value throws a RangeError
+     like the other fixed-width readers. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readUInt16BE(Integer offset = 0);
 
-    /*! @brief Reads a 32-bit unsigned integer value from the buffer object in little-endian byte order
+    /*! @brief Reads an unsigned 32-bit integer in little-endian order from the buffer
+
+     Returns the four bytes at offset as a Number in [0, 4294967295], low byte first; the value
+     is exact because JavaScript numbers hold it without loss. offset defaults to 0. Node
+     parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Number readUInt32LE(Integer offset = 0);
 
-    /*! @brief Reads a 32-bit unsigned integer value from the buffer object in big-endian byte order
+    /*! @brief Reads an unsigned 32-bit integer in big-endian order from the buffer
+
+     Returns the four bytes at offset as a Number in [0, 4294967295], high byte first; the value
+     is exact because JavaScript numbers hold it without loss. offset defaults to 0. Node
+     parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Number readUInt32BE(Integer offset = 0);
 
-    /*! @brief Reads an unsigned integer value from the buffer object, up to 48 bits, in little-endian byte order
+    /*! @brief Reads an unsigned integer of 1 to 6 bytes in little-endian order from the buffer
+
+     Reads byteLength bytes at offset (default 0), low byte first, and returns the value in
+     [0, 2^(8*byteLength) - 1] as a Number (up to 2^48 - 1). byteLength is required at runtime -
+     the declared 6-byte default is not applied by the global Buffer - and must be an integer in
+     [1, 6]; anything else throws ERR_OUT_OF_RANGE. Node parity.
+
      @param offset the start position to read at, default is 0
      @param byteLength the number of bytes to read, default is 6 bytes
      @return returns the integer value read
-     */
+    */
     Number readUIntLE(Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Reads an unsigned integer value from the buffer object, up to 48 bits, in big-endian byte order
+    /*! @brief Reads an unsigned integer of 1 to 6 bytes in big-endian order from the buffer
+
+     Reads byteLength bytes at offset (default 0), high byte first, and returns the value in
+     [0, 2^(8*byteLength) - 1] as a Number (up to 2^48 - 1). byteLength is required at runtime -
+     the declared 6-byte default is not applied by the global Buffer - and must be an integer in
+     [1, 6]; anything else throws ERR_OUT_OF_RANGE. Node parity.
+
      @param offset the start position to read at, default is 0
      @param byteLength the number of bytes to read, default is 6 bytes
      @return returns the integer value read
-     */
+    */
     Number readUIntBE(Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Reads a 64-bit integer value from the buffer object in little-endian byte order
+    /*! @brief Reads a signed 64-bit integer in little-endian order (not implemented at runtime)
+
+     The declared member is not available on the global Buffer class: the Node-compatible
+     runtime implements 64-bit access through `readBigInt64LE`/`readBigUInt64LE`, which return
+     a BigInt. For a Number use `readIntLE(offset, 6)` (48-bit) or combine two 32-bit reads.
+     Calling this member on a Buffer throws a TypeError because the property is undefined.
+
      @param offset the start position to read at, default is 0
-     @return returns the integer value read
-     */
+     @return returns the integer value read; undefined at runtime, see above
+    */
     Long readInt64LE(Integer offset = 0);
 
-    /*! @brief Reads a 64-bit integer value from the buffer object in big-endian byte order
+    /*! @brief Reads a signed 64-bit integer in big-endian order (not implemented at runtime)
+
+     The declared member is not available on the global Buffer class: the Node-compatible
+     runtime implements 64-bit access through `readBigInt64BE`/`readBigUInt64BE`, which return
+     a BigInt. For a Number use `readIntBE(offset, 6)` (48-bit) or combine two 32-bit reads.
+     Calling this member on a Buffer throws a TypeError because the property is undefined.
+
      @param offset the start position to read at, default is 0
-     @return returns the integer value read
-     */
+     @return returns the integer value read; undefined at runtime, see above
+    */
     Long readInt64BE(Integer offset = 0);
 
-    /*! @brief Reads an 8-bit integer value from the buffer object
+    /*! @brief Reads a signed 8-bit integer from the buffer
+
+     Returns the byte at offset as a two's-complement number in [-128, 127]; offset defaults to
+     0 and is validated like the other fixed-width readers. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readInt8(Integer offset = 0);
 
-    /*! @brief Reads a 16-bit integer value from the buffer object in little-endian byte order
+    /*! @brief Reads a signed 16-bit integer in little-endian order from the buffer
+
+     Returns the two bytes at offset as a two's-complement number in [-32768, 32767], low byte
+     first; offset defaults to 0. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readInt16LE(Integer offset = 0);
 
-    /*! @brief Reads a 16-bit integer value from the buffer object in big-endian byte order
+    /*! @brief Reads a signed 16-bit integer in big-endian order from the buffer
+
+     Returns the two bytes at offset as a two's-complement number in [-32768, 32767], high byte
+     first; offset defaults to 0. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readInt16BE(Integer offset = 0);
 
-    /*! @brief Reads a 32-bit integer value from the buffer object in little-endian byte order
+    /*! @brief Reads a signed 32-bit integer in little-endian order from the buffer
+
+     Returns the four bytes at offset as a two's-complement number in [-2147483648, 2147483647],
+     low byte first; offset defaults to 0. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readInt32LE(Integer offset = 0);
 
-    /*! @brief Reads a 32-bit integer value from the buffer object in big-endian byte order
+    /*! @brief Reads a signed 32-bit integer in big-endian order from the buffer
+
+     Returns the four bytes at offset as a two's-complement number in [-2147483648, 2147483647],
+     high byte first; offset defaults to 0. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the integer value read
-     */
+    */
     Integer readInt32BE(Integer offset = 0);
 
-    /*! @brief Reads an integer value from the buffer object, up to 48 bits, in little-endian byte order
+    /*! @brief Reads a signed integer of 1 to 6 bytes in little-endian order from the buffer
+
+     Reads byteLength bytes at offset (default 0), low byte first, and sign-extends the result
+     to a Number (the sign bit is the top bit of the last byte). byteLength is required at
+     runtime - the declared 6-byte default is not applied - and must be an integer in [1, 6];
+     anything else throws ERR_OUT_OF_RANGE. Node parity.
+
      @param offset the start position to read at, default is 0
      @param byteLength the number of bytes to read, default is 6 bytes
      @return returns the integer value read
-     */
+    */
     Number readIntLE(Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Reads an integer value from the buffer object, up to 48 bits, in big-endian byte order
+    /*! @brief Reads a signed integer of 1 to 6 bytes in big-endian order from the buffer
+
+     Reads byteLength bytes at offset (default 0), high byte first, and sign-extends the result
+     to a Number (the sign bit is the top bit of the first byte). byteLength is required at
+     runtime - the declared 6-byte default is not applied - and must be an integer in [1, 6];
+     anything else throws ERR_OUT_OF_RANGE. Node parity.
+
      @param offset the start position to read at, default is 0
      @param byteLength the number of bytes to read, default is 6 bytes
      @return returns the integer value read
-     */
+    */
     Number readIntBE(Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Reads a floating-point number from the buffer object in little-endian byte order
+    /*! @brief Reads a 32-bit IEEE 754 float in little-endian order from the buffer
+
+     Returns the four bytes at offset (default 0) as a Number, low byte first. NaN and Infinity
+     values are preserved; note that the value is stored with single precision and is rounded on
+     write. Offset validation throws a RangeError. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the floating-point number read
-     */
+    */
     Number readFloatLE(Integer offset = 0);
 
-    /*! @brief Reads a floating-point number from the buffer object in big-endian byte order
+    /*! @brief Reads a 32-bit IEEE 754 float in big-endian order from the buffer
+
+     Returns the four bytes at offset (default 0) as a Number, high byte first. NaN and Infinity
+     values are preserved; note that the value is stored with single precision and is rounded on
+     write. Offset validation throws a RangeError. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the floating-point number read
-     */
+    */
     Number readFloatBE(Integer offset = 0);
 
-    /*! @brief Reads a double-precision floating-point number from the buffer object in little-endian byte order
+    /*! @brief Reads a 64-bit IEEE 754 double in little-endian order from the buffer
+
+     Returns the eight bytes at offset (default 0) as a Number, low byte first; all JavaScript
+     Number values round-trip exactly. Offset validation throws a RangeError. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the double-precision floating-point number read
-     */
+    */
     Number readDoubleLE(Integer offset = 0);
 
-    /*! @brief Reads a double-precision floating-point number from the buffer object in big-endian byte order
+    /*! @brief Reads a 64-bit IEEE 754 double in big-endian order from the buffer
+
+     Returns the eight bytes at offset (default 0) as a Number, high byte first; all JavaScript
+     Number values round-trip exactly. Offset validation throws a RangeError. Node parity.
+
      @param offset the start position to read at, default is 0
      @return returns the double-precision floating-point number read
-     */
+    */
     Number readDoubleBE(Integer offset = 0);
 
-    /*! @brief Writes an 8-bit unsigned integer value to the buffer object
+    /*! @brief Writes an unsigned 8-bit integer and returns the offset after it
+
+     value must be in [0, 255], otherwise ERR_OUT_OF_RANGE is thrown. The result is offset + 1;
+     offset defaults to 0 and must address a byte inside the buffer or a RangeError is thrown.
+     Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUInt8(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 16-bit unsigned integer value to the buffer object in little-endian byte order
+    /*! @brief Writes an unsigned 16-bit integer in little-endian order and returns the offset
+
+     value must be in [0, 65535]; two bytes are written low byte first and the result is
+     offset + 2. The offset must leave two bytes inside the buffer, otherwise a RangeError
+     (ERR_BUFFER_OUT_OF_BOUNDS when the width crosses the end) is thrown. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUInt16LE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 16-bit unsigned integer value to the buffer object in big-endian byte order
+    /*! @brief Writes an unsigned 16-bit integer in big-endian order and returns the offset
+
+     value must be in [0, 65535]; two bytes are written high byte first and the result is
+     offset + 2. The offset must leave two bytes inside the buffer, otherwise a RangeError
+     (ERR_BUFFER_OUT_OF_BOUNDS when the width crosses the end) is thrown. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUInt16BE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 32-bit unsigned integer value to the buffer object in little-endian byte order
+    /*! @brief Writes an unsigned 32-bit integer in little-endian order and returns the offset
+
+     value must be in [0, 4294967295] - the declared Long type is limited to 32 unsigned bits at
+     runtime, so a negative value or one above 0xffffffff throws ERR_OUT_OF_RANGE (Node does
+     the same). Four bytes are written low byte first and the result is offset + 4. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUInt32LE(Long value, Integer offset = 0);
 
-    /*! @brief Writes a 32-bit unsigned integer value to the buffer object in big-endian byte order
+    /*! @brief Writes an unsigned 32-bit integer in big-endian order and returns the offset
+
+     value must be in [0, 4294967295] - the declared Long type is limited to 32 unsigned bits at
+     runtime, so a negative value or one above 0xffffffff throws ERR_OUT_OF_RANGE (Node does
+     the same). Four bytes are written high byte first and the result is offset + 4. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUInt32BE(Long value, Integer offset = 0);
 
-    /*! @brief Writes an unsigned integer value to the buffer object, up to 48 bits, in little-endian byte order
+    /*! @brief Writes an unsigned integer of 1 to 6 bytes in little-endian order
+
+     The value must be in [0, 2^(8*byteLength) - 1], otherwise ERR_OUT_OF_RANGE is thrown, and
+     the result is offset + byteLength. byteLength is required at runtime (the declared 6-byte
+     default is not applied) and must be an integer in [1, 6]. Warning: the current runtime
+     throws a ReferenceError for byteLength 1 or 2 - use `writeUInt8`/`writeUInt16LE` instead.
+     Node parity for byteLength 3 to 6.
+
      @param value the value to write
      @param offset the start position to write at
      @param byteLength the number of bytes to write, default is 6 bytes
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUIntLE(Long value, Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Writes an unsigned integer value to the buffer object, up to 48 bits, in big-endian byte order
+    /*! @brief Writes an unsigned integer of 1 to 6 bytes in big-endian order
+
+     The value must be in [0, 2^(8*byteLength) - 1], otherwise ERR_OUT_OF_RANGE is thrown, and
+     the result is offset + byteLength. byteLength is required at runtime (the declared 6-byte
+     default is not applied) and must be an integer in [1, 6]. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @param byteLength the number of bytes to write, default is 6 bytes
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeUIntBE(Long value, Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Writes an 8-bit integer value to the buffer object
+    /*! @brief Writes a signed 8-bit integer and returns the offset after it
+
+     value must be in [-128, 127] (two's complement), otherwise ERR_OUT_OF_RANGE is thrown; the
+     result is offset + 1. offset defaults to 0. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeInt8(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 16-bit integer value to the buffer object in little-endian byte order
+    /*! @brief Writes a signed 16-bit integer in little-endian order and returns the offset
+
+     value must be in [-32768, 32767] (two's complement); two bytes are written low byte first
+     and the result is offset + 2. A bad value or an offset without room for two bytes throws a
+     RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeInt16LE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 16-bit integer value to the buffer object in big-endian byte order
+    /*! @brief Writes a signed 16-bit integer in big-endian order and returns the offset
+
+     value must be in [-32768, 32767] (two's complement); two bytes are written high byte first
+     and the result is offset + 2. A bad value or an offset without room for two bytes throws a
+     RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeInt16BE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 32-bit integer value to the buffer object in little-endian byte order
+    /*! @brief Writes a signed 32-bit integer in little-endian order and returns the offset
+
+     value must be in [-2147483648, 2147483647] (two's complement); four bytes are written low
+     byte first and the result is offset + 4. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeInt32LE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 32-bit integer value to the buffer object in big-endian byte order
+    /*! @brief Writes a signed 32-bit integer in big-endian order and returns the offset
+
+     value must be in [-2147483648, 2147483647] (two's complement); four bytes are written high
+     byte first and the result is offset + 4. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeInt32BE(Integer value, Integer offset = 0);
 
-    /*! @brief Writes a 64-bit integer value to the buffer object in little-endian byte order
+    /*! @brief Writes a signed 64-bit integer in little-endian order (not implemented at runtime)
+
+     The declared member is not available on the global Buffer class: the Node-compatible
+     runtime implements 64-bit access through `writeBigInt64LE`/`writeBigUInt64LE`, which take
+     a BigInt. Calling this member on a Buffer throws a TypeError because the property is
+     undefined; for 48-bit values use `writeIntLE(value, offset, 6)`.
+
      @param value the value to write
      @param offset the start position to write at
-     @return the offset plus the number of bytes written
-     */
+     @return the offset plus the number of bytes written; undefined at runtime, see above
+    */
     Integer writeInt64LE(Long value, Integer offset = 0);
 
-    /*! @brief Writes a 64-bit integer value to the buffer object in big-endian byte order
+    /*! @brief Writes a signed 64-bit integer in big-endian order (not implemented at runtime)
+
+     The declared member is not available on the global Buffer class: the Node-compatible
+     runtime implements 64-bit access through `writeBigInt64BE`/`writeBigUInt64BE`, which take
+     a BigInt. Calling this member on a Buffer throws a TypeError because the property is
+     undefined; for 48-bit values use `writeIntBE(value, offset, 6)`.
+
      @param value the value to write
      @param offset the start position to write at
-     @return the offset plus the number of bytes written
-     */
+     @return the offset plus the number of bytes written; undefined at runtime, see above
+    */
     Integer writeInt64BE(Long value, Integer offset = 0);
 
-    /*! @brief Writes an integer value to the buffer object, up to 48 bits, in little-endian byte order
+    /*! @brief Writes a signed integer of 1 to 6 bytes in little-endian order
+
+     The value must be in [-2^(8*byteLength - 1), 2^(8*byteLength - 1) - 1] (two's complement),
+     otherwise ERR_OUT_OF_RANGE is thrown, and the result is offset + byteLength. byteLength is
+     required at runtime (the declared 6-byte default is not applied) and must be an integer in
+     [1, 6]. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @param byteLength the number of bytes to write, default is 6 bytes
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeIntLE(Long value, Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Writes an integer value to the buffer object, up to 48 bits, in big-endian byte order
+    /*! @brief Writes a signed integer of 1 to 6 bytes in big-endian order
+
+     The value must be in [-2^(8*byteLength - 1), 2^(8*byteLength - 1) - 1] (two's complement),
+     otherwise ERR_OUT_OF_RANGE is thrown, and the result is offset + byteLength. byteLength is
+     required at runtime (the declared 6-byte default is not applied) and must be an integer in
+     [1, 6]. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @param byteLength the number of bytes to write, default is 6 bytes
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeIntBE(Long value, Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief Writes a floating-point number to the buffer object in little-endian byte order
+    /*! @brief Writes a 32-bit IEEE 754 float in little-endian order
+
+     The value is converted with Number() and stored as a single-precision float (low byte
+     first), so it may be rounded; NaN and Infinity are preserved. The result is offset + 4.
+     offset defaults to 0 at runtime even though the declaration lists it without a default, and
+     an offset without room for four bytes throws a RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeFloatLE(Number value, Integer offset);
 
-    /*! @brief Writes a floating-point number to the buffer object in big-endian byte order
+    /*! @brief Writes a 32-bit IEEE 754 float in big-endian order
+
+     The value is converted with Number() and stored as a single-precision float (high byte
+     first), so it may be rounded; NaN and Infinity are preserved. The result is offset + 4.
+     offset defaults to 0 at runtime even though the declaration lists it without a default, and
+     an offset without room for four bytes throws a RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeFloatBE(Number value, Integer offset);
 
-    /*! @brief Writes a double-precision floating-point number to the buffer object in little-endian byte order
+    /*! @brief Writes a 64-bit IEEE 754 double in little-endian order
+
+     The value is converted with Number() and stored as a double (low byte first), so every
+     JavaScript Number round-trips exactly; the result is offset + 8. offset defaults to 0 at
+     runtime even though the declaration lists it without a default, and an offset without room
+     for eight bytes throws a RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeDoubleLE(Number value, Integer offset);
 
-    /*! @brief Writes a double-precision floating-point number to the buffer object in big-endian byte order
+    /*! @brief Writes a 64-bit IEEE 754 double in big-endian order
+
+     The value is converted with Number() and stored as a double (high byte first), so every
+     JavaScript Number round-trips exactly; the result is offset + 8. offset defaults to 0 at
+     runtime even though the declaration lists it without a default, and an offset without room
+     for eight bytes throws a RangeError. Node parity.
+
      @param value the value to write
      @param offset the start position to write at
      @return the offset plus the number of bytes written
-     */
+    */
     Integer writeDoubleBE(Number value, Integer offset);
 
-    /*! @brief Returns the first position of the specified data in the Buffer
+    /*! @brief Returns the first position of a value in the buffer, or -1
 
-     v may be a number (a byte value), a string (searched as its utf8 bytes), or a Buffer (a byte sequence); if offset is not specified, the search starts from the beginning.
+     v may be a number (masked to its low 8 bits), a string or a Buffer/Uint8Array byte
+     sequence. A string is encoded as utf8, or with the encoding passed as the third argument
+     (`indexOf(value, byteOffset, encoding)`); an invalid value type throws
+     ERR_INVALID_ARG_TYPE. offset defaults to 0: a negative offset is counted from the end and
+     clamped to 0, an offset at or beyond the buffer length returns -1 without throwing, and an
+     empty needle returns the clamped offset. Node parity.
+
+     Example — search with a number, a string and a byte sequence:
+     ```JavaScript
+     const buf = Buffer.from('abcabc');
+     console.log(buf.indexOf(0x62));                       // 1
+     console.log(buf.indexOf('bc', 2));                    // 4
+     console.log(buf.indexOf(Buffer.from('62', 'hex')));   // 1
+     console.log(buf.indexOf('zz'));                       // -1
+     ```
+
      @param v the data to find
      @param offset the start search position
      @return returns the position found, or -1 if not found
-     */
+    */
     Integer indexOf(Buffer|String|Integer v, Integer offset = 0);
 
-    /*! @brief Returns the last position of the specified data in the Buffer
+    /*! @brief Returns the last position of a value in the buffer, or -1
 
-     v may be a number (a byte value), a string (searched as its utf8 bytes), or a Buffer (a byte sequence); if offset is not specified, the search starts from the beginning.
+     The reverse search of `indexOf`, with the same value forms (number, string, Buffer or
+     Uint8Array; a third argument selects the string encoding). offset defaults to -1, meaning
+     the search starts at the end of the buffer; a negative offset is counted from the end and
+     the search returns -1 when it falls before the start. An empty needle returns the clamped
+     offset (the buffer length with the default offset). Node parity.
+
      @param v the data to find
      @param offset the start search position
      @return returns the position found, or -1 if not found
-     */
+    */
     Integer lastIndexOf(Buffer|String|Integer v, Integer offset = -1);
 
-    /*! @brief Returns a new buffer object containing data from the specified start to the end of the buffer
+    /*! @brief Returns a view of the tail of the buffer sharing its memory
 
-     The new buffer object returned shares memory with the original object (consistent with node's `slice`/`subarray`), so changes affect both.
+     The result is a new Buffer addressing the same bytes as this one (Node's slice and the
+     inherited subarray behave this way): writes are visible through both objects and no data
+     is copied. start defaults to 0; a negative start is counted from the end and values
+     outside the buffer are clamped. Use `Buffer.from(buffer)` when an independent copy is
+     needed.
+
+     Example — a slice is a window, not a copy:
+     ```JavaScript
+     const buf = Buffer.from('abcd');
+     const view = buf.slice(1, 3);
+     view[0] = 0x58;                                   // 'X'
+     console.log(buf.toString(), view.toString());     // aXcd Xc
+     const copy = Buffer.from(buf.slice(1, 3));
+     copy[0] = 0x59;                                   // 'Y'
+     console.log(buf.toString(), copy.toString());     // aXcd Yc
+     ```
+
      @param start the start of the range, default is from the beginning
      @return returns the new buffer object
-     */
+    */
     Buffer slice(Integer start = 0);
 
-    /*! @brief Returns a new buffer object containing the data of the specified range; if the range exceeds the buffer, only the valid part is returned
+    /*! @brief Returns a view of the range [start, end) sharing the buffer memory
 
-     The new buffer object returned shares memory with the original object (consistent with node's `slice`/`subarray`), so changes affect both.
+     start and end are both optional and may be negative (counted from the end); fractional
+     values are truncated and out-of-range values are clamped. When start >= end the result is
+     an empty view. Like the one-argument form, the view shares memory with the original and
+     writes are visible through both.
+
      @param start the start of the range
      @param end the end of the range
      @return returns the new buffer object
-     */
+    */
     Buffer slice(Integer start, Integer end);
 
-    /*! @brief Compares whether the current object equals the given object
+    /*! @brief Compares whether this buffer has the same bytes as another buffer
+
+     True only when the two byte sequences have the same length and content. The argument must
+     be a Buffer or Uint8Array - a string throws ERR_INVALID_ARG_TYPE. Use `compare` for
+     ordering instead of equality. Node parity.
+
      @param expected the target object to compare with
      @return returns the object comparison result
     */
     Boolean equals(object expected);
 
-    /*! @brief Compares the contents of the buffers
+    /*! @brief Compares this buffer with another in lexicographic byte order
+
+     With one argument the whole buffers are compared and the result is normalized to -1, 0 or 1
+     (a shorter buffer that is a prefix of the other sorts first). The runtime additionally
+     accepts Node's range form `compare(target, targetStart, targetEnd, sourceStart, sourceEnd)`
+     to compare selected byte ranges. The argument must be a Buffer or Uint8Array. Node parity.
+
+     Example — ordering and equality:
+     ```JavaScript
+     const a = Buffer.from('abc');
+     console.log(a.compare(Buffer.from('abd')));       // -1
+     console.log(a.compare(Buffer.from('abc')));       // 0
+     console.log(a.compare(Buffer.from('ab')));        // 1
+     console.log(a.equals(Buffer.from('abc')));        // true
+     ```
+
      @param buf the buffer object to compare
      @return the content comparison result
-     */
+    */
     Integer compare(Buffer buf);
 
-    /*! @brief Returns the encoded string of the binary data
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+    /*! @brief Decodes the range [offset, end) of the buffer into a string
+
+     codec selects the encoding; offset (default 0) and end (default: the buffer length) delimit
+     the decoded range. Negative or out-of-range offsets are clamped and an end not greater than
+     offset produces an empty string, so bad ranges never throw - but an unknown codec throws
+     ERR_UNKNOWN_ENCODING. The runtime also allows `toString()` and `toString(codec, offset)`
+     with the same clamping. Node parity.
+
+     Example — decode text, hex and a range:
+     ```JavaScript
+     const buf = Buffer.from('fibjs');
+     console.log(buf.toString());               // fibjs
+     console.log(buf.toString('hex'));          // 6669626a73
+     console.log(buf.toString('utf8', 1));      // ibjs
+     console.log(buf.toString('utf8', 1, 4));   // ibj
+     ```
+
+     @param codec the encoding used for the conversion
      @param offset the read start position
      @param end the read end position
      @return returns the string representation of the object
     */
     String toString(String codec, Integer offset = 0, Integer end);
 
-    /*! @brief Returns the encoded string of the binary data
-     @param codec the encoding format, allowed values: "hex", "base32", "base58", "base64", "utf8", or any charset supported by the iconv module
+    /*! @brief Decodes the buffer from offset to the end into a string
+
+     Same as the three-argument form with end omitted, i.e. the decoded range runs from offset
+     (default 0) to the end of the buffer.
+
+     @param codec the encoding used for the conversion
      @param offset the read start position
      @return returns the string representation of the object
     */
     String toString(String codec, Integer offset = 0);
 
-    /*! @brief Returns an array of all binary data
+    /*! @brief Returns the buffer content as an array of integers
+
+     Every byte becomes a number in [0, 255], in order. The array is a fresh copy: modifying it
+     does not affect the buffer, and the serialized form matches the JSON representation Node
+     uses. Node parity.
+
+     Example — inspect and modify a byte array:
+     ```JavaScript
+     const buf = Buffer.from([0x66, 0x69, 0x62]);
+     const bytes = buf.toArray();
+     bytes[0] = 0;
+     console.log(bytes.join(','));   // 0,105,98
+     console.log(buf.toString());    // fib
+     ```
+
      @return returns an array containing the object data
     */
     Integer[] toArray();
 
-    /*! @brief Encodes the buffer object content using 16-base (hex) encoding
+    /*! @brief Encodes the whole buffer as a lowercase hexadecimal string
+
+     Equivalent to `buf.toString('hex')`; fibjs convenience shortcut.
+
+     Example — encode bytes:
+     ```JavaScript
+     console.log(Buffer.from([0xde, 0xad, 0xbe, 0xef]).hex()); // deadbeef
+     ```
+
      @return returns the encoded string
-     */
+    */
     String hex();
 
-    /*! @brief Encodes the buffer object content using base32
+    /*! @brief Encodes the whole buffer in unpadded lowercase Base32 (fibjs extension)
+
+     RFC 4648 alphabet in lower case without '=' padding, so the result length is
+     ceil(bytes * 8 / 5); decoding accepts padding again (see `Buffer.from(str, "base32")`).
+     Node has no Base32 support.
+
+     Example — encode two bytes:
+     ```JavaScript
+     console.log(Buffer.from('hi').base32()); // nbuq
+     ```
+
      @return returns the encoded string
-     */
+    */
     String base32();
 
-    /*! @brief Encodes the buffer object content using base58
+    /*! @brief Encodes the whole buffer in Base58 with the Bitcoin alphabet (fibjs extension)
+
+     Leading zero bytes are encoded as leading '1' characters and decoding accepts the same
+     format (see `Buffer.from(str, "base58")`). Node has no Base58 support.
+
+     Example — encode four bytes:
+     ```JavaScript
+     console.log(Buffer.from('1234').base58()); // 2FwFnT
+     ```
+
      @return returns the encoded string
-     */
+    */
     String base58();
 
-    /*! @brief Encodes the buffer object content using base64
+    /*! @brief Encodes the whole buffer in standard Base64 with '=' padding
+
+     Equivalent to `buf.toString('base64')`; use `toString('base64url')` for the URL-safe
+     alphabet without padding. Node parity.
+
+     Example — encode text:
+     ```JavaScript
+     console.log(Buffer.from('fibjs').base64()); // ZmlianM=
+     ```
+
      @return returns the encoded string
-     */
+    */
     String base64();
 };

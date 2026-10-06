@@ -1,85 +1,152 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description the querystring module provides some utility functions for parsing and serializing URL query parameters; with the querystring module, URL query parameters can be conveniently parsed into objects or strings, and objects can be serialized into URL query parameter strings
+ * @description The querystring module parses and serializes URL query strings with the application/x-www-form-urlencoded rules
  *
- * The commonly used functions of the `querystring` module are as follows:
+ * `parse` builds an HttpCollection from a query string, `stringify` serializes an object back
+ * into a query string, and `escape`/`unescape` apply the same percent-encoding to individual
+ * values. It is the fibjs counterpart of the Node.js `querystring` module; both runtimes treat
+ * it as legacy, and URLSearchParams covers most use cases with the standard API.
  *
- * - `querystring.parse(str[, sep[, eq[, options]]])`: parses URL query parameters into an object
- * - `querystring.stringify(obj[, sep[, eq[, options]]])`: serializes an object into a URL query parameter string
+ * Concepts:
  *
- * Here, `str` is the URL query parameter string to parse and `obj` is the object to serialize.
+ * - **application/x-www-form-urlencoded**: pairs are separated by `&` and names and values by
+ *   `=`; a space is encoded as `+` and every other byte outside the unreserved set is
+ *   percent-encoded. When decoding, `+` becomes a space, an empty segment between two
+ *   separators is skipped and an empty name is kept.
+ * - **HttpCollection result**: parse returns an HttpCollection instead of a plain object. The
+ *   collection compares names case-insensitively, stores strings, keeps every value of a
+ *   repeated name (`get` returns the first one, `all(name)`/`getAll(name)` return the array),
+ *   and its iteration helpers (`forEach`, `keys`, `values`, `entries`) sort the keys in place.
+ *   `toJSON()` returns the plain multi-value object that Node.js would have returned.
+ * - **Options**: `sep` and `eq` replace the default separators; the fourth argument exists for
+ *   Node.js compatibility but no option (`maxKeys`, `decodeURIComponent`) is implemented, so
+ *   every pair is parsed.
+ * - **Escaping**: escape encodes everything except the unreserved characters, with a space
+ *   becoming `+` (Node.js writes `%20`); unescape decodes every percent escape, including the
+ *   reserved characters that the standard decodeURI leaves alone, but keeps a literal `+` as
+ *   it is. Malformed escapes are decoded leniently instead of being preserved as written, so
+ *   validate untrusted input.
  *
- * The following example shows how to use the `querystring` module to parse query parameters from a URL into an object:
+ * Import:
+ * ```JavaScript
+ * const querystring = require('querystring');
+ * ```
  *
+ * Example 1 — parse a query string and read repeated values:
  * ```JavaScript
  * const querystring = require('querystring');
  *
- * const url = 'https://www.example.com/path/to/page?foo=bar&baz=qux';
- *
- * const search = new URL(url).search; // return '?foo=bar&baz=qux'
- * const query = querystring.parse(search.slice(1)); // parse query string
- *
- * console.log(query); // output { foo: 'bar', baz: 'qux' }
+ * const query = querystring.parse('tag=a&tag=b&name=Hello+World');
+ * console.log(query.get('tag')); // a, the first value
+ * console.log(query.all('tag')); // [ 'a', 'b' ]
+ * console.log(query.get('NAME')); // Hello World, names are case-insensitive
  * ```
  *
- * The code above first obtains a URL, then extracts the query parameter part from it, parses it into an object with the `querystring.parse()` function, and finally prints the object.
- *
- * Next, the example shows how to use the `querystring` module to serialize an object into a URL query parameter string:
- *
+ * Example 2 — serialize objects and repeated values:
  * ```JavaScript
  * const querystring = require('querystring');
  *
- * const obj = {
- *   foo: 'bar',
- *   baz: 'qux'
- * };
+ * console.log(querystring.stringify({ name: 'Hello World', tag: ['a', 'b'] }));
+ * // name=Hello+World&tag=a&tag=b
  *
- * const query = querystring.stringify(obj);
- *
- * console.log(query); // output "foo=bar&baz=qux"
+ * console.log(querystring.stringify({ a: 1, b: 2 }, ';', ':'));
+ * // a:1;b:2
  * ```
  *
- * In the code above, an object is first defined, then serialized into a URL query parameter string with the `querystring.stringify()` function, and finally the string is printed.
+ * Example 3 — escape and unescape single values:
+ * ```JavaScript
+ * const querystring = require('querystring');
  *
- * As can be seen, the `querystring` module makes it convenient to parse and serialize URL query parameters, reducing tedious string handling and improving code readability and maintainability.
+ * const escaped = querystring.escape('a b&c');
+ * console.log(escaped); // a+b%26c
+ * // unescape decodes the escapes but keeps '+' as a literal character
+ * console.log(querystring.unescape(escaped)); // a+b&c
+ * ```
  *
  */
 declare module 'querystring' {
     /**
-     * @description safely encodes a url component string
-     *      @param str the url to encode
-     *      @return returns the encoded string
+     * @description Encodes a string with the urlencoded rules, writing a space as `+`
+     *
+     *      Every character outside the unreserved set `A-Z a-z 0-9 - _ . ! ~ * ' ( )` is
+     *      percent-encoded with upper-case hex digits; the escape matches Node.js except that a
+     *      space becomes `+` instead of `%20`. The result round-trips through unescape and is the
+     *      encoding used by stringify for names and values.
+     *
+     *      @param str string to encode
+     *      @return the encoded string
      *
      */
     function escape(str: string): string;
 
     /**
-     * @description safely decodes a url string
-     *      @param str the url to decode
-     *      @return returns the decoded string
+     * @description Decodes the percent escapes of a string
+     *
+     *      Every percent escape is decoded, including the escapes of reserved characters such as
+     *      `&`, `=` and `?` that the standard decodeURI leaves untouched; a literal `+` is kept
+     *      as it is (parse converts it to a space while splitting pairs). Malformed escapes are
+     *      decoded leniently and may produce unexpected characters instead of being kept as
+     *      written, so validate untrusted input.
+     *
+     *      @param str string to decode
+     *      @return the decoded string
      *
      */
     function unescape(str: string): string;
 
     /**
-     * @description parses a query string
-     *      @param str the string to parse
-     *      @param sep the separator string used when parsing, default is &
-     *      @param eq the assignment string used when parsing, default is =
-     *      @param opt parse options, not supported yet
-     *      @return returns the decoded object
+     * @description Parses a query string into an HttpCollection
+     *
+     *      The string is split with `sep`, each pair is split at the first `eq`, and both sides
+     *      are decoded with unescape. Repeated names keep every value, `get` returns the first one
+     *      and `all(name)`/`getAll(name)` return the full array; empty segments are skipped and an
+     *      empty name is kept. The result compares names case-insensitively and sorts the keys in
+     *      place when an iteration helper is used. The fourth argument is accepted for Node.js
+     *      compatibility but is ignored.
+     *
+     *      Example — read repeated values and the plain object form:
+     *      ```JavaScript
+     *      const querystring = require('querystring');
+     *
+     *      const query = querystring.parse('a=1&a=2&b=x');
+     *      console.log(query.get('a')); // 1
+     *      console.log(query.all('a')); // [ '1', '2' ]
+     *      console.log(JSON.stringify(query.toJSON())); // {"a":["1","2"],"b":"x"}
+     *      ```
+     *
+     *      @param str query string to parse
+     *      @param sep separator between pairs, default `&`
+     *      @param eq separator between name and value, default `=`
+     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @return the parsed HttpCollection
      *
      */
     function parse(str: string, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): Class_HttpCollection;
 
     /**
-     * @description serializes an object into a query string
-     *      @param obj the object to serialize
-     *      @param sep the separator string used when serializing, default is &
-     *      @param eq the assignment string used when serializing, default is =
-     *      @param opt parse options, not supported yet
-     *      @return returns the serialized string
+     * @description Serializes an object into a query string
+     *
+     *      The own enumerable properties are written in their enumeration order; a value that is
+     *      an array is written as one pair per element with the same name. Values are converted to
+     *      strings with the usual rules, so `null` and `undefined` are written as `null` and
+     *      `undefined` (Node.js writes empty values), a number keeps its text and a nested object
+     *      becomes `[object Object]`. Names and values are encoded with escape, writing a space as
+     *      `+`. The fourth argument is accepted for Node.js compatibility but is ignored.
+     *
+     *      Example — arrays and custom separators:
+     *      ```JavaScript
+     *      const querystring = require('querystring');
+     *
+     *      console.log(querystring.stringify({ q: 'a b', tag: [1, 2] }));
+     *      // q=a+b&tag=1&tag=2
+     *      ```
+     *
+     *      @param obj object to serialize
+     *      @param sep separator between pairs, default `&`
+     *      @param eq separator between name and value, default `=`
+     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @return the serialized query string
      *
      */
     function stringify(obj: FIBJS.GeneralObject, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;

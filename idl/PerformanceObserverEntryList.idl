@@ -1,19 +1,111 @@
-/*! @brief The PerformanceObserverEntryList object contains the detailed information of the performance entries observed by the PerformanceObserver */
+/*! @brief The batch of performance entries passed to a PerformanceObserver callback
+
+ PerformanceObserverEntryList is the single argument of the observer callback and holds the records
+ delivered in that invocation, in recording order, mixing marks and measures. It cannot be
+ constructed directly; the filters return the same PerformanceEntry objects that mark retention and
+ `observer.takeRecords()` expose for the same records.
+
+ Concepts:
+
+ - **Batch snapshot**: the list contains only the records of the callback invocation; it is not a
+   live view of the timeline, so records added later do not appear in it.
+ - **Filtering**: `getEntries` returns the whole batch, `getEntriesByType(type)` selects `mark` or
+   `measure`, and `getEntriesByName(name, type)` selects by name with an optional type filter. An
+   empty type string matches every type; a name matches marks and measures by their own name.
+
+ Obtained from:
+ - the first argument of the PerformanceObserver callback (there is no constructor and no global
+   class object for this interface).
+
+ Example 1 — read the whole batch:
+ ```JavaScript
+ const { performance, PerformanceObserver } = require('perf_hooks');
+
+ (async () => {
+     performance.clearMarks();
+     let names = [];
+     const observer = new PerformanceObserver((list) => {
+         names = list.getEntries().map((entry) => entry.name);
+     });
+     observer.observe({ entryTypes: ['mark', 'measure'] });
+     performance.mark('a');
+     performance.measure('b', 'a');
+
+     await new Promise((resolve) => setTimeout(resolve, 0));
+     console.log(names.join(', ')); // a, b
+     observer.disconnect();
+ })();
+ ```
+
+ Example 2 — filter the batch inside the callback:
+ ```JavaScript
+ const { performance, PerformanceObserver } = require('perf_hooks');
+
+ (async () => {
+     performance.clearMarks();
+     let markCount = 0;
+     let named = 0;
+     const observer = new PerformanceObserver((list) => {
+         markCount = list.getEntriesByType('mark').length;
+         named = list.getEntriesByName('hit').length;
+     });
+     observer.observe({ entryTypes: ['mark'], type: 'measure' });
+     performance.mark('hit');
+     performance.mark('miss');
+     performance.measure('hit');
+
+     await new Promise((resolve) => setTimeout(resolve, 0));
+     console.log(markCount, named); // 2 1
+     observer.disconnect();
+ })();
+ ```
+ */
 interface PerformanceObserverEntryList : object
 {
-    /*! @brief Queries the detailed information of all performance entries.
+    /*! @brief Returns every entry of the batch
+
+     The result is a new array holding the records delivered by the callback invocation, in
+     recording order; it contains both marks and measures and is never empty, because a callback is
+     only invoked when there is at least one record.
      @return an array of PerformanceEntry objects
     */
     PerformanceEntry[] getEntries();
 
-    /*! @brief Queries the detailed information of performance entries by name
+    /*! @brief Returns the entries of the batch matching a name and an optional entry type
+
+     When entryType is empty every type matches; otherwise it must be exactly `mark` or `measure`.
+     The name is compared with the entry name, so it selects marks and measures alike.
+
+     Example — select one entry by name from the batch delivered to a measure observer:
+     ```JavaScript
+     const { performance, PerformanceObserver } = require('perf_hooks');
+
+     (async () => {
+         performance.clearMarks();
+         let selected = 0;
+         const observer = new PerformanceObserver((list) => {
+             selected = list.getEntriesByName('load', 'measure').length;
+         });
+         observer.observe({ type: 'measure' });
+         performance.measure('load');
+         performance.measure('render');
+
+         await new Promise((resolve) => setTimeout(resolve, 0));
+         console.log(selected); // 1
+         observer.disconnect();
+     })();
+     ```
+
      @param name a string, representing the name of the performance entry.
      @param entryType a string, representing the type of the performance entry.
      @return an array of PerformanceEntry objects
     */
     PerformanceEntry[] getEntriesByName(String name, String entryType = "");
 
-    /*! @brief Queries the detailed information of performance entries by type
+    /*! @brief Returns the entries of the batch matching an entry type
+
+     Selects the records whose entryType equals the argument; in fibjs only `mark` and `measure`
+     can match, and an unknown type yields an empty array without raising an error.
      @param entryType a string, representing the type of the performance entry.
      @return an array of PerformanceEntry objects
     */

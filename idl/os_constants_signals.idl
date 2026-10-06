@@ -1,8 +1,65 @@
-/*! @brief os_constants signals submodule, containing POSIX signal constants
+/*! @brief The signals table of os.constants: the signal numbers of the running platform
 
- Usage:
+ Reached through `require('os').constants.signals`. On POSIX the names and numbers match the
+ host's `<signal.h>` (verified against the Linux x86-64 headers) and include the aliases
+ SIGIOT = SIGABRT and SIGPOLL = SIGIO; SIGSTKFLT and SIGPWR exist only on Linux. Windows
+ exposes the same names (matching Node.js) but can deliver only a few of them.
+
+ Concepts:
+
+ - **Numbers feed the process APIs**: process.kill and ChildProcess#kill accept a name or a
+   number, and this table provides the numbers. A process that dies from a signal reports the
+   negated number as its exit code (SIGTERM gives -15), the 'exit' event receives the signal
+   name, and join() returns the same negative value.
+ - **Delivery is limited**: in fibjs only SIGINT and SIGTERM reach a JavaScript listener
+   registered with process.on; every other signal keeps the default action of the operating
+   system. Sending SIGTERM or SIGKILL to a child is still the portable way to stop it.
+ - **Not the legacy numbers**: the constants module ships a frozen BSD/macOS set (SIGUSR1 is
+   30, SIGBUS is 10) whose values name different signals on Linux; always take the number
+   from this table when it is passed to an API.
+ - **Windows**: numeric signals other than 0 are POSIX-only; on Windows kill terminates the
+   process unconditionally instead of delivering the named signal.
+
+ Import:
  ```JavaScript
- var signals = require('os').constants.signals
+ const signals = require('os').constants.signals;
+ ```
+
+ Example 1 — stop a child process with SIGTERM:
+ ```JavaScript
+ const child_process = require('child_process');
+ const signals = require('os').constants.signals;
+
+ // Start a fibjs child that lives until it is killed.
+ const child = child_process.spawn(process.execPath,
+     ['-e', 'setTimeout(function () {}, 60000)'], { stdio: 'ignore' });
+
+ child.kill(signals.SIGTERM);
+ const code = child.join();
+
+ // A process killed by a signal reports the negated signal number.
+ console.log(code === -signals.SIGTERM, signals.SIGTERM); // true 15
+ ```
+
+ Example 2 — the numbers and aliases of the common signals:
+ ```JavaScript
+ const signals = require('os').constants.signals;
+
+ console.log(signals.SIGINT, signals.SIGKILL, signals.SIGSTOP);  // 2 9 19
+ console.log(signals.SIGTERM, signals.SIGSEGV, signals.SIGPIPE); // 15 11 13
+ console.log(signals.SIGIO === signals.SIGPOLL);                 // true
+ console.log(signals.SIGSTKFLT, signals.SIGCHLD, signals.SIGSYS); // 16 17 31
+ ```
+
+ Example 3 — name the signal behind an exit code:
+ ```JavaScript
+ const signals = require('os').constants.signals;
+
+ // A child killed by SIGTERM exits with -15 (see ChildProcess#exitCode), so the
+ // wanted name is the one whose value is the negated code.
+ const code = -signals.SIGTERM;
+ const names = Object.keys(signals).filter((name) => signals[name] === -code);
+ console.log(names.join(', ')); // SIGTERM
  ```
  */
 module os_constants_signals

@@ -1,10 +1,159 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description module defining commonly used constants of the http2 module
+ * @description The http2_constants module collects the HTTP/2 protocol constants used by the http2
+ *  module: SETTINGS parameter ids and defaults, nghttp2 error codes, frame flags, stream
+ *  states, padding strategies, HTTP status codes, and the standard pseudo-header and header
+ *  names
  *
- *  Reference:
+ *  The module mirrors the constant surface of the nghttp2 library bundled with fibjs and is
+ *  reached through the `constants` property of the http2 module; it is not requireable on its
+ *  own. The exported names and values are identical to Node.js's `http2.constants` (240
+ *  entries, verified against Node.js v25.9.0):
+ *
+ *  - **SETTINGS**: `NGHTTP2_SETTINGS_*` ids (header table size, push, concurrent streams,
+ *    initial window size, frame size, header list size, CONNECT protocol) and the matching
+ *    `DEFAULT_SETTINGS_*` values assumed before a peer overrides them;
+ *  - **Error codes**: the `NGHTTP2_*` codes carried by RST_STREAM and GOAWAY frames, from
+ *    `NGHTTP2_NO_ERROR` (0) to `NGHTTP2_HTTP_1_1_REQUIRED` (13); `NGHTTP2_ERR_FRAME_SIZE_ERROR`
+ *    is an internal negative nghttp2 return value, not a wire code;
+ *  - **Frame flags**: the `NGHTTP2_FLAG_*` bit mask (ACK, END_STREAM, END_HEADERS, PADDED,
+ *    PRIORITY) and `NGHTTP2_DEFAULT_WEIGHT`;
+ *  - **Streams**: `NGHTTP2_STREAM_STATE_*` state numbers;
+ *  - **Padding and session types**: `PADDING_STRATEGY_*` for outgoing DATA frames and
+ *    `NGHTTP2_SESSION_SERVER` / `NGHTTP2_SESSION_CLIENT`;
+ *  - **Limits**: `MIN_MAX_FRAME_SIZE`, `MAX_MAX_FRAME_SIZE` and `MAX_INITIAL_WINDOW_SIZE`;
+ *  - **HTTP vocabulary**: `HTTP_STATUS_*`, `HTTP2_HEADER_*` (the pseudo-headers `:method`,
+ *    `:path`, `:scheme`, `:authority`, `:status` and `:protocol` start with a colon) and
+ *    `HTTP2_METHOD_*`.
+ *
+ *  Concepts:
+ *
+ *  - **SETTINGS negotiation**: each peer sends a SETTINGS frame when the connection starts; the
+ *    id selects the parameter and the `DEFAULT_SETTINGS_*` values apply until the peer sends
+ *    its own. `http2.getDefaultSettings()` maps the same defaults to parameter names, except
+ *    that it reports `maxConcurrentStreams` 100, while the constant (and Node.js) use
+ *    4294967295 for "unlimited".
+ *  - **Error codes**: RST_STREAM and GOAWAY carry an `NGHTTP2_*` code; 0 is NO_ERROR and the
+ *    other defined values are 1..13. They are distinct from the internal negative
+ *    `NGHTTP2_ERR_*` values, which surface as ordinary errors.
+ *  - **Flags are a bit mask**: END_STREAM and ACK share the value 1 because they belong to
+ *    different frame types; combine flags with the bitwise-or operator.
+ *  - **Pseudo-headers**: HTTP/2 header names are lowercase and pseudo-headers come before the
+ *    regular headers; `HTTP2_HEADER_*` provides the conventional spellings.
+ *
+ *  Import:
  *  ```JavaScript
- *  var constants = require('http2').constants
+ *  const constants = require('http2').constants;
+ *  ```
+ *
+ *  Example 1 — the constants in a local server round trip:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const tls = require('tls');
+ *  const crypto = require('crypto');
+ *  const constants = http2.constants;
+ *
+ *  // a self-signed certificate chain for localhost (do not use in production)
+ *  const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const ca = crypto.createCertificateRequest({
+ *      key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+ *  }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+ *  const crt = crypto.createCertificateRequest({
+ *      key: srvKey.privateKey, subject: { CN: 'localhost' }
+ *  }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+ *  const ctx = tls.createSecureContext({
+ *      key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false,
+ *      alpnProtocols: ['h2']
+ *  }, true);
+ *
+ *  const server = new http2.Server(ctx, 0, function () { });
+ *  server.on('session', (session) => {
+ *      session.on('stream', (stream, headers) => {
+ *          stream.respond({
+ *              [constants.HTTP2_HEADER_STATUS]: constants.HTTP_STATUS_OK,
+ *              [constants.HTTP2_HEADER_CONTENT_TYPE]: 'text/plain'
+ *          });
+ *          stream.write(constants.HTTP2_METHOD_GET + ' ' +
+ *              headers[constants.HTTP2_HEADER_PATH]);
+ *          stream.close();
+ *      });
+ *  });
+ *  server.start();
+ *
+ *  const session = http2.connect('https://localhost:' + server.socket.localPort, {
+ *      rejectUnauthorized: false, rejectUnverified: false
+ *  });
+ *  const stream = session.request({
+ *      [constants.HTTP2_HEADER_METHOD]: constants.HTTP2_METHOD_GET,
+ *      [constants.HTTP2_HEADER_PATH]: '/constants'
+ *  });
+ *  console.log(stream.readAll().toString()); // GET /constants
+ *  console.log(stream.headers[constants.HTTP2_HEADER_STATUS]); // 200
+ *
+ *  session.close();
+ *  server.stop();
+ *  ```
+ *
+ *  Example 2 — SETTINGS ids and protocol defaults:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const constants = http2.constants;
+ *
+ *  // SETTINGS parameter ids (RFC 9113 section 6.5.2).
+ *  console.log(constants.NGHTTP2_SETTINGS_HEADER_TABLE_SIZE);       // 1
+ *  console.log(constants.NGHTTP2_SETTINGS_ENABLE_PUSH);             // 2
+ *  console.log(constants.NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS);  // 3
+ *  console.log(constants.NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE);     // 4
+ *  console.log(constants.NGHTTP2_SETTINGS_MAX_FRAME_SIZE);          // 5
+ *  console.log(constants.NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE);    // 6
+ *  console.log(constants.NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL); // 8
+ *
+ *  // Values assumed before the peer sends its own SETTINGS frame.
+ *  console.log(constants.DEFAULT_SETTINGS_HEADER_TABLE_SIZE);       // 4096
+ *  console.log(constants.DEFAULT_SETTINGS_ENABLE_PUSH);             // 1
+ *  console.log(constants.DEFAULT_SETTINGS_MAX_CONCURRENT_STREAMS);  // 4294967295
+ *  console.log(constants.DEFAULT_SETTINGS_INITIAL_WINDOW_SIZE);     // 65535
+ *  console.log(constants.DEFAULT_SETTINGS_MAX_FRAME_SIZE);          // 16384
+ *  console.log(constants.DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE);    // 65535
+ *  console.log(constants.DEFAULT_SETTINGS_ENABLE_CONNECT_PROTOCOL); // 0
+ *
+ *  // getDefaultSettings() maps the same defaults to parameter names.
+ *  const settings = http2.getDefaultSettings();
+ *  console.log(settings.headerTableSize ===
+ *      constants.DEFAULT_SETTINGS_HEADER_TABLE_SIZE);               // true
+ *  console.log(settings.initialWindowSize ===
+ *      constants.DEFAULT_SETTINGS_INITIAL_WINDOW_SIZE);             // true
+ *  console.log(settings.maxFrameSize ===
+ *      constants.DEFAULT_SETTINGS_MAX_FRAME_SIZE);                  // true
+ *  console.log(settings.maxHeaderListSize ===
+ *      constants.DEFAULT_SETTINGS_MAX_HEADER_LIST_SIZE);            // true
+ *  ```
+ *
+ *  Example 3 — error codes, flags and stream states:
+ *  ```JavaScript
+ *  const constants = require('http2').constants;
+ *
+ *  // Error codes carried by RST_STREAM and GOAWAY frames.
+ *  console.log(constants.NGHTTP2_NO_ERROR, constants.NGHTTP2_PROTOCOL_ERROR,
+ *      constants.NGHTTP2_FLOW_CONTROL_ERROR, constants.NGHTTP2_STREAM_CLOSED,
+ *      constants.NGHTTP2_FRAME_SIZE_ERROR, constants.NGHTTP2_REFUSED_STREAM,
+ *      constants.NGHTTP2_CANCEL, constants.NGHTTP2_ENHANCE_YOUR_CALM); // 0 1 3 5 6 7 8 11
+ *
+ *  // Frame flags are a bit mask; END_STREAM and ACK share 1 on different frame types.
+ *  console.log(constants.NGHTTP2_FLAG_END_STREAM |
+ *      constants.NGHTTP2_FLAG_END_HEADERS);                         // 5
+ *  console.log(constants.NGHTTP2_FLAG_NONE, constants.NGHTTP2_FLAG_PADDED,
+ *      constants.NGHTTP2_FLAG_PRIORITY);                            // 0 8 32
+ *
+ *  // Stream state numbers, frame limits and padding strategies.
+ *  console.log(constants.NGHTTP2_STREAM_STATE_IDLE, constants.NGHTTP2_STREAM_STATE_OPEN,
+ *      constants.NGHTTP2_STREAM_STATE_CLOSED);                      // 1 2 7
+ *  console.log(constants.MIN_MAX_FRAME_SIZE, constants.MAX_MAX_FRAME_SIZE,
+ *      constants.MAX_INITIAL_WINDOW_SIZE);                          // 16384 16777215 2147483647
+ *  console.log(constants.PADDING_STRATEGY_NONE, constants.PADDING_STRATEGY_ALIGNED,
+ *      constants.PADDING_STRATEGY_CALLBACK,
+ *      constants.PADDING_STRATEGY_MAX);                             // 0 1 1 2
  *  ```
  *
  */
@@ -1135,7 +1284,7 @@ declare module 'http2_constants' {
     export const NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE: 4;
 
     /**
-     * @description NGHTTP2 setting: timeout
+     * @description nghttp2 error code: SETTINGS not acknowledged in time (not a SETTINGS id)
      */
     export const NGHTTP2_SETTINGS_TIMEOUT: 4;
 

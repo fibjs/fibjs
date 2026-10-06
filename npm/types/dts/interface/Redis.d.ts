@@ -6,214 +6,492 @@
 /// <reference path="../interface/RedisSet.d.ts" />
 /// <reference path="../interface/RedisSortedSet.d.ts" />
 /**
- * @description Redis database client object
+ * @description A Redis connection: the general command surface and the typed key views
  *
- *  Used to create and manage a Redis database. To create one:
+ *  Redis is the object returned by db.openRedis and the only way to reach a Redis server in
+ *  fibjs. It speaks the RESP protocol over one TCP connection and is fiber-synchronous: every
+ *  member blocks the calling fiber until the server reply arrives, and no command has a
+ *  callback or promise form.
+ *
+ *  Command families:
+ *
+ *  - **Strings**: `set`, `setNX`, `setXX`, `mset`, `msetNX`, `append`, `setRange`, `getRange`,
+ *    `get`, `mget`, `getset`, `incr`, `decr`, `strlen`;
+ *  - **Bits**: `setBit`, `getBit`, `bitcount`;
+ *  - **Keys and expiry**: `exists`, `type`, `del`, `keys`, `expire`, `ttl`, `persist`,
+ *    `rename`, `renameNX`, `dump`, `restore`;
+ *  - **Pub/Sub**: `sub`, `psub`, `unsub`, `unpsub`, `pub` and the `suberror` event;
+ *  - **Typed views**: `getHash`, `getList`, `getSet` and `getSortedSet` return the RedisHash,
+ *    RedisList, RedisSet and RedisSortedSet objects bound to one key;
+ *  - **Escape hatch**: `command` sends any command and returns its raw reply;
+ *  - **Lifecycle**: `close`.
+ *
+ *  Concepts:
+ *
+ *  - **Single-threaded server model**: Redis serves commands one at a time on a single
+ *    thread, so every command is atomic and no two commands interleave. The flip side is that
+ *    a slow command blocks every other client: `keys` walks the whole keyspace, so prefer the
+ *    SCAN family through command() on a large production server.
+ *  - **Replies and their types**: a status or bulk-string reply arrives as a Buffer, an
+ *    integer reply as a Number, nil as null and an array as an Array whose elements follow
+ *    the same rules. A server error reply throws an Error whose message is the server text
+ *    and whose number is 20024.
+ *  - **Connection lifecycle**: db.openRedis connects before it returns, so an unreachable
+ *    server throws the socket error (ECONNREFUSED with number 111, or a resolver error such
+ *    as getaddrinfo ENOTFOUND) rather than a database error. close releases the connection
+ *    and is not idempotent: a second close, and every command after it, fail with 20009.
+ *  - **Connection strings**: with the `redis://` prefix the string is parsed as a URL and the
+ *    host and port are used (the port defaults to 6379); the path, user and password are
+ *    accepted but not sent, so a database index cannot be selected this way. Without a known
+ *    prefix the whole string is the host name and the port is fixed to 6379, so use the URL
+ *    form to reach another port.
+ *  - **Subscriber mode**: the first sub or psub switches the connection to pub/sub; from then
+ *    on the server accepts only (p)subscribe, (p)unsubscribe and the connection close, and any
+ *    other command fails with 20009. Use a second connection to publish or to run ordinary
+ *    commands while one connection listens.
+ *  - **Argument types**: a parameter declared Buffer|String is sent byte-for-byte when it is
+ *    a Buffer and as its UTF-8 encoding when it is a string, so keys and values may hold
+ *    arbitrary binary data. The variadic and object forms (`command`, `mset`, `msetNX`,
+ *    `mget`, `del` and the like) instead convert each argument through its JavaScript string
+ *    form: a number is rejected with 20005 and a Buffer is decoded as UTF-8 text, which loses
+ *    bytes that are not valid UTF-8.
+ *  - **Value types**: a Redis key holds one type (string, list, set, zset, hash or stream), a
+ *    command issued against the wrong type fails with the server error, and `type` reports
+ *    the current one. Write commands create a missing key, and read commands report null for
+ *    a missing key.
+ *
+ *  Obtained from:
+ *  - `db.openRedis(connString)` — fiber-synchronous, returns the connected Redis object;
+ *  - `db.openRedis(connString, callback)` and `db.promises.openRedis(connString)` — the
+ *    callback and Promise forms of the same factory.
+ *
+ *  Example 1 — a failed connection reports the socket error (no server needed):
  *  ```JavaScript
- *  var db = require("db");
- *  var test = new db.openRedis("redis-server");
+ *  const db = require('db');
+ *
+ *  try {
+ *      db.openRedis('redis://127.0.0.1:0');
+ *  } catch (e) {
+ *      console.log(e.code, e.number); // ECONNREFUSED 111
+ *  }
+ *
+ *  try {
+ *      db.openRedis('redis://:0'); // a malformed URL fails before connecting
+ *  } catch (e) {
+ *      console.log(e.message); // url: Invalid URL 'redis://:0'.
+ *  }
+ *  ```
+ *
+ *  Example 2 — how connection strings are interpreted (no server needed):
+ *  ```JavaScript
+ *  const db = require('db');
+ *
+ *  // a bare string is the host name, not a host:port pair
+ *  try {
+ *      db.openRedis('127.0.0.1:6379');
+ *  } catch (e) {
+ *      console.log(e.code); // ENOTFOUND - the whole string was resolved as a host
+ *  }
+ *
+ *  // the redis:// form carries the port; the path and credentials are ignored
+ *  try {
+ *      db.openRedis('redis://user:pass@127.0.0.1:0/3');
+ *  } catch (e) {
+ *      console.log(e.code, e.syscall); // ECONNREFUSED connect
+ *  }
+ *  ```
+ *
+ *  Example 3 — string commands and key expiry:
+ *  ```JavaScript
+ *  // requires: redis
+ *  const db = require('db');
+ *  const rdb = db.openRedis('redis://127.0.0.1:6379');
+ *
+ *  rdb.set('greeting', 'hello');
+ *  console.log(rdb.get('greeting').toString()); // hello
+ *  console.log(rdb.append('greeting', ', redis')); // 12 - the value grew
+ *  console.log(rdb.incr('counter')); // 1 - a new key starts at 0
+ *  console.log(rdb.type('greeting')); // string
+ *
+ *  rdb.expire('counter', 1000);
+ *  console.log(rdb.ttl('counter') > 0); // true
+ *  console.log(rdb.exists('counter')); // true
+ *
+ *  rdb.del('greeting', 'counter');
+ *  rdb.close();
+ *  ```
+ *
+ *  Example 4 — publish/subscribe over two connections:
+ *  ```JavaScript
+ *  // requires: redis
+ *  const db = require('db');
+ *  const coroutine = require('coroutine');
+ *
+ *  const sub = db.openRedis('redis://127.0.0.1:6379');
+ *  const pub = db.openRedis('redis://127.0.0.1:6379');
+ *  const done = new coroutine.Event();
+ *
+ *  sub.sub('news', (channel, message) => {
+ *      console.log(channel.toString(), message.toString()); // news hello
+ *      done.set();
+ *  });
+ *
+ *  coroutine.sleep(100); // let SUBSCRIBE reach the server
+ *  console.log(pub.pub('news', 'hello')); // 1 - one client received it
+ *  done.wait();
+ *
+ *  sub.close();
+ *  pub.close();
  *  ```
  *
  */
 declare class Class_Redis extends Class_object {
     /**
-     * @description Basic redis command method
-     *      @param cmd the command to send
-     *      @param args the parameters to send
-     *      @return returns the result returned by the server
+     * @description Sends an arbitrary command and returns its reply as received
+     *
+     *      cmd is the command name as it is sent (`HGETALL`, `SCAN`, ...); the following arguments
+     *      are appended to it in order. Every argument is converted through its JavaScript string
+     *      form: pass numbers as strings (a number is rejected with error 20005), and a Buffer
+     *      argument is decoded as UTF-8 text, so a binary payload loses bytes that are not valid
+     *      UTF-8 - use the typed members for binary data. The reply is the raw RESP value: a
+     *      status or bulk string as a Buffer, an integer as a Number, nil as null and an array as
+     *      an Array, with the same rules applied to nested elements. A server error reply throws
+     *      an Error whose message is the server text and whose number is 20024.
+     *
+     *      Use it for commands with no dedicated member, such as SCAN or SORT.
+     *
+     *      Example — SCAN avoids the whole-keyspace scan performed by keys:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      rdb.set('user:1', 'alice');
+     *      rdb.set('user:2', 'bob');
+     *
+     *      const reply = rdb.command('scan', '0');
+     *      console.log(reply[1].length >= 2); // true - the batch holds both names
+     *      console.log(rdb.command('get', 'user:1').toString()); // alice
+     *
+     *      rdb.del('user:1', 'user:2');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param cmd the command name to send
+     *      @param args the command arguments, each one converted to a string
+     *      @return the reply as received: a Buffer, a Number, an Array or null
+     *
      */
     command(cmd: string, ...args: any[]): any;
 
     /**
-     * @description Associates the string value with key; if key already holds another value, SET overwrites the old value regardless of type
+     * @description Associates value with key, discarding any previous value and type
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      SET key value [PX ttl]. The value is stored as a string and an existing key of any
+     *      type is overwritten. The optional ttl is applied with PX and is in milliseconds; 0
+     *      keeps the key persistent. The member reports no result, so read the key back to
+     *      inspect it, and the NX/XX/GET modifiers of the server command are not exposed here -
+     *      use setNX, setXX or command() instead.
+     *
+     *      key and value are sent byte-for-byte as Buffers and as UTF-8 text as strings.
+     *
      *      @param key the key to associate
-     *      @param value the data to associate
-     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     *      @param value the value to store
+     *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
     set(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key does not exist. If the given key already exists, SETNX does nothing.
+     * @description Stores value only when key does not exist
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      SET key value NX [PX ttl]. The command does nothing when the key already exists, and
+     *      the member reports no result, so read the key back to know whether the write
+     *      happened. The ttl is in milliseconds and is applied only when the value is stored.
+     *
+     *      key and value are sent byte-for-byte as Buffers and as UTF-8 text as strings.
+     *
      *      @param key the key to associate
-     *      @param value the data to associate
-     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     *      @param value the value to store
+     *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
     setNX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets the key to value only when the key already exists.
+     * @description Stores value only when key already exists
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      SET key value XX [PX ttl]. The command does nothing when the key does not exist, and
+     *      the member reports no result, so read the key back to know whether the write
+     *      happened. The ttl is in milliseconds and is applied only when the value is stored.
+     *
+     *      key and value are sent byte-for-byte as Buffers and as UTF-8 text as strings.
+     *
      *      @param key the key to associate
-     *      @param value the data to associate
-     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     *      @param value the value to store
+     *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
     setXX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
-     *      @param kvs the key/value object to set
+     * @description Sets several key/value pairs at once, replacing the keys
+     *
+     *      MSET. The property names of kvs are the keys and the property values are the values,
+     *      in property order. Each value is converted through its JavaScript string form, so a
+     *      number is rejected with error 20005 and a Buffer is decoded as UTF-8 text - pass
+     *      strings there. MSET is atomic: either every pair is written or none is. The member
+     *      reports no result.
+     *
+     *      Example — the object form of mset and the array result of mget:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      rdb.mset({ first: 'alice', last: 'smith' });
+     *      const values = rdb.mget('first', 'last');
+     *      console.log(values[0].toString(), values[1].toString()); // alice smith
+     *
+     *      rdb.del('first', 'last');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param kvs the key/value pairs to set, as property names and values
+     *
      */
     mset(kvs: FIBJS.GeneralObject): void;
 
     /**
-     * @description Sets one or more key-value pairs at the same time. If a given key already exists, MSET overwrites the old value with the new value
-     *      @param kvs the key/value list to set
+     * @description Sets several key/value pairs at once from a flat argument list
+     *
+     *      MSET. The arguments alternate key and value: mset('a', '1', 'b', '2') is the same
+     *      command as mset({ a: '1', b: '2' }). An odd argument count reaches the server, which
+     *      rejects the command with an error; values follow the string conversion of the object
+     *      form. The member reports no result.
+     *
+     *      @param kvs the flat key/value list to set
+     *
      */
     mset(...kvs: any[]): void;
 
     /**
-     * @description Sets one or more key-value pairs at the same time only when all the given keys do not exist
-     *      @param kvs the key/value object to set
+     * @description Sets several key/value pairs at once only when all the keys are missing
+     *
+     *      MSETNX. The object form takes the property names as keys and the property values as
+     *      values, in property order. The whole group is written only when none of the keys
+     *      exists, so the command is all-or-nothing; values follow the string conversion of
+     *      mset. The member reports no result, so read the keys back to know whether the write
+     *      happened.
+     *
+     *      @param kvs the key/value pairs to set, as property names and values
+     *
      */
     msetNX(kvs: FIBJS.GeneralObject): void;
 
     /**
-     * @description Sets one or more key-value pairs at the same time only when all the given keys do not exist
-     *      @param kvs the key/value list to set
+     * @description Sets several key/value pairs from a flat list only when all the keys are missing
+     *
+     *      MSETNX. The arguments alternate key and value and the whole group is written only when
+     *      none of the keys exists; an odd argument count reaches the server, which rejects the
+     *      command with an error. The member reports no result.
+     *
+     *      @param kvs the flat key/value list to set
+     *
      */
     msetNX(...kvs: any[]): void;
 
     /**
-     * @description If key already exists and holds a string, the append command appends value to the end of the original value of key. If key does not exist, append simply sets the given key to value
+     * @description Appends value to the string stored at key
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      APPEND. A missing key is created and a key of another type fails with the server
+     *      error. key and value are sent byte-for-byte as Buffers and as UTF-8 text as strings.
+     *
      *      @param key the key to append to
      *      @param value the data to append
-     *      @return the length of the string in key after appending value
+     *      @return the length of the string after the append
      *
      */
     append(key: Class_Buffer | string, value: Class_Buffer | string): number;
 
     /**
-     * @description Overwrites the string value stored at key with the value parameter, starting from the offset
+     * @description Overwrites the string stored at key starting at the given byte offset
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
+     *      SETRANGE. The string is extended with zero bytes when offset lies beyond its current
+     *      end; the returned length covers the whole string after the write. An offset at or
+     *      past the server limit (512 MB - 1) or a key holding another type fails with the server
+     *      error. key and value are sent byte-for-byte as Buffers.
+     *
      *      @param key the key to modify
-     *      @param offset the byte offset to modify
-     *      @param value the data to overwrite
-     *      @return the length of the string after the modification
+     *      @param offset the byte offset to write at
+     *      @param value the data to write
+     *      @return the length of the string after the write
      *
      */
     setRange(key: Class_Buffer | string, offset: number, value: Class_Buffer | string): number;
 
     /**
-     * @description Returns the substring of the string value stored at key; the range is determined by the start and end offsets (including start and end)
+     * @description Returns a substring of the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      GETRANGE. Both offsets are byte offsets and both ends are included; a negative offset
+     *      counts from the end of the string (-1 is the last byte), and offsets outside the
+     *      string are clamped to it. A missing key, an empty range and a range whose start is
+     *      after its end all return an empty Buffer. The result is a Buffer, so it may hold
+     *      arbitrary bytes.
+     *
      *      @param key the key to query
-     *      @param start the start byte offset of the query
-     *      @param end the end byte offset of the query
-     *      @return the extracted substring
+     *      @param start the first byte offset of the range
+     *      @param end the last byte offset of the range
+     *      @return the extracted bytes as a Buffer
      *
      */
     getRange(key: Class_Buffer | string, start: number, end: number): Class_Buffer;
 
     /**
-     * @description Returns the length of the string value stored at key. An error is returned when key does not hold a string value
+     * @description Returns the length of the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      STRLEN. A missing key returns 0 and a key holding another type fails with the server
+     *      error; the length is in bytes, not characters.
+     *
      *      @param key the key to count
-     *      @return the length of the string value, or 0 when key does not exist
+     *      @return the length of the stored string in bytes, 0 when key does not exist
      *
      */
     strlen(key: Class_Buffer | string): number;
 
     /**
-     * @description Counts the number of bits set to 1 in the given string
+     * @description Counts the bits set to 1 in the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      BITCOUNT. The member always sends the start and end defaults, so the whole string is
+     *      counted unless both are given; the offsets are byte offsets, both ends are included
+     *      and a negative offset counts from the end of the string. A missing key returns 0.
+     *
      *      @param key the key to count
-     *      @param start the start byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
-     *      @param end the end byte to count; negative values are supported: -1 means the last byte, -2 means the second to last byte, and so on
-     *      @return the number of bits set to 1
+     *      @param start the first byte of the range; -1 is the last byte
+     *      @param end the last byte of the range; -1 is the last byte
+     *      @return the number of bits set to 1 in the range
      *
      */
     bitcount(key: Class_Buffer | string, start?: number, end?: number): number;
 
     /**
-     * @description Returns the string value associated with key; if key does not exist, the special value Null is returned
+     * @description Returns the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to associate
-     *      @return returns Null when key does not exist, otherwise returns the value of key
+     *      GET. A missing key returns null; a key holding another type fails with the server
+     *      error. The value is a Buffer, so it may hold arbitrary bytes.
+     *
+     *      @param key the key to read
+     *      @return the value as a Buffer, or null when key does not exist
      *
      */
     get(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
-     *      @param keys the array of keys to query
-     *      @return a list containing the values of all the given keys
+     * @description Returns the values of the given keys, one element per key
+     *
+     *      MGET. A missing key yields null in its position, so the result has the same length as
+     *      the key list. The keys go through the JavaScript string conversion of a variadic
+     *      argument: a number is rejected with error 20005 and a Buffer is decoded as UTF-8
+     *      text. The values are Buffers.
+     *
+     *      Example — a missing key keeps its position as null:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      rdb.set('first', 'alice');
+     *      const values = rdb.mget('first', 'missing');
+     *      console.log(values[0].toString(), values[1]); // alice null
+     *
+     *      rdb.del('first');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param keys the array of keys to read
+     *      @return an array with one Buffer or null per key, in the given order
+     *
      */
     mget(keys: any[]): any[];
 
     /**
-     * @description Returns the values of all the given keys (one or more). If one of the given keys does not exist, the special value nil is returned for that key.
-     *      @param keys the list of keys to query
-     *      @return a list containing the values of all the given keys
+     * @description Returns the values of the given keys, one element per key
+     *
+     *      MGET. This is the flat form of mget(Array); the two are the same command and both
+     *      follow the string conversion described there.
+     *
+     *      @param keys the keys to read, as a flat argument list
+     *      @return an array with one Buffer or null per key, in the given order
+     *
      */
     mget(...keys: any[]): any[];
 
     /**
-     * @description Sets the given key to value and returns the old value of key
+     * @description Stores value at key and returns the previous value
      *
-     *      key and value may each be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to query and modify
-     *      @param value the value to set
-     *      @return returns the old value of the given key
+     *      GETSET. A missing key returns null and a key of any type is overwritten. The server
+     *      deprecated GETSET in favor of SET with the GET modifier, but the command still works.
+     *      key and value are sent byte-for-byte as Buffers.
+     *
+     *      @param key the key to write
+     *      @param value the value to store
+     *      @return the previous value as a Buffer, or null when key did not exist
      *
      */
     getset(key: Class_Buffer | string, value: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Subtracts the decrement from the value stored at key
+     * @description Subtracts num from the integer stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      DECR when num is 1, DECRBY otherwise. The value is a signed 64-bit integer; a missing
+     *      key is treated as 0, so decr('k', 5) on a new key returns -5. A value that is not an
+     *      integer string fails with the server error. The member reports no overflow check on
+     *      its own: the server reports the overflow error.
+     *
      *      @param key the key to modify
-     *      @param num the number to subtract
-     *      @return the value of key after subtracting num
+     *      @param num the amount to subtract
+     *      @return the value of key after the subtraction
      *
      */
     decr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Adds the increment to the value stored at key
+     * @description Adds num to the integer stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      INCR when num is 1, INCRBY otherwise. The value is a signed 64-bit integer; a missing
+     *      key is treated as 0, so incr('k') on a new key returns 1. A value that is not an
+     *      integer string or an overflow fails with the server error.
+     *
      *      @param key the key to modify
-     *      @param num the number to add
-     *      @return the value of key after adding num
+     *      @param num the amount to add
+     *      @return the value of key after the addition
      *
      */
     incr(key: Class_Buffer | string, num?: number): number;
 
     /**
-     * @description Sets or clears the bit at the given offset in the string value stored at key
+     * @description Sets or clears one bit of the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      SETBIT. value must be 0 or 1; the string is grown with zero bytes when offset lies
+     *      beyond its end, and the server limits the offset to 2^32 - 1. A key holding another
+     *      type fails with the server error. The previous bit is returned.
+     *
      *      @param key the key to modify
      *      @param offset the bit offset to modify
-     *      @param value the value to set or clear, either 0 or 1
-     *      @return the bit originally stored at the offset
+     *      @param value the bit to store, 0 or 1
+     *      @return the previous bit at the offset
      *
      */
     setBit(key: Class_Buffer | string, offset: number, value: number): number;
 
     /**
-     * @description Gets the bit at the given offset in the string value stored at key
+     * @description Returns one bit of the string stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to query
-     *      @param offset the bit offset to query
-     *      @return the bit at the given offset of the string value
+     *      GETBIT. A missing key and an offset beyond the end of the string both return 0.
+     *
+     *      @param key the key to read
+     *      @param offset the bit offset to read
+     *      @return the bit at the offset, 0 or 1
      *
      */
     getBit(key: Class_Buffer | string, offset: number): number;
@@ -221,9 +499,11 @@ declare class Class_Redis extends Class_object {
     /**
      * @description Checks whether the given key exists
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to associate
-     *      @return returns True if key exists, otherwise returns False
+     *      EXISTS. A key of any type counts; the member checks one key per call (the server
+     *      command accepts several), and the count is reduced to a boolean.
+     *
+     *      @param key the key to test
+     *      @return true when the key exists, false otherwise
      *
      */
     exists(key: Class_Buffer | string): boolean;
@@ -231,259 +511,428 @@ declare class Class_Redis extends Class_object {
     /**
      * @description Returns the type of the value stored at key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      TYPE. A missing key reports `none`; the other values are `string`, `list`, `set`,
+     *      `zset`, `hash` and `stream` (Redis 5 and later). Use it before calling a typed command
+     *      on a key that may hold another type.
+     *
      *      @param key the key to query
-     *      @return returns the type of the value stored at key; possible values are none (key does not exist), string, list, set, zset (sorted set) and hash
+     *      @return the type name, `none` when key does not exist
      *
      */
     type(key: Class_Buffer | string): string;
 
     /**
-     * @description Finds all keys matching the given pattern
-     *      @param pattern the pattern to query
-     *      @return the list of keys matching the given pattern
+     * @description Returns the keys matching a glob pattern
+     *
+     *      KEYS. The pattern supports `*`, `?`, character classes (`[abc]`, `[^a]`, `[a-z]`) and
+     *      the backslash escape, and it matches the whole key name. The result is an array of
+     *      Buffer names in unspecified order. Redis is single-threaded, so KEYS walks the whole
+     *      keyspace while every other client waits: use `command('scan', '0')` on a large
+     *      production database.
+     *
+     *      Example — collect the keys of one namespace:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      rdb.mset('user:1', 'alice', 'user:2', 'bob', 'session:1', 'token');
+     *      const names = rdb.keys('user:*');
+     *      console.log(names.length); // 2
+     *      console.log(names[0].toString().indexOf('user:') === 0); // true
+     *
+     *      rdb.del('user:1', 'user:2', 'session:1');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param pattern the glob pattern to match
+     *      @return an array of Buffer key names
+     *
      */
     keys(pattern: string): any[];
 
     /**
-     * @description Deletes one or more given keys; non-existing keys are ignored
+     * @description Deletes the given keys
+     *
+     *      DEL. Missing keys are ignored; the number of removed keys is returned. The keys go
+     *      through the JavaScript string conversion of a variadic argument: a number is rejected
+     *      with error 20005 and a Buffer is decoded as UTF-8 text.
+     *
      *      @param keys the array of keys to delete
-     *      @return the number of keys deleted
+     *      @return the number of keys that were removed
+     *
      */
     del(keys: any[]): number;
 
     /**
-     * @description Deletes one or more given keys; non-existing keys are ignored
-     *      @param keys the list of keys to delete
-     *      @return the number of keys deleted
+     * @description Deletes the given keys
+     *
+     *      DEL. This is the flat form of del(Array); the two are the same command and both follow
+     *      the string conversion described there.
+     *
+     *      @param keys the keys to delete, as a flat argument list
+     *      @return the number of keys that were removed
+     *
      */
     del(...keys: any[]): number;
 
     /**
-     * @description Sets a time to live for the given key; when the key expires it is automatically deleted
+     * @description Sets a time to live for key, after which the key is deleted
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to set
-     *      @param ttl the time to live for key in milliseconds
-     *      @return returns True if key exists, otherwise returns False
+     *      PEXPIRE. The ttl is in milliseconds; it replaces an existing time to live, and a
+     *      non-positive value deletes the key immediately. The member returns whether the key
+     *      existed, which is true even when the new ttl deletes it right away.
+     *
+     *      Example — set, inspect and remove an expiry:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      rdb.set('cache', 'value');
+     *      console.log(rdb.ttl('cache')); // -1 - no expiry was set
+     *      console.log(rdb.expire('cache', 1000)); // true
+     *      console.log(rdb.ttl('cache') > 0); // true
+     *      console.log(rdb.persist('cache')); // true - the expiry was removed
+     *      console.log(rdb.ttl('cache')); // -1
+     *
+     *      rdb.del('cache');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param key the key to expire
+     *      @param ttl the time to live in milliseconds
+     *      @return true when the key existed, false when it did not
      *
      */
     expire(key: Class_Buffer | string, ttl: number): boolean;
 
     /**
-     * @description Returns the remaining time to live of the given key
+     * @description Returns the remaining time to live of key in milliseconds
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     *      PTTL. The result is -2 when the key does not exist, -1 when the key exists without a
+     *      time to live and the remaining milliseconds otherwise.
+     *
      *      @param key the key to query
-     *      @return returns the remaining time to live of key in milliseconds; returns -2 when key does not exist, and -1 when key exists but has no time to live set
+     *      @return the remaining time to live in milliseconds, -1 or -2 as described
      *
      */
     ttl(key: Class_Buffer | string): number;
 
     /**
-     * @description Removes the time to live of the given key, converting this key from volatile (a key with a time to live) to persistent (a key without a time to live that never expires)
+     * @description Removes the time to live of key, making it persistent
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to set
-     *      @return returns True if key exists, otherwise returns False
+     *      PERSIST. The member returns true when a time to live was removed and false when the
+     *      key does not exist or had none.
+     *
+     *      @param key the key to persist
+     *      @return true when the key was volatile and is now persistent
      *
      */
     persist(key: Class_Buffer | string): boolean;
 
     /**
-     * @description Renames key to newkey; an error is returned when key and newkey are the same or key does not exist
+     * @description Renames key to newkey, the source is deleted
      *
-     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      RENAME. An existing newkey is overwritten regardless of its type, and the command
+     *      fails with the server error when key does not exist or when key and newkey are equal.
+     *      No result is reported.
+     *
      *      @param key the key to rename
-     *      @param newkey the destination key to rename to
+     *      @param newkey the destination key name
      *
      */
     rename(key: Class_Buffer | string, newkey: Class_Buffer | string): void;
 
     /**
-     * @description Renames key to newkey only when newkey does not exist; an error is returned when key does not exist
+     * @description Renames key to newkey only when newkey does not exist
      *
-     *      key and newkey may each be a Buffer or a string; a string is encoded as utf8.
+     *      RENAMENX. The member returns false when newkey already exists and fails with the
+     *      server error when key does not exist.
+     *
      *      @param key the key to rename
-     *      @param newkey the destination key to rename to
-     *      @return returns True when the rename succeeds, and False if newkey already exists
+     *      @param newkey the destination key name
+     *      @return true when the rename happened, false when newkey already existed
      *
      */
     renameNX(key: Class_Buffer | string, newkey: Class_Buffer | string): boolean;
 
     /**
-     * @description Subscribes to the given channel; func is called automatically when a message arrives; func takes two parameters, channel and message; the same function is called back only once for the same channel
+     * @description Subscribes func to a channel
      *
-     *      channel may be a Buffer or a string; a string is encoded as utf8.
-     *      @param channel the name of the channel to subscribe to
-     *      @param func the callback function
+     *      SUBSCRIBE channel. func is called with the channel name and the message, both as
+     *      Buffers, each time a message arrives on the channel; delivery happens on the event
+     *      loop, so the calling fiber may continue or sleep. Registering the same function again
+     *      for the same channel adds a second listener and does not send another SUBSCRIBE, so
+     *      the function is then called once per registration for every message.
+     *
+     *      The first sub or psub switches the connection to subscriber mode: from then on other
+     *      commands on this object fail with 20009 and the connection can only be closed. Use a
+     *      second connection for pub and for ordinary commands.
+     *
+     *      @param channel the channel to subscribe to
+     *      @param func the callback invoked as func(channel, message)
      *
      */
     sub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
-     * @description Subscribes to the given set of channels; the corresponding callback function is called automatically when a message arrives; the same function is called back only once for the same channel
-     *      @param map the channel mapping; object property names are used as channel names and property values as callback functions
+     * @description Subscribes one callback to each channel of a map
+     *
+     *      SUBSCRIBE with every property of map: the property names are the channels and the
+     *      property values the callback functions. The whole map is sent as one command. A
+     *      property value that is not a function fails with error 20004 before anything is sent.
+     *
+     *      @param map the channel/callback map
      *
      */
     sub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given channel
+     * @description Removes every callback of a channel
      *
-     *      channel may be a Buffer or a string; a string is encoded as utf8.
-     *      @param channel the name of the channel to unsubscribe from
+     *      UNSUBSCRIBE channel. All registrations of the channel are dropped and one UNSUBSCRIBE
+     *      is sent even when the channel had no callback.
+     *
+     *      @param channel the channel to unsubscribe from
      *
      */
     unsub(channel: Class_Buffer | string): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given channel
+     * @description Removes one callback registration of a channel
      *
-     *      channel may be a Buffer or a string; a string is encoded as utf8.
-     *      @param channel the name of the channel to unsubscribe from
-     *      @param func the callback function to unsubscribe
+     *      Removes the registration made by one sub() call. The UNSUBSCRIBE command is sent only
+     *      when the last registration of the channel is removed, so the server keeps sending the
+     *      channel while other callbacks remain.
+     *
+     *      @param channel the channel to unsubscribe from
+     *      @param func the callback registered by sub()
      *
      */
     unsub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given set of channels
+     * @description Removes every callback of several channels
+     *
+     *      UNSUBSCRIBE with all the channels in one command; every registration of each channel is
+     *      dropped.
+     *
      *      @param channels the array of channels to unsubscribe from
      *
      */
     unsub(channels: any[]): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given set of channels
-     *      @param map the channel mapping; object property names are used as channel names and property values as callback functions
+     * @description Removes the listed callbacks of several channels
+     *
+     *      The property names of map are the channels and the property values the callbacks to
+     *      remove. An UNSUBSCRIBE with the affected channels is sent when at least one
+     *      registration was removed.
+     *
+     *      @param map the channel/callback map
      *
      */
     unsub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Subscribes to a set of channels by pattern; func is called automatically when a message arrives; func takes three parameters, channel, message and pattern; the same function is called back only once for the same pattern
-     *      @param pattern the channel pattern to subscribe to
-     *      @param func the callback function
+     * @description Subscribes func to every channel matching a pattern
+     *
+     *      PSUBSCRIBE pattern. The pattern uses the Redis glob syntax; func is called with the
+     *      channel name, the message and the pattern that matched, all as Buffers. The rules of
+     *      sub() apply: a repeated registration adds a listener without another command, and the
+     *      first subscription switches the connection to subscriber mode.
+     *
+     *      @param pattern the glob pattern of channels to subscribe to
+     *      @param func the callback invoked as func(channel, message, pattern)
      *
      */
     psub(pattern: string, func: (channel: Class_Buffer, message: Class_Buffer, pattern: Class_Buffer)=>void): void;
 
     /**
-     * @description Subscribes to the given set of channel patterns; the corresponding func is called automatically when a message arrives; the same function is called back only once for the same channel
-     *      @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
+     * @description Subscribes one callback to each channel pattern of a map
+     *
+     *      PSUBSCRIBE with every property of map: the property names are the patterns and the
+     *      property values the callback functions, in one command. A property value that is not a
+     *      function fails with error 20004 before anything is sent.
+     *
+     *      @param map the pattern/callback map
      *
      */
     psub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given pattern
-     *      @param pattern the channel pattern to unsubscribe from
+     * @description Removes every callback of a pattern
+     *
+     *      PUNSUBSCRIBE pattern. All registrations of the pattern are dropped and one
+     *      PUNSUBSCRIBE is sent.
+     *
+     *      @param pattern the pattern to unsubscribe from
      *
      */
     unpsub(pattern: string): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given pattern
-     *      @param pattern the channel pattern to unsubscribe from
-     *      @param func the callback function to unsubscribe
+     * @description Removes one callback registration of a pattern
+     *
+     *      Removes the registration made by one psub() call; the PUNSUBSCRIBE command is sent only
+     *      when the last registration of the pattern is removed.
+     *
+     *      @param pattern the pattern to unsubscribe from
+     *      @param func the callback registered by psub()
      *
      */
     unpsub(pattern: string, func: (channel: Class_Buffer, message: Class_Buffer, pattern: Class_Buffer)=>void): void;
 
     /**
-     * @description Unsubscribes all callbacks of the given set of patterns
-     *      @param patterns the array of channel patterns to publish
+     * @description Removes every callback of several patterns
+     *
+     *      PUNSUBSCRIBE with all the patterns in one command.
+     *
+     *      @param patterns the array of patterns to unsubscribe from
      *
      */
     unpsub(patterns: any[]): void;
 
     /**
-     * @description Unsubscribes the given callback function of the given set of patterns
-     *      @param map the channel mapping; object property names are used as channel patterns and property values as callback functions
+     * @description Removes the listed callbacks of several patterns
+     *
+     *      The property names of map are the patterns and the property values the callbacks to
+     *      remove. A PUNSUBSCRIBE with the affected patterns is sent when at least one
+     *      registration was removed.
+     *
+     *      @param map the pattern/callback map
      *
      */
     unpsub(map: FIBJS.GeneralObject): void;
 
     /**
-     * @description Queries and sets the error handling function; it is called back when sub encounters an error or the network is interrupted; after the callback occurs, all subs of this object are aborted
+     * @description Event fired when the subscriber connection fails
+     *
+     *      The handler is assigned through the `onsuberror` property (there is no on() method on
+     *      this object) and is called with no arguments when a subscription command reports a
+     *      server error or the network breaks. The subscriptions of the connection are dead from
+     *      that point on: close the connection and open a new one to subscribe again.
      *
      */
     onsuberror: (()=>void) | null;
 
     /**
-     * @description Sends the message to the given channel
+     * @description Publishes a message to a channel
      *
-     *      channel and message may each be a Buffer or a string; a string is encoded as utf8.
+     *      PUBLISH. The number of clients that received the message is returned: 0 when nobody is
+     *      subscribed, and pattern subscribers count as receivers. Publishing happens on a
+     *      normal connection - a connection in subscriber mode cannot publish. channel and
+     *      message are sent byte-for-byte as Buffers.
+     *
      *      @param channel the channel to publish to
      *      @param message the message to publish
-     *      @return the number of clients that received this message
+     *      @return the number of clients that received the message
      *
      */
     pub(channel: Class_Buffer | string, message: Class_Buffer | string): number;
 
     /**
-     * @description Gets the Hash object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     * @description Returns the RedisHash view bound to key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to get
-     *      @return returns the Hash object bound to the given key
+     *      The view is a local object: no command is sent until one of its members runs, and the
+     *      key is captured at call time (as bytes, so a Buffer key is used as given). The view
+     *      maps its members to the HSET/HGET/HINCRBY family; see the RedisHash class for the
+     *      details.
+     *
+     *      Example — a view sends nothing until it is used:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *
+     *      const user = rdb.getHash('user:1'); // no command is sent
+     *      user.set('name', 'alice'); // HSET user:1 name alice
+     *      console.log(rdb.type('user:1')); // hash
+     *      console.log(user.get('name').toString()); // alice
+     *
+     *      rdb.del('user:1');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param key the key the view is bound to
+     *      @return the RedisHash view
      *
      */
     getHash(key: Class_Buffer | string): Class_RedisHash;
 
     /**
-     * @description Gets the List object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     * @description Returns the RedisList view bound to key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to get
-     *      @return returns the List object bound to the given key
+     *      The view is a local object: no command is sent until one of its members runs, and the
+     *      key is captured at call time. It maps its members to the LPUSH/RPUSH/LRANGE family;
+     *      see the RedisList class for the details.
+     *
+     *      @param key the key the view is bound to
+     *      @return the RedisList view
      *
      */
     getList(key: Class_Buffer | string): Class_RedisList;
 
     /**
-     * @description Gets the Set object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     * @description Returns the RedisSet view bound to key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to get
-     *      @return returns the Set object bound to the given key
+     *      The view is a local object: no command is sent until one of its members runs, and the
+     *      key is captured at call time. See the RedisSet class for the members.
+     *
+     *      @param key the key the view is bound to
+     *      @return the RedisSet view
      *
      */
     getSet(key: Class_Buffer | string): Class_RedisSet;
 
     /**
-     * @description Gets the SortedSet object of the given key; this object is a client bound to the given key and only calling its methods operates on the database
+     * @description Returns the RedisSortedSet view bound to key
      *
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to get
-     *      @return returns the SortedSet object bound to the given key
+     *      The view is a local object: no command is sent until one of its members runs, and the
+     *      key is captured at call time. See the RedisSortedSet class for the members.
+     *
+     *      @param key the key the view is bound to
+     *      @return the RedisSortedSet view
      *
      */
     getSortedSet(key: Class_Buffer | string): Class_RedisSortedSet;
 
     /**
-     * @description Serializes the given key and returns the serialized value; the value can be deserialized back into a Redis key with the restore command; a string key is encoded as utf8
-     *      key may be a Buffer or a string; a string is encoded as utf8.
+     * @description Serializes the value stored at key
+     *
+     *      DUMP. The result is the RDB payload as a Buffer and may hold arbitrary bytes; a
+     *      missing key returns null. Feed the payload to restore to rebuild the key.
+     *
      *      @param key the key to serialize
-     *      @return returns the serialized value, or null if key does not exist
+     *      @return the payload as a Buffer, or null when key does not exist
      *
      */
     dump(key: Class_Buffer | string): Class_Buffer;
 
     /**
-     * @description Deserializes the given serialized value and associates it with the given key; strings are encoded as utf8
-     *      key may be a Buffer or a string; a string is encoded as utf8.
-     *      @param key the key to deserialize to
-     *      data may be a Buffer or a string; a string is encoded as utf8.
-     *      @param data the data to deserialize
-     *      @param ttl the time to live for key in milliseconds; if ttl is 0, no time to live is set
+     * @description Rebuilds a key from a payload produced by dump
+     *
+     *      RESTORE key ttl data. The ttl is in milliseconds and 0 keeps the key persistent; the
+     *      payload is sent byte-for-byte, so a Buffer from dump round-trips unchanged. The server
+     *      rejects the command with error 20024 when the key already exists or when the payload
+     *      is not a valid dump. No result is reported.
+     *
+     *      @param key the key to rebuild
+     *      @param data the payload returned by dump
+     *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
     restore(key: Class_Buffer | string, data: Class_Buffer | string, ttl?: number): void;
 
     /**
-     * @description Closes the current database connection or transaction
+     * @description Closes the connection
+     *
+     *      The socket is released and every command on the object afterwards fails with 20009;
+     *      close is also the only command accepted by a connection in subscriber mode. The member
+     *      is not idempotent: a second close reports `Redis: connection is closed.` with number
+     *      20009.
+     *
      */
     close(): void;
 

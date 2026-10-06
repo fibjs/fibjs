@@ -1,11 +1,59 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Deflate compression codec, compresses data with the deflate algorithm (zlib format)
+ * @description Deflate is the Node.js compatible codec that compresses data to the zlib format
+ *
+ *  `new zlib.Deflate(opts)` builds a synchronous codec; feed chunks with `_processChunk`
+ *  and the zlib flush flags. The zlib format starts with the 0x78 byte and ends with an
+ *  Adler-32 checksum; `zlib.inflate`, `zlib.unzip` and `new zlib.Inflate` decode it. For
+ *  the fibjs stream API use `zlib.createDeflate(to)`; the codec class exists for packages
+ *  such as minizlib and tar. It inherits the members of ZlibCodec.
+ *
+ *  Concepts:
+ *  - **Options**: `level` (default Z_DEFAULT_COMPRESSION, not clamped), `windowBits`
+ *    (default 15; -15 selects raw deflate and 31 the gzip container), `memLevel` (1 to 9,
+ *    default 8) and `strategy` (default Z_DEFAULT_STRATEGY). Unknown keys are ignored.
+ *  - **Streaming**: each `_processChunk` call appends to the current message; Z_FINISH
+ *    ends it and resets the codec for the next message, while Z_SYNC_FLUSH emits the
+ *    pending output without ending it.
+ *
+ *  Example 1 — round trip through Deflate and Inflate:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const packed = new zlib.Deflate()._processChunk('hello, world', C.Z_FINISH);
+ *  console.log(packed[0].toString(16)); // 78
+ *
+ *  const inflate = new zlib.Inflate();
+ *  console.log(inflate._processChunk(packed, C.Z_FINISH).toString()); // hello, world
+ *  ```
+ *
+ *  Example 2 — level 0 stores the data, level 9 compresses it:
+ *  ```JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const data = 'abc'.repeat(1000);
+ *  const stored = new zlib.Deflate({ level: 0 })._processChunk(data, C.Z_FINISH);
+ *  const best = new zlib.Deflate({ level: 9 })._processChunk(data, C.Z_FINISH);
+ *
+ *  console.log(stored.length > best.length); // true
+ *  console.log(zlib.inflate(best).toString() === data); // true
+ *  ```
+ *
  */
 declare class Class_Deflate extends Class_ZlibCodec {
     /**
-     * @description Deflate constructor
+     * @description Creates a deflate codec
+     *
+     *      `opts` may be omitted or empty. The recognized options are `level` (default
+     *      Z_DEFAULT_COMPRESSION, not clamped), `windowBits` (default 15 for the zlib format;
+     *      -15 writes raw deflate and 31 the gzip container), `memLevel` (1 to 9, default 8)
+     *      and `strategy` (default Z_DEFAULT_STRATEGY 0). Creation never throws for a bad
+     *      option: the codec is left closed and the first `_processChunk` throws
+     *      ERR_ZLIB_BINDING_CLOSED.
+     *
      *      @param opts compression options
      *
      */

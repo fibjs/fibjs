@@ -1,21 +1,80 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description This object allows you to store and retrieve data across asynchronous operations
+ * @description AsyncLocalStorage stores a value and makes it available to an asynchronous call chain, similar to thread-local storage; it is used to carry request-scoped data such as a request id, a user or a trace context across callbacks, promises and fibers without passing it as an argument
  *
- *  AsyncLocalStorage can be used to pass data along an asynchronous call chain, similar to thread-local storage. Each asynchronous operation can access the store data from when it was created, without being mixed up with the data of other asynchronous operations.
+ *  An instance holds one store value per asynchronous execution context. The value is set with `run`
+ *  or `enterWith` and read with `getStore`; every asynchronous operation created inside that context
+ *  (timers, I/O callbacks, promises, fibers) inherits the store at creation time, so data does not
+ *  leak between concurrent operations. An instance can store any value; a store explicitly set to
+ *  `undefined` is not distinguishable from no store unless the constructor defaultValue option is
+ *  used.
  *
- *  The following is a simple example:
- *  ```javascript
+ *  Concepts:
+ *
+ *  - **Continuation-local storage**: fibjs attaches the stores of all AsyncLocalStorage instances to
+ *    the asynchronous context of the current fiber; when a callback is scheduled its context is
+ *    captured and restored for the callback and everything it starts. This is why `run` isolates
+ *    concurrent operations while `enterWith` changes the current context in place.
+ *  - **run vs enterWith**: `run(store, callback)` sets the store only for the callback and the
+ *    asynchronous operations it creates, then restores the previous context when the callback
+ *    returns or throws; it also passes extra arguments and returns the callback result.
+ *    `enterWith(store)` changes the store of the current execution context for the remainder of that
+ *    context, without a callback and without automatic restoration; prefer `run` unless a synchronous
+ *    code path needs the change.
+ *  - **Scoping and restoration**: `exit(callback)` temporarily makes the store undefined inside the
+ *    callback and restores it afterwards; `disable()` stops propagation and makes `getStore` return
+ *    the default value until `run` or `enterWith` is called again. Nested calls, of the same instance
+ *    or of different instances, are restored in stack order.
+ *  - **Captured scopes**: `AsyncLocalStorage.snapshot()` and `AsyncLocalStorage.bind(fn)` capture the
+ *    context at call time and run a function inside it later; they are the recommended way to keep
+ *    the correct store in event callbacks that outlive the context.
+ *  - **Node.js comparison**: the API matches Node.js `async_hooks.AsyncLocalStorage`, including the
+ *    static `bind`/`snapshot` methods and the `name` property; the Node.js `withScope` helper for
+ *    `using` declarations is not provided, use `run` or `exit` instead.
+ *
+ *  Import:
+ *  ```JavaScript
+ *  const { AsyncLocalStorage } = require('async_hooks');
+ *  ```
+ *
+ *  Example 1 — request-scoped store across timers:
+ *  ```JavaScript
  *  const { AsyncLocalStorage } = require('async_hooks');
  *  const als = new AsyncLocalStorage();
  *
  *  als.run({ requestId: 'req-123' }, () => {
  *      setTimeout(() => {
- *          const store = als.getStore();
- *          console.log(store.requestId);  // Output: req-123
- *      }, 100);
+ *          // the callback was created inside run, so the store is still there
+ *          console.log(als.getStore().requestId); // req-123
+ *      }, 10);
  *  });
+ *
+ *  console.log(als.getStore()); // undefined
+ *  ```
+ *
+ *  Example 2 — bind a function and call it later outside the context:
+ *  ```JavaScript
+ *  const { AsyncLocalStorage } = require('async_hooks');
+ *  const als = new AsyncLocalStorage();
+ *
+ *  const read = als.run({ id: 1 }, () => AsyncLocalStorage.bind(() => als.getStore().id));
+ *  als.run({ id: 2 }, () => console.log(read())); // 1
+ *  ```
+ *
+ *  Example 3 — exit temporarily hides the store and disable stops tracking:
+ *  ```JavaScript
+ *  const { AsyncLocalStorage } = require('async_hooks');
+ *  const als = new AsyncLocalStorage({ defaultValue: 'default' });
+ *
+ *  als.run('run', () => {
+ *      console.log(als.getStore()); // run
+ *      console.log(als.exit(() => als.getStore())); // undefined
+ *      console.log(als.getStore()); // run
+ *  });
+ *
+ *  als.disable();
+ *  console.log(als.getStore()); // default
  *  ```
  *
  */
@@ -23,9 +82,19 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Creates a new AsyncLocalStorage instance
      *
-     *      options supports the following options:
-     *       - defaultValue: the default value returned when there is no stored value
-     *       - name: a name for the AsyncLocalStorage instance, for debugging
+     *      Each instance keeps its own set of stores, independent of the other instances. options
+     *      supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "defaultValue": undefined, // value returned by getStore when there is no store
+     *          "name": ""                 // a name for the instance, for debugging; empty by default
+     *      })
+     *      ```
+     *
+     *      defaultValue is returned whenever getStore has no value to return for this instance; it is not
+     *      used inside `exit`, where the store is explicitly undefined. name accepts any value, is
+     *      converted to a string and is read back through the `name` property.
      *
      *      @param options an optional object used to configure the AsyncLocalStorage instance
      *
@@ -35,7 +104,9 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Gets the name of the AsyncLocalStorage instance
      *
-     *      The name is set via options.name when the instance is created, for debugging purposes. If not set, an empty string is returned.
+     *      The name is set through options.name when the instance is created, for debugging purposes; a
+     *      non-string value is converted to its string form. If the option is omitted, an empty string is
+     *      returned.
      *
      */
     readonly name: string;
@@ -43,16 +114,21 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Creates a snapshot function that captures the current asynchronous context
      *
-     *      The returned function can be called at any time and executes the passed callback in the context captured at snapshot time.
+     *      The returned function can be called at any time; it runs the callback passed to it, plus any
+     *      extra arguments, in the context captured at snapshot time, and returns the callback result. The
+     *      restoration is temporary, so the caller's context is active again after the call.
+     *      AsyncLocalStorage.snapshot() can replace AsyncResource for simple context tracking, for example
+     *      storing a snapshot in a class field and calling it from methods invoked elsewhere.
      *
-     *      Example:
-     *      ```javascript
+     *      Example — capture a context and restore it inside another run:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
      *      const runInContext = als.run({ id: 1 }, () => AsyncLocalStorage.snapshot());
-     *      // Later in a different context
      *      als.run({ id: 2 }, () => {
-     *          runInContext(() => {
-     *              console.log(als.getStore().id);  // Output: 1
-     *          });
+     *          console.log(runInContext(() => als.getStore().id)); // 1
+     *          console.log(als.getStore().id); // 2, the current context was restored
      *      });
      *      ```
      *
@@ -64,17 +140,20 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Binds a function to the current asynchronous context
      *
-     *      Returns a new function that executes the original function in the asynchronous context captured at bind time when called.
-     *      This is useful for ensuring that callbacks execute in the correct context.
+     *      Returns a new function that restores the asynchronous context captured at bind time, calls fn
+     *      with the arguments and `this` it receives, and returns the result; the caller's context is
+     *      active again after the call. This is useful for event callbacks that may run long after the
+     *      context was entered. The capture happens when bind is called, not when the bound function runs,
+     *      so it must be called while the context to preserve is active. Node.js provides the same static
+     *      method.
      *
-     *      Example:
-     *      ```javascript
-     *      const bound = als.run({ id: 1 }, () => {
-     *          return AsyncLocalStorage.bind(() => als.getStore());
-     *      });
-     *      als.run({ id: 2 }, () => {
-     *          console.log(bound().id);  // Output: 1
-     *      });
+     *      Example — bind inside one run and call the function inside another:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
+     *      const bound = als.run({ id: 1 }, () => AsyncLocalStorage.bind(() => als.getStore().id));
+     *      als.run({ id: 2 }, () => console.log(bound())); // 1
      *      ```
      *
      *      @param fn the function to bind
@@ -86,7 +165,23 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Disables the current AsyncLocalStorage instance
      *
-     *      After calling this method, getStore() returns undefined (unless defaultValue is set), and store data is no longer propagated to subsequent asynchronous operations.
+     *      After calling this method, getStore returns the defaultValue (or undefined when none is set),
+     *      the store of the current context is removed, and stores are no longer propagated to
+     *      asynchronous operations created from now on. The instance becomes usable again after `run` or
+     *      `enterWith` is called, both of which clear the disabled state.
+     *
+     *      Node.js provides the same member and also requires it before the instance can be collected.
+     *
+     *      Example — disable, then re-enable with run:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
+     *      als.run('first', () => console.log(als.getStore())); // first
+     *      als.disable();
+     *      console.log(als.getStore()); // undefined
+     *      als.run('second', () => console.log(als.getStore())); // second
+     *      ```
      *
      */
     disable(): void;
@@ -94,8 +189,10 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Gets the store data of the current asynchronous context
      *
-     *      If called within a context set by run() or enterWith(), returns the corresponding store data.
-     *      If not within any context, returns undefined or the defaultValue specified when the instance was created.
+     *      If called inside a context set by `run` or `enterWith`, the store of that context is returned;
+     *      `exit` temporarily makes it undefined. If the instance has no store for the current context,
+     *      the defaultValue option of the constructor is returned, and undefined when no default was set.
+     *      Calling getStore on a disabled instance returns the default value.
      *
      *      @return returns the store data of the current context
      *
@@ -105,16 +202,21 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Enters a new asynchronous context and sets the store data
      *
-     *      Unlike run(), enterWith() does not require a callback function; it sets the store data in the current execution context,
-     *      and the data is propagated to all subsequent asynchronous operations until the current asynchronous context ends.
+     *      Unlike run, enterWith does not require a callback: it replaces the store of the current
+     *      execution context, so the new value is seen by the rest of the synchronous code and by every
+     *      asynchronous operation created afterwards in that context. Previously created and sibling
+     *      contexts keep their own values, and there is no automatic restoration; use `run` when the store
+     *      must be scoped to one call.
      *
-     *      Example:
-     *      ```javascript
+     *      Example — enterWith persists through the operations created after it:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
      *      setImmediate(() => {
      *          als.enterWith({ id: 1 });
-     *          setTimeout(() => {
-     *              console.log(als.getStore().id);  // Output: 1
-     *          }, 100);
+     *          console.log(als.getStore().id); // 1
+     *          setTimeout(() => console.log(als.getStore().id), 5); // 1
      *      });
      *      ```
      *
@@ -126,17 +228,25 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Runs a callback function in a new asynchronous context
      *
-     *      Creates a new asynchronous context, sets the store data in that context, and then executes the callback function.
-     *      The callback function and all asynchronous operations it triggers can obtain the store data through getStore().
-     *      After the callback finishes executing, the context automatically restores to the state before run() was called.
+     *      Creates a new context, sets the store data in it, then calls callback with the extra arguments
+     *      passed to run and returns its result. The callback and every asynchronous operation created
+     *      inside it can read the store through getStore; when the callback returns or throws, the
+     *      previous context is restored, so the store never leaks to the caller.
      *
-     *      Example:
-     *      ```javascript
+     *      This is the preferred way to set a store. If callback throws, the error is propagated to the
+     *      caller of run after the context is restored.
+     *
+     *      Example — the store follows asynchronous operations, not the caller:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
      *      const result = als.run({ userId: 'user-1' }, (a, b) => {
-     *          console.log(als.getStore().userId);  // Output: user-1
+     *          console.log(als.getStore().userId); // user-1
      *          return a + b;
      *      }, 10, 20);
-     *      console.log(result);  // Output: 30
+     *
+     *      console.log(result, als.getStore()); // 30 undefined
      *      ```
      *
      *      @param store the data to store
@@ -150,17 +260,20 @@ declare class Class_AsyncLocalStorage extends Class_object {
     /**
      * @description Temporarily exits the current asynchronous context to execute a callback function
      *
-     *      During the callback execution, getStore() returns undefined (or defaultValue).
-     *      After the callback finishes executing, the original context is restored.
+     *      During the callback, getStore returns undefined even when the instance has a defaultValue; the
+     *      asynchronous operations created inside the callback inherit the exited context. When the
+     *      callback returns or throws, the original context is restored. The callback result is returned
+     *      and extra arguments are passed through.
      *
-     *      Example:
-     *      ```javascript
+     *      Example — the store is hidden inside exit and restored afterwards:
+     *      ```JavaScript
+     *      const { AsyncLocalStorage } = require('async_hooks');
+     *      const als = new AsyncLocalStorage();
+     *
      *      als.run({ id: 1 }, () => {
-     *          console.log(als.getStore().id);  // Output: 1
-     *          als.exit(() => {
-     *              console.log(als.getStore());  // Output: undefined
-     *          });
-     *          console.log(als.getStore().id);  // Output: 1
+     *          console.log(als.getStore().id); // 1
+     *          console.log(als.exit(() => als.getStore())); // undefined
+     *          console.log(als.getStore().id); // 1
      *      });
      *      ```
      *

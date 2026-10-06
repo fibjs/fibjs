@@ -3,14 +3,137 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Http2Stream.d.ts" />
 /**
- * @description Http2Session represents an active HTTP/2 session, managing the connection and all streams
+ * @description an HTTP/2 session: a TLS connection shared by many concurrent streams with its settings and lifecycle
  *
- * Http2Session instances should not be constructed directly by users. The server creates one when receiving a new HTTP/2 connection. Clients use http2.connect() to create a session.
+ *  Http2Session represents a connection that has completed the HTTP/2 handshake
+ * (SETTINGS exchange). It multiplexes independent Http2Stream objects and owns the
+ * connection-level state: local and remote settings, flow-control windows, PING and
+ * GOAWAY. Instances are created by fibjs, never by `new Http2Session()`.
+ *
+ *  Concepts:
+ *
+ *  - **Settings exchange**: each peer sends a SETTINGS frame with its limits (header table
+ *    size, push, max concurrent streams, initial window size, max frame size, max header
+ *    list size); `localSettings`/`remoteSettings` report the effective values of each side.
+ *    Until the exchange completes the returned values can still be the protocol defaults.
+ *  - **Flow control**: streams and the connection have independent receive windows; fibjs
+ *    enlarges them automatically while data is consumed, so applications rarely manage
+ *    windows or WINDOW_UPDATE frames explicitly.
+ *  - **Lifecycle**: `close()` is graceful - it sends GOAWAY(NO_ERROR), lets pending data
+ *    finish and closes the connection; `destroy()` is immediate - it aborts the transport
+ *    and kills every stream (a blocked read returns null). Both are idempotent. `closed`
+ *    becomes true on close(), on a sent/received GOAWAY or when the transport ends;
+ *    `destroyed` is true after destroy() or a transport failure.
+ *  - **Request dispatch**: on a server session, `stream` is emitted for every request with
+ *    the request headers; on a client session, use `request()` to create streams. In
+ *    Node.js this event is emitted on the server object instead.
+ *  - **Node.js differences**: there is no `session.close` event and the declared `goaway`
+ *    and `error` events are not dispatched by the current implementation - check `closed`
+ *    instead; `ping()` returns 0 and takes no callback (the round-trip time is not
+ *    measured); `request()` supports only the `endStream` option; there is no settings
+ *    callback, no `type`/`originSet`/`connecting` properties and no server push API.
+ *
+ *  Obtained from:
+ *  - `http2.connect(authority, options)` — the client session of a new connection;
+ *  - the `session` event of Http2Server — the server session of an accepted connection.
+ *
+ *  Example 1 — a client session: properties, one request, and close:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const tls = require('tls');
+ *  const crypto = require('crypto');
+ *
+ *  const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const ca = crypto.createCertificateRequest({
+ *      key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+ *  }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+ *  const crt = crypto.createCertificateRequest({
+ *      key: srvKey.privateKey, subject: { CN: 'localhost' }
+ *  }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+ *  const ctx = tls.createSecureContext({
+ *      key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+ *  }, true);
+ *
+ *  const server = new http2.Server(ctx, 0, function () { });
+ *  server.on('session', (session) => {
+ *      session.on('stream', (stream, headers) => {
+ *          stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+ *          stream.write('session demo');
+ *          stream.close();
+ *      });
+ *  });
+ *  server.start();
+ *
+ *  const session = http2.connect('https://localhost:' + server.socket.localPort, {
+ *      rejectUnauthorized: false, rejectUnverified: false
+ *  });
+ *  console.log(session.closed, session.destroyed); // false false
+ *  console.log(session.alpnProtocol); // h2
+ *
+ *  const stream = session.request({ ':method': 'GET', ':path': '/' });
+ *  console.log(stream.read().toString()); // session demo
+ *
+ *  session.close();
+ *  console.log(session.closed); // true
+ *  server.stop();
+ *  ```
+ *
+ *  Example 2 — a server session serves two requests over one connection:
+ *  ```JavaScript
+ *  const http2 = require('http2');
+ *  const tls = require('tls');
+ *  const crypto = require('crypto');
+ *
+ *  const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+ *  const ca = crypto.createCertificateRequest({
+ *      key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+ *  }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+ *  const crt = crypto.createCertificateRequest({
+ *      key: srvKey.privateKey, subject: { CN: 'localhost' }
+ *  }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+ *  const ctx = tls.createSecureContext({
+ *      key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+ *  }, true);
+ *
+ *  let connections = 0;
+ *  const server = new http2.Server(ctx, 0, function () { });
+ *  server.on('session', (session) => {
+ *      connections += 1;
+ *      session.on('stream', (stream, headers) => {
+ *          stream.respond({ ':status': 200 });
+ *          stream.write('request ' + headers[':path']);
+ *          stream.close();
+ *      });
+ *  });
+ *  server.start();
+ *
+ *  const session = http2.connect('https://localhost:' + server.socket.localPort, {
+ *      rejectUnauthorized: false, rejectUnverified: false
+ *  });
+ *  const one = session.request({ ':method': 'GET', ':path': '/one' });
+ *  const two = session.request({ ':method': 'GET', ':path': '/two' });
+ *  console.log(one.read().toString()); // request /one
+ *  console.log(two.read().toString()); // request /two
+ *  console.log('connections:', connections); // connections: 1
+ *
+ *  session.close();
+ *  server.stop();
+ *  ```
  *
  */
 declare class Class_Http2Session extends Class_EventEmitter {
     /**
-     * @description queries the remote settings of this session
+     * @description queries the effective settings advertised by the remote peer
+     *
+     *      Returns a new object with headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize. The values describe the
+     *      limits the peer asked this session to respect. Before the peer's SETTINGS frame has
+     *      been processed they can still be protocol defaults (maxConcurrentStreams
+     *      4294967295, initialWindowSize 65535, maxFrameSize 16384); after a round trip they
+     *      reflect the exchange. Throws when the session is destroyed.
+     *
      */
     readonly remoteSettings: {
         headerTableSize: number;
@@ -22,7 +145,14 @@ declare class Class_Http2Session extends Class_EventEmitter {
     };
 
     /**
-     * @description queries the local settings of this session
+     * @description queries the settings this session advertises to the peer
+     *
+     *      Returns a new object with headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize. A new session advertises
+     *      maxConcurrentStreams 100 and initialWindowSize 1 MiB in its initial SETTINGS frame;
+     *      the values become visible here after the peer acknowledges them, and settings()
+     *      updates them. Throws when the session is destroyed.
+     *
      */
     readonly localSettings: {
         headerTableSize: number;
@@ -34,36 +164,128 @@ declare class Class_Http2Session extends Class_EventEmitter {
     };
 
     /**
-     * @description queries whether the session is destroyed
+     * @description queries whether the session has been destroyed
+     *
+     *      True after destroy() or a transport failure; a destroyed session is also closed and
+     *      every stream on it is destroyed. Reads on such streams return null (or throw when
+     *      they were reset) and new requests are refused.
+     *
      */
     readonly destroyed: boolean;
 
     /**
      * @description queries whether the session is closed
+     *
+     *      True after close(), after a GOAWAY frame has been sent or received, or when the
+     *      transport ended; `destroyed` implies `closed`. A closed session accepts no new
+     *      request() calls; streams that are still open can keep receiving data until the peer
+     *      finishes them.
+     *
      */
     readonly closed: boolean;
 
     /**
-     * @description queries the ALPN protocol negotiated by this session
+     * @description queries the ALPN protocol negotiated by the underlying TLS connection
+     *
+     *      Returns 'h2' when the TLS handshake negotiated HTTP/2 (the normal case) and
+     *      undefined when no ALPN protocol was agreed, for example when the server
+     *      SecureContext has no `alpnProtocols`. fibjs creates HTTP/2 sessions over TLS only,
+     *      so this is 'h2' or undefined, never 'h2c'.
+     *
      */
     readonly alpnProtocol: string;
 
     /**
-     * @description queries the underlying TLSSocket of this session
+     * @description queries the underlying transport of the session
+     *
+     *      Returns the TLSSocket of the connection (a Stream), stable for the life of the
+     *      session. The socket can be used to inspect the peer or to abort() the connection,
+     *      which closes the session and all its streams (the session then reports `closed`).
+     *
      */
     readonly socket: Class_Stream;
 
     /**
-     * @description initiates a new HTTP/2 stream to send a request (client only)
-     *      @param headers an object containing request headers; must contain the :method and :path pseudo-headers
-     *      @param options optional stream creation options
-     *      @return returns the Http2Stream object of the new request
+     * @description creates a new stream and sends a request (client session only)
+     *
+     *      headers is a plain object with the request headers. The pseudo-headers `:method`
+     *      (default GET), `:path` (default /), `:scheme` (default https) and `:authority`
+     *      (default the connect target) are filled in when missing and sent before the regular
+     *      headers.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options object
+     *      ({
+     *          "endStream": true // send the request headers with END_STREAM (no body);
+     *                            // default true for GET/HEAD, false for other methods
+     *      })
+     *      ```
+     *
+     *      With `endStream` true the returned stream has no request body to write; with false
+     *      the body must be sent with write()/end(), but closing a client stream closes the
+     *      whole stream in the current implementation, so the response can no longer be read.
+     *      Use HttpClient for requests with a body. Throws when called on a server session or
+     *      on a closed/destroyed session.
+     *
+     *      Example — a request with custom headers:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+     *              stream.write(headers['x-token'] + ' ' + headers[':path']);
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      const stream = session.request({
+     *          ':method': 'GET', ':path': '/headers', 'x-token': 'abc'
+     *      });
+     *      console.log(stream.read().toString()); // abc /headers
+     *      console.log(stream.headers[':status']); // 200
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
+     *      @param headers an object containing the request headers; missing pseudo-headers are filled in
+     *      @param options optional stream creation options; only endStream is used
+     *      @return returns the Http2Stream of the new request
      *
      */
     request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
-     * @description sends a GOAWAY frame to the remote end and gracefully closes the session
+     * @description sends a GOAWAY frame to the peer
+     *
+     *      code is an HTTP/2 error code (0 = NGHTTP2_NO_ERROR; see http2_constants) and
+     *      lastStreamId the last stream this side will process (0 = none). The frame is queued
+     *      and flushed; the session is not closed locally by this call (`closed` stays false
+     *      until close(), destroy() or the transport ends, and a received GOAWAY also sets
+     *      `closed`). The declared `goaway` event is not dispatched by the current
+     *      implementation; poll `closed` instead. Throws when the session is destroyed.
+     *
      *      @param code HTTP/2 error code, default is NGHTTP2_NO_ERROR (0)
      *      @param lastStreamId the last locally processed stream ID, default is 0
      *
@@ -71,8 +293,14 @@ declare class Class_Http2Session extends Class_EventEmitter {
     goaway(code?: number, lastStreamId?: number): void;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     ping(): number;
@@ -80,50 +308,180 @@ declare class Class_Http2Session extends Class_EventEmitter {
     ping(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     pingSync(): number;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     pingAsync(): Promise<number>;
 
     /**
-     * @description updates the local settings of this session
+     * @description updates the settings this session advertises to the peer
+     *
+     *      settings may contain headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize; unknown keys are ignored. A
+     *      SETTINGS frame with the given values is submitted and flushed asynchronously, and
+     *      the peer applies them after acknowledging the frame. Throws when the session is
+     *      destroyed.
+     *
+     *      Example — tune the session and ping the peer:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200 });
+     *              stream.write('ok');
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      session.settings({ maxConcurrentStreams: 50, initialWindowSize: 1 << 20 });
+     *      const stream = session.request({ ':method': 'GET', ':path': '/' });
+     *      console.log(stream.read().toString()); // ok
+     *      console.log(session.ping()); // 0
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
      *      @param settings an object containing the settings to update
      *
      */
     settings(settings: FIBJS.GeneralObject): void;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     close(): void;
 
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     closeSync(): void;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description immediately destroys the session, aborting all streams
+     * @description immediately destroys the session and all its streams
+     *
+     *      Aborts the underlying transport, destroys every Http2Stream (a blocked read()
+     *      returns null) and sets both `destroyed` and `closed`. Unlike close(), no GOAWAY is
+     *      sent and no pending data is flushed. Calling it again is a no-op.
+     *
+     *      Example — destroy a session with a request in flight:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          // the request is deliberately left unanswered
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      const stream = session.request({ ':method': 'GET', ':path': '/never' });
+     *      session.destroy();
+     *      console.log(stream.read()); // null
+     *      console.log(stream.destroyed, session.destroyed); // true true
+     *
+     *      server.stop();
+     *      ```
+     *
      */
     destroy(): void;
 
     /**
-     * @description emitted when a new stream is created (server)
+     * @description emitted for every request on a server session
+     *
+     *      The listener receives the newly created Http2Stream and the request headers object
+     *      (`:method`, `:path`, ...). Register the listener synchronously inside the server
+     *      `session` event: the server emits `session` before it starts reading, and a stream
+     *      that arrives before registration would not be delivered. Client sessions do not emit
+     *      this event; use request() there.
+     *
      *      @param stream the newly created Http2Stream
      *      @param headers request headers object
      *
@@ -147,7 +505,14 @@ declare class Class_Http2Session extends Class_EventEmitter {
     prependOnceListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
 
     /**
-     * @description emitted when a new stream is created (server)
+     * @description emitted for every request on a server session
+     *
+     *      The listener receives the newly created Http2Stream and the request headers object
+     *      (`:method`, `:path`, ...). Register the listener synchronously inside the server
+     *      `session` event: the server emits `session` before it starts reading, and a stream
+     *      that arrives before registration would not be delivered. Client sessions do not emit
+     *      this event; use request() there.
+     *
      *      @param stream the newly created Http2Stream
      *      @param headers request headers object
      *
@@ -156,6 +521,11 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     /**
      * @description emitted when the session receives a GOAWAY frame
+     *
+     *      Note: the current implementation records a received GOAWAY in `closed` but does not
+     *      dispatch this event; listen on it only for forward compatibility and poll `closed`
+     *      instead.
+     *
      */
     on(event: "goaway", listener: ()=>void): this;
 
@@ -177,11 +547,20 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     /**
      * @description emitted when the session receives a GOAWAY frame
+     *
+     *      Note: the current implementation records a received GOAWAY in `closed` but does not
+     *      dispatch this event; listen on it only for forward compatibility and poll `closed`
+     *      instead.
+     *
      */
     ongoaway: (()=>void) | null;
 
     /**
      * @description emitted when an error occurs on the session
+     *
+     *      Note: the current implementation does not dispatch this event; transport failures
+     *      surface on the affected streams (read() throws or returns null) and on `closed`.
+     *
      *      @param err error object
      *
      */
@@ -205,6 +584,10 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     /**
      * @description emitted when an error occurs on the session
+     *
+     *      Note: the current implementation does not dispatch this event; transport failures
+     *      surface on the affected streams (read() throws or returns null) and on `closed`.
+     *
      *      @param err error object
      *
      */
@@ -258,7 +641,15 @@ declare class Class_Http2Session extends Class_EventEmitter {
  */
 declare class Class_Http2SessionPromise extends Class_EventEmitter {
     /**
-     * @description queries the remote settings of this session
+     * @description queries the effective settings advertised by the remote peer
+     *
+     *      Returns a new object with headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize. The values describe the
+     *      limits the peer asked this session to respect. Before the peer's SETTINGS frame has
+     *      been processed they can still be protocol defaults (maxConcurrentStreams
+     *      4294967295, initialWindowSize 65535, maxFrameSize 16384); after a round trip they
+     *      reflect the exchange. Throws when the session is destroyed.
+     *
      */
     readonly remoteSettings: {
         headerTableSize: number;
@@ -270,7 +661,14 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
     };
 
     /**
-     * @description queries the local settings of this session
+     * @description queries the settings this session advertises to the peer
+     *
+     *      Returns a new object with headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize. A new session advertises
+     *      maxConcurrentStreams 100 and initialWindowSize 1 MiB in its initial SETTINGS frame;
+     *      the values become visible here after the peer acknowledges them, and settings()
+     *      updates them. Throws when the session is destroyed.
+     *
      */
     readonly localSettings: {
         headerTableSize: number;
@@ -282,36 +680,128 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
     };
 
     /**
-     * @description queries whether the session is destroyed
+     * @description queries whether the session has been destroyed
+     *
+     *      True after destroy() or a transport failure; a destroyed session is also closed and
+     *      every stream on it is destroyed. Reads on such streams return null (or throw when
+     *      they were reset) and new requests are refused.
+     *
      */
     readonly destroyed: boolean;
 
     /**
      * @description queries whether the session is closed
+     *
+     *      True after close(), after a GOAWAY frame has been sent or received, or when the
+     *      transport ended; `destroyed` implies `closed`. A closed session accepts no new
+     *      request() calls; streams that are still open can keep receiving data until the peer
+     *      finishes them.
+     *
      */
     readonly closed: boolean;
 
     /**
-     * @description queries the ALPN protocol negotiated by this session
+     * @description queries the ALPN protocol negotiated by the underlying TLS connection
+     *
+     *      Returns 'h2' when the TLS handshake negotiated HTTP/2 (the normal case) and
+     *      undefined when no ALPN protocol was agreed, for example when the server
+     *      SecureContext has no `alpnProtocols`. fibjs creates HTTP/2 sessions over TLS only,
+     *      so this is 'h2' or undefined, never 'h2c'.
+     *
      */
     readonly alpnProtocol: string;
 
     /**
-     * @description queries the underlying TLSSocket of this session
+     * @description queries the underlying transport of the session
+     *
+     *      Returns the TLSSocket of the connection (a Stream), stable for the life of the
+     *      session. The socket can be used to inspect the peer or to abort() the connection,
+     *      which closes the session and all its streams (the session then reports `closed`).
+     *
      */
     readonly socket: Class_StreamPromise;
 
     /**
-     * @description initiates a new HTTP/2 stream to send a request (client only)
-     *      @param headers an object containing request headers; must contain the :method and :path pseudo-headers
-     *      @param options optional stream creation options
-     *      @return returns the Http2Stream object of the new request
+     * @description creates a new stream and sends a request (client session only)
+     *
+     *      headers is a plain object with the request headers. The pseudo-headers `:method`
+     *      (default GET), `:path` (default /), `:scheme` (default https) and `:authority`
+     *      (default the connect target) are filled in when missing and sent before the regular
+     *      headers.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options object
+     *      ({
+     *          "endStream": true // send the request headers with END_STREAM (no body);
+     *                            // default true for GET/HEAD, false for other methods
+     *      })
+     *      ```
+     *
+     *      With `endStream` true the returned stream has no request body to write; with false
+     *      the body must be sent with write()/end(), but closing a client stream closes the
+     *      whole stream in the current implementation, so the response can no longer be read.
+     *      Use HttpClient for requests with a body. Throws when called on a server session or
+     *      on a closed/destroyed session.
+     *
+     *      Example — a request with custom headers:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+     *              stream.write(headers['x-token'] + ' ' + headers[':path']);
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      const stream = session.request({
+     *          ':method': 'GET', ':path': '/headers', 'x-token': 'abc'
+     *      });
+     *      console.log(stream.read().toString()); // abc /headers
+     *      console.log(stream.headers[':status']); // 200
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
+     *      @param headers an object containing the request headers; missing pseudo-headers are filled in
+     *      @param options optional stream creation options; only endStream is used
+     *      @return returns the Http2Stream of the new request
      *
      */
     request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
-     * @description sends a GOAWAY frame to the remote end and gracefully closes the session
+     * @description sends a GOAWAY frame to the peer
+     *
+     *      code is an HTTP/2 error code (0 = NGHTTP2_NO_ERROR; see http2_constants) and
+     *      lastStreamId the last stream this side will process (0 = none). The frame is queued
+     *      and flushed; the session is not closed locally by this call (`closed` stays false
+     *      until close(), destroy() or the transport ends, and a received GOAWAY also sets
+     *      `closed`). The declared `goaway` event is not dispatched by the current
+     *      implementation; poll `closed` instead. Throws when the session is destroyed.
+     *
      *      @param code HTTP/2 error code, default is NGHTTP2_NO_ERROR (0)
      *      @param lastStreamId the last locally processed stream ID, default is 0
      *
@@ -319,55 +809,191 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
     goaway(code?: number, lastStreamId?: number): void;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     ping(): Promise<number>;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     pingSync(): number;
 
     /**
-     * @description sends a PING frame to the remote end
-     *      @return returns the round-trip time (milliseconds)
+     * @description sends a PING frame to the peer
+     *
+     *      The PING is submitted and written, and the call returns 0; it does not wait for the
+     *      PING ACK and the current implementation does not measure the round-trip time (the
+     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      the session is destroyed; a broken transport fails with EPIPE.
+     *
+     *      @return returns 0; the round-trip time is not measured currently
      *
      */
     pingAsync(): Promise<number>;
 
     /**
-     * @description updates the local settings of this session
+     * @description updates the settings this session advertises to the peer
+     *
+     *      settings may contain headerTableSize, enablePush, maxConcurrentStreams,
+     *      initialWindowSize, maxFrameSize and maxHeaderListSize; unknown keys are ignored. A
+     *      SETTINGS frame with the given values is submitted and flushed asynchronously, and
+     *      the peer applies them after acknowledging the frame. Throws when the session is
+     *      destroyed.
+     *
+     *      Example — tune the session and ping the peer:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          session.on('stream', (stream, headers) => {
+     *              stream.respond({ ':status': 200 });
+     *              stream.write('ok');
+     *              stream.close();
+     *          });
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      session.settings({ maxConcurrentStreams: 50, initialWindowSize: 1 << 20 });
+     *      const stream = session.request({ ':method': 'GET', ':path': '/' });
+     *      console.log(stream.read().toString()); // ok
+     *      console.log(session.ping()); // 0
+     *
+     *      session.close();
+     *      server.stop();
+     *      ```
+     *
      *      @param settings an object containing the settings to update
      *
      */
     settings(settings: FIBJS.GeneralObject): void;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     close(): Promise<void>;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     closeSync(): void;
 
     /**
-     * @description gracefully closes the session, allowing existing streams to complete
+     * @description gracefully closes the session
+     *
+     *      Sends GOAWAY(NO_ERROR, 0), stops creating new streams, closes the transport and sets
+     *      `closed`. Streams that are still open finish (their reads return null, or throw when
+     *      they were reset); a broken transport is ignored. Calling close() on an already
+     *      closed session is a no-op; the method can be awaited.
+     *
+     *      See Example 1 of Http2Session for the full client lifecycle.
+     *
      */
     closeAsync(): Promise<void>;
 
     /**
-     * @description immediately destroys the session, aborting all streams
+     * @description immediately destroys the session and all its streams
+     *
+     *      Aborts the underlying transport, destroys every Http2Stream (a blocked read()
+     *      returns null) and sets both `destroyed` and `closed`. Unlike close(), no GOAWAY is
+     *      sent and no pending data is flushed. Calling it again is a no-op.
+     *
+     *      Example — destroy a session with a request in flight:
+     *      ```JavaScript
+     *      const http2 = require('http2');
+     *      const tls = require('tls');
+     *      const crypto = require('crypto');
+     *
+     *      const caKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const srvKey = crypto.generateKeyPair('rsa', { modulusLength: 2048 });
+     *      const ca = crypto.createCertificateRequest({
+     *          key: caKey.privateKey, subject: { CN: 'fibjs.org' }
+     *      }).issue({ key: caKey.privateKey, ca: true, issuer: { CN: 'fibjs.org' } });
+     *      const crt = crypto.createCertificateRequest({
+     *          key: srvKey.privateKey, subject: { CN: 'localhost' }
+     *      }).issue({ key: caKey.privateKey, issuer: { CN: 'fibjs.org' } });
+     *      const ctx = tls.createSecureContext({
+     *          key: srvKey.privateKey.export(), cert: crt.pem, requestCert: false, alpnProtocols: ['h2']
+     *      }, true);
+     *
+     *      const server = new http2.Server(ctx, 0, function () { });
+     *      server.on('session', (session) => {
+     *          // the request is deliberately left unanswered
+     *      });
+     *      server.start();
+     *
+     *      const session = http2.connect('https://localhost:' + server.socket.localPort, {
+     *          rejectUnauthorized: false, rejectUnverified: false
+     *      });
+     *      const stream = session.request({ ':method': 'GET', ':path': '/never' });
+     *      session.destroy();
+     *      console.log(stream.read()); // null
+     *      console.log(stream.destroyed, session.destroyed); // true true
+     *
+     *      server.stop();
+     *      ```
+     *
      */
     destroy(): void;
 
     /**
-     * @description emitted when a new stream is created (server)
+     * @description emitted for every request on a server session
+     *
+     *      The listener receives the newly created Http2Stream and the request headers object
+     *      (`:method`, `:path`, ...). Register the listener synchronously inside the server
+     *      `session` event: the server emits `session` before it starts reading, and a stream
+     *      that arrives before registration would not be delivered. Client sessions do not emit
+     *      this event; use request() there.
+     *
      *      @param stream the newly created Http2Stream
      *      @param headers request headers object
      *
@@ -376,11 +1002,20 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
 
     /**
      * @description emitted when the session receives a GOAWAY frame
+     *
+     *      Note: the current implementation records a received GOAWAY in `closed` but does not
+     *      dispatch this event; listen on it only for forward compatibility and poll `closed`
+     *      instead.
+     *
      */
     ongoaway: (()=>void) | null;
 
     /**
      * @description emitted when an error occurs on the session
+     *
+     *      Note: the current implementation does not dispatch this event; transport failures
+     *      surface on the affected streams (read() throws or returns null) and on `closed`.
+     *
      *      @param err error object
      *
      */

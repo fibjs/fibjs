@@ -1,72 +1,152 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description Fiber operation object; this object cannot be created directly
+ * @description The handle of a fiber: identity, lifetime and fiber-local storage
  *
- *  After creating a fiber with coroutine.start, this object is returned and used for fiber handling and inter-fiber communication.
- *  The fiber main function can access this fiber object through this, or get the current fiber through coroutine.current.
+ *  A Fiber object represents one fiber of the current isolate. It is created by the
+ *  runtime and returned by `coroutine.start`; the same object is also `this` inside the
+ *  fiber function and the value returned by `coroutine.current()`, so properties attached
+ *  to it form the fiber-local storage, while its read-only members describe the fiber
+ *  itself. A Fiber cannot be constructed with `new`.
+ *
+ *  Concepts:
+ *
+ *  - **One object per fiber**: every way to reach a running fiber — the value returned by
+ *  `coroutine.start`, `this` in the fiber function, `coroutine.current()` and the entries
+ *  of `coroutine.fibers` — is the same object. Setting a property on it from any of them
+ *  is visible from the others, and the property survives garbage collection while the
+ *  fiber is alive.
+ *  - **No inheritance**: a new fiber starts with an empty property set. The properties of
+ *  the fiber that created it are not copied, while closures keep sharing the variables of
+ *  their defining scope as usual.
+ *  - **Lifetime**: a fiber ends when its function returns or throws. `join()` waits for
+ *  that moment; afterwards the descriptive members are stale — `stack` is empty and
+ *  `stack_usage` no longer describes the fiber.
+ *  - **Introspection**: `id` is unique and increasing inside the isolate; `stack` is a
+ *  textual backtrace for logs; `stack_usage` reports the stack bytes in use for
+ *  diagnostics.
+ *  - **Concurrency model**: a fiber is scheduled by the coroutine module; see that module
+ *  for the scheduling, blocking and process-lifetime rules, and worker_threads for real
+ *  OS threads.
+ *
+ *  Obtained from:
+ *  - `coroutine.start(func[, ...args])` — starts a fiber and returns its object;
+ *  - `coroutine.current()` — the Fiber object of the calling fiber;
+ *  - `coroutine.fibers` — the live fibers of the current isolate.
+ *
+ *  Example 1 — fiber-local storage is not inherited from the creating fiber:
  *  ```JavaScript
- *  function func(v1)
- *  {
- *    console.log(v1 + this.v);
- *  }
+ *  const coroutine = require('coroutine');
  *
- *  var fb = coroutine.start(func,100);
+ *  const parent = coroutine.current();
+ *  parent.value = 100;
  *
- *  fb.v = 123;
+ *  const child = coroutine.start(function () {
+ *      console.log('child sees parent.value:', this.value); // not copied
+ *      this.value = 200;
+ *      console.log('child has its own value:', this.value);
+ *  });
  *
- *  fb.join();
+ *  child.join();
+ *  console.log('parent keeps its value:', parent.value);
+ *  ```
+ *  will output:
+ *  ```sh
+ *  child sees parent.value: undefined
+ *  child has its own value: 200
+ *  parent keeps its value: 100
  *  ```
  *
- *  Fiber-local storage is implemented through the shared Fiber object; get the current fiber through coroutine.current and share data by modifying and querying its variables.
- *
+ *  Example 2 — join a blocked fiber and read its id, stack and stack_usage:
  *  ```JavaScript
- *  function func()
- *  {
- *    console.log(coroutine.current().v);
- *  }
+ *  const coroutine = require('coroutine');
  *
- *  coroutine.current().v = 100;
+ *  const task = coroutine.start(function () {
+ *      coroutine.sleep(30); // blocks, so the fiber has a stack to show
+ *      this.inside = true;
+ *  });
  *
- *  func();
+ *  coroutine.sleep(10);
+ *  console.log('id > 0:', task.id > 0);
+ *  console.log('stack mentions sleep:', task.stack.indexOf('sleep') >= 0);
+ *  console.log('stack bytes in use > 0:', task.stack_usage > 0);
+ *
+ *  task.join();
+ *  console.log('after join the stack is empty:', task.stack === '');
+ *  console.log('flag set inside:', task.inside === true);
  *  ```
- *
- *  When a fiber is created, the local variables of the current fiber are automatically copied to the new fiber; afterwards, modifications to their respective local variables do not affect each other, unless the variable itself is an object reference.
- *
- *  ```JavaScript
- *  function func()
- *  {
- *    console.log(coroutine.current().v);
- *  }
- *
- *  coroutine.current().v = 100;
- *
- *  var fb = coroutine.start(func);
- *
- *  coroutine.current().v = 200;
- *
- *  fb.join();
+ *  will output:
+ *  ```sh
+ *  id > 0: true
+ *  stack mentions sleep: true
+ *  stack bytes in use > 0: true
+ *  after join the stack is empty: true
+ *  flag set inside: true
  *  ```
  *
  */
 declare class Class_Fiber extends Class_object {
     /**
-     * @description Waits for the fiber to finish
+     * @description Waits until the fiber ends
+     *
+     *      The calling fiber is suspended until the target fiber's function returns or throws;
+     *      several fibers may join the same target and all of them resume when it ends. `join`
+     *      does not rethrow an exception raised inside the target: the error is printed as an
+     *      uncaught fiber exception and the join returns normally. Joining the current fiber, or
+     *      two fibers joining each other, blocks the caller forever. The call returns undefined.
+     *
      */
     join(): void;
 
     /**
-     * @description Queries the unique id of the fiber
+     * @description Unique id of the fiber inside its isolate
+     *
+     *      Ids are assigned in creation order, start at 1 and are never reused, which makes them
+     *      a stable key for logs and for the descriptive members. The sequence belongs to an
+     *      isolate (see `coroutine.vmid`), and the main script of a plain program runs on id 2.
+     *
+     *      Example — ids increase and the current fiber has one:
+     *      ```JavaScript
+     *      const coroutine = require('coroutine');
+     *
+     *      const first = coroutine.start(function () { });
+     *      const second = coroutine.start(function () { });
+     *
+     *      console.log('increasing:', second.id > first.id);
+     *      console.log('current fiber has an id:', coroutine.current().id > 0);
+     *
+     *      first.join();
+     *      second.join();
+     *      ```
+     *      will output:
+     *      ```sh
+     *      increasing: true
+     *      current fiber has an id: true
+     *      ```
+     *
      */
     readonly id: number;
 
     /**
-     * @description Queries the call stack of the fiber
+     * @description Textual stack of the fiber
+     *
+     *      For the calling fiber it returns the current JavaScript backtrace (up to 300 frames).
+     *      For another fiber it returns the native frames of the point where that fiber is
+     *      blocked, or an empty string when the fiber is not blocked in native code; after the
+     *      fiber has finished the value is empty. The text is meant for logs and diagnostics.
+     *
      */
     readonly stack: string;
 
     /**
-     * @description Queries the used stack size of the fiber
+     * @description Stack bytes currently in use by the fiber
+     *
+     *      For the calling fiber it measures the stack consumed so far; for another fiber it
+     *      measures the stack from its entry point to the point where it is blocked, and it is 0
+     *      when that information is not available. The value is a diagnostic and is not
+     *      meaningful after the fiber has finished. This is a fibjs extension with no Node.js
+     *      counterpart.
+     *
      */
     readonly stack_usage: number;
 

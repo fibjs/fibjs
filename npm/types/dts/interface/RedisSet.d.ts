@@ -2,83 +2,256 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Redis database client Set object; this object is a client bound to the given key and only calling its methods operates on the database
+ * @description A view of one Redis set key: member operations without repeating the key
  *
- *  Used to operate on a Redis Set object. To create one:
+ *  RedisSet is the object returned by Redis#getSet. It captures the key name once and
+ *  exposes the set command family, where every member maps to one command: add is SADD,
+ *  remove is SREM, len is SCARD, exists is SISMEMBER, members is SMEMBERS, pop is SPOP and
+ *  randMember is SRANDMEMBER. Obtaining the view sends nothing to the server: the binding is
+ *  resolved when its members run.
+ *
+ *  Concepts:
+ *
+ *  - **A view, not a copy**: the object stores the key only and sends no command until one
+ *    of its members runs. A key created after the view was obtained is visible through it,
+ *    and a missing key is not an error - the members report the empty result (len returns 0,
+ *    members returns an empty array, exists returns false, pop returns null) until the key
+ *    exists again.
+ *  - **Member bytes**: exists takes a Buffer|String and sends every byte of a Buffer as
+ *    given, while the array and variadic forms of add and remove convert each element
+ *    through its JavaScript string form - a number is rejected with error 20005 and a Buffer
+ *    is rendered as UTF-8 text (bytes that are not valid UTF-8 become U+FFFD). Binary
+ *    members therefore do not round-trip through add and remove.
+ *  - **Set semantics**: a set holds unique members in no defined order; add ignores members
+ *    that are already present and returns the number of new ones, remove returns the number
+ *    actually removed and ignores missing members.
+ *  - **Random members**: pop removes and returns one random member, while randMember reads
+ *    without removing. The count form caps a positive count at the set size, repeats members
+ *    for a negative count and returns an empty array for a missing key.
+ *  - **Type conflicts**: a member called on a key that holds another type fails with the
+ *    server error (number 20024).
+ *
+ *  Obtained from:
+ *  - `rdb.getSet(key)` — the only factory, where rdb is the Redis object returned by
+ *    db.openRedis. The key is captured at call time and may be a Buffer.
+ *
+ *  Example 1 — add, count and test members:
  *  ```JavaScript
- *  var db = require("db");
- *  var rdb = new db.openRedis("redis-server");
- *  var set = rdb.getSet("test");
+ *  // requires: redis
+ *  const db = require('db');
+ *  const rdb = db.openRedis('redis://127.0.0.1:6379');
+ *  const set = rdb.getSet('tags');
+ *
+ *  console.log(set.add('red', 'green', 'blue')); // 3 - SADD
+ *  console.log(set.add('blue')); // 0 - the member is already present
+ *  console.log(set.add(['blue', 'black'])); // 1 - the array form is SADD too
+ *  console.log(set.len()); // 4
+ *  console.log(set.exists('green')); // true
+ *  console.log(set.exists('grey')); // false
+ *
+ *  rdb.del('tags');
+ *  rdb.close();
+ *  ```
+ *
+ *  Example 2 — read the members and remove some:
+ *  ```JavaScript
+ *  // requires: redis
+ *  const db = require('db');
+ *  const rdb = db.openRedis('redis://127.0.0.1:6379');
+ *  const set = rdb.getSet('tags');
+ *
+ *  set.add('red', 'green', 'blue');
+ *  const all = set.members().map((member) => member.toString()).sort();
+ *  console.log(all.join(',')); // blue,green,red - SMEMBERS order is not defined
+ *
+ *  console.log(set.remove('red', 'grey')); // 1 - grey is not a member
+ *  console.log(set.len()); // 2
+ *
+ *  rdb.del('tags');
+ *  rdb.close();
+ *  ```
+ *
+ *  Example 3 — random members and a missing key:
+ *  ```JavaScript
+ *  // requires: redis
+ *  const db = require('db');
+ *  const rdb = db.openRedis('redis://127.0.0.1:6379');
+ *  const set = rdb.getSet('tags');
+ *
+ *  console.log(set.len()); // 0 - the view itself sends nothing, a missing key is empty
+ *  console.log(set.members().length); // 0
+ *  console.log(set.exists('red')); // false
+ *  console.log(set.pop()); // null
+ *
+ *  const seed = rdb.getSet('seed');
+ *  seed.add('a', 'b', 'c');
+ *  console.log(seed.randMember(2).length); // 2 - up to two distinct members
+ *  console.log(seed.randMember(-5).length); // 5 - repeats are allowed
+ *  console.log(seed.pop().toString().length); // 1 - SPOP removes what it returns
+ *  console.log(seed.len()); // 2
+ *
+ *  rdb.del('seed');
+ *  rdb.close();
  *  ```
  *
  */
 declare class Class_RedisSet extends Class_object {
     /**
-     * @description Adds one or more member elements to the set key; member elements already in the set are ignored
-     *      @param members the array of elements to add
-     *      @return the number of new elements added to the set, excluding ignored elements
+     * @description Adds one or more members to the set key; members already present are ignored
+     *
+     *      SADD. This is the array form: every element of members is sent as one member and the
+     *      element count is unlimited. A missing key is created. Each element goes through its
+     *      JavaScript string form - a number is rejected with error 20005 and a Buffer is
+     *      rendered as UTF-8 text - so exists is the way to test binary members.
+     *
+     *      @param members the array of members to add
+     *      @return the number of new members added, existing members excluded
+     *
      */
     add(members: any[]): number;
 
     /**
-     * @description Sets multiple field-value pairs in the hash table at the same time; this command overwrites existing fields in the hash table
-     *      @param members the list of elements to add
-     *      @return the number of new elements added to the set, excluding ignored elements
+     * @description Adds one or more members to the set key; members already present are ignored
+     *
+     *      SADD. This is the flat form of add(Array): add('a', 'b') is the same command as
+     *      add(['a', 'b']), and the arguments follow the same string conversion.
+     *
+     *      @param members the members to add, as a flat argument list
+     *      @return the number of new members added, existing members excluded
+     *
      */
     add(...members: any[]): number;
 
     /**
-     * @description Removes one or more member elements from the set
-     *      @param members the array of elements to remove
-     *      @return the number of elements successfully removed, excluding ignored elements
+     * @description Removes one or more members from the set
+     *
+     *      SREM. This is the array form; missing members are ignored, and the key is deleted
+     *      when its last member goes. Each element goes through the string conversion of add, so
+     *      a number is rejected with error 20005 and a Buffer is rendered as UTF-8 text. A
+     *      missing key removes nothing and is not an error.
+     *
+     *      @param members the array of members to remove
+     *      @return the number of members removed
+     *
      */
     remove(members: any[]): number;
 
     /**
-     * @description Removes one or more member elements from the set
-     *      @param members the list of elements to remove
-     *      @return the number of elements successfully removed, excluding ignored elements
+     * @description Removes one or more members from the set
+     *
+     *      SREM. This is the flat form of remove(Array); the two are the same command and both
+     *      follow the string conversion described there.
+     *
+     *      @param members the members to remove, as a flat argument list
+     *      @return the number of members removed
+     *
      */
     remove(...members: any[]): number;
 
     /**
-     * @description Returns the number of elements in the set
-     *      @return returns the length of the set
+     * @description Returns the number of members in the set
+     *
+     *      SCARD. A missing key counts as an empty set and returns 0.
+     *
+     *      @return the number of members
+     *
      */
     len(): number;
 
     /**
-     * @description Checks whether member is a member of the set
+     * @description Tests whether member is present in the set
      *
-     *      member may be a Buffer or a string; a string is encoded as utf8.
-     *      @param member the member to check
-     *      @return returns true if member is a member of the set
+     *      SISMEMBER. member is a Buffer|String union: a Buffer is sent byte-for-byte, so it can
+     *      test a binary member that add and remove could not write. A missing key returns false
+     *      and is not an error.
+     *
+     *      Example — byte-exact membership:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *      const set = rdb.getSet('tags');
+     *
+     *      set.add('red');
+     *      console.log(set.exists('red')); // true
+     *      console.log(set.exists(Buffer.from('red'))); // true - the same member
+     *      console.log(set.exists('blue')); // false
+     *
+     *      rdb.del('tags');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param member the member to test
+     *      @return true when the member is present
      *
      */
     exists(member: Class_Buffer | string): boolean;
 
     /**
-     * @description Returns all members of the set
-     *      @return the list of all members of the set
+     * @description Returns every member of the set
+     *
+     *      SMEMBERS. The result is an array of Buffers in no defined order: the server returns
+     *      the members in its internal hash table order, so sort the array when the order
+     *      matters. A missing key returns an empty array.
+     *
+     *      @return the members as an array of Buffers
+     *
      */
     members(): any[];
 
     /**
-     * @description Removes and returns a random element from the set
-     *      @return the removed random element. Returns null when the set is empty
+     * @description Removes and returns one random member
+     *
+     *      SPOP. The member is removed by the command, so a second call never returns it again;
+     *      the key is deleted when its last member goes. A missing key returns null, and the
+     *      result is a Buffer.
+     *
+     *      @return the removed member as a Buffer, or null when the key is missing
+     *
      */
     pop(): Class_Buffer;
 
     /**
-     * @description Gets one random element from the set
-     *      @return returns an element; returns null if the set is empty
+     * @description Returns one random member without removing it
+     *
+     *      SRANDMEMBER. The member stays in the set, and repeated calls may return any member.
+     *      The result is a Buffer. When the key is missing the current implementation crashes
+     *      the process instead of returning null (defect: the nil reply is dereferenced), so
+     *      test len() first or use the count form, which returns an empty array.
+     *
+     *      @return one member as a Buffer; guard the empty case, see above
+     *
      */
     randMember(): any;
 
     /**
-     * @description Gets several random elements from the set
-     *      @param count the number of elements to return. A positive count returns an array containing count elements; a negative count returns an array whose elements may repeat multiple times and whose length is the absolute value of count
-     *      @return returns a list; returns an empty list if the set is empty
+     * @description Returns several random members without removing them
+     *
+     *      SRANDMEMBER with a count. A positive count returns at most count distinct members
+     *      (fewer when the set is smaller); a negative count returns exactly |count| members and
+     *      may repeat them; 0 returns an empty array. A missing key returns an empty array, and
+     *      the members are not removed. The result is an array of Buffers.
+     *
+     *      Example — distinct and repeated draws:
+     *      ```JavaScript
+     *      // requires: redis
+     *      const db = require('db');
+     *      const rdb = db.openRedis('redis://127.0.0.1:6379');
+     *      const set = rdb.getSet('tags');
+     *
+     *      set.add('a', 'b', 'c');
+     *      console.log(set.randMember(2).length); // 2 - distinct members
+     *      console.log(set.randMember(9).length); // 3 - capped at the set size
+     *      console.log(set.randMember(-4).length); // 4 - repeats are allowed
+     *      console.log(set.randMember(0).length); // 0
+     *
+     *      rdb.del('tags');
+     *      rdb.close();
+     *      ```
+     *
+     *      @param count the number of members to return; a negative count allows repeats
+     *      @return the members as an array of Buffers, empty when the key is missing
+     *
      */
     randMember(count: number): any;
 

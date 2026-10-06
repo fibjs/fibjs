@@ -3,72 +3,217 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/TLSSocket.d.ts" />
 /**
- * @description tls/ssl protocol conversion handler
+ * @description A TLS protocol handler: it upgrades each accepted raw stream to TLS and invokes the wrapped handler with the resulting TLSSocket
  *
- *  Used to convert data streams into the tls/ssl stream protocol. TLSHandler is a wrapper around TLSSocket, used to build servers, logically equivalent to:
+ *  TLSHandler is the bridge between a plain stream server and TLS. Use it where a connection
+ *  handler is expected - net.createServer, new net.TcpServer(...) or another stream server - and it
+ *  performs the handshake of every connection before the handoff. It is logically equivalent to:
  *  ```JavaScript
+ *  // fragment: logical equivalent of invoking with a TLS context
+ *  const invoke = (stream, hdlr, ctx) => {
+ *      const socket = new tls.TLSSocket(ctx);
+ *      socket.accept(stream);
+ *      hdlr.invoke(socket);
+ *      socket.close();
+ *  };
+ *  ```
+ *  TLSServer is the higher-level combination of a TCP server and this handler; use TLSHandler when
+ *  the server already exists (a custom TCP server, a shared port, an existing listener) and
+ *  TLSServer when a complete TLS server is wanted.
  *
- *  function(s){
- *     var s1 = new tls.TLSSocket(ctx);
- *     s1.accept(s);
- *     hdlr.invoke(s1);
- *     s1.close();
- *  }
+ *  Concepts:
+ *
+ *  - **Invoke flow**: for every stream passed to invoke(), the handler performs the server-side
+ *    handshake with its context, calls the wrapped handler with the TLSSocket and closes the TLS
+ *    socket when the handler returns. A handshake failure aborts the connection and is reported to
+ *    the caller - the owning TCP server logs it and closes the raw stream - so the wrapped handler
+ *    simply never runs.
+ *  - **Context**: the same SecureContext (with its certificates, ALPN list, verification flags and
+ *    SNI table) is used for all connections. setSecureContext() swaps it for connections accepted
+ *    afterwards without restarting the listener.
+ *  - **Handler forms**: the wrapped handler accepts a function, an array of handlers, a routing map
+ *    object or a path/address string, normalized exactly like the net.TcpServer listener. Routing
+ *    is not supported at the TLS layer (isRouting() is false), because a raw stream has no message
+ *    to route.
+ *  - **Node.js differences**: Node.js has no standalone equivalent; it wraps connections manually
+ *    with `new tls.TLSSocket(socket, { isServer: true })` or uses tls.createServer()/https.Server.
+ *    The class is exported as tls.Handler (there is no tls.TLSHandler).
+ *
+ *  Obtained from:
+ *  - `tls.Handler` — the class alias of the tls module;
+ *  - `new tls.Handler(context|options, handler)` — an explicit instance.
+ *
+ *  Example 1 — wrapping a net server with a SecureContext:
+ *  ```JavaScript
+ *  const tls = require('tls');
+ *  const net = require('net');
+ *  const crypto = require('crypto');
+ *
+ *  const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+ *  const cert = crypto.createCertificateRequest({
+ *      key: pk.privateKey,
+ *      subject: { CN: 'localhost' }
+ *  }).issue({
+ *      key: pk.privateKey,
+ *      issuer: { CN: 'localhost' },
+ *      validFrom: new Date(Date.now() - 1000),
+ *      days: 1
+ *  });
+ *  const ctx = tls.createSecureContext({ key: pk.privateKey, cert }, true);
+ *
+ *  const server = net.createServer(new tls.Handler(ctx, (conn) => {
+ *      conn.write(conn.read());
+ *      conn.close();
+ *  }));
+ *  server.listen(0, '127.0.0.1');
+ *
+ *  const client = tls.connect(server.address().port, 'localhost', { ca: cert.pem });
+ *  client.write('handler');
+ *  console.log(client.read().toString()); // handler
+ *
+ *  client.close();
+ *  server.stop();
+ *  ```
+ *
+ *  Example 2 — wrapping the port constructor of net.TcpServer:
+ *  ```JavaScript
+ *  const tls = require('tls');
+ *  const net = require('net');
+ *  const crypto = require('crypto');
+ *
+ *  const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+ *  const cert = crypto.createCertificateRequest({
+ *      key: pk.privateKey,
+ *      subject: { CN: 'localhost' }
+ *  }).issue({
+ *      key: pk.privateKey,
+ *      issuer: { CN: 'localhost' },
+ *      validFrom: new Date(Date.now() - 1000),
+ *      days: 1
+ *  });
+ *
+ *  // the port constructor binds immediately, start() begins accepting
+ *  const server = new net.TcpServer(0, new tls.Handler({ key: pk.privateKey, cert }, (conn) => {
+ *      conn.write(conn.read());
+ *      conn.close();
+ *  }));
+ *  server.start();
+ *
+ *  const client = tls.connect(server.socket.localPort, 'localhost', { ca: cert.pem });
+ *  client.write('wrapped');
+ *  console.log(client.read().toString()); // wrapped
+ *
+ *  client.close();
+ *  server.stop();
  *  ```
  *
  */
 declare class Class_TLSHandler extends Class_Handler {
     /**
-     * @description creates a new TLSHandler object
+     * @description Creates a TLSHandler around the given SecureContext
      *
-     *     handler may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
-     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the connection handler
+     *      The context is used as it is for the server-side handshake, so it normally carries the
+     *      certificate and key; a context without them makes every handshake fail. The handler forms
+     *      are described on the class page: a function, an array of handlers, a routing map object or
+     *      a path/address string.
+     *      @param context specifies the secure context used to create TLSHandler
+     *      @param handler the connection handler
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description creates a new TLSHandler object
+     * @description Creates a TLSHandler from the options of tls.createSecureContext
      *
-     *     handler may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
-     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the connection handler
+     *      The options build a server context (isServer true) immediately, so invalid or incomplete
+     *      material fails here instead of at handshake time; this is equivalent to building the
+     *      context yourself and passing it to the other overload. The handler forms are described on
+     *      the class page.
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param handler the connection handler
      *
      */
     constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description queries the SecureContext used by the current TLSHandler
+     * @description The SecureContext used for the connections handled by this TLSHandler
+     *
+     *      It is shared by every TLSSocket this handler accepts and carries the certificates, the SNI
+     *      table, the ALPN list and the verification flags; replace it through setSecureContext() to
+     *      affect the connections accepted afterwards.
+     *
      */
     readonly secureContext: Class_SecureContext;
 
     /**
-     * @description sets the SecureContext used by the current TLSHandler
-     *     @param context specifies the new SecureContext
+     * @description Replaces the SecureContext used for the connections accepted afterwards
+     *
+     *      A connection that is already handshaking keeps the context it started with; the new context
+     *      applies to the next invoke(). Equivalent to TLSServer#setSecureContext on the server that
+     *      owns this handler.
+     *      @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
-     * @description sets the SecureContext used by the current TLSHandler
-     *     @param options the options needed to create a secure context with tls.createSecureContext
+     * @description Replaces the SecureContext from a fresh options object
+     *
+     *      The options are passed to tls.createSecureContext with isServer true and validated on the
+     *      spot; the resulting context is used for the connections accepted afterwards.
+     *      @param options the options needed to create a secure context with tls.createSecureContext
      *
      */
     setSecureContext(options: FIBJS.GeneralObject): void;
 
     /**
-     * @description the current event handling interface object of the ssl protocol conversion handler
+     * @description The wrapped handler invoked once per established TLS connection
+     *
+     *      A function, an array of handlers, a routing map object or a path/address string, normalized
+     *      when it is assigned or passed to the constructor. Replacing it affects the next connections
+     *      only; the current connections keep running their own invocation.
+     *
+     *      Example — swapping the wrapped handler between two connections:
+     *      ```JavaScript
+     *      const tls = require('tls');
+     *      const net = require('net');
+     *      const crypto = require('crypto');
+     *
+     *      const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+     *      const cert = crypto.createCertificateRequest({
+     *          key: pk.privateKey,
+     *          subject: { CN: 'localhost' }
+     *      }).issue({
+     *          key: pk.privateKey,
+     *          issuer: { CN: 'localhost' },
+     *          validFrom: new Date(Date.now() - 1000),
+     *          days: 1
+     *      });
+     *
+     *      // the handler converts every accepted raw stream into a TLS stream and then
+     *      // invokes the wrapped handler with it
+     *      const handler = new tls.Handler({ key: pk.privateKey, cert }, (conn) => {
+     *          conn.write('first');
+     *          conn.close();
+     *      });
+     *      const server = net.createServer(handler);
+     *      server.listen(0, '127.0.0.1');
+     *
+     *      let client = tls.connect(server.address().port, '127.0.0.1', { requestCert: false });
+     *      console.log(client.read().toString()); // first
+     *
+     *      // replace the wrapped handler: the next connection is served by the new one
+     *      handler.handler = (conn) => {
+     *          conn.write('second');
+     *          conn.close();
+     *      };
+     *      client = tls.connect(server.address().port, '127.0.0.1', { requestCert: false });
+     *      console.log(client.read().toString()); // second
+     *
+     *      client.close();
+     *      server.stop();
+     *      ```
+     *
      */
     handler: Class_Handler;
 
@@ -84,56 +229,110 @@ declare class Class_TLSHandler extends Class_Handler {
  */
 declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
     /**
-     * @description creates a new TLSHandler object
+     * @description Creates a TLSHandler around the given SecureContext
      *
-     *     handler may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
-     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     *     @param context specifies the secure context used to create TLSHandler
-     *     @param handler the connection handler
+     *      The context is used as it is for the server-side handshake, so it normally carries the
+     *      certificate and key; a context without them makes every handshake fail. The handler forms
+     *      are described on the class page: a function, an array of handlers, a routing map object or
+     *      a path/address string.
+     *      @param context specifies the secure context used to create TLSHandler
+     *      @param handler the connection handler
      *
      */
     constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description creates a new TLSHandler object
+     * @description Creates a TLSHandler from the options of tls.createSecureContext
      *
-     *     handler may be given in any of these forms:
-     *     - a Handler object, invoked as it is;
-     *     - an array of handlers, wrapped in a Chain and invoked in order;
-     *     - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
-     *     - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
-     *     - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     *     @param options the options needed to create a secure context with tls.createSecureContext
-     *     @param handler the connection handler
+     *      The options build a server context (isServer true) immediately, so invalid or incomplete
+     *      material fails here instead of at handshake time; this is equivalent to building the
+     *      context yourself and passing it to the other overload. The handler forms are described on
+     *      the class page.
+     *      @param options the options needed to create a secure context with tls.createSecureContext
+     *      @param handler the connection handler
      *
      */
     constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description queries the SecureContext used by the current TLSHandler
+     * @description The SecureContext used for the connections handled by this TLSHandler
+     *
+     *      It is shared by every TLSSocket this handler accepts and carries the certificates, the SNI
+     *      table, the ALPN list and the verification flags; replace it through setSecureContext() to
+     *      affect the connections accepted afterwards.
+     *
      */
     readonly secureContext: Class_SecureContextPromise;
 
     /**
-     * @description sets the SecureContext used by the current TLSHandler
-     *     @param context specifies the new SecureContext
+     * @description Replaces the SecureContext used for the connections accepted afterwards
+     *
+     *      A connection that is already handshaking keeps the context it started with; the new context
+     *      applies to the next invoke(). Equivalent to TLSServer#setSecureContext on the server that
+     *      owns this handler.
+     *      @param context specifies the new SecureContext
      *
      */
     setSecureContext(context: Class_SecureContext | Class_SecureContextPromise): void;
 
     /**
-     * @description sets the SecureContext used by the current TLSHandler
-     *     @param options the options needed to create a secure context with tls.createSecureContext
+     * @description Replaces the SecureContext from a fresh options object
+     *
+     *      The options are passed to tls.createSecureContext with isServer true and validated on the
+     *      spot; the resulting context is used for the connections accepted afterwards.
+     *      @param options the options needed to create a secure context with tls.createSecureContext
      *
      */
     setSecureContext(options: FIBJS.GeneralObject): void;
 
     /**
-     * @description the current event handling interface object of the ssl protocol conversion handler
+     * @description The wrapped handler invoked once per established TLS connection
+     *
+     *      A function, an array of handlers, a routing map object or a path/address string, normalized
+     *      when it is assigned or passed to the constructor. Replacing it affects the next connections
+     *      only; the current connections keep running their own invocation.
+     *
+     *      Example — swapping the wrapped handler between two connections:
+     *      ```JavaScript
+     *      const tls = require('tls');
+     *      const net = require('net');
+     *      const crypto = require('crypto');
+     *
+     *      const pk = crypto.generateKeyPair('ec', { namedCurve: 'secp256r1' });
+     *      const cert = crypto.createCertificateRequest({
+     *          key: pk.privateKey,
+     *          subject: { CN: 'localhost' }
+     *      }).issue({
+     *          key: pk.privateKey,
+     *          issuer: { CN: 'localhost' },
+     *          validFrom: new Date(Date.now() - 1000),
+     *          days: 1
+     *      });
+     *
+     *      // the handler converts every accepted raw stream into a TLS stream and then
+     *      // invokes the wrapped handler with it
+     *      const handler = new tls.Handler({ key: pk.privateKey, cert }, (conn) => {
+     *          conn.write('first');
+     *          conn.close();
+     *      });
+     *      const server = net.createServer(handler);
+     *      server.listen(0, '127.0.0.1');
+     *
+     *      let client = tls.connect(server.address().port, '127.0.0.1', { requestCert: false });
+     *      console.log(client.read().toString()); // first
+     *
+     *      // replace the wrapped handler: the next connection is served by the new one
+     *      handler.handler = (conn) => {
+     *          conn.write('second');
+     *          conn.close();
+     *      };
+     *      client = tls.connect(server.address().port, '127.0.0.1', { requestCert: false });
+     *      console.log(client.read().toString()); // second
+     *
+     *      client.close();
+     *      server.stop();
+     *      ```
+     *
      */
     handler: Class_HandlerPromise;
 

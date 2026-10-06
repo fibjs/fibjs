@@ -1,97 +1,187 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
- * @description Log object, used to record log information
+ * @description Console-like logger bound to a pair of writable objects
  *
+ *  A ConsoleObject writes log records to two writable objects: the stdout object
+ *  receives INFO and PRINT records, the stderr object receives WARN, ERROR, CRIT,
+ *  ALERT and `trace` records. The class is exposed as `console.Console` (there is no
+ *  global `ConsoleObject`) and is also the type returned by `util.debuglog` and
+ *  `util.debug`, which binds the same methods to the process-wide logging system
+ *  with a section prefix instead of explicit streams.
  *
- * The `Logger` object is used to record log information at various levels. It is a powerful tool that helps developers record and track application behavior during development and debugging. By recording log information, developers can more easily discover and solve problems, improving the reliability and maintainability of the code.
+ *  Concepts:
  *
- * In the software development process, logging is a very important part. By logging, developers can understand the running state of the application, catch exceptions and errors, and analyze performance bottlenecks. Log information is usually divided into different levels, such as debug information, general information, warning information, error information and critical error information. Different levels of log information help developers better classify and manage log data.
+ *  - **Per-instance streams and timers**: the streams are captured when the object
+ *    is created; `time`, `timeElapse` and `timeEnd` keep their timers per instance,
+ *    so they are independent of the console module timers and of other instances.
+ *  - **Writable objects**: a stream is anything with a `write(text)` method, not
+ *    necessarily an io stream. The formatted record and a trailing newline are
+ *    passed to write() synchronously and its return value is ignored.
+ *  - **Filtering**: the global `console.loglevel` applies to every instance. For a
+ *    debug logger the section must additionally be listed in NODE_DEBUG for INFO
+ *    and DEBUG records; WARN and above are written even when the section is
+ *    disabled, while Node.js drops every level of a disabled debug logger.
+ *  - **Node.js differences**: there is no `print`, `assert`, `count`, `countReset`,
+ *    `timeLog`, `group`, `groupEnd` or `dirxml` on this object; `operator(...)`
+ *    makes the object callable as a debug logger, which Node.js provides for
+ *    util.debuglog but not for console.Console.
  *
- * The `Logger` object provides multiple methods to record log information at different levels. A `Logger` object can be created through the `util.debuglog` module
+ *  Obtained from:
  *
- * Example of creating a `Logger` object:
+ *  - `new console.Console()` — writes through the global logging devices, prefixed
+ *    with `"<pid>: "`;
+ *  - `new console.Console(out)` — one writable object for both streams;
+ *  - `new console.Console(out, err)` — separate stdout and stderr objects;
+ *  - `new console.Console({ "stdout": out, "stderr": err })` — options form, `out`
+ *    is required and `err` defaults to it;
+ *  - `util.debuglog(section)` / `util.debug(section)` — conditional debug logger
+ *    selected by the NODE_DEBUG environment variable.
  *
- * ```JavaScript
- * var logger = util.debuglog('example');
- * ```
+ *  Example 1 — capture stdout and stderr separately:
+ *  ```JavaScript
+ *  const io = require('io');
+ *  const out = new io.MemoryStream();
+ *  const err = new io.MemoryStream();
+ *  const c = new console.Console(out, err);
  *
- * The `Logger` object provides the following main features:
+ *  c.log('to stdout');
+ *  c.error('to stderr');
  *
- * - **Record general log information**: used to output non-error prompt information.
- * - **Record debug log information**: used to output debug information, helping developers track code execution during development.
- * - **Record warning log information**: used to output prompt debug information, usually indicating issues that may need attention.
- * - **Record error log information**: used to output error information, indicating that a problem occurred while the program was running.
- * - **Record critical error log information**: used to output critical error information, indicating that a serious problem occurred while the program was running.
- * - **Record alert error log information**: used to output the highest-level error information, indicating that a very serious problem occurred while the program was running.
- * - **Output the current call stack**: output the current call stack through logging, helping developers understand the code execution path.
- * - **Output objects in JSON format**: output objects in JSON format, supporting various format control options.
+ *  out.rewind();
+ *  err.rewind();
+ *  console.log(out.readAll().toString().trim()); // to stdout
+ *  console.log(err.readAll().toString().trim()); // to stderr
+ *  ```
  *
- * The following are some examples of using the `Logger` object:
+ *  Example 2 — options form with a plain writable object:
+ *  ```JavaScript
+ *  let captured = '';
+ *  const c = new console.Console({
+ *      stdout: { write: (text) => { captured += text; } }
+ *  });
+ *  c.log('custom sink');
+ *  console.log(JSON.stringify(captured)); // "custom sink\n"
+ *  ```
  *
- * ```JavaScript
- * // Create Logger object
- * var logger = util.debuglog('example');
+ *  Example 3 — sample a per-instance timer:
+ *  ```JavaScript
+ *  const io = require('io');
+ *  const out = new io.MemoryStream();
+ *  const c = new console.Console(out, out);
  *
- * // Log general log information
- * logger('This is a log message');
- * logger.log('This is a log message with format: %s', 'example');
+ *  c.time('work');
+ *  let sum = 0;
+ *  for (let i = 0; i < 100000; i++) sum += i;
+ *  c.timeEnd('work');
  *
- * // Log debug log information
- * logger.debug('This is a debug message');
- *
- * // Log warning log information
- * logger.warn('This is a warning message');
- * logger.warning('This is a warning message');
- *
- * // Log error log information
- * logger.error('This is an error message');
- *
- * // Log critical error log information
- * logger.crit('This is a critical message');
- * logger.critical('This is a critical message');
- *
- * // Log alert error log information
- * logger.alert('This is an alert message');
- *
- * // Output current call stack
- * logger.trace('This is a trace message');
- *
- * // Output object in JSON format
- * logger.dir({ key: 'value' }, { colors: true, depth: 1 });
- * ```
- *
- * With these methods, you can conveniently record and manage log information in your application. Logging not only helps developers discover and solve problems during development and debugging, but also provides important runtime information in the production environment of the application, helping operators monitor and maintain the stability and performance of the system.
+ *  out.rewind();
+ *  console.log(out.readAll().toString().startsWith('work: ')); // true
+ *  ```
  *
  */
 declare class Class_ConsoleObject extends Class_object {
     /**
-     * @description ConsoleObject constructor, creates a new ConsoleObject object
+     * @description Creates a logger that writes through the global logging devices
+     *
+     *      The instance has no stream of its own: every record goes to the devices
+     *      configured with console.add/use (the built-in console device by default) and
+     *      is prefixed with `"<pid>: "`. Use the two-argument form to write to explicit
+     *      streams instead.
+     *
      */
     constructor();
 
     /**
-     * @description ConsoleObject constructor, creates a new ConsoleObject object
-     *      @param out specifies the writable stream for output, the default is process.stdout
-     *      @param err specifies the writable stream for error output, the default is stdout
+     * @description Creates a logger bound to writable objects
+     *
+     *      `out` must be a writable object, that is any object with a `write()` method
+     *      such as an io stream; when `err` is omitted, null or undefined it defaults
+     *      to `out`, otherwise it must be writable too. When the single argument is an
+     *      object without a `write()` method it is read as an options object with
+     *      `stdout` and `stderr` properties, where `stdout` is required and `stderr`
+     *      defaults to `out`. Invalid arguments throw Error 20024, for example
+     *      "ConsoleObject: stdout must have a write() method." or "ConsoleObject:
+     *      options.stdout is required.". Each record is the formatted text plus a
+     *      newline, written synchronously; the global logging system is not used.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const c = new console.Console({ stdout: out });
+     *
+     *      c.log('captured');
+     *
+     *      out.rewind();
+     *      console.log(JSON.stringify(out.readAll().toString())); // "captured\n"
+     *      ```
+     *
+     *      @param out writable object for INFO and PRINT records, or an options object
+     *      @param err writable object for WARN and above; defaults to out
      *
      */
     constructor(out: any, err?: any);
 
     /**
-     * @description Queries the section name of the current log object
+     * @description Section name of a debug logger; empty for a stream console
+     *
+     *      Set when the object comes from `util.debuglog(section)` or
+     *      `util.debug(section)` and empty for a console.Console instance created with
+     *      streams. Together with the process id it forms the record prefix
+     *      (`SECTION pid: `), shown in upper case, that the debug logger adds when it
+     *      writes to the global devices.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const util = require('util');
+     *      const log = util.debuglog('myapp');
+     *      console.log(log.section); // myapp
+     *      ```
+     *
      */
     readonly section: string;
 
     /**
-     * @description Queries whether the current log object is enabled
+     * @description Whether a debug logger is enabled by the NODE_DEBUG environment variable
+     *
+     *      A section is enabled when it appears, case-insensitively, as a
+     *      comma-separated entry of NODE_DEBUG; the value is re-checked for every
+     *      record and is always true for a stream console with an empty section. When
+     *      the section is disabled INFO and DEBUG records are dropped while WARN and
+     *      above are still written; Node.js drops every level of a disabled debug
+     *      logger.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const util = require('util');
+     *      console.log(util.debuglog('myapp').enabled); // false unless NODE_DEBUG=myapp
+     *      ```
+     *
      */
     readonly enabled: boolean;
 
     /**
-     * @description Records general log information, same as info
+     * @description Writes an INFO record to the stdout object
      *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      The record is the formatted text plus a newline, written synchronously to
+     *      the stdout object given to the constructor; the global console.loglevel can
+     *      filter it. A leading string argument is a printf-like template where only
+     *      `%s`, `%d`, `%j` and `%%` are substituted; other specifiers stay literal and
+     *      their values are appended at the end. Level INFO(6).
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const c = new console.Console(out, out);
+     *
+     *      c.log('value = %d', 42);
+     *
+     *      out.rewind();
+     *      console.log(JSON.stringify(out.readAll().toString())); // "value = 42\n"
+     *      ```
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -100,9 +190,13 @@ declare class Class_ConsoleObject extends Class_object {
     log(...args: any[]): void;
 
     /**
-     * @description Records debug log information
+     * @description Writes a DEBUG record to the stdout object
      *
-     *      Records debug log information. Usually used to output debug information. Not important.
+     *      The lowest standard level, useful when console.loglevel is raised to DEBUG
+     *      to trace execution; a disabled debug logger drops this level. The record
+     *      goes to the stdout object and accepts the same printf-like template as
+     *      `log`. Level DEBUG(7).
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -111,9 +205,11 @@ declare class Class_ConsoleObject extends Class_object {
     debug(...args: any[]): void;
 
     /**
-     * @description Records general log information, same as log
+     * @description Writes an INFO record to the stdout object, same as log
      *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      Identical to `log`; the name follows the Node.js console surface. Level
+     *      INFO(6).
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -122,9 +218,12 @@ declare class Class_ConsoleObject extends Class_object {
     info(...args: any[]): void;
 
     /**
-     * @description Records notice log information
+     * @description Writes a NOTICE record to the stdout object
      *
-     *      Records notice log information. Usually used to output prompt debug information. Moderately important.
+     *      Records a normal but significant message; less severe than WARN and more
+     *      important than INFO. Level NOTICE(5); this is a fibjs extension, Node.js has
+     *      no console.notice.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -133,9 +232,26 @@ declare class Class_ConsoleObject extends Class_object {
     notice(...args: any[]): void;
 
     /**
-     * @description Records warning log information, same as warning
+     * @description Writes a WARN record to the stderr object
      *
-     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      Warning messages go to the stderr writable object because WARN(4) is one of
+     *      the error levels; for a debug logger the section prefix is added. Accepts
+     *      the printf-like template of `log`. Node.js console.warn also writes to
+     *      stderr.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const err = new io.MemoryStream();
+     *      const c = new console.Console(out, err);
+     *
+     *      c.warn('disk %d%% full', 91);
+     *
+     *      err.rewind();
+     *      console.log(err.readAll().toString().trim()); // disk 91% full
+     *      ```
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -144,9 +260,11 @@ declare class Class_ConsoleObject extends Class_object {
     warn(...args: any[]): void;
 
     /**
-     * @description Records warning log information
+     * @description Writes a WARN record to the stderr object, same as warn
      *
-     *      Records warning log information. Usually used to output warning debug information. Important.
+     *      Identical to `warn`; kept as a separate name for code that reads better
+     *      with the long form. Node.js has no console.warning.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -155,9 +273,12 @@ declare class Class_ConsoleObject extends Class_object {
     warning(...args: any[]): void;
 
     /**
-     * @description Records error log information
+     * @description Writes an ERROR record to the stderr object
      *
-     *      Records error log information. Usually used to output error information. Very important. System error messages are also recorded at this level.
+     *      Records an error and writes it to the stderr object; for a debug logger the
+     *      section prefix is added. Level ERROR(3). Node.js console.error also writes
+     *      to stderr.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -166,9 +287,11 @@ declare class Class_ConsoleObject extends Class_object {
     error(...args: any[]): void;
 
     /**
-     * @description Records critical error log information, same as critical
+     * @description Writes a CRIT record to the stderr object, same as critical
      *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      Records a critical condition and writes it to the stderr object. Level
+     *      CRIT(2), below ERROR in number and therefore more severe.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -177,9 +300,11 @@ declare class Class_ConsoleObject extends Class_object {
     crit(...args: any[]): void;
 
     /**
-     * @description Records critical error log information
+     * @description Writes a CRIT record to the stderr object
      *
-     *      Records critical error log information. Usually used to output critical error information. Very important.
+     *      Records a critical condition and writes it to the stderr object; identical
+     *      to `crit`. Level CRIT(2); Node.js has no console.critical.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -188,9 +313,12 @@ declare class Class_ConsoleObject extends Class_object {
     critical(...args: any[]): void;
 
     /**
-     * @description Records alert error log information
+     * @description Writes an ALERT record to the stderr object
      *
-     *      Records alert error log information. Usually used to output alert error information. Very important. It is the highest-level information.
+     *      Records the most severe condition at ALERT(1); it is the highest severity
+     *      level, meant for conditions that need immediate action. Node.js has no
+     *      console.alert.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -199,9 +327,12 @@ declare class Class_ConsoleObject extends Class_object {
     alert(...args: any[]): void;
 
     /**
-     * @description Outputs the current call stack
+     * @description Writes a call stack at WARN level to the stderr object
      *
-     *      Outputs the current call stack through logging.
+     *      Formats the optional arguments like `log`, prefixes the text with `Trace: `
+     *      and appends the current call stack, then writes the whole record to the
+     *      stderr object at WARN(4) level.
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.
@@ -210,20 +341,25 @@ declare class Class_ConsoleObject extends Class_object {
     trace(...args: any[]): void;
 
     /**
-     * @description Outputs an object in JSON format
+     * @description Renders a value with util.inspect and writes it to the stdout object
      *
-     *      The following parameters are supported:
+     *      Like console.dir, but the record goes to this instance's stdout object
+     *      instead of the global devices. options are the util.inspect options
+     *      (`colors`, `depth`, `table`, `fields`, `encode_string`, `maxArrayLength`,
+     *      `maxStringLength`); see console.dir for the defaults.
+     *
+     *      Example:
      *      ```JavaScript
-     *      {
-     *          "colors": false, // specify if output should be colorized, defaults to false
-     *          "depth": 2, // specify the max depth of the output, defaults to 2
-     *          "table": false, // specify if output should be a table, defaults to false
-     *          "encode_string": true, // specify if string should be encoded, defaults to true
-     *          "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
-     *          "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
-     *          "fields": [], // specify the fields to be displayed, defaults to all
-     *      }
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const c = new console.Console(out, out);
+     *
+     *      c.dir({ a: 1 }, { colors: false });
+     *
+     *      out.rewind();
+     *      console.log(out.readAll().toString().includes('"a": 1')); // true
      *      ```
+     *
      *      @param obj specifies the object to process
      *      @param options specifies the format control options
      *
@@ -231,14 +367,37 @@ declare class Class_ConsoleObject extends Class_object {
     dir(obj: any, options?: FIBJS.GeneralObject): void;
 
     /**
-     * @description Outputs an object in JSON format
+     * @description Renders records as a text table on the stdout object
+     *
+     *      An object is rendered as an `(index)`/`Values` table of its properties, an
+     *      array of primitives as an `(index)`/`Values` table and an array of records
+     *      with one column per key; a key missing from a record leaves an empty cell.
+     *      The table goes to the stdout object instead of the global devices.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const c = new console.Console(out, out);
+     *
+     *      c.table([{ name: 'alpha', size: 12 }]);
+     *
+     *      out.rewind();
+     *      console.log(out.readAll().toString().includes('alpha')); // true
+     *      ```
+     *
      *      @param obj the object to display
      *
      */
     table(obj: any): void;
 
     /**
-     * @description Outputs an object in JSON format
+     * @description Renders records as a text table with selected columns
+     *
+     *      Same as `table(Value obj)`, but only the columns listed in `fields` are
+     *      shown, in that order; the `(index)` column is always kept and a missing
+     *      field leaves its cell empty.
+     *
      *      @param obj the object to display
      *      @param fields the fields to display
      *
@@ -246,25 +405,39 @@ declare class Class_ConsoleObject extends Class_object {
     table(obj: any, fields: any[]): void;
 
     /**
-     * @description Starts a timer
+     * @description Starts or restarts a timer under a label, scoped to this instance
      *
-     *      @param label title, defaults to an empty string.
+     *      Timers are stored per ConsoleObject, so they are independent of the timers of
+     *      the console module and of other instances. Starting an existing label
+     *      silently restarts it; the default label is `"time"` and the measurements are
+     *      printed by timeElapse/timeEnd as `label: <elapsed>ms` at INFO level.
+     *
+     *      @param label the timer label, defaults to "time"
      *
      */
     time(label?: string): void;
 
     /**
-     * @description Outputs the current timing value of the specified timer
+     * @description Prints the value of an instance timer without stopping it
      *
-     *      @param label title, defaults to an empty string.
+     *      Outputs `label: <elapsed>ms` at INFO level to the stdout object; the timer
+     *      keeps running, so it can be sampled repeatedly before timeEnd. A label that
+     *      was never started is treated as zero and prints a huge value instead of
+     *      throwing.
+     *
+     *      @param label the timer label, defaults to "time"
      *
      */
     timeElapse(label?: string): void;
 
     /**
-     * @description Ends the specified timer and outputs the final timing value
+     * @description Stops an instance timer and writes its final value
      *
-     *      @param label title, defaults to an empty string.
+     *      Outputs `label: <elapsed>ms` at INFO level to the stdout object and removes
+     *      the timer from the instance. An unknown label measures from zero and prints
+     *      a huge value without warning.
+     *
+     *      @param label the timer label, defaults to "time"
      *
      */
     timeEnd(label?: string): void;
@@ -274,9 +447,25 @@ declare class Class_ConsoleObject extends Class_object {
 
 declare interface Class_ConsoleObject {
     /**
-     * @description Records general log information, same as info
+     * @description Callable form of this object; logs at DEBUG level like debug
      *
-     *      Records log information at the general level. Usually used to output non-error prompt information.
+     *      Calling the object itself, `logger('message')` or `logger('%s', value)`, is
+     *      equivalent to `debug(...)`: the record is written at DEBUG(7) and filtered
+     *      by the global loglevel. `util.debuglog(section)` returns such a callable
+     *      logger, which is how Node.js code normally uses it.
+     *
+     *      Example:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const out = new io.MemoryStream();
+     *      const c = new console.Console(out, out);
+     *
+     *      c('called as a function');
+     *
+     *      out.rewind();
+     *      console.log(out.readAll().toString().trim()); // called as a function
+     *      ```
+     *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
      *      util.format; every other value is printed as-is.

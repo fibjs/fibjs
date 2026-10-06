@@ -240,27 +240,29 @@ module.exports = function (defs, docsFolder) {
         var _summary = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/SUMMARY.md'), "utf8"));
 
         var moduleSummary = _summary({
-            title: '基础模块',
+            title: 'Modules',
             defs: defs,
             type: 'module',
             prefix: 'manual/module/'
         });
 
         var objectSummary = _summary({
-            title: '内置对象',
+            title: 'Built-in Objects',
             defs: defs,
             type: 'interface',
             prefix: 'manual/object/'
         });
 
-        // 聚合手动维护的 INDEX.md，生成根目录总 SUMMARY.md
-        // 结构：# Summary + ## 分组标题 + 列表，符合 GitBook SUMMARY.md 规范
-        //（首行 # Summary 为书标题，## 分组为 Part；docs/webpack.config.js 按 ## 标题分组提取导航）
+        // Merge the manually maintained INDEX.md files into the master SUMMARY.md:
+        // the file is # Summary + ## group titles + lists, following the GitBook SUMMARY.md shape
+        // (the leading # Summary is the book title, ## headings are parts; docs/webpack.config.js
+        // splits the navigation into those ## groups)
         var docsRoot = path.resolve(docsFolder, '..');
         var summary = ['# Summary'];
 
-        // INDEX.md 位于分组子目录（如 guide/、awesome/），其链接相对该目录；
-        // 合并进根目录 SUMMARY.md 时需加上分组目录前缀，否则链接指向错误位置
+        // An INDEX.md lives in a group sub-directory (guide/, awesome/), so its links are relative
+        // to that directory; prefix them when merging into the master SUMMARY.md at the root,
+        // otherwise the links point to the wrong place
         function rewriteLinks(content, name) {
             return content.split('\n').map(function (line) {
                 return line.replace(/\[([^\]]*)\]\(([^)]*)\)/g, function (s, title, target) {
@@ -280,10 +282,10 @@ module.exports = function (defs, docsFolder) {
                 console.warn('[gen_docs] ' + path.join(name, 'INDEX.md') + ' not found, skipped');
         }
 
-        appendIndex('guide', '开发指南');
-        summary.push('## 基础模块\n\n' + moduleSummary.trim());
-        summary.push('## 内置对象\n\n' + objectSummary.trim());
-        appendIndex('awesome', '社区模块');
+        appendIndex('guide', 'Guide');
+        summary.push('## Modules\n\n' + moduleSummary.trim());
+        summary.push('## Built-in Objects\n\n' + objectSummary.trim());
+        appendIndex('awesome', 'Community Modules');
 
         fs.writeFileSync(path.join(docsRoot, 'SUMMARY.md'), summary.join('\n\n') + '\n');
     }
@@ -292,13 +294,13 @@ module.exports = function (defs, docsFolder) {
         var _readme = ejs.compile(fs.readFileSync(path.join(__dirname, './tmpl/README.md'), "utf8"));
 
         fs.writeFileSync(path.join(docsFolder, "module", "README.md"), _readme({
-            title: '基础模块',
+            title: 'Modules',
             defs: defs,
             type: 'module'
         }));
 
         fs.writeFileSync(path.join(docsFolder, "object", "README.md"), _readme({
-            title: '内置对象',
+            title: 'Built-in Objects',
             defs: defs,
             type: 'interface'
         }));
@@ -349,39 +351,39 @@ module.exports = function (defs, docsFolder) {
             txts.push(def.declare.name);
 
             if (!simple) {
-                member_output('构造函数', function (m, n) {
+                member_output('Constructors', function (m, n) {
                     return m.memType == 'method' && m.name == n;
                 });
 
-                member_output('操作符', function (m) {
+                member_output('Operators', function (m) {
                     return m.memType == 'operator' || m.symbol;
                 });
 
-                member_output('对象', function (m) {
+                member_output('Objects', function (m) {
                     return m.memType == 'object';
                 });
 
-                member_output('静态函数', function (m, n) {
+                member_output('Static Methods', function (m, n) {
                     return m.memType == 'method' && m.name !== n && m.static && !m.symbol;
                 });
 
-                member_output('静态属性', function (m) {
+                member_output('Static Properties', function (m) {
                     return m.memType == 'prop' && m.static && !m.symbol;
                 });
 
-                member_output('常量', function (m) {
+                member_output('Constants', function (m) {
                     return m.memType == 'const';
                 });
 
-                member_output('成员属性', function (m) {
+                member_output('Properties', function (m) {
                     return m.memType == 'prop' && !m.static && !m.symbol;
                 });
 
-                member_output('成员函数', function (m, n) {
+                member_output('Methods', function (m, n) {
                     return m.memType == 'method' && m.name !== n && !m.static && !m.symbol;
                 });
 
-                member_output('事件', function (m) {
+                member_output('Events', function (m) {
                     return m.memType == 'event';
                 });
 

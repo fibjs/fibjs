@@ -16,62 +16,109 @@
  *
  *  - **Paths and existence**: `exists`, `access`, `realpath`, `readlink`, `symlink`, `link`;
  *  - **Directory operations**: `mkdir`, `mkdtemp`, `rmdir`, `rm`, `readdir`, `glob`;
- *  - **File operations**: `readFile`, `writeFile`, `appendFile`, `rename`, `copyFile`, `cp`, `truncate`, `unlink`, `chmod`, `chown`, `utimes`;
- *  - **File descriptor operations**: `open`, `close`, `read`, `write`, `fstat`, `fsync`, `fchmod` and more;
+ *  - **File operations**: `readFile`, `writeFile`, `appendFile`, `rename`, `copyFile`, `cp`,
+ *    `truncate`, `unlink`, `chmod`, `chown`, `utimes`;
+ *  - **File descriptor operations**: `open`, `close`, `read`, `write`, `fstat`, `fsync`, `fchmod`
+ *    and more;
  *  - **File streams**: `openFile`, `openTextStream`, `createReadStream`, `createWriteStream`;
  *  - **File watching**: `watch`, `watchFile`, `unwatchFile`;
  *  - **zip virtual file system**: `setZipFS`, `clearZipFS`.
  *
- *  Every function of the module is async in the sense that it works both synchronously and with a
- *  callback: without a callback it runs synchronously and returns the result; with a callback it runs
- *  asynchronously, and the callback receives `(err, result)`:
+ *  Concepts:
  *
+ *  - **Call forms**: every function works synchronously without a callback and asynchronously with a
+ *    trailing `(err, result)` callback. `Sync`-suffixed aliases (such as `readFileSync`) and the
+ *    promise-based `fs.promises` namespace are also available.
+ *  - **File descriptors and position**: `open` returns a FileHandle wrapping a descriptor; `read`
+ *    and `write` take an explicit `position` and use the current file position when it is negative,
+ *    so one descriptor can serve both sequential and random access. readFile/writeFile/appendFile do
+ *    not close a descriptor; release it with `close`.
+ *  - **flags**: the `flags` argument of the open functions accepts the strings `'r'`, `'r+'`, `'w'`,
+ *    `'w+'`, `'a'`, `'a+'` or a bitwise combination of the integer flags in `fs.constants`; the
+ *    full list is documented in the fs_constants module.
+ *  - **Symbolic links**: stat follows a link and describes its target, while lstat describes the
+ *    link itself (`isSymbolicLink()` is true); unlink and rm remove the link, not its target.
+ *  - **Watching**: watch uses the platform notification service and reports the `'change'`,
+ *    `'changeonly'` and `'renameonly'` events; watchFile polls the status and passes
+ *    `(curStats, prevStats)` to the callback. The `recursive` option of watch is only stable on
+ *    win32/darwin; on Linux it is forwarded to the uv backend but may report events at unexpected
+ *    times.
+ *  - **zip VFS**: setZipFS maps zip data onto a path; entries are then read through the mapping
+ *    path with a `$` suffix, for example `/archive.zip$/dir/file.txt`.
+ *  - **Streams**: createReadStream/createWriteStream open a file as a SeekableStream, and
+ *    createReadStream accepts an inclusive `[start, end]` range; see the io module for stream
+ *    positioning and back pressure.
+ *
+ *  Import:
  *  ```JavaScript
- *  var fs = require('fs');
+ *  const fs = require('fs');
+ *  ```
  *
- *  // synchronous
- *  var content = fs.readFile('test.txt', 'utf8');
- *  console.log(content);
+ *  Example 1 — synchronous write, read and stat in a temporary directory:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
  *
- *  // with a callback
- *  fs.readFile('test.txt', 'utf8', (err, content) => {
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fs-'));
+ *  const file = path.join(dir, 'hello.txt');
+ *
+ *  fs.writeFile(file, 'hello, world!');
+ *  console.log(fs.readFile(file, 'utf8')); // hello, world!
+ *  console.log(fs.stat(file).size); // 13
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ *  Example 2 — callback and stream forms of the same operations:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fs-'));
+ *  const file = path.join(dir, 'async.txt');
+ *
+ *  fs.writeFile(file, 'written with a callback', 'utf8', (err) => {
  *      if (err) throw err;
- *      console.log(content);
+ *      fs.readFile(file, 'utf8', (err, text) => {
+ *          if (err) throw err;
+ *          console.log(text);
+ *          // a read stream exposes the whole file through readAll()
+ *          console.log(fs.createReadStream(file).readAll().toString());
+ *          fs.rmSync(dir, { recursive: true, force: true });
+ *      });
  *  });
  *  ```
  *
- *  The file read/write functions follow these rules:
- *
- *  - `readFile` returns a Buffer object by default, and decodes to a string when `encoding` is given;
- *  - `writeFile` overwrites by default, while `appendFile` appends;
- *  - the `flags` parameter of the open functions supports `'r'`, `'r+'`, `'w'`, `'w+'`, `'a'`, `'a+'`, or a bitwise combination of the integer flags in `fs.constants`.
- *
- *  File watching is provided by two groups of APIs:
- *
- *  - `fs.watch(filename)` returns an FSWatcher object that watches file system events and supports the `'change'`, `'changeonly'` and `'renameonly'` events;
- *  - `fs.watchFile(target)` returns a StatsWatcher object that periodically checks for status changes, with the callback receiving `(curStats, prevStats)`; `fs.unwatchFile(target)` stops watching.
- *
- *  Example:
- *
+ *  Example 3 — create, list and remove a directory tree:
  *  ```JavaScript
- *  var fs = require('fs');
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
  *
- *  // write and read a text file
- *  fs.writeFile('hello.txt', 'hello, world!');
- *  console.log(fs.readFile('hello.txt', 'utf8'));
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-fs-'));
+ *  fs.writeFile(path.join(dir, 'notes.txt'), 'note');
+ *  fs.mkdir(path.join(dir, 'images'));
  *
- *  // create a directory and list its content
- *  fs.mkdir('data', { recursive: true });
- *  var files = fs.readdir('data');
- *  console.log(files);
+ *  fs.readdir(dir, { withFileTypes: true }).forEach((entry) => {
+ *      console.log(entry.name, entry.isDirectory() ? 'dir' : 'file');
+ *  });
+ *
+ *  fs.rmSync(dir, { recursive: true, force: true });
  *  ```
  *
- *  Some notes:
+ *  Notes:
  *
- *  - `fs.watch(filename)` returns a watcher deriving from EventEmitter; it supports the 'change', 'changeonly' and 'renameonly' events
- *  - `fs.watchFile(target)` and `fs.unwatchFile(target)` can still be used in pairs
- *  - `fs.watchFile(target)` returns a StatsWatcher object deriving from EventEmitter; calling `fs.unwatchFile(target)` is equivalent to calling `StatsWatcher.close()`.
- *  - because of the uv implementation on Linux, the `recursive` option of `fs.watch` is only stable on win32/darwin. You can still try `fs.watch('/path/to', { recursive: true }, handler)` on Linux, but the handler may be invoked at times you do not expect
+ *  - `readFile` returns a Buffer by default and a string when an encoding is given; a descriptor
+ *    read with an options object defaults to utf8.
+ *  - writeFile(fd) seeks to the beginning and truncates the file before writing, which differs from
+ *    Node.js where a descriptor write starts at the current position.
+ *  - The Node.js `bigint` option is accepted in the options of the stat and watch functions but is
+ *    not implemented: the `Ns` properties of Stat are always numbers holding the nanosecond part.
+ *  - watch returns a watcher deriving from EventEmitter and watchFile returns a StatsWatcher
+ *    deriving from EventEmitter; calling `fs.unwatchFile(target)` is equivalent to calling
+ *    `StatsWatcher.close()`.
  *
  */
 declare module 'fs' {
@@ -112,21 +159,38 @@ declare module 'fs' {
 
     /**
      * ! The constants object of the fs module, see fs_constants
+     *
+     *      It exposes the file access (F_OK, R_OK, W_OK, X_OK), copy (COPYFILE_*), open (O_*),
+     *      file type (S_IF*) and permission (S_I*) constants used across the module; the full list
+     *      is documented in the fs_constants module.
+     *
      */
     const constants: typeof import ('fs_constants');
 
     /**
      * @description The alias of the Stat class, see Stat
+     *
+     *      Stat objects are returned by stat/lstat/fstat; Node.js exposes the same class as fs.Stats,
+     *      while readdir with `withFileTypes` returns DirEntry objects instead.
+     *
      */
     const Stats: typeof Class_Stat;
 
     /**
      * @description The alias of the DirEntry class, see DirEntry
+     *
+     *      A directory entry pairs a file name with its type, as returned by readdir with the
+     *      `withFileTypes` option; Node.js exposes the same class as fs.Dirent.
+     *
      */
     const Dirent: typeof Class_DirEntry;
 
     /**
      * @description The alias of the Dir class, see Dir
+     *
+     *      The directory iterator returned by opendir; entries can be read one by one with
+     *      read/readSync or with `for await...of`. Node.js exposes the same class as fs.Dir.
+     *
      */
     const Dir: typeof Class_Dir;
 
@@ -231,6 +295,9 @@ declare module 'fs' {
 
     /**
      * @description Creates a hard link; not supported on Windows
+     *
+     *      oldPath and newPath then refer to the same file content and share one inode, so removing
+     *      one name does not remove the other. Throws EEXIST when newPath already exists.
      *      @param oldPath the source file
      *      @param newPath the file to create
      *
@@ -241,6 +308,9 @@ declare module 'fs' {
 
     /**
      * @description Creates a hard link; not supported on Windows
+     *
+     *      oldPath and newPath then refer to the same file content and share one inode, so removing
+     *      one name does not remove the other. Throws EEXIST when newPath already exists.
      *      @param oldPath the source file
      *      @param newPath the file to create
      *
@@ -249,6 +319,9 @@ declare module 'fs' {
 
     /**
      * @description Creates a hard link; not supported on Windows
+     *
+     *      oldPath and newPath then refer to the same file content and share one inode, so removing
+     *      one name does not remove the other. Throws EEXIST when newPath already exists.
      *      @param oldPath the source file
      *      @param newPath the file to create
      *
@@ -291,10 +364,11 @@ declare module 'fs' {
      *
      *      The options object may contain:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // specify whether parent directories should be created. Default: false
      *          mode: 0777 // specify the file mode. Default: 0777
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
@@ -314,10 +388,11 @@ declare module 'fs' {
      *
      *      The options object may contain:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // specify whether parent directories should be created. Default: false
      *          mode: 0777 // specify the file mode. Default: 0777
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
@@ -335,10 +410,11 @@ declare module 'fs' {
      *
      *      The options object may contain:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // specify whether parent directories should be created. Default: false
      *          mode: 0777 // specify the file mode. Default: 0777
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
@@ -353,6 +429,18 @@ declare module 'fs' {
      * @description Creates a unique temporary directory
      *
      *      The directory is created under the system temporary directory, its name starts with prefix and ends with a random suffix.
+     *
+     *      Example — create a temporary directory and remove it afterwards:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-tmp-'));
+     *      console.log(fs.stat(dir).isDirectory()); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param prefix the prefix of the temporary directory name
      *      @return the path of the created temporary directory
      *
@@ -365,6 +453,18 @@ declare module 'fs' {
      * @description Creates a unique temporary directory
      *
      *      The directory is created under the system temporary directory, its name starts with prefix and ends with a random suffix.
+     *
+     *      Example — create a temporary directory and remove it afterwards:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-tmp-'));
+     *      console.log(fs.stat(dir).isDirectory()); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param prefix the prefix of the temporary directory name
      *      @return the path of the created temporary directory
      *
@@ -375,6 +475,18 @@ declare module 'fs' {
      * @description Creates a unique temporary directory
      *
      *      The directory is created under the system temporary directory, its name starts with prefix and ends with a random suffix.
+     *
+     *      Example — create a temporary directory and remove it afterwards:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-tmp-'));
+     *      console.log(fs.stat(dir).isDirectory()); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param prefix the prefix of the temporary directory name
      *      @return the path of the created temporary directory
      *
@@ -386,9 +498,10 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false // specify whether all subdirectories and files should be removed. Default: false
-     *      }
+     *      // fragment: options
+     *      ({
+     *          recursive: false // remove all subdirectories and files. Default: false
+     *      })
      *      ```
      *      @param path the directory to remove
      *      @param opt the removal options
@@ -403,9 +516,10 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false // specify whether all subdirectories and files should be removed. Default: false
-     *      }
+     *      // fragment: options
+     *      ({
+     *          recursive: false // remove all subdirectories and files. Default: false
+     *      })
      *      ```
      *      @param path the directory to remove
      *      @param opt the removal options
@@ -418,9 +532,10 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false // specify whether all subdirectories and files should be removed. Default: false
-     *      }
+     *      // fragment: options
+     *      ({
+     *          recursive: false // remove all subdirectories and files. Default: false
+     *      })
      *      ```
      *      @param path the directory to remove
      *      @param opt the removal options
@@ -433,10 +548,11 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false, // specify whether all subdirectories and files should be removed. Default: false
+     *      // fragment: options
+     *      ({
+     *          recursive: false, // remove all subdirectories and files. Default: false
      *          force: false // whether to ignore nonexistent paths. Default: false
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is false, only files and symbolic links can be removed; removing a directory throws EISDIR. When recursive is true, the directory and all its content are removed recursively; a symbolic link is removed itself without following the target. A nonexistent path throws ENOENT, unless force is true, which ignores nonexistent paths.
@@ -453,10 +569,11 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false, // specify whether all subdirectories and files should be removed. Default: false
+     *      // fragment: options
+     *      ({
+     *          recursive: false, // remove all subdirectories and files. Default: false
      *          force: false // whether to ignore nonexistent paths. Default: false
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is false, only files and symbolic links can be removed; removing a directory throws EISDIR. When recursive is true, the directory and all its content are removed recursively; a symbolic link is removed itself without following the target. A nonexistent path throws ENOENT, unless force is true, which ignores nonexistent paths.
@@ -471,10 +588,11 @@ declare module 'fs' {
      *
      *      The options may contain:
      *      ```JavaScript
-     *      {
-     *          recursive: false, // specify whether all subdirectories and files should be removed. Default: false
+     *      // fragment: options
+     *      ({
+     *          recursive: false, // remove all subdirectories and files. Default: false
      *          force: false // whether to ignore nonexistent paths. Default: false
-     *      }
+     *      })
      *      ```
      *
      *      When recursive is false, only files and symbolic links can be removed; removing a directory throws EISDIR. When recursive is true, the directory and all its content are removed recursively; a symbolic link is removed itself without following the target. A nonexistent path throws ENOENT, unless force is true, which ignores nonexistent paths.
@@ -570,12 +688,16 @@ declare module 'fs' {
      *
      *      opts supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
      *          mode: 0 // modifiers for copy operation. Default: 0
-     *      }
+     *      })
      *      ```
+     *
+     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
      *      @param opts the copy options
@@ -592,12 +714,16 @@ declare module 'fs' {
      *
      *      opts supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
      *          mode: 0 // modifiers for copy operation. Default: 0
-     *      }
+     *      })
      *      ```
+     *
+     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
      *      @param opts the copy options
@@ -612,12 +738,16 @@ declare module 'fs' {
      *
      *      opts supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
      *          mode: 0 // modifiers for copy operation. Default: 0
-     *      }
+     *      })
      *      ```
+     *
+     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
      *      @param opts the copy options
@@ -691,6 +821,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file; not supported on Windows
+     *
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
+     *      convention as Node.js. Changing the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -702,6 +835,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file; not supported on Windows
+     *
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
+     *      convention as Node.js. Changing the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -711,6 +847,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file; not supported on Windows
+     *
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
+     *      convention as Node.js. Changing the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -720,6 +859,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file without changing the target of a symbolic link; not supported on Windows
+     *
+     *      Identical to chown except that when path is a symbolic link the link itself is modified;
+     *      pass -1 for uid or gid to keep that value unchanged.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -731,6 +873,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file without changing the target of a symbolic link; not supported on Windows
+     *
+     *      Identical to chown except that when path is a symbolic link the link itself is modified;
+     *      pass -1 for uid or gid to keep that value unchanged.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -740,6 +885,9 @@ declare module 'fs' {
 
     /**
      * @description Sets the owner of the given file without changing the target of a symbolic link; not supported on Windows
+     *
+     *      Identical to chown except that when path is a symbolic link the link itself is modified;
+     *      pass -1 for uid or gid to keep that value unchanged.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -820,9 +968,39 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      Throws when the path does not exist.
+     *      Follows symbolic links: when path is a link the returned Stat object describes its target,
+     *      use lstat to describe the link itself.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
+     *
+     *      Example — inspect a text file created in a temporary directory:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-stat-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const st = fs.stat(file);
+     *      console.log(st.name, st.size, st.isFile()); // data.txt 5 true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function stat(path: string): Class_Stat;
@@ -832,9 +1010,39 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      Throws when the path does not exist.
+     *      Follows symbolic links: when path is a link the returned Stat object describes its target,
+     *      use lstat to describe the link itself.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
+     *
+     *      Example — inspect a text file created in a temporary directory:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-stat-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const st = fs.stat(file);
+     *      console.log(st.name, st.size, st.isFile()); // data.txt 5 true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function statSync(path: string): Class_Stat;
@@ -842,9 +1050,39 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      Throws when the path does not exist.
+     *      Follows symbolic links: when path is a link the returned Stat object describes its target,
+     *      use lstat to describe the link itself.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
+     *
+     *      Example — inspect a text file created in a temporary directory:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-stat-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'hello');
+     *
+     *      const st = fs.stat(file);
+     *      console.log(st.name, st.size, st.isFile()); // data.txt 5 true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function statAsync(path: string): Promise<Class_Stat>;
@@ -852,14 +1090,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -872,14 +1104,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -890,14 +1116,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -907,8 +1127,24 @@ declare module 'fs' {
 
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
+     *
+     *      The described entry is the link itself: isSymbolicLink() returns true and
+     *      isFile()/isDirectory() report the link, not its target.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function lstat(path: string): Class_Stat;
@@ -917,16 +1153,48 @@ declare module 'fs' {
 
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
+     *
+     *      The described entry is the link itself: isSymbolicLink() returns true and
+     *      isFile()/isDirectory() report the link, not its target.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function lstatSync(path: string): Class_Stat;
 
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
+     *
+     *      The described entry is the link itself: isSymbolicLink() returns true and
+     *      isFile()/isDirectory() report the link, not its target.
+     *
+     *      The options overload accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // throw when the path does not exist; false returns undefined instead. Default: true
+     *          "throwIfNoEntry": true
+     *      })
+     *      ```
+     *
+     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      calls; the asynchronous form always throws.
      *      @param path the file to query
-     *      @return the basic information of the file
+     *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
+     *              the path does not exist
      *
      */
     function lstatAsync(path: string): Promise<Class_Stat>;
@@ -934,14 +1202,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -954,14 +1216,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -972,14 +1228,8 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file; unlike stat, when path is a symbolic link, the information of the link itself is returned instead of its target
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "throwIfNoEntry": true // whether a nonexistent path throws; returns undefined when false. Default: true
-     *      }
-     *      ```
-     *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback) calls; the asynchronous form always throws.
+     *      The options object (throwIfNoEntry, default true) is described on the first overload; it
+     *      only takes effect for synchronous (no callback) calls, the asynchronous form always throws.
      *      @param path the file to query
      *      @param options the query options
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and the path does not exist
@@ -991,6 +1241,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1003,6 +1254,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1013,6 +1265,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
+     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1062,6 +1315,18 @@ declare module 'fs' {
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
+     *
+     *      The target is returned as stored in the link and may be relative or point to a nonexistent
+     *      path; the link itself must exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the symbolic link to read
      *      @return the file name the symbolic link points to
      *
@@ -1072,6 +1337,18 @@ declare module 'fs' {
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
+     *
+     *      The target is returned as stored in the link and may be relative or point to a nonexistent
+     *      path; the link itself must exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the symbolic link to read
      *      @return the file name the symbolic link points to
      *
@@ -1080,6 +1357,18 @@ declare module 'fs' {
 
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
+     *
+     *      The target is returned as stored in the link and may be relative or point to a nonexistent
+     *      path; the link itself must exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the symbolic link to read
      *      @return the file name the symbolic link points to
      *
@@ -1089,12 +1378,8 @@ declare module 'fs' {
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the symbolic link to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1107,12 +1392,8 @@ declare module 'fs' {
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the symbolic link to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1123,12 +1404,8 @@ declare module 'fs' {
     /**
      * @description Reads the given symbolic link and returns the target path it points to; not supported on Windows
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the symbolic link to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1138,6 +1415,18 @@ declare module 'fs' {
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
+     *
+     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      when the path does not exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the path to read
      *      @return the resolved absolute path
      *
@@ -1148,6 +1437,18 @@ declare module 'fs' {
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
+     *
+     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      when the path does not exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the path to read
      *      @return the resolved absolute path
      *
@@ -1156,6 +1457,18 @@ declare module 'fs' {
 
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
+     *
+     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      when the path does not exist.
+     *
+     *      The options overload accepts either an encoding string or:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          // the returned value encoding; 'buffer' returns a Buffer. Default: utf8
+     *          "encoding": "utf8"
+     *      })
+     *      ```
      *      @param path the path to read
      *      @return the resolved absolute path
      *
@@ -1165,12 +1478,8 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the path to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1183,12 +1492,8 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the path to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1199,12 +1504,8 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      options supports the following options, or a string is used as the encoding directly:
-     *      ```JavaScript
-     *      {
-     *          "encoding": "utf8" // the encoding of the returned value; 'buffer' returns a Buffer. Default: utf8
-     *      }
-     *      ```
+     *      The encoding is described on the first overload; it may be passed as a string or in an
+     *      options object, and 'buffer' returns a Buffer.
      *      @param path the path to read
      *      @param options the read options or the encoding of the returned value
      *      @return the decoded string when an encoding is given, or a Buffer for 'buffer'
@@ -1214,6 +1515,10 @@ declare module 'fs' {
 
     /**
      * @description Creates a symbolic link
+     *
+     *      On POSIX systems the link stores target as given and type is ignored; a relative target is
+     *      interpreted relative to the directory of linkpath. On Windows type selects 'file', 'dir' or
+     *      'junction', and a junction target must be absolute. Throws EEXIST when linkpath exists.
      *      @param target the target, which may be a file, a directory or a nonexistent path
      *      @param linkpath the symbolic link to create
      *      @param type the type of the symbolic link: 'file', 'dir' or 'junction', 'file' by default; this parameter is only effective on Windows, and for 'junction' the target path linkpath must be absolute, while target is converted to an absolute path automatically.
@@ -1225,6 +1530,10 @@ declare module 'fs' {
 
     /**
      * @description Creates a symbolic link
+     *
+     *      On POSIX systems the link stores target as given and type is ignored; a relative target is
+     *      interpreted relative to the directory of linkpath. On Windows type selects 'file', 'dir' or
+     *      'junction', and a junction target must be absolute. Throws EEXIST when linkpath exists.
      *      @param target the target, which may be a file, a directory or a nonexistent path
      *      @param linkpath the symbolic link to create
      *      @param type the type of the symbolic link: 'file', 'dir' or 'junction', 'file' by default; this parameter is only effective on Windows, and for 'junction' the target path linkpath must be absolute, while target is converted to an absolute path automatically.
@@ -1234,6 +1543,10 @@ declare module 'fs' {
 
     /**
      * @description Creates a symbolic link
+     *
+     *      On POSIX systems the link stores target as given and type is ignored; a relative target is
+     *      interpreted relative to the directory of linkpath. On Windows type selects 'file', 'dir' or
+     *      'junction', and a junction target must be absolute. Throws EEXIST when linkpath exists.
      *      @param target the target, which may be a file, a directory or a nonexistent path
      *      @param linkpath the symbolic link to create
      *      @param type the type of the symbolic link: 'file', 'dir' or 'junction', 'file' by default; this parameter is only effective on Windows, and for 'junction' the target path linkpath must be absolute, while target is converted to an absolute path automatically.
@@ -1243,6 +1556,8 @@ declare module 'fs' {
 
     /**
      * @description Changes the size of a file; when the given length is larger than the source file, it is padded with '\0', otherwise the exceeding content is lost
+     *
+     *      The file must exist and be writable; this is the path-based counterpart of ftruncate.
      *      @param path the path of the file to change
      *      @param len the new size of the file
      *
@@ -1253,6 +1568,8 @@ declare module 'fs' {
 
     /**
      * @description Changes the size of a file; when the given length is larger than the source file, it is padded with '\0', otherwise the exceeding content is lost
+     *
+     *      The file must exist and be writable; this is the path-based counterpart of ftruncate.
      *      @param path the path of the file to change
      *      @param len the new size of the file
      *
@@ -1261,6 +1578,8 @@ declare module 'fs' {
 
     /**
      * @description Changes the size of a file; when the given length is larger than the source file, it is padded with '\0', otherwise the exceeding content is lost
+     *
+     *      The file must exist and be writable; this is the path-based counterpart of ftruncate.
      *      @param path the path of the file to change
      *      @param len the new size of the file
      *
@@ -1601,6 +1920,7 @@ declare module 'fs' {
      * @description Reads the entries of the given directory
      *
      *      Returns an array of file names under the directory, without the content of subdirectories.
+     *      The overload with opts can list subdirectories recursively and return DirEntry objects.
      *      @param path the directory to query
      *      @return the array of directory entries
      *
@@ -1613,6 +1933,7 @@ declare module 'fs' {
      * @description Reads the entries of the given directory
      *
      *      Returns an array of file names under the directory, without the content of subdirectories.
+     *      The overload with opts can list subdirectories recursively and return DirEntry objects.
      *      @param path the directory to query
      *      @return the array of directory entries
      *
@@ -1623,6 +1944,7 @@ declare module 'fs' {
      * @description Reads the entries of the given directory
      *
      *      Returns an array of file names under the directory, without the content of subdirectories.
+     *      The overload with opts can list subdirectories recursively and return DirEntry objects.
      *      @param path the directory to query
      *      @return the array of directory entries
      *
@@ -1666,14 +1988,39 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
-     *      {
-     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *      // fragment: options
+     *      ({
+     *          "recursive": false, // whether the content of subdirectories is listed too. Default: false
      *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
-     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
-     *      }
+     *          // the encoding of the file names; 'buffer' returns Buffer objects. Default: utf8
+     *          "encoding": "utf8"
+     *      })
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
+     *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
+     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
+     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      With recursive set to true the entries of subdirectories are included as paths relative to
+     *      the queried directory.
+     *
+     *      Example — list a directory with names and with types:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readdir-'));
+     *      fs.writeFile(path.join(dir, 'a.txt'), 'a');
+     *      fs.mkdir(path.join(dir, 'sub'));
+     *
+     *      fs.readdir(dir).forEach((name) => console.log(name));
+     *      fs.readdir(dir, { withFileTypes: true }).forEach((entry) => {
+     *          console.log(entry.name, entry.isDirectory());
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the directory to query
      *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
@@ -1688,14 +2035,39 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
-     *      {
-     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *      // fragment: options
+     *      ({
+     *          "recursive": false, // whether the content of subdirectories is listed too. Default: false
      *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
-     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
-     *      }
+     *          // the encoding of the file names; 'buffer' returns Buffer objects. Default: utf8
+     *          "encoding": "utf8"
+     *      })
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
+     *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
+     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
+     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      With recursive set to true the entries of subdirectories are included as paths relative to
+     *      the queried directory.
+     *
+     *      Example — list a directory with names and with types:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readdir-'));
+     *      fs.writeFile(path.join(dir, 'a.txt'), 'a');
+     *      fs.mkdir(path.join(dir, 'sub'));
+     *
+     *      fs.readdir(dir).forEach((name) => console.log(name));
+     *      fs.readdir(dir, { withFileTypes: true }).forEach((entry) => {
+     *          console.log(entry.name, entry.isDirectory());
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the directory to query
      *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
@@ -1708,14 +2080,39 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options, or a string is used as the encoding of the file names directly:
      *      ```JavaScript
-     *      {
-     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *      // fragment: options
+     *      ({
+     *          "recursive": false, // whether the content of subdirectories is listed too. Default: false
      *          "withFileTypes": false, // specify whether to return DirEntry objects. Default: false
-     *          "encoding": "utf8" // specify the encoding of the file names, 'buffer' returns Buffer objects. Default: utf8
-     *      }
+     *          // the encoding of the file names; 'buffer' returns Buffer objects. Default: utf8
+     *          "encoding": "utf8"
+     *      })
      *      ```
      *
-     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of file names. A string encoding is equivalent to passing it in the options; 'buffer' returns an array of Buffer objects, consistent with Node.js.
+     *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
+     *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
+     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
+     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      With recursive set to true the entries of subdirectories are included as paths relative to
+     *      the queried directory.
+     *
+     *      Example — list a directory with names and with types:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-readdir-'));
+     *      fs.writeFile(path.join(dir, 'a.txt'), 'a');
+     *      fs.mkdir(path.join(dir, 'sub'));
+     *
+     *      fs.readdir(dir).forEach((name) => console.log(name));
+     *      fs.readdir(dir, { withFileTypes: true }).forEach((entry) => {
+     *          console.log(entry.name, entry.isDirectory());
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
      *      @param path the directory to query
      *      @param opts the options or the encoding of the returned file names
      *      @return the array of directory entries
@@ -1728,13 +2125,14 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned.
+     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
      *      @param opts the options
      *      @return the file list
@@ -1749,13 +2147,14 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned.
+     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
      *      @param opts the options
      *      @return the file list
@@ -1768,13 +2167,14 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned.
+     *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
      *      @param opts the options
      *      @return the file list
@@ -1787,13 +2187,15 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The matches of all patterns are merged; a duplicate file appears only once.
+     *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
+     *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
      *      @param opts the options
      *      @return the file list
@@ -1808,13 +2210,15 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The matches of all patterns are merged; a duplicate file appears only once.
+     *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
+     *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
      *      @param opts the options
      *      @return the file list
@@ -1827,13 +2231,15 @@ declare module 'fs' {
      *
      *      The opts parameter supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
-     *      }
+     *      })
      *      ```
      *
-     *      The matches of all patterns are merged; a duplicate file appears only once.
+     *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
+     *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
      *      @param opts the options
      *      @return the file list
@@ -1846,14 +2252,15 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "flags": "r",      // the open mode, "r" (read only) by default
      *          "start": 0,        // the start position of the read
-     *          "end": undefined    // the end position of the read (inclusive), the end of the file by default
-     *      }
+     *          "end": undefined    // end position of the read (inclusive). Default: end of file
+     *      })
      *      ```
      *
-     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included).
+     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included); the same stream can be used for reading at explicit positions.
      *      @param fname the file name
      *      @param options the read options
      *      @return the file stream object
@@ -1868,14 +2275,15 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "flags": "r",      // the open mode, "r" (read only) by default
      *          "start": 0,        // the start position of the read
-     *          "end": undefined    // the end position of the read (inclusive), the end of the file by default
-     *      }
+     *          "end": undefined    // end position of the read (inclusive). Default: end of file
+     *      })
      *      ```
      *
-     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included).
+     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included); the same stream can be used for reading at explicit positions.
      *      @param fname the file name
      *      @param options the read options
      *      @return the file stream object
@@ -1888,14 +2296,15 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "flags": "r",      // the open mode, "r" (read only) by default
      *          "start": 0,        // the start position of the read
-     *          "end": undefined    // the end position of the read (inclusive), the end of the file by default
-     *      }
+     *          "end": undefined    // end position of the read (inclusive). Default: end of file
+     *      })
      *      ```
      *
-     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included).
+     *      When start or end is given, the returned stream only covers the [start, end] range (boundaries included); the same stream can be used for reading at explicit positions.
      *      @param fname the file name
      *      @param options the read options
      *      @return the file stream object
@@ -1905,6 +2314,18 @@ declare module 'fs' {
 
     /**
      * @description Opens a file and creates a writable stream
+     *
+     *      The stream writes from the beginning of the file and truncates existing content by default;
+     *      use an 'r+' flag to write into an existing file instead. See SeekableStream for the
+     *      positioning and write methods.
+     *
+     *      options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "flags": "w" // the open mode, "w" (create or truncate) by default
+     *      })
+     *      ```
      *      @param fname the file name
      *      @param options the write options, supporting flags ('w' by default)
      *      @return the file stream object
@@ -1916,6 +2337,18 @@ declare module 'fs' {
 
     /**
      * @description Opens a file and creates a writable stream
+     *
+     *      The stream writes from the beginning of the file and truncates existing content by default;
+     *      use an 'r+' flag to write into an existing file instead. See SeekableStream for the
+     *      positioning and write methods.
+     *
+     *      options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "flags": "w" // the open mode, "w" (create or truncate) by default
+     *      })
+     *      ```
      *      @param fname the file name
      *      @param options the write options, supporting flags ('w' by default)
      *      @return the file stream object
@@ -1925,6 +2358,18 @@ declare module 'fs' {
 
     /**
      * @description Opens a file and creates a writable stream
+     *
+     *      The stream writes from the beginning of the file and truncates existing content by default;
+     *      use an 'r+' flag to write into an existing file instead. See SeekableStream for the
+     *      positioning and write methods.
+     *
+     *      options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "flags": "w" // the open mode, "w" (create or truncate) by default
+     *      })
+     *      ```
      *      @param fname the file name
      *      @param options the write options, supporting flags ('w' by default)
      *      @return the file stream object
@@ -2000,6 +2445,10 @@ declare module 'fs' {
     /**
      * @description Opens a file descriptor, using integer fs.constants flags
      *
+     *      The same operation is available with a string-flags form taking an octal string mode and a
+     *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
+     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
      *      @param mode the file mode when the file is created, 0666 by default
@@ -2013,6 +2462,10 @@ declare module 'fs' {
     /**
      * @description Opens a file descriptor, using integer fs.constants flags
      *
+     *      The same operation is available with a string-flags form taking an octal string mode and a
+     *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
+     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
      *      @param mode the file mode when the file is created, 0666 by default
@@ -2024,6 +2477,10 @@ declare module 'fs' {
     /**
      * @description Opens a file descriptor, using integer fs.constants flags
      *
+     *      The same operation is available with a string-flags form taking an octal string mode and a
+     *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
+     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
      *      @param mode the file mode when the file is created, 0666 by default
@@ -2257,12 +2714,32 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
+     *      })
      *      ```
      *
-     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      Example — read the same file as a string and as a Buffer:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'plain text');
+     *
+     *      console.log(fs.readFile(file, 'utf8')); // plain text
+     *      console.log(Buffer.isBuffer(fs.readFile(file))); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
+     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      descriptor is not closed after reading, and reading starts at the current position of the
+     *      descriptor and advances it.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
@@ -2280,12 +2757,32 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
+     *      })
      *      ```
      *
-     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      Example — read the same file as a string and as a Buffer:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'plain text');
+     *
+     *      console.log(fs.readFile(file, 'utf8')); // plain text
+     *      console.log(Buffer.isBuffer(fs.readFile(file))); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
+     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      descriptor is not closed after reading, and reading starts at the current position of the
+     *      descriptor and advances it.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
@@ -2301,12 +2798,32 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8" // specify the encoding, default is utf8.
-     *      }
+     *      })
      *      ```
      *
-     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned; when an encoding is given, the decoded string is returned. Consistent with Node.js: a file descriptor is not closed after reading and the current file position is not changed.
+     *      Example — read the same file as a string and as a Buffer:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-read-'));
+     *      const file = path.join(dir, 'data.txt');
+     *      fs.writeFile(file, 'plain text');
+     *
+     *      console.log(fs.readFile(file, 'utf8')); // plain text
+     *      console.log(Buffer.isBuffer(fs.readFile(file))); // true
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
+     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      descriptor is not closed after reading, and reading starts at the current position of the
+     *      descriptor and advances it.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      options may be the decoding string, or the read options object; a descriptor read with an options object defaults to utf8, the other forms return a Buffer unless an encoding is given.
@@ -2319,6 +2836,8 @@ declare module 'fs' {
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\n" on posix and "\r\n" on windows by default
+     *
+     *      Reads up to maxlines lines; a trailing line ending does not produce an extra empty entry.
      *      @param fname the file name
      *      @param maxlines the maximum number of lines to read, all lines by default
      *      @return the array of text lines read; an empty array when the file is empty or has no readable data
@@ -2463,14 +2982,33 @@ declare module 'fs' {
      *
      *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding, default is utf8.
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "w" // specify the open flag. Default: w
-     *      }
+     *      })
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      Example — overwriting an existing file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'data.txt');
+     *
+     *      fs.writeFile(file, 'first');
+     *      fs.writeFile(file, 'second'); // replaces the previous content
+     *      console.log(fs.readFile(file, 'utf8')); // second
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
+     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to write
@@ -2488,14 +3026,33 @@ declare module 'fs' {
      *
      *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding, default is utf8.
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "w" // specify the open flag. Default: w
-     *      }
+     *      })
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      Example — overwriting an existing file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'data.txt');
+     *
+     *      fs.writeFile(file, 'first');
+     *      fs.writeFile(file, 'second'); // replaces the previous content
+     *      console.log(fs.readFile(file, 'utf8')); // second
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
+     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to write
@@ -2511,14 +3068,33 @@ declare module 'fs' {
      *
      *      The file is opened for overwriting, existing content is truncated. opt is the encoding of text data, utf8 by default; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding, default is utf8.
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "w" // specify the open flag. Default: w
-     *      }
+     *      })
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8.
+     *      Example — overwriting an existing file:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-write-'));
+     *      const file = path.join(dir, 'data.txt');
+     *
+     *      fs.writeFile(file, 'first');
+     *      fs.writeFile(file, 'second'); // replaces the previous content
+     *      console.log(fs.readFile(file, 'utf8')); // second
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
+     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to write
@@ -2534,13 +3110,14 @@ declare module 'fs' {
      *
      *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "a" // specify the open flag. Default: a
-     *      }
+     *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -2558,13 +3135,14 @@ declare module 'fs' {
      *
      *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "a" // specify the open flag. Default: a
-     *      }
+     *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -2580,13 +3158,14 @@ declare module 'fs' {
      *
      *      The file is created when it does not exist. options is the encoding of the data to append; an options object carries the write options instead:
      *      ```JavaScript
-     *      {
+     *      // fragment: options
+     *      ({
      *          "encoding": "utf8", // specify the encoding of string data. Default: utf8
      *          "mode": 0666, // specify the file mode. Default: 0666
      *          "flag": "a" // specify the open flag. Default: a
-     *      }
+     *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8.
+     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -2600,7 +3179,7 @@ declare module 'fs' {
     /**
      * @description Sets a zip virtual file mapping
      *
-     *      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip.
+     *      The zip data is mapped onto the given path; file accesses to that path are then read from the mapped zip. Entries inside the zip are reached by appending `$` to the mapping path, for example `/archive.zip$/dir/file.txt`.
      *
      *      data may be a Buffer holding the zip, or a string; a string is encoded as utf8.
      *      @param fname the mapping path, a string is encoded as utf8
@@ -2611,6 +3190,9 @@ declare module 'fs' {
 
     /**
      * @description Clears zip virtual file mappings
+     *
+     *      When fname is omitted every mapping is cleared; afterwards accesses to those paths fall back
+     *      to the real file system.
      *      @param fname the mapping path, all caches are cleared by default
      *
      */
@@ -2618,6 +3200,41 @@ declare module 'fs' {
 
     /**
      * @description Watches a file and returns the corresponding watcher object
+     *
+     *      Equivalent to watch(fname, {}, callback) without a callback; attach the handler with
+     *      `watcher.on('change', ...)` or pass it to another overload.
+     *
+     *      The options object supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "persistent": true, // keep the process running while files are watched
+     *          "recursive": false, // watch subdirectories too, false by default
+     *          "encoding": "utf8", // file name encoding; 'buffer' passes a Buffer
+     *      })
+     *      ```
+     *
+     *      On Linux the recursive option is only stable on win32/darwin; it is forwarded to the uv
+     *      backend but the handler may be invoked at times you do not expect. Use watchFile when the
+     *      platform notification service is unreliable.
+     *
+     *      Example — watch a directory and stop after the first change:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-watch-'));
+     *      let closed = false;
+     *      const watcher = fs.watch(dir, (eventType, filename) => {
+     *          console.log(eventType, filename);
+     *          if (closed) return;
+     *          closed = true;
+     *          watcher.close();
+     *          fs.rmSync(dir, { recursive: true, force: true });
+     *      });
+     *      fs.writeFile(path.join(dir, 'trigger.txt'), 'x');
+     *      ```
      *      @param fname the file to watch
      *      @return the FSWatcher object
      *
@@ -2626,6 +3243,9 @@ declare module 'fs' {
 
     /**
      * @description Watches a file and returns the corresponding watcher object
+     *
+     *      The callback receives `(eventType, filename)`, where eventType is 'change' or 'rename' and
+     *      filename may be null when the platform does not report it; it is called for every event.
      *      @param fname the file to watch
      *      @param callback `(evtType: 'change' | 'rename', filename: string) => any` the handler called when the file changes
      *      @return the FSWatcher object
@@ -2636,14 +3256,7 @@ declare module 'fs' {
     /**
      * @description Watches a file and returns the corresponding watcher object
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
-     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
-     *          "encoding": "utf8", // specify the encoding, default is utf8.
-     *      }
-     *      ```
+     *      The options (persistent, recursive, encoding) are described on the first overload.
      *      @param fname the file to watch
      *      @param options the watch options
      *      @return the FSWatcher object
@@ -2656,11 +3269,12 @@ declare module 'fs' {
      *
      *      options supports the following options:
      *      ```JavaScript
-     *      {
-     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
-     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
-     *          "encoding": "utf8", // specify the encoding, default is utf8.
-     *      }
+     *      // fragment: options
+     *      ({
+     *          "persistent": true, // keep the process running while files are watched
+     *          "recursive": false, // watch subdirectories too, false by default
+     *          "encoding": "utf8", // file name encoding; 'buffer' passes a Buffer
+     *      })
      *      ```
      *      @param fname the file to watch
      *      @param options the watch options
@@ -2673,7 +3287,18 @@ declare module 'fs' {
     /**
      * @description Watches a file and returns the corresponding StatsWatcher object
      *
-     *      The file status is checked periodically; the callback is called when it changes, receiving the Stat objects before and after the change.
+     *      The file status is checked periodically; the callback is called when it changes, receiving the Stat objects before and after the change. Returns a StatsWatcher deriving from EventEmitter; fs.unwatchFile(fname) or StatsWatcher.close() stops watching.
+     *
+     *      The options object supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "persistent": true, // keep the process running while files are watched
+     *          "bigint": false, // accepted for Node.js compatibility, not implemented
+     *          "interval": 5007 // poll period in milliseconds. Default: 5007
+     *      })
+     *      ```
+     *      An interval smaller than 20 milliseconds falls back to the default.
      *      @param fname the file to watch
      *      @param callback `(curStats: Stats, prevStats: Stats) => any` the handler called when the stats of the file change
      *      @return the StatsWatcher object
@@ -2684,14 +3309,8 @@ declare module 'fs' {
     /**
      * @description Watches a file and returns the corresponding StatsWatcher object
      *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      {
-     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
-     *          "bigint": false, // specify whether the numeric values in the returned Stat objects should be bigint. Default: false
-     *          "interval": 100 // specify the time interval in milliseconds at which the file's stats should be polled. Default: 100
-     *      }
-     *      ```
+     *      The options (persistent, bigint, interval) are described on the first overload; watchFile
+     *      uses stat polling, fs.watch is preferred when the platform notification service is available.
      *      @param fname the file to watch
      *      @param options the watch options
      *      @param callback `(curStats: Stats, prevStats: Stats) => any` the handler called when the stats of the file change
