@@ -34,6 +34,9 @@
  *   --list      print the blocks and their classification, run nothing
  *   --json      write the report to temp/idl_examples_report.json (or --report)
  *
+ * The examples are executed by a fibjs binary: the one hosting the tool when
+ * it runs under fibjs, else bin/Linux_x64_release/fibjs (FIBJS overrides).
+ *
  * The exit code is 1 when a runnable example fails or times out, when a
  * fragment is not valid JavaScript, or when a marker is malformed.
  */
@@ -50,7 +53,14 @@ var REPO_ROOT = path.resolve(__dirname, '..');
 var IDL_FOLDER = path.join(REPO_ROOT, 'idl');
 var TODOS_FILE = path.join(REPO_ROOT, 'plans/idl-doc-todos.md');
 var DEFAULT_REPORT = path.join(REPO_ROOT, 'temp/idl_examples_report.json');
-var DEFAULT_FIBJS = path.join(REPO_ROOT, 'bin/Linux_x64_release/fibjs');
+
+// the examples must run under a real fibjs: when the tool itself runs under
+// fibjs (`fibjs tools/check_idl_examples.js`) that is the binary hosting the
+// tool; a node run (`node tools/check_idl_examples.js`, the CI host) keeps the
+// conventional build location. FIBJS overrides both.
+var DEFAULT_FIBJS = process.versions.fibjs ?
+    process.execPath :
+    path.join(REPO_ROOT, 'bin/Linux_x64_release/fibjs');
 
 var SERVICES = ['redis', 'mysql', 'sqlite', 'network', 'windows', 'long-running'];
 var DEFAULT_TIMEOUT = 10000;      // ms, per runnable example

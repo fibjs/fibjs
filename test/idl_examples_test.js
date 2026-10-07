@@ -18,7 +18,9 @@ var path = require('path');
 var examples = require('../tools/check_idl_examples');
 var check_idl_docs = require('../tools/util/check_idl_docs');
 
-var FIBJS = process.env.FIBJS || path.resolve(__dirname, '../bin/Linux_x64_release/fibjs');
+// the examples must run under the very binary hosting the suite (the same
+// contract as the other subprocess suites of test/main.js); FIBJS overrides
+var FIBJS = process.env.FIBJS || process.execPath;
 
 // the parser dependency (pegjs) is provided by the build environment; without
 // it only the synthetic cases below can run
