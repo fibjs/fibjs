@@ -424,10 +424,17 @@ function suggestions(q) {
 
 function markdown(text) {
     return text
-        .replace(/```[a-zA-Z]*\n/g, '')
+        // a fence line is removed whole, its own indentation included:
+        // leaving that indent behind would prepend it to the next line and
+        // shift the first line of the block (and the tags after the closing
+        // fence), which misaligns them with the authored text
+        .replace(/^[ \t]*```[a-zA-Z]*[ \t]*(\n|$)/gm, '')
         .replace(/`([^`]*)`/g, '$1')
         .replace(/\*\*([^*]*)\*\*/g, '$1')
-        .replace(/^\s*[-*]\s+/gm, '· ');
+        // [ \t] instead of \s: \s crosses newlines, so a bullet at the start
+        // of a line would swallow the blank line that separates it from the
+        // paragraph above and glue the list to it
+        .replace(/^[ \t]*[-*][ \t]+/gm, '· ');
 }
 
 // the doc lines are printed as authored: the corpus keeps one line per
