@@ -1,0 +1,462 @@
+{
+    "_note": "The reviewed Value/Variant parameter positions. A parameter whose declared type is Value/Variant (or a union containing one) must be listed here; the gate tools/util/check_variant_params.js fails idlc on an unlisted one so every new generic parameter goes through the review standard of plans/value-variant-union-2026-10-05.md. Each entry matches a def, optionally a member and a parameter; an entry with a member is reported as stale when it matches nothing.",
+    "entries": [
+        {
+            "def": "assert",
+            "reason": "assertion comparison takes arbitrary values (plan section 4)"
+        },
+        {
+            "def": "assert_strict",
+            "reason": "assertion comparison takes arbitrary values (plan section 4)"
+        },
+        {
+            "def": "util",
+            "reason": "format/inspect/isDeepStrictEqual and the type helpers take arbitrary values (plan section 4)"
+        },
+        {
+            "def": "types",
+            "reason": "isXxx(value) is the type predicate entry point (plan section 4)"
+        },
+        {
+            "def": "EventEmitter",
+            "param": "ev",
+            "reason": "the 20 event-name positions stay Value: Symbol keys are supported and the string/symbol envelope was kept on 2026-10-05 (plan section 5.1 decision 3)"
+        },
+        {
+            "def": "EventEmitter",
+            "param": "o",
+            "reason": "listenerCount(o) reads the same event-name value (plan section 5.1 decision 3)"
+        },
+        {
+            "def": "global",
+            "member": "clearTimeout",
+            "reason": "non-timer values stay silently ignored, pinned by the executable examples (plan section 3.2)"
+        },
+        {
+            "def": "global",
+            "member": "clearInterval",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "global",
+            "member": "clearHrInterval",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "global",
+            "member": "clearImmediate",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "global",
+            "member": "btoa",
+            "reason": "DOMString rendering of any value (plan section 5.1 decision 1)"
+        },
+        {
+            "def": "global",
+            "member": "atob",
+            "reason": "DOMString rendering of any value (plan section 5.1 decision 1)"
+        },
+        {
+            "def": "global",
+            "member": "structuredClone",
+            "reason": "structured clone takes any cloneable value (plan section 4)"
+        },
+        {
+            "def": "timers",
+            "member": "clearTimeout",
+            "reason": "non-timer values stay silently ignored, pinned by the executable examples (plan section 3.2)"
+        },
+        {
+            "def": "timers",
+            "member": "clearInterval",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "timers",
+            "member": "clearHrInterval",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "timers",
+            "member": "clearImmediate",
+            "reason": "same as clearTimeout (plan section 3.2)"
+        },
+        {
+            "def": "console",
+            "reason": "...args are formatted, every value is accepted (plan section 4)"
+        },
+        {
+            "def": "ConsoleObject",
+            "reason": "...args are formatted, every value is accepted (plan section 4)"
+        },
+        {
+            "def": "json",
+            "reason": "encode takes any serializable value (plan section 4)"
+        },
+        {
+            "def": "msgpack",
+            "reason": "encode takes any serializable value (plan section 4)"
+        },
+        {
+            "def": "v8",
+            "reason": "serialize takes any value the serializer accepts (plan section 4)"
+        },
+        {
+            "def": "Buffer",
+            "reason": "isBuffer(v) is a type predicate (plan section 4)"
+        },
+        {
+            "def": "Iterator",
+            "reason": "return(value) hands a user value to the iterator (plan section 4)"
+        },
+        {
+            "def": "net",
+            "member": "isIP",
+            "reason": "the lenient stringification is intentional (isIP(123) checks \"123\"); kept on 2026-10-05 (plan section 5.1 decision 2)"
+        },
+        {
+            "def": "net",
+            "member": "isIPv4",
+            "reason": "same as isIP (plan section 5.1 decision 2)"
+        },
+        {
+            "def": "net",
+            "member": "isIPv6",
+            "reason": "same as isIP (plan section 5.1 decision 2)"
+        },
+        {
+            "def": "crypto",
+            "member": "sign",
+            "param": "algorithm",
+            "reason": "null means derive the algorithm from the key; a union cannot express null (plan section 5.1 decision 4)"
+        },
+        {
+            "def": "crypto",
+            "member": "verify",
+            "param": "algorithm",
+            "reason": "same as sign (plan section 5.1 decision 4)"
+        },
+        {
+            "def": "AsyncLocalStorage",
+            "member": "enterWith",
+            "param": "store",
+            "reason": "the caller's own context value (plan section 4)"
+        },
+        {
+            "def": "AsyncLocalStorage",
+            "member": "run",
+            "param": "store",
+            "reason": "the caller's own context value (plan section 4)"
+        },
+        {
+            "def": "AsyncResource",
+            "member": "runInAsyncScope",
+            "param": "thisArg",
+            "reason": "the caller's own this value (plan section 4)"
+        },
+        {
+            "def": "AsyncResource",
+            "member": "bind",
+            "param": "thisArg",
+            "reason": "the caller's own this value (plan section 4); the constructor moved to Number|Object"
+        },
+        {
+            "def": "path",
+            "member": "toNamespacedPath",
+            "reason": "non-string values are returned unchanged and null becomes undefined, pinned by the docs and compat-differences 2.12 (plan section 3.2)"
+        },
+        {
+            "def": "path_posix",
+            "member": "toNamespacedPath",
+            "reason": "same as path (plan section 3.2)"
+        },
+        {
+            "def": "path_win32",
+            "member": "toNamespacedPath",
+            "reason": "same as path (plan section 3.2)"
+        },
+        {
+            "def": "fs",
+            "member": "utimes",
+            "param": "atime",
+            "reason": "the time parameters stay Variant: the union lenient pass would silently accept true/[]/null and break the Node-parity error tests (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "utimes",
+            "param": "mtime",
+            "reason": "same as utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "lutimes",
+            "param": "atime",
+            "reason": "same as utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "lutimes",
+            "param": "mtime",
+            "reason": "same as utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "futimes",
+            "param": "atime",
+            "reason": "same as utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "futimes",
+            "param": "mtime",
+            "reason": "same as utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "open",
+            "param": "mode",
+            "reason": "the mode parameters stay Variant: the union lenient pass would accept true/[] as a mode and turn NaN into a type error (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "chmod",
+            "param": "mode",
+            "reason": "the octal-string alternative stays Variant inside the union (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "lchmod",
+            "param": "mode",
+            "reason": "same as chmod.mode (plan section 5.3)"
+        },
+        {
+            "def": "fs",
+            "member": "mkdir",
+            "param": "mode",
+            "reason": "same as chmod.mode (plan section 5.3)"
+        },
+        {
+            "def": "FileHandle",
+            "member": "utimes",
+            "param": "atime",
+            "reason": "same as fs.utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "FileHandle",
+            "member": "utimes",
+            "param": "mtime",
+            "reason": "same as fs.utimes.atime (plan section 5.3)"
+        },
+        {
+            "def": "process",
+            "member": "emitWarning",
+            "param": "warning",
+            "reason": "accepts a string or an Error instance; the IDL Object type is a plain JS object and would reject errors (plan section 5.3)"
+        },
+        {
+            "def": "process",
+            "member": "send",
+            "param": "msg",
+            "reason": "structured clone payload (plan section 4)"
+        },
+        {
+            "def": "worker_threads",
+            "member": "markAsUncloneable",
+            "param": "object",
+            "reason": "a compatibility no-op that accepts primitives by design (plan section 3.2)"
+        },
+        {
+            "def": "worker_threads",
+            "member": "markAsUntransferable",
+            "param": "object",
+            "reason": "same as markAsUncloneable (plan section 3.2)"
+        },
+        {
+            "def": "worker_threads",
+            "member": "isMarkedAsUntransferable",
+            "param": "object",
+            "reason": "always false, primitives included (plan section 3.2)"
+        },
+        {
+            "def": "HttpResponse",
+            "member": "HttpResponse",
+            "param": "body",
+            "reason": "null/undefined for no body plus the BodyInit set; a union cannot express null (plan section 3.5)"
+        },
+        {
+            "def": "HttpResponse",
+            "member": "json",
+            "param": "data",
+            "reason": "any serializable value (plan section 4)"
+        },
+        {
+            "def": "FormData",
+            "member": "append",
+            "param": "value",
+            "reason": "the filename form stays Variant: the Blob type is constructor-loadable and would silently convert strings (plan section 5.3)"
+        },
+        {
+            "def": "FormData",
+            "member": "set",
+            "param": "value",
+            "reason": "same as append.value (plan section 5.3)"
+        },
+        {
+            "def": "HttpMessage",
+            "member": "appendHeader",
+            "param": "value",
+            "reason": "Variant renders as any, so Array|Variant is no typing gain; the pair also overlaps the (String, Array) overload (plan section 3.2)"
+        },
+        {
+            "def": "HttpMessage",
+            "member": "setHeader",
+            "param": "value",
+            "reason": "same as appendHeader.value (plan section 3.2)"
+        },
+        {
+            "def": "URLSearchParams",
+            "member": "has",
+            "param": "value",
+            "reason": "the value is stringified before matching, pinned by the docs and the executable example has('n', 2) (plan section 3.2)"
+        },
+        {
+            "def": "URLSearchParams",
+            "member": "delete",
+            "param": "value",
+            "reason": "same as has.value (plan section 3.2)"
+        },
+        {
+            "def": "URLSearchParams",
+            "member": "URLSearchParams",
+            "param": "init",
+            "reason": "the Variant alternative carries scalar stringification: new URLSearchParams(1) is \"1=\" (plan section 2.2)"
+        },
+        {
+            "def": "AbortController",
+            "member": "abort",
+            "param": "reason",
+            "reason": "the Value fallback is intentional: abort(0) keeps 0 (plan section 2.2)"
+        },
+        {
+            "def": "AbortSignal",
+            "member": "abort",
+            "param": "reason",
+            "reason": "same as AbortController.abort.reason (plan section 2.2)"
+        },
+        {
+            "def": "Stream",
+            "member": "destroy",
+            "param": "err",
+            "reason": "the error payload is the caller's own value (plan section 4)"
+        },
+        {
+            "def": "Message",
+            "member": "json",
+            "param": "data",
+            "reason": "any serializable value (plan section 4)"
+        },
+        {
+            "def": "Message",
+            "member": "pack",
+            "param": "data",
+            "reason": "any serializable value (plan section 4)"
+        },
+        {
+            "def": "MessagePort",
+            "member": "postMessage",
+            "param": "data",
+            "reason": "structured clone payload (plan section 4)"
+        },
+        {
+            "def": "MessagePort",
+            "member": "message",
+            "param": "data",
+            "reason": "the message event payload is a structured clone (plan section 4)"
+        },
+        {
+            "def": "Worker",
+            "member": "postMessage",
+            "param": "data",
+            "reason": "structured clone payload (plan section 4)"
+        },
+        {
+            "def": "Worker",
+            "member": "message",
+            "param": "data",
+            "reason": "the message event payload is a structured clone (plan section 4)"
+        },
+        {
+            "def": "Worker",
+            "member": "error",
+            "param": "err",
+            "reason": "the error event payload of the worker thread (plan section 4)"
+        },
+        {
+            "def": "ChildProcess",
+            "member": "send",
+            "param": "msg",
+            "reason": "structured clone payload (plan section 4)"
+        },
+        {
+            "def": "ChildProcess",
+            "member": "message",
+            "param": "msg",
+            "reason": "the message event payload is a structured clone (plan section 4)"
+        },
+        {
+            "def": "ChildProcess",
+            "member": "exit",
+            "param": "code",
+            "reason": "the exit event carries the raw code value (plan section 4)"
+        },
+        {
+            "def": "ChildProcess",
+            "member": "exit",
+            "param": "signal",
+            "reason": "the exit event carries the raw signal value (plan section 4)"
+        },
+        {
+            "def": "HttpCollection",
+            "member": "forEach",
+            "param": "thisArg",
+            "reason": "the caller's own this value (plan section 4)"
+        },
+        {
+            "def": "HttpCollection",
+            "member": "append",
+            "param": "value",
+            "reason": "the established Array|Variant form; the Array alternative dispatches element by element (plan section 2.2)"
+        },
+        {
+            "def": "HttpCollection",
+            "member": "set",
+            "param": "value",
+            "reason": "same as append.value (plan section 2.2)"
+        },
+        {
+            "def": "WebSocket",
+            "member": "send",
+            "param": "data",
+            "reason": "DOMString rendering of any value (plan section 5.1 decision 1)"
+        },
+        {
+            "def": "SandBox",
+            "member": "add",
+            "param": "mod",
+            "reason": "a module value copied with util.clone; test/vm_test.js pins add('a', 100) (plan section 3.2)"
+        },
+        {
+            "def": "subtle",
+            "member": "importKey",
+            "param": "keyData",
+            "reason": "the accepted set depends on the format parameter (jwk object vs Buffer + the lenient binary forms); kept (plan section 3.5)"
+        },
+        {
+            "def": "performance",
+            "member": "markResourceTiming",
+            "param": "global",
+            "reason": "the global object is not a plain JS object, so Object would reject it; timingInfo and bodyInfo were tightened to Object (plan section 5.3)"
+        }
+    ]
+}

@@ -58,6 +58,23 @@ if (unionProblems.length) {
 } else
     console.log('✅ No union type problems');
 
+// Value/Variant render as `any`, so a parameter declared with them gives up the
+// strictness a union would give. Every such position is a reviewed decision:
+// the whitelist carries the ones that keep the generic type, each with its
+// reason (plans/value-variant-union-2026-10-05.md).
+console.log('\n🔎 Checking Value/Variant parameters...');
+var variantProblems = require('./util/check_variant_params')(defs);
+if (variantProblems.length) {
+    console.log(`   ❌ ${variantProblems.length} Value/Variant parameter problem(s):`);
+    variantProblems.forEach((p) => {
+        if (p.kind === 'unlisted')
+            console.log(`      ${p.def}.${p.member}${p.static ? ' [static]' : ''}, parameter ${p.slot + 1} (${p.param}): declared (${p.type}) and not in the whitelist`);
+        else
+            console.log(`      whitelist entry ${p.def}${p.member ? '.' + p.member : ''}${p.param ? '.' + p.param : ''} matches nothing (stale)`);
+    });
+} else
+    console.log('✅ No unlisted Value/Variant parameters');
+
 // The documentation checker runs before the generation: a definition that is
 // being changed must be fully documented (X1-X10, plans/idl-doc-completion-
 // plan-2026-10-05.md 7.1), so the generated manual never regresses.
@@ -115,6 +132,13 @@ the runtime conversion's preference order, and an alternative that converts a
 value another one after it is meant to take makes that one unreachable. The
 narrowest conversion goes first: Buffer < String < Integer/Long/Number < Date <
 Boolean, with Value/Variant last (plans/idl-union-types-2026-10-02.md).`);
+
+if (variantProblems.length)
+    throw new Error(`${variantProblems.length} Value/Variant parameter problem(s), listed above. A
+parameter declared Value/Variant renders as \`any\` and loses the -check strictness;
+decide the site under the standard of plans/value-variant-union-2026-10-05.md:
+union-ize it (with the call-form tests the union's runtime acceptance needs), or
+add the whitelist entry carrying the reason (tools/util/variant_params_whitelist.json).`);
 
 console.log('\n🎉 IDL compilation completed successfully!');
 

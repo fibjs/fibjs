@@ -20,6 +20,7 @@ var check_unions = require('../tools/util/check_unions');
 var check_overloads = require('../tools/util/check_overloads');
 var check_callback_shapes = require('../tools/util/check_callback_shapes');
 var check_idl_docs = require('../tools/util/check_idl_docs');
+var check_variant_params = require('../tools/util/check_variant_params');
 
 function makeDef(members) {
     return {
@@ -428,6 +429,72 @@ try {
     // without them only the synthetic suites above can run
 }
 
+describe('check_variant_params', () => {
+    function def(name, members) {
+        return { [name]: makeDef(members).Foo };
+    }
+
+    it('accepts a whitelisted Value parameter', () => {
+        var problems = check_variant_params(
+            def('Foo', [method('any', [{ type: 'Value', name: 'v' }])]),
+            { whitelist: [{ def: 'Foo', reason: 'the whole family is generic' }] });
+
+        assert.deepStrictEqual(problems, []);
+    });
+
+    it('accepts a member-level entry', () => {
+        var defs = def('Bar', [method('keep', [{ type: 'Variant', name: 'v' }]),
+            method('keep', [{ type: 'Integer', name: 'n' }])]);
+
+        assert.deepStrictEqual(check_variant_params(defs, {
+            whitelist: [{ def: 'Bar', member: 'keep', param: 'v', reason: 'reviewed' }]
+        }), []);
+    });
+
+    it('rejects an unlisted Value parameter', () => {
+        var problems = check_variant_params(
+            def('Baz', [method('newMember', [{ type: 'Value', name: 'v' }])]),
+            { whitelist: [] });
+
+        assert.equal(problems.length, 1);
+        assert.equal(problems[0].kind, 'unlisted');
+        assert.equal(problems[0].def, 'Baz');
+        assert.equal(problems[0].member, 'newMember');
+        assert.equal(problems[0].param, 'v');
+    });
+
+    it('rejects a Value alternative inside a union', () => {
+        var problems = check_variant_params(
+            def('Baz', [method('newMember', [{ type: 'String|Variant', name: 'v' }])]),
+            { whitelist: [] });
+
+        assert.equal(problems.length, 1);
+        assert.equal(problems[0].kind, 'unlisted');
+    });
+
+    it('reports a stale whitelist entry', () => {
+        var problems = check_variant_params(
+            def('Foo', [method('any', [{ type: 'Value', name: 'v' }])]),
+            {
+                whitelist: [
+                    { def: 'Foo', reason: 'the whole family is generic' },
+                    { def: 'Bar', member: 'gone', param: 'v', reason: 'reviewed' }
+                ]
+            });
+
+        assert.equal(problems.length, 1);
+        assert.equal(problems[0].kind, 'stale');
+        assert.equal(problems[0].def, 'Bar');
+        assert.equal(problems[0].member, 'gone');
+    });
+
+    it('leaves non-generic parameters alone', () => {
+        var defs = def('Baz', [method('plain', [{ type: 'String', name: 's' }])]);
+
+        assert.deepStrictEqual(check_variant_params(defs, { whitelist: [] }), []);
+    });
+});
+
 describe('IDL corpus', { skip: !parser }, () => {
     it('passes the three idlc validators', () => {
         var defs = parser(path.resolve(__dirname, '../idl'));
@@ -436,6 +503,12 @@ describe('IDL corpus', { skip: !parser }, () => {
         assert.deepStrictEqual(check_unions(defs), []);
         assert.deepStrictEqual(check_overloads(defs), []);
         assert.deepStrictEqual(check_callback_shapes(defs), []);
+    });
+
+    it('keeps every Value/Variant parameter on the reviewed whitelist', () => {
+        var defs = parser(path.resolve(__dirname, '../idl'));
+
+        assert.deepStrictEqual(check_variant_params(defs), []);
     });
 
     it('passes the documentation ratchet against the checked-in baseline', () => {
