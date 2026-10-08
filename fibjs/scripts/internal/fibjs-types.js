@@ -932,7 +932,7 @@ declare class Class_AsyncResource extends Class_object {
      *        - requireManualDestroy: if true, the resource is not destroyed automatically
      *
      */
-    constructor(type: string, triggerAsyncId?: any);
+    constructor(type: string, triggerAsyncId?: number | FIBJS.GeneralObject);
 
     /**
      * @description Gets the unique async id assigned to this resource
@@ -32568,7 +32568,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations of the message body stream
@@ -33739,7 +33739,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations of the message body stream
@@ -50191,7 +50191,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination
@@ -51589,7 +51589,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination
@@ -106560,13 +106560,13 @@ declare module 'performance' {
      *      @param timingInfo the timing information object
      *      @param requestedUrl the requested URL
      *      @param initiatorType the initiator type
-     *      @param global the global object
+     *      @param global the global object; any value is accepted and ignored
      *      @param cacheState the cache state
      *      @param bodyInfo the request body information
      *      @param responseStatus the response status code
      *
      */
-    function markResourceTiming(timingInfo: any, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: any, responseStatus: number): void;
+    function markResourceTiming(timingInfo: FIBJS.GeneralObject, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: FIBJS.GeneralObject, responseStatus: number): void;
 
     /**
      * @description Reads the monotonic high-resolution clock
