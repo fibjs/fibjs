@@ -1669,3 +1669,28 @@ describe('the mq parameter unions', () => {
     });
 });
 
+describe("Message.pipe destination (union call forms)", () => {
+    it("pipe copies the body into the destination and returns it", () => {
+        var src = new io.MemoryStream();
+        src.write(Buffer.from('body'));
+        src.rewind();
+
+        var msg = new mq.Message();
+        msg.body = src;
+
+        var dst = new io.MemoryStream();
+        assert.strictEqual(msg.pipe(dst), dst);
+
+        require('coroutine').sleep(20);
+        dst.rewind();
+        assert.strictEqual(dst.readAll().toString(), 'body');
+    });
+
+    it("pipe rejects a non-stream destination", () => {
+        var msg = new mq.Message();
+
+        assert.throws(() => msg.pipe('not-a-stream'), { name: 'TypeError' });
+        assert.throws(() => msg.pipe(), { name: 'TypeError' });
+    });
+});
+

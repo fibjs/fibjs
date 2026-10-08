@@ -789,7 +789,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination
@@ -2187,7 +2187,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination

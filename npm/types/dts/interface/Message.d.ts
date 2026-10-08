@@ -1141,7 +1141,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations of the message body stream
@@ -2312,7 +2312,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: any, options?: FIBJS.GeneralObject): any;
+    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
 
     /**
      * @description Removes all pipe destinations of the message body stream

@@ -1003,9 +1003,18 @@ result_t HttpResponse::unpipe(Stream_base* destination)
     return m_message->unpipe(destination);
 }
 
-result_t HttpResponse::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t HttpResponse::pipe(Stream_base* destination, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal)
 {
-    return holder()->call_pipe(wrap(), destination, options, retVal);
+    v8::Local<v8::Value> result;
+    result_t hr = holder()->call_pipe(wrap(), destination->wrap(), options, result);
+    if (hr < 0)
+        return hr;
+
+    retVal = Stream_base::getInstance(result);
+    if (retVal == NULL)
+        return CALL_E_TYPEMISMATCH;
+
+    return 0;
 }
 
 result_t HttpResponse::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)

@@ -525,9 +525,18 @@ result_t Message::pause(obj_ptr<Message_base>& retVal)
     return 0;
 }
 
-result_t Message::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t Message::pipe(Stream_base* destination, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal)
 {
-    return holder()->call_pipe(wrap(), destination, options, retVal);
+    v8::Local<v8::Value> result;
+    result_t hr = holder()->call_pipe(wrap(), destination->wrap(), options, result);
+    if (hr < 0)
+        return hr;
+
+    retVal = Stream_base::getInstance(result);
+    if (retVal == NULL)
+        return CALL_E_TYPEMISMATCH;
+
+    return 0;
 }
 
 result_t Message::unpipe(Stream_base* destination)

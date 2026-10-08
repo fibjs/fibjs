@@ -1389,4 +1389,27 @@ describe('stream', () => {
             assert.equal(err.code, 'ERR_MULTIPLE_CALLBACK');
         });
     });
+
+    describe("pipe destination (union call forms)", () => {
+        it("pipe copies into the destination and returns it", () => {
+            var src = new io.MemoryStream();
+            src.write(Buffer.from('piped'));
+            src.rewind();
+
+            var dst = new io.MemoryStream();
+            assert.strictEqual(src.pipe(dst), dst);
+
+            coroutine.sleep(20);
+            dst.rewind();
+            assert.strictEqual(dst.readAll().toString(), 'piped');
+        });
+
+        it("pipe rejects a non-stream destination", () => {
+            var src = new io.MemoryStream();
+
+            assert.throws(() => src.pipe('not-a-stream'), { name: 'TypeError' });
+            assert.throws(() => src.pipe({}), { name: 'TypeError' });
+            assert.throws(() => src.pipe(), { name: 'TypeError' });
+        });
+    });
 });
