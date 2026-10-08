@@ -30,7 +30,7 @@ public:
     static result_t getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
     static result_t getEntriesByType(exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
     static result_t getEntriesByName(exlib::string name, exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
-    static result_t markResourceTiming(v8::Local<v8::Value> timingInfo, exlib::string requestedUrl, exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState, v8::Local<v8::Value> bodyInfo, int32_t responseStatus);
+    static result_t markResourceTiming(v8::Local<v8::Object> timingInfo, exlib::string requestedUrl, exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState, v8::Local<v8::Object> bodyInfo, int32_t responseStatus);
     static result_t now(double& retVal);
 
 public:
@@ -197,12 +197,12 @@ inline void performance_base::s_static_markResourceTiming(const v8::FunctionCall
 
     METHOD_OVER(7, 7);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Object>, 0);
     ARG(exlib::string, 1);
     ARG(exlib::string, 2);
     ARG(v8::Local<v8::Value>, 3);
     ARG(exlib::string, 4);
-    ARG(v8::Local<v8::Value>, 5);
+    ARG(v8::Local<v8::Object>, 5);
     ARG(int32_t, 6);
 
     hr = markResourceTiming(v0, v1, v2, v3, v4, v5, v6);

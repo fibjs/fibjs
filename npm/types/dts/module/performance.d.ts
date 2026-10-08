@@ -324,13 +324,13 @@ declare module 'performance' {
      *      @param timingInfo the timing information object
      *      @param requestedUrl the requested URL
      *      @param initiatorType the initiator type
-     *      @param global the global object
+     *      @param global the global object; any value is accepted and ignored
      *      @param cacheState the cache state
      *      @param bodyInfo the request body information
      *      @param responseStatus the response status code
      *
      */
-    function markResourceTiming(timingInfo: any, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: any, responseStatus: number): void;
+    function markResourceTiming(timingInfo: FIBJS.GeneralObject, requestedUrl: string, initiatorType: string, global: any, cacheState: string, bodyInfo: FIBJS.GeneralObject, responseStatus: number): void;
 
     /**
      * @description Reads the monotonic high-resolution clock

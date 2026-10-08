@@ -412,9 +412,9 @@ result_t performance_base::now(double& retVal)
     return 0;
 }
 
-result_t performance_base::markResourceTiming(v8::Local<v8::Value> timingInfo, exlib::string requestedUrl,
+result_t performance_base::markResourceTiming(v8::Local<v8::Object> timingInfo, exlib::string requestedUrl,
     exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState,
-    v8::Local<v8::Value> bodyInfo, int32_t responseStatus)
+    v8::Local<v8::Object> bodyInfo, int32_t responseStatus)
 {
     return 0;
 }

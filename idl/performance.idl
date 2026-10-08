@@ -304,12 +304,12 @@ module performance
      @param timingInfo the timing information object
      @param requestedUrl the requested URL
      @param initiatorType the initiator type
-     @param global the global object
+     @param global the global object; any value is accepted and ignored
      @param cacheState the cache state
      @param bodyInfo the request body information
      @param responseStatus the response status code
      */
-    static markResourceTiming(Value timingInfo, String requestedUrl, String initiatorType, Value global, String cacheState, Value bodyInfo, Integer responseStatus);
+    static markResourceTiming(Object timingInfo, String requestedUrl, String initiatorType, Value global, String cacheState, Object bodyInfo, Integer responseStatus);
 
     /*! @brief Reads the monotonic high-resolution clock
 

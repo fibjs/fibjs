@@ -688,4 +688,20 @@ describe('Performance API', () => {
             });
         });
     });
+
+    describe('markResourceTiming', () => {
+        it('accepts the documented call and records nothing', () => {
+            const before = performance.getEntries().length;
+
+            performance.markResourceTiming({}, 'https://example.com/', 'fetch', global, 'local', {}, 200);
+            assert.equal(performance.getEntries().length, before);
+        });
+
+        it('rejects a non-object timingInfo and bodyInfo', () => {
+            assert.throws(() => performance.markResourceTiming('x', 'https://example.com/', 'fetch', global, 'local', {}, 200),
+                { name: 'TypeError' });
+            assert.throws(() => performance.markResourceTiming({}, 'https://example.com/', 'fetch', global, 'local', 'x', 200),
+                { name: 'TypeError' });
+        });
+    });
 });
