@@ -37,10 +37,22 @@ if [[ $HOST_OS == 'Linux' ]]; then
     # debuggerd dispatch thread has nothing to talk to inside the container) or
     # a livelocked emulated thread leaves the process spinning forever with no
     # output at all - that is what the android/arm64 job did, hanging for hours
-    # right after the "path" suite header.  The whole suite finishes in well
-    # under 20 minutes even under emulation, so anything past TEST_TIMEOUT is
-    # stuck rather than slow; raise TEST_TIMEOUT for a legitimately longer run.
-    TEST_TIMEOUT=${TEST_TIMEOUT:-2400}
+    # right after the "path" suite header.
+    #
+    # The two budgets below come from the job logs of the 2026-10-08 runs.  The
+    # native targets finish the suite in 8-12 minutes (ia32 664s, alpine/x64
+    # 648s, android/x64 492s), so a short leash is enough to catch a hang.  The
+    # qemu-emulated targets need 20-40 minutes for the same suite and swing by
+    # +-50% from one runner to the next (same run: riscv64 2186s, ppc64 2198s,
+    # loong64 2071s, arm64 2400s killed, arm 2400s killed, while a 2026-09-22
+    # runner needed 849-1434s for the same jobs), so their budget has to cover
+    # the slow end of that range: the previous 2400s cap killed runs that had
+    # already printed 96% of the suite output.  Raise TEST_TIMEOUT to override.
+    if [[ $BUILD_ARCH == 'x64' || $BUILD_ARCH == 'ia32' ]]; then
+        TEST_TIMEOUT=${TEST_TIMEOUT:-1800}
+    else
+        TEST_TIMEOUT=${TEST_TIMEOUT:-5400}
+    fi
     TEST_CONTAINER=fibjs-test-${BUILD_OS}-${BUILD_ARCH}
 
     TEST_EXIT=0
@@ -52,7 +64,7 @@ if [[ $HOST_OS == 'Linux' ]]; then
         # cannot keep burning a core for the rest of the job
         docker rm -f ${TEST_CONTAINER} >/dev/null 2>&1 || true
 
-        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: the process is stuck, not slow."
+        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: the process is stuck, not merely slow (no known run needs more than two thirds of that)."
         exit 1
     fi
 
