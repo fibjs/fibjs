@@ -110,7 +110,7 @@ interface AsyncResource : object
        - triggerAsyncId: the async id that triggered this resource
        - requireManualDestroy: if true, the resource is not destroyed automatically
     */
-    AsyncResource(String type, Value triggerAsyncId = {});
+    AsyncResource(String type, Number|Object triggerAsyncId = {});
 
     /*! @brief Gets the unique async id assigned to this resource
 

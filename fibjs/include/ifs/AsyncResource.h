@@ -19,8 +19,11 @@ class AsyncResource_base : public object_base {
     DECLARE_CLASS(AsyncResource_base);
 
 public:
+    using Union_AsyncResource_triggerAsyncId = std::variant<double, v8::Local<v8::Object>>;
+
+public:
     // AsyncResource_base
-    static result_t _new(exlib::string type, v8::Local<v8::Value> triggerAsyncId, obj_ptr<AsyncResource_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string type, Union_AsyncResource_triggerAsyncId triggerAsyncId, obj_ptr<AsyncResource_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t asyncId(double& retVal) = 0;
     virtual result_t triggerAsyncId(double& retVal) = 0;
     virtual result_t runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8::Value> thisArg, OptArgs args, v8::Local<v8::Value>& retVal) = 0;
@@ -81,7 +84,7 @@ inline void AsyncResource_base::__new(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -97,7 +100,7 @@ inline result_t AsyncResource_base::load(v8::Local<v8::Value> v, obj_ptr<AsyncRe
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
 

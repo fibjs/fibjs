@@ -115,7 +115,7 @@ declare class Class_AsyncResource extends Class_object {
      *        - requireManualDestroy: if true, the resource is not destroyed automatically
      *
      */
-    constructor(type: string, triggerAsyncId?: any);
+    constructor(type: string, triggerAsyncId?: number | FIBJS.GeneralObject);
 
     /**
      * @description Gets the unique async id assigned to this resource

@@ -17,7 +17,7 @@ static bool async_resource_should_stop(Isolate* isolate)
     return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
 }
 
-result_t AsyncResource_base::_new(exlib::string type, v8::Local<v8::Value> triggerAsyncId,
+result_t AsyncResource_base::_new(exlib::string type, Union_AsyncResource_triggerAsyncId triggerAsyncId,
     obj_ptr<AsyncResource_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
@@ -25,20 +25,18 @@ result_t AsyncResource_base::_new(exlib::string type, v8::Local<v8::Value> trigg
     double asyncId = s_nextAsyncId.fetch_add(1);
     double triggerAsync = 0;
 
-    if (!triggerAsyncId.IsEmpty() && !triggerAsyncId->IsUndefined() && !triggerAsyncId->IsNull()) {
-        if (triggerAsyncId->IsNumber()) {
-            triggerAsync = triggerAsyncId.As<v8::Number>()->Value();
-        } else if (triggerAsyncId->IsObject()) {
-            // Options object: { triggerAsyncId, requireManualDestroy }
-            v8::Local<v8::Context> context = isolate->context();
-            v8::Local<v8::Object> opts = triggerAsyncId.As<v8::Object>();
-            v8::MaybeLocal<v8::Value> maybeTrigger = opts->Get(context,
-                isolate->NewString("triggerAsyncId"));
-            v8::Local<v8::Value> tv;
-            if (maybeTrigger.ToLocal(&tv)) {
-                if (tv->IsNumber())
-                    triggerAsync = tv.As<v8::Number>()->Value();
-            }
+    if (std::holds_alternative<double>(triggerAsyncId)) {
+        triggerAsync = std::get<double>(triggerAsyncId);
+    } else {
+        // Options object: { triggerAsyncId, requireManualDestroy }
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(triggerAsyncId);
+        v8::MaybeLocal<v8::Value> maybeTrigger = opts->Get(context,
+            isolate->NewString("triggerAsyncId"));
+        v8::Local<v8::Value> tv;
+        if (maybeTrigger.ToLocal(&tv)) {
+            if (tv->IsNumber())
+                triggerAsync = tv.As<v8::Number>()->Value();
         }
     }
 
@@ -217,7 +215,7 @@ result_t AsyncResource_base::bind(v8::Local<v8::Function> fn, exlib::string type
 {
     // Create an internal AsyncResource
     obj_ptr<AsyncResource_base> ar;
-    result_t hr = _new(type, v8::Local<v8::Value>(), ar);
+    result_t hr = _new(type, Union_AsyncResource_triggerAsyncId(0.0), ar);
     if (hr < 0)
         return hr;
 

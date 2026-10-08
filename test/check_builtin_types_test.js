@@ -588,6 +588,94 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });
 
+    it('accepts the Stream pipe destination the IDL declares', () => {
+        var dir = path.join(scratch, 'pipe-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'pipe.ts'), [
+            "import io from 'io';",
+            "import mq from 'mq';",
+            // pipe declares `Stream destination` and returns the destination:
+            // the concrete stream subclasses go in and the result chains
+            'const src = new io.MemoryStream();',
+            'const dst = new io.MemoryStream();',
+            'const back: Class_Stream = src.pipe(dst);',
+            'const msg = new mq.Message();',
+            'const back2: Class_Stream = msg.pipe(dst);',
+            'console.log(back, back2);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['pipe.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        fs.writeFileSync(path.join(dir, 'pipe-neg.ts'), [
+            "import io from 'io';",
+            'const src = new io.MemoryStream();',
+            '// @ts-expect-error a string is not a stream',
+            "src.pipe('not-a-stream');"
+        ].join('\n'));
+
+        r = runCheck(dir, ['pipe-neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('accepts the AsyncResource triggerAsyncId the IDL declares', () => {
+        var dir = path.join(scratch, 'async-resource-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'async-resource.ts'), [
+            "import { AsyncResource } from 'async_hooks';",
+            // the constructor declares `Number|Object triggerAsyncId`
+            "const ar = new AsyncResource('T', 7);",
+            "const ar2 = new AsyncResource('T', { triggerAsyncId: 7 });",
+            'console.log(ar, ar2);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['async-resource.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        fs.writeFileSync(path.join(dir, 'async-resource-neg.ts'), [
+            "import { AsyncResource } from 'async_hooks';",
+            '// @ts-expect-error a string is not a number or an options object',
+            "new AsyncResource('T', 'nope');"
+        ].join('\n'));
+
+        r = runCheck(dir, ['async-resource-neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('accepts the markResourceTiming object parameters the IDL declares', () => {
+        var dir = path.join(scratch, 'perf-union');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'perf.ts'), [
+            "import { performance } from 'perf_hooks';",
+            // markResourceTiming declares plain objects for timingInfo and
+            // bodyInfo; the global argument still takes any value
+            "performance.markResourceTiming({}, 'https://example.com/', 'fetch', globalThis, 'local', {}, 200);"
+        ].join('\n'));
+
+        var r = runCheck(dir, ['perf.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        fs.writeFileSync(path.join(dir, 'perf-neg.ts'), [
+            "import { performance } from 'perf_hooks';",
+            '// @ts-expect-error a string is not a plain object',
+            "performance.markResourceTiming('x', 'https://example.com/', 'fetch', globalThis, 'local', {}, 200);",
+            '// @ts-expect-error a string is not a plain body object',
+            "performance.markResourceTiming({}, 'https://example.com/', 'fetch', globalThis, 'local', 'x', 200);"
+        ].join('\n'));
+
+        r = runCheck(dir, ['perf-neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
     it('accepts the URL unions the IDL declares', () => {
         var dir = path.join(scratch, 'url-union');
 

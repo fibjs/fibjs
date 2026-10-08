@@ -22,6 +22,11 @@ describe('AsyncResource', () => {
         it('should accept numeric second argument as triggerAsyncId', () => {
             const ar = new AsyncResource('TEST', 123);
             assert.ok(ar instanceof AsyncResource);
+            assert.equal(ar.triggerAsyncId(), 123);
+        });
+
+        it('should reject a triggerAsyncId that is neither a number nor an object', () => {
+            assert.throws(() => new AsyncResource('TEST', 'nope'), { name: 'TypeError' });
         });
 
         it('should throw if type is not provided', () => {
