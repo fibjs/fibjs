@@ -765,6 +765,12 @@ declare class Class_Stream extends Class_EventEmitter {
      *      `finish`/`close` before reading its result. See copyTo for a bounded
      *      synchronous copy.
      *
+     *      The destination may be a native Stream (a MemoryStream, a socket, ...) or
+     *      a stream of the `node:stream` compatibility layer. Those are pure-JS
+     *      objects without a native instance, so the parameter stays untyped on
+     *      purpose: the destination only needs the write()/on()/emit() face the copy
+     *      uses.
+     *
      *      Example — pipe one stream into another:
      *      ```JavaScript
      *      const io = require('io');
@@ -783,13 +789,13 @@ declare class Class_Stream extends Class_EventEmitter {
      *      console.log(dst.readAll().toString()); // piped data
      *      ```
      *
-     *      @param destination the destination stream object
+     *      @param destination the destination stream object: a native Stream or a node:stream compatible object
      *      @param options pipe options, optional; only `end` is read (default true,
      *      false leaves the destination open)
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination
@@ -2163,6 +2169,12 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      `finish`/`close` before reading its result. See copyTo for a bounded
      *      synchronous copy.
      *
+     *      The destination may be a native Stream (a MemoryStream, a socket, ...) or
+     *      a stream of the `node:stream` compatibility layer. Those are pure-JS
+     *      objects without a native instance, so the parameter stays untyped on
+     *      purpose: the destination only needs the write()/on()/emit() face the copy
+     *      uses.
+     *
      *      Example — pipe one stream into another:
      *      ```JavaScript
      *      const io = require('io');
@@ -2181,13 +2193,13 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      console.log(dst.readAll().toString()); // piped data
      *      ```
      *
-     *      @param destination the destination stream object
+     *      @param destination the destination stream object: a native Stream or a node:stream compatible object
      *      @param options pipe options, optional; only `end` is read (default true,
      *      false leaves the destination open)
      *      @return returns the destination stream object, supporting chained calls
      *
      */
-    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Removes all pipe destinations, or only the specified destination

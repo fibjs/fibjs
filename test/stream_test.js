@@ -1404,7 +1404,25 @@ describe('stream', () => {
             assert.strictEqual(dst.readAll().toString(), 'piped');
         });
 
-        it("pipe rejects a non-stream destination", () => {
+        it("pipe accepts a node:stream destination", () => {
+            // the node:stream layer produces pure-JS objects without a native
+            // instance, so the destination parameter stays untyped and the
+            // copy duck-types write()/on()/emit() (the MCP stdio shape)
+            var src = new io.MemoryStream();
+            src.write(Buffer.from('piped'));
+            src.rewind();
+
+            var dst = new stream.PassThrough();
+            var chunks = [];
+            dst.on('data', (data) => chunks.push(data.toString()));
+
+            assert.strictEqual(src.pipe(dst), dst);
+
+            coroutine.sleep(20);
+            assert.strictEqual(chunks.join(''), 'piped');
+        });
+
+        it("pipe rejects a destination without the stream face", () => {
             var src = new io.MemoryStream();
 
             assert.throws(() => src.pipe('not-a-stream'), { name: 'TypeError' });

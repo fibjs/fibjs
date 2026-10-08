@@ -1136,12 +1136,12 @@ declare class Class_Message extends Class_EventEmitter {
      *      dst.rewind();
      *      console.log(dst.readAll().toString()); // piped data
      *      ```
-     *      @param destination the destination stream object
+     *      @param destination the destination stream object: a native Stream or a node:stream compatible object
      *      @param options pipe options, optional
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Removes all pipe destinations of the message body stream
@@ -2307,12 +2307,12 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      dst.rewind();
      *      console.log(dst.readAll().toString()); // piped data
      *      ```
-     *      @param destination the destination stream object
+     *      @param destination the destination stream object: a native Stream or a node:stream compatible object
      *      @param options pipe options, optional
      *      @return returns the destination stream object
      *
      */
-    pipe(destination: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+    pipe(destination: any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Removes all pipe destinations of the message body stream

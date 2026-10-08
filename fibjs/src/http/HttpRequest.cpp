@@ -1224,18 +1224,9 @@ result_t HttpRequest::unpipe(Stream_base* destination)
     return m_message->unpipe(destination);
 }
 
-result_t HttpRequest::pipe(Stream_base* destination, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal)
+result_t HttpRequest::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
 {
-    v8::Local<v8::Value> result;
-    result_t hr = holder()->call_pipe(wrap(), destination->wrap(), options, result);
-    if (hr < 0)
-        return hr;
-
-    retVal = Stream_base::getInstance(result);
-    if (retVal == NULL)
-        return CALL_E_TYPEMISMATCH;
-
-    return 0;
+    return holder()->call_pipe(wrap(), destination, options, retVal);
 }
 
 } /* namespace fibjs */

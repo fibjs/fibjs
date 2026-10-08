@@ -42,7 +42,7 @@ public:
     virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t resume(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t pause(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t pipe(Stream_base* destination, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal) = 0;
+    virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t unpipe(Stream_base* destination) = 0;
     virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -403,17 +403,17 @@ inline void Stream_base::s_pause(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Stream_base::s_pipe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Stream_base> vr;
+    v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->pipe(v0.get(), v1, vr);
+    hr = pInst->pipe(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -1686,6 +1686,25 @@ describe("Message.pipe destination (union call forms)", () => {
         assert.strictEqual(dst.readAll().toString(), 'body');
     });
 
+    it("pipe accepts a node:stream destination", () => {
+        var stream = require('stream');
+        var src = new io.MemoryStream();
+        src.write(Buffer.from('body'));
+        src.rewind();
+
+        var msg = new mq.Message();
+        msg.body = src;
+
+        var dst = new stream.PassThrough();
+        var chunks = [];
+        dst.on('data', (data) => chunks.push(data.toString()));
+
+        assert.strictEqual(msg.pipe(dst), dst);
+
+        require('coroutine').sleep(20);
+        assert.strictEqual(chunks.join(''), 'body');
+    });
+
     it("pipe rejects a non-stream destination", () => {
         var msg = new mq.Message();
 

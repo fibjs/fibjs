@@ -69,7 +69,7 @@ public:
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
     virtual result_t clone(obj_ptr<Message_base>& retVal);
-    virtual result_t pipe(Stream_base* destination, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
+    virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
     virtual result_t resume(obj_ptr<Message_base>& retVal);
     virtual result_t pause(obj_ptr<Message_base>& retVal);
     virtual result_t unpipe(Stream_base* destination);

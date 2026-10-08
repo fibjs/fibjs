@@ -521,11 +521,11 @@ interface Message : EventEmitter
      dst.rewind();
      console.log(dst.readAll().toString()); // piped data
      ```
-     @param destination the destination stream object
+     @param destination the destination stream object: a native Stream or a node:stream compatible object
      @param options pipe options, optional
      @return returns the destination stream object
      */
-    Stream pipe(Stream destination, Object options = {});
+    Value pipe(Value destination, Object options = {});
 
     /*! @brief Removes all pipe destinations of the message body stream
 

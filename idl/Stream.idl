@@ -379,6 +379,12 @@ interface Stream : EventEmitter
      `finish`/`close` before reading its result. See copyTo for a bounded
      synchronous copy.
 
+     The destination may be a native Stream (a MemoryStream, a socket, ...) or
+     a stream of the `node:stream` compatibility layer. Those are pure-JS
+     objects without a native instance, so the parameter stays untyped on
+     purpose: the destination only needs the write()/on()/emit() face the copy
+     uses.
+
      Example — pipe one stream into another:
      ```JavaScript
      const io = require('io');
@@ -397,12 +403,12 @@ interface Stream : EventEmitter
      console.log(dst.readAll().toString()); // piped data
      ```
 
-     @param destination the destination stream object
+     @param destination the destination stream object: a native Stream or a node:stream compatible object
      @param options pipe options, optional; only `end` is read (default true,
      false leaves the destination open)
      @return returns the destination stream object, supporting chained calls
      */
-    Stream pipe(Stream destination, Object options = {});
+    Value pipe(Value destination, Object options = {});
 
     /*! @brief Removes all pipe destinations, or only the specified destination
 

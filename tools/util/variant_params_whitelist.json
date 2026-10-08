@@ -346,9 +346,21 @@
         },
         {
             "def": "Stream",
+            "member": "pipe",
+            "param": "destination",
+            "reason": "the destination stays Value: the node:stream compatibility layer produces pure-JS objects without a native instance, so no class-typed alternative (Stream, EventEmitter, Object) can accept them; the copy duck-types write()/on()/emit(). Tightening this to Stream broke the MCP SDK and 250 downstream tests on 2026-10-08 (plan section 5.5)"
+        },
+        {
+            "def": "Stream",
             "member": "destroy",
             "param": "err",
             "reason": "the error payload is the caller's own value (plan section 4)"
+        },
+        {
+            "def": "Message",
+            "member": "pipe",
+            "param": "destination",
+            "reason": "same as Stream.pipe.destination: the node:stream objects are pure JS (plan section 5.5)"
         },
         {
             "def": "Message",

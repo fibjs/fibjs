@@ -588,35 +588,25 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });
 
-    it('accepts the Stream pipe destination the IDL declares', () => {
+    it('types the pipe destination as the untyped compatibility face', () => {
         var dir = path.join(scratch, 'pipe-union');
 
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(path.join(dir, 'pipe.ts'), [
             "import io from 'io';",
             "import mq from 'mq';",
-            // pipe declares `Stream destination` and returns the destination:
-            // the concrete stream subclasses go in and the result chains
+            // the destination stays `any` on purpose: the node:stream layer
+            // produces pure-JS objects, so a class-typed alternative would
+            // reject them at the binding (the MCP stdio regression)
             'const src = new io.MemoryStream();',
             'const dst = new io.MemoryStream();',
-            'const back: Class_Stream = src.pipe(dst);',
+            'const back = src.pipe(dst);',
             'const msg = new mq.Message();',
-            'const back2: Class_Stream = msg.pipe(dst);',
-            'console.log(back, back2);'
+            "msg.pipe('a node:stream object is accepted at run time');",
+            'console.log(back);'
         ].join('\n'));
 
         var r = runCheck(dir, ['pipe.ts']);
-
-        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
-
-        fs.writeFileSync(path.join(dir, 'pipe-neg.ts'), [
-            "import io from 'io';",
-            'const src = new io.MemoryStream();',
-            '// @ts-expect-error a string is not a stream',
-            "src.pipe('not-a-stream');"
-        ].join('\n'));
-
-        r = runCheck(dir, ['pipe-neg.ts']);
 
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });
