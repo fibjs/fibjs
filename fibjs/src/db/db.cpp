@@ -18,25 +18,25 @@ namespace fibjs {
 
 DECLARE_MODULE(db);
 
-result_t db_base::open(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac)
+result_t db_base::open(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac)
 {
     if (!qstrcmp(connString.c_str(), "sqlite:", 7))
-        return openSQLite(connString, (obj_ptr<SQLite_base>&)retVal, ac);
+        return openSQLite(connString, (obj_ptr<SQLite_base>&)retVal, std::move(ac));
 
     if (!qstrcmp(connString.c_str(), "mysql:", 6))
-        return openMySQL(connString, (obj_ptr<MySQL_base>&)retVal, ac);
+        return openMySQL(connString, (obj_ptr<MySQL_base>&)retVal, std::move(ac));
 
     if (!qstrcmp(connString.c_str(), "odbc:", 5))
-        return openOdbc(connString, retVal, ac);
+        return openOdbc(connString, retVal, std::move(ac));
 
     if (!qstrcmp(connString.c_str(), "mssql:", 6))
-        return openMSSQL(connString, retVal, ac);
+        return openMSSQL(connString, retVal, std::move(ac));
 
     if (!qstrcmp(connString.c_str(), "psql:", 5))
-        return openPSQL(connString, retVal, ac);
+        return openPSQL(connString, retVal, std::move(ac));
 
     if (!qstrcmp(connString.c_str(), "dm:", 3))
-        return openDM(connString, retVal, ac);
+        return openDM(connString, retVal, std::move(ac));
 
     return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "db.open: unknown protocol in connection string '%s'.", connString.c_str()));
 }

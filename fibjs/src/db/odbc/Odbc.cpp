@@ -65,9 +65,9 @@ void* g_odbc;
 static const OdbcConnectOptions s_default_connect_options = { "Server", true, false };
 
 result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
@@ -93,9 +93,9 @@ result_t odbc_disconnect(void* conn)
     return 0;
 }
 
-result_t odbc_close(void*& conn, AsyncEvent* ac)
+result_t odbc_close(void*& conn, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
@@ -382,9 +382,9 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     Variant& v);
 
-result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
@@ -936,9 +936,9 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     return 0;
 }
 
-result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
@@ -987,9 +987,9 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)

@@ -59,7 +59,7 @@ public:
     // Iterator_base
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal) = 0;
-    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac) = 0;
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal) = 0;
 
 public:

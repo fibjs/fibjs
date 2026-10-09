@@ -13,9 +13,9 @@
 namespace fibjs {
 
 result_t db_base::openLevelDB(exlib::string connString,
-    obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac)
+    obj_ptr<LevelDB_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -81,9 +81,9 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
     return 0;
 }
 
-result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncEvent* ac)
+result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -112,9 +112,9 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -143,7 +143,7 @@ result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEven
 }
 
 result_t LevelDB::_mget(std::vector<exlib::string>* keys,
-    obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     std::vector<exlib::string>& ks = *keys;
     obj_ptr<NArray> list = new NArray();
@@ -210,9 +210,9 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
     return ac__mget(&ks, retVal);
 }
 
-result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
+result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     leveldb::Status s = db()->Write(leveldb::WriteOptions(), batch);
@@ -222,9 +222,9 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncEvent* ac)
+result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -316,9 +316,9 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     return ac__commit(&batch);
 }
 
-result_t LevelDB::remove(Union_remove_key key, AsyncEvent* ac)
+result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -340,9 +340,9 @@ result_t LevelDB::remove(Union_remove_key key, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -361,9 +361,9 @@ result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!db())
@@ -382,7 +382,7 @@ result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t LevelDB::Iter::_iter(AsyncEvent* ac)
+result_t LevelDB::Iter::_iter(AsyncHandle ac)
 {
     m_count = 0;
 
@@ -609,7 +609,7 @@ result_t LevelDB::commit()
     return hr;
 }
 
-result_t LevelDB::close(AsyncEvent* ac)
+result_t LevelDB::close(AsyncHandle ac)
 {
     if (m_batch) {
         m_base.Release();
@@ -624,7 +624,7 @@ result_t LevelDB::close(AsyncEvent* ac)
     if (!m_db)
         return 0;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     delete m_db;

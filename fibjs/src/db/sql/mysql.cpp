@@ -403,9 +403,9 @@ result_t mysql::prepareStmt(db_tmpl<MySQL_base, mysql>* db,
 // ----------------------------------------------------------------------------------
 
 result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
@@ -488,9 +488,9 @@ result_t mysql::get_type(exlib::string& retVal)
     return 0;
 }
 
-result_t mysql::close(AsyncEvent* ac)
+result_t mysql::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -505,9 +505,9 @@ result_t mysql::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -578,9 +578,9 @@ result_t mysql::set_txBufferSize(int32_t newVal)
     return 0;
 }
 
-result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -588,12 +588,12 @@ result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
     // Query MySQL information_schema to get all tables in current database
     exlib::string sql = "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name";
-    return execute(sql, retVal, ac);
+    return execute(sql, retVal, std::move(ac));
 }
 
-result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -602,7 +602,7 @@ result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, A
     // Query MySQL information_schema to get table column information
     exlib::string escapedTableName = escape_string(tableName);
     exlib::string sql = "SELECT COLUMN_NAME AS column_name, DATA_TYPE AS data_type, CHARACTER_MAXIMUM_LENGTH AS character_maximum_length, IS_NULLABLE AS is_nullable, COLUMN_DEFAULT AS column_default FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = " + escapedTableName + " ORDER BY ordinal_position";
-    return execute(sql, retVal, ac);
+    return execute(sql, retVal, std::move(ac));
 }
 
 } /* namespace fibjs */

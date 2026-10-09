@@ -26,8 +26,8 @@ public:
     // Dir_base
     static result_t _new(exlib::string path, obj_ptr<Dir_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_path(exlib::string& retVal) = 0;
-    virtual result_t read(obj_ptr<DirEntry_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);

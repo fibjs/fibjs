@@ -25,13 +25,13 @@ public:
 public:
     // Dir_base
     virtual result_t get_path(exlib::string& retVal);
-    virtual result_t read(obj_ptr<DirEntry_base>& retVal, AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
     // Iterator_base
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal);
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal);
-    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac);
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac);
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal);
 
 private:

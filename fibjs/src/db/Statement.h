@@ -98,13 +98,13 @@ public:
 
 public:
     // Statement_base
-    virtual result_t get(OptArgs args, Variant& retVal, AsyncEvent* ac);
-    virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    virtual result_t run(OptArgs args, Variant& retVal, AsyncEvent* ac);
-    virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncEvent* ac);
-    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac);
+    virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t run(OptArgs args, Variant& retVal, AsyncHandle ac);
+    virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac);
+    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac);
     virtual result_t get_sourceSQL(exlib::string& retVal);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t close(AsyncHandle ac);
 
     // Internal: open the cursor with args already converted on the main thread
     // and return an iterator (used by conn.iterate)
@@ -121,19 +121,19 @@ private:
     // same ac on fiber re-entry), and the fiber only reads m_ctx without
     // touching v8. Date is converted to a SQL string here (Variant's date_t has
     // no public accessor).
-    result_t stashArgs(OptArgs args, AsyncEvent* ac)
+    result_t stashArgs(OptArgs args, AsyncHandle& ac)
     {
-        ac->m_ctx.resize(args.Length());
+        ac.ctxv().resize(args.Length());
         Isolate* isolate = holder();
         for (int32_t i = 0; i < args.Length(); i++) {
-            result_t hr = GetArgumentValue(isolate, args[i], ac->m_ctx[i]);
+            result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i]);
             if (hr < 0)
                 return hr;
-            if (ac->m_ctx[i].type() == Variant::VT_Date) {
+            if (ac.ctxv()[i].type() == Variant::VT_Date) {
                 date_t d = args[i];
                 exlib::string s;
                 d.sqlString(s);
-                ac->m_ctx[i] = s;
+                ac.ctxv()[i] = s;
             }
         }
         return 0;
@@ -204,7 +204,7 @@ public:
         return 0;
     }
 
-    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac);
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac);
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal);
 
 private:

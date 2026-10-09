@@ -14,9 +14,9 @@
 namespace fibjs {
 
 result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mssql:", 6))

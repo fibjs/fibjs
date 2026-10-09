@@ -711,7 +711,7 @@ public:
         return 0;
     }
 
-    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     {
         retVal = new NextType();
 

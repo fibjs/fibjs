@@ -29,11 +29,11 @@ public:
 public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
-    virtual result_t close(AsyncEvent* ac);
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    virtual result_t begin(exlib::string point, AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac);
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t begin(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -46,20 +46,20 @@ public:
         // immediately with BUSY/BUSY_SNAPSHOT (SQLite recommends IMMEDIATE for
         // write transactions; the Django sqlite backend does the same).
         if (point.empty())
-            return execute("BEGIN IMMEDIATE", retVal, ac);
+            return execute("BEGIN IMMEDIATE", retVal, std::move(ac));
 
         exlib::string str("SAVEPOINT " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
-    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac);
 
 public:
     // SQLite_base
     virtual result_t get_fileName(exlib::string& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
-    virtual result_t backup(exlib::string fileName, AsyncEvent* ac);
+    virtual result_t backup(exlib::string fileName, AsyncHandle ac);
 
 public:
     result_t open(const char* file);

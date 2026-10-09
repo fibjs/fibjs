@@ -24,20 +24,20 @@ class DbConnection_base : public object_base {
 public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t use(exlib::string dbName, AsyncEvent* ac) = 0;
-    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t begin(exlib::string point, AsyncEvent* ac) = 0;
-    virtual result_t commit(exlib::string point, AsyncEvent* ac) = 0;
-    virtual result_t rollback(exlib::string point, AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
+    virtual result_t use(exlib::string dbName, AsyncHandle ac) = 0;
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t begin(exlib::string point, AsyncHandle ac) = 0;
+    virtual result_t commit(exlib::string point, AsyncHandle ac) = 0;
+    virtual result_t rollback(exlib::string point, AsyncHandle ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal) = 0;
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
-    virtual result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t iterate(exlib::string sql, OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t iterate(exlib::string sql, OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

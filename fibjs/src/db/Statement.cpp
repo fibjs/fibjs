@@ -10,9 +10,9 @@
 
 namespace fibjs {
 
-result_t Statement::get(OptArgs args, Variant& retVal, AsyncEvent* ac)
+result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // Main thread: v8 args → Variant stored in ac->m_ctx (must not touch v8
         // in a fiber)
         result_t hr = stashArgs(args, ac);
@@ -22,7 +22,7 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncEvent* ac)
     }
 
     bool hasResult = false;
-    result_t hr = openImpl(ac->m_ctx, hasResult);
+    result_t hr = openImpl(ac.ctxv(), hasResult);
     if (hr < 0)
         return hr;
 
@@ -44,9 +44,9 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
         if (hr < 0)
             return hr;
@@ -54,7 +54,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     }
 
     bool hasResult = false;
-    result_t hr = openImpl(ac->m_ctx, hasResult);
+    result_t hr = openImpl(ac.ctxv(), hasResult);
     if (hr < 0)
         return hr;
 
@@ -92,9 +92,9 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t Statement::run(OptArgs args, Variant& retVal, AsyncEvent* ac)
+result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
         if (hr < 0)
             return hr;
@@ -102,7 +102,7 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncEvent* ac)
     }
 
     bool hasResult = false;
-    result_t hr = openImpl(ac->m_ctx, hasResult);
+    result_t hr = openImpl(ac.ctxv(), hasResult);
     if (hr < 0)
         return hr;
 
@@ -138,16 +138,16 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncEvent* ac)
+result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
         if (hr < 0)
             return hr;
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
-    return iteratePrepared(ac->m_ctx, retVal);
+    return iteratePrepared(ac.ctxv(), retVal);
 }
 
 result_t Statement::iteratePrepared(std::vector<Variant>& args,
@@ -169,7 +169,7 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
     return 0;
 }
 
-result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (!m_impl)
         return CHECK_ERROR(CALL_E_CLOSED);
@@ -183,7 +183,7 @@ result_t Statement::get_sourceSQL(exlib::string& retVal)
     return 0;
 }
 
-result_t Statement::close(AsyncEvent* ac)
+result_t Statement::close(AsyncHandle ac)
 {
     closeImpl();
     return 0;
@@ -193,9 +193,9 @@ result_t Statement::close(AsyncEvent* ac)
 // StatementIterator
 // ---------------------------------------------------------------------------
 
-result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
+result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (m_done) {

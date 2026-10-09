@@ -31,15 +31,15 @@ public:
 
 public:
     // LevelDB_base
-    virtual result_t has(Union_has_key key, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t has(Union_has_key key, bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t set(Union_set_key key, Union_set_value value, AsyncEvent* ac) = 0;
+    virtual result_t set(Union_set_key key, Union_set_value value, AsyncHandle ac) = 0;
     virtual result_t mset(v8::Local<v8::Object> map) = 0;
     virtual result_t mremove(v8::Local<v8::Array> keys) = 0;
-    virtual result_t remove(Union_remove_key key, AsyncEvent* ac) = 0;
-    virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t remove(Union_remove_key key, AsyncHandle ac) = 0;
+    virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t forEach(v8::Local<v8::Function> func) = 0;
     virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Function> func) = 0;
     virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
@@ -48,7 +48,7 @@ public:
     virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
     virtual result_t commit() = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

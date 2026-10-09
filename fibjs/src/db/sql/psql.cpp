@@ -52,9 +52,9 @@ static const char* resolve_default_driver(exlib::string connString)
 #endif
 
 result_t db_base::openPSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "psql:", 5))

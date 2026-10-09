@@ -22,13 +22,13 @@ class Statement_base : public object_base {
 
 public:
     // Statement_base
-    virtual result_t get(OptArgs args, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t run(OptArgs args, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t run(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t get_sourceSQL(exlib::string& retVal) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

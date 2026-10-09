@@ -166,9 +166,9 @@ public:
         return db_format<impl>::format(sql.c_str(), args, retVal);
     }
 
-    result_t use(exlib::string dbName, AsyncEvent* ac)
+    result_t use(exlib::string dbName, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -177,12 +177,12 @@ public:
         obj_ptr<NArray> retVal;
         exlib::string s("USE ", 4);
         s.append(dbName);
-        return execute(s, retVal, ac);
+        return execute(s, retVal, std::move(ac));
     }
 
-    result_t begin(exlib::string point, AsyncEvent* ac)
+    result_t begin(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -195,15 +195,15 @@ public:
         // SQLite engine override — do not put it here, it breaks other engines
         // (PostgreSQL/MySQL/ODBC reject "BEGIN IMMEDIATE").
         if (point.empty())
-            return execute("BEGIN", retVal, ac);
+            return execute("BEGIN", retVal, std::move(ac));
 
         exlib::string str("SAVEPOINT " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
 
-    result_t commit(exlib::string point, AsyncEvent* ac)
+    result_t commit(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -212,15 +212,15 @@ public:
         obj_ptr<NArray> retVal;
 
         if (point.empty())
-            return execute("COMMIT", retVal, ac);
+            return execute("COMMIT", retVal, std::move(ac));
 
         exlib::string str("RELEASE SAVEPOINT " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
 
-    result_t rollback(exlib::string point, AsyncEvent* ac)
+    result_t rollback(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -229,10 +229,10 @@ public:
         obj_ptr<NArray> retVal;
 
         if (point.empty())
-            return execute("ROLLBACK", retVal, ac);
+            return execute("ROLLBACK", retVal, std::move(ac));
 
         exlib::string str("ROLLBACK TO " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
 
     result_t trans(v8::Local<v8::Function> func, bool& retVal)
@@ -245,7 +245,7 @@ public:
         return db_trans(this, point, func, retVal);
     }
 
-    result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
         if (m_activeStmt)
             return CHECK_ERROR(Runtime::setError(CALL_E_BUSY, "A statement cursor is active on this connection"));
@@ -254,16 +254,16 @@ public:
     }
 
     result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
-        AsyncEvent* ac)
+        AsyncHandle ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             exlib::string str;
             result_t hr = format(sql, args, str);
             if (hr < 0)
                 return hr;
 
-            ac->m_ctx.resize(1);
-            ac->m_ctx[0] = str;
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = str;
 
             return CHECK_ERROR(CALL_E_LONGSYNC);
         }
@@ -271,27 +271,27 @@ public:
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        exlib::string str = ac->m_ctx[0].string();
-        return execute(str, retVal, ac);
+        exlib::string str = ac.ctxv()[0].string();
+        return execute(str, retVal, std::move(ac));
     }
 
     typedef result_t (*formater)(v8::Local<v8::Object> opts, exlib::string& retVal);
 
     result_t execute(formater fmt, v8::Local<v8::Object> opts,
-        obj_ptr<NArray>& retVal, AsyncEvent* ac)
+        obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             exlib::string str;
             result_t hr = fmt(opts, str);
             if (hr < 0)
                 return hr;
 
-            ac->m_ctx.resize(1);
-            ac->m_ctx[0] = str;
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = str;
 
             return CHECK_ERROR(CALL_E_LONGSYNC);
         }
@@ -299,12 +299,12 @@ public:
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        exlib::string str = ac->m_ctx[0].string();
-        return execute(str, retVal, ac);
+        exlib::string str = ac.ctxv()[0].string();
+        return execute(str, retVal, std::move(ac));
     }
 
 public:
@@ -381,9 +381,9 @@ public:
     // active cursor is allowed per connection at a time: preparing a new
     // statement (including conn.iterate) is forbidden while a cursor is open.
     result_t prepare(exlib::string sql, obj_ptr<Statement_base>& retVal,
-        AsyncEvent* ac)
+        AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -398,15 +398,15 @@ public:
     // Convenience entry: execute and return a row iterator (equivalent to
     // stmt.iterate(...args))
     result_t iterate(exlib::string sql, OptArgs args,
-        obj_ptr<Iterator_base>& retVal, AsyncEvent* ac)
+        obj_ptr<Iterator_base>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             // Main thread: convert v8 args to Variant (must not touch v8 in a fiber)
-            ac->m_ctx.resize(args.Length() + 1);
-            ac->m_ctx[0] = sql;
+            ac.ctxv().resize(args.Length() + 1);
+            ac.ctxv()[0] = sql;
             Isolate* isolate = Isolate::current();
             for (int32_t i = 0; i < args.Length(); i++) {
-                result_t hr = GetArgumentValue(isolate, args[i], ac->m_ctx[i + 1]);
+                result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i + 1]);
                 if (hr < 0)
                     return hr;
             }
@@ -416,20 +416,23 @@ public:
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
+        // In fiber: take the Variant args from m_ctx (m_ctx[0] is the SQL).
+        // Read them before prepare() consumes the handle.
+        std::vector<Variant> params;
+        params.reserve(ac.ctxv().size() - 1);
+        for (size_t i = 1; i < ac.ctxv().size(); i++)
+            params.push_back(ac.ctxv()[i]);
+
+        exlib::string sql_str = ac.ctxv()[0].string();
+
         obj_ptr<Statement_base> stmt;
-        result_t hr = prepare(ac->m_ctx[0].string(), stmt, ac);
+        result_t hr = prepare(sql_str, stmt, std::move(ac));
         if (hr < 0)
             return hr;
-
-        // In fiber: take the Variant args from m_ctx (m_ctx[0] is the SQL)
-        std::vector<Variant> params;
-        params.reserve(ac->m_ctx.size() - 1);
-        for (size_t i = 1; i < ac->m_ctx.size(); i++)
-            params.push_back(ac->m_ctx[i]);
 
         return ((Statement*)(Statement_base*)stmt)->iteratePrepared(params, retVal);
     }

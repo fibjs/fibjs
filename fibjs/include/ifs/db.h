@@ -26,15 +26,15 @@ class db_base : public object_base {
 
 public:
     // db_base
-    static result_t open(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
-    static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
-    static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openDM(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openPSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
-    static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncHandle ac);
+    static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncHandle ac);
+    static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openDM(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openPSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncHandle ac);
+    static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

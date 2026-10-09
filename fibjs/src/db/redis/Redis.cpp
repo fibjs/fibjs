@@ -18,9 +18,9 @@
 namespace fibjs {
 
 result_t db_base::openRedis(exlib::string connString,
-    obj_ptr<Redis_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Redis_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const char* c_str = connString.c_str();
@@ -46,10 +46,10 @@ result_t db_base::openRedis(exlib::string connString,
     obj_ptr<Redis> conn = new Redis();
     retVal = conn;
 
-    return conn->connect(c_str, nPort, ac);
+    return conn->connect(c_str, nPort, std::move(ac));
 }
 
-result_t Redis::connect(const char* host, int32_t port, AsyncEvent* ac)
+result_t Redis::connect(const char* host, int32_t port, AsyncHandle ac)
 {
     result_t hr;
 
@@ -62,15 +62,15 @@ result_t Redis::connect(const char* host, int32_t port, AsyncEvent* ac)
 
     m_subMode = 0;
 
-    return m_sock->connect(port, host, 0, reinterpret_cast<obj_ptr<Stream_base>&>(m_sock), ac);
+    return m_sock->connect(port, host, 0, reinterpret_cast<obj_ptr<Stream_base>&>(m_sock), std::move(ac));
 }
 
 #define REDIS_MAX_LINE 1024
-result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
+result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
 {
     class asyncCommand : public AsyncState {
     public:
-        asyncCommand(Redis* pThis, exlib::string& req, Variant& retVal, AsyncEvent* ac)
+        asyncCommand(Redis* pThis, exlib::string& req, Variant& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_req(req)
@@ -276,7 +276,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         int32_t m_subMode;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_subMode == 1) {
@@ -284,7 +284,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         m_subMode = 2;
     }
 
-    return (new asyncCommand(this, req, retVal, ac))->post(0);
+    return (new asyncCommand(this, req, retVal, std::move(ac)))->post(0);
 }
 
 result_t Redis::command(exlib::string cmd, OptArgs args,

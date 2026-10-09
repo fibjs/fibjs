@@ -40,24 +40,24 @@ public:
         return 0;
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
-        return odbc_close(m_conn, ac);
+        return odbc_close(m_conn, std::move(ac));
     }
 
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, ac);
+        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, std::move(ac));
     }
 
-    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTables(m_conn, retVal, ac);
+        return odbc_getTables(m_conn, retVal, std::move(ac));
     }
 
-    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTableInfo(m_conn, tableName, retVal, ac);
+        return odbc_getTableInfo(m_conn, tableName, retVal, std::move(ac));
     }
 
 public:

@@ -21,10 +21,10 @@ struct OdbcConnectOptions {
 result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn,
     const OdbcConnectOptions* options = NULL);
 result_t odbc_disconnect(void* conn);
-result_t odbc_close(void*& conn, AsyncEvent* ac);
-result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
-result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncEvent* ac);
-result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+result_t odbc_close(void*& conn, AsyncHandle ac);
+result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac);
+result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac);
+result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac);
 result_t odbc_set_autocommit(void* conn, bool on);
 
 // ODBC Statement: engine escape callbacks (each engine has different SQL
@@ -98,24 +98,24 @@ public:
         return 0;
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
-        return odbc_close(m_conn, ac);
+        return odbc_close(m_conn, std::move(ac));
     }
 
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, ac);
+        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, std::move(ac));
     }
 
-    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTables(m_conn, retVal, ac);
+        return odbc_getTables(m_conn, retVal, std::move(ac));
     }
 
-    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTableInfo(m_conn, tableName, retVal, ac);
+        return odbc_getTableInfo(m_conn, tableName, retVal, std::move(ac));
     }
 };
 

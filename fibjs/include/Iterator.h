@@ -9,6 +9,7 @@
 
 #include "ifs/Iterator.h"
 #include <functional>
+#include <memory>
 
 namespace fibjs {
 
@@ -61,7 +62,7 @@ public:
         return 0;
     }
 
-    virtual result_t next(obj_ptr<NextType>& retVal, AsyncEvent* ac)
+    virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     {
         // 受控同步快路径（C 类例外，见审计报告 §3-C）：已结束的迭代器直接
         // 同步返回 {done:true}；其余语义才需要 async 相位。
@@ -71,17 +72,21 @@ public:
             return 0;
         }
 
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             return CALL_E_NOSYNC;
         }
 
+        // The callback is a std::function (copyable target required) and the
+        // producer may defer it, so the continuation travels in a heap box.
+        auto h = std::make_shared<AsyncHandle>(std::move(ac));
+
         retVal = new NextType();
         m_proc(m_index++, retVal->value,
-            [this, &retVal, ac](result_t err, bool has_value) {
+            [this, &retVal, h](result_t err, bool has_value) {
                 if (m_done) // already terminated by return()/close, drop the late callback
                     return;
                 retVal->done = m_done = !has_value;
-                ac->post(err); // err < 0 => next() throws on the JS side
+                h->post(err); // err < 0 => next() throws on the JS side
             });
 
         return CALL_E_PENDDING;

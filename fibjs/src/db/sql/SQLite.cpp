@@ -17,9 +17,9 @@ namespace fibjs {
 #define SQLITE_OPEN_FLAGS SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX
 
 result_t db_base::openSQLite(exlib::string connString,
-    obj_ptr<SQLite_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SQLite_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     result_t hr;
@@ -394,9 +394,9 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
     return 0;
 }
 
-result_t SQLite::close(AsyncEvent* ac)
+result_t SQLite::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -417,9 +417,9 @@ result_t SQLite::close(AsyncEvent* ac)
 }
 
 
-result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -542,9 +542,9 @@ result_t SQLite::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
+result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -590,9 +590,9 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
     return 0;
 }
 
-result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -600,12 +600,12 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
     // Query SQLite system table to get all user tables
     exlib::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
-    return execute(sql, retVal, ac);
+    return execute(sql, retVal, std::move(ac));
 }
 
-result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
@@ -622,7 +622,7 @@ result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, 
                         "FROM pragma_table_info("
         + escapedTableName + ") "
                              "ORDER BY cid";
-    return execute(sql, retVal, ac);
+    return execute(sql, retVal, std::move(ac));
 }
 
 } /* namespace fibjs */

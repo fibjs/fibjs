@@ -40,29 +40,29 @@ public:
         return 0;
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
-        return odbc_close(m_conn, ac);
+        return odbc_close(m_conn, std::move(ac));
     }
 
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, ac);
+        return odbc_execute(m_conn, &m_activeStmt, sql, retVal, std::move(ac));
     }
 
-    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTables(m_conn, retVal, ac);
+        return odbc_getTables(m_conn, retVal, std::move(ac));
     }
 
-    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
-        return odbc_getTableInfo(m_conn, tableName, retVal, ac);
+        return odbc_getTableInfo(m_conn, tableName, retVal, std::move(ac));
     }
 
-    virtual result_t begin(exlib::string point, AsyncEvent* ac)
+    virtual result_t begin(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -71,15 +71,15 @@ public:
         obj_ptr<NArray> retVal;
 
         if (point.empty())
-            return execute("BEGIN TRANSACTION", retVal, ac);
+            return execute("BEGIN TRANSACTION", retVal, std::move(ac));
 
         exlib::string str("SAVE TRANSACTION " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
 
-    virtual result_t commit(exlib::string point, AsyncEvent* ac)
+    virtual result_t commit(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -88,13 +88,13 @@ public:
         obj_ptr<NArray> retVal;
 
         if (point.empty())
-            return execute("COMMIT", retVal, ac);
+            return execute("COMMIT", retVal, std::move(ac));
         return 0;
     }
 
-    virtual result_t rollback(exlib::string point, AsyncEvent* ac)
+    virtual result_t rollback(exlib::string point, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         if (!m_conn)
@@ -103,10 +103,10 @@ public:
         obj_ptr<NArray> retVal;
 
         if (point.empty())
-            return execute("ROLLBACK", retVal, ac);
+            return execute("ROLLBACK", retVal, std::move(ac));
 
         exlib::string str("ROLLBACK TRANSACTION " + point);
-        return execute(str, retVal, ac);
+        return execute(str, retVal, std::move(ac));
     }
 
 public:
