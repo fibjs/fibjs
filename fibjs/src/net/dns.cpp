@@ -15,27 +15,27 @@ namespace fibjs {
 
 DECLARE_MODULE(dns);
 
-result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncEvent* ac)
+result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
     class resolve_data : public uv_getaddrinfo_t {
     public:
-        resolve_data(std::vector<exlib::string>& retVal, AsyncEvent* ac)
+        resolve_data(std::vector<exlib::string>& retVal, AsyncHandle ac)
             : _retVal(retVal)
-            , _ac(ac)
+            , _ac(std::move(ac))
         {
         }
 
     public:
         std::vector<exlib::string>& _retVal;
-        AsyncEvent* _ac;
+        AsyncHandle _ac;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
-    resolve_data* resolver = new resolve_data(retVal, ac);
+    resolve_data* resolver = new resolve_data(retVal, std::move(ac));
     int r = uv_getaddrinfo(
         s_uv_loop, resolver,
         [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
@@ -43,11 +43,9 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
-                // 先取用再释放：resolver 在 post 之前必须保持有效
-                AsyncEvent* ac = resolver->_ac;
+                // 先投递再释放：resolver 在 post 之前保持有效；投递即移交，无需中转
+                resolver->_ac.post(status);
                 delete resolver;
-
-                ac->post(status);
                 return;
             }
 
@@ -57,7 +55,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
                 resolver->_retVal.push_back(addr_info.str());
             }
 
-            resolver->_ac->post(0);
+            resolver->_ac.post(0);
 
             uv_freeaddrinfo(res);
             delete resolver;
@@ -72,7 +70,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
     return CALL_E_PENDDING;
 }
 
-result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     class LookupOptions : public obj_base {
     public:
@@ -85,11 +83,11 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
-        resolve_data(LookupOptions* opt, exlib::string name, Variant& retVal, AsyncEvent* ac)
+        resolve_data(LookupOptions* opt, exlib::string name, Variant& retVal, AsyncHandle ac)
             : _opt(opt)
             , _name(name)
             , _retVal(retVal)
-            , _ac(ac)
+            , _ac(std::move(ac))
         {
         }
 
@@ -97,10 +95,10 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
         obj_ptr<LookupOptions> _opt;
         exlib::string _name;
         Variant& _retVal;
-        AsyncEvent* _ac;
+        AsyncHandle _ac;
     };
 
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<LookupOptions> opt;
         Isolate* isolate = Isolate::current(options);
         result_t hr = LookupOptions::load(options, opt);
@@ -125,19 +123,20 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                                              .arg("family", family));
         }
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opt;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opt;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
-    resolve_data* resolver = new resolve_data((LookupOptions*)ac->m_ctx[0].object(), name, retVal, ac);
+    LookupOptions* opt = (LookupOptions*)ac.ctxv()[0].object();
+    resolve_data* resolver = new resolve_data(opt, name, retVal, std::move(ac));
     int r = uv_getaddrinfo(
         s_uv_loop, resolver,
         [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
@@ -146,11 +145,9 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
-                // 先取用再释放：resolver 在 post 之前必须保持有效
-                AsyncEvent* ac = resolver->_ac;
+                // 先投递再释放：resolver 在 post 之前保持有效；投递即移交，无需中转
                 exlib::string hostname = resolver->_name;
                 bool all = resolver->_opt->all.value();
-                delete resolver;
 
                 exlib::string code;
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
@@ -164,7 +161,8 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 if (!code.empty())
                     payload.with_code(code);
                 setErrorPayload(payload);
-                ac->post(status);
+                resolver->_ac.post(status);
+                delete resolver;
                 return;
             }
 
@@ -187,7 +185,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 }
 
                 resolver->_retVal = arr;
-                resolver->_ac->post(0);
+                resolver->_ac.post(0);
             } else {
                 struct addrinfo* ptr = NULL;
                 for (ptr = res; ptr != NULL; ptr = ptr->ai_next) {
@@ -202,9 +200,9 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 }
 
                 if (ptr != NULL)
-                    resolver->_ac->post(0);
+                    resolver->_ac.post(0);
                 else
-                    resolver->_ac->post(Runtime::setError("No address found"));
+                    resolver->_ac.post(Runtime::setError("No address found"));
             }
 
             uv_freeaddrinfo(res);

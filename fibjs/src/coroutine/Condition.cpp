@@ -25,9 +25,9 @@ result_t Condition_base::_new(Lock_base* lock, obj_ptr<Condition_base>& retVal,
     return 0;
 }
 
-result_t Condition::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
+result_t Condition::acquire(bool blocking, bool& retVal, AsyncHandle ac)
 {
-    return m_lockCond->acquire(blocking, retVal, ac);
+    return m_lockCond->acquire(blocking, retVal, std::move(ac));
 }
 
 result_t Condition::release()
@@ -41,9 +41,9 @@ result_t Condition::count(int32_t& retVal)
     return 0;
 }
 
-result_t Condition::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
+result_t Condition::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = m_cond.wait(m_lockCond->m_lock, timeout);

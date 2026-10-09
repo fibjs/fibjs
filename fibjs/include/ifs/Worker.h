@@ -28,7 +28,7 @@ public:
     virtual result_t get_threadId(int32_t& retVal) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer) = 0;
-    virtual result_t terminate(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t terminate(int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t ref() = 0;
     virtual result_t unref() = 0;
 

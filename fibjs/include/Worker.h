@@ -58,7 +58,7 @@ public:
 
     // Worker_base
     virtual result_t get_threadId(int32_t& retVal);
-    virtual result_t terminate(int32_t& retVal, AsyncEvent* ac);
+    virtual result_t terminate(int32_t& retVal, AsyncHandle ac);
     virtual result_t postMessage(v8::Local<v8::Value> data);
     virtual result_t postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer);
     virtual result_t ref();
@@ -84,7 +84,7 @@ private:
     // Node 语义：terminate() 返回 Promise，在 worker 退出时以退出码 resolve。
     // retVal 是调用方（AsyncCall 实例）持有的值槽，仅在本次调用完成前有效。
     struct TerminateWaiter {
-        AsyncEvent* ac;
+        AsyncHandle ac;
         int32_t* retVal;
     };
 

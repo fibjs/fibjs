@@ -476,9 +476,9 @@ void worker_exit_from_inside(Isolate* isolate, int32_t code)
 
 // 与 Node.js 对齐：terminate() 返回 Promise，在 worker 退出（exit 事件）时以退出码 resolve。
 // 终止动作仍然是在本次调用中同步发起的（不等下一 tick），等待退出码则是异步完成的。
-result_t Worker::terminate(int32_t& retVal, AsyncEvent* ac)
+result_t Worker::terminate(int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_exited) {
@@ -488,7 +488,7 @@ result_t Worker::terminate(int32_t& retVal, AsyncEvent* ac)
     }
 
     m_terminate_lock.lock();
-    m_terminate_waiters.push_back({ ac, &retVal });
+    m_terminate_waiters.push_back({ std::move(ac), &retVal });
     m_terminate_lock.unlock();
 
     requestTerminate();
@@ -602,7 +602,7 @@ void Worker::emitExit(int32_t exitCode)
 
     for (auto& waiter : waiters) {
         *waiter.retVal = exitCode;
-        waiter.ac->post(0);
+        waiter.ac.post(0);
     }
 }
 

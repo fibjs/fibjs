@@ -453,9 +453,9 @@ result_t console_base::clear()
 bool g_in_readline = false;
 
 #ifndef _WIN32
-result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
+result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     flushLog();
@@ -505,9 +505,9 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
     return 0;
 }
 #else
-result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
+result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     flushLog();
@@ -564,14 +564,14 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
 #endif
 
 result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return readInput(msg, retVal, ac, false);
+    return readInput(msg, retVal, std::move(ac), false);
 }
 
 result_t console_base::getpass(exlib::string msg, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return readInput(msg, retVal, ac, true);
+    return readInput(msg, retVal, std::move(ac), true);
 }
 };

@@ -32,7 +32,7 @@ public:
     static result_t parallel(v8::Local<v8::Function> func, int32_t num, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(OptArgs funcs, v8::Local<v8::Array>& retVal);
     static result_t current(obj_ptr<Fiber_base>& retVal);
-    static result_t sleep(int32_t ms, AsyncEvent* ac);
+    static result_t sleep(int32_t ms, AsyncHandle ac);
     static result_t get_fibers(v8::Local<v8::Array>& retVal);
     static result_t get_spareFibers(int32_t& retVal);
     static result_t set_spareFibers(int32_t newVal);

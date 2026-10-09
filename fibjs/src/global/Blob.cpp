@@ -135,17 +135,17 @@ result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, 
     return slice(start, end, contentType, newBlob->m_impl);
 }
 
-result_t BlobImpl::text(exlib::string& retVal, AsyncEvent* ac)
+result_t BlobImpl::text(exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return m_buffer->toString("utf8", 0, retVal);
 }
 
-result_t BlobImpl::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t BlobImpl::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     Buffer* buf = m_buffer.As<Buffer>();

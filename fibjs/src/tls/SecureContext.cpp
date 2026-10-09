@@ -624,9 +624,9 @@ result_t SecureContext::setSNIContext(exlib::string servername, v8::Local<v8::Ob
 }
 
 result_t SecureContext::getSNIContext(exlib::string servername, bool auto_resolve,
-    obj_ptr<SecureContext_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SecureContext_base>& retVal, AsyncHandle ac)
 {
-    if (auto_resolve && ac->isSync())
+    if (auto_resolve && ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SecureContext> ctx;

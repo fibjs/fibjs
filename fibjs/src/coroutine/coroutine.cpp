@@ -220,12 +220,12 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
     return 0;
 }
 
-result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
+result_t coroutine_base::sleep(int32_t ms, AsyncHandle ac)
 {
     class AcyncSleep : public exlib::Task_base {
     public:
-        AcyncSleep(AsyncEvent* ac)
-            : m_ac(ac)
+        AcyncSleep(AsyncHandle ac)
+            : m_ac(std::move(ac))
         {
         }
 
@@ -233,18 +233,18 @@ result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
         // exlib::Task_base
         virtual void resume()
         {
-            m_ac->post(0);
+            m_ac.post(0);
             delete this;
         }
 
     private:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::Fiber::sleep(ms, new AcyncSleep(ac));
+    exlib::Fiber::sleep(ms, new AcyncSleep(std::move(ac)));
     return CALL_E_PENDDING;
 }
 

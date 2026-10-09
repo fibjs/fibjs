@@ -24,7 +24,7 @@ public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t save(exlib::string fname, AsyncEvent* ac) = 0;
+    virtual result_t save(exlib::string fname, AsyncHandle ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
     virtual result_t get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal) = 0;

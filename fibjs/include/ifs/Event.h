@@ -28,7 +28,7 @@ public:
     virtual result_t set() = 0;
     virtual result_t pulse() = 0;
     virtual result_t clear() = 0;
-    virtual result_t wait(AsyncEvent* ac) = 0;
+    virtual result_t wait(AsyncHandle ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -69,8 +69,8 @@ public:
     static result_t hideCursor();
     static result_t showCursor();
     static result_t clear();
-    static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
-    static result_t getpass(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
+    static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncHandle ac);
+    static result_t getpass(exlib::string msg, exlib::string& retVal, AsyncHandle ac);
     static result_t time(exlib::string label);
     static result_t timeElapse(exlib::string label);
     static result_t timeEnd(exlib::string label);

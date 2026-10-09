@@ -21,14 +21,14 @@ result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base>& retVal,
     return 0;
 }
 
-result_t Semaphore::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
+result_t Semaphore::acquire(bool blocking, bool& retVal, AsyncHandle ac)
 {
     if (!blocking) {
         retVal = m_sem.trywait();
         return 0;
     }
 
-    return wait(-1, retVal, ac);
+    return wait(-1, retVal, std::move(ac));
 }
 
 result_t Semaphore::release()
@@ -44,7 +44,7 @@ result_t Semaphore::count(int32_t& retVal)
     return 0;
 }
 
-result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
+result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
 {
     // 受控同步快路径（C 类例外，见审计报告 §3-C）：信号量有余量时立即返回，
     // 只有需要等待才进 async 相位。
@@ -53,7 +53,7 @@ result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
         return 0;
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = m_sem.wait(timeout);

@@ -315,9 +315,9 @@ result_t HeapSnapshot::load(exlib::string fname)
 }
 
 #define BUF_SIZE 8192
-result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
+result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     class buf_file {

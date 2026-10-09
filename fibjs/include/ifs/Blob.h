@@ -30,8 +30,8 @@ public:
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal) = 0;
-    virtual result_t text(exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t text(exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);

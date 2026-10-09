@@ -19,7 +19,7 @@ result_t Event_base::_new(bool value, obj_ptr<Event_base>& retVal, v8::Local<v8:
     return 0;
 }
 
-result_t Event::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
+result_t Event::acquire(bool blocking, bool& retVal, AsyncHandle ac)
 {
     if (!blocking) {
         retVal = m_event.isSet();
@@ -27,7 +27,7 @@ result_t Event::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
     }
 
     retVal = true;
-    return wait(ac);
+    return wait(std::move(ac));
 }
 
 result_t Event::release()
@@ -66,14 +66,14 @@ result_t Event::clear()
     return 0;
 }
 
-result_t Event::wait(AsyncEvent* ac)
+result_t Event::wait(AsyncHandle ac)
 {
     // 受控同步快路径（C 类例外，见审计报告 §3-C）：事件已置位时无需等待，
     // 直接返回；未置位才进 async 相位。
     if (m_event.isSet())
         return 0;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_event.wait();

@@ -25,7 +25,7 @@ public:
     // Condition_base
     static result_t _new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t wait(int32_t timeout, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t wait(int32_t timeout, bool& retVal, AsyncHandle ac) = 0;
     virtual result_t notify() = 0;
     virtual result_t notifyAll() = 0;
 

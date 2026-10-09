@@ -17,7 +17,7 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
-result_t Lock::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
+result_t Lock::acquire(bool blocking, bool& retVal, AsyncHandle ac)
 {
     // 受控同步快路径（C 类例外，见审计报告 §3-C）：锁能立即到手（或调用方
     // 不要求阻塞）时没有异步工作，直接在 sync 相位返回；只有真正需要阻塞
@@ -32,7 +32,7 @@ result_t Lock::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
         return 0;
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = true;

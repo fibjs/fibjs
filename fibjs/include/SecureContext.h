@@ -28,7 +28,7 @@ public:
     virtual result_t get_sessionTimeout(int32_t& retVal);
     virtual result_t setSNIContext(exlib::string servername, SecureContext_base* context);
     virtual result_t setSNIContext(exlib::string servername, v8::Local<v8::Object> options);
-    virtual result_t getSNIContext(exlib::string servername, bool auto_resolve, obj_ptr<SecureContext_base>& retVal, AsyncEvent* ac);
+    virtual result_t getSNIContext(exlib::string servername, bool auto_resolve, obj_ptr<SecureContext_base>& retVal, AsyncHandle ac);
     virtual result_t removeSNIContext(exlib::string servername);
     virtual result_t clearSNIContexts();
 

@@ -53,7 +53,7 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
     return 0;
 }
 
-result_t HeapSnapshotProxy::save(exlib::string fname, AsyncEvent* ac)
+result_t HeapSnapshotProxy::save(exlib::string fname, AsyncHandle ac)
 {
     class BufferStream : public v8::OutputStream {
     public:

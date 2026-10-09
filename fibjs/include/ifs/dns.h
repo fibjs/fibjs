@@ -20,8 +20,8 @@ class dns_base : public object_base {
 
 public:
     // dns_base
-    static result_t resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncEvent* ac);
-    static result_t lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
+    static result_t resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncHandle ac);
+    static result_t lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
