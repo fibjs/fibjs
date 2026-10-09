@@ -71,13 +71,6 @@ public:
         return 0;
     }
 
-    // Retired at the end of the series, once every interface family had
-    // migrated: the not-yet-migrated raw sites still call `ac->apost()`.
-    virtual void apost(int32_t v)
-    {
-        post(v);
-    }
-
     virtual Isolate* isolate()
     {
         ex_assert(m_isolate);
