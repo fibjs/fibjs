@@ -13,15 +13,22 @@
 
 namespace fibjs {
 
+// exec's sync phase (child_process.cpp): borrows the continuation so the caller
+// keeps using the same context right after the call.
+result_t exec_prepare(exlib::string command, v8::Local<v8::Object> options,
+    obj_ptr<child_process_base::ExecFileType>& retVal, AsyncHandle& ac);
+
 class AsyncShell : public AsyncEvent {
 public:
-    AsyncShell(exlib::string& retVal, AsyncEvent* ac)
+    AsyncShell(exlib::string& retVal, AsyncHandle ac)
         : m_retVal(retVal)
-        , m_ac(ac)
     {
         m_ctx.resize(1);
-        m_ctx[0] = ac->m_ctx[0];
-        m_ctxo = ac->m_ctxo;
+        m_ctx[0] = ac.ctxv()[0];
+        m_ctxo = ac.ctxo();
+
+        // ticket taken last: the ctx reads above must precede the move
+        m_ac = std::move(ac);
 
         setAsync();
     }
@@ -46,10 +53,10 @@ public:
     virtual int32_t post(int32_t v)
     {
         if (m_exec_retVal->exitCode) {
-            m_ac->post(Runtime::setError(process_output(m_exec_retVal->stderr, is_win32)));
+            m_ac.post(Runtime::setError(process_output(m_exec_retVal->stderr, is_win32)));
         } else {
             m_retVal = process_output(m_exec_retVal->stdout, is_win32);
-            m_ac->post(v);
+            m_ac.post(v);
         }
         delete this;
         return 0;
@@ -107,16 +114,16 @@ public:
 
 private:
     exlib::string& m_retVal;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
 };
 
-result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncEvent* ac)
+result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current(strings);
         exlib::string cmd = AsyncShell::process_command(strings, args);
 
-        result_t hr = exec(cmd, v8::Local<v8::Object>(), *(obj_ptr<ExecType>*)nullptr, ac);
+        result_t hr = exec_prepare(cmd, v8::Local<v8::Object>(), *(obj_ptr<ExecFileType>*)nullptr, ac);
         if (hr != CALL_E_NOSYNC)
             return hr;
 
@@ -124,18 +131,19 @@ result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exli
         // m_ctx（[0]=codec、[1]=input）：命令串必须在调用之后放入 exec 家族
         // 不使用的 m_ctx[2] 跨相位携带。（真正的 spawn 已在 execFile 的 sync
         // 相位完成，async 相位只做 stdout/stderr 抽取。）
-        ac->m_ctx.resize(3);
-        ac->m_ctx[2] = cmd;
+        ac.ctxv().resize(3);
+        ac.ctxv()[2] = cmd;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(2);
+    result_t ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    AsyncShell* as = new AsyncShell(retVal, ac);
-    exlib::string cmd = ac->m_ctx[2].string();
+    exlib::string cmd = ac.ctxv()[2].string();
+
+    AsyncShell* as = new AsyncShell(retVal, std::move(ac));
 
     return exec(cmd, v8::Local<v8::Object>(), as->m_exec_retVal, as);
 }

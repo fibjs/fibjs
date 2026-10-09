@@ -29,7 +29,7 @@ public:
 public:
     // ChildProcess_base
     virtual result_t kill(Union_kill_signal signal) = 0;
-    virtual result_t join(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t join(int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t get_connected(bool& retVal) = 0;
     virtual result_t disconnect() = 0;
     virtual result_t send(v8::Local<v8::Value> msg) = 0;

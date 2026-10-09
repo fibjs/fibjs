@@ -707,17 +707,17 @@ result_t ChildProcess::kill(exlib::string signal)
     return kill(signo);
 }
 
-result_t ChildProcess::join(int32_t& retVal, AsyncEvent* ac)
+result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     class WaitExitCode : public AsyncEvent {
     public:
-        WaitExitCode(ChildProcess_base* cp, int32_t& retVal, AsyncEvent* ac)
+        WaitExitCode(ChildProcess_base* cp, int32_t& retVal, AsyncHandle ac)
             : m_this(cp)
             , m_retVal(retVal)
-            , m_ac(ac)
+            , m_ac(std::move(ac))
         {
             setAsync();
         }
@@ -726,7 +726,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncEvent* ac)
         {
             m_this->get_exitCode(m_retVal);
 
-            m_ac->post(v);
+            m_ac.post(v);
             delete this;
 
             return 0;
@@ -735,12 +735,14 @@ result_t ChildProcess::join(int32_t& retVal, AsyncEvent* ac)
     private:
         obj_ptr<ChildProcess_base> m_this;
         int32_t& m_retVal;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
     };
 
-    AsyncEvent* _ac = new WaitExitCode(this, retVal, ac);
-    if (m_ev.wait(_ac)) {
-        _ac->apost(0);
+    WaitExitCode* waiter = new WaitExitCode(this, retVal, std::move(ac));
+    if (m_ev.wait(waiter)) {
+        // Borrowed delivery: the waiter disposes of itself in post().
+        AsyncHandle h(waiter);
+        h.apost(0);
     }
 
     return CALL_E_PENDDING;

@@ -34,13 +34,13 @@ public:
     // RTCPeerConnection_base
     static result_t _new(v8::Local<v8::Object> options, obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal) = 0;
-    virtual result_t setLocalDescription(AsyncEvent* ac) = 0;
-    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac) = 0;
-    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac) = 0;
-    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac) = 0;
-    virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setLocalDescription(AsyncHandle ac) = 0;
+    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac) = 0;
+    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac) = 0;
+    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncHandle ac) = 0;
+    virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncHandle ac) = 0;
     virtual result_t close() = 0;
     virtual result_t get_connectionState(exlib::string& retVal) = 0;
     virtual result_t get_iceConnectionState(exlib::string& retVal) = 0;

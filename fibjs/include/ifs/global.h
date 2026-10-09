@@ -71,7 +71,7 @@ public:
     static result_t btoa(v8::Local<v8::Value> data, exlib::string& retVal);
     static result_t atob(v8::Local<v8::Value> data, exlib::string& retVal);
     static result_t structuredClone(v8::Local<v8::Value> value, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
-    static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac);
     static result_t queueMicrotask(v8::Local<v8::Function> callback);
 
 public:

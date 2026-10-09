@@ -274,9 +274,9 @@ static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
     }
 }
 
-result_t Service::run(AsyncEvent* ac)
+result_t Service::run(AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         if (s_srv.CompareAndSwap(NULL, this) != NULL)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 

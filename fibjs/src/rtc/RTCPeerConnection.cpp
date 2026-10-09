@@ -250,12 +250,12 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
     return 0;
 }
 
-result_t RTCPeerConnection::setLocalDescription(AsyncEvent* ac)
+result_t RTCPeerConnection::setLocalDescription(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac)
+result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac)
 {
     // the async-aware helper keeps the phase logic: the object alternative is
     // built in the sync phase (it reads JS properties), the class alternative
@@ -278,12 +278,12 @@ result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_descri
     return 0;
 }
 
-result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac)
+result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac)
 {
     // keep the connection alive across the async operation; the JS wrapper
     // exists only on the JS call path (the sync phase), so this side effect
     // stays here
-    if (ac->isSync())
+    if (ac.isSync())
         m_self = new ValueHolder(wrap());
 
     obj_ptr<RTCSessionDescription_base> description_;
@@ -303,7 +303,7 @@ result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_desc
     return 0;
 }
 
-result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac)
+result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncHandle ac)
 {
     // the async-aware helper keeps the phase logic: the object alternative is
     // built in the sync phase (it reads JS properties), the class alternative
@@ -323,9 +323,9 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
     return 0;
 }
 
-result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_lock.lock();
@@ -334,15 +334,15 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
         m_lock.unlock();
         return 0;
     }
-    m_offers.emplace_back(retVal, ac);
+    m_offers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
 
     return CALL_E_PENDDING;
 }
 
-result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_lock.lock();
@@ -351,15 +351,15 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
         m_lock.unlock();
         return 0;
     }
-    m_answers.emplace_back(retVal, ac);
+    m_answers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
 
     return CALL_E_PENDDING;
 }
 
-result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac)
+result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<NMap> stats = new NMap();
@@ -627,14 +627,14 @@ void RTCPeerConnection::onLocalDescription(rtc::Description description)
         m_offer_description = obj_description;
         for (auto& [retVal, ac] : m_offers) {
             retVal = obj_description;
-            ac->post(0);
+            ac.post(0);
         }
         m_offers.clear();
     } else if (description.type() == rtc::Description::Type::Answer) {
         m_answer_description = obj_description;
         for (auto& [retVal, ac] : m_answers) {
             retVal = obj_description;
-            ac->post(0);
+            ac.post(0);
         }
         m_answers.clear();
     }

@@ -49,9 +49,9 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 }
 
 result_t global_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return http_base::fetch(request, opts, retVal, ac);
+    return http_base::fetch(request, opts, retVal, std::move(ac));
 }
 
 result_t global_base::queueMicrotask(v8::Local<v8::Function> callback)

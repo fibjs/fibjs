@@ -25,7 +25,7 @@ class Service_base : public EventEmitter_base {
 public:
     // Service_base
     static result_t _new(exlib::string name, v8::Local<v8::Function> worker, v8::Local<v8::Object> event, obj_ptr<Service_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t run(AsyncEvent* ac) = 0;
+    virtual result_t run(AsyncHandle ac) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t set_name(exlib::string newVal) = 0;
     static result_t install(exlib::string name, exlib::string cmd, exlib::string displayName, exlib::string description);

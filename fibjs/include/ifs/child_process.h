@@ -104,9 +104,9 @@ public:
     // child_process_base
     static result_t spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t spawn(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
-    static result_t exec(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecType>& retVal, AsyncEvent* ac);
-    static result_t execFile(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
-    static result_t execFile(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
+    static result_t exec(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecType>& retVal, AsyncHandle ac);
+    static result_t execFile(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncHandle ac);
+    static result_t execFile(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncHandle ac);
     static result_t spawnSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal);
     static result_t spawnSync(exlib::string command, v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal);
     static result_t execSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal);
@@ -114,9 +114,9 @@ public:
     static result_t execFileSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal);
     static result_t fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
-    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
-    static result_t run(exlib::string command, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
-    static result_t sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncEvent* ac);
+    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac);
+    static result_t run(exlib::string command, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac);
+    static result_t sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncHandle ac);
     static result_t ssh(exlib::string host, v8::Local<v8::Object> options, v8::Local<v8::Function>& retVal);
 
 public:

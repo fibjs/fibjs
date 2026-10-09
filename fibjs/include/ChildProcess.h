@@ -68,7 +68,7 @@ public:
     // a signal name (SIGTERM), a number the signal number
     result_t kill(int32_t signal);
     result_t kill(exlib::string signal);
-    virtual result_t join(int32_t& retVal, AsyncEvent* ac);
+    virtual result_t join(int32_t& retVal, AsyncHandle ac);
     virtual result_t get_connected(bool& retVal);
     virtual result_t disconnect();
     virtual result_t send(v8::Local<v8::Value> msg);
@@ -109,7 +109,7 @@ public:
 
 public:
     static result_t async_spawn(exlib::string command, v8::Local<v8::Array> args,
-        v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncEvent* ac);
+        v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncHandle ac);
     ASYNC_STATICVALUE4(ChildProcess, async_spawn, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<child_process_base::SpawnSyncType>);
 
 private:

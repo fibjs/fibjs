@@ -89,8 +89,56 @@ result_t child_process_base::spawn(exlib::string command, v8::Local<v8::Object> 
     return spawn(command, v8::Local<v8::Array>(), options, retVal);
 }
 
+// execFile's sync phase, factored out so exec/sh can share it while *borrowing*
+// the continuation: those callers keep using the same context right after the
+// call (sh appends its command string to the context), so the handle must not
+// be consumed here.
+static result_t execFile_prepare(exlib::string command, v8::Local<v8::Array> args,
+    v8::Local<v8::Object> options, obj_ptr<child_process_base::ExecFileType>& retVal, AsyncHandle& ac)
+{
+    exlib::string cmd;
+    v8::Local<v8::Value> opts_;
+    v8::Local<v8::Object> opts;
+    obj_ptr<ChildProcess_base> cp;
+
+    util_base::clone(options, opts_);
+
+    opts = opts_.As<v8::Object>();
+
+    exlib::string codec("utf8");
+    GetConfigValue(opts, "encoding", codec);
+
+    // Extract input option (string or Buffer)
+    obj_ptr<Buffer_base> input_buf;
+    if (!opts.IsEmpty()) {
+        Isolate* isolate = Isolate::current(opts);
+        JSValue input_val = opts->Get(isolate->context(), isolate->NewString("input"));
+        if (!input_val.IsEmpty() && !input_val->IsUndefined() && !input_val->IsNull()) {
+            if (input_val->IsString()) {
+                exlib::string input_str;
+                GetArgumentValue(isolate, input_val, input_str);
+                Buffer_base::from(input_str, "utf8", input_buf);
+            } else {
+                GetArgumentValue(isolate, input_val, input_buf);
+            }
+        }
+    }
+
+    result_t hr = child_process_base::spawn(command, args, opts, cp);
+    if (hr < 0)
+        return hr;
+
+    ac.ctxo() = cp;
+    ac.ctxv().resize(input_buf ? 2 : 1);
+    ac.ctxv()[0] = codec;
+    if (input_buf)
+        ac.ctxv()[1] = input_buf;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
 result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncHandle ac)
 {
     class ReadStdout : public AsyncEvent {
     public:
@@ -125,14 +173,13 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             int32_t m_phase;
         };
 
-        ReadStdout(obj_ptr<ExecFileType>& retVal, AsyncEvent* ac)
-            : m_codec(ac->m_ctx[0].string())
+        ReadStdout(obj_ptr<ExecFileType>& retVal, AsyncHandle ac)
+            : m_codec(ac.ctxv()[0].string())
             , m_retVal(retVal)
-            , m_ac(ac)
             , m_closeStdinOnFinish(false)
         {
             setAsync();
-            m_cp = ac->m_ctxo.As<ChildProcess_base>();
+            m_cp = ac.ctxo().As<ChildProcess_base>();
 
             m_cp->get_stdout(m_stdout);
             if (m_stdout) {
@@ -150,14 +197,17 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             if (m_stdin)
                 m_closeStdinOnFinish = true;
 
-            if (ac->m_ctx.size() > 1) {
-                obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac->m_ctx[1].object();
+            if (ac.ctxv().size() > 1) {
+                obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac.ctxv()[1].object();
                 if (input_buf && m_stdin) {
                     m_closeStdinOnFinish = false;
                     m_cnt.inc();
                     new WriteStdin(m_stdin, input_buf, this);
                 }
             }
+
+            // ticket taken last: every ctx read above must precede the move
+            m_ac = std::move(ac);
 
             m_cnt.inc();
             m_cp->join(m_status, this);
@@ -216,7 +266,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 m_retVal->stderr = getBuffer(m_buferr, m_codec);
                 m_cp->get_exitCode(m_retVal->exitCode);
 
-                m_ac->post(0);
+                m_ac.post(0);
                 delete this;
             }
 
@@ -226,7 +276,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
     private:
         exlib::string m_codec;
         obj_ptr<ExecFileType>& m_retVal;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
 
         ChildProcess_base* m_cp;
 
@@ -246,56 +296,17 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         int32_t m_status;
     };
 
-    if (ac->isSync()) {
-        exlib::string cmd;
-        v8::Local<v8::Value> opts_;
-        v8::Local<v8::Object> opts;
-        obj_ptr<ChildProcess_base> cp;
+    if (ac.isSync())
+        return execFile_prepare(command, args, options, retVal, ac);
 
-        util_base::clone(options, opts_);
-
-        opts = opts_.As<v8::Object>();
-
-        exlib::string codec("utf8");
-        GetConfigValue(opts, "encoding", codec);
-
-        // Extract input option (string or Buffer)
-        obj_ptr<Buffer_base> input_buf;
-        if (!opts.IsEmpty()) {
-            Isolate* isolate = Isolate::current(opts);
-            JSValue input_val = opts->Get(isolate->context(), isolate->NewString("input"));
-            if (!input_val.IsEmpty() && !input_val->IsUndefined() && !input_val->IsNull()) {
-                if (input_val->IsString()) {
-                    exlib::string input_str;
-                    GetArgumentValue(isolate, input_val, input_str);
-                    Buffer_base::from(input_str, "utf8", input_buf);
-                } else {
-                    GetArgumentValue(isolate, input_val, input_buf);
-                }
-            }
-        }
-
-        result_t hr = spawn(command, args, opts, cp);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctxo = cp;
-        ac->m_ctx.resize(input_buf ? 2 : 1);
-        ac->m_ctx[0] = codec;
-        if (input_buf)
-            ac->m_ctx[1] = input_buf;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    new ReadStdout(retVal, ac);
+    new ReadStdout(retVal, std::move(ac));
     return CALL_E_PENDDING;
 }
 
 result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Object> options,
-    obj_ptr<ExecFileType>& retVal, AsyncEvent* ac)
+    obj_ptr<ExecFileType>& retVal, AsyncHandle ac)
 {
-    return execFile(command, v8::Local<v8::Array>(), options, retVal, ac);
+    return execFile(command, v8::Local<v8::Array>(), options, retVal, std::move(ac));
 }
 
 #ifdef FIBJS_IOS_SIMULATOR
@@ -326,87 +337,100 @@ static exlib::string wrap_shell_command(exlib::string command)
 }
 #endif
 
-result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> options,
-    obj_ptr<ExecType>& retVal, AsyncEvent* ac)
+static const char* exec_default_shell()
 {
 #ifdef _WIN32
-    const char* shell = "cmd.exe";
+    return "cmd.exe";
 #elif defined(__ANDROID__)
-    const char* shell = "/system/bin/sh";
+    return "/system/bin/sh";
 #else
-    const char* shell = "/bin/sh";
+    return "/bin/sh";
+#endif
+}
+
+// exec's sync phase, factored out for the same borrow reason as
+// execFile_prepare: the extraction is shared with child_process_sh.cpp (sh()).
+result_t exec_prepare(exlib::string command, v8::Local<v8::Object> options,
+    obj_ptr<child_process_base::ExecFileType>& retVal, AsyncHandle& ac)
+{
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
+    v8::Local<v8::Object> opts;
+
+#ifdef _WIN32
+    const char* shell = exec_default_shell();
+    static bool init = false;
+    static bool is_cmd_exe = false;
+
+    if (!init) {
+        size_t sz = 4096;
+        char* env_shell = (char*)malloc(sz);
+
+        if (uv_os_getenv("ComSpec", env_shell, &sz) == 0)
+            shell = env_shell;
+        else
+            free(env_shell);
+
+        int32_t len = strlen(shell);
+        if (len >= 7 && stricmp(shell + len - 7, "cmd.exe") == 0) {
+            if (len == 7 || isPathSlash(shell[len - 8]))
+                is_cmd_exe = true;
+        } else if (len >= 3 && stricmp(shell + len - 3, "cmd") == 0) {
+            if (len == 3 || isPathSlash(shell[len - 4]))
+                is_cmd_exe = true;
+        }
+
+        init = true;
+    }
+
+    if (is_cmd_exe) {
+        args->Set(context, 0, isolate->NewString("/d")).IsJust();
+        args->Set(context, 1, isolate->NewString("/s")).IsJust();
+        args->Set(context, 2, isolate->NewString("/c")).IsJust();
+        args->Set(context, 3, isolate->NewString(command)).IsJust();
+    } else {
+        args->Set(context, 0, isolate->NewString("/c")).IsJust();
+        args->Set(context, 1, isolate->NewString(command)).IsJust();
+    }
+
+    v8::Local<v8::String> windowsVerbatimArguments = isolate->NewString("windowsVerbatimArguments");
+    if (!options.IsEmpty() && !options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
+        v8::Local<v8::Value> opts_;
+        util_base::clone(options, opts_);
+
+        opts = opts_.As<v8::Object>();
+        opts->Set(context, windowsVerbatimArguments, v8::True(isolate->m_isolate)).IsJust();
+    } else
+        opts = options;
+#else
+    const char* shell = exec_default_shell();
 #ifdef FIBJS_IOS_SIMULATOR
     command = wrap_shell_command(command);
 #endif
+
+    args->Set(context, 0, isolate->NewString("-c")).IsJust();
+    args->Set(context, 1, isolate->NewString(command)).IsJust();
+
+    opts = options;
 #endif
 
+    return execFile_prepare(shell, args, opts, retVal, ac);
+}
+
+result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> options,
+    obj_ptr<ExecType>& retVal, AsyncHandle ac)
+{
     obj_ptr<ExecFileType>& _retVal = *((obj_ptr<ExecFileType>*)&retVal);
 
-    if (ac->isSync()) {
-        Isolate* isolate = Isolate::current(options);
-        v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
-        v8::Local<v8::Object> opts;
+    if (ac.isSync())
+        return exec_prepare(command, options, _retVal, ac);
 
-#ifdef _WIN32
-        static bool init = false;
-        static bool is_cmd_exe = false;
-
-        if (!init) {
-            size_t sz = 4096;
-            char* env_shell = (char*)malloc(sz);
-
-            if (uv_os_getenv("ComSpec", env_shell, &sz) == 0)
-                shell = env_shell;
-            else
-                free(env_shell);
-
-            int32_t len = strlen(shell);
-            if (len >= 7 && stricmp(shell + len - 7, "cmd.exe") == 0) {
-                if (len == 7 || isPathSlash(shell[len - 8]))
-                    is_cmd_exe = true;
-            } else if (len >= 3 && stricmp(shell + len - 3, "cmd") == 0) {
-                if (len == 3 || isPathSlash(shell[len - 4]))
-                    is_cmd_exe = true;
-            }
-
-            init = true;
-        }
-
-        if (is_cmd_exe) {
-            args->Set(context, 0, isolate->NewString("/d")).IsJust();
-            args->Set(context, 1, isolate->NewString("/s")).IsJust();
-            args->Set(context, 2, isolate->NewString("/c")).IsJust();
-            args->Set(context, 3, isolate->NewString(command)).IsJust();
-        } else {
-            args->Set(context, 0, isolate->NewString("/c")).IsJust();
-            args->Set(context, 1, isolate->NewString(command)).IsJust();
-        }
-
-        v8::Local<v8::String> windowsVerbatimArguments = isolate->NewString("windowsVerbatimArguments");
-        if (!options.IsEmpty() && !options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
-            v8::Local<v8::Value> opts_;
-            util_base::clone(options, opts_);
-
-            opts = opts_.As<v8::Object>();
-            opts->Set(context, windowsVerbatimArguments, v8::True(isolate->m_isolate)).IsJust();
-        } else
-            opts = options;
-#else
-        args->Set(context, 0, isolate->NewString("-c")).IsJust();
-        args->Set(context, 1, isolate->NewString(command)).IsJust();
-
-        opts = options;
-#endif
-
-        return execFile(shell, args, opts, _retVal, ac);
-    }
-
-    return execFile(shell, v8::Local<v8::Array>(), options, _retVal, ac);
+    return execFile(exec_default_shell(), v8::Local<v8::Array>(), options, _retVal, std::move(ac));
 }
 
 result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncHandle ac)
 {
     class ReadStdout : public AsyncEvent {
     public:
@@ -441,14 +465,13 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             int32_t m_phase;
         };
 
-        ReadStdout(obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncEvent* ac)
-            : m_codec(ac->m_ctx[0].string())
+        ReadStdout(obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncHandle ac)
+            : m_codec(ac.ctxv()[0].string())
             , m_retVal(retVal)
-            , m_ac(ac)
             , m_closeStdinOnFinish(false)
         {
             setAsync();
-            ChildProcess_base* cp = ac->m_ctxo.As<ChildProcess_base>();
+            ChildProcess_base* cp = ac.ctxo().As<ChildProcess_base>();
 
             cp->get_stdout(m_stdout);
             if (m_stdout) {
@@ -466,14 +489,17 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             if (m_stdin)
                 m_closeStdinOnFinish = true;
 
-            if (ac->m_ctx.size() > 1) {
-                obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac->m_ctx[1].object();
+            if (ac.ctxv().size() > 1) {
+                obj_ptr<Buffer_base> input_buf = (Buffer_base*)ac.ctxv()[1].object();
                 if (input_buf && m_stdin) {
                     m_closeStdinOnFinish = false;
                     m_cnt.inc();
                     new WriteStdin(m_stdin, input_buf, this);
                 }
             }
+
+            // ticket taken last: every ctx read above must precede the move
+            m_ac = std::move(ac);
 
             m_cnt.inc();
             cp->join(m_status, this);
@@ -534,7 +560,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
 
                 m_retVal = new child_process_base::SpawnSyncType();
 
-                ChildProcess_base* cp = m_ac->m_ctxo.As<ChildProcess_base>();
+                ChildProcess_base* cp = m_ac.ctxo().As<ChildProcess_base>();
 
                 cp->get_pid(m_retVal->pid);
                 cp->get_exitCode(m_retVal->status);
@@ -554,7 +580,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 m_retVal->output->append(m_retVal->stdout);
                 m_retVal->output->append(m_retVal->stderr);
 
-                m_ac->post(0);
+                m_ac.post(0);
                 delete this;
             }
 
@@ -564,7 +590,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
     private:
         exlib::string m_codec;
         obj_ptr<child_process_base::SpawnSyncType>& m_retVal;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         exlib::atomic m_cnt;
 
         obj_ptr<Stream_base> m_stdin;
@@ -581,7 +607,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         int32_t m_status;
     };
 
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current(options);
         exlib::string cmd;
         v8::Local<v8::Value> opts_;
@@ -634,16 +660,16 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             return 0;
         }
 
-        ac->m_ctxo = cp;
-        ac->m_ctx.resize(input_buf ? 2 : 1);
-        ac->m_ctx[0] = codec;
+        ac.ctxo() = cp;
+        ac.ctxv().resize(input_buf ? 2 : 1);
+        ac.ctxv()[0] = codec;
         if (input_buf)
-            ac->m_ctx[1] = input_buf;
+            ac.ctxv()[1] = input_buf;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    new ReadStdout(retVal, ac);
+    new ReadStdout(retVal, std::move(ac));
     return CALL_E_PENDDING;
 }
 
@@ -733,16 +759,18 @@ result_t child_process_base::fork(exlib::string module, v8::Local<v8::Object> op
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac)
 {
     class WaitJoin : public AsyncEvent {
     public:
-        WaitJoin(int32_t& retVal, AsyncEvent* ac)
+        WaitJoin(int32_t& retVal, AsyncHandle ac)
             : m_retVal(retVal)
-            , m_ac(ac)
         {
             setAsync();
-            m_cp = ac->m_ctxo.As<ChildProcess_base>();
+            m_cp = ac.ctxo().As<ChildProcess_base>();
+
+            // ticket taken last: the ctxo read above must precede the move
+            m_ac = std::move(ac);
 
             m_cp->join(m_status, this);
         }
@@ -751,7 +779,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         {
             m_cp->get_exitCode(m_retVal);
 
-            m_ac->post(0);
+            m_ac.post(0);
             delete this;
 
             return 0;
@@ -761,10 +789,10 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         obj_ptr<ChildProcess_base> m_cp;
         int32_t m_status;
         int32_t& m_retVal;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
     };
 
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current(options);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string cmd;
@@ -781,18 +809,18 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         if (hr < 0)
             return hr;
 
-        ac->m_ctxo = cp;
+        ac.ctxo() = cp;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    new WaitJoin(retVal, ac);
+    new WaitJoin(retVal, std::move(ac));
     return CALL_E_PENDDING;
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Object> options,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
-    return run(command, v8::Local<v8::Array>(), options, retVal, ac);
+    return run(command, v8::Local<v8::Array>(), options, retVal, std::move(ac));
 }
 }

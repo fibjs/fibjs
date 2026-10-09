@@ -30,13 +30,13 @@ public:
 
     // RTCPeerConnection_base
     virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal);
-    virtual result_t setLocalDescription(AsyncEvent* ac);
-    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncEvent* ac);
-    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncEvent* ac);
-    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncEvent* ac);
-    virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
-    virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
-    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac);
+    virtual result_t setLocalDescription(AsyncHandle ac);
+    virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac);
+    virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac);
+    virtual result_t addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncHandle ac);
+    virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac);
+    virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac);
+    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncHandle ac);
     virtual result_t close();
     virtual result_t get_connectionState(exlib::string& retVal);
     virtual result_t get_iceConnectionState(exlib::string& retVal);
@@ -69,10 +69,10 @@ private:
     exlib::spinlock m_lock;
 
     obj_ptr<NObject> m_offer_description;
-    std::list<std::pair<Variant&, AsyncEvent*>> m_offers;
+    std::list<std::pair<Variant&, AsyncHandle>> m_offers;
 
     obj_ptr<NObject> m_answer_description;
-    std::list<std::pair<Variant&, AsyncEvent*>> m_answers;
+    std::list<std::pair<Variant&, AsyncHandle>> m_answers;
 
     std::list<obj_ptr<RTCDataChannel>> m_dataChannels;
 };
