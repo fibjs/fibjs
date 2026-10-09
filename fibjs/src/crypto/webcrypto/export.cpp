@@ -11,9 +11,9 @@
 
 namespace fibjs {
 
-result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncEvent* ac)
+result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CALL_E_NOSYNC;
 
     CryptoKey* ckey = (CryptoKey*)key;
@@ -100,13 +100,13 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
 }
 
 result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm,
-    bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncEvent* ac)
+    bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
         result_t hr;
 
-        ac->m_ctx.resize(3);
+        ac.ctxv().resize(3);
 
         v8::Local<v8::Object> algObj;
 
@@ -123,7 +123,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = key;
+        ac.ctxv()[0] = key;
 
         if (format == "jwk") {
             v8::Local<v8::Object> o;
@@ -133,31 +133,31 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
 
             obj_ptr<NObject> jwk = new NObject();
             jwk->add(o);
-            ac->m_ctx[1] = jwk;
+            ac.ctxv()[1] = jwk;
         } else {
             obj_ptr<Buffer_base> buf;
             hr = GetArgumentValue(isolate, keyData, buf);
             if (hr < 0)
                 return hr;
-            ac->m_ctx[2] = buf;
+            ac.ctxv()[2] = buf;
         }
 
         return CALL_E_NOSYNC;
     }
 
     // the algorithm object and the key data were read in the sync phase
-    result_t ctx_hr = ac->ctx(format == "jwk" ? 1 : 2);
+    result_t ctx_hr = ac.ctx(format == "jwk" ? 1 : 2);
     if (ctx_hr < 0)
         return ctx_hr;
 
     result_t hr;
-    obj_ptr<CryptoKey> key = (CryptoKey*)ac->m_ctx[0].object();
+    obj_ptr<CryptoKey> key = (CryptoKey*)ac.ctxv()[0].object();
     if (key == NULL)
         return Runtime::setError("WebCrypto: the key parameters were not read");
 
     key->m_key = new KeyObject();
     if (format == "jwk") {
-        obj_ptr<NObject> jwk = (NObject*)ac->m_ctx[1].object();
+        obj_ptr<NObject> jwk = (NObject*)ac.ctxv()[1].object();
         if (jwk == NULL)
             return Runtime::setError("WebCrypto: the key data was not read");
         hr = key->m_key->ImportJWKKey(jwk, KeyObject::kKeyTypeUnknown);
@@ -168,7 +168,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
 
         return key->check_import_param();
     } else {
-        obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[2].object();
+        obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[2].object();
         if (buf == NULL)
             return Runtime::setError("WebCrypto: the key data was not read");
 

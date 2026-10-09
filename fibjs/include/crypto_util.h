@@ -127,8 +127,8 @@ int GetCurveFromName(const char* name);
 result_t openssl_error();
 
 // scrypt options are read in the sync phase, where the JS scope is available,
-// and carried to the async phase in ac->m_ctx[0]
-result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncEvent* ac);
+// and carried to the async phase in ctx[0]
+result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac);
 
 inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer_base>& buf)
 {

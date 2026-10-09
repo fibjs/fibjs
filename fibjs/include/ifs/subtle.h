@@ -35,13 +35,13 @@ public:
 
 public:
     // subtle_base
-    static result_t digest(Union_digest_algorithm algorithm, Union_digest_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
-    static result_t exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncEvent* ac);
-    static result_t generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, Variant& retVal, AsyncEvent* ac);
-    static result_t importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncEvent* ac);
-    static result_t sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
-    static result_t verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncEvent* ac);
-    static result_t deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
+    static result_t digest(Union_digest_algorithm algorithm, Union_digest_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
+    static result_t exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncHandle ac);
+    static result_t generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, Variant& retVal, AsyncHandle ac);
+    static result_t importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac);
+    static result_t sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
+    static result_t verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncHandle ac);
+    static result_t deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

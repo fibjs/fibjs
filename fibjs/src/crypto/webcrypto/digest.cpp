@@ -13,29 +13,29 @@
 namespace fibjs {
 
 result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data data,
-    std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+    std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
     exlib::string alg;
 
     if (std::holds_alternative<exlib::string>(algorithm))
         alg = std::get<exlib::string>(algorithm);
-    else if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    else if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(algorithm), "name", alg, true);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = alg;
+        ac.ctxv()[0] = alg;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     } else {
         // the algorithm object was read in the sync phase
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        alg = ac->m_ctx[0].string();
+        alg = ac.ctxv()[0].string();
     }
 
     exlib::string data_str;

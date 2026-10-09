@@ -161,13 +161,13 @@ result_t CryptoKey::generate_ecdh()
 }
 
 result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages,
-    Variant& retVal, AsyncEvent* ac)
+    Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
         result_t hr;
 
-        ac->m_ctx.resize(1);
+        ac.ctxv().resize(1);
 
         v8::Local<v8::Object> algObj;
 
@@ -184,17 +184,17 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = key;
+        ac.ctxv()[0] = key;
 
         return CALL_E_NOSYNC;
     }
 
     // the algorithm object was read in the sync phase
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<CryptoKey> key = (CryptoKey*)ac->m_ctx[0].object();
+    obj_ptr<CryptoKey> key = (CryptoKey*)ac.ctxv()[0].object();
     if (key == NULL)
         return Runtime::setError("WebCrypto: the key parameters were not read");
 

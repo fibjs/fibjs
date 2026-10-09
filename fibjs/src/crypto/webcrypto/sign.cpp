@@ -11,20 +11,20 @@
 
 namespace fibjs {
 
-static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, AsyncEvent* ac)
+static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, AsyncHandle& ac)
 {
     result_t hr;
-    Isolate* isolate = ac->isolate();
+    Isolate* isolate = ac.isolate();
     v8::Local<v8::Context> context = isolate->context();
 
-    ac->m_ctx.resize(2);
+    ac.ctxv().resize(2);
 
     exlib::string name;
     hr = GetConfigValue(algorithm, "name", name, true);
     if (hr < 0)
         return hr;
 
-    ac->m_ctx[0] = name;
+    ac.ctxv()[0] = name;
 
     hr = key->check_name(name);
     if (hr < 0)
@@ -49,10 +49,10 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
             }
         }
 
-        ac->m_ctx[1] = hash;
+        ac.ctxv()[1] = hash;
     } else if (qstricmp(name.c_str(), "ed25519") == 0) {
         // Ed25519 doesn't use hash parameter - it has built-in SHA-512
-        ac->m_ctx[1] = exlib::string("");
+        ac.ctxv()[1] = exlib::string("");
     } else if (qstricmp(name.c_str(), "hmac") == 0) {
         // HMAC uses the hash from the key algorithm
         exlib::string hash;
@@ -69,7 +69,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
                 return hr;
         }
 
-        ac->m_ctx[1] = hash;
+        ac.ctxv()[1] = hash;
     }
 
     return 0;
@@ -103,9 +103,9 @@ static result_t name_hash_from_key(CryptoKey* key, const exlib::string& name, ex
 }
 
 
-result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // only the object alternative reads JS values; the string form is
         // C++-only (check_name + the key's C++ algorithm object) and is
         // resolved in the async phase, so a cc_ caller can use it
@@ -139,12 +139,12 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
         if (hr < 0)
             return hr;
     } else {
-        result_t ctx_hr = ac->ctx(1);
+        result_t ctx_hr = ac.ctx(1);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        name = ac->m_ctx[0].string();
-        hash = ac->m_ctx[1].string();
+        name = ac.ctxv()[0].string();
+        hash = ac.ctxv()[1].string();
     }
 
     // Check if the key has 'sign' usage
@@ -210,9 +210,9 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
 }
 
 
-result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncEvent* ac)
+result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // only the object alternative reads JS values; the string form is
         // C++-only and is resolved in the async phase (see sign above)
         if (std::holds_alternative<v8::Local<v8::Object>>(algorithm)) {
@@ -252,12 +252,12 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         if (hr < 0)
             return hr;
     } else {
-        result_t ctx_hr = ac->ctx(1);
+        result_t ctx_hr = ac.ctx(1);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        name = ac->m_ctx[0].string();
-        hash = ac->m_ctx[1].string();
+        name = ac.ctxv()[0].string();
+        hash = ac.ctxv()[1].string();
     }
 
     // Check if the key has 'verify' usage

@@ -16,11 +16,11 @@
 
 namespace fibjs {
 
-static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* ac)
+static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle& ac)
 {
     result_t hr;
 
-    ac->m_ctx.resize(4);
+    ac.ctxv().resize(4);
 
     obj_ptr<KeyObject_base> key_;
     hr = priv ? crypto_base::createPrivateKey(opts, key_) : crypto_base::createPublicKey(opts, key_);
@@ -30,16 +30,16 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* 
     if (EVP_PKEY_get_id(key_.As<KeyObject>()->pkey()) != EVP_PKEY_BLS12_381_G2)
         return Runtime::setError("crypto: key must be a BLS12-381 G2 key");
 
-    ac->m_ctx[0] = key_;
+    ac.ctxv()[0] = key_;
 
     exlib::string suite = "Bls12381Sha256";
     hr = GetConfigValue(opts, "suite", suite);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (suite == "Bls12381Sha256")
-        ac->m_ctx[1] = Bls12381Sha256;
+        ac.ctxv()[1] = Bls12381Sha256;
     else if (suite == "Bls12381Shake256")
-        ac->m_ctx[1] = Bls12381Shake256;
+        ac.ctxv()[1] = Bls12381Shake256;
     else
         return Runtime::setError("crypto: suite must be 'Bls12381Sha256' or 'Bls12381Shake256'");
 
@@ -47,20 +47,20 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncEvent* 
     hr = GetConfigValue(opts, "header", header);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    ac->m_ctx[2] = header;
+    ac.ctxv()[2] = header;
 
     obj_ptr<Buffer_base> proof_header;
     hr = GetConfigValue(opts, "proof_header", proof_header);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    ac->m_ctx[3] = proof_header;
+    ac.ctxv()[3] = proof_header;
 
     return CALL_E_NOSYNC;
 }
 
-static result_t bbs_get_args(exlib::string key, bool priv, AsyncEvent* ac)
+static result_t bbs_get_args(exlib::string key, bool priv, AsyncHandle& ac)
 {
-    Isolate* isolate = ac->isolate();
+    Isolate* isolate = ac.isolate();
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> key_ = v8::Object::New(isolate->m_isolate);
 
@@ -72,9 +72,9 @@ static result_t bbs_get_args(exlib::string key, bool priv, AsyncEvent* ac)
     return bbs_get_args(key_, priv, ac);
 }
 
-static result_t bbs_get_args(Buffer_base* key, bool priv, AsyncEvent* ac)
+static result_t bbs_get_args(Buffer_base* key, bool priv, AsyncHandle& ac)
 {
-    Isolate* isolate = ac->isolate();
+    Isolate* isolate = ac.isolate();
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> key_ = v8::Object::New(isolate->m_isolate);
 
@@ -85,23 +85,23 @@ static result_t bbs_get_args(Buffer_base* key, bool priv, AsyncEvent* ac)
     return bbs_get_args(key_, priv, ac);
 }
 
-static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncEvent* ac)
+static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncHandle& ac)
 {
     result_t hr;
 
-    ac->m_ctx.resize(4);
+    ac.ctxv().resize(4);
 
     obj_ptr<KeyObject> key_ = static_cast<KeyObject*>(key);
     if ((key_->type() != (priv ? KeyObject::kKeyTypePrivate : KeyObject::kKeyTypePublic))
         || EVP_PKEY_get_id(key_->pkey()) != EVP_PKEY_BLS12_381_G2)
         return Runtime::setError("crypto: key must be a BLS12-381 G2 private key");
 
-    ac->m_ctx[0] = key;
+    ac.ctxv()[0] = key;
 
-    ac->m_ctx[1] = Bls12381Sha256;
+    ac.ctxv()[1] = Bls12381Sha256;
 
-    ac->m_ctx[2] = (Buffer_base*)nullptr;
-    ac->m_ctx[3] = (Buffer_base*)nullptr;
+    ac.ctxv()[2] = (Buffer_base*)nullptr;
+    ac.ctxv()[3] = (Buffer_base*)nullptr;
 
     return CALL_E_NOSYNC;
 }
@@ -109,11 +109,11 @@ static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncEvent* ac)
 // the key of a BBS operation is a union argument (Buffer|KeyObject|Object|String):
 // the alternative that was given is parsed by the matching overload above
 template <typename... Ts>
-static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncEvent* ac)
+static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncHandle& ac)
 {
     result_t hr = 0;
 
-    std::visit([&hr, priv, ac](auto& val) {
+    std::visit([&hr, priv, &ac](auto& val) {
         if (hr >= 0)
             hr = bbs_get_args(val, priv, ac);
     }, key);
@@ -126,9 +126,9 @@ static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncEvent* ac
 // KeyObject alternative is pure C++ and is resolved in the async phase, so a
 // cc_ caller can pass it directly. No V8 is touched in the async branch.
 template <typename... Ts>
-static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncEvent* ac)
+static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle& ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
             return CALL_E_NOSYNC; // pure C++: left to the async phase
 
@@ -136,7 +136,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncEvent*
     }
 
     // async / cc_: the slot prepared by the sync phase comes first
-    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL)
+    if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL)
         return 0;
 
     // otherwise the KeyObject alternative, parsed without touching V8

@@ -209,43 +209,43 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
 }
 
 result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> options,
-    obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac)
+    obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
         result_t hr;
 
-        ac->m_ctx.resize(3);
+        ac.ctxv().resize(3);
 
         obj_ptr<generateKeyPairParam> param;
         hr = generateKeyPairParam::load(options, param);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = param;
+        ac.ctxv()[0] = param;
 
         obj_ptr<keyEncodingParam> publicKeyEncodingParam;
         hr = keyEncodingParam::load(options, "publicKeyEncoding", publicKeyEncodingParam);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[1] = publicKeyEncodingParam;
+        ac.ctxv()[1] = publicKeyEncodingParam;
 
         obj_ptr<keyEncodingParam> privateKeyEncodingParam;
         hr = keyEncodingParam::load(options, "privateKeyEncoding", privateKeyEncodingParam);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[2] = privateKeyEncodingParam;
+        ac.ctxv()[2] = privateKeyEncodingParam;
 
-        return CALL_E_NOSYNC;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(2);
+    result_t ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac->m_ctx[0].object();
+    obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac.ctxv()[0].object();
 
     retVal = new GenerateKeyPairType();
 
@@ -260,7 +260,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     if (hr < 0)
         return hr;
 
-    obj_ptr<keyEncodingParam> publicKeyEncodingParam = (keyEncodingParam*)ac->m_ctx[1].object();
+    obj_ptr<keyEncodingParam> publicKeyEncodingParam = (keyEncodingParam*)ac.ctxv()[1].object();
     if (publicKeyEncodingParam) {
         Variant v;
         hr = publicKey.As<KeyObject>()->ExportKey(publicKeyEncodingParam, v);
@@ -271,7 +271,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     } else
         retVal->publicKey = publicKey;
 
-    obj_ptr<keyEncodingParam> privateKeyEncodingParam = (keyEncodingParam*)ac->m_ctx[2].object();
+    obj_ptr<keyEncodingParam> privateKeyEncodingParam = (keyEncodingParam*)ac.ctxv()[2].object();
     if (privateKeyEncodingParam) {
         Variant v;
         hr = privaterKey->ExportKey(privateKeyEncodingParam, v);

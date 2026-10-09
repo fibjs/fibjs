@@ -569,23 +569,23 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
 
 
 result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key,
-    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     bool bObject = std::holds_alternative<v8::Local<v8::Object>>(key);
 
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
 
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle. It carries the key and the
         // signing parameters.
-        ac->m_ctx.resize(bObject ? 5 : 1);
+        ac.ctxv().resize(bObject ? 5 : 1);
 
         exlib::string algo;
         result_t hr = get_algorithm(isolate, algorithm, algo);
         if (hr < 0)
             return hr;
-        ac->m_ctx[0] = algo;
+        ac.ctxv()[0] = algo;
 
         if (bObject) {
             v8::Local<v8::Object> opt = std::get<v8::Local<v8::Object>>(key);
@@ -594,7 +594,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
             hr = crypto_base::createPrivateKey(opt, key_);
             if (hr != 0)
                 return hr;
-            ac->m_ctx[1] = key_;
+            ac.ctxv()[1] = key_;
 
             DSASigEnc enc = kSigEncDER;
             int padding = DEFAULT_PADDING;
@@ -602,20 +602,20 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
             hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
             if (hr < 0)
                 return hr;
-            ac->m_ctx[2] = (int)enc;
-            ac->m_ctx[3] = padding;
-            ac->m_ctx[4] = salt_len;
+            ac.ctxv()[2] = (int)enc;
+            ac.ctxv()[3] = padding;
+            ac.ctxv()[4] = salt_len;
         }
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     // the algorithm and the object key options were prepared in the sync phase
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    exlib::string algo = ac->m_ctx[0].string();
+    exlib::string algo = ac.ctxv()[0].string();
 
     // a string is decoded once, in the async phase
     obj_ptr<Buffer_base> buf;
@@ -633,17 +633,17 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 
     if (bObject) {
         // the key and its options come from the sync phase
-        result_t ctx_hr = ac->ctx(4);
+        result_t ctx_hr = ac.ctx(4);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        key_ = (KeyObject_base*)ac->m_ctx[1].object();
+        key_ = (KeyObject_base*)ac.ctxv()[1].object();
         if (key_ == NULL)
             return Runtime::setError("crypto: the key options were not read");
 
-        enc = (DSASigEnc)ac->m_ctx[2].intVal();
-        padding = ac->m_ctx[3].intVal();
-        salt_len = ac->m_ctx[4].intVal();
+        enc = (DSASigEnc)ac.ctxv()[2].intVal();
+        padding = ac.ctxv()[3].intVal();
+        salt_len = ac.ctxv()[4].intVal();
     } else if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {
@@ -668,23 +668,23 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 
 
 result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key,
-    Union_verify_signature signature, bool& retVal, AsyncEvent* ac)
+    Union_verify_signature signature, bool& retVal, AsyncHandle ac)
 {
     bool bObject = std::holds_alternative<v8::Local<v8::Object>>(key);
 
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
 
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle. It carries the key and the
         // verifying parameters.
-        ac->m_ctx.resize(bObject ? 5 : 1);
+        ac.ctxv().resize(bObject ? 5 : 1);
 
         exlib::string algo;
         result_t hr = get_algorithm(isolate, algorithm, algo);
         if (hr < 0)
             return hr;
-        ac->m_ctx[0] = algo;
+        ac.ctxv()[0] = algo;
 
         if (bObject) {
             v8::Local<v8::Object> opt = std::get<v8::Local<v8::Object>>(key);
@@ -693,7 +693,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
             hr = crypto_base::createPublicKey(opt, key_);
             if (hr != 0)
                 return hr;
-            ac->m_ctx[1] = key_;
+            ac.ctxv()[1] = key_;
 
             DSASigEnc enc = kSigEncDER;
             int padding = DEFAULT_PADDING;
@@ -701,20 +701,20 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
             hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
             if (hr < 0)
                 return hr;
-            ac->m_ctx[2] = (int)enc;
-            ac->m_ctx[3] = padding;
-            ac->m_ctx[4] = salt_len;
+            ac.ctxv()[2] = (int)enc;
+            ac.ctxv()[3] = padding;
+            ac.ctxv()[4] = salt_len;
         }
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     // the algorithm and the object key options were prepared in the sync phase
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    exlib::string algo = ac->m_ctx[0].string();
+    exlib::string algo = ac.ctxv()[0].string();
 
     // strings are decoded once, in the async phase
     obj_ptr<Buffer_base> dataBuf;
@@ -740,17 +740,17 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
 
     if (bObject) {
         // the key and its options come from the sync phase
-        result_t ctx_hr = ac->ctx(4);
+        result_t ctx_hr = ac.ctx(4);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        key_ = (KeyObject_base*)ac->m_ctx[1].object();
+        key_ = (KeyObject_base*)ac.ctxv()[1].object();
         if (key_ == NULL)
             return Runtime::setError("crypto: the key options were not read");
 
-        enc = (DSASigEnc)ac->m_ctx[2].intVal();
-        padding = ac->m_ctx[3].intVal();
-        salt_len = ac->m_ctx[4].intVal();
+        enc = (DSASigEnc)ac.ctxv()[2].intVal();
+        padding = ac.ctxv()[3].intVal();
+        salt_len = ac.ctxv()[4].intVal();
     } else if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {

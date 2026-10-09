@@ -154,24 +154,24 @@ public:
     static result_t diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal);
     static result_t hash(exlib::string algorithm, Union_hash_data data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal);
-    static result_t randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal);
     static result_t randomUUID(v8::Local<v8::Object> options, exlib::string& retVal);
-    static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
-    static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac);
+    static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t privateDecrypt(Union_privateDecrypt_privateKey privateKey, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateEncrypt(Union_privateEncrypt_privateKey privateKey, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicDecrypt(Union_publicDecrypt_publicKey publicKey, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicEncrypt(Union_publicEncrypt_publicKey publicKey, Union_publicEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
-    static result_t sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key, Union_verify_signature signature, bool& retVal, AsyncEvent* ac);
+    static result_t sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key, Union_verify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSafeEqual_b b, bool& retVal);
-    static result_t bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey, Union_bbsVerify_signature signature, bool& retVal, AsyncEvent* ac);
-    static result_t proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages, std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index, Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncEvent* ac);
+    static result_t bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey, Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac);
+    static result_t proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages, std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index, Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

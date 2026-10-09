@@ -16,20 +16,20 @@
 
 namespace fibjs {
 
-static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* baseKey, AsyncEvent* ac)
+static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* baseKey, AsyncHandle& ac)
 {
     result_t hr;
-    Isolate* isolate = ac->isolate();
+    Isolate* isolate = ac.isolate();
     v8::Local<v8::Context> context = isolate->context();
 
-    ac->m_ctx.resize(2);
+    ac.ctxv().resize(2);
 
     exlib::string name;
     hr = GetConfigValue(algorithm, "name", name, true);
     if (hr < 0)
         return hr;
 
-    ac->m_ctx[0] = name;
+    ac.ctxv()[0] = name;
 
     hr = baseKey->check_name(name);
     if (hr < 0)
@@ -46,16 +46,16 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[1] = publicKey;
+        ac.ctxv()[1] = publicKey;
     }
 
     return 0;
 }
 
 result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length,
-    std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+    std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // only the object alternative reads JS values; the string form is
         // C++-only and is resolved in the async phase, so a cc_ caller can use
         // it (plans/async-phase-discipline-audit-2026-10-05.md §3-F9)
@@ -76,11 +76,11 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
     else {
         // the algorithm (and, for ECDH, the public key) was prepared by the
         // sync phase
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        name = ac->m_ctx[0].string();
+        name = ac.ctxv()[0].string();
     }
 
     // Check if the baseKey has 'deriveBits' usage
@@ -97,11 +97,11 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
         if (std::holds_alternative<exlib::string>(algorithm))
             return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
 
-        result_t ctx_hr = ac->ctx(1);
-        if (ctx_hr < 0 || ac->m_ctx[1].object() == NULL)
+        result_t ctx_hr = ac.ctx(1);
+        if (ctx_hr < 0 || ac.ctxv()[1].object() == NULL)
             return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
 
-        CryptoKey* publicKey = (CryptoKey*)ac->m_ctx[1].object();
+        CryptoKey* publicKey = (CryptoKey*)ac.ctxv()[1].object();
 
         // Validate that the public key is indeed public
         if (publicKey->type() != KeyObject::kKeyTypePublic)

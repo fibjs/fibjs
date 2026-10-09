@@ -39,9 +39,9 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal)
 }
 
 result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size,
-    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
