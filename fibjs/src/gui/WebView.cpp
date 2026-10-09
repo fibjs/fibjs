@@ -16,7 +16,7 @@
 
 namespace fibjs {
 
-result_t WebView::loadFile(exlib::string file, AsyncEvent* ac)
+result_t WebView::loadFile(exlib::string file, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -32,10 +32,10 @@ result_t WebView::loadFile(exlib::string file, AsyncEvent* ac)
 
     url = "fs:" + url.substr(5);
 
-    return loadUrl(url, ac);
+    return loadUrl(url, std::move(ac));
 }
 
-result_t WebView::waitFor(exlib::string url, AsyncEvent* ac)
+result_t WebView::waitFor(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -44,7 +44,7 @@ result_t WebView::waitFor(exlib::string url, AsyncEvent* ac)
     if (internal_isReady() && (url.empty() || url == internal_getUrl()))
         return 0;
 
-    m_waitFor.push_back({ url, ac });
+    m_waitFor.push_back({ url, std::move(ac) });
 
     return CALL_E_PENDDING;
 }
@@ -53,7 +53,7 @@ void WebView::postWaitFor(exlib::string url)
 {
     for (auto it = m_waitFor.begin(); it != m_waitFor.end();) {
         if (it->first.empty() || it->first == url) {
-            it->second->post(0);
+            it->second.post(0);
             it = m_waitFor.erase(it);
         } else {
             ++it;
@@ -222,9 +222,9 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     return 0;
 }
 
-result_t WebView::check_status(AsyncEvent* ac)
+result_t WebView::check_status(AsyncHandle& ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         m_ready->ac_wait();
         return CHECK_ERROR(CALL_E_GUICALL);
     }

@@ -26,32 +26,32 @@ class WebView_base : public EventEmitter_base {
 
 public:
     // WebView_base
-    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac) = 0;
-    virtual result_t loadFile(exlib::string file, AsyncEvent* ac) = 0;
-    virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
-    virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t isReady(bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t waitFor(exlib::string url, AsyncEvent* ac) = 0;
-    virtual result_t reload(AsyncEvent* ac) = 0;
-    virtual result_t goBack(AsyncEvent* ac) = 0;
-    virtual result_t goForward(AsyncEvent* ac) = 0;
-    virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t setTitle(exlib::string title, AsyncEvent* ac) = 0;
-    virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t isVisible(bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t show(AsyncEvent* ac) = 0;
-    virtual result_t hide(AsyncEvent* ac) = 0;
-    virtual result_t setSize(int32_t width, int32_t height, AsyncEvent* ac) = 0;
-    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac) = 0;
-    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t isActived(bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t active(AsyncEvent* ac) = 0;
+    virtual result_t loadUrl(exlib::string url, AsyncHandle ac) = 0;
+    virtual result_t loadFile(exlib::string file, AsyncHandle ac) = 0;
+    virtual result_t getUrl(exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t setHtml(exlib::string html, AsyncHandle ac) = 0;
+    virtual result_t getHtml(exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t isReady(bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t waitFor(exlib::string url, AsyncHandle ac) = 0;
+    virtual result_t reload(AsyncHandle ac) = 0;
+    virtual result_t goBack(AsyncHandle ac) = 0;
+    virtual result_t goForward(AsyncHandle ac) = 0;
+    virtual result_t eval(exlib::string code, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t setTitle(exlib::string title, AsyncHandle ac) = 0;
+    virtual result_t getTitle(exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t isVisible(bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t show(AsyncHandle ac) = 0;
+    virtual result_t hide(AsyncHandle ac) = 0;
+    virtual result_t setSize(int32_t width, int32_t height, AsyncHandle ac) = 0;
+    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t setPosition(int32_t left, int32_t top, AsyncHandle ac) = 0;
+    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t isActived(bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t active(AsyncHandle ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
-    virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
+    virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
+    virtual result_t postMessage(exlib::string msg, AsyncHandle ac) = 0;
     virtual result_t ref(obj_ptr<WebView_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<WebView_base>& retVal) = 0;
 

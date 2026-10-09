@@ -22,14 +22,14 @@ inline NSString* toNSString(const exlib::string& str)
     return [NSString stringWithUTF8String:str.c_str()];
 }
 
-result_t gui_base::alert(exlib::string message, AsyncEvent* ac)
+result_t gui_base::alert(exlib::string message, AsyncHandle ac)
 {
-    return alert("", message, ac);
+    return alert("", message, std::move(ac));
 }
 
-result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent* ac)
+result_t gui_base::alert(exlib::string title, exlib::string message, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     NSAlert* alert = [[NSAlert alloc] init];
@@ -48,14 +48,14 @@ result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent*
     return 0;
 }
 
-result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncEvent* ac)
+result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncHandle ac)
 {
-    return confirm("", message, retVal, ac);
+    return confirm("", message, retVal, std::move(ac));
 }
 
-result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac)
+result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     NSAlert* alert = [[NSAlert alloc] init];

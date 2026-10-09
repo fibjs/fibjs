@@ -22,14 +22,14 @@ inline NSString* toNSString(const exlib::string& str)
     return [NSString stringWithUTF8String:str.c_str()];
 }
 
-result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
 {
-    return input("", message, password, retVal, ac);
+    return input("", message, password, retVal, std::move(ac));
 }
 
-result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     NSAlert* alert = [[NSAlert alloc] init];

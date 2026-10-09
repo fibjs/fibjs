@@ -23,7 +23,7 @@ class Tray_base : public object_base {
 public:
     // Tray_base
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

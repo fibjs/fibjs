@@ -61,7 +61,7 @@ exlib::string WebView::internal_getUrl()
     return uri;
 }
 
-result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
+result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -72,7 +72,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -83,7 +83,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
+result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -96,14 +96,14 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 
 struct gethtml_callback_data {
 public:
-    gethtml_callback_data(exlib::string& retVal, AsyncEvent* ac)
+    gethtml_callback_data(exlib::string& retVal, AsyncHandle ac)
         : m_retVal(retVal)
-        , m_ac(ac)
+        , m_ac(std::move(ac))
     {
     }
 
     exlib::string& m_retVal;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
 };
 
 void gethtml_cb(GObject* object, GAsyncResult* result, gpointer user_data)
@@ -121,24 +121,24 @@ void gethtml_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         webkit_javascript_result_unref(js_result);
     }
 
-    data->m_ac->post(0);
+    data->m_ac.post(0);
 
     delete data;
 }
 
-result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
-    webkit_web_view_run_javascript(webView, "document.documentElement.outerHTML.toString()", nullptr, gethtml_cb, new gethtml_callback_data(retVal, ac));
+    webkit_web_view_run_javascript(webView, "document.documentElement.outerHTML.toString()", nullptr, gethtml_cb, new gethtml_callback_data(retVal, std::move(ac)));
 
     return CALL_E_PENDDING;
 }
 
-result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 {
     bool is_win_ready = false;
     m_ready->isSet(is_win_ready);
@@ -156,7 +156,7 @@ result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::reload(AsyncEvent* ac)
+result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -167,7 +167,7 @@ result_t WebView::reload(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goBack(AsyncEvent* ac)
+result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -178,7 +178,7 @@ result_t WebView::goBack(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goForward(AsyncEvent* ac)
+result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -227,14 +227,14 @@ void jsc2Variant(JSCValue* value, Variant& retVal)
 
 struct eval_callback_data {
 public:
-    eval_callback_data(Variant& retVal, AsyncEvent* ac)
+    eval_callback_data(Variant& retVal, AsyncHandle ac)
         : m_retVal(retVal)
-        , m_ac(ac)
+        , m_ac(std::move(ac))
     {
     }
 
     Variant& m_retVal;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
 };
 
 void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
@@ -250,13 +250,13 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         if (g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, 601)) {
             // Ignore Promise return values
             g_clear_error(&error);
-            data->m_ac->post(0);
+            data->m_ac.post(0);
             delete data;
             return;
         }
 
         if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && (!g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, WEBKIT_JAVASCRIPT_ERROR_SCRIPT_FAILED) || (error->message && *(error->message)))) {
-            data->m_ac->post(Runtime::setError(error->message));
+            data->m_ac.post(Runtime::setError(error->message));
             g_clear_error(&error);
             delete data;
             return;
@@ -269,32 +269,32 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         JSCException* exception = jsc_context_get_exception(jsc_value_get_context(value));
 
         if (exception) {
-            data->m_ac->post(Runtime::setError(jsc_exception_get_message(exception)));
+            data->m_ac.post(Runtime::setError(jsc_exception_get_message(exception)));
             jsc_context_clear_exception(jsc_value_get_context(value));
         } else {
             jsc2Variant(value, data->m_retVal);
-            data->m_ac->post(0);
+            data->m_ac.post(0);
         }
 
         webkit_javascript_result_unref(js_result);
     } else {
-        data->m_ac->post(0);
+        data->m_ac.post(0);
     }
 
     delete data;
 }
 
-result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
+result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
-    webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), code.c_str(), nullptr, eval_cb, new eval_callback_data(retVal, ac));
+    webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), code.c_str(), nullptr, eval_cb, new eval_callback_data(retVal, std::move(ac)));
     return CALL_E_PENDDING;
 }
 
-result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
+result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -305,7 +305,7 @@ result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -321,7 +321,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -332,7 +332,7 @@ result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::show(AsyncEvent* ac)
+result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -345,7 +345,7 @@ result_t WebView::show(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::hide(AsyncEvent* ac)
+result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -358,7 +358,7 @@ result_t WebView::hide(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -369,7 +369,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -385,7 +385,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -396,7 +396,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -412,7 +412,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -424,7 +424,7 @@ result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::active(AsyncEvent* ac)
+result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -438,16 +438,16 @@ result_t WebView::active(AsyncEvent* ac)
 
 struct capture_callback_data {
 public:
-    capture_callback_data(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    capture_callback_data(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
         : m_retVal(retVal)
-        , m_ac(ac)
+        , m_ac(std::move(ac))
     {
     }
 
     StringBuffer m_strs;
 
     obj_ptr<Buffer_base>& m_retVal;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
 };
 
 void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
@@ -457,7 +457,7 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
     capture_callback_data* cb_data = static_cast<capture_callback_data*>(user_data);
 
     if (error) {
-        cb_data->m_ac->post(Runtime::setError(error->message));
+        cb_data->m_ac.post(Runtime::setError(error->message));
         delete cb_data;
 
         g_error_free(error);
@@ -473,15 +473,15 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
         cairo_surface_destroy(surface);
 
         cb_data->m_retVal = cb_data->m_strs.buffer();
-        cb_data->m_ac->post(0);
+        cb_data->m_ac.post(0);
         delete cb_data;
     } else {
-        cb_data->m_ac->post(Runtime::setError("Failed to capture screenshot"));
+        cb_data->m_ac.post(Runtime::setError("Failed to capture screenshot"));
         delete cb_data;
     }
 }
 
-result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -491,12 +491,12 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
     WebKitSnapshotRegion region = fullPage ? WEBKIT_SNAPSHOT_REGION_FULL_DOCUMENT : WEBKIT_SNAPSHOT_REGION_VISIBLE;
     WebKitSnapshotOptions options = WEBKIT_SNAPSHOT_OPTIONS_NONE;
 
-    webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, ac));
+    webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, std::move(ac)));
 
     return CALL_E_PENDDING;
 }
 
-result_t WebView::close(AsyncEvent* ac)
+result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -508,7 +508,7 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)

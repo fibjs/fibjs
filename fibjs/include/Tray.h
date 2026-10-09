@@ -38,16 +38,16 @@ public:
 public:
     // Tray_base
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     result_t  async_open();
     void createTray();
     void release();
 
-    result_t check_status(AsyncEvent* ac)
+    result_t check_status(AsyncHandle& ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             m_ready->ac_wait();
             return CHECK_ERROR(CALL_E_GUICALL);
         }

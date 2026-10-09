@@ -14,6 +14,7 @@
 #include "ifs/encoding.h"
 #include "WebView.h"
 #import <WebKit/WebKit.h>
+#include <memory>
 #include <unordered_set>
 
 extern int32_t s_window_count;
@@ -56,7 +57,7 @@ exlib::string WebView::internal_getUrl()
     return "";
 }
 
-result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
+result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -82,7 +83,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -93,7 +94,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
+result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -115,24 +116,28 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
+
+    // The WebKit completion block outlives this frame: the continuation travels
+    // in a heap box (the box is the unique holder; the block delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
 
     WKWebView* webView = (WKWebView*)m_webview;
     [webView evaluateJavaScript:@"document.documentElement.outerHTML.toString()"
               completionHandler:^(NSString* html, NSError* error) {
                   if (error == nil)
                       retVal = [html UTF8String];
-                  ac->post(0);
+                  h->post(0);
               }];
 
     return CALL_E_PENDDING;
 }
 
-result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 {
     bool is_win_ready = false;
     m_ready->isSet(is_win_ready);
@@ -150,7 +155,7 @@ result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::reload(AsyncEvent* ac)
+result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -161,7 +166,7 @@ result_t WebView::reload(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goBack(AsyncEvent* ac)
+result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -172,7 +177,7 @@ result_t WebView::goBack(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goForward(AsyncEvent* ac)
+result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -261,36 +266,40 @@ static void js2Variant(id result, Variant& retVal)
 }
 
 static NSString* const WKJavaScriptExceptionMessage = @"WKJavaScriptExceptionMessage";
-result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
+result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
+    // The WebKit completion block outlives this frame: the continuation travels
+    // in a heap box (the box is the unique holder; the block delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+
     [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()]
                             completionHandler:^(id result, NSError* error) {
                                 if (error) {
                                     if (NSInternalSpecifierError == error.code) {
-                                        ac->post(0);
+                                        h->post(0);
                                     } else {
                                         NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
                                         if (jsExceptionMessage) {
-                                            ac->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                            h->post(Runtime::setError([jsExceptionMessage UTF8String]));
                                         } else {
                                             NSString* errorDescription = [error localizedDescription];
-                                            ac->post(Runtime::setError([errorDescription UTF8String]));
+                                            h->post(Runtime::setError([errorDescription UTF8String]));
                                         }
                                     }
                                 } else {
                                     js2Variant(result, retVal);
-                                    ac->post(0);
+                                    h->post(0);
                                 }
                             }];
 
     return CALL_E_PENDDING;
 }
 
-result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
+result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -302,7 +311,7 @@ result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -314,7 +323,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -324,7 +333,7 @@ result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::show(AsyncEvent* ac)
+result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -340,7 +349,7 @@ result_t WebView::show(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::hide(AsyncEvent* ac)
+result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -355,7 +364,7 @@ result_t WebView::hide(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -368,7 +377,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -383,7 +392,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -401,7 +410,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -418,7 +427,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -429,7 +438,7 @@ result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::active(AsyncEvent* ac)
+result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -440,7 +449,7 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -448,6 +457,10 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
     if (fullPage)
         return Runtime::setError("fullPage screenshot is not supported on macOS");
+
+    // The WebKit completion block outlives this frame: the continuation travels
+    // in a heap box (the box is the unique holder; the block delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
 
     WKWebView* webView = (WKWebView*)m_webview;
     // Capture only the visible area without changing the frame
@@ -458,18 +471,18 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
                                  NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
 
                                  retVal = new Buffer([data bytes], [data length]);
-                                 ac->post(0);
+                                 h->post(0);
 
                                  [rep release];
                              } else {
-                                 ac->post(Runtime::setError([[error localizedDescription] UTF8String]));
+                                 h->post(Runtime::setError([[error localizedDescription] UTF8String]));
                              }
                          }];
 
     return CALL_E_PENDDING;
 }
 
-result_t WebView::close(AsyncEvent* ac)
+result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -481,7 +494,7 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)

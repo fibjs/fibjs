@@ -21,9 +21,9 @@ extern "C" GtkWidget* gtk_file_chooser_dialog_new_(const char* title, GtkWindow*
 
 namespace fibjs {
 
-result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current(options);
 
         obj_ptr<DialogOptions> opts;
@@ -31,17 +31,17 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opts;
 
         return CHECK_ERROR(CALL_E_GUICALL);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    DialogOptions* opts = (DialogOptions*)ac->m_ctx[0].object();
+    DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();
 
     bool isSaveDialog = opts->type.value() == "saveFile";
 

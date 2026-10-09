@@ -29,13 +29,13 @@ public:
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal);
     static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
-    static result_t alert(exlib::string message, AsyncEvent* ac);
-    static result_t alert(exlib::string title, exlib::string message, AsyncEvent* ac);
-    static result_t confirm(exlib::string message, bool& retVal, AsyncEvent* ac);
-    static result_t confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac);
-    static result_t input(exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac);
-    static result_t input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac);
-    static result_t chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    static result_t alert(exlib::string message, AsyncHandle ac);
+    static result_t alert(exlib::string title, exlib::string message, AsyncHandle ac);
+    static result_t confirm(exlib::string message, bool& retVal, AsyncHandle ac);
+    static result_t confirm(exlib::string title, exlib::string message, bool& retVal, AsyncHandle ac);
+    static result_t input(exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac);
+    static result_t input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac);
+    static result_t chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -20,14 +20,14 @@ extern "C" GtkWidget* gtk_message_dialog_new_(GtkWindow* parent, GtkDialogFlags 
 
 namespace fibjs {
 
-result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
 {
-    return input("", message, password, retVal, ac);
+    return input("", message, password, retVal, std::move(ac));
 }
 
-result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncEvent* ac)
+result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     GtkWidget* dialog = gtk_message_dialog_new_(NULL,

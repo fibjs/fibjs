@@ -78,32 +78,32 @@ public:
 
 public:
     // WebView_base
-    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
-    virtual result_t loadFile(exlib::string file, AsyncEvent* ac);
-    virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
-    virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t isReady(bool& retVal, AsyncEvent* ac);
-    virtual result_t waitFor(exlib::string url, AsyncEvent* ac);
-    virtual result_t reload(AsyncEvent* ac);
-    virtual result_t goBack(AsyncEvent* ac);
-    virtual result_t goForward(AsyncEvent* ac);
-    virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac);
-    virtual result_t setTitle(exlib::string title, AsyncEvent* ac);
-    virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t isVisible(bool& retVal, AsyncEvent* ac);
-    virtual result_t show(AsyncEvent* ac);
-    virtual result_t hide(AsyncEvent* ac);
-    virtual result_t setSize(int32_t width, int32_t height, AsyncEvent* ac);
-    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac);
-    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac);
-    virtual result_t isActived(bool& retVal, AsyncEvent* ac);
-    virtual result_t active(AsyncEvent* ac);
+    virtual result_t loadUrl(exlib::string url, AsyncHandle ac);
+    virtual result_t loadFile(exlib::string file, AsyncHandle ac);
+    virtual result_t getUrl(exlib::string& retVal, AsyncHandle ac);
+    virtual result_t setHtml(exlib::string html, AsyncHandle ac);
+    virtual result_t getHtml(exlib::string& retVal, AsyncHandle ac);
+    virtual result_t isReady(bool& retVal, AsyncHandle ac);
+    virtual result_t waitFor(exlib::string url, AsyncHandle ac);
+    virtual result_t reload(AsyncHandle ac);
+    virtual result_t goBack(AsyncHandle ac);
+    virtual result_t goForward(AsyncHandle ac);
+    virtual result_t eval(exlib::string code, Variant& retVal, AsyncHandle ac);
+    virtual result_t setTitle(exlib::string title, AsyncHandle ac);
+    virtual result_t getTitle(exlib::string& retVal, AsyncHandle ac);
+    virtual result_t isVisible(bool& retVal, AsyncHandle ac);
+    virtual result_t show(AsyncHandle ac);
+    virtual result_t hide(AsyncHandle ac);
+    virtual result_t setSize(int32_t width, int32_t height, AsyncHandle ac);
+    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t setPosition(int32_t left, int32_t top, AsyncHandle ac);
+    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t isActived(bool& retVal, AsyncHandle ac);
+    virtual result_t active(AsyncHandle ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
-    virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
-    virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+    virtual result_t takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
+    virtual result_t postMessage(exlib::string msg, AsyncHandle ac);
     virtual result_t ref(obj_ptr<WebView_base>& retVal);
     virtual result_t unref(obj_ptr<WebView_base>& retVal);
 
@@ -131,7 +131,7 @@ public:
     bool internal_isReady();
     exlib::string internal_getUrl();
 
-    result_t check_status(AsyncEvent* ac);
+    result_t check_status(AsyncHandle& ac);
     void release();
 
 public:
@@ -147,7 +147,7 @@ public:
 
     obj_ptr<Event_base> m_ready;
 
-    std::vector<std::pair<exlib::string, AsyncEvent*>> m_waitFor;
+    std::vector<std::pair<exlib::string, AsyncHandle>> m_waitFor;
 
 #ifdef _WIN32
     bool m_isLoading = false;

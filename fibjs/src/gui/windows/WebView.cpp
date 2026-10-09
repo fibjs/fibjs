@@ -20,6 +20,7 @@
 #include "EventInfo.h"
 #include "loader/WebView2.h"
 
+#include <memory>
 #include <nlohmann/json.hpp>
 
 namespace fibjs {
@@ -67,7 +68,7 @@ exlib::string WebView::internal_getUrl()
     return surl;
 }
 
-result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
+result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -80,7 +81,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -91,7 +92,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
+result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -104,23 +105,27 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
+    // The WebView2 callback outlives this frame: the continuation travels in a
+    // heap box (the box is the unique holder; the callback delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
     webView->ExecuteScript(L"document.documentElement.outerHTML.toString()",
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-            [&retVal, ac](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+            [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
                 if (SUCCEEDED(errorCode)) {
                     std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
                     nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
 
                     retVal = jsonResult.get<std::string>();
                 }
-                ac->post(0);
+                h->post(0);
                 return S_OK;
             })
             .Get());
@@ -128,7 +133,7 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
-result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 {
     bool is_win_ready = false;
     m_ready->isSet(is_win_ready);
@@ -146,7 +151,7 @@ result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::reload(AsyncEvent* ac)
+result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -157,7 +162,7 @@ result_t WebView::reload(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goBack(AsyncEvent* ac)
+result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -168,7 +173,7 @@ result_t WebView::goBack(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::goForward(AsyncEvent* ac)
+result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -214,7 +219,7 @@ void json2Variant(nlohmann::json& json, Variant& retVal)
     }
 }
 
-result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
+result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -224,13 +229,17 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
     code = "try{({result:eval(\"" + code + "\")})}catch(e){({error:e.message});}";
     exlib::wstring wcode = utf8to16String(code);
 
+    // The WebView2 callback outlives this frame: the continuation travels in a
+    // heap box (the box is the unique holder; the callback delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
     webView->ExecuteScript((LPCWSTR)wcode.c_str(),
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-            [&retVal, ac](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+            [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
                 if (FAILED(errorCode)) {
                     _com_error err(errorCode);
-                    ac->post(Runtime::setError(utf16to8String((const char16_t*)err.ErrorMessage())));
+                    h->post(Runtime::setError(utf16to8String((const char16_t*)err.ErrorMessage())));
                     return errorCode;
                 }
 
@@ -261,7 +270,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
-result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
+result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -273,7 +282,7 @@ result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -286,7 +295,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -297,7 +306,7 @@ result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::show(AsyncEvent* ac)
+result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -313,7 +322,7 @@ result_t WebView::show(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::hide(AsyncEvent* ac)
+result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -328,7 +337,7 @@ result_t WebView::hide(AsyncEvent* ac)
 
 extern int dpix, dpiy;
 
-result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -339,7 +348,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -355,7 +364,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -366,7 +375,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -382,7 +391,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -394,7 +403,7 @@ result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::active(AsyncEvent* ac)
+result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -406,11 +415,15 @@ result_t WebView::active(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
+
+    // The WebView2 callback outlives this frame: the continuation travels in a
+    // heap box (the box is the unique holder; the callback delivers from it).
+    auto h = std::make_shared<AsyncHandle>(std::move(ac));
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
@@ -429,9 +442,9 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
     webView->CallDevToolsProtocolMethod(
         L"Page.captureScreenshot", (LPWSTR)wcommand.c_str(),
         Microsoft::WRL::Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
-            [&retVal, ac](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
+            [&retVal, h](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
                 if (FAILED(errorCode)) {
-                    ac->post(Runtime::setError("Failed to capture screenshot"));
+                    h->post(Runtime::setError("Failed to capture screenshot"));
                     return errorCode;
                 }
 
@@ -442,7 +455,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
                 base64_base::decode(base64Data, retVal);
 
-                ac->post(0);
+                h->post(0);
 
                 return S_OK;
             })
@@ -451,7 +464,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
     return CALL_E_PENDDING;
 }
 
-result_t WebView::close(AsyncEvent* ac)
+result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
@@ -463,7 +476,7 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
