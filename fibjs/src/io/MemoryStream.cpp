@@ -72,6 +72,11 @@ result_t MemoryStream::truncate(int64_t bytes, AsyncEvent* ac)
     str.resize((size_t)bytes);
     m_buffer.str(str);
 
+    if (bytes > 0)
+        m_size = bytes;
+    else
+        m_size = 0;
+
     m_time.now();
 
     return 0;
@@ -91,15 +96,20 @@ result_t MemoryStream::flush(AsyncEvent* ac)
 result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
 {
     Buffer* buf = Buffer::Cast(data);
-    int64_t sz1, sz2;
+    int64_t sz1 = m_size;
 
-    size(sz1);
     m_buffer.write((const char*)buf->data(), buf->length());
     m_buffer.seekg(m_buffer.tellp(), std::ios::beg);
-    size(sz2);
 
-    if (sz2 > sz1)
-        extMemory((int32_t)(sz2 - sz1));
+    // A write at a rewound put position overwrites bytes instead of appending,
+    // so the content length is the larger of the old length and the put
+    // position reached by this write.
+    int64_t pos = m_buffer.tellp();
+    if (pos > m_size)
+        m_size = pos;
+
+    if (m_size > sz1)
+        extMemory((int32_t)(m_size - sz1));
 
     m_time.now();
 
@@ -165,14 +175,7 @@ result_t MemoryStream::rewind()
 
 result_t MemoryStream::size(int64_t& retVal)
 {
-    int64_t p = m_buffer.tellg();
-
-    m_buffer.seekg(0, std::ios::end);
-    retVal = m_buffer.tellg();
-    if (retVal < 0)
-        retVal = 0;
-    m_buffer.seekg(p, std::ios::beg);
-
+    retVal = m_size;
     return 0;
 }
 
@@ -192,6 +195,7 @@ result_t MemoryStream::clear()
 {
     rewind();
     m_buffer.str("");
+    m_size = 0;
 
     m_time.now();
 

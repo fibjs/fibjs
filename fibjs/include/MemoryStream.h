@@ -92,6 +92,11 @@ public:
 private:
     std::stringstream m_buffer;
     date_t m_time;
+    // Cached length of m_buffer. size() must not seek: the read position of the
+    // stream is shared with concurrent readers (a buffered body is read from an
+    // AsyncStreamReader running on a worker thread), and a size() that seeks to
+    // the end and back corrupts the position under that concurrency.
+    int64_t m_size = 0;
 };
 
 } /* namespace fibjs */
