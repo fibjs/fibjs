@@ -286,7 +286,8 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
             default_method = "POST";
     }
 
-    result_t hr = hc.As<HttpClient>()->get_request_opts(default_method, url, options, ac);
+    AsyncHandle h_ac(ac);
+    result_t hr = hc.As<HttpClient>()->get_request_opts(default_method, url, options, h_ac);
     if (hr != CALL_E_NOSYNC)
         return hr;
 
@@ -336,40 +337,39 @@ static bool is_connection_gone(result_t hr)
 // close() 的 done、error()、~EventSource()，以及将来任何收尾入口。
 class EventSource::Ticket : public AsyncEvent {
 public:
-    Ticket(AsyncEvent* target)
-        : AsyncEvent(target->isolate())
-        , m_target(target)
+    Ticket(AsyncHandle target)
+        : AsyncEvent(target.isolate())
+        , m_target(std::move(target))
     {
         setAsync();
     }
 
 public:
+    // 认领后转发。票据自身由持有它的 AsyncHandle 拥有：投递后由 handle 释放，
+    // 未投递则在 handle 弃置时释放 —— 所以这里不再自删，也不再需要 apost
+    // （需要跨上下文投递时由外层 handle 的池任务完成，见 §2.6）。
     virtual int32_t post(int32_t v) override
     {
         if (m_claimed.xchg(1) == 0)
-            m_target->post(v);
+            m_target.post(v);
         return 0;
-    }
-
-    virtual void apost(int32_t v) override
-    {
-        if (m_claimed.xchg(1) == 0)
-            m_target->apost(v);
     }
 
     virtual Isolate* isolate() override
     {
-        return m_target->isolate();
+        return m_target.isolate();
     }
 
 private:
-    AsyncEvent* m_target; /* 票据目标，只在首次送达时使用 */
+    AsyncHandle m_target; /* 票据目标，只在首次送达时使用 */
     exlib::atomic m_claimed { 0 };
 };
 
-void EventSource::setTicket(AsyncEvent* target)
+void EventSource::setTicket(AsyncHandle target)
 {
-    m_ac = new Ticket(target);
+    // 票据是本对象为一次请求创建的：owned handle 拥有它，投递后（或未投递
+    // 弃置时）由 handle 释放；目标（机器的 continuation）随票据按 borrowed 处理。
+    m_ac = AsyncHandle::adopt(new Ticket(std::move(target)));
 }
 
 EventSource::~EventSource()
@@ -380,30 +380,23 @@ EventSource::~EventSource()
     // （object.h: WeakCallback -> clear_handle -> Delete()），而 post 会把整条
     // 续体就地跑起来（可能分配对象、进 JS 回调）；apost 只把事件丢进
     // AsyncEvent::async -> s_acPool（纯队列，不触碰 V8），留到下一轮 JS 线程执行。
-    if (m_ac) {
-        m_ac->apost(CALL_RETURN_NULL);
-        delete m_ac;
-        m_ac = nullptr;
-    }
+    if (m_ac)
+        m_ac.apost(CALL_RETURN_NULL); // owned: 池任务投递，投递后由 handle 释放票据
 }
 
-result_t EventSource::close(AsyncEvent* ac)
+result_t EventSource::close(AsyncHandle ac)
 {
     class asyncClose : public AsyncState {
     public:
-        asyncClose(Stream_base* pStream, AsyncEvent* ac, Ticket* ac_req)
+        asyncClose(Stream_base* pStream, AsyncHandle ac, AsyncHandle& ac_req)
             : AsyncState(ac)
             , m_stream(pStream)
-            , m_ac_req(ac_req)
+            , m_ac_req(std::move(ac_req))
         {
             init(send);
         }
-
-        ~asyncClose() override
-        {
-            // 票据由本状态机消费：无论走 done 还是 error，都在这里释放
-            delete m_ac_req;
-        }
+        // 票据由本状态机持有（owned handle）：投递时释放；机器未投递就结束时
+        // 由 handle 成员析构释放——不再需要手工 delete。
 
     public:
         ON_STATE(asyncClose, send)
@@ -414,7 +407,7 @@ result_t EventSource::close(AsyncEvent* ac)
 
         ON_STATE(asyncClose, done)
         {
-            m_ac_req->post(CALL_RETURN_NULL);
+            m_ac_req.post(CALL_RETURN_NULL);
             return next();
         }
 
@@ -429,17 +422,17 @@ result_t EventSource::close(AsyncEvent* ac)
             if (is_connection_gone(v))
                 v = CALL_RETURN_NULL;
 
-            m_ac_req->post(v);
+            m_ac_req.post(v);
             return v;
         }
 
     private:
         obj_ptr<Stream_base> m_stream;
-        Ticket* m_ac_req;
+        AsyncHandle m_ac_req;
         obj_ptr<Buffer> m_buf;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_readyState == sse_base::C_OPEN) {
@@ -448,26 +441,23 @@ result_t EventSource::close(AsyncEvent* ac)
         if (m_response) {
             obj_ptr<Stream_base> stm;
             m_response->get_stream(stm);
-            return stm->close(ac);
+            return stm->close(std::move(ac));
         }
     } else if (m_readyState == sse_base::C_SENDER) {
         m_readyState = sse_base::C_CLOSED;
 
         // 票据交给 close 状态机消费（一次性），本对象不再持有。认领语义见
         // EventSource::Ticket：重复/迟到的回投都是 no-op。
-        Ticket* ac_req = m_ac;
-        m_ac = nullptr;
-
-        (new asyncClose(m_stream, ac, ac_req))->apost(0);
+        (new asyncClose(m_stream, std::move(ac), m_ac))->apost(0);
         return CALL_E_PENDDING;
     }
 
     return 0;
 }
 
-result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
+result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current(options);
 
         obj_ptr<SendOptions> opts;
@@ -475,8 +465,8 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opts;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -485,11 +475,11 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         return CHECK_ERROR(Runtime::setError("EventSource.send: can only be called when readyState is sse.SENDER"));
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    SendOptions* opts = (SendOptions*)ac->m_ctx[0].object();
+    SendOptions* opts = (SendOptions*)ac.ctxv()[0].object();
 
     std::vector<int32_t> breakLinePos;
     breakLinePos.reserve(data.length() + 1);
@@ -572,7 +562,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     pBuf[pos++] = '\r';
     pBuf[pos++] = '\n';
 
-    return m_stream->writeBuffer(buf, ac);
+    return m_stream->writeBuffer(buf, std::move(ac));
 }
 
 result_t EventSource::get_readyState(int32_t& retVal)

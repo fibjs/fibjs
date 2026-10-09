@@ -41,10 +41,10 @@ public:
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     // Called by Http2Session when DATA frames arrive
@@ -59,7 +59,7 @@ public:
     void onEnd();
 
     // Wait for response headers to arrive (async, blocks fiber)
-    result_t waitHeaders(AsyncEvent* ac);
+    result_t waitHeaders(AsyncHandle ac);
 
 public:
     obj_ptr<Http2Session> m_session;
@@ -71,14 +71,14 @@ public:
 
     obj_ptr<NObject> m_headers;
     exlib::spinlock m_headers_lock;
-    AsyncEvent* m_headers_ac = nullptr;
+    AsyncHandle m_headers_ac;
 
     // Read buffer management (receiving DATA frames)
     exlib::Locker m_read_lock;
     exlib::Locker m_write_lock;
     exlib::spinlock m_recv_lock;
     std::list<obj_ptr<Buffer_base>> m_recv_queue;
-    AsyncEvent* m_recv_ac = nullptr;
+    AsyncHandle m_recv_ac;
     obj_ptr<Buffer_base>* m_recv_retVal = nullptr;
     bool m_recv_end = false;
 

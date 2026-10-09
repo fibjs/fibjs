@@ -41,14 +41,14 @@ public:
 public:
     // Message_base
     virtual result_t get_sent(bool& retVal);
-    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t text(exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac);
-    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
-    virtual result_t json(Variant& retVal, AsyncEvent* ac);
-    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac);
-    virtual result_t pack(Variant& retVal, AsyncEvent* ac);
-    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac);
+    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac);
+    virtual result_t text(exlib::string& retVal, AsyncHandle ac);
+    virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
+    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac);
+    virtual result_t json(Variant& retVal, AsyncHandle ac);
+    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac);
+    virtual result_t pack(Variant& retVal, AsyncHandle ac);
+    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac);
 
 public:
     result_t get_protocol(exlib::string& retVal);
@@ -96,12 +96,12 @@ public:
 
 public:
     result_t send(Stream_base* stm, exlib::string& strCommand,
-        AsyncEvent* ac);
+        AsyncHandle ac);
     result_t sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
-        AsyncEvent* ac);
-    result_t readFrom(Stream_base* stm, AsyncEvent* ac);
-    result_t readHeader(Stream_base* stm, AsyncEvent* ac);
-    result_t readBody(AsyncEvent* ac);
+        AsyncHandle ac);
+    result_t readFrom(Stream_base* stm, AsyncHandle ac);
+    result_t readHeader(Stream_base* stm, AsyncHandle ac);
+    result_t readBody(AsyncHandle ac);
 
 public:
     void appendHeader(const char* name, int32_t szName, const char* value,

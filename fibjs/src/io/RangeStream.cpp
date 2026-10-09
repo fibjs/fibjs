@@ -125,7 +125,7 @@ result_t RangeStream::get_fd(int32_t& retVal)
     }
 }
 
-result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (m_seekable) {
         if (!m_stream)
@@ -136,7 +136,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 
         class asyncRead : public AsyncState {
         public:
-            asyncRead(RangeStream* pThis, AsyncEvent* ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
+            asyncRead(RangeStream* pThis, AsyncHandle ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_bytes(bytes)
@@ -184,10 +184,10 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             int64_t m_c_pos_snap;
         };
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CALL_E_NOSYNC;
 
-        return (new asyncRead(this, ac, bytes, retVal))->post(0);
+        return (new asyncRead(this, std::move(ac), bytes, retVal))->post(0);
     } else {
         if (!m_raw_stream)
             return CALL_E_CLOSED;
@@ -198,7 +198,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 
         class asyncReadRaw : public AsyncState {
         public:
-            asyncReadRaw(RangeStream* pThis, AsyncEvent* ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
+            asyncReadRaw(RangeStream* pThis, AsyncHandle ac, int32_t bytes, obj_ptr<Buffer_base>& retVal)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_bytes(bytes)
@@ -233,10 +233,10 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             obj_ptr<Buffer_base>& m_retVal;
         };
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CALL_E_NOSYNC;
 
-        return (new asyncReadRaw(this, ac, bytes, retVal))->post(0);
+        return (new asyncReadRaw(this, std::move(ac), bytes, retVal))->post(0);
     }
 }
 
@@ -266,17 +266,17 @@ int64_t RangeStream::valid_start()
     return b_pos > 0 ? b_pos : 0;
 }
 
-result_t RangeStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t RangeStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
     return CALL_E_INVALID_CALL;
 }
 
-result_t RangeStream::flush(AsyncEvent* ac)
+result_t RangeStream::flush(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t RangeStream::close(AsyncEvent* ac)
+result_t RangeStream::close(AsyncHandle ac)
 {
     if (m_seekable)
         m_stream = NULL;
@@ -313,7 +313,7 @@ result_t RangeStream::seek(int64_t offset, int32_t whence)
     return 0;
 }
 
-result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     if (!m_seekable)
         return CALL_E_INVALID_CALL;
@@ -321,12 +321,12 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     if (!m_stream)
         return CALL_E_CLOSED;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CALL_E_NOSYNC;
 
     class asyncStat : public AsyncState {
     public:
-        asyncStat(RangeStream* pThis, AsyncEvent* ac, obj_ptr<Stat_base>& retVal)
+        asyncStat(RangeStream* pThis, AsyncHandle ac, obj_ptr<Stat_base>& retVal)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_retVal(retVal)
@@ -356,7 +356,7 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
         obj_ptr<Stat_base>& m_retVal;
     };
 
-    return (new asyncStat(this, ac, retVal))->post(0);
+    return (new asyncStat(this, std::move(ac), retVal))->post(0);
 }
 
 result_t RangeStream::tell(int64_t& retVal)
@@ -397,12 +397,12 @@ result_t RangeStream::size(int64_t& retVal)
     return 0;
 }
 
-result_t RangeStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t RangeStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return readBuffer(-1, retVal, ac);
+    return readBuffer(-1, retVal, std::move(ac));
 }
 
-result_t RangeStream::truncate(int64_t bytes, AsyncEvent* ac)
+result_t RangeStream::truncate(int64_t bytes, AsyncHandle ac)
 {
     return CALL_E_INVALID_CALL;
 }

@@ -55,14 +55,14 @@ result_t WebSocketMessage::set_body(Stream_base* newVal)
 }
 
 result_t WebSocketMessage::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return m_message->read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->readAll(retVal, ac);
+    return m_message->readAll(retVal, std::move(ac));
 }
 
 result_t WebSocketMessage::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
@@ -74,22 +74,22 @@ result_t WebSocketMessage::setEncoding(exlib::string encoding, obj_ptr<Message_b
     return 0;
 }
 
-result_t WebSocketMessage::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return write(std::get<exlib::string>(data), retVal, ac);
+    return write(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->write(data, retVal, ac);
+    return m_message->write(data, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -97,52 +97,52 @@ result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncEvent
     if (hr < 0)
         return hr;
 
-    return m_message->write(buf.get(), retVal, ac);
+    return m_message->write(buf.get(), retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(data, retVal, ac);
+    return m_message->text(data, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::text(exlib::string& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(retVal, ac);
+    return m_message->text(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    return m_message->arrayBuffer(retVal, ac);
+    return m_message->arrayBuffer(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(data, retVal, ac);
+    return m_message->json(data, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::json(Variant& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::json(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(retVal, ac);
+    return m_message->json(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(data, retVal, ac);
+    return m_message->pack(data, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::pack(Variant& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::pack(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(retVal, ac);
+    return m_message->pack(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
 {
-    return m_message->blob(type, retVal, ac);
+    return m_message->blob(type, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->bytes(retVal, ac);
+    return m_message->bytes(retVal, std::move(ac));
 }
 
 result_t WebSocketMessage::get_length(int64_t& retVal)
@@ -160,24 +160,24 @@ result_t WebSocketMessage::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t WebSocketMessage::end(int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::end(int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(retVal, ac);
+    return m_message->end(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, retVal, ac);
+    return m_message->end(data, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    return m_message->end(data, encoding, retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t WebSocketMessage::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    return m_message->end(data, encoding, retVal, std::move(ac));
 }
 
 result_t WebSocketMessage::isEnded(bool& retVal)
@@ -191,11 +191,11 @@ result_t WebSocketMessage::clear()
     return 0;
 }
 
-result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncEvent* ac)
+result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncHandle ac)
 {
     class asyncCopy : public AsyncState {
     public:
-        asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncEvent* ac)
+        asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncHandle ac)
             : AsyncState(ac)
             , m_from(from)
             , m_to(to)
@@ -258,17 +258,17 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
         obj_ptr<Buffer_base> m_buf;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncCopy(from, to, bytes, mask, ac))->post(0);
+    return (new asyncCopy(from, to, bytes, mask, std::move(ac)))->post(0);
 }
 
-result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle ac)
 {
     class asyncSendTo : public AsyncState {
     public:
-        asyncSendTo(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
+        asyncSendTo(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -399,22 +399,22 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
         bool m_take_over;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSendTo(this, stm, wss, ac))->post(0);
+    return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(0);
 }
 
-result_t WebSocketMessage::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    return sendTo(stm, NULL, ac);
+    return sendTo(stm, NULL, std::move(ac));
 }
 
-result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
+result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandle ac)
 {
     class asyncReadFrom : public AsyncState {
     public:
-        asyncReadFrom(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
+        asyncReadFrom(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -589,17 +589,17 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
         bool m_take_over;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_stm = stm;
 
-    return (new asyncReadFrom(this, stm, wss, ac))->post(0);
+    return (new asyncReadFrom(this, stm, wss, std::move(ac)))->post(0);
 }
 
-result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    return readFrom(stm, NULL, ac);
+    return readFrom(stm, NULL, std::move(ac));
 }
 
 result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)

@@ -23,14 +23,14 @@ class Smtp_base : public object_base {
 public:
     // Smtp_base
     static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t connect(exlib::string url, AsyncEvent* ac) = 0;
-    virtual result_t command(exlib::string cmd, exlib::string arg, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t hello(exlib::string hostname, AsyncEvent* ac) = 0;
-    virtual result_t login(exlib::string username, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t from(exlib::string address, AsyncEvent* ac) = 0;
-    virtual result_t to(exlib::string address, AsyncEvent* ac) = 0;
-    virtual result_t data(exlib::string txt, AsyncEvent* ac) = 0;
-    virtual result_t quit(AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string url, AsyncHandle ac) = 0;
+    virtual result_t command(exlib::string cmd, exlib::string arg, exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t hello(exlib::string hostname, AsyncHandle ac) = 0;
+    virtual result_t login(exlib::string username, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t from(exlib::string address, AsyncHandle ac) = 0;
+    virtual result_t to(exlib::string address, AsyncHandle ac) = 0;
+    virtual result_t data(exlib::string txt, AsyncHandle ac) = 0;
+    virtual result_t quit(AsyncHandle ac) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;

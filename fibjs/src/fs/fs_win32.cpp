@@ -9,14 +9,14 @@
 
 namespace fibjs {
 
-result_t lchmod_platform(exlib::string path, int32_t mode, AsyncEvent* ac)
+result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
+result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js compatibility: a negative length is treated as zero

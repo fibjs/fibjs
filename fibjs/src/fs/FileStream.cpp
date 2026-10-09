@@ -33,9 +33,9 @@ FileStream::~FileStream()
 }
 
 result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -90,9 +90,9 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return 0;
 }
 
-result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -216,9 +216,9 @@ result_t FileStream::Write(const char* p, int32_t sz)
     return 0;
 }
 
-result_t FileStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t FileStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -256,12 +256,12 @@ result_t FileStream::get_fd(int32_t& retVal)
     return 0;
 }
 
-result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     if (m_fd == -1)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
 
-    return fs_base::stat(name, retVal, ac);
+    return fs_base::stat(name, retVal, std::move(ac));
 }
 
 result_t FileStream::size(int64_t& retVal)
@@ -339,9 +339,9 @@ result_t FileStream::rewind()
     return 0;
 }
 
-result_t FileStream::flush(AsyncEvent* ac)
+result_t FileStream::flush(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -365,10 +365,10 @@ result_t FileStream::close()
     return 0;
 }
 
-result_t FileStream::close(AsyncEvent* ac)
+result_t FileStream::close(AsyncHandle ac)
 {
     if (m_fd != -1) {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         return close();
@@ -377,9 +377,9 @@ result_t FileStream::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t FileStream::truncate(int64_t bytes, AsyncEvent* ac)
+result_t FileStream::truncate(int64_t bytes, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -391,12 +391,12 @@ result_t FileStream::truncate(int64_t bytes, AsyncEvent* ac)
     return 0;
 }
 
-result_t FileStream::chmod(int32_t mode, AsyncEvent* ac)
+result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
 {
 #ifdef _WIN32
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 #else
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchmod(m_fd, mode))

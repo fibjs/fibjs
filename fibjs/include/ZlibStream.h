@@ -34,7 +34,7 @@ class ZlibStream : public AsyncStream<Stream_base> {
 private:
     class asyncWrite : public AsyncState {
     public:
-        asyncWrite(ZlibStream* pThis, Stream_base* stm, Buffer_base* data, AsyncEvent* ac)
+        asyncWrite(ZlibStream* pThis, Stream_base* stm, Buffer_base* data, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -47,7 +47,7 @@ private:
             init(process);
         }
 
-        asyncWrite(ZlibStream* pThis, Stream_base* stm, int32_t flush, AsyncEvent* ac)
+        asyncWrite(ZlibStream* pThis, Stream_base* stm, int32_t flush, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -140,32 +140,32 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, data, ac))->post(0);
+        return (new asyncWrite(this, m_stm, data, std::move(ac)))->post(0);
     }
 
-    result_t flush(AsyncEvent* ac)
+    result_t flush(AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, Z_SYNC_FLUSH, ac))->post(0);
+        return (new asyncWrite(this, m_stm, Z_SYNC_FLUSH, std::move(ac)))->post(0);
     }
 
-    result_t close(AsyncEvent* ac)
+    result_t close(AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, Z_FINISH, ac))->post(0);
+        return (new asyncWrite(this, m_stm, Z_FINISH, std::move(ac)))->post(0);
     }
 
 public:
-    result_t process(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    result_t process(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         class asyncProcess : public AsyncState {
         public:
-            asyncProcess(ZlibStream* pThis, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+            asyncProcess(ZlibStream* pThis, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_data(data)
@@ -200,14 +200,14 @@ public:
             obj_ptr<MemoryStream> m_stm;
         };
 
-        return (new asyncProcess(this, data, retVal, ac))->post(0);
+        return (new asyncProcess(this, data, retVal, std::move(ac)))->post(0);
     }
 
-    result_t process(Buffer_base* data, AsyncEvent* ac)
+    result_t process(Buffer_base* data, AsyncHandle ac)
     {
         class asyncProcess : public AsyncState {
         public:
-            asyncProcess(ZlibStream* pThis, Buffer_base* data, AsyncEvent* ac)
+            asyncProcess(ZlibStream* pThis, Buffer_base* data, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_data(data)
@@ -230,14 +230,14 @@ public:
             obj_ptr<Buffer_base> m_data;
         };
 
-        return (new asyncProcess(this, data, ac))->post(0);
+        return (new asyncProcess(this, data, std::move(ac)))->post(0);
     }
 
-    result_t process(Stream_base* src, AsyncEvent* ac)
+    result_t process(Stream_base* src, AsyncHandle ac)
     {
         class asyncProcess : public AsyncState {
         public:
-            asyncProcess(ZlibStream* pThis, Stream_base* src, AsyncEvent* ac)
+            asyncProcess(ZlibStream* pThis, Stream_base* src, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_src(src)
@@ -261,7 +261,7 @@ public:
             int64_t m_size;
         };
 
-        return (new asyncProcess(this, src, ac))->post(0);
+        return (new asyncProcess(this, src, std::move(ac)))->post(0);
     }
 
 public:

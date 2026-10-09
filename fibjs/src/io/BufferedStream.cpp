@@ -14,7 +14,7 @@ namespace fibjs {
 
 class asyncBuffer : public AsyncState {
 public:
-    asyncBuffer(BufferedStream* pThis, AsyncEvent* ac)
+    asyncBuffer(BufferedStream* pThis, AsyncHandle ac)
         : AsyncState(ac)
         , m_streamEnd(false)
         , m_pThis(pThis)
@@ -75,13 +75,13 @@ result_t BufferedStream::get_fd(int32_t& retVal)
 }
 
 result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncRead : public asyncBuffer {
     public:
         asyncRead(BufferedStream* pThis, int32_t bytes,
-            obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-            : asyncBuffer(pThis, ac)
+            obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+            : asyncBuffer(pThis, std::move(ac))
             , m_bytes(bytes)
             , m_retVal(retVal)
         {
@@ -132,42 +132,42 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             return 0;
         } else
-            return m_stm->readBuffer(bytes, retVal, ac);
+            return m_stm->readBuffer(bytes, retVal, std::move(ac));
     }
 
     result_t hr = asyncRead::process(this, bytes, retVal, false);
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRead(this, bytes, retVal, ac))->post(0);
+    return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
 }
 
-result_t BufferedStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t BufferedStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
-    return m_stm->writeBuffer(data, ac);
+    return m_stm->writeBuffer(data, std::move(ac));
 }
 
-result_t BufferedStream::flush(AsyncEvent* ac)
+result_t BufferedStream::flush(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t BufferedStream::close(AsyncEvent* ac)
+result_t BufferedStream::close(AsyncHandle ac)
 {
-    return m_stm->close(ac);
+    return m_stm->close(std::move(ac));
 }
 
 result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncRead : public asyncBuffer {
     public:
         asyncRead(BufferedStream* pThis, int32_t size,
-            exlib::string& retVal, AsyncEvent* ac)
-            : asyncBuffer(pThis, ac)
+            exlib::string& retVal, AsyncHandle ac)
+            : asyncBuffer(pThis, std::move(ac))
             , m_size(size)
             , m_retVal(retVal)
         {
@@ -212,16 +212,16 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRead(this, size, retVal, ac))->post(0);
+    return (new asyncRead(this, size, retVal, std::move(ac)))->post(0);
 }
 
 result_t BufferedStream::readLine(int32_t maxlen, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return readUntil(m_eol, maxlen, retVal, ac);
+    return readUntil(m_eol, maxlen, retVal, std::move(ac));
 }
 
 result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>& retVal)
@@ -252,13 +252,13 @@ result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>&
 }
 
 result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
-    exlib::string& retVal, AsyncEvent* ac)
+    exlib::string& retVal, AsyncHandle ac)
 {
     class asyncRead : public asyncBuffer {
     public:
         asyncRead(BufferedStream* pThis, exlib::string mk, int32_t maxlen,
-            exlib::string& retVal, AsyncEvent* ac)
-            : asyncBuffer(pThis, ac)
+            exlib::string& retVal, AsyncHandle ac)
+            : asyncBuffer(pThis, std::move(ac))
             , m_mk(mk)
             , m_maxlen(maxlen)
             , m_retVal(
@@ -352,15 +352,15 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
+    return (new asyncRead(this, mk, maxlen, retVal, std::move(ac)))->post(0);
 }
 
-result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac)
+result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -372,12 +372,12 @@ result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncEven
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
     retVal = (int32_t)strBuf.length();
     bool _retVal;
-    return write(data, _retVal, ac);
+    return write(data, _retVal, std::move(ac));
 }
 
-result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac)
+result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -390,7 +390,7 @@ result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncEven
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
     retVal = (int32_t)strBuf.length();
     bool _retVal;
-    return write(data, _retVal, ac);
+    return write(data, _retVal, std::move(ac));
 }
 
 result_t BufferedStream::get_stream(obj_ptr<Stream_base>& retVal)

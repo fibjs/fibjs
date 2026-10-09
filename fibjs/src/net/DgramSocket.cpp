@@ -159,13 +159,20 @@ void DgramSocket::stop_bind()
     isolate_unref();
 }
 
-result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
+result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
+    return bind_core(port, addr);
+}
+
+// the continuation-free core: uv_udp_bind, the buffer sizes and the recv start
+// are all synchronous in the fiber (uv_call), so send() can chain on it
+result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
+{
     if (m_bound)
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "dgram: socket is already bound."));
 
@@ -201,9 +208,9 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
     });
 }
 
-result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
 
         result_t hr;
@@ -218,40 +225,40 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(2);
-        ac->m_ctx[0] = port;
-        ac->m_ctx[1] = addr;
+        ac.ctxv().resize(2);
+        ac.ctxv()[0] = port;
+        ac.ctxv()[1] = addr;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(1);
+    ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    int32_t port = ac->m_ctx[0].intVal();
-    exlib::string addr = ac->m_ctx[1].string();
+    int32_t port = ac.ctxv()[0].intVal();
+    exlib::string addr = ac.ctxv()[1].string();
 
     // "already bound" 检查在内层 bind(port, addr, ac) 的 async 相位完成
-    return bind(port, addr, ac);
+    return bind(port, addr, std::move(ac));
 }
 
 result_t DgramSocket::send(Union_send_msg msg, int32_t port, exlib::string address,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(msg))
-        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), port, address, retVal, ac);
+        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), port, address, retVal, std::move(ac));
 
-    return send(std::get<exlib::string>(msg), port, address, retVal, ac);
+    return send(std::get<exlib::string>(msg), port, address, retVal, std::move(ac));
 }
 
 result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string address,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -259,16 +266,16 @@ result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string addres
     if (hr < 0)
         return hr;
 
-    return send(buf.get(), port, address, retVal, ac);
+    return send(buf.get(), port, address, retVal, std::move(ac));
 }
 
 result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
     class AsyncSend : public uv_udp_send_t {
     public:
-        AsyncSend(Buffer_base* msg, int32_t port, int32_t& retVal, AsyncEvent* ac)
-            : m_ac(ac)
+        AsyncSend(Buffer_base* msg, int32_t port, int32_t& retVal, AsyncHandle ac)
+            : m_ac(std::move(ac))
             , m_retVal(retVal)
             , m_port(port)
         {
@@ -281,17 +288,17 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             AsyncSend* pThis = (AsyncSend*)req;
 
             if (status < 0)
-                pThis->m_ac->apost(status);
+                pThis->m_ac.apost(status);
             else {
                 pThis->m_retVal = status;
-                pThis->m_ac->apost(0);
+                pThis->m_ac.apost(0);
             }
 
             delete pThis;
         }
 
     public:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         int32_t& m_retVal;
         obj_ptr<Buffer> m_msg;
         uv_buf_t m_buf;
@@ -300,12 +307,12 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 
     result_t hr;
     if (!m_bound) {
-        hr = bind(0, "", ac);
+        hr = bind_core(0, "");
         if (hr < 0)
             return hr;
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     inetAddr addr_info;
@@ -326,7 +333,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    AsyncSend* _send = new AsyncSend(msg, port, retVal, ac);
+    AsyncSend* _send = new AsyncSend(msg, port, retVal, std::move(ac));
     int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
     if (status >= 0) {
         delete _send;
@@ -341,18 +348,18 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 }
 
 result_t DgramSocket::send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port,
-    exlib::string address, int32_t& retVal, AsyncEvent* ac)
+    exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(msg))
-        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), offset, length, port, address, retVal, ac);
+        return send(std::get<obj_ptr<Buffer_base>>(msg).get(), offset, length, port, address, retVal, std::move(ac));
 
-    return send(std::get<exlib::string>(msg), offset, length, port, address, retVal, ac);
+    return send(std::get<exlib::string>(msg), offset, length, port, address, retVal, std::move(ac));
 }
 
 result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, int32_t port,
-    exlib::string address, int32_t& retVal, AsyncEvent* ac)
+    exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (offset < 0 || length <= 0)
@@ -366,13 +373,13 @@ result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, in
     obj_ptr<Buffer_base> msg1;
     buf->slice(offset, offset + length, msg1);
 
-    return send(msg1.get(), port, address, retVal, ac);
+    return send(msg1.get(), port, address, retVal, std::move(ac));
 }
 
 result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
-    exlib::string address, int32_t& retVal, AsyncEvent* ac)
+    exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (offset < 0 || length <= 0)
@@ -380,7 +387,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
 
     result_t hr;
     if (!m_bound) {
-        hr = bind(0, "", ac);
+        hr = bind_core(0, "");
         if (hr < 0)
             return hr;
     }
@@ -388,7 +395,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     obj_ptr<Buffer_base> msg1;
     msg->slice(offset, offset + length, msg1);
 
-    return send(msg1.get(), port, address, retVal, ac);
+    return send(msg1.get(), port, address, retVal, std::move(ac));
 }
 
 result_t DgramSocket::address(obj_ptr<AddressType>& retVal)

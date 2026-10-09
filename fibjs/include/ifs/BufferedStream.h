@@ -24,12 +24,12 @@ class BufferedStream_base : public Stream_base {
 public:
     // BufferedStream_base
     static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncHandle ac) = 0;
     virtual result_t readLines(int32_t maxlines, std::vector<exlib::string>& retVal) = 0;
-    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_charset(exlib::string& retVal) = 0;
     virtual result_t set_charset(exlib::string newVal) = 0;

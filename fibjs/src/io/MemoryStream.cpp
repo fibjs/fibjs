@@ -25,7 +25,7 @@ result_t MemoryStream::get_fd(int32_t& retVal)
 }
 
 result_t MemoryStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     exlib::string strBuf;
 
@@ -61,12 +61,12 @@ result_t MemoryStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 }
 
 result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return readBuffer(-1, retVal, ac);
+    return readBuffer(-1, retVal, std::move(ac));
 }
 
-result_t MemoryStream::truncate(int64_t bytes, AsyncEvent* ac)
+result_t MemoryStream::truncate(int64_t bytes, AsyncHandle ac)
 {
     std::string str = m_buffer.str();
     str.resize((size_t)bytes);
@@ -88,12 +88,12 @@ result_t MemoryStream::eof(bool& retVal)
     return 0;
 }
 
-result_t MemoryStream::flush(AsyncEvent* ac)
+result_t MemoryStream::flush(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
     Buffer* buf = Buffer::Cast(data);
     int64_t sz1 = m_size;
@@ -116,12 +116,12 @@ result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
     return 0;
 }
 
-result_t MemoryStream::close(AsyncEvent* ac)
+result_t MemoryStream::close(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<Stat> st = new Stat();
 

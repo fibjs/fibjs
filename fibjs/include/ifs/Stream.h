@@ -31,30 +31,30 @@ public:
     virtual result_t get_readable(bool& retVal) = 0;
     virtual result_t get__readableState(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get__writableState(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac) = 0;
-    virtual result_t writeBuffer(exlib::string data, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac) = 0;
+    virtual result_t writeBuffer(exlib::string data, AsyncHandle ac) = 0;
+    virtual result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncHandle ac) = 0;
+    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncHandle ac) = 0;
     virtual result_t resume(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t pause(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t unpipe(Stream_base* destination) = 0;
-    virtual result_t end(int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t flush(AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t end(int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t flush(AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
+    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncHandle ac) = 0;
     virtual result_t getReader(obj_ptr<StreamReader_base>& retVal) = 0;
     virtual result_t ref(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -47,8 +47,8 @@ public:
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_redirected(bool& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t json(Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t json(Variant& retVal, AsyncHandle ac) = 0;
     static result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal);
     static result_t redirect(exlib::string url, int32_t status, obj_ptr<HttpResponse_base>& retVal);
     static result_t error(obj_ptr<HttpResponse_base>& retVal);

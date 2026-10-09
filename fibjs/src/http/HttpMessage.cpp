@@ -209,7 +209,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 class asyncSendTo : public AsyncState {
 public:
     asyncSendTo(HttpMessage* pThis, Stream_base* stm,
-        exlib::string& strCommand, AsyncEvent* ac,
+        exlib::string& strCommand, AsyncHandle ac,
         bool headerOnly = false, bool content_length = true)
         : AsyncState(ac)
         , m_pThis(pThis)
@@ -310,28 +310,28 @@ result_t HttpMessage::get_sent(bool& retVal)
     return 0;
 }
 
-result_t HttpMessage::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
+result_t HttpMessage::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
-    return Message::text(data, retVal, ac);
+    return Message::text(data, retVal, std::move(ac));
 }
 
-result_t HttpMessage::text(exlib::string& retVal, AsyncEvent* ac)
+result_t HttpMessage::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return Message::text(retVal, ac);
+    return Message::text(retVal, std::move(ac));
 }
 
-result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    return Message::arrayBuffer(retVal, ac);
+    return Message::arrayBuffer(retVal, std::move(ac));
 }
 
-result_t HttpMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
     setHeader("Content-Type", "application/json");
-    return Message::json(data, retVal, ac);
+    return Message::json(data, retVal, std::move(ac));
 }
 
-result_t HttpMessage::json(Variant& retVal, AsyncEvent* ac)
+result_t HttpMessage::json(Variant& retVal, AsyncHandle ac)
 {
     exlib::string strType;
 
@@ -341,16 +341,16 @@ result_t HttpMessage::json(Variant& retVal, AsyncEvent* ac)
     if (strType.find("json") == exlib::string::npos)
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
-    return Message::json(retVal, ac);
+    return Message::json(retVal, std::move(ac));
 }
 
-result_t HttpMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
     setHeader("Content-Type", "application/msgpack");
-    return Message::pack(data, retVal, ac);
+    return Message::pack(data, retVal, std::move(ac));
 }
 
-result_t HttpMessage::pack(Variant& retVal, AsyncEvent* ac)
+result_t HttpMessage::pack(Variant& retVal, AsyncHandle ac)
 {
     exlib::string strType;
 
@@ -364,10 +364,10 @@ result_t HttpMessage::pack(Variant& retVal, AsyncEvent* ac)
     if (strType != "application/msgpack")
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
-    return Message::pack(retVal, ac);
+    return Message::pack(retVal, std::move(ac));
 }
 
-result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac)
+result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
 {
     // https://fetch.spec.whatwg.org/#dom-body-formdata
     // Only multipart/form-data (with a boundary) and application/x-www-form-urlencoded
@@ -412,35 +412,35 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac)
 
         retVal = form;
         return 0;
-    }, ac);
+    }, std::move(ac));
 }
 
 result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_sent = true;
-    return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
+    return (new asyncSendTo(this, stm, strCommand, std::move(ac)))->post(0);
 }
 
 result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_sent = true;
-    return (new asyncSendTo(this, stm, strCommand, ac, true, content_length))->post(0);
+    return (new asyncSendTo(this, stm, strCommand, std::move(ac), true, content_length))->post(0);
 }
 
-result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
+result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
 {
     class asyncReadHeader : public AsyncState {
     public:
         asyncReadHeader(HttpMessage* pThis, BufferedStream_base* stm,
-            AsyncEvent* ac)
+            AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -514,7 +514,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
         int32_t m_headCount;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_headers->m_lowercase_keys = true;
@@ -526,15 +526,15 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncEvent* ac)
     _stm->get_stream(m_socket);
     m_stm = _stm;
 
-    return (new asyncReadHeader(this, _stm, ac))->post(0);
+    return (new asyncReadHeader(this, _stm, std::move(ac)))->post(0);
 }
 
-result_t HttpMessage::readBody(AsyncEvent* ac)
+result_t HttpMessage::readBody(AsyncHandle ac)
 {
     class asyncReadBody : public AsyncState {
     public:
         asyncReadBody(HttpMessage* pThis, BufferedStream_base* stm,
-            AsyncEvent* ac)
+            AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -588,20 +588,20 @@ result_t HttpMessage::readBody(AsyncEvent* ac)
         int64_t m_copySize;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_stm)
         return CHECK_ERROR(Runtime::setError("HttpMessage: stream is not set."));
 
-    return (new asyncReadBody(this, m_stm.As<BufferedStream_base>(), ac))->post(0);
+    return (new asyncReadBody(this, m_stm.As<BufferedStream_base>(), std::move(ac)))->post(0);
 }
 
-result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
 {
     class asyncReadFrom : public AsyncState {
     public:
-        asyncReadFrom(HttpMessage* pThis, Stream_base* stm, AsyncEvent* ac)
+        asyncReadFrom(HttpMessage* pThis, Stream_base* stm, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -624,10 +624,10 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         obj_ptr<Stream_base> m_stm;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncReadFrom(this, stm, ac))->post(0);
+    return (new asyncReadFrom(this, stm, std::move(ac)))->post(0);
 }
 
 void HttpMessage::appendHeader(const char* name, int32_t szName, const char* value,

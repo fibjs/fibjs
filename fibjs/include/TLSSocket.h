@@ -25,10 +25,10 @@ public:
 
 public:
     // TLSSocket_base
-    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac);
-    virtual result_t connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncEvent* ac);
-    virtual result_t connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncEvent* ac);
-    virtual result_t accept(Stream_base* socket, AsyncEvent* ac);
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncHandle ac);
+    virtual result_t connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncHandle ac);
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncHandle ac);
+    virtual result_t accept(Stream_base* socket, AsyncHandle ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t getProtocol(exlib::string& retVal);
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal);
@@ -43,10 +43,10 @@ public:
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     int Write(const char* data, int len);

@@ -72,10 +72,10 @@ public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-        AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+        AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     // Socket_base
@@ -86,28 +86,28 @@ public:
     virtual result_t get_localPort(int32_t& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
-    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);
-    virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
+    virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac);
     virtual result_t setKeepAlive(bool enable, int32_t initialDelay);
     virtual result_t setNoDelay(bool noDelay);
     virtual result_t isAlive(bool& retVal);
-    virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t send(Union_send_data data, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t send(Union_send_data data, int32_t& retVal, AsyncHandle ac);
     // the merged entry dispatches to the per-type implementations: a string is
     // encoded as utf8
-    result_t send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac);
-    result_t send(exlib::string data, int32_t& retVal, AsyncEvent* ac);
+    result_t send(Buffer_base* data, int32_t& retVal, AsyncHandle ac);
+    result_t send(exlib::string data, int32_t& retVal, AsyncHandle ac);
     virtual result_t abort();
     virtual result_t setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal);
     virtual result_t setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal);

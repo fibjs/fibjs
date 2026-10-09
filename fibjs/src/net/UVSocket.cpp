@@ -38,18 +38,18 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
     return 0;
 }
 
-result_t UVSocket::close(AsyncEvent* ac)
+result_t UVSocket::close(AsyncHandle ac)
 {
-    if (ac && ac->isSync())
+    if (ac && ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr = UVStream_tmpl<Socket_base>::close(ac);
+    result_t hr = UVStream_tmpl<Socket_base>::close(std::move(ac));
 
     m_lock.lock();
 
     m_socks.clear();
     while (m_accepts.size() > 0) {
-        m_accepts.front().second->apost(CALL_E_INVALID_CALL);
+        m_accepts.front().second.apost(CALL_E_INVALID_CALL);
         m_accepts.pop_front();
     }
 
@@ -185,10 +185,10 @@ void UVSocket::on_listen(int status)
     m_lock.lock();
 
     if (m_accepts.size() > 0) {
-        std::pair<obj_ptr<Socket_base>&, AsyncEvent*>& _pair = m_accepts.front();
+        std::pair<obj_ptr<Socket_base>&, AsyncHandle>& _pair = m_accepts.front();
 
         _pair.first = sock;
-        _pair.second->apost(0);
+        _pair.second.apost(0);
 
         m_accepts.pop_front();
     } else if (m_socks.size() < 256) {
@@ -211,15 +211,16 @@ result_t UVSocket::listen(int32_t backlog)
     });
 }
 
-result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     class AsyncConnect : public uv_connect_t,
                          public UVTimeout {
     public:
-        AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncEvent* ac, exlib::string target, bool use_path, int32_t port)
+        AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncHandle ac, exlib::string target, bool use_path, int32_t port)
             : UVTimeout(pThis, timeout)
             , m_sock(pThis)
-            , m_ac(ac)
+            , m_ac(std::move(ac))
+            , m_bEvent(false)
             , m_target(target)
             , m_use_path(use_path)
             , m_port(port)
@@ -233,6 +234,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             , m_isolate(isolate)
             , m_sock(pThis)
             , m_ac(nullptr)
+            , m_bEvent(true)
             , m_target(target)
             , m_use_path(use_path)
             , m_port(port)
@@ -244,7 +246,10 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
         ~AsyncConnect()
         {
-            if (!m_ac)
+            // The event-mode wrapper owns the isolate reference; the async form
+            // is kept alive by the caller's fiber. This is a construction-time
+            // property: m_ac is detached by delivery, so it can no longer carry it.
+            if (m_bEvent)
                 m_sock->isolate_unref();
         }
 
@@ -277,7 +282,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
             m_sock->on_connected(status < 0 ? status : 0);
 
-            if (m_ac) {
+            if (!m_bEvent) {
                 if (status < 0) {
                     // The connect error also travels to the socket's own error
                     // emission, which runs on the isolate thread: keep a copy
@@ -288,7 +293,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                     setErrorPayload(payload);
                 }
 
-                m_ac->apost(status);
+                m_ac.apost(status);
             } else {
                 if (status < 0) {
                     ErrorPayload payload = error_payload(status);
@@ -322,7 +327,8 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     private:
         Isolate* m_isolate = nullptr;
         obj_ptr<UVSocket> m_sock;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
+        bool m_bEvent;
         exlib::string m_target;
         bool m_use_path;
         int32_t m_port;
@@ -331,7 +337,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
     startConnectEvent();
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = this;
@@ -339,7 +345,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     if (m_family == net_base::C_AF_UNIX) {
         if (!m_connect_event)
             return uv_async([&] {
-                uv_pipe_connect(new AsyncConnect(this, timeout, ac, host, use_path, port), &m_pipe, host.c_str(), AsyncConnect::callback);
+                uv_pipe_connect(new AsyncConnect(this, timeout, std::move(ac), host, use_path, port), &m_pipe, host.c_str(), AsyncConnect::callback);
                 return 0;
             });
 
@@ -366,7 +372,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
         if (!m_connect_event)
             return uv_async([&] {
-                return uv_tcp_connect(new AsyncConnect(this, timeout, ac, host, use_path, port), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+                return uv_tcp_connect(new AsyncConnect(this, timeout, std::move(ac), host, use_path, port), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
             });
 
         uv_async([&] {
@@ -377,78 +383,78 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     }
 }
 
-result_t UVSocket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, timeout, retVal, ac);
+    return connect(0, path, timeout, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opts;
 
         startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
-    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
+    ConnectOptions* opt = (ConnectOptions*)ac.ctxv()[0].object();
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(port, "localhost", 0, connectListener, retVal, ac);
+    return connect(port, "localhost", 0, connectListener, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(port, host, 0, connectListener, retVal, ac);
+    return connect(port, host, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;
         once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
-    return connect(port, host, timeout, retVal, ac);
+    return connect(port, host, timeout, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, 0, connectListener, retVal, ac);
+    return connect(0, path, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, timeout, connectListener, retVal, ac);
+    return connect(0, path, timeout, connectListener, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;
         once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
-    return connect(options, retVal, ac);
+    return connect(options, retVal, std::move(ac));
 }
 
-result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = 0;
@@ -461,7 +467,7 @@ result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
         retVal = m_socks.front();
         m_socks.pop_front();
     } else {
-        m_accepts.push_back(std::pair<obj_ptr<Socket_base>&, AsyncEvent*>(retVal, ac));
+        m_accepts.push_back(std::pair<obj_ptr<Socket_base>&, AsyncHandle>(retVal, std::move(ac)));
         hr = CALL_E_PENDDING;
     }
 
@@ -470,24 +476,24 @@ result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     return hr;
 }
 
-result_t UVSocket::send(Union_send_data data, int32_t& retVal, AsyncEvent* ac)
+result_t UVSocket::send(Union_send_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return send(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return send(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return send(std::get<exlib::string>(data), retVal, ac);
+    return send(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t UVSocket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t UVSocket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
     retVal = Buffer::Cast(data)->length();
     bool _retVal;
-    return write(data, _retVal, ac);
+    return write(data, _retVal, std::move(ac));
 }
 
-result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -498,15 +504,15 @@ result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncEvent* ac)
     retVal = (int32_t)data.length();
 
     bool _retVal;
-    return write(buf, _retVal, ac);
+    return write(buf, _retVal, std::move(ac));
 }
 
-result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    uv_post(new AsyncRead(this, false, bytes, retVal, ac));
+    uv_post(new AsyncRead(this, false, bytes, retVal, std::move(ac)));
     return CALL_E_PENDDING;
 }
 

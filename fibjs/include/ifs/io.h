@@ -25,8 +25,8 @@ class io_base : public object_base {
 
 public:
     // io_base
-    static result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes, int64_t& retVal, AsyncEvent* ac);
-    static result_t bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac);
+    static result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes, int64_t& retVal, AsyncHandle ac);
+    static result_t bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

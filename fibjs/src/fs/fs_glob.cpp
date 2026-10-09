@@ -493,26 +493,26 @@ public:
     std::optional<bool> withFileTypes;
 };
 
-result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         obj_ptr<GlobOptions> _opts;
         result_t hr = GlobOptions::load(opts, _opts);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _opts;
+        ac.ctxv()[0] = _opts;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<GlobOptions> _opts = (GlobOptions*)ac->m_ctx[0].object();
+    obj_ptr<GlobOptions> _opts = (GlobOptions*)ac.ctxv()[0].object();
 
     // Get working directory from options or use current directory
     exlib::string cwd;
@@ -718,18 +718,18 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
     return 0;
 }
 
-result_t fs_base::glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t fs_base::glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         std::vector<exlib::string> patterns;
         patterns.push_back(pattern);
-        return glob(patterns, opts, retVal, ac);
+        return glob(patterns, opts, retVal, std::move(ac));
     }
 
     std::vector<exlib::string> patterns;
     patterns.push_back(pattern);
 
-    return glob(patterns, opts, retVal, ac);
+    return glob(patterns, opts, retVal, std::move(ac));
 }
 
 }

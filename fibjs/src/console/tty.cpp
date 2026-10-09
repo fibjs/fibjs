@@ -145,9 +145,9 @@ result_t TTYOutputStream::clearScreenDown()
     return 0;
 }
 
-result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncEvent* ac)
+result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (x < 0)
@@ -165,9 +165,9 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncEvent* ac)
     return 0;
 }
 
-result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac)
+result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     char numStr[64];

@@ -74,7 +74,7 @@ public:
 
     // Write queue state (all protected by m_writeLock)
     exlib::spinlock m_writeLock;
-    std::list<AsyncEvent*> m_writeQueue;
+    std::list<AsyncHandle> m_writeQueue;
     size_t m_writeBytes = 0;
     size_t m_writeHighWaterMark = 16384;
     bool m_needDrain = false;
@@ -95,8 +95,8 @@ public:
 
 class AsyncStreamResume {
 public:
-    explicit AsyncStreamResume(AsyncEvent* ev)
-        : m_ev(ev)
+    explicit AsyncStreamResume(AsyncHandle& ev)
+        : m_ev(std::move(ev))
     {
     }
 
@@ -116,18 +116,17 @@ public:
 private:
     void finish(int32_t v, bool do_post)
     {
-        AsyncEvent* ev = m_ev;
-        if (!ev)
+        if (!m_ev)
             return;
 
-        m_ev = NULL;
-
         if (do_post)
-            ev->apost(v);
+            m_ev.apost(v); // 投递即移交：handle 自行置空
+        else
+            m_ev = nullptr; // 丢弃：不投递，仅清空（borrowed，不删）
     }
 
 private:
-    AsyncEvent* m_ev;
+    AsyncHandle m_ev;
 };
 
 class AsyncStreamReader : public AsyncState {
@@ -184,9 +183,14 @@ public:
     // 唤醒，由下一次挂票时回投，避免丢唤醒。
     void wake(int32_t token)
     {
-        AsyncEvent* ticket = m_ticket.exchange(nullptr);
+        // 锁内取、锁外投（投递会运行续体，不能持锁）
+        AsyncHandle ticket;
+        m_ticket_lock.lock();
+        ticket = std::move(m_ticket);
+        m_ticket_lock.unlock();
+
         if (ticket)
-            ticket->apost(token);
+            ticket.apost(token);
         else
             m_pendingWake.store(token);
     }
@@ -285,7 +289,9 @@ public:
         }
 
         m_wait = kWaitDelivery;
-        m_ticket.store(next(wait));
+        m_ticket_lock.lock();
+        m_ticket = next(wait);
+        m_ticket_lock.unlock();
 
         Variant data;
         if (!m_base->m_decoder) {
@@ -298,7 +304,11 @@ public:
 
         obj_ptr<Stream_base> stream = m_this;
         // 数据投递期间票面交给 resume，由 commit 在同一线程内消费
-        std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(m_ticket.exchange(nullptr));
+        AsyncHandle ticket;
+        m_ticket_lock.lock();
+        ticket = std::move(m_ticket);
+        m_ticket_lock.unlock();
+        std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(ticket);
         m_isolate->sync([stream, data, resume]() mutable -> int32_t {
             JSFiber::EnterJsScope s;
 
@@ -373,13 +383,19 @@ private:
     // 若期间已有待处理唤醒，立即把它作为一次回投发出去。
     int32_t park()
     {
-        m_ticket.store(next(wait));
+        m_ticket_lock.lock();
+        m_ticket = next(wait);
+        m_ticket_lock.unlock();
 
         int32_t pending = m_pendingWake.exchange(0);
         if (pending) {
-            AsyncEvent* ticket = m_ticket.exchange(nullptr);
+            AsyncHandle ticket;
+            m_ticket_lock.lock();
+            ticket = std::move(m_ticket);
+            m_ticket_lock.unlock();
+
             if (ticket)
-                ticket->apost(pending);
+                ticket.apost(pending);
         }
         return CALL_E_PENDDING;
     }
@@ -390,7 +406,10 @@ private:
     AsyncStreamBase* m_base;
     obj_ptr<Buffer_base> m_buf;
     WaitReason m_wait;
-    std::atomic<AsyncEvent*> m_ticket { nullptr };
+    // 票据槽：handle 非平凡可复制，无法放进 std::atomic，改用 spinlock 保护。
+    // 取票在锁内、投递在锁外（投递会运行续体，不能持锁）。
+    exlib::spinlock m_ticket_lock;
+    AsyncHandle m_ticket;
     std::atomic<int32_t> m_pendingWake { 0 };
 };
 
@@ -422,7 +441,7 @@ public:
     // Stream_base
     class AsyncReadVariant : public AsyncState {
     public:
-        AsyncReadVariant(AsyncStream<T>* pThis, int32_t bytes, Variant& retVal, AsyncEvent* ac)
+        AsyncReadVariant(AsyncStream<T>* pThis, int32_t bytes, Variant& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_bytes(bytes)
@@ -458,7 +477,7 @@ public:
         obj_ptr<Buffer_base> m_buf;
     };
 
-    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncHandle ac)
     {
         // 受控同步快路径（C 类例外，见审计报告 §3-C）：readable 模式下先看
         // 待读队列，命中就同步返回（未命中也是同步的“暂无数据”语义）；只有
@@ -542,17 +561,17 @@ public:
             return 0;
         }
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        (new AsyncReadVariant(this, bytes, retVal, ac))->apost(0);
+        (new AsyncReadVariant(this, bytes, retVal, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
     // Async state machine for readAll: loop readBuffer(-1) until EOF
     class AsyncReadAll : public AsyncState {
     public:
-        AsyncReadAll(AsyncStream<T>* pThis, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        AsyncReadAll(AsyncStream<T>* pThis, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_retVal(retVal)
@@ -592,12 +611,12 @@ public:
         StringBuffer m_buf;
     };
 
-    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        (new AsyncReadAll(this, retVal, ac))->apost(0);
+        (new AsyncReadAll(this, retVal, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
@@ -609,17 +628,17 @@ public:
         return 0;
     }
 
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return static_cast<T*>(this)->writeBuffer(data, ac);
+        return static_cast<T*>(this)->writeBuffer(data, std::move(ac));
     }
 
     // String form of writeBuffer(): the string is decoded as utf8 once, in the
     // async phase, and the Buffer implementation does the write (every write
     // implementation keeps the buffer alive through its own async state).
-    virtual result_t writeBuffer(exlib::string data, AsyncEvent* ac)
+    virtual result_t writeBuffer(exlib::string data, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         obj_ptr<Buffer_base> buf;
@@ -628,25 +647,24 @@ public:
         if (hr < 0)
             return hr;
 
-        return static_cast<T*>(this)->writeBuffer(buf, ac);
+        return static_cast<T*>(this)->writeBuffer(buf, std::move(ac));
     }
 
     // Enqueue buffer into write queue during sync phase. The completion event
     // travels in m_ctx[2] with the other parameters: m_ctxo is the
     // callback-style return-value slot, never a parameter carrier
     // (plans/async-phase-discipline-audit-2026-10-05.md §3-G).
-    result_t enqueueWrite(Buffer_base* data, bool& retVal, AsyncEvent* ac)
+    result_t enqueueWrite(Buffer_base* data, bool& retVal, AsyncHandle ac)
     {
-        ac->m_ctx.resize(3);
-        ac->m_ctx[0] = data;
-        ac->m_ctx[2] = new Event();
+        ac.ctxv().resize(3);
+        ac.ctxv()[0] = data;
+        ac.ctxv()[2] = new Event();
 
         int32_t len;
         data->get_length(len);
 
         bool needStartWriter;
         m_writeLock.lock();
-        m_writeQueue.push_back(ac);
         m_writeBytes += len;
         bool backpressure = (m_writeBytes >= m_writeHighWaterMark);
         if (backpressure)
@@ -654,9 +672,11 @@ public:
         needStartWriter = (m_writer == nullptr);
         if (needStartWriter)
             m_writer = new AsyncStreamWriter(this);
+        // The ctx slot must be complete *before* the handle enters the queue:
+        // the writer consumes the event (and its ctx) as soon as it is started.
+        ac.ctxv()[1] = !backpressure;
+        m_writeQueue.push_back(std::move(ac));
         m_writeLock.unlock();
-
-        ac->m_ctx[1] = !backpressure;
 
         if (needStartWriter)
             m_writer->start();
@@ -664,51 +684,51 @@ public:
         return CALL_E_NOSYNC;
     }
 
-    virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac)
+    virtual result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
-            return enqueueWrite(data, retVal, ac);
+        if (ac.isSync())
+            return enqueueWrite(data, retVal, std::move(ac));
 
-        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+        Event_base* ev = ac.ctxv().size() > 2 ? Event_base::getInstance(ac.ctxv()[2].object()) : NULL;
 
         if (ev == NULL) {
             retVal = true;
-            return static_cast<T*>(this)->writeBuffer(data, ac);
+            return static_cast<T*>(this)->writeBuffer(data, std::move(ac));
         }
 
-        retVal = ac->m_ctx[1].boolVal();
+        retVal = ac.ctxv()[1].boolVal();
         ev->set();
         return CALL_E_PENDDING;
     }
 
-    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
+    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
-            return enqueueWrite(data, retVal, ac);
+        if (ac.isSync())
+            return enqueueWrite(data, retVal, std::move(ac));
 
-        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+        Event_base* ev = ac.ctxv().size() > 2 ? Event_base::getInstance(ac.ctxv()[2].object()) : NULL;
 
         if (ev == NULL) {
             retVal = true;
-            return static_cast<T*>(this)->writeBuffer(data, ac);
+            return static_cast<T*>(this)->writeBuffer(data, std::move(ac));
         }
 
-        retVal = ac->m_ctx[1].boolVal();
+        retVal = ac.ctxv()[1].boolVal();
         ev->set();
         return CALL_E_PENDDING;
     }
 
-    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac)
+    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncHandle ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             obj_ptr<Buffer_base> buf;
             result_t hr = Buffer_base::from(data, encoding, buf);
             if (hr < 0)
                 return hr;
-            return enqueueWrite(buf, retVal, ac);
+            return enqueueWrite(buf, retVal, std::move(ac));
         }
 
-        Event_base* ev = ac->m_ctx.size() > 2 ? Event_base::getInstance(ac->m_ctx[2].object()) : NULL;
+        Event_base* ev = ac.ctxv().size() > 2 ? Event_base::getInstance(ac.ctxv()[2].object()) : NULL;
 
         if (ev == NULL) {
             obj_ptr<Buffer_base> buf;
@@ -716,17 +736,17 @@ public:
             if (hr < 0)
                 return hr;
             retVal = true;
-            return static_cast<T*>(this)->writeBuffer(buf, ac);
+            return static_cast<T*>(this)->writeBuffer(buf, std::move(ac));
         }
 
-        retVal = ac->m_ctx[1].boolVal();
+        retVal = ac.ctxv()[1].boolVal();
         ev->set();
         return CALL_E_PENDDING;
     }
 
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
+    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncHandle ac)
     {
-        return io_base::copyStream(this, stm, bytes, retVal, ac);
+        return io_base::copyStream(this, stm, bytes, retVal, std::move(ac));
     }
 
     virtual result_t get_writable(bool& retVal)
@@ -759,7 +779,7 @@ public:
 
     class AsyncDestroyEmitter : public AsyncState {
     public:
-        AsyncDestroyEmitter(AsyncStream<T>* pThis, AsyncEvent* ac)
+        AsyncDestroyEmitter(AsyncStream<T>* pThis, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
         {
@@ -781,9 +801,9 @@ public:
         AsyncStream<T>* m_pThis;
     };
 
-    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync()) {
+        if (ac.isSync()) {
             // Idempotent: if already destroyed, return immediately
             if (m_destroyed) {
                 retVal = this;
@@ -801,7 +821,7 @@ public:
         }
 
         retVal = this;
-        (new AsyncDestroyEmitter(this, ac))->apost(0);
+        (new AsyncDestroyEmitter(this, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
@@ -872,9 +892,9 @@ public:
                 return next();
             }
 
-            m_ac = m_pThis->m_writeQueue.front();
+            m_ac = std::move(m_pThis->m_writeQueue.front());
             m_pThis->m_writeQueue.pop_front();
-            m_buf = (Buffer_base*)m_ac->m_ctx[0].object();
+            m_buf = (Buffer_base*)m_ac.ctxv()[0].object();
             int32_t len;
             m_buf->get_length(len);
             m_pThis->m_writeBytes -= len;
@@ -885,9 +905,9 @@ public:
 
         ON_STATE(AsyncStreamWriter, write_done)
         {
-            Event_base::getInstance(m_ac->m_ctx[2].object())->wait(this);
+            Event_base::getInstance(m_ac.ctxv()[2].object())->wait(this);
 
-            m_ac->post(n);
+            m_ac.post(n);
             m_ac = nullptr;
             m_buf.Release();
             return next(doWrite);
@@ -896,9 +916,9 @@ public:
         virtual int32_t error(int32_t v)
         {
             if (m_ac) {
-                Event_base::getInstance(m_ac->m_ctx[2].object())->wait(this);
+                Event_base::getInstance(m_ac.ctxv()[2].object())->wait(this);
 
-                m_ac->post(v);
+                m_ac.post(v);
                 m_ac = nullptr;
             }
             m_buf.Release();
@@ -907,14 +927,14 @@ public:
 
     private:
         AsyncStream<T>* m_pThis;
-        AsyncEvent* m_ac = nullptr;
+        AsyncHandle m_ac;
         obj_ptr<Buffer_base> m_buf;
     };
 
     // Async state machine to emit finish + close after optional write
     class AsyncEndEmitter : public AsyncState {
     public:
-        AsyncEndEmitter(AsyncStream<T>* pThis, obj_ptr<Buffer_base> data, AsyncEvent* ac)
+        AsyncEndEmitter(AsyncStream<T>* pThis, obj_ptr<Buffer_base> data, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
@@ -955,39 +975,39 @@ public:
         obj_ptr<Buffer_base> m_data;
     };
 
-    virtual result_t end(int32_t& retVal, AsyncEvent* ac)
+    virtual result_t end(int32_t& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         retVal = 0;
-        (new AsyncEndEmitter(this, nullptr, ac))->apost(0);
+        (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
-    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         retVal = 0;
-        (new AsyncEndEmitter(this, data, ac))->apost(0);
+        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
-    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         retVal = 0;
-        (new AsyncEndEmitter(this, data, ac))->apost(0);
+        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 
-    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         obj_ptr<Buffer_base> buf;
@@ -996,7 +1016,7 @@ public:
             return hr;
 
         retVal = 0;
-        (new AsyncEndEmitter(this, buf, ac))->apost(0);
+        (new AsyncEndEmitter(this, buf, std::move(ac)))->apost(0);
         return CALL_E_PENDDING;
     }
 

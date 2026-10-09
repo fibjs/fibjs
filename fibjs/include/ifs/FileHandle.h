@@ -71,21 +71,21 @@ public:
     // FileHandle_base
     static result_t _new(int32_t fd, obj_ptr<FileHandle_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_fd(int32_t& retVal) = 0;
-    virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
-    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncEvent* ac) = 0;
-    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t utimes(Variant atime, Variant mtime, AsyncEvent* ac) = 0;
-    virtual result_t chown(int32_t uid, int32_t gid, AsyncEvent* ac) = 0;
-    virtual result_t sync(AsyncEvent* ac) = 0;
-    virtual result_t datasync(AsyncEvent* ac) = 0;
-    virtual result_t truncate(int32_t len, AsyncEvent* ac) = 0;
-    virtual result_t appendFile(Union_appendFile_data data, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t chmod(int32_t mode, AsyncHandle ac) = 0;
+    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t utimes(Variant atime, Variant mtime, AsyncHandle ac) = 0;
+    virtual result_t chown(int32_t uid, int32_t gid, AsyncHandle ac) = 0;
+    virtual result_t sync(AsyncHandle ac) = 0;
+    virtual result_t datasync(AsyncHandle ac) = 0;
+    virtual result_t truncate(int32_t len, AsyncHandle ac) = 0;
+    virtual result_t appendFile(Union_appendFile_data data, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);

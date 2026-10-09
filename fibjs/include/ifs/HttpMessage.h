@@ -59,7 +59,7 @@ public:
     virtual result_t get_headersSent(bool& retVal) = 0;
     virtual result_t get_trailers(obj_ptr<Headers_base>& retVal) = 0;
     virtual result_t addTrailers(v8::Local<v8::Object> headers) = 0;
-    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

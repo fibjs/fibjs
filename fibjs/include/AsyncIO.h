@@ -89,20 +89,20 @@ public:
     }
 
 public:
-    result_t connect(exlib::string host, int32_t port, AsyncEvent* ac, int32_t timeout = 0);
-    result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
-    result_t write(Buffer_base* data, AsyncEvent* ac, int32_t timeout = 0);
+    result_t connect(exlib::string host, int32_t port, AsyncHandle ac, int32_t timeout = 0);
+    result_t accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac);
+    result_t write(Buffer_base* data, AsyncHandle ac, int32_t timeout = 0);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-        AsyncEvent* ac, bool bRead, int32_t timeout = 0);
+        AsyncHandle ac, bool bRead, int32_t timeout = 0);
     
     // Abort all pending operations
     void abort();
     intptr_t get_abort_version() const { return m_abort_version.value(); }
 
 #ifndef _WIN32
-    result_t close(AsyncEvent* ac);
+    result_t close(AsyncHandle ac);
 #else
-    result_t close(AsyncEvent* ac)
+    result_t close(AsyncHandle ac)
     {
         if (m_fd != INVALID_SOCKET)
             ::closesocket(m_fd);

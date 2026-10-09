@@ -169,9 +169,9 @@ static result_t check_encoding(const exlib::string& encoding)
 
 // appends through an open descriptor: the flag and mode of an options object
 // do not apply, a descriptor writes where it is positioned
-static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -269,19 +269,19 @@ result_t FileHandle::get_fd(int32_t& retVal)
     return 0;
 }
 
-result_t FileHandle::chmod(int32_t mode, AsyncEvent* ac)
+result_t FileHandle::chmod(int32_t mode, AsyncHandle ac)
 {
-    return fs_base::fchmod(this, mode, ac);
+    return fs_base::fchmod(this, mode, std::move(ac));
 }
 
-result_t FileHandle::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t FileHandle::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    return fs_base::fstat(this, retVal, ac);
+    return fs_base::fstat(this, retVal, std::move(ac));
 }
 
-result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac)
+result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t bufLength = Buffer::Cast(buffer)->length();
@@ -344,10 +344,10 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
     return 0;
 }
 
-result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac)
+result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(4);
+    if (ac.isSync()) {
+        ac.ctxv().resize(4);
 
         obj_ptr<Buffer_base> buffer;
         GetConfigValue(options, "buffer", buffer);
@@ -363,39 +363,39 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
         int32_t position = -1;
         GetConfigValue(options, "position", position, true);
 
-        ac->m_ctx[0] = buffer;
-        ac->m_ctx[1] = offset;
-        ac->m_ctx[2] = length;
-        ac->m_ctx[3] = position;
+        ac.ctxv()[0] = buffer;
+        ac.ctxv()[1] = offset;
+        ac.ctxv()[2] = length;
+        ac.ctxv()[3] = position;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(1);
+    ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(2);
+    ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(3);
+    ctx_hr = ac.ctx(3);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return read(Buffer_base::getInstance(ac->m_ctx[0].object()),
-        ac->m_ctx[1].intVal(), ac->m_ctx[2].intVal(), ac->m_ctx[3].intVal(),
-        retVal, ac);
+    return read(Buffer_base::getInstance(ac.ctxv()[0].object()),
+        ac.ctxv()[1].intVal(), ac.ctxv()[2].intVal(), ac.ctxv()[3].intVal(),
+        retVal, std::move(ac));
 }
 
-result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac)
+result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t n;
-    result_t hr = fs_base::write(this, buffer, offset, length, position, n, ac);
+    result_t hr = fs_base::write(this, buffer, offset, length, position, n, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -409,9 +409,9 @@ result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, 
     return 0;
 }
 
-result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac)
+result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd < 0)
@@ -427,11 +427,11 @@ result_t FileHandle::write(exlib::string string, int32_t position, exlib::string
         buf = new Buffer(strData.c_str(), strData.length());
     }
 
-    return write(buf, 0, -1, position, retVal, ac);
+    return write(buf, 0, -1, position, retVal, std::move(ac));
 }
 
 
-result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, AsyncEvent* ac)
+result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac)
 {
     exlib::string encoding;
 
@@ -440,25 +440,25 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
     else {
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle
-        if (ac->isSync()) {
-            ac->m_ctx.resize(1);
+        if (ac.isSync()) {
+            ac.ctxv().resize(1);
 
             GetConfigValue(std::get<v8::Local<v8::Object>>(options), "encoding", encoding);
-            ac->m_ctx[0] = encoding;
+            ac.ctxv()[0] = encoding;
 
             return CHECK_ERROR(CALL_E_NOSYNC);
         }
 
         // the object form is carried in ctx[0]; an entry that never ran the
         // sync phase (the async-only compile cache one) must report that
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        encoding = ac->m_ctx[0].string();
+        encoding = ac.ctxv()[0].string();
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd < 0)
@@ -497,7 +497,7 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
 }
 
 
-result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac)
+result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac)
 {
     bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
     exlib::string encoding;
@@ -508,8 +508,8 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle. A Buffer only validates the
         // empty label, a string takes its encoding from the options.
-        if (ac->isSync()) {
-            ac->m_ctx.resize(1);
+        if (ac.isSync()) {
+            ac.ctxv().resize(1);
 
             if (!bBuffer) {
                 encoding = "utf8";
@@ -519,16 +519,16 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
                     return hr;
             }
 
-            ac->m_ctx[0] = encoding;
+            ac.ctxv()[0] = encoding;
 
             return CHECK_ERROR(CALL_E_NOSYNC);
         }
 
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        encoding = ac->m_ctx[0].string();
+        encoding = ac.ctxv()[0].string();
     }
 
     // Node.js validates the encoding even when the data is a Buffer.
@@ -538,7 +538,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
             return _e;
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -582,35 +582,35 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
 }
 
 
-result_t FileHandle::utimes(Variant atime, Variant mtime, AsyncEvent* ac)
+result_t FileHandle::utimes(Variant atime, Variant mtime, AsyncHandle ac)
 {
-    return fs_base::futimes(this, atime, mtime, ac);
+    return fs_base::futimes(this, atime, mtime, std::move(ac));
 }
 
-result_t FileHandle::chown(int32_t uid, int32_t gid, AsyncEvent* ac)
+result_t FileHandle::chown(int32_t uid, int32_t gid, AsyncHandle ac)
 {
-    return fs_base::fchown(this, uid, gid, ac);
+    return fs_base::fchown(this, uid, gid, std::move(ac));
 }
 
-result_t FileHandle::sync(AsyncEvent* ac)
+result_t FileHandle::sync(AsyncHandle ac)
 {
-    return fs_base::fsync(this, ac);
+    return fs_base::fsync(this, std::move(ac));
 }
 
-result_t FileHandle::datasync(AsyncEvent* ac)
+result_t FileHandle::datasync(AsyncHandle ac)
 {
-    return fs_base::fdatasync(this, ac);
+    return fs_base::fdatasync(this, std::move(ac));
 }
 
-result_t FileHandle::truncate(int32_t len, AsyncEvent* ac)
+result_t FileHandle::truncate(int32_t len, AsyncHandle ac)
 {
-    return fs_base::ftruncate(this, len, ac);
+    return fs_base::ftruncate(this, len, std::move(ac));
 }
 
 
-result_t FileHandle::appendFile(Union_appendFile_data data, int32_t& retVal, AsyncEvent* ac)
+result_t FileHandle::appendFile(Union_appendFile_data data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -622,13 +622,13 @@ result_t FileHandle::appendFile(Union_appendFile_data data, int32_t& retVal, Asy
         buf = new Buffer(strData.c_str(), strData.length());
     }
 
-    return append_file_fd(this, buf, retVal, ac);
+    return append_file_fd(this, buf, retVal, std::move(ac));
 }
 
 
-result_t FileHandle::close(AsyncEvent* ac)
+result_t FileHandle::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
@@ -648,9 +648,9 @@ result_t FileHandle::close(AsyncEvent* ac)
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
-    obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
+    obj_ptr<FileHandle_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -669,9 +669,9 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 }
 
 result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
-    obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
+    obj_ptr<FileHandle_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -690,31 +690,31 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags, Variant mode,
-    obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
+    obj_ptr<FileHandle_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         int32_t _mode;
         result_t hr = to_mode_value(mode, _mode);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _mode;
+        ac.ctxv()[0] = _mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return open(fname, flags, ac->m_ctx[0].intVal(), retVal, ac);
+    return open(fname, flags, ac.ctxv()[0].intVal(), retVal, std::move(ac));
 }
 
-result_t fs_base::close(Union_close_fd fd, AsyncEvent* ac)
+result_t fs_base::close(Union_close_fd fd, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<FileHandle_base> handle;
@@ -722,18 +722,18 @@ result_t fs_base::close(Union_close_fd fd, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    return handle->close(ac);
+    return handle->close(std::move(ac));
 }
 
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     obj_ptr<BufferedStream_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> pFile;
-    result_t hr = openFile(fname, flags, pFile, ac);
+    result_t hr = openFile(fname, flags, pFile, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -741,16 +741,16 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
 }
 
 result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = openFile(fname, "r", f, ac);
+    hr = openFile(fname, "r", f, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -769,9 +769,9 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
 }
 
 static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::string encoding,
-    Variant& retVal, AsyncEvent* ac)
+    Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js reports an unknown encoding before it opens the file.
@@ -784,7 +784,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = fs_base::openFile(fname, flag, f, ac);
+    hr = fs_base::openFile(fname, flag, f, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -848,11 +848,11 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
 }
 
 static result_t open_file_for_write(exlib::string fname, exlib::string flag, int32_t mode,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
     // keep the zip-aware / sandbox-checked path for the default creation mode
     if (mode == 0666)
-        return fs_base::openFile(fname, flag, retVal, ac);
+        return fs_base::openFile(fname, flag, retVal, std::move(ac));
 
     // an explicit creation mode only applies to the real filesystem
     exlib::string safe_name;
@@ -860,7 +860,7 @@ static result_t open_file_for_write(exlib::string fname, exlib::string flag, int
     if (hr < 0)
         return hr;
 
-    if (!ac->isolate()->m_enable_FileSystem)
+    if (!ac.isolate()->m_enable_FileSystem)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<FileStream> pFile = new FileStream();
@@ -874,15 +874,15 @@ static result_t open_file_for_write(exlib::string fname, exlib::string flag, int
 }
 
 static result_t write_file_ext(exlib::string fname, Buffer_base* data, exlib::string flag, int32_t mode,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = open_file_for_write(fname, flag, mode, f, ac);
+    hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -894,15 +894,15 @@ static result_t write_file_ext(exlib::string fname, Buffer_base* data, exlib::st
 }
 
 static result_t write_text_file_ext(exlib::string fname, exlib::string txt, exlib::string flag, int32_t mode,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = open_file_for_write(fname, flag, mode, f, ac);
+    hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -916,22 +916,22 @@ static result_t write_text_file_ext(exlib::string fname, exlib::string txt, exli
 }
 
 result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt, int32_t& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return write_text_file_ext(fname, txt, "w", 0666, retVal, ac);
+    return write_text_file_ext(fname, txt, "w", 0666, retVal, std::move(ac));
 }
 
 
 static result_t append_file_ext(exlib::string fname, exlib::string flag, int32_t mode, Buffer_base* data,
-    int32_t& retVal, AsyncEvent* ac)
+    int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = open_file_for_write(fname, flag, mode, f, ac);
+    hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
     if (hr < 0)
         return hr;
 
@@ -942,9 +942,9 @@ static result_t append_file_ext(exlib::string fname, exlib::string flag, int32_t
     return hr;
 }
 
-static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -977,9 +977,9 @@ static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Varian
     return Buffer::Cast(buf)->toValue(encoding, retVal);
 }
 
-static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -1020,7 +1020,7 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
 
 
 result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options options,
-    Variant& retVal, AsyncEvent* ac)
+    Variant& retVal, AsyncHandle ac)
 {
     bool bFd = !std::holds_alternative<exlib::string>(fname);
 
@@ -1032,8 +1032,8 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
     else {
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle
-        if (ac->isSync()) {
-            ac->m_ctx.resize(2);
+        if (ac.isSync()) {
+            ac.ctxv().resize(2);
 
             v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
 
@@ -1042,32 +1042,32 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
                 encoding = "utf8";
 
             GetConfigValue(opts, "encoding", encoding);
-            ac->m_ctx[0] = encoding;
+            ac.ctxv()[0] = encoding;
 
             if (!bFd) {
                 GetConfigValue(opts, "flag", flag);
-                ac->m_ctx[1] = flag;
+                ac.ctxv()[1] = flag;
             }
 
             return CHECK_ERROR(CALL_E_NOSYNC);
         }
 
-        result_t ctx_hr = ac->ctx(0);
+        result_t ctx_hr = ac.ctx(0);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        encoding = ac->m_ctx[0].string();
+        encoding = ac.ctxv()[0].string();
 
         if (!bFd) {
-            ctx_hr = ac->ctx(1);
+            ctx_hr = ac.ctx(1);
             if (ctx_hr < 0)
                 return ctx_hr;
 
-            flag = ac->m_ctx[1].string();
+            flag = ac.ctxv()[1].string();
         }
     }
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js reports an unknown encoding before the file is opened; the
@@ -1086,17 +1086,17 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
         if (fd_hr < 0)
             return fd_hr;
 
-        return read_file_fd(fdHandle, encoding, retVal, ac);
+        return read_file_fd(fdHandle, encoding, retVal, std::move(ac));
     }
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(read_file_ext(strName, flag, encoding, retVal, ac), "open", strName);
+    return setSystemErrorPayload(read_file_ext(strName, flag, encoding, retVal, std::move(ac)), "open", strName);
 }
 
 
 result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data data,
-    Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac)
+    Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac)
 {
     bool bFd = !std::holds_alternative<exlib::string>(fname);
     bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
@@ -1111,8 +1111,8 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
         // the name form takes the encoding, flag and mode from the options
         // object, which is readable in the synchronous phase only: the callback
         // phase receives an empty handle
-        if (ac->isSync()) {
-            ac->m_ctx.resize(3);
+        if (ac.isSync()) {
+            ac.ctxv().resize(3);
 
             v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(opt);
 
@@ -1129,32 +1129,32 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
             result_t _e = check_encoding(encoding);
             if (_e < 0)
                 return _e;
-            ac->m_ctx[0] = encoding;
+            ac.ctxv()[0] = encoding;
 
             GetConfigValue(options, "flag", flag);
-            ac->m_ctx[1] = flag;
+            ac.ctxv()[1] = flag;
 
             GetConfigValue(options, "mode", mode);
             if (mode < 0)
                 return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
-            ac->m_ctx[2] = mode;
+            ac.ctxv()[2] = mode;
 
             return CHECK_ERROR(CALL_E_NOSYNC);
         }
 
         // the sync phase filled the three slots together
-        result_t ctx_hr = ac->ctx(2);
+        result_t ctx_hr = ac.ctx(2);
         if (ctx_hr < 0)
             return ctx_hr;
 
-        encoding = ac->m_ctx[0].string();
-        flag = ac->m_ctx[1].string();
-        mode = ac->m_ctx[2].intVal();
+        encoding = ac.ctxv()[0].string();
+        flag = ac.ctxv()[1].string();
+        mode = ac.ctxv()[2].intVal();
     }
 
     // the descriptor form ignores the options object: the encoding stays empty
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js validates the encoding even when the data is a Buffer
@@ -1183,17 +1183,17 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
         if (fd_hr < 0)
             return fd_hr;
 
-        return write_file_fd(fdHandle, buf, retVal, ac);
+        return write_file_fd(fdHandle, buf, retVal, std::move(ac));
     }
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(write_file_ext(strName, buf, flag, mode, retVal, ac), "open", strName);
+    return setSystemErrorPayload(write_file_ext(strName, buf, flag, mode, retVal, std::move(ac)), "open", strName);
 }
 
 
 result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data data,
-    Union_appendFile_options options, int32_t& retVal, AsyncEvent* ac)
+    Union_appendFile_options options, int32_t& retVal, AsyncHandle ac)
 {
     bool bFd = !std::holds_alternative<exlib::string>(fname);
     bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
@@ -1209,8 +1209,8 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
         // encoding of the object only validates the label, the data itself is
         // appended as it is. The object is readable in the synchronous phase
         // only: the callback phase receives an empty handle.
-        if (ac->isSync()) {
-            ac->m_ctx.resize(3);
+        if (ac.isSync()) {
+            ac.ctxv().resize(3);
 
             v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
 
@@ -1219,32 +1219,32 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
             result_t _e = check_encoding(encoding);
             if (_e < 0)
                 return _e;
-            ac->m_ctx[0] = encoding;
+            ac.ctxv()[0] = encoding;
 
             GetConfigValue(opts, "flag", flag);
-            ac->m_ctx[1] = flag;
+            ac.ctxv()[1] = flag;
 
             GetConfigValue(opts, "mode", mode);
             if (mode < 0)
                 return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
-            ac->m_ctx[2] = mode;
+            ac.ctxv()[2] = mode;
 
             return CHECK_ERROR(CALL_E_NOSYNC);
         }
 
         // the sync phase filled the three slots together
-        result_t ctx_hr = ac->ctx(2);
+        result_t ctx_hr = ac.ctx(2);
         if (ctx_hr < 0)
             return ctx_hr;
 
         encoding.clear();
-        flag = ac->m_ctx[1].string();
-        mode = ac->m_ctx[2].intVal();
+        flag = ac.ctxv()[1].string();
+        mode = ac.ctxv()[2].intVal();
     }
 
     // the descriptor form ignores the options object: the encoding stays empty
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js validates the encoding even when the data is a Buffer
@@ -1277,12 +1277,12 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
         if (fd_hr < 0)
             return fd_hr;
 
-        return append_file_fd(fdHandle, buf, retVal, ac);
+        return append_file_fd(fdHandle, buf, retVal, std::move(ac));
     }
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(append_file_ext(strName, flag, mode, buf, retVal, ac), "open", strName);
+    return setSystemErrorPayload(append_file_ext(strName, flag, mode, buf, retVal, std::move(ac)), "open", strName);
 }
 
 
@@ -1308,9 +1308,9 @@ static result_t fd_from_union(Variant& fd, int32_t& _fd)
 }
 
 result_t fs_base::read(Union_read_fd fd, Buffer_base* buffer, int32_t offset, int32_t length,
-    int32_t position, int32_t& retVal, AsyncEvent* ac)
+    int32_t position, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -1365,9 +1365,9 @@ result_t fs_base::read(Union_read_fd fd, Buffer_base* buffer, int32_t offset, in
 }
 
 result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, int32_t length,
-    int32_t position, int32_t& retVal, AsyncEvent* ac)
+    int32_t position, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -1430,9 +1430,9 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
 }
 
 result_t fs_base::write(Union_write_fd fd, exlib::string string, int32_t position,
-    exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+    exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -1446,12 +1446,12 @@ result_t fs_base::write(Union_write_fd fd, exlib::string string, int32_t positio
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    return write(fd, buf, 0, -1, position, retVal, ac);
+    return write(fd, buf, 0, -1, position, retVal, std::move(ac));
 }
 
-result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t _fd;
@@ -1472,14 +1472,14 @@ result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncEven
     return 0;
 }
 
-result_t fs_base::fstat(Union_fstat_fd fd, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::fstat(Union_fstat_fd fd, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    return fstat(fd, retVal, ac);
+    return fstat(fd, retVal, std::move(ac));
 }
 
-result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
+result_t fs_base::exists(exlib::string path, bool& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
@@ -1492,14 +1492,14 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 }
 
 // Node.js compatibility: the options argument is accepted and ignored
-result_t fs_base::exists(exlib::string path, v8::Local<v8::Object> options, bool& retVal, AsyncEvent* ac)
+result_t fs_base::exists(exlib::string path, v8::Local<v8::Object> options, bool& retVal, AsyncHandle ac)
 {
-    return exists(path, retVal, ac);
+    return exists(path, retVal, std::move(ac));
 }
 
-result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
+result_t fs_base::access(exlib::string path, int32_t mode, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // Node.js compatibility: mode is a bitmask of F_OK/R_OK/W_OK/X_OK
         if (mode < 0 || mode > 7)
             return CHECK_ERROR(setRangeError("mode is out of range: >= 0 && <= 7"));
@@ -1515,9 +1515,9 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_access(NULL, &req, path.c_str(), mode, NULL), "access", path);
 }
 
-result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
+result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(oldPath, oldPath);
@@ -1533,9 +1533,9 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
         "link", oldPath, newPath);
 }
 
-result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
+result_t fs_base::unlink(exlib::string path, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
@@ -1546,9 +1546,9 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_unlink(NULL, &req, path.c_str(), NULL), "unlink", path);
 }
 
-result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(target, target);
@@ -1596,9 +1596,9 @@ static result_t path_to_variant(const exlib::string& path, const exlib::string& 
     return 0;
 }
 
-result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
@@ -1614,54 +1614,54 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac);
 
 // the options form: the encoding is read in the sync phase and travels to the
 // async phase through m_ctx
-static result_t readlink_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+static result_t readlink_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         exlib::string encoding = "utf8";
         GetConfigValue(options, "encoding", encoding);
-        ac->m_ctx[0] = encoding;
+        ac.ctxv()[0] = encoding;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return readlink_encoding(path, ac->m_ctx[0].string(), retVal, ac);
+    return readlink_encoding(path, ac.ctxv()[0].string(), retVal, std::move(ac));
 }
 
 // the encoding form
-static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     Variant link;
-    result_t hr = fs_base::readlink(path, link, ac);
+    result_t hr = fs_base::readlink(path, link, std::move(ac));
     if (hr < 0)
         return hr;
 
     return path_to_variant(link.string(), encoding, retVal);
 }
 
-result_t fs_base::readlink(exlib::string path, Union_readlink_options options, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::readlink(exlib::string path, Union_readlink_options options, Variant& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<exlib::string>(options))
-        return readlink_encoding(path, std::get<exlib::string>(options), retVal, ac);
+        return readlink_encoding(path, std::get<exlib::string>(options), retVal, std::move(ac));
 
-    return readlink_options(path, std::get<v8::Local<v8::Object>>(options), retVal, ac);
+    return readlink_options(path, std::get<v8::Local<v8::Object>>(options), retVal, std::move(ac));
 }
 
-result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = coerce_file_path_like(path, path);
@@ -1733,7 +1733,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
 
         // Check if this component is a symlink
         obj_ptr<Stat_base> stat;
-        hr = cc_lstat(testPath, stat, ac->isolate());
+        hr = cc_lstat(testPath, stat, ac.isolate());
         if (hr < 0)
             return setSystemErrorPayload(hr, "lstat", testPath);
 
@@ -1746,7 +1746,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
 
             // Read the symlink target
             Variant linkValue;
-            hr = cc_readlink(testPath, linkValue, ac->isolate());
+            hr = cc_readlink(testPath, linkValue, ac.isolate());
             if (hr < 0)
                 return setSystemErrorPayload(hr, "readlink", testPath);
 
@@ -1800,56 +1800,56 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncEvent* ac)
     return 0;
 }
 
-static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac);
 
 // the options form: the encoding is read in the sync phase and travels to the
 // async phase through m_ctx
-static result_t realpath_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+static result_t realpath_options(exlib::string path, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         exlib::string encoding = "utf8";
         GetConfigValue(options, "encoding", encoding);
-        ac->m_ctx[0] = encoding;
+        ac.ctxv()[0] = encoding;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return realpath_encoding(path, ac->m_ctx[0].string(), retVal, ac);
+    return realpath_encoding(path, ac.ctxv()[0].string(), retVal, std::move(ac));
 }
 
 // the encoding form
-static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncEvent* ac)
+static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     Variant resolved;
-    result_t hr = fs_base::realpath(path, resolved, ac);
+    result_t hr = fs_base::realpath(path, resolved, std::move(ac));
     if (hr < 0)
         return hr;
 
     return path_to_variant(resolved.string(), encoding, retVal);
 }
 
-result_t fs_base::realpath(exlib::string path, Union_realpath_options options, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::realpath(exlib::string path, Union_realpath_options options, Variant& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<exlib::string>(options))
-        return realpath_encoding(path, std::get<exlib::string>(options), retVal, ac);
+        return realpath_encoding(path, std::get<exlib::string>(options), retVal, std::move(ac));
 
-    return realpath_options(path, std::get<v8::Local<v8::Object>>(options), retVal, ac);
+    return realpath_options(path, std::get<v8::Local<v8::Object>>(options), retVal, std::move(ac));
 }
 
 // the numeric form; the merged entry dispatches here, and so does the octal
 // string form after parsing
-static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal, AsyncEvent* ac)
+static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js validates a numeric mode as an unsigned 32-bit integer; the IDL
@@ -1867,49 +1867,49 @@ static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal,
 
 // the octal string form: parsed in the sync phase, the number travels to the
 // async phase through m_ctx
-static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal, AsyncEvent* ac)
+static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         int32_t _mode;
         result_t hr = to_mode_value(mode, _mode);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _mode;
+        ac.ctxv()[0] = _mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return mkdir_numeric(path, ac->m_ctx[0].intVal(), retVal, ac);
+    return mkdir_numeric(path, ac.ctxv()[0].intVal(), retVal, std::move(ac));
 }
 
 // the options form (recursive/mode), defined below: it reads its config in the
 // sync phase
-static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac);
+static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncHandle ac);
 
-result_t fs_base::mkdir(exlib::string path, Union_mkdir_mode mode, Variant& retVal, AsyncEvent* ac)
+result_t fs_base::mkdir(exlib::string path, Union_mkdir_mode mode, Variant& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<int32_t>(mode))
-        return mkdir_numeric(path, std::get<int32_t>(mode), retVal, ac);
+        return mkdir_numeric(path, std::get<int32_t>(mode), retVal, std::move(ac));
 
     if (std::holds_alternative<v8::Local<v8::Object>>(mode))
-        return mkdir_options(path, std::get<v8::Local<v8::Object>>(mode), retVal, ac);
+        return mkdir_options(path, std::get<v8::Local<v8::Object>>(mode), retVal, std::move(ac));
 
-    return mkdir_variant(path, std::get<Variant>(mode), retVal, ac);
+    return mkdir_variant(path, std::get<Variant>(mode), retVal, std::move(ac));
 }
 
-static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncEvent* ac)
+static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Variant& retVal, AsyncHandle ac)
 {
     class AsyncUVMKDir : public uv_fs_t {
     public:
-        AsyncUVMKDir(exlib::string path, int32_t mode, Variant* retVal, AsyncEvent* ac)
-            : m_ac(ac)
+        AsyncUVMKDir(exlib::string path, int32_t mode, Variant* retVal, AsyncHandle ac)
+            : m_ac(std::move(ac))
             , m_retVal(retVal)
             , m_requestPath(path)
             , m_path(path)
@@ -1930,7 +1930,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
             int32_t ret = (int32_t)uv_fs_get_result(req);
             if (ret < 0 || !S_ISDIR(pThis->statbuf.st_mode)) {
                 setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
-                pThis->m_ac->apost(pThis->m_last_err);
+                pThis->m_ac.apost(pThis->m_last_err);
                 delete pThis;
                 return;
             }
@@ -1959,7 +1959,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
                     // nothing was created: Node.js reports undefined
                     if (pThis->m_retVal && !pThis->m_first.empty())
                         *pThis->m_retVal = pThis->m_first;
-                    pThis->m_ac->apost(0);
+                    pThis->m_ac.apost(0);
                     delete pThis;
                     return;
                 }
@@ -1971,7 +1971,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
             case UV_ENOTDIR:
             case UV_EPERM:
                 setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
                 return;
             case UV_ENOENT:
@@ -1984,7 +1984,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
                 ret = uv_fs_stat(s_uv_loop, pThis, pThis->m_path.c_str(), cb_stat);
                 if (ret != 0) {
                     setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
-                    pThis->m_ac->apost(pThis->m_last_err);
+                    pThis->m_ac.apost(pThis->m_last_err);
                     delete pThis;
                 }
                 return;
@@ -1994,13 +1994,13 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::cb_mkdir);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
         }
 
     private:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         Variant* m_retVal;
         exlib::string m_requestPath;
         exlib::string m_path;
@@ -2011,45 +2011,45 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
         int32_t m_last_err;
     };
 
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         bool recursive = false;
         GetConfigValue(opt, "recursive", recursive);
-        ac->m_ctx[0] = recursive;
+        ac.ctxv()[0] = recursive;
 
         int32_t mode = 0777;
         GetConfigValue(opt, "mode", mode);
-        ac->m_ctx[1] = mode;
+        ac.ctxv()[1] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    bool recursive = ac->m_ctx[0].boolVal();
-    int32_t mode = ac->m_ctx[1].intVal();
+    bool recursive = ac.ctxv()[0].boolVal();
+    int32_t mode = ac.ctxv()[1].intVal();
 
     result_t hr = normalize_file_path_like(path, path);
     if (hr < 0)
         return hr;
 
     if (!recursive)
-        return mkdir_numeric(path, mode, retVal, ac);
+        return mkdir_numeric(path, mode, retVal, std::move(ac));
 
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, mode, &retVal, ac), path.c_str(), mode, AsyncUVMKDir::cb_mkdir);
+        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, mode, &retVal, std::move(ac)), path.c_str(), mode, AsyncUVMKDir::cb_mkdir);
     });
 }
 
 class AsyncUVRM : public uv_fs_t {
 public:
-    AsyncUVRM(exlib::string path, bool rmFile, bool force, AsyncEvent* ac)
-        : m_ac(ac)
+    AsyncUVRM(exlib::string path, bool rmFile, bool force, AsyncHandle ac)
+        : m_ac(std::move(ac))
         , m_requestPath(path)
         , m_path(path)
         , m_rmFile(rmFile)
@@ -2072,10 +2072,10 @@ public:
             // Path doesn't exist or other error
             if (pThis->m_force && ret == UV_ENOENT) {
                 // force: silently ignore nonexistent paths (Node.js behavior)
-                pThis->m_ac->apost(0);
+                pThis->m_ac.apost(0);
             } else {
                 setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
             }
             delete pThis;
             return;
@@ -2086,7 +2086,7 @@ public:
             if (!pThis->m_rmFile) {
                 // rmdir does not delete files
                 setSystemErrorPayload(UV_ENOTDIR, "rmdir", pThis->m_requestPath);
-                pThis->m_ac->apost(UV_ENOTDIR);
+                pThis->m_ac.apost(UV_ENOTDIR);
                 delete pThis;
                 return;
             }
@@ -2095,7 +2095,7 @@ public:
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
             return;
@@ -2105,7 +2105,7 @@ public:
             ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
             return;
@@ -2118,7 +2118,7 @@ public:
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
             return;
@@ -2132,7 +2132,7 @@ public:
 
         if (ret < 0) {
             setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2154,7 +2154,7 @@ public:
 
         if (ret < 0) {
             setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2168,7 +2168,7 @@ public:
         AsyncUVRM* pThis = (AsyncUVRM*)req;
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
-        pThis->m_ac->apost(ret);
+        pThis->m_ac.apost(ret);
         delete pThis;
     }
 
@@ -2177,7 +2177,7 @@ public:
         AsyncUVRM* pThis = (AsyncUVRM*)req;
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
-        pThis->m_ac->apost(ret);
+        pThis->m_ac.apost(ret);
         delete pThis;
     }
 
@@ -2189,7 +2189,7 @@ public:
             int32_t ret = uv_fs_rmdir(s_uv_loop, this, m_path.c_str(), cb_rmdir);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac->apost(ret);
+                m_ac.apost(ret);
                 delete this;
             }
             return;
@@ -2209,7 +2209,7 @@ public:
             int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac->apost(ret);
+                m_ac.apost(ret);
                 delete subRemover;
                 delete this;
             }
@@ -2218,7 +2218,7 @@ public:
             int32_t ret = uv_fs_unlink(s_uv_loop, this, entry_path.c_str(), cb_entry_removed);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac->apost(ret);
+                m_ac.apost(ret);
                 delete this;
             }
         }
@@ -2231,15 +2231,16 @@ public:
         {
         }
 
-        virtual void apost(int32_t hr) override
+        int32_t post(int32_t hr) override
         {
             if (hr < 0) {
-                m_parent->m_ac->apost(hr);
+                m_parent->m_ac.apost(hr);
                 delete m_parent;
             } else {
                 m_parent->remove_next_entry();
             }
             delete this;
+            return 0;
         }
 
     private:
@@ -2247,7 +2248,7 @@ public:
     };
 
 private:
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
     exlib::string m_requestPath;
     exlib::string m_path;
     bool m_rmFile;
@@ -2255,9 +2256,9 @@ private:
     std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
 };
 
-result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncEvent* ac)
+result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Append XXXXXX template suffix as required by mkdtemp()
@@ -2271,23 +2272,23 @@ result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncEven
     return 0;
 }
 
-result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
+result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         bool recursive = false;
         GetConfigValue(opt, "recursive", recursive);
-        ac->m_ctx[0] = recursive;
+        ac.ctxv()[0] = recursive;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    bool recursive = ac->m_ctx[0].boolVal();
+    bool recursive = ac.ctxv()[0].boolVal();
 
     if (!recursive) {
         AutoReq req;
@@ -2297,32 +2298,32 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, false, false, ac), path.c_str(), AsyncUVRM::cb_stat);
+        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, false, false, std::move(ac)), path.c_str(), AsyncUVRM::cb_stat);
     });
 }
 
-result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
+result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         bool recursive = false;
         GetConfigValue(opt, "recursive", recursive);
-        ac->m_ctx[0] = recursive;
+        ac.ctxv()[0] = recursive;
 
         bool force = false;
         GetConfigValue(opt, "force", force);
-        ac->m_ctx[1] = force;
+        ac.ctxv()[1] = force;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    bool recursive = ac->m_ctx[0].boolVal();
-    bool force = ac->m_ctx[1].boolVal();
+    bool recursive = ac.ctxv()[0].boolVal();
+    bool force = ac.ctxv()[1].boolVal();
 
     result_t hr = normalize_file_path_like(path, path);
     if (hr < 0)
@@ -2360,13 +2361,13 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* 
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, true, force, ac), path.c_str(), AsyncUVRM::cb_stat);
+        return uv_fs_lstat(s_uv_loop, new AsyncUVRM(path, true, force, std::move(ac)), path.c_str(), AsyncUVRM::cb_stat);
     });
 }
 
-result_t fs_base::fchmod(Union_fchmod_fd fd, int32_t mode, AsyncEvent* ac)
+result_t fs_base::fchmod(Union_fchmod_fd fd, int32_t mode, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js validates a numeric mode as an unsigned 32-bit integer.
@@ -2385,9 +2386,9 @@ result_t fs_base::fchmod(Union_fchmod_fd fd, int32_t mode, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_fchmod(NULL, &req, _fd, mode, NULL), "fchmod");
 }
 
-result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncEvent* ac)
+result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<FileHandle_base> handle;
@@ -2402,9 +2403,9 @@ result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncEven
     return setSystemErrorPayload(uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL), "fchown");
 }
 
-result_t fs_base::fsync(Union_fsync_fd fd, AsyncEvent* ac)
+result_t fs_base::fsync(Union_fsync_fd fd, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<FileHandle_base> handle;
@@ -2419,9 +2420,9 @@ result_t fs_base::fsync(Union_fsync_fd fd, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_fsync(NULL, &req, _fd, NULL), "fsync");
 }
 
-result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncEvent* ac)
+result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<FileHandle_base> handle;
@@ -2442,9 +2443,9 @@ result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_ftruncate(NULL, &req, _fd, len, NULL), "ftruncate");
 }
 
-result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncEvent* ac)
+result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
@@ -2472,9 +2473,9 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncE
 
 // the numeric form; the merged entry dispatches here, and so does the string
 // form's async phase (which carries the parsed mode through m_ctx)
-static result_t chmod_numeric(exlib::string path, int32_t mode, AsyncEvent* ac)
+static result_t chmod_numeric(exlib::string path, int32_t mode, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Node.js validates a numeric mode as an unsigned 32-bit integer.
@@ -2485,91 +2486,91 @@ static result_t chmod_numeric(exlib::string path, int32_t mode, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL), "chmod", path);
 }
 
-result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncEvent* ac)
+result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle ac)
 {
     if (std::holds_alternative<int32_t>(mode))
-        return chmod_numeric(path, std::get<int32_t>(mode), ac);
+        return chmod_numeric(path, std::get<int32_t>(mode), std::move(ac));
 
     // a string mode (or any other value) is parsed in the sync phase; the
     // number travels to the async phase through m_ctx
     Variant mode_value = std::get<Variant>(mode);
 
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         int32_t _mode;
         result_t hr = to_mode_value(mode_value, _mode);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _mode;
+        ac.ctxv()[0] = _mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return chmod_numeric(path, ac->m_ctx[0].intVal(), ac);
+    return chmod_numeric(path, ac.ctxv()[0].intVal(), std::move(ac));
 }
 
 // the platform-specific numeric lchmod: fs_posix.cpp implements it, fs_win32.cpp
 // reports that it is unsupported; the merged entry below and the string form's
 // async phase both dispatch here
-result_t lchmod_platform(exlib::string path, int32_t mode, AsyncEvent* ac);
+result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac);
 
-result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncEvent* ac)
+result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncHandle ac)
 {
     if (std::holds_alternative<int32_t>(mode))
-        return lchmod_platform(path, std::get<int32_t>(mode), ac);
+        return lchmod_platform(path, std::get<int32_t>(mode), std::move(ac));
 
     // a string mode (or any other value) is parsed in the sync phase; the
     // number travels to the async phase through m_ctx
     Variant mode_value = std::get<Variant>(mode);
 
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         int32_t _mode;
         result_t hr = to_mode_value(mode_value, _mode);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _mode;
+        ac.ctxv()[0] = _mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return lchmod_platform(path, ac->m_ctx[0].intVal(), ac);
+    return lchmod_platform(path, ac.ctxv()[0].intVal(), std::move(ac));
 }
 
-result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
     return setSystemErrorPayload(uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL), "chown", path);
 }
 
-result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
     return setSystemErrorPayload(uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL), "lchown", path);
 }
 
-result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, AsyncEvent* ac)
+result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
@@ -2580,24 +2581,24 @@ result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, Async
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _atime;
-        ac->m_ctx[1] = _mtime;
+        ac.ctxv()[0] = _atime;
+        ac.ctxv()[1] = _mtime;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_utime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "utime", path);
+    return setSystemErrorPayload(uv_fs_utime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "utime", path);
 }
 
-result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, AsyncEvent* ac)
+result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
@@ -2608,24 +2609,24 @@ result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, Asyn
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _atime;
-        ac->m_ctx[1] = _mtime;
+        ac.ctxv()[0] = _atime;
+        ac.ctxv()[1] = _mtime;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_lutime(NULL, &req, path.c_str(), ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "lutime", path);
+    return setSystemErrorPayload(uv_fs_lutime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "lutime", path);
 }
 
-result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, AsyncEvent* ac)
+result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
@@ -2636,8 +2637,8 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[0] = _atime;
-        ac->m_ctx[1] = _mtime;
+        ac.ctxv()[0] = _atime;
+        ac.ctxv()[1] = _mtime;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
@@ -2647,17 +2648,17 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
     if (hr < 0)
         return hr;
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_futime(NULL, &req, _fd, ac->m_ctx[0].dblVal(), ac->m_ctx[1].dblVal(), NULL), "futime");
+    return setSystemErrorPayload(uv_fs_futime(NULL, &req, _fd, ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "futime");
 }
 
-result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
+result_t fs_base::rename(exlib::string from, exlib::string to, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(from, from);
@@ -2673,9 +2674,9 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
         "rename", from, to);
 }
 
-result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncEvent* ac)
+result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<FileHandle_base> handle;
@@ -2690,9 +2691,9 @@ result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncEvent* ac)
     return setSystemErrorPayload(uv_fs_fdatasync(NULL, &req, _fd, NULL), "fdatasync");
 }
 
-result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac)
+result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(from, from);
@@ -2710,8 +2711,8 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
 
 class AsyncUVCP : public uv_fs_t {
 public:
-    AsyncUVCP(exlib::string src, exlib::string dest, bool recursive, bool force, bool errorOnExist, int32_t mode, AsyncEvent* ac)
-        : m_ac(ac)
+    AsyncUVCP(exlib::string src, exlib::string dest, bool recursive, bool force, bool errorOnExist, int32_t mode, AsyncHandle ac)
+        : m_ac(std::move(ac))
         , m_requestPath(src)
         , m_src(src)
         , m_dest(dest)
@@ -2735,7 +2736,7 @@ public:
 
         if (ret < 0) {
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2749,7 +2750,7 @@ public:
                         .with_code("ERR_FS_EISDIR")
                         .format("Recursive option not enabled, cannot copy a directory: %s/",
                             pThis->m_requestPath.c_str()));
-                pThis->m_ac->apost(CALL_E_EXCEPTION);
+                pThis->m_ac.apost(CALL_E_EXCEPTION);
                 delete pThis;
                 return;
             }
@@ -2759,7 +2760,7 @@ public:
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_dest.c_str(), pThis->statbuf.st_mode & 0777, cb_mkdir);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
         } else if (S_ISREG(pThis->statbuf.st_mode)) {
@@ -2769,7 +2770,7 @@ public:
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
         } else {
@@ -2779,7 +2780,7 @@ public:
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac->apost(ret);
+                pThis->m_ac.apost(ret);
                 delete pThis;
             }
         }
@@ -2792,7 +2793,7 @@ public:
 
         if (ret < 0 && ret != UV_EEXIST) {
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2802,7 +2803,7 @@ public:
         ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_src.c_str(), 0, cb_scandir);
         if (ret != 0) {
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
         }
     }
@@ -2814,7 +2815,7 @@ public:
 
         if (ret < 0) {
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2851,7 +2852,7 @@ public:
         } else if (ret < 0)
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
 
-        pThis->m_ac->apost(ret);
+        pThis->m_ac.apost(ret);
         delete pThis;
     }
 
@@ -2869,7 +2870,7 @@ public:
 
         if (ret < 0) {
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac->apost(ret);
+            pThis->m_ac.apost(ret);
             delete pThis;
             return;
         }
@@ -2881,7 +2882,7 @@ public:
     {
         if (m_entries.empty()) {
             // All entries copied
-            m_ac->apost(0);
+            m_ac.apost(0);
             delete this;
             return;
         }
@@ -2900,7 +2901,7 @@ public:
             int32_t ret = uv_fs_stat(s_uv_loop, subCopier, src_path.c_str(), cb_stat);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "copyfile", m_requestPath);
-                m_ac->apost(ret);
+                m_ac.apost(ret);
                 delete subCopier;
                 delete this;
             }
@@ -2910,7 +2911,7 @@ public:
                 m_mode, cb_entry_copied);
             if (ret != 0) {
                 setSystemErrorPayload(ret, "copyfile", m_requestPath);
-                m_ac->apost(ret);
+                m_ac.apost(ret);
                 delete this;
             }
         }
@@ -2923,15 +2924,16 @@ public:
         {
         }
 
-        virtual void apost(int32_t hr) override
+        int32_t post(int32_t hr) override
         {
             if (hr < 0) {
-                m_parent->m_ac->apost(hr);
+                m_parent->m_ac.apost(hr);
                 delete m_parent;
             } else {
                 m_parent->copy_next_entry();
             }
             delete this;
+            return 0;
         }
 
     private:
@@ -2939,7 +2941,7 @@ public:
     };
 
 private:
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
     exlib::string m_requestPath;
     exlib::string m_src;
     exlib::string m_dest;
@@ -2950,10 +2952,10 @@ private:
     std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
 };
 
-result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(4);
+    if (ac.isSync()) {
+        ac.ctxv().resize(4);
 
         // Node.js: copying onto itself is refused up front.
         if (src == dest)
@@ -2963,31 +2965,31 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
-        ac->m_ctx[0] = recursive;
+        ac.ctxv()[0] = recursive;
 
         bool force = true;
         GetConfigValue(opts, "force", force);
-        ac->m_ctx[1] = force;
+        ac.ctxv()[1] = force;
 
         bool errorOnExist = false;
         GetConfigValue(opts, "errorOnExist", errorOnExist);
-        ac->m_ctx[2] = errorOnExist;
+        ac.ctxv()[2] = errorOnExist;
 
         int32_t mode = 0;
         GetConfigValue(opts, "mode", mode);
-        ac->m_ctx[3] = mode;
+        ac.ctxv()[3] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(3);
+    result_t ctx_hr = ac.ctx(3);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    bool recursive = ac->m_ctx[0].boolVal();
-    bool force = ac->m_ctx[1].boolVal();
-    bool errorOnExist = ac->m_ctx[2].boolVal();
-    int32_t mode = ac->m_ctx[3].intVal();
+    bool recursive = ac.ctxv()[0].boolVal();
+    bool force = ac.ctxv()[1].boolVal();
+    bool errorOnExist = ac.ctxv()[2].boolVal();
+    int32_t mode = ac.ctxv()[3].intVal();
 
     result_t hr = normalize_file_path_like(src, src);
     if (hr < 0)
@@ -3004,13 +3006,13 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
     os_resolve(dest);
 
     return uv_async([&] {
-        return uv_fs_stat(s_uv_loop, new AsyncUVCP(src, dest, recursive, force, errorOnExist, mode, ac), src.c_str(), AsyncUVCP::cb_stat);
+        return uv_fs_stat(s_uv_loop, new AsyncUVCP(src, dest, recursive, force, errorOnExist, mode, std::move(ac)), src.c_str(), AsyncUVCP::cb_stat);
     });
 }
 
-result_t fs_base::opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncEvent* ac)
+result_t fs_base::opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = new Dir(path);
@@ -3018,9 +3020,9 @@ result_t fs_base::opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncEv
     return 0;
 }
 
-result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
@@ -3074,57 +3076,57 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
 }
 
 static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTypes, exlib::string encoding,
-    obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    obj_ptr<NArray>& retVal, AsyncHandle ac);
 
 // the options form: recursive/withFileTypes/encoding are read in the sync
 // phase and travel to the async phase through m_ctx
-static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(3);
+    if (ac.isSync()) {
+        ac.ctxv().resize(3);
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
-        ac->m_ctx[0] = recursive;
+        ac.ctxv()[0] = recursive;
 
         bool withFileTypes = false;
         GetConfigValue(opts, "withFileTypes", withFileTypes);
-        ac->m_ctx[1] = withFileTypes;
+        ac.ctxv()[1] = withFileTypes;
 
         exlib::string encoding;
         GetConfigValue(opts, "encoding", encoding);
-        ac->m_ctx[2] = encoding;
+        ac.ctxv()[2] = encoding;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(2);
+    result_t ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return readdir_ext(path, ac->m_ctx[0].boolVal(), ac->m_ctx[1].boolVal(), ac->m_ctx[2].string(), retVal, ac);
+    return readdir_ext(path, ac.ctxv()[0].boolVal(), ac.ctxv()[1].boolVal(), ac.ctxv()[2].string(), retVal, std::move(ac));
 }
 
 // Node.js: readdir(path, encoding) - names are returned in the given encoding
-static result_t readdir_encoding(exlib::string path, exlib::string encoding, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+static result_t readdir_encoding(exlib::string path, exlib::string encoding, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return readdir_ext(path, false, false, encoding, retVal, ac);
+    return readdir_ext(path, false, false, encoding, retVal, std::move(ac));
 }
 
-result_t fs_base::readdir(exlib::string path, Union_readdir_opts opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+result_t fs_base::readdir(exlib::string path, Union_readdir_opts opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<exlib::string>(opts))
-        return readdir_encoding(path, std::get<exlib::string>(opts), retVal, ac);
+        return readdir_encoding(path, std::get<exlib::string>(opts), retVal, std::move(ac));
 
-    return readdir_options(path, std::get<v8::Local<v8::Object>>(opts), retVal, ac);
+    return readdir_options(path, std::get<v8::Local<v8::Object>>(opts), retVal, std::move(ac));
 }
 
 // shared readdir implementation
 static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTypes, exlib::string encoding,
-    obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = normalize_file_path_like(path, path);
     if (hr < 0)
@@ -3231,36 +3233,36 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
 }
 
 result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> options,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(3);
+    if (ac.isSync()) {
+        ac.ctxv().resize(3);
 
         exlib::string flags = "r";
         GetConfigValue(options, "flags", flags);
-        ac->m_ctx[0] = flags;
+        ac.ctxv()[0] = flags;
 
         int64_t start = -1;
         GetConfigValue(options, "start", start);
-        ac->m_ctx[1] = start;
+        ac.ctxv()[1] = start;
 
         int64_t end = -1;
         GetConfigValue(options, "end", end);
-        ac->m_ctx[2] = end;
+        ac.ctxv()[2] = end;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(2);
+    result_t ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    exlib::string flags = ac->m_ctx[0].string();
-    int64_t start = ac->m_ctx[1].longVal();
-    int64_t end = ac->m_ctx[2].longVal();
+    exlib::string flags = ac.ctxv()[0].string();
+    int64_t start = ac.ctxv()[1].longVal();
+    int64_t end = ac.ctxv()[2].longVal();
 
     obj_ptr<SeekableStream_base> stm;
-    result_t hr = openFile(fname, flags, stm, ac);
+    result_t hr = openFile(fname, flags, stm, std::move(ac));
     if (hr < 0)
         return stream_open_error(fname, flags, hr, retVal);
 
@@ -3280,31 +3282,31 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
 }
 
 result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> options,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(2);
+    if (ac.isSync()) {
+        ac.ctxv().resize(2);
 
         exlib::string flags = "w";
         GetConfigValue(options, "flags", flags);
-        ac->m_ctx[0] = flags;
+        ac.ctxv()[0] = flags;
 
         int64_t start = -1;
         GetConfigValue(options, "start", start);
-        ac->m_ctx[1] = start;
+        ac.ctxv()[1] = start;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(1);
+    result_t ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    exlib::string flags = ac->m_ctx[0].string();
-    int64_t start = ac->m_ctx[1].longVal();
+    exlib::string flags = ac.ctxv()[0].string();
+    int64_t start = ac.ctxv()[1].longVal();
 
     obj_ptr<SeekableStream_base> stm;
-    result_t hr = openFile(fname, flags, stm, ac);
+    result_t hr = openFile(fname, flags, stm, std::move(ac));
     if (hr < 0)
         return stream_open_error(fname, flags, hr, retVal);
 

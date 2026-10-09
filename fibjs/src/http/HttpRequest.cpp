@@ -339,14 +339,14 @@ result_t HttpRequest::get_bodyUsed(bool& retVal)
 }
 
 result_t HttpRequest::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return m_message->read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, std::move(ac));
 }
 
-result_t HttpRequest::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t HttpRequest::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->readAll(retVal, ac);
+    return m_message->readAll(retVal, std::move(ac));
 }
 
 result_t HttpRequest::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
@@ -358,22 +358,22 @@ result_t HttpRequest::setEncoding(exlib::string encoding, obj_ptr<Message_base>&
     return 0;
 }
 
-result_t HttpRequest::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return write(std::get<exlib::string>(data), retVal, ac);
+    return write(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->write(data, retVal, ac);
+    return m_message->write(data, retVal, std::move(ac));
 }
 
-result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -381,57 +381,57 @@ result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    return m_message->write(buf.get(), retVal, ac);
+    return m_message->write(buf.get(), retVal, std::move(ac));
 }
 
-result_t HttpRequest::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
+result_t HttpRequest::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(data, retVal, ac);
+    return m_message->text(data, retVal, std::move(ac));
 }
 
-result_t HttpRequest::text(exlib::string& retVal, AsyncEvent* ac)
+result_t HttpRequest::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(retVal, ac);
+    return m_message->text(retVal, std::move(ac));
 }
 
-result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t HttpRequest::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    return m_message->arrayBuffer(retVal, ac);
+    return m_message->arrayBuffer(retVal, std::move(ac));
 }
 
-result_t HttpRequest::formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac)
+result_t HttpRequest::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
 {
-    return m_message->formData(retVal, ac);
+    return m_message->formData(retVal, std::move(ac));
 }
 
-result_t HttpRequest::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpRequest::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(data, retVal, ac);
+    return m_message->json(data, retVal, std::move(ac));
 }
 
-result_t HttpRequest::json(Variant& retVal, AsyncEvent* ac)
+result_t HttpRequest::json(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(retVal, ac);
+    return m_message->json(retVal, std::move(ac));
 }
 
-result_t HttpRequest::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpRequest::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(data, retVal, ac);
+    return m_message->pack(data, retVal, std::move(ac));
 }
 
-result_t HttpRequest::pack(Variant& retVal, AsyncEvent* ac)
+result_t HttpRequest::pack(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(retVal, ac);
+    return m_message->pack(retVal, std::move(ac));
 }
 
-result_t HttpRequest::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+result_t HttpRequest::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
 {
-    return m_message->blob(type, retVal, ac);
+    return m_message->blob(type, retVal, std::move(ac));
 }
 
-result_t HttpRequest::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t HttpRequest::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->bytes(retVal, ac);
+    return m_message->bytes(retVal, std::move(ac));
 }
 
 result_t HttpRequest::get_length(int64_t& retVal)
@@ -639,17 +639,17 @@ result_t HttpRequest::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t HttpRequest::end(int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, int32_t& retVal, AsyncEvent* ac)
+        AsyncEnd(HttpRequest* pThis, int32_t& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_retVal(retVal)
         {
-            m_ac = m_pThis->m_asyncState;
-            m_pThis->m_asyncState = nullptr;
+            // 票据从请求对象取回（move：请求对象不再持有）
+            m_ac = std::move(m_pThis->m_asyncState);
 
             init(end);
         }
@@ -662,41 +662,41 @@ result_t HttpRequest::end(int32_t& retVal, AsyncEvent* ac)
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac->post(0);
+                m_ac.post(0);
             return next();
         }
 
         virtual int32_t error(int32_t hr) override
         {
             if (m_ac)
-                m_ac->post(hr);
+                m_ac.post(hr);
             return hr;
         }
 
     public:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
         int32_t& m_retVal;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncEnd(this, retVal, ac))->post(0);
+    return (new AsyncEnd(this, retVal, std::move(ac)))->post(0);
 }
 
-result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, int32_t& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
             , m_retVal(retVal)
         {
-            m_ac = m_pThis->m_asyncState;
-            m_pThis->m_asyncState = nullptr;
+            // 票据从请求对象取回（move：请求对象不再持有）
+            m_ac = std::move(m_pThis->m_asyncState);
 
             init(end);
         }
@@ -709,43 +709,43 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac->post(0);
+                m_ac.post(0);
             return next();
         }
 
         virtual int32_t error(int32_t hr) override
         {
             if (m_ac)
-                m_ac->post(hr);
+                m_ac.post(hr);
             return hr;
         }
 
     public:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
         obj_ptr<Buffer_base> m_data;
         int32_t& m_retVal;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncEnd(this, data, retVal, ac))->post(0);
+    return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(0);
 }
 
-result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
             , m_encoding(encoding)
             , m_retVal(retVal)
         {
-            m_ac = m_pThis->m_asyncState;
-            m_pThis->m_asyncState = nullptr;
+            // 票据从请求对象取回（move：请求对象不再持有）
+            m_ac = std::move(m_pThis->m_asyncState);
 
             init(end);
         }
@@ -758,44 +758,44 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac->post(0);
+                m_ac.post(0);
             return next();
         }
 
         virtual int32_t error(int32_t hr) override
         {
             if (m_ac)
-                m_ac->post(hr);
+                m_ac.post(hr);
             return hr;
         }
 
     public:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
         obj_ptr<Buffer_base> m_data;
         exlib::string m_encoding;
         int32_t& m_retVal;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncEnd(this, data, encoding, retVal, ac))->post(0);
+    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
 
-result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+        AsyncEnd(HttpRequest* pThis, exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
             , m_encoding(encoding)
             , m_retVal(retVal)
         {
-            m_ac = m_pThis->m_asyncState;
-            m_pThis->m_asyncState = nullptr;
+            // 票据从请求对象取回（move：请求对象不再持有）
+            m_ac = std::move(m_pThis->m_asyncState);
 
             init(end);
         }
@@ -808,29 +808,29 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac->post(0);
+                m_ac.post(0);
             return next();
         }
 
         virtual int32_t error(int32_t hr) override
         {
             if (m_ac)
-                m_ac->post(hr);
+                m_ac.post(hr);
             return hr;
         }
 
     public:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
         exlib::string m_data;
         exlib::string m_encoding;
         int32_t& m_retVal;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncEnd(this, data, encoding, retVal, ac))->post(0);
+    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
 
 result_t HttpRequest::isEnded(bool& retVal)
@@ -864,9 +864,9 @@ result_t HttpRequest::clear()
     return 0;
 }
 
-result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strCommand = m_method;
@@ -883,15 +883,15 @@ result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, As
     strCommand.append(1, ' ');
     strCommand.append(strProtocol);
 
-    return m_message->send(stm, strCommand, ac);
+    return m_message->send(stm, strCommand, std::move(ac));
 }
 
-result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
     class asyncReadFrom : public AsyncState {
     public:
         asyncReadFrom(HttpRequest* pThis, BufferedStream_base* stm,
-            AsyncEvent* ac)
+            AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -950,14 +950,14 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
         exlib::string m_strLine;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
         return CHECK_ERROR(Runtime::setError("HttpRequest: only accept BufferedStream object."));
 
-    return (new asyncReadFrom(this, _stm, ac))->post(0);
+    return (new asyncReadFrom(this, _stm, std::move(ac)))->post(0);
 }
 
 result_t HttpRequest::get_method(exlib::string& retVal)

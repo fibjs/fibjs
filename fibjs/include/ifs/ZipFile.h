@@ -121,18 +121,18 @@ public:
 
 public:
     // ZipFile_base
-    virtual result_t namelist(std::vector<exlib::string>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t infolist(std::vector<obj_ptr<InfolistType>>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getinfo(exlib::string member, obj_ptr<GetinfoType>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readAll(exlib::string password, std::vector<obj_ptr<ReadAllType>>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t extractAll(exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t namelist(std::vector<exlib::string>& retVal, AsyncHandle ac) = 0;
+    virtual result_t infolist(std::vector<obj_ptr<InfolistType>>& retVal, AsyncHandle ac) = 0;
+    virtual result_t getinfo(exlib::string member, obj_ptr<GetinfoType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t readAll(exlib::string password, std::vector<obj_ptr<ReadAllType>>& retVal, AsyncHandle ac) = 0;
+    virtual result_t extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t extractAll(exlib::string path, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

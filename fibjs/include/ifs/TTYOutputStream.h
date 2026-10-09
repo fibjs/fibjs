@@ -33,8 +33,8 @@ public:
     virtual result_t get_rows(int32_t& retVal) = 0;
     virtual result_t clearLine(int32_t dir) = 0;
     virtual result_t clearScreenDown() = 0;
-    virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac) = 0;
-    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac) = 0;
+    virtual result_t cursorTo(int32_t x, int32_t y, AsyncHandle ac) = 0;
+    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncHandle ac) = 0;
     virtual result_t getWindowSize(std::vector<double>& retVal) = 0;
 
 public:

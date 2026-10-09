@@ -222,11 +222,11 @@ result_t Http2Stream::get_fd(int32_t& retVal)
     return CALL_E_INVALID_CALL;
 }
 
-result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     class AsyncRead : public AsyncState {
     public:
-        AsyncRead(Http2Stream* stream, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        AsyncRead(Http2Stream* stream, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_stream(stream)
             , m_retVal(retVal)
@@ -302,15 +302,15 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
         bool m_locked = false;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncRead(this, retVal, ac))->post(0);
+    return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
 }
 
-result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_closed || m_destroyed)
@@ -331,28 +331,27 @@ result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncEvent* ac)
     return 0;
 }
 
-result_t Http2Stream::flush(AsyncEvent* ac)
+result_t Http2Stream::flush(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
     return 0;
 }
 
-result_t Http2Stream::close(AsyncEvent* ac)
+result_t Http2Stream::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_closed) {
         m_recv_lock.lock();
         m_closed = true;
         m_recv_end = true;
-        AsyncEvent* rac = m_recv_ac;
-        m_recv_ac = nullptr;
+        AsyncHandle rac = std::move(m_recv_ac);
         m_recv_retVal = nullptr;
         m_recv_lock.unlock();
         if (rac)
-            rac->apost(CALL_RETURN_NULL);
+            rac.apost(CALL_RETURN_NULL);
 
         // Signal send-side end so data_source_read_callback returns EOF
         m_send_lock.lock();
@@ -377,11 +376,10 @@ void Http2Stream::onData(const uint8_t* data, size_t len)
     if (m_recv_ac) {
         // A reader is waiting — deliver directly
         *m_recv_retVal = buf;
-        AsyncEvent* ac = m_recv_ac;
-        m_recv_ac = nullptr;
+        AsyncHandle ac = std::move(m_recv_ac);
         m_recv_retVal = nullptr;
         m_recv_lock.unlock();
-        ac->apost(0);
+        ac.apost(0);
         return;
     }
     m_recv_queue.push_back(buf);
@@ -392,17 +390,16 @@ void Http2Stream::onHeaders(obj_ptr<NObject> headers)
 {
     m_headers_lock.lock();
     m_headers = headers;
-    AsyncEvent* ac = m_headers_ac;
-    m_headers_ac = nullptr;
+    AsyncHandle ac = std::move(m_headers_ac);
     m_headers_lock.unlock();
 
     if (ac)
-        ac->apost(0);
+        ac.apost(0);
 }
 
-result_t Http2Stream::waitHeaders(AsyncEvent* ac)
+result_t Http2Stream::waitHeaders(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_headers_lock.lock();
@@ -417,7 +414,7 @@ result_t Http2Stream::waitHeaders(AsyncEvent* ac)
         return CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received"));
     }
 
-    m_headers_ac = ac;
+    m_headers_ac = std::move(ac);
     m_headers_lock.unlock();
     return CALL_E_PENDDING;
 }
@@ -427,24 +424,22 @@ void Http2Stream::onClose(uint32_t error_code)
     m_recv_lock.lock();
     m_closed = true;
     m_error_code = error_code;
-    AsyncEvent* rac = m_recv_ac;
-    m_recv_ac = nullptr;
+    AsyncHandle rac = std::move(m_recv_ac);
     m_recv_retVal = nullptr;
     m_recv_lock.unlock();
     if (rac) {
         if (error_code != 0)
-            rac->apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream reset")));
+            rac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream reset")));
         else
-            rac->apost(CALL_RETURN_NULL);
+            rac.apost(CALL_RETURN_NULL);
     }
 
     m_headers_lock.lock();
     m_closed = true;
-    AsyncEvent* hac = m_headers_ac;
-    m_headers_ac = nullptr;
+    AsyncHandle hac = std::move(m_headers_ac);
     m_headers_lock.unlock();
     if (hac)
-        hac->apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
+        hac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
 
     if (m_session)
         m_session->removeStream(m_stream_id);
@@ -460,12 +455,11 @@ void Http2Stream::onEnd()
 {
     m_recv_lock.lock();
     m_recv_end = true;
-    AsyncEvent* rac = m_recv_ac;
-    m_recv_ac = nullptr;
+    AsyncHandle rac = std::move(m_recv_ac);
     m_recv_retVal = nullptr;
     m_recv_lock.unlock();
     if (rac)
-        rac->apost(CALL_RETURN_NULL);
+        rac.apost(CALL_RETURN_NULL);
 }
 
 } /* namespace fibjs */

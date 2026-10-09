@@ -118,13 +118,13 @@ public:
     class AsyncRead : public AsyncEvent,
                       public UVTimeout {
     public:
-        AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
             : UVTimeout(pThis)
             , m_this(pThis)
             , m_bRead(bRead)
             , m_bytes(bytes)
             , m_retVal(retVal)
-            , m_ac(ac)
+            , m_ac(std::move(ac))
             , m_pos(0)
         {
         }
@@ -204,7 +204,7 @@ public:
         void post_result(int32_t status)
         {
             if (status < 0 && status != UV_EOF && status != UV_ENOTCONN && status != UV_ECONNRESET) {
-                m_ac->apost(status);
+                m_ac.apost(status);
             } else {
                 if (m_pos) {
                     if (m_pos < m_buf.length())
@@ -217,9 +217,9 @@ public:
                         outLog(console_base::C_NOTICE, clean_string(m_buf.c_str(), m_buf.length()));
                     }
 
-                    m_ac->post(0);
+                    m_ac.post(0);
                 } else
-                    m_ac->apost(CALL_RETURN_NULL);
+                    m_ac.apost(CALL_RETURN_NULL);
             }
             UVTimeout::cancel_timer();
         }
@@ -229,7 +229,7 @@ public:
         bool m_bRead;
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         size_t m_pos;
         exlib::string m_buf;
     };
@@ -237,10 +237,10 @@ public:
     class AsyncWrite : public AsyncEvent,
                        public UVTimeout {
     public:
-        AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac, int32_t timeout)
+        AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncHandle ac, int32_t timeout)
             : UVTimeout(pThis, timeout)
             , m_this(pThis)
-            , m_ac(ac)
+            , m_ac(std::move(ac))
             , m_inflight(false)
             , m_in_queue(false)
             , m_timedout(false)
@@ -272,7 +272,7 @@ public:
 
             // If request is in-flight, keep queue ownership until uv callback.
             // Otherwise we can complete and release immediately.
-            m_ac->apost(CALL_E_TIMEOUT);
+            m_ac.apost(CALL_E_TIMEOUT);
 
             if (!m_inflight)
                 finalize();
@@ -334,8 +334,8 @@ public:
 
         static void notify_flush_waiters(UVStream_tmpl* pThis, int32_t status)
         {
-            for (auto* flush_ac : pThis->m_flush_waiters)
-                flush_ac->apost(status);
+            for (auto& flush_ac : pThis->m_flush_waiters)
+                flush_ac.apost(status);
             pThis->m_flush_waiters.clear();
         }
 
@@ -367,7 +367,7 @@ public:
                 return;
 
             m_posted = true;
-            m_ac->apost(status);
+            m_ac.apost(status);
         }
 
         void finalize()
@@ -380,7 +380,7 @@ public:
 
     private:
         obj_ptr<UVStream_tmpl> m_this;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
         obj_ptr<Buffer> m_data;
         uv_buf_t m_buf;
         uv_write_t m_req;
@@ -406,32 +406,37 @@ public:
         return 0;
     };
 
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        uv_post(new AsyncRead(this, true, bytes, retVal, ac));
+        uv_post(new AsyncRead(this, true, bytes, retVal, std::move(ac)));
         return CALL_E_PENDDING;
     }
 
-    virtual result_t read(int32_t bytes, Variant& retVal, AsyncEvent* ac)
+    virtual result_t read(int32_t bytes, Variant& retVal, AsyncHandle ac)
     {
         // 受控例外（§3-C）：非后台 stdio 流直接委托 AsyncStream::read，其内部
         // 有自己的同步快路径；不能把 guard 提到委托之前，否则会破坏"缓冲数据
         // 立即可读"的同步语义。
         if (this->m_readable || !is_stdio_fd(m_fd))
-            return AsyncStream<T>::read(bytes, retVal, ac);
+            return AsyncStream<T>::read(bytes, retVal, std::move(ac));
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, ac))->post(0);
+        (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, std::move(ac)))->post(0);
         return CALL_E_PENDDING;
     }
 
     // Background write event for stdio fd:
     // a simple AsyncEvent that fires and forgets, emits "error" on failure
+    // Background write event for stdio fd:
+    // a simple AsyncEvent that fires and forgets, emits "error" on failure.
+    // The work lives in post(): delivery always goes through AsyncHandle::post
+    // (or the handle apost, which lands here as well), so an apost-only event
+    // would never run and never be deleted.
     class AsyncBackgroundWrite : public AsyncEvent {
     public:
         AsyncBackgroundWrite(UVStream_tmpl* pThis)
@@ -442,7 +447,7 @@ public:
             setAsync();
         }
 
-        virtual void apost(int32_t v)
+        virtual int32_t post(int32_t v) override
         {
             if (v < 0) {
                 obj_ptr<Stream_base> stream = m_pThis;
@@ -463,6 +468,8 @@ public:
                 });
             }
             delete this;
+
+            return 0;
         }
 
         bool m_retVal;
@@ -474,21 +481,21 @@ public:
 
     // 受控例外（§3-C）：stdio/非阻塞写在 AC 的 sync 相位就以"后台写"方式
     // fire-and-forget，无须进入 async 相位。
-    bool isBackgroundWrite(AsyncEvent* ac)
+    bool isBackgroundWrite(AsyncHandle& ac)
     {
-        return (is_stdio_fd(m_fd) || m_nonblockWrite) && ac->isSync() && ac->callType() == AsyncEvent::kAsyncCall;
+        return (is_stdio_fd(m_fd) || m_nonblockWrite) && ac.isSync() && ac.callType() == AsyncEvent::kAsyncCall;
     }
 
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        uv_post(new AsyncWrite(this, data, ac, m_timeout));
+        uv_post(new AsyncWrite(this, data, std::move(ac), m_timeout));
         return CALL_E_PENDDING;
     }
 
-    virtual result_t write(Buffer_base* data, bool& retVal, AsyncEvent* ac) override
+    virtual result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac) override
     {
         if (isBackgroundWrite(ac)) {
             retVal = true;
@@ -497,10 +504,10 @@ public:
             return 0;
         }
 
-        return AsyncStream<T>::write(data, retVal, ac);
+        return AsyncStream<T>::write(data, retVal, std::move(ac));
     }
 
-    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncEvent* ac) override
+    virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncHandle ac) override
     {
         if (isBackgroundWrite(ac)) {
             retVal = true;
@@ -509,10 +516,10 @@ public:
             return 0;
         }
 
-        return AsyncStream<T>::write(data, encoding, retVal, ac);
+        return AsyncStream<T>::write(data, encoding, retVal, std::move(ac));
     }
 
-    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncEvent* ac) override
+    virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncHandle ac) override
     {
         if (isBackgroundWrite(ac)) {
             retVal = true;
@@ -521,19 +528,23 @@ public:
             return 0;
         }
 
-        return AsyncStream<T>::write(data, encoding, retVal, ac);
+        return AsyncStream<T>::write(data, encoding, retVal, std::move(ac));
     }
 
-    virtual result_t flush(AsyncEvent* ac)
+    virtual result_t flush(AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        uv_post([this, ac] {
+        // The uv callback outlives this frame, so the continuation travels in a
+        // heap box (the box is the unique holder; the callback moves it out or
+        // delivers it).
+        auto h = std::make_shared<AsyncHandle>(std::move(ac));
+        uv_post([this, h] {
             if (queue_write.count() == 0)
-                ac->apost(0);
+                h->apost(0);
             else
-                m_flush_waiters.push_back(ac);
+                m_flush_waiters.push_back(std::move(*h));
         });
 
         return CALL_E_PENDDING;
@@ -549,30 +560,32 @@ public:
         pThis->on_handle_closed();
 
         if (pThis->ac_close)
-            pThis->ac_close->apost(0);
+            pThis->ac_close.apost(0);
     }
 
     virtual void on_handle_closed()
     {
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
-        if (ac && ac->isSync())
+        if (ac && ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        uv_post([this, ac] {
+        // Same heap-box rule as flush(): the uv callback owns the continuation.
+        auto h = std::make_shared<AsyncHandle>(std::move(ac));
+        uv_post([this, h] {
             if (uv_is_closing(&this->m_handle)) {
                 // Handle is already closing — still need to abort any pending
                 // reads/writes so callers don't block forever.
                 AsyncRead::post_all_result(this, CALL_E_CLOSED_SOCKET);
                 AsyncWrite::post_all_result(this, CALL_E_CLOSED_SOCKET);
-                if (ac)
-                    ac->apost(0);
+                if (*h)
+                    h->apost(0);
                 return;
             }
 
-            this->ac_close = ac;
+            this->ac_close = std::move(*h);
             uv_close(&this->m_handle, on_close);
         });
 
@@ -636,8 +649,8 @@ public:
     };
     exlib::List<AsyncRead> queue_read;
     exlib::List<AsyncWrite> queue_write;
-    std::vector<AsyncEvent*> m_flush_waiters;
-    AsyncEvent* ac_close;
+    std::vector<AsyncHandle> m_flush_waiters;
+    AsyncHandle ac_close;
 };
 
 class UVStream : public UVStream_tmpl<Stream_base> {

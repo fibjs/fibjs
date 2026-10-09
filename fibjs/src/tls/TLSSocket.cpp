@@ -176,7 +176,7 @@ static result_t tls_handshake_error(SSL* ssl)
 
 class AsyncHandshake : public AsyncState {
 public:
-    AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, AsyncEvent* ac)
+    AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, AsyncHandle ac)
         : AsyncState(ac)
         , m_sock(sock)
         , m_isolate(nullptr)
@@ -322,51 +322,51 @@ public:
     exlib::string m_server_name; // client SNI / verification host, for diagnostics
 };
 
-result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac)
+result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncHandle ac)
 {
     result_t hr = is_not_connected();
     if (hr < 0)
         return hr;
 
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     if (!m_connect_event)
-        return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
+        return (new AsyncHandshake(this, socket, false, server_name, std::move(ac)))->post(0);
 
     (new AsyncHandshake(this, socket, false, server_name, holder()))->post(0);
     return 0;
 }
 
-result_t TLSSocket::connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncEvent* ac)
+result_t TLSSocket::connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncHandle ac)
 {
-    return connect(socket, "", connectListener, ac);
+    return connect(socket, "", connectListener, std::move(ac));
 }
 
-result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncEvent* ac)
+result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;
         once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
-    return connect(socket, server_name, ac);
+    return connect(socket, server_name, std::move(ac));
 }
 
-result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
+result_t TLSSocket::accept(Stream_base* socket, AsyncHandle ac)
 {
     result_t hr = is_not_connected();
     if (hr < 0)
         return hr;
 
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    return (new AsyncHandshake(this, socket, true, "", ac))->post(0);
+    return (new AsyncHandshake(this, socket, true, "", std::move(ac)))->post(0);
 }
 
 result_t TLSSocket::get_stream(obj_ptr<Stream_base>& retVal)
@@ -479,11 +479,11 @@ result_t TLSSocket::get_fd(int32_t& retVal)
     return sock->get_fd(retVal);
 }
 
-result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     class AsyncRead : public AsyncState {
     public:
-        AsyncRead(TLSSocket* sock, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        AsyncRead(TLSSocket* sock, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_sock(sock)
             , m_bytes(bytes)
@@ -580,17 +580,17 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
     if (hr < 0)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncRead(this, bytes, retVal, ac))->post(0);
+    return (new AsyncRead(this, bytes, retVal, std::move(ac)))->post(0);
 }
 
-result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
     class AsyncWrite : public AsyncState {
     public:
-        AsyncWrite(TLSSocket* sock, Buffer_base* data, AsyncEvent* ac)
+        AsyncWrite(TLSSocket* sock, Buffer_base* data, AsyncHandle ac)
             : AsyncState(ac)
             , m_sock(sock)
             , m_data(data)
@@ -651,22 +651,22 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncWrite(this, data, ac))->post(0);
+    return (new AsyncWrite(this, data, std::move(ac)))->post(0);
 }
 
-result_t TLSSocket::flush(AsyncEvent* ac)
+result_t TLSSocket::flush(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t TLSSocket::close(AsyncEvent* ac)
+result_t TLSSocket::close(AsyncHandle ac)
 {
     class AsyncClose : public AsyncState {
     public:
-        AsyncClose(TLSSocket* sock, AsyncEvent* ac)
+        AsyncClose(TLSSocket* sock, AsyncHandle ac)
             : AsyncState(ac)
             , m_sock(sock)
         {
@@ -712,10 +712,10 @@ result_t TLSSocket::close(AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncClose(this, ac))->post(0);
+    return (new AsyncClose(this, std::move(ac)))->post(0);
 }
 
 int TLSSocket::Write(const char* data, int len)

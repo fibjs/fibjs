@@ -34,11 +34,11 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         class asyncReadFrom : public AsyncState {
         public:
-            asyncReadFrom(ChunkedStream* pThis, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+            asyncReadFrom(ChunkedStream* pThis, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_bytes(bytes)
@@ -141,20 +141,20 @@ public:
             return 0;
         }
 
-        return (new asyncReadFrom(this, bytes, retVal, ac))->post(0);
+        return (new asyncReadFrom(this, bytes, retVal, std::move(ac)))->post(0);
     }
 
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t flush(AsyncEvent* ac)
+    virtual result_t flush(AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }

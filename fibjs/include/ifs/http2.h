@@ -65,7 +65,7 @@ public:
 public:
     // http2_base
     static result_t createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<Http2Server_base>& retVal);
-    static result_t connect(exlib::string authority, v8::Local<v8::Object> options, obj_ptr<Http2Session_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string authority, v8::Local<v8::Object> options, obj_ptr<Http2Session_base>& retVal, AsyncHandle ac);
     static result_t getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal);
 
 public:

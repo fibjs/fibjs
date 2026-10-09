@@ -27,8 +27,8 @@ public:
 
 public:
     // zip_base
-    static result_t isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac);
-    static result_t open(Union_open_data data, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t isZipFile(exlib::string filename, bool& retVal, AsyncHandle ac);
+    static result_t open(Union_open_data data, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

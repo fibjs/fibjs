@@ -49,10 +49,10 @@ public:
 
 public:
     // Stream_base
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     // SeekableStream_base
@@ -60,10 +60,10 @@ public:
     virtual result_t tell(int64_t& retVal);
     virtual result_t rewind();
     virtual result_t size(int64_t& retVal);
-    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t truncate(int64_t bytes, AsyncEvent* ac);
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t truncate(int64_t bytes, AsyncHandle ac);
     virtual result_t eof(bool& retVal);
-    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac);
 
 public:
     // Fast path for reading text files directly to string
@@ -73,7 +73,7 @@ public:
     // File_base
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t chmod(int32_t mode, AsyncEvent* ac);
+    virtual result_t chmod(int32_t mode, AsyncHandle ac);
 
 public:
     result_t open(exlib::string fname, exlib::string flags, int32_t mode = 0666);
@@ -306,21 +306,21 @@ public:
 public:
     // FileHandle_base
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t chmod(int32_t mode, AsyncEvent* ac);
-    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
-    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
-    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncEvent* ac);
-    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
-    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncEvent* ac);
-    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncEvent* ac);
-    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t utimes(Variant atime, Variant mtime, AsyncEvent* ac);
-    virtual result_t chown(int32_t uid, int32_t gid, AsyncEvent* ac);
-    virtual result_t sync(AsyncEvent* ac);
-    virtual result_t datasync(AsyncEvent* ac);
-    virtual result_t truncate(int32_t len, AsyncEvent* ac);
-    virtual result_t appendFile(Union_appendFile_data data, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t chmod(int32_t mode, AsyncHandle ac);
+    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac);
+    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncHandle ac);
+    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac);
+    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac);
+    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac);
+    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac);
+    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac);
+    virtual result_t utimes(Variant atime, Variant mtime, AsyncHandle ac);
+    virtual result_t chown(int32_t uid, int32_t gid, AsyncHandle ac);
+    virtual result_t sync(AsyncHandle ac);
+    virtual result_t datasync(AsyncHandle ac);
+    virtual result_t truncate(int32_t len, AsyncHandle ac);
+    virtual result_t appendFile(Union_appendFile_data data, int32_t& retVal, AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 private:
     int32_t m_fd;

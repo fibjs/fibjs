@@ -26,8 +26,8 @@ class EventSource_base : public EventEmitter_base {
 public:
     // EventSource_base
     static result_t _new(exlib::string url, v8::Local<v8::Object> options, obj_ptr<EventSource_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
+    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t get_readyState(int32_t& retVal) = 0;
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_withCredentials(bool& retVal) = 0;

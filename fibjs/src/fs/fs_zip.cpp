@@ -131,16 +131,138 @@ result_t fs_base::clearZipFS(exlib::string fname)
     return 0;
 }
 
-static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncEvent* ac)
+// The mount lookup is a chain of synchronous-in-fiber steps (open -> stat ->
+// readAll -> zip open -> zip readAll). Under the handle protocol a chain that
+// reuses the continuation is expressed as a state machine whose steps borrow
+// the machine through next(state) tickets - the only shape that keeps exactly
+// one handle per event (plans/async-handle-protocol-minimal-2026-10-08.md 8.1 P3).
+class asyncResolveZipFile : public AsyncState {
+public:
+    asyncResolveZipFile(exlib::string zip_file, exlib::string member, bool bChanged, exlib::string member1,
+        obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
+        : AsyncState(ac)
+        , m_zip_file(zip_file)
+        , m_member(member)
+        , m_bChanged(bChanged)
+        , m_member1(member1)
+        , m_retVal(retVal)
+    {
+        init(check_cache);
+    }
+
+    ON_STATE(asyncResolveZipFile, check_cache)
+    {
+        m_node = cache_node::lookup(m_zip_file);
+        m_now.now();
+
+        if (m_node && (m_now.diff(m_node->m_date) > 3000)) {
+            m_after_open = refresh_done;
+            return next(open);
+        }
+
+        return next(load);
+    }
+
+    ON_STATE(asyncResolveZipFile, open)
+    {
+        return fs_base::openFile(m_zip_file, "r", m_zip_stream, next(stat));
+    }
+
+    ON_STATE(asyncResolveZipFile, stat)
+    {
+        return m_zip_stream->stat(m_stat, next(m_after_open));
+    }
+
+    ON_STATE(asyncResolveZipFile, refresh_done)
+    {
+        date_t _mtime;
+        m_stat->get_mtime(_mtime);
+
+        if (_mtime.diff(m_node->m_mtime) != 0)
+            m_node.Release();
+        else
+            m_node->m_date = m_now;
+
+        return next(load);
+    }
+
+    ON_STATE(asyncResolveZipFile, load)
+    {
+        if (m_node == NULL) {
+            if (m_zip_stream == NULL) {
+                m_after_open = read_zip;
+                return next(open);
+            }
+
+            return next(read_zip);
+        }
+
+        return next(lookup);
+    }
+
+    ON_STATE(asyncResolveZipFile, read_zip)
+    {
+        return m_zip_stream->readAll(m_data, next(open_zip));
+    }
+
+    ON_STATE(asyncResolveZipFile, open_zip)
+    {
+        return zip_base::open(m_data, "r", "utf-8", m_zfile, next(read_all));
+    }
+
+    ON_STATE(asyncResolveZipFile, read_all)
+    {
+        return m_zfile->readAll("", m_list, next(build_node));
+    }
+
+    ON_STATE(asyncResolveZipFile, build_node)
+    {
+        m_node = new cache_node();
+        m_node->init(m_zip_file, m_list, m_now);
+        m_stat->get_mtime(m_node->m_mtime);
+
+        return next(lookup);
+    }
+
+    ON_STATE(asyncResolveZipFile, lookup)
+    {
+        std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>>::iterator it;
+
+        it = m_node->m_map.find(m_member);
+#ifdef _WIN32
+        if (m_bChanged && it == m_node->m_map.end())
+            it = m_node->m_map.find(m_member1);
+#endif
+
+        if (it == m_node->m_map.end())
+            return CALL_E_FILE_NOT_FOUND;
+
+        m_retVal = it->second;
+        return next();
+    }
+
+private:
+    exlib::string m_zip_file;
+    exlib::string m_member;
+    bool m_bChanged;
+    exlib::string m_member1;
+    obj_ptr<ZipFile_base::ReadAllType>& m_retVal;
+    obj_ptr<cache_node> m_node;
+    obj_ptr<SeekableStream_base> m_zip_stream;
+    obj_ptr<Stat_base> m_stat;
+    obj_ptr<Buffer_base> m_data;
+    obj_ptr<ZipFile_base> m_zfile;
+    std::vector<obj_ptr<ZipFile_base::ReadAllType>> m_list;
+    date_t m_now;
+    int32_t (*m_after_open)(AsyncState*, int32_t) = nullptr;
+};
+
+static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
 {
     size_t pos = fname.find('$');
     if (pos != exlib::string::npos && fname[pos + 1] == PATH_SLASH) {
         exlib::string zip_file = fname.substr(0, pos);
         exlib::string member = fname.substr(pos + 2);
-        obj_ptr<ZipFile_base> zfile;
-        obj_ptr<Buffer_base> data;
-        exlib::string strData;
-        result_t hr;
 
 #ifdef _WIN32
         bool bChanged = false;
@@ -157,87 +279,20 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::Read
                     bChanged = true;
                 }
         }
+
+        return (new asyncResolveZipFile(zip_file, member, bChanged, member1, retVal, std::move(ac)))->post(0);
+#else
+        return (new asyncResolveZipFile(zip_file, member, false, exlib::string(), retVal, std::move(ac)))->post(0);
 #endif
-
-        obj_ptr<cache_node> _node;
-        obj_ptr<SeekableStream_base> zip_stream;
-        obj_ptr<Stat_base> stat;
-
-        date_t _now;
-        _now.now();
-
-        _node = cache_node::lookup(zip_file);
-
-        if (_node && (_now.diff(_node->m_date) > 3000)) {
-            hr = fs_base::openFile(zip_file, "r", zip_stream, ac);
-            if (hr < 0)
-                return hr;
-
-            hr = zip_stream->stat(stat, ac);
-            if (hr < 0)
-                return hr;
-
-            date_t _mtime;
-            stat->get_mtime(_mtime);
-
-            if (_mtime.diff(_node->m_mtime) != 0)
-                _node.Release();
-            else
-                _node->m_date = _now;
-        }
-
-        if (_node == NULL) {
-            if (zip_stream == NULL) {
-                hr = fs_base::openFile(zip_file, "r", zip_stream, ac);
-                if (hr < 0)
-                    return hr;
-
-                hr = zip_stream->stat(stat, ac);
-                if (hr < 0)
-                    return hr;
-            }
-
-            obj_ptr<Buffer_base> zip_data;
-            hr = zip_stream->readAll(zip_data, ac);
-            if (hr < 0)
-                return hr;
-
-            hr = zip_base::open(zip_data, "r", "utf-8", zfile, ac);
-            if (hr < 0)
-                return hr;
-
-            std::vector<obj_ptr<ZipFile_base::ReadAllType>> list;
-            hr = zfile->readAll("", list, ac);
-            if (hr < 0)
-                return hr;
-
-            _node = new cache_node();
-            _node->init(zip_file, list, _now);
-            stat->get_mtime(_node->m_mtime);
-        }
-
-        std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>>::iterator it;
-
-        it = _node->m_map.find(member);
-#ifdef _WIN32
-        if (bChanged && it == _node->m_map.end())
-            it = _node->m_map.find(member1);
-#endif
-
-        if (it == _node->m_map.end())
-            return CALL_E_FILE_NOT_FOUND;
-
-        retVal = it->second;
-        return 0;
     }
 
     return CALL_E_FILE_NOT_FOUND;
 }
 
-static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<ZipFile_base::ReadAllType> zi;
-    result_t hr = resolve_zip_file(path, zi, ac);
+    result_t hr = resolve_zip_file(path, zi, std::move(ac));
     if (hr >= 0) {
         obj_ptr<Stat> pStat = new Stat();
         pStat->init();
@@ -257,9 +312,9 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEv
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -267,11 +322,14 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     if (hr < 0)
         return hr;
 
-    hr = zip_stat(safe_name, retVal, ac);
+    // the isolate is read before the continuation is handed over (P4)
+    Isolate* isolate = ac.isolate();
+
+    hr = zip_stat(safe_name, retVal, std::move(ac));
     if (hr >= 0)
         return 0;
 
-    if (!ac->isolate()->m_enable_FileSystem)
+    if (!isolate->m_enable_FileSystem)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     AutoReq req;
@@ -287,35 +345,38 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     return 0;
 }
 
-result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         bool throwIfNoEntry = true;
         GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
 
         // Node.js compatibility: throwIfNoEntry only affects the synchronous
         // (non-callback) forms; the async forms always report the error.
-        ac->m_ctx[0] = throwIfNoEntry || ac->callType() == AsyncEvent::kAsyncCallBack;
+        ac.ctxv()[0] = throwIfNoEntry || ac.callType() == AsyncEvent::kAsyncCallBack;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    result_t hr = lstat(path, retVal, ac);
-    if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    // the flag is read before the continuation is handed over (P4)
+    bool throwIfNoEntry = ac.ctxv()[0].boolVal();
+
+    result_t hr = lstat(path, retVal, std::move(ac));
+    if (hr < 0 && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
         return CALL_RETURN_UNDEFINED;
 
     return hr;
 }
 
-result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -323,11 +384,14 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
     if (hr < 0)
         return hr;
 
-    hr = zip_stat(safe_name, retVal, ac);
+    // the isolate is read before the continuation is handed over (P4)
+    Isolate* isolate = ac.isolate();
+
+    hr = zip_stat(safe_name, retVal, std::move(ac));
     if (hr >= 0)
         return 0;
 
-    if (!ac->isolate()->m_enable_FileSystem)
+    if (!isolate->m_enable_FileSystem)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     AutoReq req;
@@ -343,27 +407,30 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEven
     return 0;
 }
 
-result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        ac->m_ctx.resize(1);
+    if (ac.isSync()) {
+        ac.ctxv().resize(1);
 
         bool throwIfNoEntry = true;
         GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
 
         // Node.js compatibility: throwIfNoEntry only affects the synchronous
         // (non-callback) forms; the async forms always report the error.
-        ac->m_ctx[0] = throwIfNoEntry || ac->callType() == AsyncEvent::kAsyncCallBack;
+        ac.ctxv()[0] = throwIfNoEntry || ac.callType() == AsyncEvent::kAsyncCallBack;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    result_t hr = stat(path, retVal, ac);
-    if (hr < 0 && !ac->m_ctx[0].boolVal() && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    // the flag is read before the continuation is handed over (P4)
+    bool throwIfNoEntry = ac.ctxv()[0].boolVal();
+
+    result_t hr = stat(path, retVal, std::move(ac));
+    if (hr < 0 && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
         return CALL_RETURN_UNDEFINED;
 
     return hr;
@@ -371,23 +438,23 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
 
 // the flags forms: a string mode name, or the integer fs.constants flags
 static result_t open_file_string(exlib::string fname, exlib::string flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
 static result_t open_file_int(exlib::string fname, int32_t flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
 
 result_t fs_base::openFile(exlib::string fname, Union_openFile_flags flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<int32_t>(flags))
-        return open_file_int(fname, std::get<int32_t>(flags), retVal, ac);
+        return open_file_int(fname, std::get<int32_t>(flags), retVal, std::move(ac));
 
-    return open_file_string(fname, std::get<exlib::string>(flags), retVal, ac);
+    return open_file_string(fname, std::get<exlib::string>(flags), retVal, std::move(ac));
 }
 
 static result_t open_file_string(exlib::string fname, exlib::string flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -395,8 +462,11 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
     if (hr < 0)
         return hr;
 
+    // the isolate is read before the continuation is handed over (P4)
+    Isolate* isolate = ac.isolate();
+
     obj_ptr<ZipFile_base::ReadAllType> zi;
-    hr = resolve_zip_file(safe_name, zi, ac);
+    hr = resolve_zip_file(safe_name, zi, std::move(ac));
     if (hr >= 0) {
         obj_ptr<Buffer_base> data;
         exlib::string strData;
@@ -411,7 +481,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
         return 0;
     }
 
-    if (!ac->isolate()->m_enable_FileSystem)
+    if (!isolate->m_enable_FileSystem)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<FileStream> pFile = new FileStream();
@@ -425,12 +495,12 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 }
 
 static result_t open_file_int(exlib::string fname, int32_t flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (!ac->isolate()->m_enable_FileSystem)
+    if (!ac.isolate()->m_enable_FileSystem)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     exlib::string safe_name;

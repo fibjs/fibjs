@@ -37,8 +37,8 @@ public:
     ~EventSource();
 
     // EventSource_base
-    virtual result_t close(AsyncEvent* ac);
-    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t close(AsyncHandle ac);
+    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac);
     virtual result_t get_readyState(int32_t& retVal);
     virtual result_t get_url(exlib::string& retVal);
     virtual result_t get_withCredentials(bool& retVal);
@@ -46,14 +46,14 @@ public:
 
 public:
     // sse.upgrade 的 accept 状态调用：接管票据（唯一入口，保证票只有一张）
-    void setTicket(AsyncEvent* target);
+    void setTicket(AsyncHandle target);
 
 public:
     exlib::string m_url;
     int32_t m_readyState = sse_base::C_CONNECTING;
     obj_ptr<HttpResponse_base> m_response;
     obj_ptr<Stream_base> m_stream;
-    Ticket* m_ac = nullptr;   // 本对象持有；被 close() 或析构消费后置空
+    AsyncHandle m_ac; // owned: 本对象持有 Ticket；被 close() 消费或投递后由 handle 释放
 };
 
 }

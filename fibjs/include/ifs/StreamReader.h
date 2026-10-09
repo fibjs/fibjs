@@ -43,9 +43,9 @@ public:
 
 public:
     // StreamReader_base
-    virtual result_t read(obj_ptr<ReadType>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t read(obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
     virtual result_t releaseLock() = 0;
-    virtual result_t cancel(exlib::string reason, AsyncEvent* ac) = 0;
+    virtual result_t cancel(exlib::string reason, AsyncHandle ac) = 0;
     virtual result_t get_closed(v8::Local<v8::Promise>& retVal) = 0;
 
 public:

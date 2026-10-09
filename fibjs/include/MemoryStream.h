@@ -30,10 +30,10 @@ public:
     public:
         // Stream_base
         virtual result_t get_fd(int32_t& retVal);
-        virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-        virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-        virtual result_t flush(AsyncEvent* ac);
-        virtual result_t close(AsyncEvent* ac);
+        virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+        virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+        virtual result_t flush(AsyncHandle ac);
+        virtual result_t close(AsyncHandle ac);
 
     public:
         // SeekableStream_base
@@ -41,10 +41,10 @@ public:
         virtual result_t tell(int64_t& retVal);
         virtual result_t rewind();
         virtual result_t size(int64_t& retVal);
-        virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-        virtual result_t truncate(int64_t bytes, AsyncEvent* ac);
+        virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+        virtual result_t truncate(int64_t bytes, AsyncHandle ac);
         virtual result_t eof(bool& retVal);
-        virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+        virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac);
 
     public:
         // MemoryStream_base
@@ -67,10 +67,10 @@ public:
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     // SeekableStream_base
@@ -78,10 +78,10 @@ public:
     virtual result_t tell(int64_t& retVal);
     virtual result_t rewind();
     virtual result_t size(int64_t& retVal);
-    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t truncate(int64_t bytes, AsyncEvent* ac);
+    virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t truncate(int64_t bytes, AsyncHandle ac);
     virtual result_t eof(bool& retVal);
-    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac);
 
 public:
     // MemoryStream_base

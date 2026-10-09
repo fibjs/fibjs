@@ -25,7 +25,7 @@ public:
     // StreamReader_base
     class AsyncRead : public AsyncState {
     public:
-        AsyncRead(StreamReader* reader, obj_ptr<ReadType>& retVal, AsyncEvent* ac)
+        AsyncRead(StreamReader* reader, obj_ptr<ReadType>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_reader(reader)
             , m_retVal(retVal)
@@ -58,15 +58,15 @@ public:
         obj_ptr<Buffer_base> m_buf;
     };
 
-    virtual result_t read(obj_ptr<ReadType>& retVal, AsyncEvent* ac)
+    virtual result_t read(obj_ptr<ReadType>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         if (!m_stream)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        return (new AsyncRead(this, retVal, ac))->post(0);
+        return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
     }
 
     virtual result_t releaseLock()
@@ -77,7 +77,7 @@ public:
 
     class AsyncCancel : public AsyncState {
     public:
-        AsyncCancel(StreamReader* reader, AsyncEvent* ac)
+        AsyncCancel(StreamReader* reader, AsyncHandle ac)
             : AsyncState(ac)
             , m_reader(reader)
         {
@@ -103,15 +103,15 @@ public:
         obj_ptr<StreamReader> m_reader;
     };
 
-    virtual result_t cancel(exlib::string reason, AsyncEvent* ac)
+    virtual result_t cancel(exlib::string reason, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         if (!m_stream)
             return 0;
 
-        return (new AsyncCancel(this, ac))->post(0);
+        return (new AsyncCancel(this, std::move(ac)))->post(0);
     }
 
     virtual result_t get_closed(v8::Local<v8::Promise>& retVal)

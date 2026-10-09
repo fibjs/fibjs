@@ -200,30 +200,30 @@ result_t Socket::get_fd(int32_t& retVal)
 }
 
 result_t Socket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return m_aio.read(bytes, retVal, ac, bytes > 0, m_timeout);
+    return m_aio.read(bytes, retVal, std::move(ac), bytes > 0, m_timeout);
 }
 
-result_t Socket::writeBuffer(Buffer_base* data, AsyncEvent* ac)
+result_t Socket::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
-    return m_aio.write(data, ac, m_timeout);
+    return m_aio.write(data, std::move(ac), m_timeout);
 }
 
-result_t Socket::flush(AsyncEvent* ac)
+result_t Socket::flush(AsyncHandle ac)
 {
     return 0;
 }
 
-result_t Socket::close(AsyncEvent* ac)
+result_t Socket::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_aio.m_fd == INVALID_SOCKET)
         return 0;
 
-    return m_aio.close(ac);
+    return m_aio.close(std::move(ac));
 }
 
 result_t Socket::get_family(int32_t& retVal)
@@ -392,9 +392,10 @@ result_t Socket::listen(int32_t backlog)
 
 class connectWrapper : public AsyncEvent {
 public:
-    connectWrapper(Socket* sock, AsyncEvent* ac, exlib::string target, bool use_path, int32_t port)
+    connectWrapper(Socket* sock, AsyncHandle ac, exlib::string target, bool use_path, int32_t port)
         : m_sock(sock)
-        , m_ac(ac)
+        , m_ac(std::move(ac))
+        , m_bEvent(false)
         , m_target(target)
         , m_use_path(use_path)
         , m_port(port)
@@ -406,6 +407,7 @@ public:
         : AsyncEvent(isolate)
         , m_sock(sock)
         , m_ac(nullptr)
+        , m_bEvent(true)
         , m_target(target)
         , m_use_path(use_path)
         , m_port(port)
@@ -416,7 +418,10 @@ public:
 
     ~connectWrapper()
     {
-        if (!m_ac)
+        // The event-mode wrapper owns the isolate reference; the async form is
+        // kept alive by the caller's fiber. This is a construction-time
+        // property: m_ac is detached by delivery, so it can no longer carry it.
+        if (m_bEvent)
             m_sock->isolate_unref();
     }
 
@@ -434,7 +439,7 @@ public:
 
     virtual int32_t post(int32_t v)
     {
-        if (m_ac) {
+        if (!m_bEvent) {
             ErrorPayload payload;
             if (v < 0) {
                 payload = error_payload(v);
@@ -445,7 +450,7 @@ public:
             if (v < 0)
                 setErrorPayload(payload);
 
-            m_ac->post(v);
+            m_ac.post(v);
         } else {
             if (v < 0) {
                 ErrorPayload payload = error_payload(v);
@@ -465,17 +470,18 @@ public:
 
 private:
     obj_ptr<Socket> m_sock;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
+    bool m_bEvent;
     exlib::string m_target;
     bool m_use_path;
     int32_t m_port;
 };
 
-result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     startConnectEvent();
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #ifdef _WIN32
@@ -489,103 +495,103 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     retVal = this;
     bool use_path = port == 0;
     if (!m_connect_event)
-        return m_aio.connect(host, port, new connectWrapper(this, ac, host, use_path, port), timeout);
+        return m_aio.connect(host, port, new connectWrapper(this, std::move(ac), host, use_path, port), timeout);
 
     m_aio.connect(host, port, new connectWrapper(holder(), this, host, use_path, port), timeout);
     return 0;
 }
 
-result_t Socket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, timeout, retVal, ac);
+    return connect(0, path, timeout, retVal, std::move(ac));
 }
 
-result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opts;
 
         startConnectEvent();
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    ConnectOptions* opt = (ConnectOptions*)ac->m_ctx[0].object();
-    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, ac);
+    ConnectOptions* opt = (ConnectOptions*)ac.ctxv()[0].object();
+    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, std::move(ac));
 }
 
-result_t Socket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(port, "localhost", 0, connectListener, retVal, ac);
+    return connect(port, "localhost", 0, connectListener, retVal, std::move(ac));
 }
 
-result_t Socket::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(port, host, 0, connectListener, retVal, ac);
+    return connect(port, host, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;
         once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
-    return connect(port, host, timeout, retVal, ac);
+    return connect(port, host, timeout, retVal, std::move(ac));
 }
 
-result_t Socket::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, 0, connectListener, retVal, ac);
+    return connect(0, path, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t Socket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, timeout, connectListener, retVal, ac);
+    return connect(0, path, timeout, connectListener, retVal, std::move(ac));
 }
 
-result_t Socket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t Socket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;
         once(holder()->NewString("connect"), connectListener, _retVal);
     }
 
-    return connect(options, retVal, ac);
+    return connect(options, retVal, std::move(ac));
 }
 
-result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
+result_t Socket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 {
-    return m_aio.accept(retVal, ac);
+    return m_aio.accept(retVal, std::move(ac));
 }
 
-result_t Socket::send(Union_send_data data, int32_t& retVal, AsyncEvent* ac)
+result_t Socket::send(Union_send_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return send(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return send(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return send(std::get<exlib::string>(data), retVal, ac);
+    return send(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
     retVal = Buffer::Cast(data)->length();
-    return m_aio.write(data, ac, m_timeout);
+    return m_aio.write(data, std::move(ac), m_timeout);
 }
 
-result_t Socket::send(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t Socket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -594,13 +600,13 @@ result_t Socket::send(exlib::string data, int32_t& retVal, AsyncEvent* ac)
         return hr;
 
     retVal = (int32_t)data.length();
-    return m_aio.write(buf, ac, m_timeout);
+    return m_aio.write(buf, std::move(ac), m_timeout);
 }
 
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return m_aio.read(bytes, retVal, ac, false, m_timeout);
+    return m_aio.read(bytes, retVal, std::move(ac), false, m_timeout);
 }
 
 extern void setKeepAlive(SOCKET sockfd, int32_t enable, int32_t initialDelay, int32_t keepInterval, int32_t keepCount);

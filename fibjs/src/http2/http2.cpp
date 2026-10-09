@@ -59,10 +59,10 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
 }
 
 result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> options,
-    obj_ptr<Http2Session_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Http2Session_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        Isolate* isolate = ac->isolate();
+    if (ac.isSync()) {
+        Isolate* isolate = ac.isolate();
         v8::Local<v8::Context> context = isolate->context();
 
         // Parse URL
@@ -109,42 +109,42 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         if (port != 443)
             session->m_authority.append(1, ':').append(port_str);
 
-        ac->m_ctx.resize(5);
-        ac->m_ctx[0] = ssl_sock;
-        ac->m_ctx[1] = hostname;
-        ac->m_ctx[2] = port;
-        ac->m_ctx[3] = u->isIPv6();
-        ac->m_ctx[4] = session;
+        ac.ctxv().resize(5);
+        ac.ctxv()[0] = ssl_sock;
+        ac.ctxv()[1] = hostname;
+        ac.ctxv()[2] = port;
+        ac.ctxv()[3] = u->isIPv6();
+        ac.ctxv()[4] = session;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(1);
+    ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(2);
+    ctx_hr = ac.ctx(2);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(3);
+    ctx_hr = ac.ctx(3);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(4);
+    ctx_hr = ac.ctx(4);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<TLSSocket> ssl_sock = (TLSSocket*)(object_base*)ac->m_ctx[0].object();
-    exlib::string hostname = ac->m_ctx[1].string();
-    int32_t port = ac->m_ctx[2].intVal();
-    bool ipv6 = ac->m_ctx[3].boolVal();
-    obj_ptr<Http2Session> session = (Http2Session*)(object_base*)ac->m_ctx[4].object();
+    obj_ptr<TLSSocket> ssl_sock = (TLSSocket*)(object_base*)ac.ctxv()[0].object();
+    exlib::string hostname = ac.ctxv()[1].string();
+    int32_t port = ac.ctxv()[2].intVal();
+    bool ipv6 = ac.ctxv()[3].boolVal();
+    obj_ptr<Http2Session> session = (Http2Session*)(object_base*)ac.ctxv()[4].object();
 
     class asyncConnect : public AsyncState {
     public:
         asyncConnect(TLSSocket* ssl_sock, const exlib::string& host, int32_t port,
-            bool ipv6, Http2Session* session, obj_ptr<Http2Session_base>& retVal, AsyncEvent* ac)
+            bool ipv6, Http2Session* session, obj_ptr<Http2Session_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_ssl_sock(ssl_sock)
             , m_host(host)
@@ -207,7 +207,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         obj_ptr<Buffer_base> m_pending_buf;
     };
 
-    return (new asyncConnect(ssl_sock, hostname, port, ipv6, session, retVal, ac))->post(0);
+    return (new asyncConnect(ssl_sock, hostname, port, ipv6, session, retVal, std::move(ac)))->post(0);
 }
 
 result_t http2_base::getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal)

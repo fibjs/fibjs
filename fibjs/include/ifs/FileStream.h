@@ -24,7 +24,7 @@ class FileStream_base : public SeekableStream_base {
 public:
     // FileStream_base
     virtual result_t get_name(exlib::string& retVal) = 0;
-    virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
+    virtual result_t chmod(int32_t mode, AsyncHandle ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

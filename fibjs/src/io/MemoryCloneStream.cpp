@@ -19,7 +19,7 @@ result_t MemoryStream::CloneStream::get_fd(int32_t& retVal)
 }
 
 result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
-    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     exlib::string strBuf;
 
@@ -48,12 +48,12 @@ result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
 }
 
 result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return readBuffer(-1, retVal, ac);
+    return readBuffer(-1, retVal, std::move(ac));
 }
 
-result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncEvent* ac)
+result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
@@ -64,24 +64,24 @@ result_t MemoryStream::CloneStream::eof(bool& retVal)
     return 0;
 }
 
-result_t MemoryStream::CloneStream::flush(AsyncEvent* ac)
+result_t MemoryStream::CloneStream::flush(AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t MemoryStream::CloneStream::writeBuffer(Buffer_base* data,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t MemoryStream::CloneStream::close(AsyncEvent* ac)
+result_t MemoryStream::CloneStream::close(AsyncHandle ac)
 {
     return 0;
 }
 
 result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     obj_ptr<Stat> st = new Stat();
 

@@ -195,9 +195,9 @@ public:
         return m_rest->get_fd(retVal);
     }
 
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         if (m_first) {
@@ -219,22 +219,22 @@ public:
             return 0;
         }
 
-        return m_rest->readBuffer(bytes, retVal, ac);
+        return m_rest->readBuffer(bytes, retVal, std::move(ac));
     }
 
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return m_rest->writeBuffer(data, ac);
+        return m_rest->writeBuffer(data, std::move(ac));
     }
 
-    virtual result_t flush(AsyncEvent* ac)
+    virtual result_t flush(AsyncHandle ac)
     {
-        return m_rest->flush(ac);
+        return m_rest->flush(std::move(ac));
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
-        return m_rest->close(ac);
+        return m_rest->close(std::move(ac));
     }
 
 private:
@@ -1099,19 +1099,19 @@ public:
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         // 受控同步快路径（C 类例外，见审计报告 §3-C）：两个廉价前置判断后直通
         // 内层 readBuffer（其自身负责相位），不额外引入等待。
         if (!m_inner)
             return CALL_RETURN_NULL; // already closed
         if (!m_cleanup)
-            return m_inner->readBuffer(bytes, retVal, ac);
+            return m_inner->readBuffer(bytes, retVal, std::move(ac));
 
         // When cleanup is set, intercept EOF to trigger connection lifecycle.
         class asyncRead : public AsyncState {
         public:
-            asyncRead(BodyStream* ps, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+            asyncRead(BodyStream* ps, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_bs(ps)
                 , m_bytes(bytes)
@@ -1142,22 +1142,22 @@ public:
             obj_ptr<Buffer_base>& m_retVal;
         };
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
-        return (new asyncRead(this, bytes, retVal, ac))->post(0);
+        return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
     }
 
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac)
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t flush(AsyncEvent* ac)
+    virtual result_t flush(AsyncHandle ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t close(AsyncEvent* ac)
+    virtual result_t close(AsyncHandle ac)
     {
         m_cleanup = nullptr; // abandon: don't return to pool
         if (m_abort_signal) {
@@ -1168,7 +1168,7 @@ public:
         m_socket.Release();
         m_inner.Release();
         if (socket)
-            return socket->close(ac);
+            return socket->close(std::move(ac));
         return 0;
     }
 
@@ -1180,12 +1180,12 @@ private:
 };
 
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
-    obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac, bool)
+    obj_ptr<HttpMessage_base>* retVal, AsyncHandle ac, bool)
 {
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(HttpClient* hc, Stream_base* conn, HttpRequest_base* req,
-            obj_ptr<HttpMessage_base>* retVal, AsyncEvent* ac)
+            obj_ptr<HttpMessage_base>* retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_hc(hc)
             , m_conn(conn)
@@ -1205,6 +1205,26 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         ON_STATE(asyncRequest, send)
         {
             return m_req->sendTo(m_conn, v8::Local<v8::Object>(), next(recv));
+        }
+
+        int32_t error(int32_t v)
+        {
+            // A server may answer and close before the request body is fully
+            // uploaded (a 4xx body limit, an auth rejection): the pending body
+            // write then fails with EPIPE/ECONNRESET while the reply is already
+            // on the wire. The reply is authoritative - fall through to reading
+            // it, and report the upload error only when no response can be read,
+            // so a real transport failure still surfaces with the send leg's code.
+            if (v < 0 && at(send)) {
+                m_send_hr = v;
+                next(recv);
+                return 0;
+            }
+
+            if (v < 0 && m_send_hr < 0)
+                return m_send_hr;
+
+            return v;
         }
 
         ON_STATE(asyncRequest, recv)
@@ -1295,19 +1315,20 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         obj_ptr<HttpResponse> m_response;
         bool m_bNoBody;
         bool m_bConnect;
+        result_t m_send_hr = 0;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(this, conn, req, retVal, ac))->post(0);
+    return (new asyncRequest(this, conn, req, retVal, std::move(ac)))->post(0);
 }
 
 // Public virtual implementation — delegates to the streaming overload.
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return request(conn, req, retVal);
     return 0;
 }
@@ -1324,7 +1345,7 @@ public:
     }
 
     asyncRequest(HttpRequest::Options* o,
-        obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+        obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
         : AsyncState(ac)
         , m_o(o)
         , m_retVal(m_tempRetVal)
@@ -1335,7 +1356,7 @@ public:
         init();
     }
 
-    asyncRequest(HttpRequest::Options* o, AsyncEvent* ac)
+    asyncRequest(HttpRequest::Options* o, AsyncHandle ac)
         : AsyncState(ac)
         , m_o(o)
         , m_retVal(m_tempRetVal)
@@ -2406,9 +2427,9 @@ private:
 // AsyncEvent is the internal binding execution context. It is still used
 // for sync-style JS APIs and callback-style APIs, and does not mean the
 // external requestSync/getSync/... signatures are async-mode.
-result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Reject immediately if signal is already aborted
@@ -2422,7 +2443,7 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
     if (o->u->protocol() == "file:")
         return build_file_fetch_response(o, retVal);
 
-    return (new asyncRequest(o, retVal, ac))->post(0);
+    return (new asyncRequest(o, retVal, std::move(ac)))->post(0);
 }
 
 // Lightweight event that silently absorbs async completion,
@@ -2444,18 +2465,18 @@ public:
     }
 };
 
-result_t HttpClient::request(HttpRequest::Options* o, AsyncEvent* ac)
+result_t HttpClient::request(HttpRequest::Options* o, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(o, ac))->post(0);
+    return (new asyncRequest(o, std::move(ac)))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
@@ -2471,13 +2492,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         return hr;
     o->u = u;
 
-    return requestSync(o.get(), retVal, ac);
+    return requestSync(o.get(), retVal, std::move(ac));
 }
 
-result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncEvent* ac,
+result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, AsyncHandle& ac,
     v8::Local<v8::Function> callback, bool skip_body, bool urlEncodedDefault)
 {
-    ac->m_ctx.resize(1);
+    ac.ctxv().resize(1);
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
     o->agent = this;
@@ -2502,59 +2523,59 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
             return hr;
     }
 
-    ac->m_ctx[0] = o;
+    ac.ctxv()[0] = o;
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
 result_t HttpClient::requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac, bool headerOnly)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac, bool headerOnly)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return get_request_opts(method, url, opts, ac);
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return requestSync(o.get(), retVal, ac);
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
+    return requestSync(o.get(), retVal, std::move(ac));
 }
 
 result_t HttpClient::requestSync(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return get_request_opts(method, url, opts, ac);
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return requestSync(o.get(), retVal, ac);
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
+    return requestSync(o.get(), retVal, std::move(ac));
 }
 
 result_t HttpClient::requestSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", url, opts, retVal, ac);
+    return requestSync("GET", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::requestSync(v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", "", opts, retVal, ac);
+    return requestSync("GET", "", opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::getSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", url, opts, retVal, ac);
+    return requestSync("GET", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::fire_request(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac,
+    v8::Local<v8::Object> opts, obj_ptr<HttpMessage_base>& retVal, AsyncHandle& ac,
     bool auto_send)
 {
     result_t hr = get_request_opts(method, url, opts, ac,
@@ -2562,21 +2583,21 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
     if (hr != CALL_E_NOSYNC)
         return hr;
 
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
     o->is_async = true;
     o->auto_send = auto_send;
     if (!o->req_holder)
         o->req_holder = new ValueHolder(o->req->wrap());
     retVal = o->req;
 
-    (new asyncRequest(o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(0);
     return 0;
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request(method, url, opts, msg, ac);
         if (hr < 0)
@@ -2589,38 +2610,38 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("GET", "", opts, retVal, ac);
+    return request("GET", "", opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("GET", url, opts, retVal, ac);
+    return request("GET", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::fire_callback_request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
-    obj_ptr<HttpMessage_base>& retVal, AsyncEvent* ac, bool auto_send)
+    obj_ptr<HttpMessage_base>& retVal, AsyncHandle& ac, bool auto_send)
 {
     result_t hr = get_request_opts(method, url, opts, ac, callback, true);
     if (hr != CALL_E_NOSYNC)
         return hr;
 
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
     o->auto_send = auto_send;
     retVal = o->req;
 
-    (new asyncRequest(o.get(), new FireAndForgetEvent(ac->isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(0);
     return 0;
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request(method, url, opts, callback, msg, ac);
         if (hr < 0)
@@ -2633,15 +2654,15 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("GET", url, opts, callback, retVal, ac);
+    return request("GET", url, opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac);
@@ -2655,23 +2676,23 @@ result_t HttpClient::request(exlib::string url, v8::Local<v8::Function> callback
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request(method, url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal, ac);
+    return request(method, url, v8::Object::New(Isolate::current()->m_isolate), callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("GET", "", opts, callback, retVal, ac);
+    return request("GET", "", opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("GET", url, opts, msg, ac, true);
         if (hr < 0)
@@ -2684,11 +2705,11 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac, true);
         if (hr < 0)
@@ -2701,11 +2722,11 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac, true);
@@ -2719,28 +2740,28 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t HttpClient::postSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("POST", url, opts, retVal, ac);
+    return requestSync("POST", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("POST", url, opts, retVal, ac);
+    return request("POST", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("POST", url, opts, callback, retVal, ac);
+    return request("POST", url, opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<HttpMessage_base> msg;
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("POST", url, opts, callback, msg, ac);
         if (hr < 0)
@@ -2753,28 +2774,28 @@ result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t HttpClient::delSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("DELETE", url, opts, retVal, ac);
+    return requestSync("DELETE", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("DELETE", url, opts, retVal, ac);
+    return request("DELETE", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("DELETE", url, opts, callback, retVal, ac);
+    return request("DELETE", url, opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<HttpMessage_base> msg;
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("DELETE", url, opts, callback, msg, ac);
         if (hr < 0)
@@ -2787,28 +2808,28 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t HttpClient::putSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("PUT", url, opts, retVal, ac);
+    return requestSync("PUT", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("PUT", url, opts, retVal, ac);
+    return request("PUT", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("PUT", url, opts, callback, retVal, ac);
+    return request("PUT", url, opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<HttpMessage_base> msg;
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("PUT", url, opts, callback, msg, ac);
         if (hr < 0)
@@ -2821,28 +2842,28 @@ result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t HttpClient::patchSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("PATCH", url, opts, retVal, ac);
+    return requestSync("PATCH", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("PATCH", url, opts, retVal, ac);
+    return request("PATCH", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
-    return request("PATCH", url, opts, callback, retVal, ac);
+    return request("PATCH", url, opts, callback, retVal, std::move(ac));
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<HttpMessage_base> msg;
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("PATCH", url, opts, callback, msg, ac);
         if (hr < 0)
@@ -2855,16 +2876,16 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t HttpClient::headSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("HEAD", url, opts, retVal, ac);
+    return requestSync("HEAD", url, opts, retVal, std::move(ac));
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.head sends automatically, no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("HEAD", url, opts, msg, ac, true);
         if (hr < 0)
@@ -2877,10 +2898,10 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
-    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.head sends automatically, no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, ac, true);
         if (hr < 0)
@@ -2893,10 +2914,10 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
-    obj_ptr<HttpRequest_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpRequest_base>& retVal, AsyncHandle ac)
 {
     // D-005: http.head sends automatically, no manual end() needed
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, ac, true);
@@ -2921,8 +2942,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal)
 {
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_request(method, url, opts, msg, &ac);
+    result_t hr = fire_request(method, url, opts, msg, h_ac);
     if (hr < 0)
         return hr;
 
@@ -2947,8 +2969,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     obj_ptr<HttpRequest_base>& retVal)
 {
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_callback_request(method, url, opts, callback, msg, &ac);
+    result_t hr = fire_callback_request(method, url, opts, callback, msg, h_ac);
     if (hr < 0)
         return hr;
 
@@ -2986,8 +3009,9 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_request("GET", url, opts, msg, &ac, true);
+    result_t hr = fire_request("GET", url, opts, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3001,8 +3025,9 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_callback_request("GET", url, opts, callback, msg, &ac, true);
+    result_t hr = fire_callback_request("GET", url, opts, callback, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3016,9 +3041,10 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
     // D-005: http.get sends automatically (consistent with Node.js http.get),
     // no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_callback_request("GET", url, opts, callback, msg, &ac, true);
+    result_t hr = fire_callback_request("GET", url, opts, callback, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3103,8 +3129,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 {
     // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_request("HEAD", url, opts, msg, &ac, true);
+    result_t hr = fire_request("HEAD", url, opts, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3117,8 +3144,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
 {
     // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, &ac, true);
+    result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3131,9 +3159,10 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
 {
     // D-005: http.head sends automatically, no manual end() needed
     AsyncEvent ac(Isolate::current());
+    AsyncHandle h_ac(&ac);
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;
-    result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, &ac, true);
+    result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, h_ac, true);
     if (hr < 0)
         return hr;
 
@@ -3145,7 +3174,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
 class asyncFetch : public AsyncState {
 public:
     asyncFetch(obj_ptr<HttpRequest::Options> o,
-        obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+        obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
         : AsyncState(ac)
         , m_hc((HttpClient*)(HttpClient_base*)o->agent)
         , m_o(o)
@@ -3234,14 +3263,14 @@ private:
 };
 
 result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     // Sync phase: parse v8::Local opts (and the request source) into ac->m_ctx as
     // a single Options object. fetch follows the Fetch standard: init overrides a
     // request source (init.headers replaces its headers, init.body its body), a
     // GET/HEAD request must not carry a body, and a string body is sent as
     // text/plain;charset=UTF-8 (http.request keeps the historical urlencoded default).
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         Isolate* isolate = Isolate::current();
 
         obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
@@ -3286,16 +3315,16 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
                 return hr;
         }
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = o;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = o;
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
-    return (new asyncFetch(o, retVal, ac))->post(0);
+    obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
+    return (new asyncFetch(o, retVal, std::move(ac)))->post(0);
 }
 }

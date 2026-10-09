@@ -296,9 +296,9 @@ public:
     // Pure C++ request interface (no V8 access needed, safe for async threads)
     result_t request(const std::vector<std::pair<exlib::string, exlib::string>>& headers,
         bool endStream, obj_ptr<Http2Stream>& retVal);
-    virtual result_t ping(int32_t& retVal, AsyncEvent* ac);
+    virtual result_t ping(int32_t& retVal, AsyncHandle ac);
     virtual result_t settings(v8::Local<v8::Object> settings);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t close(AsyncHandle ac);
     virtual result_t destroy();
 
 private:
@@ -317,11 +317,10 @@ public:
     void signalDone()
     {
         m_done_lock.lock();
-        AsyncEvent* ac = m_done_ac;
-        m_done_ac = nullptr;
+        AsyncHandle ac = std::move(m_done_ac);
         m_done_lock.unlock();
         if (ac)
-            ac->post(0);
+            ac.post(0);
     }
 
     // Collect pending nghttp2 output into a buffer (no I/O)
@@ -405,7 +404,7 @@ public:
     // Signaled when readLoop finishes; used by Http2Server to keep
     // the TcpServer handler alive until the session is done.
     exlib::spinlock m_done_lock;
-    AsyncEvent* m_done_ac = nullptr;
+    AsyncHandle m_done_ac;
 
     // Serialize submit_request + enqueueFlush to preserve HPACK encoding order
     exlib::spinlock m_request_lock;

@@ -28,10 +28,10 @@ public:
     static result_t _new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac) = 0;
-    virtual result_t connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncEvent* ac) = 0;
-    virtual result_t connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncEvent* ac) = 0;
-    virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncHandle ac) = 0;
+    virtual result_t connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncHandle ac) = 0;
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, v8::Local<v8::Function> connectListener, AsyncHandle ac) = 0;
+    virtual result_t accept(Stream_base* socket, AsyncHandle ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;

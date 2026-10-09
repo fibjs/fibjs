@@ -101,14 +101,14 @@ result_t HttpResponse::get_bodyUsed(bool& retVal)
 }
 
 result_t HttpResponse::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return m_message->read(bytes, retVal, ac);
+    return m_message->read(bytes, retVal, std::move(ac));
 }
 
-result_t HttpResponse::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t HttpResponse::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->readAll(retVal, ac);
+    return m_message->readAll(retVal, std::move(ac));
 }
 
 result_t HttpResponse::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
@@ -121,22 +121,22 @@ result_t HttpResponse::setEncoding(exlib::string encoding, obj_ptr<Message_base>
     return 0;
 }
 
-result_t HttpResponse::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return write(std::get<exlib::string>(data), retVal, ac);
+    return write(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->write(data, retVal, ac);
+    return m_message->write(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -144,42 +144,48 @@ result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncEvent* ac
     if (hr < 0)
         return hr;
 
-    return m_message->write(buf.get(), retVal, ac);
+    return m_message->write(buf.get(), retVal, std::move(ac));
 }
 
-result_t HttpResponse::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
+result_t HttpResponse::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(data, retVal, ac);
+    return m_message->text(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::text(exlib::string& retVal, AsyncEvent* ac)
+result_t HttpResponse::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(retVal, ac);
+    return m_message->text(retVal, std::move(ac));
 }
 
-result_t HttpResponse::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t HttpResponse::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    return m_message->arrayBuffer(retVal, ac);
+    return m_message->arrayBuffer(retVal, std::move(ac));
 }
 
-result_t HttpResponse::formData(obj_ptr<FormData_base>& retVal, AsyncEvent* ac)
+result_t HttpResponse::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
 {
-    return m_message->formData(retVal, ac);
+    return m_message->formData(retVal, std::move(ac));
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpResponse::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(data, retVal, ac);
+    return m_message->json(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac)
+result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
-        // Sync phase (V8-safe): let m_message encode the body into m_ctx[0],
-        // then pack the options into m_ctx[1]. The async phase applies them.
-        result_t hr = m_message->json(data, retVal, ac);
-        if (hr != CALL_E_NOSYNC)
+    if (ac.isSync()) {
+        // Sync phase (V8-safe): encode the body here (same as Message::json's
+        // sync phase, which cannot be reused because it would take the shared
+        // handle), then pack the options into ctx[1]. The async phase applies
+        // them.
+        exlib::string str;
+        result_t hr = json_base::encode(data, str);
+        if (hr < 0)
             return hr;
+
+        ac.ctxv().resize(2);
+        ac.ctxv()[0] = new Buffer(str.c_str(), str.length());
 
         obj_ptr<HttpResponse::ResponseOptions> opts;
         hr = HttpResponse::ResponseOptions::load(options, opts);
@@ -194,16 +200,15 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
             opts->headers = hdrs;
         }
 
-        ac->m_ctx.resize(2);
-        ac->m_ctx[1] = opts;
+        ac.ctxv()[1] = opts;
         return CALL_E_NOSYNC;
     }
 
     // Async phase (C++-only, no V8 access): apply status / statusText /
     // headers, then let m_message write the encoded body (which also sets
     // Content-Type: application/json).
-    if (ac->m_ctx.size() > 1) {
-        obj_ptr<HttpResponse::ResponseOptions> opts = (HttpResponse::ResponseOptions*)ac->m_ctx[1].object();
+    if (ac.ctxv().size() > 1) {
+        obj_ptr<HttpResponse::ResponseOptions> opts = (HttpResponse::ResponseOptions*)ac.ctxv()[1].object();
         if (opts->status.has_value())
             set_statusCode(opts->status.value());
         if (opts->statusText.has_value())
@@ -214,35 +219,35 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
             appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
     }
 
-    return m_message->json(data, retVal, ac);
+    return m_message->json(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::json(Variant& retVal, AsyncEvent* ac)
+result_t HttpResponse::json(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->json(retVal, ac);
+    return m_message->json(retVal, std::move(ac));
 }
 
-result_t HttpResponse::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t HttpResponse::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(data, retVal, ac);
+    return m_message->pack(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::pack(Variant& retVal, AsyncEvent* ac)
+result_t HttpResponse::pack(Variant& retVal, AsyncHandle ac)
 {
-    return m_message->pack(retVal, ac);
+    return m_message->pack(retVal, std::move(ac));
 }
 
-result_t HttpResponse::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+result_t HttpResponse::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
 {
     // If no explicit type given, use the response Content-Type header
     if (type.empty())
         m_message->firstHeader("Content-Type", type);
-    return m_message->blob(type, retVal, ac);
+    return m_message->blob(type, retVal, std::move(ac));
 }
 
-result_t HttpResponse::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t HttpResponse::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    return m_message->bytes(retVal, ac);
+    return m_message->bytes(retVal, std::move(ac));
 }
 
 result_t HttpResponse::get_length(int64_t& retVal)
@@ -440,24 +445,24 @@ result_t HttpResponse::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t HttpResponse::end(int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::end(int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(retVal, ac);
+    return m_message->end(retVal, std::move(ac));
 }
 
-result_t HttpResponse::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, retVal, ac);
+    return m_message->end(data, retVal, std::move(ac));
 }
 
-result_t HttpResponse::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    return m_message->end(data, encoding, retVal, std::move(ac));
 }
 
-result_t HttpResponse::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t HttpResponse::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, ac);
+    return m_message->end(data, encoding, retVal, std::move(ac));
 }
 
 result_t HttpResponse::isEnded(bool& retVal)
@@ -590,12 +595,12 @@ exlib::string HttpResponse::prepareHeaders()
     return strCommand;
 }
 
-result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnly)
+result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnly)
 {
     class asyncReadFrom : public AsyncState {
     public:
         asyncReadFrom(HttpResponse* pThis, BufferedStream_base* stm,
-            AsyncEvent* ac, bool headerOnly)
+            AsyncHandle ac, bool headerOnly)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -644,24 +649,24 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac, bool headerOnl
         exlib::string m_strLine;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
         return CHECK_ERROR(Runtime::setError("HttpResponse: only accept BufferedStream object."));
 
-    return (new asyncReadFrom(this, _stm, ac, headerOnly))->post(0);
+    return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(0);
 }
 
-result_t HttpResponse::readHeader(Stream_base* stm, AsyncEvent* ac)
+result_t HttpResponse::readHeader(Stream_base* stm, AsyncHandle ac)
 {
-    return readFrom(stm, ac, true);
+    return readFrom(stm, std::move(ac), true);
 }
 
-result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
         result_t hr = Options::load(options, _options);
@@ -671,50 +676,50 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
         if (!_options->header_only.value() && _options->content_length.has_value())
             return Runtime::setError("HttpResponse: content_length option is only valid for header_only response");
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = _options;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = _options;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     exlib::string strCommand = prepareHeaders();
 
-    if (ac->m_ctx.size() == 1) {
-        Options* _options = (Options*)ac->m_ctx[0].object();
+    if (ac.ctxv().size() == 1) {
+        Options* _options = (Options*)ac.ctxv()[0].object();
         if (_options->header_only.value())
-            return m_message->sendHeader(stm, strCommand, _options->content_length.value_or(true), ac);
+            return m_message->sendHeader(stm, strCommand, _options->content_length.value_or(true), std::move(ac));
     }
 
-    return m_message->send(stm, strCommand, ac);
+    return m_message->send(stm, strCommand, std::move(ac));
 }
 
-result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
         result_t hr = Options::load(options, _options);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = _options;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = _options;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    if (ac->m_ctx.size() == 1) {
-        Options* _options = (Options*)ac->m_ctx[0].object();
+    if (ac.ctxv().size() == 1) {
+        Options* _options = (Options*)ac.ctxv()[0].object();
         if (_options->header_only.value())
-            return readFrom(stm, ac, true);
+            return readFrom(stm, std::move(ac), true);
     }
 
-    return readFrom(stm, ac, false);
+    return readFrom(stm, std::move(ac), false);
 }
 
-result_t HttpResponse::readBody(AsyncEvent* ac)
+result_t HttpResponse::readBody(AsyncHandle ac)
 {
-    return m_message->readBody(ac);
+    return m_message->readBody(std::move(ac));
 }
 
 result_t HttpResponse::get_stream(obj_ptr<Stream_base>& retVal)
@@ -937,13 +942,13 @@ result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
     return 0;
 }
 
-result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncEvent* ac)
+result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strCommand = prepareHeaders();
-    return m_message->sendHeader(stm, strCommand, content_length, ac);
+    return m_message->sendHeader(stm, strCommand, content_length, std::move(ac));
 }
 
 result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)

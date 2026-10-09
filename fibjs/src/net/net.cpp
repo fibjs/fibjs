@@ -73,9 +73,9 @@ result_t net_base::info(v8::Local<v8::Object>& retVal)
 }
 
 result_t net_base::resolve(exlib::string name, int32_t family,
-    exlib::string& retVal, AsyncEvent* ac)
+    exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
@@ -85,11 +85,11 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
-        resolve_data(int32_t family, exlib::string name, exlib::string& retVal, AsyncEvent* ac)
+        resolve_data(int32_t family, exlib::string name, exlib::string& retVal, AsyncHandle ac)
             : _family(family)
             , _name(name)
             , _retVal(retVal)
-            , _ac(ac)
+            , _ac(std::move(ac))
         {
         }
 
@@ -97,12 +97,12 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         int32_t _family;
         exlib::string _name;
         exlib::string& _retVal;
-        AsyncEvent* _ac;
+        AsyncHandle _ac;
     };
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
-    resolve_data* resolver = new resolve_data(family, name, retVal, ac);
+    resolve_data* resolver = new resolve_data(family, name, retVal, std::move(ac));
     int r = uv_getaddrinfo(
         s_uv_loop, resolver,
         [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
@@ -110,14 +110,12 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
             if (status < 0) {
                 uv_freeaddrinfo(res);
-                // 先取用再释放：resolver 在 post 之前必须保持有效
-                AsyncEvent* ac = resolver->_ac;
+                // 先投递再释放：resolver 在 post 之前保持有效；投递即移交，无需中转
                 exlib::string hostname = resolver->_name;
                 int32_t family = resolver->_family;
                 exlib::string code;
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
                     code = "ENOTFOUND";
-                delete resolver;
 
                 setErrorPayload(ErrorPayload::from_uv(status)
                                     .with_syscall("getaddrinfo")
@@ -125,7 +123,8 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                                     .with_code(code)
                                     .arg("hostname", hostname)
                                     .arg("family", family));
-                ac->post(status);
+                resolver->_ac.post(status);
+                delete resolver;
                 return;
             }
 
@@ -149,17 +148,17 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                                     .with_code("ENOTFOUND")
                                     .arg("hostname", hostname)
                                     .arg("family", family));
-                resolver->_ac->post(-WSAHOST_NOT_FOUND);
+                resolver->_ac.post(-WSAHOST_NOT_FOUND);
 #else
                 setErrorPayload(ErrorPayload::from_system(-ETIME)
                                     .with_syscall("getaddrinfo")
                                     .with_hostname(hostname)
                                     .arg("hostname", hostname)
                                     .arg("family", family));
-                resolver->_ac->post(-ETIME);
+                resolver->_ac.post(-ETIME);
 #endif
             } else
-                resolver->_ac->post(0);
+                resolver->_ac.post(0);
 
             uv_freeaddrinfo(res);
             delete resolver;
@@ -175,25 +174,25 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 }
 
 result_t net_base::ip(exlib::string name, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return resolve(name, net_base::C_AF_INET, retVal, ac);
+    return resolve(name, net_base::C_AF_INET, retVal, std::move(ac));
 }
 
 result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    return resolve(name, net_base::C_AF_INET6, retVal, ac);
+    return resolve(name, net_base::C_AF_INET6, retVal, std::move(ac));
 }
 
 result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     // 纯 tag 分发（不转换、不触碰 V8）：ssl: 直接交给 tls 入口，由它处理相位
     if (!qstrcmp(url.c_str(), "ssl:", 4))
-        return tls_base::connect(url, timeout, retVal, ac);
+        return tls_base::connect(url, timeout, retVal, std::move(ac));
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
@@ -223,7 +222,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (hr < 0)
             return hr;
 
-        return socket->connect(nPort, u->hostname(), timeout, retVal, ac);
+        return socket->connect(nPort, u->hostname(), timeout, retVal, std::move(ac));
     } else {
         obj_ptr<Socket_base> socket;
 
@@ -231,13 +230,13 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (hr < 0)
             return hr;
 
-        return socket->connect(url.substr(5), timeout, retVal, ac);
+        return socket->connect(url.substr(5), timeout, retVal, std::move(ac));
     }
 }
 
-result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     bool is_ipv6 = Url::isIPv6(host);
@@ -248,50 +247,50 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, ob
     if (hr < 0)
         return hr;
 
-    return socket->connect(port, host, timeout, retVal, ac);
+    return socket->connect(port, host, timeout, retVal, std::move(ac));
 }
 
-result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = opts;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
-    return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
+    ConnectOptions* opts = (ConnectOptions*)ac.ctxv()[0].object();
+    return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, std::move(ac));
 }
 
 // the three forms of the merged arity-2 entry: an options object, a port and a
 // unix socket path, each with a once connect listener
 static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener,
-    obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    obj_ptr<Stream_base>& retVal, AsyncHandle ac);
 
-static result_t connect_by_port(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_port(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return net_base::connect(port, "localhost", 0, connectListener, retVal, ac);
+    return net_base::connect(port, "localhost", 0, connectListener, retVal, std::move(ac));
 }
 
-result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(port, host, 0, connectListener, retVal, ac);
+    return connect(port, host, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         // the listener registration needs the socket wrapper, so the socket is
         // built in the sync phase only when a listener is present; otherwise
         // it is built in the async phase (no `_new` off the JS thread,
@@ -305,8 +304,8 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
             if (hr < 0)
                 return hr;
 
-            ac->m_ctx.resize(1);
-            ac->m_ctx[0] = socket;
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = socket;
 
             v8::Local<v8::Object> _retVal;
             socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
@@ -318,8 +317,8 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
     obj_ptr<Socket_base> holder;
     Socket_base* socket = NULL;
 
-    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL)
-        socket = Socket_base::getInstance(ac->m_ctx[0].object());
+    if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL)
+        socket = Socket_base::getInstance(ac.ctxv()[0].object());
 
     if (socket == NULL) {
         bool is_ipv6 = Url::isIPv6(host);
@@ -332,41 +331,41 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
         socket = holder;
     }
 
-    return socket->connect(port, host, timeout, retVal, ac);
+    return socket->connect(port, host, timeout, retVal, std::move(ac));
 }
 
-static result_t connect_by_path(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_path(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return net_base::connect(0, path, 0, connectListener, retVal, ac);
+    return net_base::connect(0, path, 0, connectListener, retVal, std::move(ac));
 }
 
-result_t net_base::connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<v8::Local<v8::Object>>(options))
-        return connect_by_options(std::get<v8::Local<v8::Object>>(options), connectListener, retVal, ac);
+        return connect_by_options(std::get<v8::Local<v8::Object>>(options), connectListener, retVal, std::move(ac));
 
     if (std::holds_alternative<exlib::string>(options))
-        return connect_by_path(std::get<exlib::string>(options), connectListener, retVal, ac);
+        return connect_by_path(std::get<exlib::string>(options), connectListener, retVal, std::move(ac));
 
-    return connect_by_port(std::get<int32_t>(options), connectListener, retVal, ac);
+    return connect_by_port(std::get<int32_t>(options), connectListener, retVal, std::move(ac));
 }
 
-result_t net_base::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t net_base::connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    return connect(0, path, timeout, connectListener, retVal, ac);
+    return connect(0, path, timeout, connectListener, retVal, std::move(ac));
 }
 
-static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(2);
-        ac->m_ctx[0] = opts;
+        ac.ctxv().resize(2);
+        ac.ctxv()[0] = opts;
 
         bool is_ipv6 = Url::isIPv6(opts->host.value());
         int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
@@ -376,7 +375,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         if (hr < 0)
             return hr;
 
-        ac->m_ctx[1] = socket;
+        ac.ctxv()[1] = socket;
 
         v8::Local<v8::Object> _retVal;
         socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
@@ -384,22 +383,22 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
-    ctx_hr = ac->ctx(1);
+    ctx_hr = ac.ctx(1);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    ConnectOptions* opts = (ConnectOptions*)ac->m_ctx[0].object();
-    Socket_base* socket = (Socket_base*)ac->m_ctx[1].object();
-    return socket->connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, ac);
+    ConnectOptions* opts = (ConnectOptions*)ac.ctxv()[0].object();
+    Socket_base* socket = (Socket_base*)ac.ctxv()[1].object();
+    return socket->connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, std::move(ac));
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,
-    obj_ptr<Smtp_base>& retVal, AsyncEvent* ac)
+    obj_ptr<Smtp_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -410,7 +409,7 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
 
     retVal->set_timeout(timeout);
 
-    return retVal->connect(url, ac);
+    return retVal->connect(url, std::move(ac));
 }
 
 // the detection functions take any value and render it first (an object with

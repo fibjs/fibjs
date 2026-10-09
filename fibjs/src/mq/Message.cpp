@@ -104,15 +104,15 @@ result_t Message::get_bodyUsed(bool& retVal)
 }
 
 result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     if (m_bodyStream)
-        return m_bodyStream->readBuffer(bytes, retVal, ac);
+        return m_bodyStream->readBuffer(bytes, retVal, std::move(ac));
 
     if (m_body == NULL)
         return CALL_RETURN_NULL;
 
-    return m_body->readBuffer(bytes, retVal, ac);
+    return m_body->readBuffer(bytes, retVal, std::move(ac));
 }
 
 // Reads the full message body then invokes fn(status, data).
@@ -121,7 +121,7 @@ class asyncConsumeBody : public AsyncState {
 public:
     using ProcessFn = std::function<result_t(result_t, obj_ptr<Buffer_base>)>;
 
-    asyncConsumeBody(Message* pThis, ProcessFn fn, AsyncEvent* ac)
+    asyncConsumeBody(Message* pThis, ProcessFn fn, AsyncHandle ac)
         : AsyncState(ac)
         , m_pThis(pThis)
         , m_fn(std::move(fn))
@@ -173,34 +173,34 @@ private:
     obj_ptr<Buffer_base> m_data;
 };
 
-result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (m_bodyStream)
-        return m_bodyStream->readAll(retVal, ac);
+        return m_bodyStream->readAll(retVal, std::move(ac));
 
     if (m_body) {
         m_body->rewind();
-        return m_body->readAll(retVal, ac);
+        return m_body->readAll(retVal, std::move(ac));
     }
 
     return CALL_RETURN_NULL;
 }
 
-result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
         retVal = (n == CALL_RETURN_NULL || !data) ? new Buffer("", 0) : data;
         return 0;
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
-result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEvent* ac)
+result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, type, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
@@ -209,28 +209,28 @@ result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncEven
             data = new Buffer("", 0);
         retVal = new Blob(data, type);
         return 0;
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
-result_t Message::write(Union_write_data data, int32_t& retVal, AsyncEvent* ac)
+result_t Message::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
-        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, ac);
+        return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
 
-    return write(std::get<exlib::string>(data), retVal, ac);
+    return write(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    return m_body->writeBuffer(data, ac);
+    return m_body->writeBuffer(data, std::move(ac));
 }
 
-result_t Message::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
+result_t Message::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
@@ -239,12 +239,12 @@ result_t Message::write(exlib::string data, int32_t& retVal, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    return write(buf.get(), retVal, ac);
+    return write(buf.get(), retVal, std::move(ac));
 }
 
-result_t Message::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac)
+result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     // Buffer 构造是纯 C++（不触碰 V8）：直接在 async 相位完成，不必把转换
@@ -256,21 +256,21 @@ result_t Message::text(exlib::string data, exlib::string& retVal, AsyncEvent* ac
     return 0;
 }
 
-result_t Message::text(exlib::string& retVal, AsyncEvent* ac)
+result_t Message::text(exlib::string& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
         if (n == CALL_RETURN_NULL || !data) { retVal = ""; return 0; }
         return data->toString(retVal);
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
-result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEvent* ac)
+result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
@@ -278,37 +278,37 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncEv
         if (n == CALL_RETURN_NULL || !data) { retVal = NewBackingStore(0); return 0; }
         retVal = data.As<Buffer>()->backingStore();
         return 0;
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
-result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         exlib::string str;
         result_t hr = json_base::encode(data, str);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = new Buffer(str.c_str(), str.length());
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = new Buffer(str.c_str(), str.length());
 
         return CALL_E_NOSYNC;
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[0].object();
+    obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[0].object();
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
     return 0;
 }
 
-result_t Message::json(Variant& retVal, AsyncEvent* ac)
+result_t Message::json(Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
@@ -319,45 +319,45 @@ result_t Message::json(Variant& retVal, AsyncEvent* ac)
         data->toString(str);
         retVal.setJSON(str);
         return 0;
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
-result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncEvent* ac)
+result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncConsumeBody(this, std::move(fn), ac))->post(0);
+    return (new asyncConsumeBody(this, std::move(fn), std::move(ac)))->post(0);
 }
 
-result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncEvent* ac)
+result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         obj_ptr<Buffer_base> buf;
         result_t hr = msgpack_base::encode(data, buf);
         if (hr < 0)
             return hr;
 
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = buf;
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = buf;
 
         return CALL_E_NOSYNC;
     }
 
-    result_t ctx_hr = ac->ctx(0);
+    result_t ctx_hr = ac.ctx(0);
     if (ctx_hr < 0)
         return ctx_hr;
 
-    obj_ptr<Buffer_base> buf = (Buffer_base*)ac->m_ctx[0].object();
+    obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[0].object();
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
     return 0;
 }
 
-result_t Message::pack(Variant& retVal, AsyncEvent* ac)
+result_t Message::pack(Variant& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
@@ -366,7 +366,7 @@ result_t Message::pack(Variant& retVal, AsyncEvent* ac)
         Buffer* buf = data.As<Buffer>();
         retVal.setMsgpack(exlib::string((const char*)buf->data(), buf->length()));
         return 0;
-    }, ac))->post(0);
+    }, std::move(ac)))->post(0);
 }
 
 result_t Message::get_length(int64_t& retVal)
@@ -384,38 +384,38 @@ result_t Message_base::_new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object>
     return 0;
 }
 
-result_t Message::end(int32_t& retVal, AsyncEvent* ac)
+result_t Message::end(int32_t& retVal, AsyncHandle ac)
 {
     m_end = true;
     retVal = 0;
     return 0;
 }
 
-result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncEvent* ac)
+result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, retVal, ac);
+    return m_body->end(data, retVal, std::move(ac));
 }
 
-result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, encoding, retVal, ac);
+    return m_body->end(data, encoding, retVal, std::move(ac));
 }
 
-result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, encoding, retVal, ac);
+    return m_body->end(data, encoding, retVal, std::move(ac));
 }
 
 result_t Message::isEnded(bool& retVal)
@@ -435,12 +435,12 @@ result_t Message::clear()
     return 0;
 }
 
-result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncEvent* ac)
+result_t Message::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

@@ -70,24 +70,24 @@ public:
     static result_t createGzip(Stream_base* to, obj_ptr<Stream_base>& retVal);
     static result_t createInflate(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal);
     static result_t createInflateRaw(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal);
-    static result_t deflate(Union_deflate_data data, Union_deflate_level level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t deflateTo(Union_deflateTo_data data, Stream_base* stm, int32_t level, AsyncEvent* ac);
-    static result_t inflate(Union_inflate_data data, Union_inflate_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t inflateTo(Union_inflateTo_data data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
-    static result_t gzip(Union_gzip_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t gzipTo(Union_gzipTo_data data, Stream_base* stm, AsyncEvent* ac);
-    static result_t gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t gunzipTo(Union_gunzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
-    static result_t deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_level level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t deflateRawTo(Union_deflateRawTo_data data, Stream_base* stm, int32_t level, AsyncEvent* ac);
-    static result_t inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t inflateRawTo(Union_inflateRawTo_data data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
+    static result_t deflate(Union_deflate_data data, Union_deflate_level level, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t deflateTo(Union_deflateTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac);
+    static result_t inflate(Union_inflate_data data, Union_inflate_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t inflateTo(Union_inflateTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
+    static result_t gzip(Union_gzip_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t gzipTo(Union_gzipTo_data data, Stream_base* stm, AsyncHandle ac);
+    static result_t gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t gunzipTo(Union_gunzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
+    static result_t deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_level level, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t deflateRawTo(Union_deflateRawTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac);
+    static result_t inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t inflateRawTo(Union_inflateRawTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
     static result_t createZip(Stream_base* to, int32_t level, obj_ptr<Stream_base>& retVal);
     static result_t createUnzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal);
-    static result_t zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncEvent* ac);
-    static result_t unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncEvent* ac);
+    static result_t zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac);
+    static result_t unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

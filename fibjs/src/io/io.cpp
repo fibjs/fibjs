@@ -16,12 +16,12 @@ namespace fibjs {
 DECLARE_MODULE(io);
 
 result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
-    int64_t& retVal, AsyncEvent* ac)
+    int64_t& retVal, AsyncHandle ac)
 {
     class asyncCopy : public AsyncState {
     public:
         asyncCopy(Stream_base* from, Stream_base* to, int64_t bytes,
-            int64_t& retVal, AsyncEvent* ac)
+            int64_t& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_from(from)
             , m_to(to)
@@ -92,17 +92,17 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
         obj_ptr<Buffer_base> m_buf;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncCopy(from, to, bytes, retVal, ac))->post(0);
+    return (new asyncCopy(from, to, bytes, retVal, std::move(ac)))->post(0);
 }
 
 #define BRIDGE_READ 1
 #define BRIDGE_WRITE 2
 #define BRIDGE_DONE 0
 
-result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
+result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
 {
     class AsyncData {
     public:
@@ -170,8 +170,8 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
         };
 
     public:
-        AsyncData(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
-            : m_ac(ac)
+        AsyncData(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
+            : m_ac(std::move(ac))
         {
             m_stms[0] = stm1;
             m_stms[1] = stm2;
@@ -188,7 +188,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
         void release()
         {
             if (m_ref.dec() == 0) {
-                m_ac->post(0);
+                m_ac.post(0);
                 delete this;
             }
         }
@@ -197,13 +197,13 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
         obj_ptr<Stream_base> m_stms[2];
         exlib::atomic m_states[2];
         exlib::atomic m_ref;
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    new AsyncData(stm1, stm2, ac);
+    new AsyncData(stm1, stm2, std::move(ac));
     return CALL_E_PENDDING;
 }
 }

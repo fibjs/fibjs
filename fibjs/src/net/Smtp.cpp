@@ -25,7 +25,7 @@ result_t Smtp_base::_new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This)
 
 class asyncSmtp : public AsyncState {
 public:
-    asyncSmtp(Smtp* pThis, exlib::string& retVal, AsyncEvent* ac)
+    asyncSmtp(Smtp* pThis, exlib::string& retVal, AsyncHandle ac)
         : AsyncState(ac)
         , m_pThis(pThis)
         , m_retVal(retVal)
@@ -33,7 +33,7 @@ public:
         m_stmBuffered = pThis->m_stmBuffered;
     }
 
-    asyncSmtp(Smtp* pThis, AsyncEvent* ac)
+    asyncSmtp(Smtp* pThis, AsyncHandle ac)
         : AsyncState(ac)
         , m_pThis(pThis)
         , m_retVal(m_strLine)
@@ -82,8 +82,8 @@ protected:
 class asyncCommand : public asyncSmtp {
 public:
     asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg,
-        exlib::string& retVal, AsyncEvent* ac)
-        : asyncSmtp(pThis, retVal, ac)
+        exlib::string& retVal, AsyncHandle ac)
+        : asyncSmtp(pThis, retVal, std::move(ac))
     {
         exlib::string s(cmd);
 
@@ -96,8 +96,8 @@ public:
         init(command);
     }
 
-    asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg, AsyncEvent* ac)
-        : asyncSmtp(pThis, ac)
+    asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg, AsyncHandle ac)
+        : asyncSmtp(pThis, std::move(ac))
     {
         exlib::string s(cmd);
 
@@ -120,12 +120,12 @@ private:
     obj_ptr<Buffer> m_buf;
 };
 
-result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
+result_t Smtp::connect(exlib::string url, AsyncHandle ac)
 {
     class asyncConnect : public asyncSmtp {
     public:
-        asyncConnect(Smtp* pThis, exlib::string url, AsyncEvent* ac)
-            : asyncSmtp(pThis, ac)
+        asyncConnect(Smtp* pThis, exlib::string url, AsyncHandle ac)
+            : asyncSmtp(pThis, std::move(ac))
             , m_url(url)
             , m_tls(false)
         {
@@ -208,44 +208,44 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         bool m_tls;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncConnect(this, url, ac))->post(0);
+    return (new asyncConnect(this, url, std::move(ac)))->post(0);
 }
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncCommand(this, cmd, arg, retVal, ac))->post(0);
+    return (new asyncCommand(this, cmd, arg, retVal, std::move(ac)))->post(0);
 }
 
-result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
+result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncCommand(this, cmd, arg, ac))->post(0);
+    return (new asyncCommand(this, cmd, arg, std::move(ac)))->post(0);
 }
 
-result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
+result_t Smtp::hello(exlib::string hostname, AsyncHandle ac)
 {
     class asyncHello : public asyncSmtp {
     public:
-        asyncHello(Smtp* pThis, exlib::string hostname, AsyncEvent* ac)
-            : asyncSmtp(pThis, ac)
+        asyncHello(Smtp* pThis, exlib::string hostname, AsyncHandle ac)
+            : asyncSmtp(pThis, std::move(ac))
             , m_hostname(hostname)
             , step(0)
         {
@@ -321,23 +321,23 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
         int32_t step;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncHello(this, hostname, ac))->post(0);
+    return (new asyncHello(this, hostname, std::move(ac)))->post(0);
 }
 
 result_t Smtp::login(exlib::string username, exlib::string password,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncLogin : public asyncSmtp {
     public:
         asyncLogin(Smtp* pThis, exlib::string username, exlib::string password,
-            AsyncEvent* ac)
-            : asyncSmtp(pThis, ac)
+            AsyncHandle ac)
+            : asyncSmtp(pThis, std::move(ac))
             , m_username(username)
             , m_password(
                   password)
@@ -395,13 +395,13 @@ result_t Smtp::login(exlib::string username, exlib::string password,
         int32_t step;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncLogin(this, username, password, ac))->post(0);
+    return (new asyncLogin(this, username, password, std::move(ac)))->post(0);
 }
 
 inline exlib::string verify_address(exlib::string& addr)
@@ -418,22 +418,22 @@ inline exlib::string verify_address(exlib::string& addr)
     return str;
 }
 
-result_t Smtp::from(exlib::string address, AsyncEvent* ac)
+result_t Smtp::from(exlib::string address, AsyncHandle ac)
 {
-    return command("MAIL FROM:", verify_address(address), ac);
+    return command("MAIL FROM:", verify_address(address), std::move(ac));
 }
 
-result_t Smtp::to(exlib::string address, AsyncEvent* ac)
+result_t Smtp::to(exlib::string address, AsyncHandle ac)
 {
-    return command("RCPT TO:", verify_address(address), ac);
+    return command("RCPT TO:", verify_address(address), std::move(ac));
 }
 
-result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
+result_t Smtp::data(exlib::string txt, AsyncHandle ac)
 {
     class asyncData : public asyncSmtp {
     public:
-        asyncData(Smtp* pThis, exlib::string txt, AsyncEvent* ac)
-            : asyncSmtp(pThis, ac)
+        asyncData(Smtp* pThis, exlib::string txt, AsyncHandle ac)
+            : asyncSmtp(pThis, std::move(ac))
             , m_txt(txt)
             , step(0)
         {
@@ -473,18 +473,18 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
         int32_t step;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return (new asyncData(this, txt, ac))->post(0);
+    return (new asyncData(this, txt, std::move(ac)))->post(0);
 }
 
-result_t Smtp::quit(AsyncEvent* ac)
+result_t Smtp::quit(AsyncHandle ac)
 {
-    return command("QUIT", "", ac);
+    return command("QUIT", "", std::move(ac));
 }
 
 result_t Smtp::get_timeout(int32_t& retVal)

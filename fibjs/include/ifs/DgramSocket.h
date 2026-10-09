@@ -52,10 +52,10 @@ public:
 
 public:
     // DgramSocket_base
-    virtual result_t bind(int32_t port, exlib::string addr, AsyncEvent* ac) = 0;
-    virtual result_t bind(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
-    virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t bind(int32_t port, exlib::string addr, AsyncHandle ac) = 0;
+    virtual result_t bind(v8::Local<v8::Object> opts, AsyncHandle ac) = 0;
+    virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
     virtual result_t close() = 0;
     virtual result_t close(v8::Local<v8::Function> callback) = 0;

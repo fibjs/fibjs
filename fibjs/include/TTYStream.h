@@ -81,8 +81,8 @@ public:
     virtual result_t get_rows(int32_t& retVal);
     virtual result_t clearLine(int32_t dir);
     virtual result_t clearScreenDown();
-    virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac);
-    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac);
+    virtual result_t cursorTo(int32_t x, int32_t y, AsyncHandle ac);
+    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncHandle ac);
     virtual result_t getWindowSize(std::vector<double>& retVal);
 
 public:

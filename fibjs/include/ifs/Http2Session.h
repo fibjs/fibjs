@@ -98,9 +98,9 @@ public:
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t request(v8::Local<v8::Object> headers, v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal) = 0;
     virtual result_t goaway(int32_t code, int32_t lastStreamId) = 0;
-    virtual result_t ping(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t ping(int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t settings(v8::Local<v8::Object> settings) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
     virtual result_t destroy() = 0;
 
 public:

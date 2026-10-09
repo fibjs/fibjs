@@ -344,19 +344,17 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
     if (m_closed || m_destroyed) {
         stream->m_recv_lock.lock();
         stream->m_closed = true;
-        AsyncEvent* rac = stream->m_recv_ac;
-        stream->m_recv_ac = nullptr;
+        AsyncHandle rac = std::move(stream->m_recv_ac);
         stream->m_recv_retVal = nullptr;
         stream->m_recv_lock.unlock();
         if (rac)
-            rac->apost(CALL_RETURN_NULL);
+            rac.apost(CALL_RETURN_NULL);
 
         stream->m_headers_lock.lock();
-        AsyncEvent* hac = stream->m_headers_ac;
-        stream->m_headers_ac = nullptr;
+        AsyncHandle hac = std::move(stream->m_headers_ac);
         stream->m_headers_lock.unlock();
         if (hac)
-            hac->apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
+            hac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
     }
     m_stream_lock.unlock();
 }
@@ -939,9 +937,9 @@ result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
     return 0;
 }
 
-result_t Http2Session::ping(int32_t& retVal, AsyncEvent* ac)
+result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_destroyed || !m_nghttp2)
@@ -959,7 +957,7 @@ result_t Http2Session::ping(int32_t& retVal, AsyncEvent* ac)
     retVal = 0;
 
     if (buf)
-        return m_conn->writeBuffer(buf, ac);
+        return m_conn->writeBuffer(buf, std::move(ac));
 
     return 0;
 }
@@ -994,9 +992,9 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
     return 0;
 }
 
-result_t Http2Session::close(AsyncEvent* ac)
+result_t Http2Session::close(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_closed)
@@ -1004,7 +1002,7 @@ result_t Http2Session::close(AsyncEvent* ac)
 
     class asyncClose : public AsyncState {
     public:
-        asyncClose(Http2Session* session, AsyncEvent* ac)
+        asyncClose(Http2Session* session, AsyncHandle ac)
             : AsyncState(ac)
             , m_session(session)
         {
@@ -1059,7 +1057,7 @@ result_t Http2Session::close(AsyncEvent* ac)
         obj_ptr<Buffer_base> m_buf;
     };
 
-    return (new asyncClose(this, ac))->post(0);
+    return (new asyncClose(this, std::move(ac)))->post(0);
 }
 
 result_t Http2Session::destroy()

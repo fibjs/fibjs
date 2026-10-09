@@ -27,19 +27,19 @@ public:
 public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal);
-    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t writeBuffer(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
+    virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac);
+    virtual result_t flush(AsyncHandle ac);
+    virtual result_t close(AsyncHandle ac);
 
 public:
     // BufferedStream_base
-    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncHandle ac);
+    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncHandle ac);
     virtual result_t readLines(int32_t maxlines, std::vector<exlib::string>& retVal);
-    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncHandle ac);
+    virtual result_t writeText(exlib::string txt, int32_t& retVal, AsyncHandle ac);
+    virtual result_t writeLine(exlib::string txt, int32_t& retVal, AsyncHandle ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_charset(exlib::string& retVal);
     virtual result_t set_charset(exlib::string newVal);
