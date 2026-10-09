@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 #include <tuple>
+#include <utility>
 #include <exlib/include/fiber.h>
 #include "utils.h"
 #include "Runtime.h"
@@ -51,7 +52,7 @@ public:
 public:
     virtual void resume()
     {
-        apost(0);
+        post(0);
     }
 
 public:
@@ -70,6 +71,8 @@ public:
         return 0;
     }
 
+    // Retired at the end of the series, once every interface family had
+    // migrated: the not-yet-migrated raw sites still call `ac->apost()`.
     virtual void apost(int32_t v)
     {
         post(v);
@@ -172,6 +175,244 @@ protected:
 private:
     kStateType m_state;
     std::unique_ptr<ErrorPayload> m_errorPayload;
+};
+
+// A single-owner handle to a continuation event, and the only way to name one
+// (plans/async-handle-protocol-minimal-2026-10-08.md §2.3, §2.5).
+//
+// Root invariant: a continuation event has exactly one deleter at any time.
+//   - owned    : the handle is that deleter. It deletes the event after a
+//                delivery, and when an undelivered event is abandoned (handle
+//                destroyed or overwritten). Delivery is always the event's own
+//                post(), which runs the event's work on the spot and returns
+//                only when that work is done - inline on the caller's stack,
+//                or on a pool fiber when the caller hands the continuation to
+//                the pool with AsyncHandle::apost. The event must put its work
+//                in post() and must not dispose of itself.
+//   - borrowed : the event's original owner deletes it (the glue stack frame,
+//                a self-deleting machine or receiver). The handle never
+//                deletes, and abandoning a borrowed continuation is a no-op.
+//
+// Delivery is detach -> deliver -> dispose: the handle empties itself *before*
+// running the event, so re-entrant code (a downstream callback may destroy the
+// object holding this handle) can never deliver or delete twice, and at no
+// instant do the handle and the delivery path both hold the delete right.
+//
+// Migration interop is one-way, "in" only: AsyncHandle(AsyncEvent*) is an
+// implicit *borrowed* construction, so unmigrated callers keep working
+// unchanged (plans/async-handle-protocol-minimal-2026-10-08.md §2.5). There is
+// deliberately no way back out to a raw pointer - a handle never surrenders
+// the delete right it holds.
+class AsyncHandle {
+public:
+    AsyncHandle() = default;
+
+    // The "in" direction of the migration interop: a raw pointer becomes a
+    // borrowed handle. The semantics are identical to today's raw protocol
+    // (the event is delivered, never deleted by us), so unmigrated call sites
+    // keep working unchanged. Not explicit on purpose - this is what makes
+    // layer-by-layer migration possible.
+    AsyncHandle(AsyncEvent* ac)
+        : m_ac(ac)
+        , m_borrowed(true)
+    {
+    }
+
+    // owned: take over a heap one-shot event created for this call. The handle
+    // becomes its unique deleter - after delivery, when abandoned before
+    // delivery, and when overwritten. The event must put its work in post()
+    // and must not dispose of itself (see the class comment).
+    static AsyncHandle adopt(AsyncEvent* ev)
+    {
+        AsyncHandle h;
+        h.m_ac = ev;
+        h.m_borrowed = false;
+        return h;
+    }
+
+    AsyncHandle(AsyncHandle&& other) noexcept
+        : m_ac(other.m_ac)
+        , m_borrowed(other.m_borrowed)
+    {
+        other.m_ac = nullptr;
+        other.m_borrowed = true;
+    }
+
+    AsyncHandle& operator=(AsyncHandle&& other) noexcept
+    {
+        if (this != &other) {
+            abandon();
+            m_ac = other.m_ac;
+            m_borrowed = other.m_borrowed;
+            other.m_ac = nullptr;
+            other.m_borrowed = true;
+        }
+        return *this;
+    }
+
+    AsyncHandle(const AsyncHandle&) = delete;
+    AsyncHandle& operator=(const AsyncHandle&) = delete;
+
+    ~AsyncHandle()
+    {
+        abandon();
+    }
+
+public:
+    bool empty() const
+    {
+        return m_ac == nullptr;
+    }
+    explicit operator bool() const
+    {
+        return m_ac != nullptr;
+    }
+
+    bool isSync() const
+    {
+        ex_assert(m_ac);
+        return m_ac->isSync();
+    }
+    bool isAsync() const
+    {
+        ex_assert(m_ac);
+        return m_ac->isAsync();
+    }
+
+    // The caller kind of the event (JS glue / callback / cc_ entry). A query
+    // like isSync/isAsync, not a way out to the pointer: the background-write
+    // fast path needs it (UVStream.h, fs_zip.cpp).
+    AsyncEvent::kCallType callType() const
+    {
+        ex_assert(m_ac);
+        return m_ac->callType();
+    }
+    Isolate* isolate() const
+    {
+        ex_assert(m_ac);
+        return m_ac->isolate();
+    }
+
+    result_t ctx(size_t n)
+    {
+        ex_assert(m_ac);
+        return m_ac->ctx(n);
+    }
+
+    std::vector<Variant>& ctxv()
+    {
+        ex_assert(m_ac);
+        return m_ac->m_ctx;
+    }
+    obj_ptr<object_base>& ctxo()
+    {
+        ex_assert(m_ac);
+        return m_ac->m_ctxo;
+    }
+    const obj_ptr<object_base>& ctxo() const
+    {
+        ex_assert(m_ac);
+        return m_ac->m_ctxo;
+    }
+
+public:
+    // Delivery is detach -> deliver -> dispose:
+    //   1. detach (empty the handle) *before* the call, so that re-entrant
+    //      code - a downstream callback may destroy the object holding this
+    //      handle - finds an empty handle and can never deliver or delete
+    //      twice, and at no instant do the handle and the delivery path both
+    //      hold the delete right;
+    //   2. deliver: ev->post(hr) - the one delivery primitive, which runs the
+    //      event's work here and returns only when it is done;
+    //   3. dispose: owned events are deleted by the handle, borrowed ones by
+    //      their original owner (the glue stack frame, the self-deleting
+    //      machine or receiver).
+    void post(result_t hr = 0)
+    {
+        AsyncEvent* ev = m_ac;
+        bool owned = !m_borrowed;
+
+        m_ac = nullptr;
+        m_borrowed = true;
+
+        if (!ev)
+            return;
+
+        ev->post(hr);
+
+        if (owned)
+            delete ev;
+    }
+
+    // Asynchronous delivery: hand this continuation to the pool selected by
+    // `mode`, so a caller whose context forbids running the continuation
+    // inline (V8 weak callback, uv/nghttp2 thread, deep recursion) can still
+    // deliver. The task carries the handle - and with it the ownership and the
+    // disposal duty - so nothing is released early: the post, and the owned
+    // disposal that follows it, both run on the pool fiber. An empty handle is
+    // a no-op, like post().
+    void apost(result_t hr = 0, int32_t mode = CALL_E_NOSYNC)
+    {
+        if (empty())
+            return;
+
+        // The pool task, same shape as AsyncFunc (async()'s local class in
+        // acPool.cpp): run the body, then dispose of itself. A handle instead
+        // of a std::function, because a handle is move-only and std::function
+        // requires a copyable target.
+        class AsyncPost : public AsyncEvent {
+        public:
+            AsyncPost(AsyncHandle&& h, result_t hr)
+                : m_h(std::move(h))
+                , m_hr(hr)
+            {
+                // The error context is thread/fiber-local, so it must travel
+                // with the task: capture it here, in the caller's context, and
+                // restore it on the pool fiber - otherwise a failed delivery
+                // across the hop would lose its description (message / type /
+                // payload) and be reported as a bare code. Same cross-thread
+                // rule as AsyncBackgroundWrite's emit path.
+                if (hr < 0) {
+                    m_desc = Runtime::captureErrorDescription(hr);
+                    m_payload = takeErrorPayload();
+                }
+            }
+
+            virtual void invoke() override
+            {
+                if (m_hr < 0)
+                    Runtime::applyErrorDescription(m_desc, m_payload);
+
+                m_h.post(m_hr);
+                delete this;
+            }
+
+        private:
+            AsyncHandle m_h;
+            result_t m_hr;
+            Runtime::ErrorDescription m_desc;
+            ErrorPayload m_payload;
+        };
+
+        (new AsyncPost(std::move(*this), hr))->async(mode);
+    }
+
+private:
+    // A non-empty owned handle dropped without delivery is an abandoned
+    // continuation: recycling it is exactly the delete right the handle holds.
+    // A borrowed handle owns nothing and leaves the event alone.
+    void abandon()
+    {
+        if (m_ac && !m_borrowed)
+            delete m_ac;
+
+        m_ac = nullptr;
+        m_borrowed = true;
+    }
+
+private:
+    AsyncEvent* m_ac = nullptr;
+    bool m_borrowed = true;
 };
 
 class AsyncCall : public AsyncEvent {
@@ -304,8 +545,23 @@ private:
 
 class AsyncState : public AsyncEvent {
 public:
+    // legacy form: a raw upstream pointer becomes a *borrowed* handle - the
+    // same "deliver, never delete" semantics the machines have always had, so
+    // unmigrated call sites (including `AsyncState(NULL)`) compile unchanged.
     AsyncState(AsyncEvent* ac)
         : m_ac(ac)
+        , m_bAsyncState(false)
+        , m_state(NULL)
+        , m_next(NULL)
+    {
+        setAsync();
+    }
+
+    // migrated form: move the caller's handle in; the owned/borrowed state
+    // travels with it. The caller's handle is emptied, so the caller must
+    // return CALL_E_PENDDING after handing the continuation over.
+    AsyncState(AsyncHandle& ac)
+        : m_ac(std::move(ac))
         , m_bAsyncState(false)
         , m_state(NULL)
         , m_next(NULL)
@@ -335,6 +591,18 @@ public:
             return static_cast<AsyncState*>(m_as);
         }
 #endif
+
+        // The ticket as a continuation handle (plans §2.3, §3.4.2): a
+        // *borrowed* handle - what it names is the machine itself (release) or
+        // its Continuation proxy (check build), and both own themselves, so
+        // the handle never deletes. It materializes only when the ticket is
+        // actually handed over or stored; the discarded form, the synchronous
+        // continuation `next(send);`, never converts and never abandons
+        // anything.
+        operator AsyncHandle() const
+        {
+            return AsyncHandle(m_as);
+        }
 
         operator int32_t() const
         {
@@ -433,7 +701,7 @@ protected:
 
             if (hr < 0 || !m_next) {
                 if (bAsyncState && m_ac)
-                    m_ac->post(hr);
+                    m_ac.post(hr);
 
                 delete this;
                 return hr;
@@ -449,10 +717,20 @@ protected:
 public:
     virtual void invoke()
     {
+        // invoke() is the queued entry - the pool runs it, so this dispatch is
+        // an async-phase one: nobody reads a return value and the completion
+        // must post to the upstream. apost_() set this before queueing;
+        // setting it here keeps that semantic once a machine is started with
+        // async() instead. No-op today: apost_() is the only route to invoke()
+        // and it already sets the flag.
+        m_bAsyncState = true;
         post_(m_v);
     }
 
-    virtual void apost(int32_t v)
+    // 直接异步派发（非虚）：把机器作为池任务启动。与 AsyncHandle::apost（把
+    // 一个 continuation 交给池投递）不同，这里处理的是 self-owned 机器的启动；
+    // 仅供静态类型为 AsyncState 的创建点使用（(new asyncXxx(...))->apost(0)）。
+    void apost(int32_t v)
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：初始派发（异步形态），同 post()。
@@ -480,7 +758,7 @@ protected:
 public:
     virtual Isolate* isolate()
     {
-        return m_ac->isolate();
+        return m_ac.isolate();
     }
 
 public:
@@ -490,7 +768,7 @@ public:
     }
 
 private:
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
     bool m_bAsyncState;
     int32_t m_v;
     int32_t (*m_state)(AsyncState*, int32_t);
@@ -513,7 +791,8 @@ public:
             setAsync();
         }
 
-        virtual void apost(int32_t v) override;
+        // 非虚：票的异步回投（仅检测模式；常规投递走 post()）。
+        void apost(int32_t v);
         virtual int32_t post(int32_t v) override;
         virtual void invoke() override
         {
