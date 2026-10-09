@@ -228,7 +228,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     }
 
                     if (ov.async)
-                        ps.push("AsyncEvent* ac");
+                        // Every IDL async parameter is delivered as AsyncHandle
+                        // (plans/async-handle-protocol-minimal-2026-10-08.md 3.1.4);
+                        // the batch-migration whitelist was retired once the last
+                        // interface landed. The glue is unaffected: m(&ac)/m(this)
+                        // rely on the implicit raw->handle (borrowed) conversion.
+                        ps.push("AsyncHandle ac");
 
                     fns += ps.join(", ");
 
