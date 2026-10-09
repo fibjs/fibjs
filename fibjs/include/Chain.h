@@ -18,7 +18,7 @@ class Chain : public Chain_base {
 public:
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac)
+        asyncInvoke(Handler_base* hdlr, object_base* v, AsyncHandle ac)
             : AsyncState(ac)
             , m_v(v)
             , m_hr(CALL_RETURN_NULL)
@@ -32,7 +32,7 @@ public:
             init(invoke);
         }
 
-        asyncInvoke(QuickArray<obj_ptr<Handler_base>>& hdlrs, object_base* v, AsyncEvent* ac)
+        asyncInvoke(QuickArray<obj_ptr<Handler_base>>& hdlrs, object_base* v, AsyncHandle ac)
             : AsyncState(ac)
             , m_v(v)
             , m_hr(CALL_RETURN_NULL)
@@ -101,10 +101,11 @@ public:
                     m_message = Runtime::errMessage();
             }
 
-            // 持票回投（唤醒等待中的状态机）
+            // 持票回投（唤醒等待中的状态机）。票只借用（机器自持自删），
+            // handle 的 apost 交给池投递，与旧 ticket->apost() 的异步回投语义一致。
             AsyncEvent* ticket = m_jsTicket.exchange(nullptr);
             if (ticket)
-                ticket->apost(0);
+                AsyncHandle(ticket).apost(0);
 
             return m_hr;
         }
@@ -163,7 +164,7 @@ public:
     // Handler_base
     virtual result_t isRouting(bool& retVal);
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-        AsyncEvent* ac);
+        AsyncHandle ac);
 
 public:
     // Chain_base

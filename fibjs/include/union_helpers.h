@@ -82,10 +82,14 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal)
 // based construction) - and carries the handler in m_ctx. The class
 // alternative (`obj_ptr<Handler_base>`) is left to the async phase: it needs
 // no conversion at all, so a cc_ caller can pass it directly.
+//
+// The continuation is *borrowed* (reference, not by value): the helper only
+// reads the phase and writes the ctx slot, so the caller keeps ownership and
+// hands the handle on to the machine it builds afterwards.
 template <typename Variant>
-result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncEvent* ac)
+result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncHandle& ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         result_t hr = std::visit([&](auto&& value) -> result_t {
             using T = std::decay_t<decltype(value)>;
 
@@ -98,16 +102,16 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncE
             return hr;
 
         if (retVal != NULL) {
-            ac->m_ctx.resize(1);
-            ac->m_ctx[0] = retVal;
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = retVal;
         }
 
         return CALL_E_NOSYNC;
     }
 
     // async / cc_: the slot prepared by the sync phase comes first
-    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL) {
-        retVal = Handler_base::getInstance(ac->m_ctx[0].object());
+    if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL) {
+        retVal = Handler_base::getInstance(ac.ctxv()[0].object());
         if (retVal != NULL)
             return 0;
     }
@@ -124,6 +128,15 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncE
 
     return Runtime::setError(CALL_E_TYPEMISMATCH,
         "the handler union was not prepared: this entry requires the synchronous phase.");
+}
+
+// Unmigrated callers pass the raw continuation; borrowing it into a handle for
+// the call keeps them working (a borrowed handle never deletes).
+template <typename Variant>
+result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncEvent* ac)
+{
+    AsyncHandle h(ac);
+    return handler_from_union(hdlr, retVal, h);
 }
 
 // Integer|FileHandle: the integer opens a FileHandle on that descriptor, the
@@ -190,11 +203,12 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal)
 // Async-aware form: the object alternative reads JS properties, so it stays in
 // the sync phase and travels in m_ctx; the class alternative needs no
 // conversion, so it is resolved in the async phase and a cc_ caller can pass
-// it directly. No `_new` is called in the async phase.
+// it directly. No `_new` is called in the async phase. Like the handler form
+// above, the continuation is borrowed: the caller keeps ownership.
 template <typename Base, typename Variant>
-result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* ac)
+result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& ac)
 {
-    if (ac->isSync()) {
+    if (ac.isSync()) {
         result_t hr = std::visit([&](auto&& value) -> result_t {
             using T = std::decay_t<decltype(value)>;
 
@@ -209,16 +223,16 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* a
             return hr;
 
         if (retVal != NULL) {
-            ac->m_ctx.resize(1);
-            ac->m_ctx[0] = retVal;
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = retVal;
         }
 
         return CALL_E_NOSYNC;
     }
 
     // async / cc_: the slot prepared by the sync phase comes first
-    if (ac->m_ctx.size() > 0 && ac->m_ctx[0].object() != NULL) {
-        retVal = Base::getInstance(ac->m_ctx[0].object());
+    if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL) {
+        retVal = Base::getInstance(ac.ctxv()[0].object());
         if (retVal != NULL)
             return 0;
     }
@@ -230,6 +244,14 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* a
 
     return Runtime::setError(CALL_E_TYPEMISMATCH,
         "the object union was not prepared: this entry requires the synchronous phase.");
+}
+
+// Raw-continuation bridge, same rule as handler_from_union above.
+template <typename Base, typename Variant>
+result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* ac)
+{
+    AsyncHandle h(ac);
+    return ctor_object_from_union(v, retVal, h);
 }
 
 }

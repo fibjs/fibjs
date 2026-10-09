@@ -103,7 +103,7 @@ result_t Routing::isRouting(bool& retVal)
 
 #define RE_SIZE 64
 result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     int32_t i, j;
     int32_t rc = 0;

@@ -22,15 +22,15 @@ result_t AsyncWaitHandler::isRouting(bool& retVal)
 }
 
 result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_invoked.xchg(1) != 0)
         return 0;
 
-    m_as = new asyncWaiter(ac);
+    m_as = new asyncWaiter(std::move(ac));
     if (m_stat.CompareAndSwap(AC_INIT, AC_WAIT) == AC_INIT)
         return CHECK_ERROR(CALL_E_PENDDING);
 

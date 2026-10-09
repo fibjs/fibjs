@@ -37,9 +37,9 @@ result_t JSHandler::isRouting(bool& retVal)
 }
 
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isAsync())
+    if (ac.isAsync())
         return CHECK_ERROR(CALL_E_NOASYNC);
 
     v8::Local<v8::Object> o = v->wrap();

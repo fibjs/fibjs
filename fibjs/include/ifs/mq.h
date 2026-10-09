@@ -30,7 +30,7 @@ public:
 public:
     // mq_base
     static result_t nullHandler(obj_ptr<Handler_base>& retVal);
-    static result_t invoke(Union_invoke_hdlr hdlr, object_base* v, AsyncEvent* ac);
+    static result_t invoke(Union_invoke_hdlr hdlr, object_base* v, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

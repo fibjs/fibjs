@@ -153,12 +153,12 @@ result_t HttpFileHandler::isRouting(bool& retVal)
 }
 
 result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncInvoke : public AsyncState {
     public:
         asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req, bool autoIndex,
-            AsyncEvent* ac)
+            AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_req(req)
@@ -415,7 +415,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         int32_t m_dirPos;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
@@ -423,7 +423,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (req == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, req, m_autoIndex, ac))->post(0);
+    return (new asyncInvoke(this, req, m_autoIndex, std::move(ac)))->post(0);
 }
 
 } /* namespace fibjs */

@@ -172,7 +172,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
     SeekableStream_base* body, Headers_base* headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac);
 
 class asyncSend : public AsyncState {
 public:
@@ -573,7 +573,7 @@ WebSocket::~WebSocket()
             m_stream->cc_close();
 
         if (m_ac)
-            m_ac->post(CALL_RETURN_NULL);
+            m_ac.post(CALL_RETURN_NULL);
     }
 }
 
@@ -712,7 +712,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
             m_stream->cc_close();
 
         if (m_ac)
-            m_ac->post(CALL_RETURN_NULL);
+            m_ac.post(CALL_RETURN_NULL);
     }
 }
 
@@ -787,7 +787,7 @@ result_t WebSocket::stop()
         m_stream->cc_close();
 
     if (m_ac)
-        m_ac->post(CALL_RETURN_NULL);
+        m_ac.post(CALL_RETURN_NULL);
 
     return 0;
 }

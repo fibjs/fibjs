@@ -59,9 +59,9 @@ public:
     static result_t _new(exlib::string addr, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start() = 0;
-    virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac) = 0;
-    virtual result_t stop(AsyncEvent* ac) = 0;
-    virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac) = 0;
+    virtual result_t stop(AsyncHandle ac) = 0;
+    virtual result_t close(AsyncHandle ac) = 0;
     virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;

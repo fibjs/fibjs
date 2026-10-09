@@ -83,7 +83,7 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
 }
 
 result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     // the async-aware helper keeps the phase logic inside: the alternatives
     // whose conversion needs V8/Isolate (the callback, the routing map, the
@@ -96,7 +96,7 @@ result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
     if (hr < 0)
         return hr;
 
-    return (new Chain::asyncInvoke(handler, v, ac))->post(0);
+    return (new Chain::asyncInvoke(handler, v, std::move(ac)))->post(0);
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)

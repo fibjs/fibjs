@@ -67,11 +67,11 @@ public:
     }
 
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-        AsyncEvent* ac)
+        AsyncHandle ac)
     {
         class asyncInvoke : public AsyncState {
         public:
-            asyncInvoke(Http2Handler* pThis, Stream_base* stm, AsyncEvent* ac)
+            asyncInvoke(Http2Handler* pThis, Stream_base* stm, Isolate* isolate, AsyncHandle ac)
                 : AsyncState(ac)
                 , m_pThis(pThis)
                 , m_stm(stm)
@@ -79,7 +79,9 @@ public:
                 m_session = new Http2Session(true);
                 // Pre-set the isolate so _emit works from callbacks.
                 // The V8 wrapper will be created lazily on first JS access.
-                m_session->holder(ac->isolate());
+                // (the isolate is passed in: `ac` was moved into AsyncState above,
+                //  and reading a moved-from handle is a null dereference)
+                m_session->holder(isolate);
                 init(init_session);
             }
 
@@ -124,14 +126,15 @@ public:
             obj_ptr<Http2Session> m_session;
         };
 
-        if (ac->isSync())
+        if (ac.isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
         if (stm == NULL)
             return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-        return (new asyncInvoke(this, stm, ac))->post(0);
+        Isolate* isolate = ac.isolate();
+        return (new asyncInvoke(this, stm, isolate, std::move(ac)))->post(0);
     }
 
 private:
@@ -253,14 +256,14 @@ result_t Http2Server::start()
     return m_server->start();
 }
 
-result_t Http2Server::stop(AsyncEvent* ac)
+result_t Http2Server::stop(AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     class asyncStop : public AsyncState {
     public:
-        asyncStop(Http2Server* server, AsyncEvent* ac)
+        asyncStop(Http2Server* server, AsyncHandle ac)
             : AsyncState(ac)
             , m_server(server)
         {
@@ -286,17 +289,17 @@ result_t Http2Server::stop(AsyncEvent* ac)
         obj_ptr<Http2Server> m_server;
     };
 
-    return (new asyncStop(this, ac))->post(0);
+    return (new asyncStop(this, std::move(ac)))->post(0);
 }
 
-result_t Http2Server::close(AsyncEvent* ac)
+result_t Http2Server::close(AsyncHandle ac)
 {
-    return stop(ac);
+    return stop(std::move(ac));
 }
 
-result_t Http2Server::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
+result_t Http2Server::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
 {
-    return static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, ac);
+    return static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
 }
 
 result_t Http2Server::get_timeout(int32_t& retVal)

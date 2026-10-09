@@ -132,19 +132,19 @@ result_t TLSServer::start()
     return m_server->start();
 }
 
-result_t TLSServer::stop(AsyncEvent* ac)
+result_t TLSServer::stop(AsyncHandle ac)
 {
-    return m_server->stop(ac);
+    return m_server->stop(std::move(ac));
 }
 
-result_t TLSServer::close(AsyncEvent* ac)
+result_t TLSServer::close(AsyncHandle ac)
 {
-    return stop(ac);
+    return stop(std::move(ac));
 }
 
-result_t TLSServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
+result_t TLSServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
 {
-    return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, ac);
+    return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
 }
 
 result_t TLSServer::get_timeout(int32_t& retVal)

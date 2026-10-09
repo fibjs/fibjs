@@ -279,7 +279,7 @@ result_t TcpServer::start()
     return 0;
 }
 
-result_t TcpServer::stop(AsyncEvent* ac)
+result_t TcpServer::stop(AsyncHandle ac)
 {
     // a server that never listened has nothing to close; node treats close()
     // on a non-listening server as a no-op instead of failing
@@ -296,15 +296,15 @@ result_t TcpServer::stop(AsyncEvent* ac)
         clearEventDelegate();
     }
 
-    return m_socket->close(ac);
+    return m_socket->close(std::move(ac));
 }
 
-result_t TcpServer::close(AsyncEvent* ac)
+result_t TcpServer::close(AsyncHandle ac)
 {
-    return stop(ac);
+    return stop(std::move(ac));
 }
 
-result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
+result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
 {
     if (m_running || m_socket) {
         // Node.js reports a second listen on the same server as

@@ -46,11 +46,11 @@ result_t TLSHandler::isRouting(bool& retVal)
 }
 
 result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(TLSHandler* pThis, Stream_base* stm, AsyncEvent* ac)
+        asyncInvoke(TLSHandler* pThis, Stream_base* stm, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -87,14 +87,14 @@ result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<TLSSocket> m_socket;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, stm, ac))->post(0);
+    return (new asyncInvoke(this, stm, std::move(ac)))->post(0);
 }
 
 result_t TLSHandler::get_secureContext(obj_ptr<SecureContext_base>& retVal)

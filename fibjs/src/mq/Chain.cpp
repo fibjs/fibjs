@@ -45,15 +45,15 @@ result_t Chain::isRouting(bool& retVal)
 }
 
 result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_array.size() == 0)
         return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
 
-    return (new asyncInvoke(m_array, v, ac))->post(0);
+    return (new asyncInvoke(m_array, v, std::move(ac)))->post(0);
 }
 
 result_t Chain::append(Union_append_hdlr hdlr)

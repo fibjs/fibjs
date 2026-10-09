@@ -21,7 +21,7 @@ public:
     // Handler_base
     virtual result_t isRouting(bool& retVal);
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-        AsyncEvent* ac);
+        AsyncHandle ac);
 };
 
 } /* namespace fibjs */

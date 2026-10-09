@@ -115,19 +115,19 @@ result_t HttpServer::start()
     return m_server->start();
 }
 
-result_t HttpServer::stop(AsyncEvent* ac)
+result_t HttpServer::stop(AsyncHandle ac)
 {
-    return m_server->stop(ac);
+    return m_server->stop(std::move(ac));
 }
 
-result_t HttpServer::close(AsyncEvent* ac)
+result_t HttpServer::close(AsyncHandle ac)
 {
-    return stop(ac);
+    return stop(std::move(ac));
 }
 
-result_t HttpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncEvent* ac)
+result_t HttpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
 {
-    return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, ac);
+    return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
 }
 
 result_t HttpServer::get_timeout(int32_t& retVal)

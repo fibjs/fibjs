@@ -622,11 +622,11 @@ result_t HttpHandler::isRouting(bool& retVal)
 }
 
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(HttpHandler* pThis, Stream_base* stm, AsyncEvent* ac)
+        asyncInvoke(HttpHandler* pThis, Stream_base* stm, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
@@ -850,7 +850,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         bool m_options;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
@@ -863,7 +863,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (stm == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, stm, ac))->post(0);
+    return (new asyncInvoke(this, stm, std::move(ac)))->post(0);
 }
 
 result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)

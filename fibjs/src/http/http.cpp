@@ -36,19 +36,19 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
 
 result_t http_request(exlib::string method, exlib::string url,
     SeekableStream_base* body, Headers_base* headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
+    return get_httpClient(ac.isolate())->request(method, url, body, headers, retVal, std::move(ac));
 }
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
     SeekableStream_base* body, Headers_base* headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     if (httpClient != NULL)
-        return ((HttpClient*)httpClient)->request(method, url, body, headers, retVal, ac);
+        return ((HttpClient*)httpClient)->request(method, url, body, headers, retVal, std::move(ac));
     else
-        return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
+        return http_request(method, url, body, headers, retVal, std::move(ac));
 }
 
 result_t http_base::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
@@ -294,21 +294,21 @@ result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
 }
 
 result_t http_base::requestSync(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return get_httpClient(ac->isolate())->requestSync(method, url, opts, retVal, ac);
+    return get_httpClient(ac.isolate())->requestSync(method, url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::requestSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", url, opts, retVal, ac);
+    return requestSync("GET", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::requestSync(v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", "", opts, retVal, ac);
+    return requestSync("GET", "", opts, retVal, std::move(ac));
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
@@ -361,9 +361,9 @@ result_t http_base::request(v8::Local<v8::Object> opts, v8::Local<v8::Function> 
 }
 
 result_t http_base::getSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("GET", url, opts, retVal, ac);
+    return requestSync("GET", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::get(exlib::string url, v8::Local<v8::Object> opts,
@@ -385,9 +385,9 @@ result_t http_base::get(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::postSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("POST", url, opts, retVal, ac);
+    return requestSync("POST", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::post(exlib::string url, v8::Local<v8::Object> opts,
@@ -409,9 +409,9 @@ result_t http_base::post(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::delSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("DELETE", url, opts, retVal, ac);
+    return requestSync("DELETE", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::del(exlib::string url, v8::Local<v8::Object> opts,
@@ -433,9 +433,9 @@ result_t http_base::del(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::putSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("PUT", url, opts, retVal, ac);
+    return requestSync("PUT", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::put(exlib::string url, v8::Local<v8::Object> opts,
@@ -457,9 +457,9 @@ result_t http_base::put(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::patchSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("PATCH", url, opts, retVal, ac);
+    return requestSync("PATCH", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::patch(exlib::string url, v8::Local<v8::Object> opts,
@@ -481,9 +481,9 @@ result_t http_base::patch(exlib::string url, v8::Local<v8::Function> callback,
 }
 
 result_t http_base::headSync(exlib::string url, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return requestSync("HEAD", url, opts, retVal, ac);
+    return requestSync("HEAD", url, opts, retVal, std::move(ac));
 }
 
 result_t http_base::head(exlib::string url, v8::Local<v8::Object> opts,
@@ -557,9 +557,9 @@ result_t http_base::createServer(Union_createServer_options options, Union_creat
 }
 
 result_t http_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opts,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
-    return get_httpClient(ac->isolate())->fetch(request, opts, retVal, ac);
+    return get_httpClient(ac.isolate())->fetch(request, opts, retVal, std::move(ac));
 }
 
 result_t http_base::get_METHODS(std::vector<exlib::string>& retVal)

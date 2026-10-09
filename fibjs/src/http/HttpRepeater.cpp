@@ -118,11 +118,11 @@ result_t HttpRepeater::isRouting(bool& retVal)
 }
 
 result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(HttpRepeater* pThis, HttpRequest_base* req, AsyncEvent* ac)
+        asyncInvoke(HttpRepeater* pThis, HttpRequest_base* req, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
         {
@@ -206,7 +206,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<HttpResponse_base> m_rep;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
@@ -214,6 +214,6 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (req == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, req, ac))->post(0);
+    return (new asyncInvoke(this, req, std::move(ac)))->post(0);
 }
 }

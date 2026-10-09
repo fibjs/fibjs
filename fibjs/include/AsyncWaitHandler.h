@@ -19,20 +19,20 @@ class AsyncWaitHandler : public Handler_base {
 public:
     class asyncWaiter : public AsyncEvent {
     public:
-        asyncWaiter(AsyncEvent* ac)
-            : m_ac(ac)
+        asyncWaiter(AsyncHandle ac)
+            : m_ac(std::move(ac))
         {
         }
 
     public:
         virtual void invoke()
         {
-            m_ac->post(CALL_RETURN_NULL);
+            m_ac.post(CALL_RETURN_NULL);
             delete this;
         }
 
     private:
-        AsyncEvent* m_ac;
+        AsyncHandle m_ac;
     };
 
 public:
@@ -47,7 +47,7 @@ public:
     // Handler_base
     virtual result_t isRouting(bool& retVal);
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-        AsyncEvent* ac);
+        AsyncHandle ac);
 
 public:
     // AsyncWait_base

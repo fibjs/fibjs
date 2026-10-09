@@ -36,11 +36,11 @@ result_t EventSourceHandler::isRouting(bool& retVal)
 }
 
 result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(EventSourceHandler* pThis, HttpRequest_base* req, AsyncEvent* ac)
+        asyncInvoke(EventSourceHandler* pThis, HttpRequest_base* req, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_httpreq(req)
@@ -85,14 +85,14 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
         obj_ptr<Stream_base> m_stm;
     };
 
-    if (ac->isSync())
+    if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
     if (req == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, req, ac))->post(0);
+    return (new asyncInvoke(this, req, std::move(ac)))->post(0);
 }
 
 }

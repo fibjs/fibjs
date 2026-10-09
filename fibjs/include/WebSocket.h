@@ -92,7 +92,7 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stream;
-    AsyncEvent* m_ac;
+    AsyncHandle m_ac;
 
     obj_ptr<ZlibStream> m_deflate;
     obj_ptr<ZlibStream> m_inflate;

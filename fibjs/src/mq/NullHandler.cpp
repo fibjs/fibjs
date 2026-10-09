@@ -17,7 +17,7 @@ result_t NullHandler::isRouting(bool& retVal)
 }
 
 result_t NullHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-    AsyncEvent* ac)
+    AsyncHandle ac)
 {
     return CALL_RETURN_NULL;
 }
