@@ -221,8 +221,10 @@ describe('cli command runner', { skip: !isFibjs }, () => {
         });
 
         it('FIBJS_NO_NODE_REWRITE=1 keeps the real node', () => {
+            // A failed spawn always sets `error` (node leaves `status` null,
+            // fibjs keeps 0), so a missing node is detected reliably.
             var node = child_process.spawnSync('node', ['--version'], { encoding: 'utf8' });
-            if (node.status !== 0) {
+            if (node.error || node.status !== 0) {
                 return; // no other node installed: nothing to compare against
             }
 

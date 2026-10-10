@@ -2323,10 +2323,14 @@ describe("child_process", () => {
         }
 
         // `pgrep` exits 1 when nothing matches: an empty result means no leftover.
+        // The pattern's first character becomes a bracket expression, otherwise
+        // the shell running pgrep matches its own command line (it contains the
+        // pattern text: `sh -c 'pgrep -f "sleep 25"'`) and the check can never
+        // come back empty.
         function leftovers(pattern) {
             var out;
             try {
-                out = child_process.execSync('pgrep -f "' + pattern + '"');
+                out = child_process.execSync('pgrep -f "[' + pattern[0] + ']' + pattern.slice(1) + '"');
             } catch (e) {
                 return '';
             }
