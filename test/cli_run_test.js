@@ -136,14 +136,14 @@ describe('cli command runner', { skip: !isFibjs }, () => {
 
         it('finds a node_modules/.bin entry of an ancestor directory', () => {
             var r = run(['hello', 'A', 'b c'], { cwd: sub });
-           
+            assert.equal(r.code, 0, r.stderr);
+            assert.equal(r.stdout.trim(), 'BIN ["A","b c"]');
+        });
 
         it('puts the .bin of the package on PATH for its scripts', { skip: isWindows }, () => {
             var r = run(['devtool'], { cwd: sub });
             assert.equal(r.code, 0, r.stderr);
             assert.match(r.stdout, /TOOL-RAN/);
-        }); assert.equal(r.code, 0, r.stderr);
-            assert.equal(r.stdout.trim(), 'BIN ["A","b c"]');
         });
 
         it('still reports an unknown name', () => {
