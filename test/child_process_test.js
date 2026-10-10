@@ -2298,6 +2298,95 @@ describe("child_process", () => {
         });
     });
 
+    // The command runner (`fibjs <script>`) behaves like a shell wrapper: the
+    // exit status of the script decides ours, and a termination signal sent to
+    // the wrapper has to be forwarded to the script instead of killing fibjs
+    // behind its back. See plans/npm-cli-alignment-2026-10-10.md (A5).
+    describe("command runner and signals", { skip: isWin32 || isIOS }, () => {
+        var runnerDir;
+
+        function captureEvents(p) {
+            var events = [];
+            p.on('exit', (code, signal) => events.push(['exit', code, signal]));
+            p.on('close', (code, signal) => events.push(['close', code, signal]));
+            return events;
+        }
+
+        function waitBothEvents(events) {
+            for (var i = 0; i < 100 && events.length < 2; i++)
+                coroutine.sleep(10);
+            return events;
+        }
+
+        // `pgrep` exits 1 when nothing matches: an empty result means no leftover.
+        function leftovers(pattern) {
+            var out;
+            try {
+                out = child_process.execSync('pgrep -f "' + pattern + '"');
+            } catch (e) {
+                return '';
+            }
+            return String(out).trim();
+        }
+
+        before(() => {
+            runnerDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-runner-signal-'));
+
+            fs.writeFileSync(path.join(runnerDir, 'package.json'), json.encode({
+                name: 'fibjs-runner-signal',
+                version: '1.0.0',
+                scripts: {
+                    // the script kills itself, the wrapper has to die the same way
+                    killself: 'node killself.js',
+                    // a script the wrapper only survives by forwarding the signal
+                    hold: 'sleep 25'
+                }
+            }));
+
+            fs.writeFileSync(path.join(runnerDir, 'killself.js'),
+                'process.kill(process.pid, "SIGTERM");\n');
+        });
+
+        after(() => {
+            try {
+                fs.rmSync(runnerDir, { recursive: true, force: true });
+            } catch (e) {
+                // best effort
+            }
+        });
+
+        it("wrapper dies by the signal that killed its script", () => {
+            var p = child_process.spawn(cmd, ['killself'], { cwd: runnerDir, stdio: 'ignore' });
+            var events = captureEvents(p);
+            p.join();
+
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', null, 'SIGTERM'],
+                ['close', null, 'SIGTERM']
+            ]);
+        });
+
+        it("SIGTERM sent to the wrapper reaches the script it runs", () => {
+            var p = child_process.spawn(cmd, ['hold'], { cwd: runnerDir, stdio: 'ignore' });
+            var events = captureEvents(p);
+
+            // run for a while so the script really is inside `sleep 25`
+            coroutine.sleep(800);
+            assert.notEqual(leftovers('sleep 25'), '', "the script's sleep should be running");
+
+            p.kill('SIGTERM');
+            p.join();
+
+            assert.deepEqual(waitBothEvents(events), [
+                ['exit', null, 'SIGTERM'],
+                ['close', null, 'SIGTERM']
+            ]);
+
+            coroutine.sleep(300);
+            assert.equal(leftovers('sleep 25'), '', "the script's sleep must be gone");
+        });
+    });
+
     it("unref", { skip: isIOS }, () => {
         var t1 = new Date().getTime();
         // Start the main script that will spawn child process and call unref
