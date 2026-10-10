@@ -244,7 +244,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                 }
 
                 if (resultObjectAsJson == nullptr) {
-                    ac->post(Runtime::setError("The result is null"));
+                    h->post(Runtime::setError("The result is null"));
                     return E_FAIL;
                 }
 
@@ -253,14 +253,14 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                     nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
 
                     if (jsonResult.contains("error")) {
-                        ac->post(Runtime::setError(jsonResult["error"].get<std::string>()));
+                        h->post(Runtime::setError(jsonResult["error"].get<std::string>()));
                     } else {
                         if (jsonResult.contains("result"))
                             json2Variant(jsonResult["result"], retVal);
-                        ac->post(0);
+                        h->post(0);
                     }
                 } catch (const std::exception& e) {
-                    ac->post(Runtime::setError(e.what()));
+                    h->post(Runtime::setError(e.what()));
                 }
 
                 return S_OK;
