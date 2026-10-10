@@ -68,7 +68,13 @@ static exlib::string get_cache_dir()
         // `git describe --tags --always`, e.g. "v0.37.0-1279-g3c23a873f", so it
         // already carries the version): upgrading fibjs switches to a fresh
         // directory instead of reusing entries written by an older build.
+#ifdef GIT_INFO
         s_cache_dir += GIT_INFO;
+#else
+        // No git information (no checkout, or git not available at configure
+        // time): fall back to the version, the only build identity left.
+        s_cache_dir += fibjs_version;
+#endif
         s_cache_dir += PATH_SLASH;
         
         s_initialized = true;
