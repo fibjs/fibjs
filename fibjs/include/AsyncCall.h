@@ -787,6 +787,17 @@ public:
         // 非虚：票的异步回投（仅检测模式；常规投递走 post()）。
         void apost(int32_t v);
         virtual int32_t post(int32_t v) override;
+
+        // 票被当作 Task_base 唤醒时（exlib::Locker 等待链等，见 TLSSocket/http2
+        // 读锁交棒）必须与宿主机器的 resume 语义一致：AsyncState::resume() 就是
+        // apost(0)（池跳转）。继承 AsyncEvent::resume()（post(0)）会让完成链在同一
+        // 根 fiber 栈上内联递归——大响应下每条 16KB TLS record 一层，128KB 栈耗尽
+        // 即 SIGSEGV。普通构建挂等待链的是机器本体，本来就走 apost，这里只是对齐。
+        virtual void resume() override
+        {
+            apost(0);
+        }
+
         virtual void invoke() override
         {
             // proxy 本身永远不会被投递进队列；被投递 = 有人对票做了裸 async()
