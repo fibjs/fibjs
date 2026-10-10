@@ -75,6 +75,7 @@ run("./child_process_test.js");
 run("./eval_test.js");
 run("./json_test.js");
 run("./module_test.js");
+run("./module_cache_test.js");
 run("./esm_test.js");
 run("./net_test.js");
 run("./dgram_test.js");

@@ -38,16 +38,20 @@ static inline int32_t file_type_uncached(const char* path)
 }
 
 // Cached version of file_type for SandBox
+// 只缓存成功结果（0=file / 1=dir）；-1（ENOENT 及其他 stat 失败）永不入库：
+// 同进程内「探缺 → 落盘 → 复探」必须看到新的文件系统事实。
 int32_t SandBox::file_type(exlib::string fname)
 {
     Isolate* isolate = holder();
     int32_t result;
 
-    isolate->m_stat_cache.lookup(fname, result, 
-        (LruCache<int32_t>::Resolver)[](exlib::string& fname, int32_t& result) -> bool {
-            result = file_type_uncached(fname.c_str());
-            return true;
-        });
+    // 只读查缓存；miss 时不建条目
+    if (isolate->m_stat_cache.lookup(fname, result))
+        return result;
+
+    result = file_type_uncached(fname.c_str());
+    if (result >= 0)
+        isolate->m_stat_cache.set(fname, result);
 
     return result;
 }
@@ -132,21 +136,20 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     Isolate* isolate = holder();
     std::pair<int, obj_ptr<Buffer_base>> result;
 
-    isolate->m_file_cache.lookup(fname, result, [isolate](exlib::string& fname, std::pair<int, obj_ptr<Buffer_base>>& result) -> bool {
-        result_t hr;
+    if (isolate->m_file_cache.lookup(fname, result)) {
+        data = result.second;
+        return result.first;
+    }
 
-        if (fname.substr(fname.length() - 5) == ".node") {
-            obj_ptr<Stat_base> stat;
-            hr = fs_base::cc_stat(fname, stat, isolate);
-            result.first = hr;
-            if (hr >= 0)
-                result.second = new Buffer();
-
-            return true;
-        }
-
+    if (fname.substr(fname.length() - 5) == ".node") {
+        obj_ptr<Stat_base> stat;
+        result_t hr = fs_base::cc_stat(fname, stat, isolate);
+        result.first = hr;
+        if (hr >= 0)
+            result.second = new Buffer();
+    } else {
         Variant var;
-        hr = fs_base::cc_readFile(fname, "", var, isolate);
+        result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
         if (hr == CALL_RETURN_NULL) {
             result.second = new Buffer();
             result.first = 0;
@@ -154,9 +157,11 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
             result.second = (Buffer_base*)var.object();
             result.first = hr;
         }
+    }
 
-        return true;
-    });
+    // 读取失败的结果不入缓存，避免同进程内包元数据（package.json）持续“读不到”
+    if (result.first >= 0)
+        isolate->m_file_cache.set(fname, result);
 
     data = result.second;
     return result.first;
@@ -167,14 +172,18 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
     Isolate* isolate = holder();
     std::pair<int, exlib::string> result;
 
-    isolate->m_realpath_cache.lookup(fname, result, [isolate](exlib::string& fname, std::pair<int, exlib::string>& result) -> bool {
-        Variant resolved;
+    if (isolate->m_realpath_cache.lookup(fname, result)) {
+        retVal = result.second;
+        return result.first;
+    }
 
-        result.first = fs_base::cc_realpath(fname, resolved, isolate);
-        result.second = resolved.string();
+    Variant resolved;
+    result.first = fs_base::cc_realpath(fname, resolved, isolate);
+    result.second = resolved.string();
 
-        return true;
-    });
+    // 失败结果不入缓存（与 file_type / loadFile 同策略）
+    if (result.first >= 0)
+        isolate->m_realpath_cache.set(fname, result);
 
     retVal = result.second;
     return result.first;

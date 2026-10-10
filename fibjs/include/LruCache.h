@@ -69,6 +69,10 @@ public:
         return lookup(key, value, auto_resolve ? m_resolver : nullptr);
     }
 
+    // 契约：resolver 返回 false 时仅放弃缓存（条目会被移除），且**不保证回填 `value`**
+    // ——同一 key 的并发等待者在该分支下取不到值。
+    // 现有调用点均采用「调用方过滤」（只读查 → 计算 → 成功才 set），不依赖 false 分支；
+    // 若要启用该分支，必须先修等待者语义并补测试。
     bool lookup(exlib::string key, T& value, Resolver resolver)
     {
         obj_ptr<CacheItem> item;

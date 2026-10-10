@@ -431,9 +431,11 @@ public:
 
     obj_ptr<SecureContext_base> m_ctx;
 
+    // 解析缓存族：只缓存成功结果（负结果不入库），
+    // 详见 plans/sandbox-resolve-cache-remediation-plan.md
     LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;
     LruCache<std::pair<int, exlib::string>> m_realpath_cache;
-    LruCache<int32_t> m_stat_cache; // 0 = file, 1 = directory, -1 = not found
+    LruCache<int32_t> m_stat_cache; // 0 = file, 1 = directory; only successful results are cached
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);
