@@ -534,6 +534,80 @@ describe("module", () => {
         assert.equal(require('./module/p4').a, 100);
     });
 
+    it("zip virtual path container probing", () => {
+        // 隐式容器解析：结果精确到 zip 内文件（有容器时短路守卫必须放行，行为不变）
+        assert.equal(require.resolve('./module/p4'),
+            path.join(__dirname, 'module', 'p4.zip$', 'main.js'));
+
+        // 容器存在但不是 zip（目录 / 坏文件）：保持原来的 zip 探测错误形态
+        // （不得被"容器不存在才短路"的守卫误伤成通用 not-found）
+        var container = path.join(__dirname, 'module', 'zip_probe.zip');
+
+        function probeError() {
+            var err = null;
+            try { require.resolve('./module/zip_probe'); } catch (e) { err = e; }
+            assert.ok(err, 'must throw');
+            assert.equal(err.code, 'ENOENT');
+            assert.ok(String(err.message).indexOf('zip_probe.zip$') >= 0, String(err.message));
+        }
+
+        try {
+            fs.rmSync(container, { recursive: true, force: true });
+            fs.mkdirSync(path.join(container, 'inner'), { recursive: true });
+            probeError();
+
+            fs.rmSync(container, { recursive: true, force: true });
+            fs.writeFileSync(container, 'not a zip at all');
+            probeError();
+        } finally {
+            fs.rmSync(container, { recursive: true, force: true });
+        }
+    });
+
+    it("package/index probing boundaries (base exists vs missing)", () => {
+        // O1 守卫（base 不存在才跳过 package/index 探测）的正向边界：
+        // base 是目录且只有 index.js 时必须仍解析到 index.js
+        var dir = path.join(__dirname, 'module', 'o1_probe');
+        try {
+            fs.rmSync(dir, { recursive: true, force: true });
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = "o1-ok";');
+
+            assert.equal(require.resolve('./module/o1_probe'),
+                path.join(dir, 'index.js'));
+            assert.equal(require('./module/o1_probe'), 'o1-ok');
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+
+        // 反向边界：base 不存在（含父目录不存在）时保持 ENOENT
+        var err = null;
+        try { require.resolve('./module/no_such_dir/child'); } catch (e) { err = e; }
+        assert.ok(err, 'must throw');
+        assert.equal(err.code, 'ENOENT');
+    });
+
+    it("non-ASCII module paths resolve (Windows uv_fs_stat guard)", () => {
+        // Windows 上裸 ::stat 按 ANSI 代码页解释窄路径会把非 ASCII 路径误判为不存在，
+        // 该用例在 Windows CI 上锁定 file_type 的 uv_fs_stat 分支
+        var dir = path.join(__dirname, 'module', '测试_目录');
+        var file = path.join(__dirname, 'module', '测试_模块.js');
+        try {
+            fs.rmSync(dir, { recursive: true, force: true });
+            fs.rmSync(file, { force: true });
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(file, 'module.exports = "unicode-file";');
+            fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = "unicode-dir";');
+
+            assert.equal(require.resolve('./module/测试_模块'), file);
+            assert.equal(require('./module/测试_模块'), 'unicode-file');
+            assert.equal(require('./module/测试_目录'), 'unicode-dir');
+        } finally {
+            fs.rmSync(file, { force: true });
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
     it("strack", () => {
         assert.ok(require("./module/stack").func().match(/module_test/));
     });

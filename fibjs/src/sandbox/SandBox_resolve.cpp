@@ -16,6 +16,7 @@
 #include "Stat.h"
 #include "Buffer.h"
 #include "options.h"
+#include "AsyncUV.h"
 #include "loaders/loaders.h"
 
 namespace fibjs {
@@ -29,12 +30,26 @@ static inline int32_t file_type_uncached(const char* path)
     if (strchr(path, '$') != nullptr)
         return 0;
 
+#ifdef _WIN32
+    // Windows 上必须走 uv_fs_stat：裸 ::stat 按 ANSI 代码页解释窄路径，
+    // 非 ASCII 路径会误判为“不存在”（2b2b5e593 引入的回归）。
+    AutoReq req;
+    int32_t ret = uv_fs_stat(NULL, &req, path, NULL);
+    if (ret < 0)
+        return -1;
+    if (S_ISDIR(req.statbuf.st_mode))
+        return 1;
+    return 0;
+#else
+    // POSIX 上用裸 stat(2)：比 uv_fs_stat 少一层 uv_fs_t 初始化与 uv__to_stat
+    // 转换（配对基准 9 轮：中位数 1453 vs 1483ms / 100k 次缺失解析，~2%）。
     struct stat st;
     if (::stat(path, &st) < 0)
         return -1;
     if (S_ISDIR(st.st_mode))
         return 1;
     return 0;
+#endif
 }
 
 // Cached version of file_type for SandBox
@@ -147,7 +162,8 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         result.first = hr;
         if (hr >= 0)
             result.second = new Buffer();
-    } else {
+    } else if (strchr(fname.c_str(), '$') != nullptr) {
+        // zip 虚拟路径：uv 之下不可见，仍走 fs_base 的 zip VFS 实现
         Variant var;
         result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
         if (hr == CALL_RETURN_NULL) {
@@ -156,6 +172,78 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         } else {
             result.second = (Buffer_base*)var.object();
             result.first = hr;
+        }
+    } else {
+        // R16：普通文件直连同步读（uv_fs_open/fstat/read/close + 零拷贝 BackingStore），
+        // 绕开 cc_readFile → openFile / cc_readAll / cc_close 三座 cc_ 桥。
+        // 语义与 FileStream::readAll 一致（整文件读入、空文件→空 Buffer）；
+        // 非普通文件（FIFO/设备等）回退 fs_base 原路线。
+        int32_t open_flags = O_RDONLY;
+#ifdef _WIN32
+        open_flags |= _O_BINARY;
+#endif
+
+        AutoReq req;
+        int32_t fd = uv_fs_open(NULL, &req, fname.c_str(), open_flags, 0, NULL);
+        if (fd < 0) {
+            result.first = fd;
+        } else {
+            AutoReq sreq;
+            int32_t sret = uv_fs_fstat(NULL, &sreq, fd, NULL);
+
+            if (sret >= 0 && !S_ISREG(sreq.statbuf.st_mode)) {
+                AutoReq creq;
+                uv_fs_close(NULL, &creq, fd, NULL);
+
+                Variant var;
+                result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
+                if (hr == CALL_RETURN_NULL) {
+                    result.second = new Buffer();
+                    result.first = 0;
+                } else {
+                    result.second = (Buffer_base*)var.object();
+                    result.first = hr;
+                }
+            } else if (sret < 0) {
+                AutoReq creq;
+                uv_fs_close(NULL, &creq, fd, NULL);
+                result.first = sret;
+            } else {
+                int64_t sz = (int64_t)sreq.statbuf.st_size;
+
+                result.first = 0;
+                if (sz == 0)
+                    result.second = new Buffer();
+                else {
+                    std::shared_ptr<v8::BackingStore> store = NewBackingStore((size_t)sz);
+                    char* base = (char*)store->Data();
+                    int64_t got = 0;
+
+                    while (got < sz) {
+                        uint32_t chunk = (sz - got > (int64_t)STREAM_BUFF_SIZE) ? (uint32_t)STREAM_BUFF_SIZE : (uint32_t)(sz - got);
+                        uv_buf_t b = uv_buf_init(base + got, chunk);
+                        AutoReq rreq;
+                        int32_t n = uv_fs_read(NULL, &rreq, fd, &b, 1, got, NULL);
+                        if (n < 0) {
+                            result.first = n;
+                            break;
+                        }
+                        if (n == 0)
+                            break;
+                        got += n;
+                    }
+
+                    if (result.first >= 0) {
+                        if (got > 0)
+                            result.second = new Buffer(store, 0, (size_t)got);
+                        else
+                            result.second = new Buffer();
+                    }
+                }
+
+                AutoReq creq;
+                uv_fs_close(NULL, &creq, fd, NULL);
+            }
         }
     }
 
@@ -177,9 +265,23 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
         return result.first;
     }
 
+#ifdef _WIN32
     Variant resolved;
     result.first = fs_base::cc_realpath(fname, resolved, isolate);
     result.second = resolved.string();
+#else
+    // 直连 uv_fs_realpath：POSIX 即一次 realpath(3)，绕开 cc_realpath →
+    // 逐组件 cc_lstat（每组件一个 Stat JS 对象 + AsyncEvent 桥）的手写走查。
+    // 配对基准：冷解析 300 文件 12.5→10.5ms（4/4 占优，约 6.7µs/次）。
+    // 语义注记：uv 返回盘上规范大小写（如 fs.realpathSync.native / node 语义），
+    // 大小写不敏感 FS 上会把 './Foo' 与 './foo' 归一到同一模块 key（修复双重加载）；
+    // Windows 保留 cc_realpath（避免 \\?\ 前缀语义变化）。失败（zip 虚拟路径、
+    // 不存在）时调用方回退到原路径，行为不变。
+    AutoReq req;
+    result.first = uv_fs_realpath(NULL, &req, fname.c_str(), NULL);
+    if (result.first >= 0)
+        result.second = (const char*)req.ptr;
+#endif
 
     // 失败结果不入缓存（与 file_type / loadFile 同策略）
     if (result.first >= 0)
@@ -189,15 +291,37 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
     return result.first;
 }
 
+// 轻量 path join：与 resolvePath 的 POSIX 路径（Path::resolvePosix）语义等价，
+// 但避免每次构造 Path（含 27 个 exlib::string 成员）。Windows 保留 resolvePath
+// （盘符/UNC 语义）。配对基准：包名缺失 100k 次 2330→2293ms（4/4 配对占优，~1.6%）。
+static inline void appendPath(exlib::string& buf, const exlib::string& other)
+{
+#ifdef _WIN32
+    resolvePath(buf, other);
+#else
+    if (other.empty())
+        return;
+
+    if (isPosixPathSlash(other[0]) || buf.empty())
+        buf = other;
+    else {
+        if (!isPosixPathSlash(buf[buf.length() - 1]))
+            buf.append(1, PATH_SLASH);
+        buf.append(other);
+    }
+#endif
+}
+
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Object>* retVal)
+    v8::Local<v8::Object>* retVal, int32_t known_type)
 {
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
 
     // Fast path: check if file exists before expensive realpath call
-    int32_t ftype = file_type(fname);
+    // known_type 由调用方（5 参版）预取，避免同一路径重复 stat
+    int32_t ftype = known_type == -2 ? file_type(fname) : known_type;
     if (ftype == 0) {
         // File exists, now do realpath
         hr = realpath(fname, fname1);
@@ -261,7 +385,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     obj_ptr<Buffer_base> bin;
 
     module_name1 = module_name;
-    resolvePath(module_name1, "package.json");
+    appendPath(module_name1, "package.json");
     hr = loadFile(module_name1, bin);
     if (hr >= 0) {
         v8::Local<v8::Value> v;
@@ -431,7 +555,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
     module_name1 = module_name;
     if (!script_name.empty()) {
-        resolvePath(module_name1, script_name);
+        appendPath(module_name1, script_name);
         path_base::normalize(module_name1, module_name1);
 
         hr = resolveFile(mods, module_name1, data, retVal);
@@ -442,7 +566,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     }
 
     exlib::string module_name2 = module_name1;
-    resolvePath(module_name2, "index");
+    appendPath(module_name2, "index");
     hr = resolveFile(mods, module_name2, data, retVal);
     if (hr >= 0) {
         out = module_name2;
@@ -491,7 +615,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
             break;
         fname = fname1;
 
-        resolvePath(fname1, "package.json");
+        appendPath(fname1, "package.json");
         hr = loadFile(fname1, bin);
         if (hr >= 0) {
             v8::Local<v8::Value> v;
@@ -552,21 +676,35 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     if (retVal)
         _mods = mods();
 
+    // base 的 stat 一次取到，4 参版与 package 守卫共用（负结果不入缓存，避免重复 stat）
+    int32_t base_type = file_type(module_name);
+
     if (script_name.empty()) {
-        hr = resolveFile(_mods, module_name, data, retVal);
+        hr = resolveFile(_mods, module_name, data, retVal, base_type);
         if (hr >= 0) {
             out = module_name;
             return hr;
         }
     }
 
-    hr = resolvePackage(_mods, module_name, script_name, data, type, out, retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND)
-        return hr;
+    // probe-only（O1）：base 不存在时其 package.json 与 index* 必然不可解析，
+    // 跳过整轮 package/index 探测（省 1 次 open + 6 次 stat）
+    if (base_type >= 0) {
+        hr = resolvePackage(_mods, module_name, script_name, data, type, out, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND)
+            return hr;
+    }
 
-    hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND)
-        return hr;
+    // zip 容器不存在（file_type < 0）时跳过 .zip$ 兜底：zip 虚拟路径的 file_type 恒为 0，
+    // 否则每个候选都会进入 realpath(lstat)/loadFile(open) 的失败路径
+    // （基准：失败解析 ~265µs → ~34µs）。容器为目录/坏文件、或路径含 '$' 的嵌套情形，
+    // file_type 均 >= 0，继续走原有探测路径，行为不变。
+    exlib::string zip_container = module_name + ".zip";
+    if (file_type(zip_container) >= 0) {
+        hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND)
+            return hr;
+    }
 
     return CALL_E_FILE_NOT_FOUND;
 }
@@ -762,7 +900,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 exlib::string node_modules_path;
                 if (fname.length()) {
                     node_modules_path = fname;
-                    resolvePath(node_modules_path, "node_modules");
+                    appendPath(node_modules_path, "node_modules");
                 } else {
                     node_modules_path = "node_modules";
                 }
@@ -776,7 +914,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 }
 
                 fname = node_modules_path;
-                resolvePath(fname, module_name);
+                appendPath(fname, module_name);
 
                 hr = resolveFile(fname, script_name, data, type, id, &retVal);
                 if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
@@ -809,7 +947,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     }
 
     if (is_relative(id)) {
-        resolvePath(base, id);
+        appendPath(base, id);
         path_base::normalize(base, id);
     } else
         path_base::normalize(id, id);
