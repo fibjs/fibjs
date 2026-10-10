@@ -493,6 +493,17 @@ static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args,
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
     opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit")).IsJust();
 
+#ifndef _WIN32
+    // Own session and process group: forwarding a signal to the direct child
+    // is not enough for `sh -c "sleep 25"` on shells that fork instead of
+    // exec'ing the command (dash, busybox ash), the sleep would survive the
+    // shell. Detached makes the child a group leader so
+    // ChildProcess::signalAliveChildren can signal the whole tree; the stdio
+    // handles are inherited as before and reads from the tty keep working
+    // (no controlling terminal, hence no SIGTTIN).
+    opts->Set(context, isolate->NewString("detached"), v8::True(isolate->m_isolate)).IsJust();
+#endif
+
     // a package script runs from the root of its package (npm runs lifecycle
     // scripts there, and keeps the directory the user typed in INIT_CWD)
     if (!cwd.empty())

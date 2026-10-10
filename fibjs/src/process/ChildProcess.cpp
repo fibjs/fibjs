@@ -83,9 +83,21 @@ int32_t ChildProcess::signalAliveChildren(int32_t signum)
 
     int32_t n = 0;
 
-    for (int32_t pid : pids)
+    for (int32_t pid : pids) {
+#ifdef _WIN32
         if (uv_kill(pid, signum) == 0)
             n++;
+#else
+        // A child that leads its own process group (the command runner starts
+        // its shell detached) has to take its whole tree down with it: dash
+        // and busybox ash fork for `sh -c "sleep 25"` instead of exec'ing the
+        // sleep, so signalling the shell alone would leave the sleep behind.
+        // kill(-pid) only reaches a group when the child really is its leader;
+        // a plain child falls back to the single pid.
+        if (uv_kill(-pid, signum) == 0 || uv_kill(pid, signum) == 0)
+            n++;
+#endif
+    }
 
     return n;
 }
