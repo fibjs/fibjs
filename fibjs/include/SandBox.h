@@ -235,6 +235,9 @@ public:
         v8::Local<v8::Object>& retVal);
 
     result_t repl(exlib::string src);
+    // `fibjs -p/--print <code>`: evaluate the code and print its value, the way
+    // `node -p` does. `-e` stays silent.
+    result_t eval_print(exlib::string src);
     result_t evalModule(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal);
 
     result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);

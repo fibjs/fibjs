@@ -1504,9 +1504,13 @@ describe("child_process", () => {
     });
 
     it("argv 1", () => {
+        // Runtime options in front of the script name are consumed by the
+        // option parser. They have to be options fibjs knows: an unknown one is
+        // reported now instead of being ignored (plans/npm-cli-alignment-2026-10-10.md,
+        // item A13/B5), and the script would never run.
         assert.deepEqual(json.decode(child_process.execFile(cmd, [
-            "--use_strict",
-            "--test1",
+            "--no-deprecation",
+            "--prof-interval=2000",
             path.join(__dirname, "process", "exec2.js"),
             "arg1",
             "arg2"

@@ -54,6 +54,7 @@ bool g_use_env_proxy = false;
 bool g_js_thread_affinity = true;
 
 exlib::string g_exec_code;
+bool g_exec_print = false;
 
 struct EnvFileOption {
     exlib::string path;
@@ -319,7 +320,8 @@ static void printHelp()
          "  -h, --help                  print fibjs command line options.\n"
          "  -v, --version               print fibjs version.\n"
          "\n"
-         "  -e code                     evaluate script\n"
+         "  -e, --eval code             evaluate script\n"
+         "  -p, --print code            evaluate script and print the result\n"
          "\n"
          "  --use-thread                run fibjs in thread mode.\n"
          "  --no-deprecation            silence deprecation warnings.\n"
@@ -513,12 +515,19 @@ void options(int32_t& pos, char* argv[])
             defaultCovFilename(name, sizeof(name));
             openCovFile(name);
             df++;
-        } else if (!qstrcmp(arg, "-e")) {
-            if (i + 1 < pos) {
-                g_exec_code = argv[i + 1];
-                i++;
-                df += 2;
+        } else if (!qstrcmp(arg, "-e") || !qstrcmp(arg, "--eval")
+            || !qstrcmp(arg, "-p") || !qstrcmp(arg, "--print")) {
+            if (i + 1 >= pos) {
+                fprintf(stderr, "fibjs: %s requires an argument\n", arg);
+                fflush(stderr);
+                _exit(1);
             }
+
+            g_exec_code = argv[i + 1];
+            if (!qstrcmp(arg, "-p") || !qstrcmp(arg, "--print"))
+                g_exec_print = true;
+            i++;
+            df += 2;
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
             _exit(0);
@@ -536,6 +545,19 @@ void options(int32_t& pos, char* argv[])
     applyCovExcludeEnv();
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+
+    // Anything that still looks like an option here is neither a fibjs option,
+    // an embedded command, nor a V8 flag: say so instead of dropping it
+    // silently (a mistyped `--opt` used to be ignored and to end up in the
+    // REPL, which waits for input in a terminal and fails with an ioctl error
+    // everywhere else).
+    for (i = 1; i < argc; i++) {
+        if (argv[i][0] == '-' && argv[i][1] != 0) {
+            fprintf(stderr, "fibjs: bad option: %s\n", argv[i]);
+            fflush(stderr);
+            _exit(1);
+        }
+    }
 
     char* lang = getenv("LANG");
     if (lang) {

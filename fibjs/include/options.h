@@ -30,6 +30,7 @@ extern bool g_ssldump;
 extern bool g_pipedump;
 
 extern exlib::string g_exec_code;
+extern bool g_exec_print;
 
 extern bool g_uv_socket;
 

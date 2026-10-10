@@ -8,6 +8,7 @@
 #include "fibjs.h"
 #include "ifs/process.h"
 #include "ifs/console.h"
+#include "options.h"
 #include "SandBox.h"
 #include "Fiber.h"
 
@@ -60,7 +61,10 @@ result_t FiberProcJsEntry(Isolate* isolate)
             pModule = pModule->m_next;
         }
 
-        s.m_hr = isolate->m_topSandbox->repl(isolate->m_jsCode);
+        if (g_exec_print && !isolate->m_jsCode.empty())
+            s.m_hr = isolate->m_topSandbox->eval_print(isolate->m_jsCode);
+        else
+            s.m_hr = isolate->m_topSandbox->repl(isolate->m_jsCode);
     }
 
     return s.m_hr;

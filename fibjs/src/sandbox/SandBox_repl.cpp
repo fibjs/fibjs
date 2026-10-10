@@ -70,6 +70,48 @@ result_t SandBox::repl(exlib::string src)
 extern std_logger* s_std;
 exlib::string appname("fibjs");
 
+// `fibjs -p/--print <code>`: evaluate the code and print its value, the way
+// `node -p` (or a REPL line) does. `-e` stays silent.
+result_t SandBox::eval_print(exlib::string src)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    // -e/-p run in the directory they were typed in and expose __dirname and
+    // __filename, like the CommonJS wrapper does
+    exlib::string cwd;
+    process_base::cwd(cwd);
+
+    exlib::string filename = cwd;
+    if (!filename.empty() && filename[filename.length() - 1] != PATH_SLASH)
+        filename += PATH_SLASH;
+    filename += "[eval]";
+
+    v8::Local<v8::Object> global = context->Global();
+    global->Set(context, isolate->NewString("__dirname"), isolate->NewString(cwd)).IsJust();
+    global->Set(context, isolate->NewString("__filename"), isolate->NewString(filename)).IsJust();
+
+    TryCatch try_catch;
+    v8::ScriptOrigin origin(isolate->NewString(filename));
+    v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(src), &origin)
+                                       .FromMaybe(v8::Local<v8::Script>());
+
+    if (script.IsEmpty()) {
+        ReportException(try_catch, 0, false);
+        return CALL_E_JAVASCRIPT;
+    }
+
+    v8::Local<v8::Value> v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
+
+    if (v.IsEmpty()) {
+        ReportException(try_catch, 0, false);
+        return CALL_E_JAVASCRIPT;
+    }
+
+    console_base::log(OptArgs(v));
+
+    return 0;
+}
 result_t SandBox::Context::repl()
 {
     result_t hr = 0;
