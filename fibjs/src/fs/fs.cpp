@@ -384,9 +384,16 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return read(Buffer_base::getInstance(ac.ctxv()[0].object()),
-        ac.ctxv()[1].intVal(), ac.ctxv()[2].intVal(), ac.ctxv()[3].intVal(),
-        retVal, std::move(ac));
+    // Read the ctx slots out before the call moves the handle: the
+    // initialisation of the handle parameter is only indeterminately sequenced
+    // with the other argument expressions, so a move-first ordering would leave
+    // the remaining ctx reads dereferencing the emptied handle.
+    obj_ptr<Buffer_base> buffer = Buffer_base::getInstance(ac.ctxv()[0].object());
+    int32_t offset = ac.ctxv()[1].intVal();
+    int32_t length = ac.ctxv()[2].intVal();
+    int32_t position = ac.ctxv()[3].intVal();
+
+    return read(buffer, offset, length, position, retVal, std::move(ac));
 }
 
 result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac)
@@ -709,7 +716,11 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, Variant mode,
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return open(fname, flags, ac.ctxv()[0].intVal(), retVal, std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    int32_t _mode = ac.ctxv()[0].intVal();
+
+    return open(fname, flags, _mode, retVal, std::move(ac));
 }
 
 result_t fs_base::close(Union_close_fd fd, AsyncHandle ac)
@@ -1634,7 +1645,11 @@ static result_t readlink_options(exlib::string path, v8::Local<v8::Object> optio
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return readlink_encoding(path, ac.ctxv()[0].string(), retVal, std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    exlib::string encoding = ac.ctxv()[0].string();
+
+    return readlink_encoding(path, encoding, retVal, std::move(ac));
 }
 
 // the encoding form
@@ -1820,7 +1835,11 @@ static result_t realpath_options(exlib::string path, v8::Local<v8::Object> optio
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return realpath_encoding(path, ac.ctxv()[0].string(), retVal, std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    exlib::string encoding = ac.ctxv()[0].string();
+
+    return realpath_encoding(path, encoding, retVal, std::move(ac));
 }
 
 // the encoding form
@@ -1886,7 +1905,11 @@ static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal,
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return mkdir_numeric(path, ac.ctxv()[0].intVal(), retVal, std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    int32_t _mode = ac.ctxv()[0].intVal();
+
+    return mkdir_numeric(path, _mode, retVal, std::move(ac));
 }
 
 // the options form (recursive/mode), defined below: it reads its config in the
@@ -2512,7 +2535,11 @@ result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle a
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return chmod_numeric(path, ac.ctxv()[0].intVal(), std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    int32_t _mode = ac.ctxv()[0].intVal();
+
+    return chmod_numeric(path, _mode, std::move(ac));
 }
 
 // the platform-specific numeric lchmod: fs_posix.cpp implements it, fs_win32.cpp
@@ -2546,7 +2573,11 @@ result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncHandle
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return lchmod_platform(path, ac.ctxv()[0].intVal(), std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    int32_t _mode = ac.ctxv()[0].intVal();
+
+    return lchmod_platform(path, _mode, std::move(ac));
 }
 
 result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncHandle ac)
@@ -3104,7 +3135,13 @@ static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, 
     if (ctx_hr < 0)
         return ctx_hr;
 
-    return readdir_ext(path, ac.ctxv()[0].boolVal(), ac.ctxv()[1].boolVal(), ac.ctxv()[2].string(), retVal, std::move(ac));
+    // hoisted: the call below moves the handle, and the argument expressions are
+    // only indeterminately sequenced with that move
+    bool recursive = ac.ctxv()[0].boolVal();
+    bool withFileTypes = ac.ctxv()[1].boolVal();
+    exlib::string encoding = ac.ctxv()[2].string();
+
+    return readdir_ext(path, recursive, withFileTypes, encoding, retVal, std::move(ac));
 }
 
 // Node.js: readdir(path, encoding) - names are returned in the given encoding

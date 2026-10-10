@@ -213,7 +213,11 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
     if (ac.ctxv().size() < 2) {
         // no sync phase (cc_ from the port form): the default context, no timeout
-        return connect(url, ac.isolate()->m_ctx, 0, connectListener, retVal, std::move(ac));
+        // hoisted: the call below moves the handle, and the argument expressions
+        // are only indeterminately sequenced with that move
+        obj_ptr<SecureContext_base> ctxo = ac.isolate()->m_ctx;
+
+        return connect(url, ctxo, 0, connectListener, retVal, std::move(ac));
     }
 
     int32_t timeout = ac.ctxv()[1].intVal();
