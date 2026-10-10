@@ -18,6 +18,7 @@
 #include "ChildProcess.h"
 #include "SandBox.h"
 #include "Worker.h"
+#include "process_signal.h"
 #include <vector>
 #include <signal.h>
 #include "options.h"
@@ -853,6 +854,13 @@ static int32_t sig_name_to_number(exlib::string signal)
 // name form after parsing
 static result_t kill_numeric(int32_t pid, int32_t signal)
 {
+    // A termination signal sent to ourselves is remembered before the syscall:
+    // the kernel may deliver it to another thread, which races with the last
+    // lines of the program (`process.kill(process.pid, "SIGTERM")` used to end
+    // as a clean exit(0) most of the time).
+    if ((pid == 0 || pid == uv_os_getpid()) && (signal == SIGINT || signal == SIGTERM))
+        process_signal_note(signal);
+
     int err = uv_kill(pid, signal);
     if (err)
         return CHECK_ERROR(Runtime::setError("process: kill failed with error: " + exlib::string(uv_strerror(err))));

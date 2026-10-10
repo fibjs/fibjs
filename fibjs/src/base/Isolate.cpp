@@ -22,6 +22,7 @@
 #include "Fiber.h"
 #include "MessagePort.h"
 #include "Worker.h"
+#include "process_signal.h"
 
 using namespace v8;
 
@@ -578,9 +579,12 @@ void Isolate::Unref(int32_t hr)
 
             // 本任务自身持有 1 个 ref：m_ref == 1 即「没有其它持有者」（含 ref'd worker）
             if (isolate->m_ref == 1) {
-                if (isolate->m_hr >= 0)
+                if (isolate->m_hr >= 0) {
+                    // A signal that arrived while the program was finishing wins over
+                    // the ordinary exit(0): the caller has to see 128 + signum.
+                    process_signal_reraise_pending();
                     process_base::exit();
-                else
+                } else
                     process_base::exit(1);
             }
 

@@ -107,6 +107,12 @@ public:
     // signalled.
     static int32_t killAliveChildren();
 
+    // Forward `signum` to every still-running child. Used by the signal handler
+    // while the command runner (`fibjs <script>`) waits for its shell script, so
+    // Ctrl-C / SIGTERM sent to fibjs also reach the script. Returns the number
+    // of children signalled.
+    static int32_t signalAliveChildren(int32_t signum);
+
 public:
     static result_t async_spawn(exlib::string command, v8::Local<v8::Array> args,
         v8::Local<v8::Object> options, obj_ptr<child_process_base::SpawnSyncType>& retVal, AsyncHandle ac);

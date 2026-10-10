@@ -11,6 +11,7 @@
 #include "ChildProcess.h"
 #include "UVStream.h"
 #include "AbortController.h"
+#include "process_signal.h"
 #include <signal.h>
 #include <mutex>
 
@@ -71,7 +72,7 @@ void ChildProcess::unregisterChild(int32_t pid)
         }
 }
 
-int32_t ChildProcess::killAliveChildren()
+int32_t ChildProcess::signalAliveChildren(int32_t signum)
 {
     std::vector<int32_t> pids;
 
@@ -83,14 +84,19 @@ int32_t ChildProcess::killAliveChildren()
     int32_t n = 0;
 
     for (int32_t pid : pids)
-#ifdef SIGKILL
-        if (uv_kill(pid, SIGKILL) == 0)
-#else
-        if (uv_kill(pid, 9) == 0)
-#endif
+        if (uv_kill(pid, signum) == 0)
             n++;
 
     return n;
+}
+
+int32_t ChildProcess::killAliveChildren()
+{
+#ifdef SIGKILL
+    return signalAliveChildren(SIGKILL);
+#else
+    return signalAliveChildren(9);
+#endif
 }
 
 // Bridge for the test watchdog (src/test/test.cpp), which cannot include
@@ -98,6 +104,14 @@ int32_t ChildProcess::killAliveChildren()
 int32_t child_process_kill_alive_children()
 {
     return ChildProcess::killAliveChildren();
+}
+
+// Bridge for the signal handler (src/process/process_signal.cpp, see
+// process_signal.h): hand a signal to every living child, so Ctrl-C / SIGTERM
+// sent to fibjs also reaches the shell script the command runner started.
+int32_t child_process_signal_alive(int32_t signum)
+{
+    return ChildProcess::signalAliveChildren(signum);
 }
 
 void ChildProcess::on_uv_close(uv_handle_t* handle)

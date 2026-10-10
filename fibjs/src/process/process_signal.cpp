@@ -7,9 +7,11 @@
 
 #include "object.h"
 #include "ifs/process.h"
+#include "process_signal.h"
 #include "Fiber.h"
 #include "EventEmitter.h"
 #include <signal.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <DbgHelp.h>
@@ -21,23 +23,108 @@
 namespace fibjs {
 
 static exlib::atomic s_check_callback;
+// Signal that arrived but was not consumed by a JS listener yet: written by the
+// signal handler, read by _InterruptCallback() and by the natural exit path of
+// the main script (a signal must win over an ordinary exit(0)).
+static exlib::atomic s_pending_signal;
 
-static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
+// Set while the command runner waits for its child process.
+static exlib::atomic s_forward_children;
+
+bool signal_reraise(int32_t signum)
 {
-    s_check_callback = 0;
-    Isolate* isolate = Isolate::current(v8_isolate);
+#ifdef _WIN32
+    // Windows has no signal deaths: the caller falls back to exit(128 + signum).
+    (void)signum;
+    return false;
+#else
+    if (signum <= 0)
+        return false;
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(signum, &sa, NULL) < 0)
+        return false;
+
+    raise(signum);
+    return true;
+#endif
+}
+
+void process_signal_clear()
+{
+    s_pending_signal = 0;
+}
+
+void process_signal_note(int32_t signum)
+{
+    s_pending_signal = signum;
+}
+
+void process_signal_forward_children(bool on)
+{
+    s_forward_children = on ? 1 : 0;
+}
+
+// End the process the way the signal says it ended: by re-raising it, or with
+// 128 + signum when the platform cannot re-raise it.
+static void exit_by_signal(int32_t signum)
+{
+    if (signum > 0 && signal_reraise(signum))
+        return;
+
+    process_base::exit(signum > 0 ? 128 + signum : 1);
+}
+
+void process_signal_exit_pending()
+{
+    exit_by_signal((int32_t)s_pending_signal.xchg(0));
+}
+
+void process_signal_reraise_pending()
+{
+    int32_t signum = (int32_t)s_pending_signal.xchg(0);
+
+    if (signum > 0)
+        exit_by_signal(signum);
+}
+
+// Emit <name> on the process module and decide what the signal means for the
+// process. Must only be called with a live JS scope.
+static void emit_signal(Isolate* isolate, const char* name)
+{
     bool r = false;
-    result_t hr;
+    result_t hr = 0;
 
     {
         JSFiber::EnterJsScope s;
         JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
 
-        hr = t._emit((const char*)data, NULL, 0, r);
+        hr = t._emit(name, NULL, 0, r);
     }
 
     if (!r || hr < 0)
-        process_base::exit(1);
+        // no listener: leave like the signal says instead of exit(1)
+        process_signal_exit_pending();
+    else
+        process_signal_clear();
+}
+
+// Runs inside a V8 interrupt and emits the listener right away.
+static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
+{
+    s_check_callback = 0;
+
+    Isolate* isolate = Isolate::current(v8_isolate);
+
+    if (!isolate)
+        process_signal_exit_pending();
+    else
+        emit_signal(isolate, (const char*)data);
 }
 
 static void on_signal(int32_t s)
@@ -61,18 +148,29 @@ static void on_signal(int32_t s)
         return;
 #endif
     default:
-        _exit(1);
+        _exit(128 + s);
+    }
+
+    // Remember it: even when the interrupt cannot reach the JS thread before
+    // the program ends, the exit path still reports 128 + signum.
+    s_pending_signal = s;
+
+    if (s_forward_children) {
+        // The command runner owns the terminal here: hand the signal to the
+        // children and let their exit status decide the exit code.
+        child_process_signal_alive(s);
+        return;
     }
 
     if (s_check_callback.CompareAndSwap(0, 1) != 0)
-        _exit(1);
+        _exit(128 + s);
     async([name]() {
         Isolate* isolate = Isolate::main();
 
         if (isolate)
             isolate->RequestInterrupt(_InterruptCallback, (void*)name);
         else
-            _exit(1);
+            process_signal_exit_pending();
     });
 }
 
