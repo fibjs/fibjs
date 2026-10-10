@@ -12,6 +12,7 @@
 #include "EventEmitter.h"
 #include <signal.h>
 #include <string.h>
+#include <uv.h>
 
 #ifdef _WIN32
 #include <DbgHelp.h>
@@ -30,6 +31,13 @@ static exlib::atomic s_pending_signal;
 
 // Set while the command runner waits for its child process.
 static exlib::atomic s_forward_children;
+
+// 1 while a signal emit is queued but has not started running on the JS thread
+// yet (see _InterruptCallback). s_emit_token identifies the signal that armed
+// it, so a fallback emit never runs twice for the same signal.
+static exlib::atomic s_emit_pending;
+static exlib::atomic s_emit_token;
+static const char* s_pending_signal_name = NULL;
 
 bool signal_reraise(int32_t signum)
 {
@@ -94,7 +102,8 @@ void process_signal_reraise_pending()
 }
 
 // Emit <name> on the process module and decide what the signal means for the
-// process. Must only be called with a live JS scope.
+// process. Must only be called with a live JS scope (a normal fiber context or
+// the inline fallback below).
 static void emit_signal(Isolate* isolate, const char* name)
 {
     bool r = false;
@@ -114,9 +123,19 @@ static void emit_signal(Isolate* isolate, const char* name)
         process_signal_clear();
 }
 
-// Runs inside a V8 interrupt and emits the listener right away.
-static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
+// Fallback used when the JS thread never yields (a `while (true);` loop): the
+// posted task below cannot run, so the emit happens from the interrupt itself —
+// running JS re-entrantly is what used to segfault (~5%) and the reason the
+// common path posts a task instead, but it is the only way to reach a listener
+// (or to notice that there is none) while JS keeps running.
+static void _InlineEmitCallback(v8::Isolate* v8_isolate, void* data)
 {
+    int32_t token = (int32_t)(intptr_t)data;
+
+    if (s_emit_token != token)
+        return; // the posted task already took care of this signal
+
+    s_emit_pending = 0;
     s_check_callback = 0;
 
     Isolate* isolate = Isolate::current(v8_isolate);
@@ -124,7 +143,54 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
     if (!isolate)
         process_signal_exit_pending();
     else
-        emit_signal(isolate, (const char*)data);
+        emit_signal(isolate, (const char*)s_pending_signal_name);
+}
+
+// Runs *inside* a V8 interrupt, i.e. in the middle of whatever V8 is doing: JS
+// must not be touched here. The emit is posted to the isolate so it runs as a
+// normal task; see _InlineEmitCallback for the never-yielding fallback.
+static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
+{
+    const char* name = (const char*)data;
+    Isolate* isolate = Isolate::current(v8_isolate);
+
+    if (!isolate) {
+        s_check_callback = 0;
+        process_signal_exit_pending();
+        return;
+    }
+
+    int32_t token = (int32_t)s_emit_token.inc();
+
+    s_pending_signal_name = name;
+    s_emit_pending = 1;
+
+    isolate->sync([isolate, name, token]() -> int {
+        if (s_emit_token != token)
+            return 0; // a newer signal replaced this one
+
+        // the listener is running now: a following signal may be handled again
+        s_check_callback = 0;
+        s_emit_pending = 0;
+
+        emit_signal(isolate, name);
+        return 0;
+    });
+
+    // A JS loop that never yields cannot run the task above: after a short
+    // grace period fall back to the inline emit through another interrupt.
+    async([isolate, token]() {
+        for (int32_t i = 0; i < 50 && s_emit_pending && s_emit_token == token; i++)
+            uv_sleep(10);
+
+        // confirm once more: do not race with a task that just started
+        if (s_emit_pending && s_emit_token == token) {
+            uv_sleep(25);
+
+            if (s_emit_pending && s_emit_token == token)
+                isolate->RequestInterrupt(_InlineEmitCallback, (void*)(intptr_t)token);
+        }
+    });
 }
 
 static void on_signal(int32_t s)

@@ -403,6 +403,64 @@ describe('process', () => {
         });
     });
 
+    // Signal handling of the process itself (plans/npm-cli-alignment-2026-10-10.md,
+    // items A5/A13/B2): the listener runs from a task posted to the isolate —
+    // never from inside the V8 interrupt callback, which used to segfault when
+    // the interrupt landed in the middle of JS execution — and a program that
+    // never yields still has to die from the signal.
+    describe("signal handling", { skip: process.platform == 'win32' }, () => {
+        function childAlive(pid) {
+            try {
+                process.kill(pid, 0);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        it("runs a signal listener and lets it decide the exit code", () => {
+            var cp = child_process.spawn(cmd, ['-e',
+                'process.on("SIGTERM",()=>{process.exit(7)});setInterval(()=>{},50)'
+            ], { stdio: 'ignore' });
+
+            coroutine.sleep(400);
+            cp.kill('SIGTERM');
+
+            assert.equal(cp.join(), 7, "the listener has to run and decide the exit code");
+        });
+
+        it("terminates a JS loop that never yields", () => {
+            var cp = child_process.spawn(cmd, ['-e', 'while(true);'], { stdio: 'ignore' });
+
+            coroutine.sleep(400);
+            cp.kill('SIGTERM');
+
+            var t0 = Date.now();
+            while (childAlive(cp.pid) && Date.now() - t0 < 5000)
+                coroutine.sleep(50);
+
+            if (childAlive(cp.pid))
+                cp.kill('SIGKILL');
+
+            assert.isFalse(childAlive(cp.pid), "a loop that never yields must still die from SIGTERM");
+            assert.equal(cp.join(), -15);
+        });
+
+        it("self kill with a listener keeps running instead of crashing", () => {
+            var code = 'process.on("SIGTERM",()=>{});process.kill(process.pid,"SIGTERM");setInterval(()=>{},50)';
+
+            for (var i = 0; i < 5; i++) {
+                var cp = child_process.spawn(cmd, ['-e', code], { stdio: 'ignore' });
+
+                coroutine.sleep(500);
+                assert.isTrue(childAlive(cp.pid), "iteration " + i + " of the self kill crashed");
+
+                cp.kill('SIGKILL');
+                assert.equal(cp.join(), -9);
+            }
+        });
+    });
+
     describe("umask", () => {
         it("accepts an octal string and a number", () => {
             const old = process.umask();
