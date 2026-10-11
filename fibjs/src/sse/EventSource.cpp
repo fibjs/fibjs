@@ -311,15 +311,10 @@ static bool is_connection_gone(result_t hr)
 
     // socket 层可能回投 libuv 错误码，也可能回投原始系统 errno（Windows 上不是同一套
     // 取值），两种都接受。
-    switch (hr) {
-    case UV_ECONNRESET:
-    case UV_EPIPE:
-    case UV_ENOTCONN:
-    case UV_ECONNABORTED:
+    if (hr.is(UV_ECONNRESET) || hr.is(UV_EPIPE) || hr.is(UV_ENOTCONN) || hr.is(UV_ECONNABORTED))
         return true;
-    }
 
-    switch (uv_translate_sys_error(-hr.code)) {
+    switch (uv_translate_sys_error(-hr.code())) {
     case UV_ECONNRESET:
     case UV_EPIPE:
     case UV_ENOTCONN:

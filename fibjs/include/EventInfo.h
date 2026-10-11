@@ -28,7 +28,7 @@ public:
             if (!payload.code.empty())
                 add("code", payload.code);
             else
-                add("code", code.code);
+                add("code", code.code());
 
             if (payload.has_errno)
                 add("errno", payload.errno_value);
@@ -53,7 +53,7 @@ public:
 
             error_payload_delivered(payload);
         } else if (!code.has_value())
-            add("code", code.code);
+            add("code", code.code());
 
         if (!reason.empty())
             add("reason", reason);

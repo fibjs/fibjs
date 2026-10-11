@@ -871,7 +871,7 @@ inline void AsyncState::state_lock_violation(const char* what, result_t v, void*
     fprintf(stderr, "\n[fibjs] AsyncState phase lock violation: %s\n", what);
     fprintf(stderr, "  machine=%p epoch=%d expect=%d state=%p next=%p value=%d caller=%p\n",
         (void*)this, m_epoch.load(std::memory_order_relaxed), m_cont.expect.load(),
-        (void*)m_state, (void*)m_next, v.code, caller);
+        (void*)m_state, (void*)m_next, v.code(), caller);
     fprintf(stderr, "  violating stack:\n");
     ex_print_stack_trace();
     fflush(stderr);

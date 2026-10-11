@@ -1311,7 +1311,7 @@ struct ErrorPayload {
     {
         ErrorPayload payload;
         payload.has_errno = true;
-        payload.errno_value = hr.code;
+        payload.errno_value = hr.code();
         return payload;
     }
 
@@ -1597,7 +1597,7 @@ inline result_t setSystemErrorPayload(result_t hr, const char* syscall,
         ErrorPayload payload = takeErrorPayload();
 
         payload.has_errno = true;
-        payload.errno_value = hr.code;
+        payload.errno_value = hr.code();
 
         if (syscall)
             payload.with_syscall(syscall);

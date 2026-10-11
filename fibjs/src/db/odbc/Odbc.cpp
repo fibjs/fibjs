@@ -466,7 +466,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 for (int32_t i = 0; i < columns; i++) {
                     Variant v;
 
-                    hr = odbc_fetchValue(stmt, i + 1, types[i], v).code;
+                    hr = odbc_fetchValue(stmt, i + 1, types[i], v).code();
                     if (hr < 0)
                         break;
 
@@ -494,7 +494,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
     } while (0);
 
     if (hr < 0)
-        hr = odbc_set_error(SQL_HANDLE_STMT, stmt).code;
+        hr = odbc_set_error(SQL_HANDLE_STMT, stmt).code();
     else
         hr = 0;
 

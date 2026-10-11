@@ -111,32 +111,34 @@ namespace fibjs {
 // the value. Until then it still converts to and from int32_t implicitly, so
 // existing call sites keep compiling unchanged.
 class result_t {
-public:
-    int32_t code = 0;
+    int32_t m_code = 0;
 
+public:
     result_t() = default;
     result_t(int32_t c)
-        : code(c)
+        : m_code(c)
     {
     }
 
-    // Compatibility conversion; removed in P4 of the migration. Deprecating it
-    // first lists every remaining decode site (warning, build stays green)
-    // instead of breaking the tree in one go.
-    [[deprecated("decode explicitly: use a result_t predicate, or .code for a raw value")]] operator int32_t() const
+    // Raw code read -- whitelisted call sites only (the raw value channel):
+    // the JS boundary (BuildError/FillError), EventInfo, uv/errno interop,
+    // ODBC, debug prints and logs; enforced by temp/audit_code_whitelist.py.
+    // Everything else decodes via the predicates; there is no implicit
+    // conversion to int32_t (P4-final removed it).
+    int32_t code() const
     {
-        return code;
+        return m_code;
     }
 
     // Semantic checks (P2 replaces the hard coded comparisons with these).
     bool failed() const
     {
-        return code < 0;
+        return m_code < 0;
     }
 
     bool ok() const
     {
-        return code >= 0;
+        return m_code >= 0;
     }
 
     // A failure that is not <c>: the "propagate anything but this code" idiom
@@ -144,59 +146,59 @@ public:
     // CALL_E_PARAMNOTOPTIONAL for an absent option.
     bool failed_other_than(int32_t c) const
     {
-        return code < 0 && code != c;
+        return m_code < 0 && m_code != c;
     }
 
     bool is(int32_t c) const
     {
-        return code == c;
+        return m_code == c;
     }
 
     // A real system error (errno domain): the internal CALL_E_* codes live
     // below CALL_E_MAX, and success (0) must not classify as one either.
     bool is_system_error() const
     {
-        return code < 0 && code > CALL_E_MAX;
+        return m_code < 0 && m_code > CALL_E_MAX;
     }
 
     bool is_internal_error() const
     {
-        return code <= CALL_E_MAX;
+        return m_code <= CALL_E_MAX;
     }
 
     int32_t errno_value() const
     {
-        return is_system_error() ? -code : 0;
+        return is_system_error() ? -m_code : 0;
     }
 
     bool is_pending() const
     {
-        return code == CALL_E_PENDDING;
+        return m_code == CALL_E_PENDDING;
     }
 
     bool is_nosync() const
     {
-        return code == CALL_E_NOSYNC;
+        return m_code == CALL_E_NOSYNC;
     }
 
     bool is_exception() const
     {
-        return code == CALL_E_EXCEPTION;
+        return m_code == CALL_E_EXCEPTION;
     }
 
     bool is_javascript() const
     {
-        return code == CALL_E_JAVASCRIPT;
+        return m_code == CALL_E_JAVASCRIPT;
     }
 
     bool is_return_null() const
     {
-        return code == CALL_RETURN_NULL;
+        return m_code == CALL_RETURN_NULL;
     }
 
     bool is_return_undefined() const
     {
-        return code == CALL_RETURN_UNDEFINED;
+        return m_code == CALL_RETURN_UNDEFINED;
     }
 
     // The "nullable read" family (collection / header / body / child getters)
@@ -208,14 +210,14 @@ public:
     // is `!has_value()`, not `failed()`.
     bool has_value() const
     {
-        return code == 0;
+        return m_code == 0;
     }
 
     // Strict option parsing (`GetConfigValue(..., true)`) reports this when the
     // option was not provided at all.
     bool is_param_missing() const
     {
-        return code == CALL_E_PARAMNOTOPTIONAL;
+        return m_code == CALL_E_PARAMNOTOPTIONAL;
     }
 
     // The "no such file" family: on POSIX both macros are -ENOENT, on Windows
@@ -224,20 +226,20 @@ public:
     // would accept the other code as well on Windows.
     bool is_not_found() const
     {
-        return code == CALL_E_FILE_NOT_FOUND || code == CALL_E_PATH_NOT_FOUND;
+        return m_code == CALL_E_FILE_NOT_FOUND || m_code == CALL_E_PATH_NOT_FOUND;
     }
 
     // The value could not be converted to the type the API asked for.
     bool is_type_mismatch() const
     {
-        return code == CALL_E_TYPEMISMATCH;
+        return m_code == CALL_E_TYPEMISMATCH;
     }
 
     // The input parameter is not a valid type: the inner collection / variant
     // conversions report this and the callers remap it to a type error.
     bool is_bad_var_type() const
     {
-        return code == CALL_E_BADVARTYPE;
+        return m_code == CALL_E_BADVARTYPE;
     }
 
     // A failure about how the arguments were provided: the overload arity, a
@@ -245,7 +247,7 @@ public:
     // bridge retries these leniently (see CHECK_ARGUMENT).
     bool is_arg_error() const
     {
-        return code == CALL_E_BADPARAMCOUNT || code == CALL_E_PARAMNOTOPTIONAL || code == CALL_E_TYPEMISMATCH;
+        return m_code == CALL_E_BADPARAMCOUNT || m_code == CALL_E_PARAMNOTOPTIONAL || m_code == CALL_E_TYPEMISMATCH;
     }
 
     // The async bridge's control codes: the call has to be made in another form
@@ -253,8 +255,8 @@ public:
     // failures to report.
     bool is_bridge_code() const
     {
-        return code == CALL_E_NOSYNC || code == CALL_E_NOASYNC || code == CALL_E_LONGSYNC
-            || code == CALL_E_GUICALL || code == CALL_E_PENDDING;
+        return m_code == CALL_E_NOSYNC || m_code == CALL_E_NOASYNC || m_code == CALL_E_LONGSYNC
+            || m_code == CALL_E_GUICALL || m_code == CALL_E_PENDDING;
     }
 
     // The argument-validation band (CALL_E_MIN_ARG, CALL_E_MAX): what a variant
@@ -263,14 +265,14 @@ public:
     // apply, try the next one".
     bool is_overload_mismatch() const
     {
-        return code > CALL_E_MIN_ARG && code < CALL_E_MAX;
+        return m_code > CALL_E_MIN_ARG && m_code < CALL_E_MAX;
     }
 
     // The internal code band that carries a canned message in s_error_info
     // (utils.cpp renders these with fmtString).
     bool has_error_info() const
     {
-        return code > CALL_E_MIN && code < CALL_E_MAX;
+        return m_code > CALL_E_MIN && m_code < CALL_E_MAX;
     }
 };
 
