@@ -53,7 +53,7 @@ public:
     virtual result_t post(result_t v)
     {
         if (m_exec_retVal->exitCode) {
-            m_ac.post(Runtime::setError(process_output(m_exec_retVal->stderr, is_win32)));
+            m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message(process_output(m_exec_retVal->stderr, is_win32)));
         } else {
             m_retVal = process_output(m_exec_retVal->stdout, is_win32);
             m_ac.post(v);
@@ -173,7 +173,7 @@ static void js_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     if (retVal->exitCode) {
-        ThrowResult(Runtime::setError(AsyncShell::process_output(retVal->stderr, false)));
+        ThrowResult(result_t::make(CALL_E_EXCEPTION).with_message(AsyncShell::process_output(retVal->stderr, false)));
     } else {
         args.GetReturnValue().Set(isolate->NewString(AsyncShell::process_output(retVal->stdout, false)));
     }

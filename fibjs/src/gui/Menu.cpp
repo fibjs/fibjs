@@ -207,45 +207,45 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
         else
             mi->type = "separator";
     } else if (mi->type != "normal" && mi->type != "separator" && mi->type != "checkbox" && mi->type != "submenu")
-        return Runtime::setError("MenuItem: Invalid menu item type: " + mi->type.value());
+        return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Invalid menu item type: " + mi->type.value());
 
     if (mi->type.value() == "separator") {
         if (mi->label.has_value())
-            return Runtime::setError("MenuItem: Separator menu item can't have label");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Separator menu item can't have label");
 
         if (mi->tooltip.has_value())
-            return Runtime::setError("MenuItem: Separator menu item can't have tooltip");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Separator menu item can't have tooltip");
 
         if (mi->icon.has_value())
-            return Runtime::setError("MenuItem: Separator menu item can't have icon");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Separator menu item can't have icon");
 
         if (mi->submenu.has_value())
-            return Runtime::setError("MenuItem: Separator menu item can't have submenu");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Separator menu item can't have submenu");
 
         if (mi->checked.has_value())
-            return Runtime::setError("MenuItem: Separator menu item can't have checked");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Separator menu item can't have checked");
     } else {
         if (!mi->label.has_value() || mi->label.value().empty())
-            return Runtime::setError("MenuItem: Menu item label is empty");
+            return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Menu item label is empty");
 
         if (mi->type.value() == "submenu") {
             if (mi->checked.has_value())
-                return Runtime::setError("MenuItem: Submenu menu item can't have checked");
+                return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Submenu menu item can't have checked");
 
             if (!mi->submenu.has_value())
-                return Runtime::setError("MenuItem: Submenu menu item must have submenu");
+                return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Submenu menu item must have submenu");
         } else if (mi->type.value() == "checkbox") {
             if (!mi->checked.has_value())
                 mi->checked = false;
 
             if (mi->submenu.has_value())
-                return Runtime::setError("MenuItem: Checkbox menu item can't have submenu");
+                return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Checkbox menu item can't have submenu");
         } else {
             if (mi->checked.has_value())
-                return Runtime::setError("MenuItem: Normal menu item can't have checked");
+                return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Normal menu item can't have checked");
 
             if (mi->submenu.has_value())
-                return Runtime::setError("MenuItem: Normal menu item can't have submenu");
+                return result_t::make(CALL_E_EXCEPTION).with_message("MenuItem: Normal menu item can't have submenu");
         }
     }
 
@@ -257,7 +257,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
 
         mi->m_icon = (Buffer*)var.object();
         if (!mi->m_icon)
-            return Runtime::setError("Menu item icon is empty");
+            return result_t::make(CALL_E_EXCEPTION).with_message("Menu item icon is empty");
     }
 
     if (mi->submenu.has_value())
@@ -285,7 +285,7 @@ result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
 result_t Menu::append(v8::Local<v8::Object> item)
 {
     if (m_menu)
-        return Runtime::setError("Menu: Menu is already attached to a window");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Menu: Menu is already attached to a window");
 
     obj_ptr<MenuItem> mi;
     result_t hr = MenuItem::create(item, mi);
@@ -301,7 +301,7 @@ result_t Menu::append(v8::Local<v8::Object> item)
 result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
 {
     if (m_menu)
-        return Runtime::setError("Menu: Menu is already attached to a window");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Menu: Menu is already attached to a window");
 
     if (pos < 0 || pos > m_items.size())
         return CALL_E_OUTRANGE;
@@ -320,7 +320,7 @@ result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
 result_t Menu::remove(int32_t pos)
 {
     if (m_menu)
-        return Runtime::setError("Menu: Menu is already attached to a window");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Menu: Menu is already attached to a window");
 
     if (pos < 0 || pos >= m_items.size())
         return CALL_E_OUTRANGE;

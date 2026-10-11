@@ -238,7 +238,7 @@ result_t performance_base::measure(exlib::string name, exlib::string startMark, 
         auto pos = isolate->m_markEntries.find(startMark);
         if (pos == isolate->m_markEntries.end()) {
             isolate->m_perfLock.unlock();
-            return Runtime::setError("startMark '" + startMark + "' not found");
+            return result_t::make(CALL_E_EXCEPTION).with_message("startMark '" + startMark + "' not found");
         }
 
         pos->second->get_startTime(startTime);
@@ -251,7 +251,7 @@ result_t performance_base::measure(exlib::string name, exlib::string startMark, 
         auto pos = isolate->m_markEntries.find(endMark);
         if (pos == isolate->m_markEntries.end()) {
             isolate->m_perfLock.unlock();
-            return Runtime::setError("endMark '" + endMark + "' not found");
+            return result_t::make(CALL_E_EXCEPTION).with_message("endMark '" + endMark + "' not found");
         }
 
         pos->second->get_startTime(endTime);
@@ -288,7 +288,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
         } else if (start->IsNumber()) {
             startTime = start->NumberValue(isolate->context()).FromMaybe(0);
         } else
-            return Runtime::setError("start must be a string or number");
+            return result_t::make(CALL_E_EXCEPTION).with_message("start must be a string or number");
     }
 
     double durationTime = 0;
@@ -301,7 +301,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     if (hr.ok()) {
         endTime = startTime + durationTime;
         if (options->Has(isolate->context(), isolate->NewString("end")).FromMaybe(false))
-            return Runtime::setError("end must not be specified when duration is specified");
+            return result_t::make(CALL_E_EXCEPTION).with_message("end must not be specified when duration is specified");
     } else {
         v8::Local<v8::Value> end;
         hr = GetConfigValue(options, "end", end);
@@ -313,7 +313,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
             } else if (end->IsNumber()) {
                 endTime = end->NumberValue(isolate->context()).FromMaybe(0);
             } else
-                return Runtime::setError("end must be a string or number");
+                return result_t::make(CALL_E_EXCEPTION).with_message("end must be a string or number");
         } else
             endTime = perf_now();
     }
@@ -324,7 +324,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
         auto pos = isolate->m_markEntries.find(startMark);
         if (pos == isolate->m_markEntries.end()) {
             isolate->m_perfLock.unlock();
-            return Runtime::setError("startMark '" + startMark + "' not found");
+            return result_t::make(CALL_E_EXCEPTION).with_message("startMark '" + startMark + "' not found");
         }
 
         pos->second->get_startTime(startTime);
@@ -334,7 +334,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
         auto pos = isolate->m_markEntries.find(endMark);
         if (pos == isolate->m_markEntries.end()) {
             isolate->m_perfLock.unlock();
-            return Runtime::setError("endMark '" + endMark + "' not found");
+            return result_t::make(CALL_E_EXCEPTION).with_message("endMark '" + endMark + "' not found");
         }
 
         pos->second->get_startTime(endTime);

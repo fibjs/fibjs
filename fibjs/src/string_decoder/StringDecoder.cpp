@@ -19,7 +19,7 @@ result_t StringDecoder_base::_new(exlib::string encoding,
     bool isValid = false;
     Buffer_base::isEncoding(new_encoding, isValid);
     if (!isValid) {
-        return CHECK_ERROR(Runtime::setError("string_decoder: Unknown encoding: " + encoding));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("string_decoder: Unknown encoding: " + encoding));
     }
     retVal = new StringDecoder(new_encoding);
     return 0;

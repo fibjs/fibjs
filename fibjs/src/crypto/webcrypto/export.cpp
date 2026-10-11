@@ -20,7 +20,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
     KeyObject::KeyType keyType = ckey->type();
 
     if (!ckey->m_extractable)
-        return Runtime::setError("Key is not extractable");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Key is not extractable");
 
     if (format == "jwk") {
         result_t hr = ckey->m_key->export_json(retVal);
@@ -93,10 +93,10 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
             retVal = store;
             return 0;
         }
-        return Runtime::setError("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
     }
 
-    return Runtime::setError("Invalid key type: %d.", keyType);
+    return result_t::make(CALL_E_EXCEPTION).with_format("Invalid key type: %d.", keyType);
 }
 
 result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm,
@@ -153,13 +153,13 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
     result_t hr;
     obj_ptr<CryptoKey> key = (CryptoKey*)ac.ctxv()[0].object();
     if (key == NULL)
-        return Runtime::setError("WebCrypto: the key parameters were not read");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: the key parameters were not read");
 
     key->m_key = new KeyObject();
     if (format == "jwk") {
         obj_ptr<NObject> jwk = (NObject*)ac.ctxv()[1].object();
         if (jwk == NULL)
-            return Runtime::setError("WebCrypto: the key data was not read");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: the key data was not read");
         hr = key->m_key->ImportJWKKey(jwk, KeyObject::kKeyTypeUnknown);
         if (hr.failed())
             return hr;
@@ -170,7 +170,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
     } else {
         obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[2].object();
         if (buf == NULL)
-            return Runtime::setError("WebCrypto: the key data was not read");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: the key data was not read");
 
         if (format == "pkcs8")
             hr = key->m_key->ParsePrivateKey("der", format, "", nullptr, buf);
@@ -186,7 +186,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             Buffer* b = Buffer::Cast(buf);
             hr = ((KeyObject*)key->m_key.get())->createSecretKey(b->data(), b->length());
         } else
-            return Runtime::setError("WebCrypto: unknown key format: " + format);
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown key format: " + format);
 
         if (hr.failed())
             return hr;
@@ -196,7 +196,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         return key->check_import_param();
     }
 
-    return Runtime::setError("WebCrypto: unknown key format: " + format);
+    return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown key format: " + format);
 }
 
 

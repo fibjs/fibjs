@@ -41,7 +41,7 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
     // Check if we are evaluating an ES module
     // global.require should only work in REPL/script context, not in ES modules
     if (isolate->m_module_evaluating > 0)
-        return Runtime::setError("require is not defined in ES module scope, use import instead");
+        return result_t::make(CALL_E_EXCEPTION).with_message("require is not defined in ES module scope, use import instead");
 
     // Use in_cjs=true so that require(esm) works: when a .js file with ESM
     // syntax is required, js_Loader retries it as ESM (like Node.js v22.12+).

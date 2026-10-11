@@ -682,6 +682,18 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
 static void resolveException(result_t& hr, exlib::string& type_name, exlib::string& msg)
 {
     if (hr.is_exception()) {
+        const ErrorPayload* p = hr.payload();
+
+        if (p && !p->empty()) {
+            // Value-carried description (producers build it). result_code == 0
+            // means "no explicit code": the generic sentinel keeps hr.
+            if (!p->result_code.has_value())
+                hr = p->result_code;
+            type_name = p->error_type_name;
+            msg = p->message;
+            return;
+        }
+
         hr = Runtime::errCode();
         type_name = Runtime::errTypeName();
         msg = Runtime::errMessage();
@@ -895,7 +907,7 @@ result_t throwSyntaxError(TryCatch& try_catch)
     if (message.IsEmpty())
         ThrowError(isolate->toString(try_catch.Exception()));
     else {
-        return Runtime::setError(GetException(try_catch, 0, false, true));
+        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true));
     }
 
     return CALL_E_JAVASCRIPT;
@@ -931,7 +943,7 @@ result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
             p++;
         }
         if (!p[0])
-            return CHECK_ERROR(Runtime::setError(exlib::string("unknown option \'") + *k + "\'."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("unknown option \'") + *k + "\'."));
     }
 
     return 0;

@@ -54,11 +54,9 @@ static result_t setAbortError(AbortSignal_base* signal)
     AbortSignal* s = signal ? static_cast<AbortSignal*>(signal) : NULL;
 
     if (s && s->is_timeout_abort())
-        return Runtime::setError(ErrorPayload::make(errtype::kTimeoutError)
-            ->with_message("The operation timed out."));
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTimeoutError).with_message("The operation timed out.");
 
-    return Runtime::setError(ErrorPayload::make(errtype::kAbortError)
-        ->with_message("The operation was aborted."));
+    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kAbortError).with_message("The operation was aborted.");
 }
 
 // Diagnostics-only view of a request URL: protocol/host/path/query with the
@@ -106,8 +104,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
         method[i] = (char)toupper((unsigned char)method[i]);
 
     if (method != "GET" && method != "HEAD")
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            ->with_message("fetch(file:): only GET and HEAD are supported")));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported"));
 
     FileStream file;
     hr = file.open(path, "r");
@@ -645,10 +642,10 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_http_proxy = newVal;
     }
@@ -682,10 +679,10 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_https_proxy = newVal;
     }
@@ -1442,10 +1439,10 @@ public:
                 m_connUrl = "tcp://";
             }
         } else
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (host.empty())
-            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_connUrl.append(host);
 
@@ -1639,13 +1636,13 @@ public:
     ON_STATE(asyncRequest, socks_connect)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         exlib::string strBuffer;
 
         m_buffer->toString(strBuffer);
         if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
-            return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 handshake failed."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 handshake failed."));
 
         obj_ptr<Url> u = new Url();
         u->parse(m_connUrl);
@@ -1681,12 +1678,12 @@ public:
     ON_STATE(asyncRequest, socks_connect_res_5_bytes)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         Buffer* buf = Buffer::Cast(m_buffer);
         const uint8_t* p = buf->data();
         if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
-            return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 connect failed."));
 
         uint8_t len = 0;
 
@@ -1704,7 +1701,7 @@ public:
     ON_STATE(asyncRequest, socks_connected)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         // discard socks server response
 
@@ -1731,7 +1728,7 @@ public:
             exlib::string msg;
 
             resp->get_statusMessage(msg);
-            return CHECK_ERROR(Runtime::setError("HttpClient: " + msg));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: " + msg));
         }
 
         m_reqConn.Release();
@@ -1838,7 +1835,7 @@ public:
             m_h2session->m_remote_settings_event.wait();
 
         if (m_h2session->m_closed || m_h2session->m_destroyed)
-            return CHECK_ERROR(Runtime::setError("Http2Session: session closed during SETTINGS exchange"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session closed during SETTINGS exchange"));
 
         return next(h2_request);
     }
@@ -1964,7 +1961,7 @@ public:
 
         if (stream_id < 0) {
             m_h2session->m_request_lock.unlock();
-            return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+            return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
         }
 
         m_h2stream = stream;
@@ -2171,8 +2168,7 @@ public:
 
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
-            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                ->with_message("fetch: redirect not allowed")));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed"));
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -2188,8 +2184,7 @@ public:
         m_o->u->toString(m_url);
 
         if (m_urls.find(m_url) != m_urls.end())
-            return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                ->with_message("HttpClient: redirect cycle")));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle"));
 
         // 303: per spec force GET and clear request body
         if (status == 303) {
@@ -3194,12 +3189,10 @@ public:
             ? Runtime::errMessage()
             : getResultMessage(v);
 
-        if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError) {
-            Runtime::setError(new ErrorPayload(), type_name.c_str(), CALL_E_EXCEPTION, msg);
-            return CALL_E_EXCEPTION;
-        }
+        if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError)
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(type_name.c_str()).with_message(msg);
 
-        Runtime::setError(ErrorPayload::make(errtype::kTypeError)->with_message(msg));
+        result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message(msg));
         return CALL_E_EXCEPTION;
     }
 

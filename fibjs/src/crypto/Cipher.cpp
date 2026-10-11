@@ -167,7 +167,7 @@ static result_t cipher_key_args(crypto_base::Union_createCipheriv_key& key, obj_
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
         if (ko->type() != KeyObject::kKeyTypeSecret)
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid key type"));
 
         return 0;
     }
@@ -324,7 +324,7 @@ result_t Cipher::InitAuthenticated(int iv_len, unsigned int auth_tag_len)
     if (mode == EVP_CIPH_GCM_MODE) {
         if (auth_tag_len != kNoAuthTagLength) {
             if (!IsValidGCMTagLength(auth_tag_len))
-                return CHECK_ERROR(Runtime::setError("Cipher: Invalid authTagLength"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTagLength"));
 
             auth_tag_len_ = auth_tag_len;
         }
@@ -333,14 +333,14 @@ result_t Cipher::InitAuthenticated(int iv_len, unsigned int auth_tag_len)
             if (EVP_CIPHER_CTX_nid(m_ctx) == NID_chacha20_poly1305) {
                 auth_tag_len = 16;
             } else
-                return CHECK_ERROR(Runtime::setError("Cipher: authTagLength is required"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: authTagLength is required"));
         }
 
         if (mode == EVP_CIPH_CCM_MODE && kind_ == kDecipher && EVP_default_properties_is_fips_enabled(nullptr))
-            return CHECK_ERROR(Runtime::setError("Cipher: CCM decryption not supported in FIPS mode"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: CCM decryption not supported in FIPS mode"));
 
         if (!EVP_CIPHER_CTX_ctrl(m_ctx, EVP_CTRL_AEAD_SET_TAG, auth_tag_len, nullptr))
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid authTagLength"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTagLength"));
 
         auth_tag_len_ = auth_tag_len;
 
@@ -360,7 +360,7 @@ result_t Cipher::init(const exlib::string& name, Buffer_base* key, v8::Local<v8:
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
-        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher: '%s'.", name.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Cipher: Unknown cipher: '%s'.", name.c_str()));
 
     unsigned char key1[EVP_MAX_KEY_LENGTH];
     unsigned char iv1[EVP_MAX_IV_LENGTH];
@@ -376,7 +376,7 @@ result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, siz
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
-        return CHECK_ERROR(Runtime::setError("Cipher: Unknown cipher: '%s'.", name.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Cipher: Unknown cipher: '%s'.", name.c_str()));
 
     result_t hr;
     const int expected_iv_len = EVP_CIPHER_iv_length(cipher);
@@ -387,16 +387,16 @@ result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, siz
     const bool has_iv = iv_len > 0;
 
     if (!has_iv && expected_iv_len != 0)
-        return CHECK_ERROR(Runtime::setError("Cipher: IV is required"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: IV is required"));
 
     if (!is_authenticated_mode && has_iv && iv_len != expected_iv_len)
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid iv size"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid iv size"));
 
     if (EVP_CIPHER_nid(cipher) == NID_chacha20_poly1305) {
         if (!has_iv)
-            return CHECK_ERROR(Runtime::setError("Cipher: IV is required"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: IV is required"));
         if (iv_len > 12)
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid iv size"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid iv size"));
     }
 
     return CommonInit(cipher, key, size, (const unsigned char*)iv_buf->data(), iv_len, options);
@@ -415,7 +415,7 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
 
     m_ctx = EVP_CIPHER_CTX_new();
     if (m_ctx == NULL)
-        return CHECK_ERROR(Runtime::setError("Cipher: Out of memory"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Out of memory"));
 
     const int mode = EVP_CIPHER_mode(cipher);
     if (mode == EVP_CIPH_WRAP_MODE)
@@ -449,7 +449,7 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
 result_t Cipher::setAuthTag(const char* tag, int tag_len)
 {
     if (!IsAuthenticatedMode() || kind_ != kDecipher || auth_tag_state_ != kAuthTagUnknown)
-        return Runtime::setError("Cipher: Invalid setAuthTag");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid setAuthTag");
 
     const int mode = EVP_CIPHER_CTX_mode(m_ctx);
     bool is_valid;
@@ -459,7 +459,7 @@ result_t Cipher::setAuthTag(const char* tag, int tag_len)
         is_valid = auth_tag_len_ == tag_len;
 
     if (!is_valid)
-        return Runtime::setError("Cipher: Invalid authTagLength");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTagLength");
 
     auth_tag_len_ = tag_len;
     auth_tag_state_ = kAuthTagKnown;
@@ -500,7 +500,7 @@ result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encodi
 result_t Cipher::getAuthTag(obj_ptr<Buffer_base>& retVal)
 {
     if (auth_tag_state_ != kAuthTagFinalized || kind_ != kCipher || auth_tag_len_ == kNoAuthTagLength)
-        return Runtime::setError("Cipher: Invalid authTag");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTag");
 
     retVal = new Buffer(auth_tag_, auth_tag_len_);
 
@@ -510,7 +510,7 @@ result_t Cipher::getAuthTag(obj_ptr<Buffer_base>& retVal)
 result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> options)
 {
     if (auth_tag_state_ == kAuthTagFinalized || !IsAuthenticatedMode())
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid setAAD"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid setAAD"));
 
     int outlen;
     const int mode = EVP_CIPHER_CTX_mode(m_ctx);
@@ -522,14 +522,14 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
             return hr;
 
         if (plaintext_len < 0)
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid plaintextLength"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid plaintextLength"));
 
         if (!CheckCCMMessageLength(plaintext_len))
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid message length"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid message length"));
 
         if (kind_ == kDecipher) {
             if (!MaybePassAuthTagToOpenSSL())
-                return CHECK_ERROR(Runtime::setError("Cipher: Invalid authTag"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTag"));
         }
 
         if (!EVP_CipherUpdate(m_ctx, nullptr, &outlen, nullptr, plaintext_len))
@@ -577,7 +577,7 @@ result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> option
 result_t Cipher::setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal)
 {
     if (auth_tag_state_ == kAuthTagFinalized)
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid setAutoPadding"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid setAutoPadding"));
 
     if (EVP_CIPHER_CTX_set_padding(m_ctx, autoPadding) != 1)
         return CHECK_ERROR(openssl_error());
@@ -590,7 +590,7 @@ result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local
 {
     if (outputEncoding == "buffer") {
         if (m_decoder)
-            return CHECK_ERROR(Runtime::setError("Cipher: Inconsistent encoding"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Inconsistent encoding"));
 
         retVal = out->wrap(holder());
         return 0;
@@ -602,12 +602,12 @@ result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local
         exlib::string last_encoding;
         m_decoder->get_encoding(last_encoding);
         if (new_encoding != last_encoding)
-            return CHECK_ERROR(Runtime::setError("Cipher: Inconsistent encoding"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Inconsistent encoding"));
     } else {
         bool isValid = false;
         Buffer_base::isEncoding(new_encoding, isValid);
         if (!isValid)
-            return CHECK_ERROR(Runtime::setError("Cipher: Unknown encoding: " + outputEncoding));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Unknown encoding: " + outputEncoding));
         m_decoder = new StringDecoder(new_encoding);
     }
 
@@ -629,11 +629,11 @@ result_t Cipher::update(const unsigned char* data, size_t len, exlib::string out
 {
     const int mode = EVP_CIPHER_CTX_mode(m_ctx);
     if (mode == EVP_CIPH_CCM_MODE && !CheckCCMMessageLength(len))
-        return CHECK_ERROR(Runtime::setError("Cipher: Invalid message length"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid message length"));
 
     if (kind_ == kDecipher && IsAuthenticatedMode())
         if (!MaybePassAuthTagToOpenSSL())
-            return CHECK_ERROR(Runtime::setError("Cipher: Invalid authTag"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid authTag"));
 
     const int block_size = EVP_CIPHER_CTX_block_size(m_ctx);
     int buf_len = len + block_size;

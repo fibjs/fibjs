@@ -34,7 +34,7 @@ result_t url_base::format(exlib::string href, exlib::string& retVal)
 {
     ada::result<ada::url_aggregator> _url = ada::parse(href, &s_base);
     if (!_url || !_url->validate())
-        return Runtime::setError("url: Invalid URL '" + href + "'.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + href + "'.");
 
     retVal = _url->get_href();
 
@@ -63,13 +63,13 @@ result_t url_base::resolve(exlib::string _from, exlib::string to,
     if (!_from.empty()) {
         _base = ada::parse(_from.c_str(), &s_base);
         if (!_base) {
-            return Runtime::setError("url: Invalid URL '" + _from + "'.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + _from + "'.");
         }
     }
 
     ada::result<ada::url_aggregator> _url = ada::parse(to.c_str(), _base ? &_base.value() : nullptr);
     if (!_url || !_url->validate()) {
-        return Runtime::setError("url: Invalid URL '" + to + "'.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + to + "'.");
     }
 
     retVal = _url->get_href();
@@ -99,9 +99,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
     obj_ptr<Url> u = (Url*)obj.get();
 
     if (!u->m_url || u->m_url->type != ada::scheme::FILE)
-        return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                ->with_code("ERR_INVALID_URL_SCHEME")
-                ->with_message("url: '" + exlib::string(u->m_url->get_href()) + "' is not a file URL."));
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_URL_SCHEME").with_message("url: '" + exlib::string(u->m_url->get_href()) + "' is not a file URL.");
 
 #ifdef _WIN32
     bool isWindows = true;
@@ -145,9 +143,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
             if (!is_slash && !is_forward_slash)
                 continue;
 
-            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                    ->with_code("ERR_INVALID_FILE_URL_PATH")
-                    ->with_message("url: File URL path must not include encoded / characters"));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_FILE_URL_PATH").with_message("url: File URL path must not include encoded / characters");
         }
 
         std::string_view hostname = u->m_url->get_hostname();
@@ -170,18 +166,14 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
         char sep = decoded_pathname[2];
 
         if (letter < 'a' || letter > 'z' || sep != ':')
-            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                    ->with_code("ERR_INVALID_FILE_URL_PATH")
-                    ->with_message("url: File URL path must be absolute"));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_FILE_URL_PATH").with_message("url: File URL path must be absolute");
 
         retVal = decoded_pathname.substr(1);
     } else {
         std::string_view hostname = u->m_url->get_hostname();
 
         if (hostname.size() > 0)
-            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                    ->with_code("ERR_INVALID_FILE_URL_HOST")
-                    ->with_message("url: the hostname of file URL '" + exlib::string(u->m_url->get_href()) + "' is not empty."));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_FILE_URL_HOST").with_message("url: the hostname of file URL '" + exlib::string(u->m_url->get_href()) + "' is not empty.");
 
         size_t first_percent = std::string::npos;
         for (size_t i = 0; (i + 2) < pathname.size(); i++) {
@@ -193,9 +185,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
             }
 
             if (pathname[i + 1] == '2' && (pathname[i + 2] | 0x20) == 102)
-                return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                        ->with_code("ERR_INVALID_FILE_URL_PATH")
-                        ->with_message("url: file URL path must not include encoded / characters"));
+                return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_FILE_URL_PATH").with_message("url: file URL path must not include encoded / characters");
         }
 
         retVal = ada::unicode::percent_decode(pathname, first_percent);

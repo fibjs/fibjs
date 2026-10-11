@@ -39,7 +39,7 @@ Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
 result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Digest_base>& retVal)
 {
     if (m_bFinal)
-        return Runtime::setError("digest has been called");
+        return result_t::make(CALL_E_EXCEPTION).with_message("digest has been called");
 
     retVal = this;
 
@@ -72,7 +72,7 @@ result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Dig
 result_t Digest::digest(obj_ptr<Buffer>& retVal)
 {
     if(m_bFinal)
-        return Runtime::setError("digest has been called");
+        return result_t::make(CALL_E_EXCEPTION).with_message("digest has been called");
 
     obj_ptr<Buffer> buf = new Buffer(NULL, EVP_MD_size(EVP_MD_CTX_md(m_ctx)));
 
@@ -94,7 +94,7 @@ result_t Digest::digest(obj_ptr<Buffer>& retVal)
 result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 {
     if(m_bFinal)
-        return Runtime::setError("digest has been called");
+        return result_t::make(CALL_E_EXCEPTION).with_message("digest has been called");
 
     obj_ptr<Buffer> buf;
     result_t hr = digest(buf);
@@ -107,7 +107,7 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 result_t Digest::get_size(int32_t& retVal)
 {
     if(m_bFinal)
-        return Runtime::setError("digest has been called");
+        return result_t::make(CALL_E_EXCEPTION).with_message("digest has been called");
 
     retVal = EVP_MD_size(EVP_MD_CTX_md(m_ctx));
     return 0;

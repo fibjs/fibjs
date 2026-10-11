@@ -140,12 +140,12 @@ result_t Url::parse(exlib::string url, exlib::string base)
     if (!base.empty()) {
         _base = ada::parse(base, &s_base);
         if (!_base || !_base->validate())
-            return Runtime::setError("url: Invalid URL '" + base + "'.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + base + "'.");
     }
 
     m_url = ada::parse(url, &_base.value());
     if (!m_url || !m_url->validate())
-        return Runtime::setError("url: Invalid URL '" + url + "'.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + url + "'.");
 
     return 0;
 }
@@ -186,7 +186,7 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
         if (url_str[i] == '%') {
             // Check if we have at least 2 more characters
             if (i + 2 >= url.length()) {
-                return Runtime::setError("url: URI malformed");
+                return result_t::make(CALL_E_EXCEPTION).with_message("url: URI malformed");
             }
 
             // Check if the next two characters are valid hex digits
@@ -197,7 +197,7 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
             bool c2_valid = (c2 >= '0' && c2 <= '9') || (c2 >= 'A' && c2 <= 'F') || (c2 >= 'a' && c2 <= 'f');
 
             if (!c1_valid || !c2_valid) {
-                return Runtime::setError("url: URI malformed");
+                return result_t::make(CALL_E_EXCEPTION).with_message("url: URI malformed");
             }
 
             // Skip the two hex digits
@@ -218,7 +218,7 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
 
     m_url = ada::parse(str, &s_base);
     if (!m_url || !m_url->validate())
-        return Runtime::setError("url: Invalid URL '" + url + "'.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + url + "'.");
 
     return 0;
 }
@@ -349,7 +349,7 @@ result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
 
     u->m_url = ada::parse(to, m_url ? &m_url.value() : nullptr);
     if (!u->m_url)
-        return Runtime::setError("url: Invalid URL '" + to + "'.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + to + "'.");
     u->m_slashes = true;
 
     retVal = u;

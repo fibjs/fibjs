@@ -1718,12 +1718,12 @@ static bool queryByIndex(XmlElement* root, const SelectorList& selectorList,
 result_t XmlElement::matches(exlib::string selectors, bool& retVal)
 {
     if (selectors.empty()) {
-        return Runtime::setError("SyntaxError: Failed to execute 'matches': The provided selector is empty.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'matches': The provided selector is empty.");
     }
 
     SelectorList selectorList;
     if (!parseSelectors(selectors, selectorList)) {
-        return Runtime::setError("SyntaxError: Failed to execute 'matches': The provided selector is invalid.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'matches': The provided selector is invalid.");
     }
 
     // Check if the element matches any of the selectors
@@ -1741,12 +1741,12 @@ result_t XmlElement::matches(exlib::string selectors, bool& retVal)
 result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
 {
     if (selectors.empty()) {
-        return Runtime::setError("SyntaxError: Failed to execute 'closest': The provided selector is empty.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'closest': The provided selector is empty.");
     }
 
     SelectorList selectorList;
     if (!parseSelectors(selectors, selectorList)) {
-        return Runtime::setError("SyntaxError: Failed to execute 'closest': The provided selector is invalid.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'closest': The provided selector is invalid.");
     }
 
     // Start from the current element and walk up the DOM tree
@@ -1778,12 +1778,12 @@ result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_b
 result_t XmlElement::querySelectorImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlElement_base>& retVal)
 {
     if (selectors.empty()) {
-        return Runtime::setError("SyntaxError: Failed to execute 'querySelector': The provided selector is empty.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'querySelector': The provided selector is empty.");
     }
 
     SelectorList selectorList;
     if (!parseSelectors(selectors, selectorList)) {
-        return Runtime::setError("SyntaxError: Failed to execute 'querySelector': The provided selector is invalid.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'querySelector': The provided selector is invalid.");
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);
@@ -1810,12 +1810,12 @@ result_t XmlElement::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeLi
 result_t XmlElement::querySelectorAllImpl(exlib::string selectors, bool includeRoot, obj_ptr<XmlNodeList_base>& retVal)
 {
     if (selectors.empty()) {
-        return Runtime::setError("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is empty.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is empty.");
     }
 
     SelectorList selectorList;
     if (!parseSelectors(selectors, selectorList)) {
-        return Runtime::setError("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is invalid.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is invalid.");
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);

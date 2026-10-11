@@ -44,10 +44,10 @@ result_t Http2Stream::get_headers(obj_ptr<NObject>& retVal)
 result_t Http2Stream::respond(v8::Local<v8::Object> headers)
 {
     if (m_closed || m_destroyed)
-        return Runtime::setError("Http2Stream: stream is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is closed.");
 
     if (!m_session || !m_session->m_nghttp2)
-        return Runtime::setError("Http2Stream: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: session is destroyed.");
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -108,7 +108,7 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
 
     int rv = m_session->m_nghttp2.submit_response(m_stream_id, nva.data(), nva.size(), &data_prd);
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Stream: submit response failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit response failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
     return 0;
@@ -117,7 +117,7 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
 result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
 {
     if (m_closed || m_destroyed)
-        return Runtime::setError("Http2Stream: stream is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is closed.");
 
     // Submit additional 1xx informational headers
     Isolate* isolate = holder();
@@ -152,7 +152,7 @@ result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
 
     int rv = m_session->m_nghttp2.submit_headers(m_stream_id, nva.data(), nva.size());
     if (rv < 0)
-        return Runtime::setError(exlib::string("Http2Stream: submit headers failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit headers failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
     return 0;
@@ -161,7 +161,7 @@ result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
 result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
 {
     if (m_closed || m_destroyed)
-        return Runtime::setError("Http2Stream: stream is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is closed.");
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -195,7 +195,7 @@ result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
 
     int rv = m_session->m_nghttp2.submit_trailer(m_stream_id, nva.data(), nva.size());
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Stream: submit trailers failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit trailers failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
     return 0;
@@ -204,14 +204,14 @@ result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
 result_t Http2Stream::rstStream(int32_t code)
 {
     if (m_destroyed)
-        return Runtime::setError("Http2Stream: stream is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is destroyed.");
 
     if (!m_session || !m_session->m_nghttp2)
-        return Runtime::setError("Http2Stream: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: session is destroyed.");
 
     int rv = m_session->m_nghttp2.submit_rst_stream(m_stream_id, code);
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Stream: submit rst_stream failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit rst_stream failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
     return 0;
@@ -272,7 +272,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 m_stream->m_read_lock.unlock(this);
                 m_locked = false;
                 if (m_stream->m_error_code != 0)
-                    return CHECK_ERROR(Runtime::setError("Http2Stream: stream reset"));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset"));
                 return next(CALL_RETURN_NULL);
             }
 
@@ -314,10 +314,10 @@ result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_closed || m_destroyed)
-        return Runtime::setError("Http2Stream: stream is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is closed.");
 
     if (!m_session || !m_session->m_nghttp2)
-        return Runtime::setError("Http2Stream: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: session is destroyed.");
 
     // Append data to send buffer
     Buffer* buf = Buffer::Cast(data);
@@ -411,7 +411,7 @@ result_t Http2Stream::waitHeaders(AsyncHandle ac)
 
     if (m_closed || m_destroyed || (m_session && (m_session->m_closed || m_session->m_destroyed))) {
         m_headers_lock.unlock();
-        return CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received"));
     }
 
     m_headers_ac = std::move(ac);
@@ -429,7 +429,7 @@ void Http2Stream::onClose(uint32_t error_code)
     m_recv_lock.unlock();
     if (rac) {
         if (error_code != 0)
-            rac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream reset")));
+            rac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset")));
         else
             rac.apost(CALL_RETURN_NULL);
     }
@@ -439,7 +439,7 @@ void Http2Stream::onClose(uint32_t error_code)
     AsyncHandle hac = std::move(m_headers_ac);
     m_headers_lock.unlock();
     if (hac)
-        hac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
+        hac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
 
     if (m_session)
         m_session->removeStream(m_stream_id);

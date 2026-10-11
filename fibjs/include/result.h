@@ -168,6 +168,12 @@ public:
     static builder from_uv(int32_t status);
     static builder inherit(result_t&& base);
 
+    // The landing (defined below the builder): converts a builder into this
+    // immutable value and fires the interim mirrors. A constructor (rather
+    // than a conversion operator) so that direct-initialization forms --
+    // e.g. the CHECK_ERROR(<builder>) macro's result_t(hr) -- resolve too.
+    result_t(builder&& b);
+
     // Semantic checks (P2 replaces the hard coded comparisons with these).
     bool failed() const
     {
@@ -622,11 +628,6 @@ public:
         return std::move(*this);
     }
 
-    // Landing: the builder becomes an immutable value. The description also
-    // mirrors into the thread stash (transitional: the transports still read
-    // the stash; batch 2 rewires them to the value and drops the mirror).
-    operator result_t() &&;
-
 private:
     friend class result_t;
 
@@ -676,19 +677,17 @@ inline result_t::builder result_t::inherit(result_t&& base)
     return b;
 }
 
-inline result_t::builder::operator result_t() &&
+inline result_t::result_t(builder&& b)
+    : m_code(b.m_code)
 {
-    result_t r(m_code);
-
-    r.m_payload = std::move(m_payload);
-    if (r.m_payload) {
+    m_payload = std::move(b.m_payload);
+    if (m_payload) {
         // The interim mirrors (batch 2 / 5c remove them): the stash for the
         // un-migrated transports, the thread state for the errCode/errMessage
         // readers -- both are content copies, never shared.
-        setErrorPayload(r.m_payload->clone());
-        mirror_error_state(*r.m_payload);
+        setErrorPayload(m_payload->clone());
+        mirror_error_state(*m_payload);
     }
-    return r;
 }
 
 }

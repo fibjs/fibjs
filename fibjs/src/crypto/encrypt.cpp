@@ -123,7 +123,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
 
         digest = _evp_md_type(oaepHash.c_str());
         if (!digest)
-            return Runtime::setError("Invalid oaepHash: '%s'.", oaepHash.c_str());
+            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid oaepHash: '%s'.", oaepHash.c_str());
     }
 
     obj_ptr<Buffer_base> oaep_label;

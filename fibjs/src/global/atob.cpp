@@ -33,31 +33,31 @@ static result_t utf8ToLatin1(const exlib::string& utf8Str, exlib::string& latin1
         } else if ((*src & 0xE0) == 0xC0) {
             // 2-byte sequence: 110xxxxx 10xxxxxx
             if (src + 1 >= end || (src[1] & 0xC0) != 0x80) {
-                return CHECK_ERROR(Runtime::setError("Failed to execute 'btoa': Invalid UTF-8 sequence."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': Invalid UTF-8 sequence."));
             }
             codepoint = ((*src & 0x1F) << 6) | (src[1] & 0x3F);
             bytesConsumed = 2;
         } else if ((*src & 0xF0) == 0xE0) {
             // 3-byte sequence: 1110xxxx 10xxxxxx 10xxxxxx
             if (src + 2 >= end || (src[1] & 0xC0) != 0x80 || (src[2] & 0xC0) != 0x80) {
-                return CHECK_ERROR(Runtime::setError("Failed to execute 'btoa': Invalid UTF-8 sequence."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': Invalid UTF-8 sequence."));
             }
             codepoint = ((*src & 0x0F) << 12) | ((src[1] & 0x3F) << 6) | (src[2] & 0x3F);
             bytesConsumed = 3;
         } else if ((*src & 0xF8) == 0xF0) {
             // 4-byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
             if (src + 3 >= end || (src[1] & 0xC0) != 0x80 || (src[2] & 0xC0) != 0x80 || (src[3] & 0xC0) != 0x80) {
-                return CHECK_ERROR(Runtime::setError("Failed to execute 'btoa': Invalid UTF-8 sequence."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': Invalid UTF-8 sequence."));
             }
             codepoint = ((*src & 0x07) << 18) | ((src[1] & 0x3F) << 12) | ((src[2] & 0x3F) << 6) | (src[3] & 0x3F);
             bytesConsumed = 4;
         } else {
-            return CHECK_ERROR(Runtime::setError("Failed to execute 'btoa': Invalid UTF-8 sequence."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': Invalid UTF-8 sequence."));
         }
 
         // Check if codepoint is within Latin1 range (0-255)
         if (codepoint > 255) {
-            return CHECK_ERROR(Runtime::setError("Failed to execute 'btoa': The string to be encoded contains characters outside of the Latin1 range."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': The string to be encoded contains characters outside of the Latin1 range."));
         }
 
         // Convert Unicode codepoint to Latin1 byte using exlib::string
@@ -159,7 +159,7 @@ static result_t nodeBase64Decode(const std::string& input, std::string& retVal)
     for (size_t i = 0; i < len; i++) {
         unsigned char ch = (unsigned char)data[i];
         if (ch >= 128 || (decodeTable[ch] == -1 && ch != '=')) {
-            return CHECK_ERROR(Runtime::setError("Failed to execute 'atob': The string to be decoded is not correctly encoded."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'atob': The string to be decoded is not correctly encoded."));
         }
     }
 

@@ -32,7 +32,7 @@ result_t addLogger(logger* lgr)
         ;
 
     if (n >= MAX_LOGGER)
-        return CHECK_ERROR(Runtime::setError("console: Too many items."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Too many items."));
 
     s_logs[n] = lgr;
     return 0;
@@ -103,7 +103,7 @@ result_t console_base::add(exlib::string type)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console.add is not available in worker threads.").with_result(CALL_E_INVALID_CALL));
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     o->Set(isolate->context(), isolate->NewString("type", 4), isolate->NewString(type)).IsJust();
@@ -114,17 +114,17 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console.add is not available in worker threads.").with_result(CALL_E_INVALID_CALL));
 
     JSValue type;
 
     type = cfg->Get(isolate->context(), isolate->NewString("type", 4));
     if (IsEmpty(type))
-        return CHECK_ERROR(Runtime::setError("console: Missing log type."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Missing log type."));
 
     v8::String::Utf8Value s(isolate->m_isolate, type);
     if (!*s)
-        return CHECK_ERROR(Runtime::setError("console: Unknown log type."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown log type."));
 
     logger* lgr;
 
@@ -147,7 +147,7 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
-        return CHECK_ERROR(Runtime::setError("console: Unknown log type."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown log type."));
 
     if (lgr) {
         result_t hr = lgr->config(isolate, cfg);
@@ -168,7 +168,7 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.add is not available in worker threads."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console.add is not available in worker threads.").with_result(CALL_E_INVALID_CALL));
 
     int32_t sz = cfg->Length();
     int32_t i;
@@ -225,7 +225,7 @@ result_t console_base::reset()
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "console.reset is not available in worker threads."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console.reset is not available in worker threads.").with_result(CALL_E_INVALID_CALL));
 
     int32_t i;
 

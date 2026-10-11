@@ -28,7 +28,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
         return hr;
 
     if (EVP_PKEY_get_id(key_.As<KeyObject>()->pkey()) != EVP_PKEY_BLS12_381_G2)
-        return Runtime::setError("crypto: key must be a BLS12-381 G2 key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("crypto: key must be a BLS12-381 G2 key");
 
     ac.ctxv()[0] = key_;
 
@@ -41,7 +41,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
     else if (suite == "Bls12381Shake256")
         ac.ctxv()[1] = Bls12381Shake256;
     else
-        return Runtime::setError("crypto: suite must be 'Bls12381Sha256' or 'Bls12381Shake256'");
+        return result_t::make(CALL_E_EXCEPTION).with_message("crypto: suite must be 'Bls12381Sha256' or 'Bls12381Shake256'");
 
     obj_ptr<Buffer_base> header;
     hr = GetConfigValue(opts, "header", header);
@@ -94,7 +94,7 @@ static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncHandle& ac)
     obj_ptr<KeyObject> key_ = static_cast<KeyObject*>(key);
     if ((key_->type() != (priv ? KeyObject::kKeyTypePrivate : KeyObject::kKeyTypePublic))
         || EVP_PKEY_get_id(key_->pkey()) != EVP_PKEY_BLS12_381_G2)
-        return Runtime::setError("crypto: key must be a BLS12-381 G2 private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("crypto: key must be a BLS12-381 G2 private key");
 
     ac.ctxv()[0] = key;
 
@@ -145,8 +145,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
         return hr.is_nosync() ? result_t(0) : hr;
     }
 
-    return Runtime::setError(CALL_E_TYPEMISMATCH,
-        "the key union was not prepared: this entry requires the synchronous phase.");
+    return result_t::make(CALL_E_EXCEPTION).with_message("the key union was not prepared: this entry requires the synchronous phase.").with_result(CALL_E_TYPEMISMATCH);
 }
 
 }

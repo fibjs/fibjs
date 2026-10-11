@@ -64,7 +64,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 dwFlags |= FOS_FORCEFILESYSTEM;
             else {
                 pfd->Release();
-                hr = Runtime::setError("invalid dialog type: " + opts->type.value());
+                hr = result_t::make(CALL_E_EXCEPTION).with_message("invalid dialog type: " + opts->type.value());
                 ev.set();
                 return;
             }
@@ -84,7 +84,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             hr = SHCreateItemFromParsingName((LPCWSTR)utf8to16String(opts->defaultPath.value()).c_str(), nullptr, IID_PPV_ARGS(&psiFolder));
             if (FAILED(hr)) {
                 pfd->Release();
-                hr = Runtime::setError("invalid defaultPath: " + opts->defaultPath.value());
+                hr = result_t::make(CALL_E_EXCEPTION).with_message("invalid defaultPath: " + opts->defaultPath.value());
                 ev.set();
                 return;
             }

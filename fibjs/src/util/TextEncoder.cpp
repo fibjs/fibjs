@@ -26,9 +26,7 @@ result_t TextEncoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: a bad label is ERR_ENCODING_NOT_SUPPORTED; fibjs resolves real
         // codecs here (an extension - Node's TextEncoder ignores the label).
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
-                ->with_code("ERR_ENCODING_NOT_SUPPORTED")
-                ->format("The \"%s\" encoding is not supported", codec.c_str())));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_INVALIDARG).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str()));
 
     retVal = new TextEncoder(canonicalName);
     return 0;
@@ -123,9 +121,7 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     exlib::string canonicalName;
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: RangeError + ERR_ENCODING_NOT_SUPPORTED
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
-                ->with_code("ERR_ENCODING_NOT_SUPPORTED")
-                ->format("The \"%s\" encoding is not supported", codec.c_str())));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_INVALIDARG).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str()));
 
     // Parse options
     bool fatal = false;
@@ -147,7 +143,7 @@ result_t TextDecoder::ensureConverter()
     m_cnv = ucnv_open(m_codec.c_str(), &err);
     if (U_FAILURE(err) || !m_cnv) {
         m_cnv = nullptr;
-        return CHECK_ERROR(Runtime::setError("TextDecoder: Failed to create converter for '" + m_codec + "'."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("TextDecoder: Failed to create converter for '" + m_codec + "'."));
     }
 
     if (m_fatal) {
@@ -214,7 +210,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
                         isolate->NewString("The encoded data was not valid.")));
                     return CALL_E_JAVASCRIPT;
                 }
-                return CHECK_ERROR(Runtime::setError("The encoded data was not valid."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("The encoded data was not valid."));
             }
         }
 
@@ -266,7 +262,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
                     isolate->NewString("The encoded data was not valid.")));
                 return CALL_E_JAVASCRIPT;
             }
-            return CHECK_ERROR(Runtime::setError("The encoded data was not valid."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("The encoded data was not valid."));
         }
 
         // Should not reach here with SUBSTITUTE callback, but handle gracefully

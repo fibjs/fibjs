@@ -39,7 +39,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     exlib::string strBuf;
 
@@ -96,7 +96,7 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
@@ -144,7 +144,7 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 result_t FileStream::readAllText(exlib::string& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
@@ -191,7 +191,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
 result_t FileStream::Write(const char* p, int32_t sz)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     while (sz) {
         int32_t n = (int32_t)::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
@@ -222,7 +222,7 @@ result_t FileStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     return Write(data);
 }
@@ -241,7 +241,7 @@ result_t FileStream::open(exlib::string fname, exlib::string flags, int32_t mode
 result_t FileStream::get_name(exlib::string& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = name;
     return 0;
@@ -250,7 +250,7 @@ result_t FileStream::get_name(exlib::string& retVal)
 result_t FileStream::get_fd(int32_t& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = m_fd;
     return 0;
@@ -259,7 +259,7 @@ result_t FileStream::get_fd(int32_t& retVal)
 result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     return fs_base::stat(name, retVal, std::move(ac));
 }
@@ -267,7 +267,7 @@ result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 result_t FileStream::size(int64_t& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
@@ -287,7 +287,7 @@ result_t FileStream::size(int64_t& retVal)
 result_t FileStream::eof(bool& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
@@ -308,7 +308,7 @@ result_t FileStream::eof(bool& retVal)
 result_t FileStream::seek(int64_t offset, int32_t whence)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (_lseeki64(m_fd, offset, whence) < 0)
         return CHECK_ERROR(LastError("lseek", name));
@@ -319,7 +319,7 @@ result_t FileStream::seek(int64_t offset, int32_t whence)
 result_t FileStream::tell(int64_t& retVal)
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = _lseeki64(m_fd, 0, SEEK_CUR);
     if (retVal < 0)
@@ -331,7 +331,7 @@ result_t FileStream::tell(int64_t& retVal)
 result_t FileStream::rewind()
 {
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
         return CHECK_ERROR(LastError("lseek", name));
@@ -345,7 +345,7 @@ result_t FileStream::flush(AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     //    fflush(m_file);
 
@@ -383,7 +383,7 @@ result_t FileStream::truncate(int64_t bytes, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_fd == -1)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "FileStream: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("FileStream: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ftruncate64(m_fd, bytes) < 0)
         return CHECK_ERROR(LastError("ftruncate", name));

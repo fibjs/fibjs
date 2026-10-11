@@ -159,7 +159,7 @@ public:
         virtual result_t compile(Context* ctx, Buffer_base* src, exlib::string name,
             exlib::string arg_names, v8::Local<v8::Script>& script)
         {
-            return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file format."));
         }
 
         virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,

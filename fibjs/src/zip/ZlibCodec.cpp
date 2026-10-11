@@ -83,9 +83,7 @@ public:
     virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal)
     {
         if (m_closed)
-            return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    ->with_code("ERR_ZLIB_BINDING_CLOSED")
-                    ->with_message("zlib binding closed"));
+            return result_t::make(CALL_E_EXCEPTION).with_code("ERR_ZLIB_BINDING_CLOSED").with_message("zlib binding closed");
 
         obj_ptr<Buffer> input = Buffer::Cast(chunk);
         m_strm.avail_in = (uInt)input->length();
@@ -113,9 +111,7 @@ public:
                 const char* code = ret == Z_DATA_ERROR ? "Z_DATA_ERROR"
                     : (ret == Z_STREAM_ERROR ? "Z_STREAM_ERROR" : "Z_MEM_ERROR");
 
-                return Runtime::setError(ErrorPayload::make(errtype::kError)
-                        ->with_code(code)
-                        ->with_message(msg));
+                return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(msg);
             }
 
             uInt have = ZLIB_CODEC_CHUNK - m_strm.avail_out;
@@ -193,9 +189,7 @@ public:
     virtual result_t params(int32_t level, int32_t strategy) override
     {
         if (m_closed)
-            return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    ->with_code("ERR_ZLIB_BINDING_CLOSED")
-                    ->with_message("zlib binding closed"));
+            return result_t::make(CALL_E_EXCEPTION).with_code("ERR_ZLIB_BINDING_CLOSED").with_message("zlib binding closed");
 
         if (!is_deflate())
             return CHECK_ERROR(CALL_E_INVALID_CALL);

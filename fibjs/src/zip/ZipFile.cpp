@@ -213,7 +213,7 @@ static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::stri
             return hr;
 
         if (!exists)
-            return CHECK_ERROR(Runtime::setError("ZipFile: zip file not exists!"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: zip file not exists!"));
 
         hr = fs_base::openFile(path, "r+", file, std::move(ac));
     }
@@ -277,7 +277,7 @@ template <class T>
 result_t ZipFile::get_info(obj_ptr<T>& retVal)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int32_t err;
     char filename_inzip[256];
@@ -285,7 +285,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
 
     err = unzGetCurrentFileInfo64(m_unz, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).decode(filename_inzip, _filename);
@@ -314,7 +314,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
 result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -325,15 +325,15 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
     uint32_t i;
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!"));
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::GetinfoType> info;
@@ -347,7 +347,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
         }
     }
 
@@ -357,7 +357,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
 result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -368,15 +368,15 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
     uint32_t i;
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!"));
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::InfolistType> item;
@@ -390,7 +390,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
         }
     }
 
@@ -400,7 +400,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
 result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoType>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -408,7 +408,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
     int32_t err;
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!"));
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
@@ -417,7 +417,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
 
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return get_info(retVal);
 }
@@ -427,7 +427,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
 result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int32_t err;
     result_t hr;
@@ -438,13 +438,13 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
     else
         err = unzOpenCurrentFile(m_unz);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     do {
         err = unzReadCurrentFile(m_unz, buf, BUF_SIZE);
         if (err < 0) {
             unzCloseCurrentFile(m_unz);
-            return CHECK_ERROR(Runtime::setError(zip_error(err)));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
         }
 
         if (err > 0) {
@@ -457,7 +457,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
     err = unzCloseCurrentFile(m_unz);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return 0;
 }
@@ -483,7 +483,7 @@ result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
 result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -496,7 +496,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
     int32_t err;
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return read(password, retVal);
 }
@@ -504,7 +504,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
 result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -519,7 +519,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     hr = fs_base::openFile(path, "w", file, std::move(ac));
     if (hr.failed())
@@ -531,7 +531,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -544,7 +544,7 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
     int32_t err;
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return extract(strm, password);
 }
@@ -577,7 +577,7 @@ result_t ZipFile::checkGuard(exlib::string path)
 result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -604,15 +604,15 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             if (hr.failed())
                 return hr;
             if (!exists)
-                return CHECK_ERROR(Runtime::setError("ZipFile: no such file or directory"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: no such file or directory"));
 
             int32_t err = unzGetGlobalInfo64(m_pThis->m_unz, &m_gi);
             if (err != UNZ_OK)
-                return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
             err = unzGoToFirstFile(m_pThis->m_unz);
             if (err != UNZ_OK)
-                return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
             m_i = 0;
             return next(next_entry);
@@ -668,7 +668,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             if (m_i < m_gi.number_entry) {
                 int32_t err = unzGoToNextFile(m_pThis->m_unz);
                 if (err != UNZ_OK)
-                    return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
             }
 
             return next(next_entry);
@@ -691,7 +691,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
 result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -703,11 +703,11 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::ReadAllType> info;
@@ -725,7 +725,7 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return CHECK_ERROR(Runtime::setError(zip_error(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
         }
     }
 
@@ -760,7 +760,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
 {
     if (!m_zip)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     int32_t err;
     result_t hr;
@@ -799,7 +799,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
         -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
         password.empty() ? NULL : password.c_str(), crc, 1);
     if (err != ZIP_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     strm->rewind();
     do {
@@ -814,13 +814,13 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
         err = zipWriteInFileInZip(m_zip, buff->data(), (uint32_t)buff->length());
         if (err != ZIP_OK) {
             zipCloseFileInZip(m_zip);
-            return CHECK_ERROR(Runtime::setError(zip_error(err)));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
         }
     } while (buff->length() > 0);
 
     err = zipCloseFileInZip(m_zip);
     if (err != ZIP_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return 0;
 }
@@ -828,7 +828,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -846,7 +846,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
 result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -867,7 +867,7 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::strin
 result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ZipFile: file is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: file is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -891,7 +891,7 @@ result_t ZipFile::close(AsyncHandle ac)
     }
 
     if (err != ZIP_OK)
-        return CHECK_ERROR(Runtime::setError(zip_error(err)));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err)));
 
     return 0;
 }

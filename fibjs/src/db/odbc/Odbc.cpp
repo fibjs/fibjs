@@ -71,7 +71,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "openOdbc: connection string must start with 'odbc:'."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(CALL_E_INVALIDARG));
 
     obj_ptr<Odbc> conn = new Odbc();
 
@@ -99,7 +99,7 @@ result_t odbc_close(void*& conn, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     odbc_disconnect(conn);
     conn = NULL;
@@ -223,14 +223,14 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     if (!g_odbc) {
         hr = SQLAllocEnv((SQLHENV*)&g_odbc);
         if (hr < 0)
-            return CHECK_ERROR(Runtime::setError("odbc: unable to allocate environment."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate environment."));
     }
 
     hr = SQLAllocConnect(g_odbc, (SQLHDBC*)&conn);
     if (hr < 0) {
         odbc_disconnect(conn);
         conn = NULL;
-        return CHECK_ERROR(Runtime::setError("odbc: unable to allocate connection."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate connection."));
     }
 
     if (*driver) {
@@ -347,7 +347,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         str = v.string();
         driver = str.c_str();
     } else if (driver == NULL)
-        return CHECK_ERROR(Runtime::setError("odbc: no driver specified."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("odbc: no driver specified."));
 
     exlib::string pathname = u->pathname();
     
@@ -388,7 +388,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (activeStmt && *activeStmt)
         return db_stmt_busy_error();
@@ -883,8 +883,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
-            "ODBC: columns() requires a prepared statement (v2)"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: columns() requires a prepared statement (v2)").with_result(CALL_E_INVALID_CALL));
     }
 
     // Cursor reset: release the HSTMT (connection stays usable), impl is
@@ -927,8 +926,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     const OdbcEscape& esc, obj_ptr<Statement_base>& retVal)
 {
     if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
-            "ODBC: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     obj_ptr<Statement> stmt = new Statement(sql,
         new OdbcStmtImpl(conn, activeStmt, sql, esc));
@@ -942,7 +940,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -993,7 +991,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "ODBC: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -1022,7 +1020,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
             if (hr2 == SQL_NO_DATA)
                 break;
             if (hr2 < 0)
-                return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(odbc_error(SQL_HANDLE_STMT, stmt)));
 
             res->beginRow();
 

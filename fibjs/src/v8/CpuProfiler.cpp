@@ -93,7 +93,7 @@ result_t v8_base::start(exlib::string fname, int32_t time, int32_t interval, obj
 
     v8::Local<v8::Function> func = isolate->NewFunction("_cpu_profiler", cpu_profiler, _data);
     if (func.IsEmpty())
-        return CHECK_ERROR(Runtime::setError("function alloc error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
 
     obj_ptr<Timer_base> t;
     timers_base::setHrInterval(func, interval, args, t);

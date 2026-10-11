@@ -239,12 +239,12 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
             [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
                 if (FAILED(errorCode)) {
                     _com_error err(errorCode);
-                    h->post(Runtime::setError(utf16to8String((const char16_t*)err.ErrorMessage())));
+                    h->post(result_t::make(CALL_E_EXCEPTION).with_message(utf16to8String((const char16_t*)err.ErrorMessage())));
                     return errorCode;
                 }
 
                 if (resultObjectAsJson == nullptr) {
-                    h->post(Runtime::setError("The result is null"));
+                    h->post(result_t::make(CALL_E_EXCEPTION).with_message("The result is null"));
                     return E_FAIL;
                 }
 
@@ -253,14 +253,14 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                     nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
 
                     if (jsonResult.contains("error")) {
-                        h->post(Runtime::setError(jsonResult["error"].get<std::string>()));
+                        h->post(result_t::make(CALL_E_EXCEPTION).with_message(jsonResult["error"].get<std::string>()));
                     } else {
                         if (jsonResult.contains("result"))
                             json2Variant(jsonResult["result"], retVal);
                         h->post(0);
                     }
                 } catch (const std::exception& e) {
-                    h->post(Runtime::setError(e.what()));
+                    h->post(result_t::make(CALL_E_EXCEPTION).with_message(e.what()));
                 }
 
                 return S_OK;
@@ -444,7 +444,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
         Microsoft::WRL::Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
             [&retVal, h](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
                 if (FAILED(errorCode)) {
-                    h->post(Runtime::setError("Failed to capture screenshot"));
+                    h->post(result_t::make(CALL_E_EXCEPTION).with_message("Failed to capture screenshot"));
                     return errorCode;
                 }
 

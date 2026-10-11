@@ -33,7 +33,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
             && qstrcmp(usage.c_str(), "unwrapKey")
             && qstrcmp(usage.c_str(), "deriveKey")
             && qstrcmp(usage.c_str(), "deriveBits"))
-            return Runtime::setError("WebCrypto: unknown key usage: " + usage);
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown key usage: " + usage);
 
         m_usageMap.emplace(usage, true);
     }
@@ -54,7 +54,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     if (qstricmp(name.c_str(), "HMAC") == 0)
         return get_hmac_param(params);
 
-    return Runtime::setError("WebCrypto: unknown key name: " + name);
+    return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown key name: " + name);
 }
 
 result_t CryptoKey::check_asymmetric_usage()
@@ -62,7 +62,7 @@ result_t CryptoKey::check_asymmetric_usage()
     for (auto& it : m_usageMap) {
         if (qstrcmp(it.first.c_str(), "sign")
             && qstrcmp(it.first.c_str(), "verify"))
-            return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for ECDSA key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for ECDSA key");
     }
 
     return 0;
@@ -87,7 +87,7 @@ result_t CryptoKey::get_ecdsa_param(v8::Local<v8::Object> params)
     else if (qstricmp(namedCurve.c_str(), "P-521") == 0)
         m_algorithm->add("namedCurve", "P-521");
     else
-        return Runtime::setError("WebCrypto: unknown curve name: " + namedCurve);
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown curve name: " + namedCurve);
 
     return check_asymmetric_usage();
 }
@@ -119,13 +119,13 @@ result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
     else if (qstricmp(namedCurve.c_str(), "P-521") == 0)
         m_algorithm->add("namedCurve", "P-521");
     else
-        return Runtime::setError("WebCrypto: unknown curve name: " + namedCurve);
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown curve name: " + namedCurve);
 
     // Check ECDH specific usages
     for (auto& it : m_usageMap) {
         if (qstrcmp(it.first.c_str(), "deriveKey")
             && qstrcmp(it.first.c_str(), "deriveBits"))
-            return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for ECDH key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for ECDH key");
     }
 
     return 0;
@@ -144,7 +144,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     v8::Local<v8::Value> _hash;
     hr = GetConfigValue(params, "hash", _hash);
     if (hr.failed() || _hash.IsEmpty() || _hash->IsUndefined())
-        return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC requires hash parameter");
 
     if (_hash->IsString() || _hash->IsStringObject()) {
         hash = *v8::String::Utf8Value(isolate->m_isolate, _hash);
@@ -162,7 +162,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     // Validate hash algorithm
     if (qstricmp(hash.c_str(), "SHA-1") && qstricmp(hash.c_str(), "SHA-256")
         && qstricmp(hash.c_str(), "SHA-384") && qstricmp(hash.c_str(), "SHA-512"))
-        return Runtime::setError("WebCrypto: unknown hash algorithm: " + hash);
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown hash algorithm: " + hash);
 
     // Create hash object with name property
     obj_ptr<NObject> hashObj = new NObject();
@@ -174,7 +174,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     int32_t length = 0;
     if (GetConfigValue(params, "length", length, true).ok()) {
         if (length <= 0 || length % 8 != 0)
-            return Runtime::setError("WebCrypto: HMAC key length must be a positive multiple of 8 bits");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC key length must be a positive multiple of 8 bits");
 
         m_algorithm->add("length", length);
     }
@@ -183,7 +183,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     for (auto& it : m_usageMap) {
         if (qstrcmp(it.first.c_str(), "sign")
             && qstrcmp(it.first.c_str(), "verify"))
-            return Runtime::setError("WebCrypto: usage " + it.first + " is not allowed for HMAC key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for HMAC key");
     }
 
     return 0;
@@ -193,14 +193,14 @@ result_t CryptoKey::check_asymmetric_import_usage()
 {
     if (m_key->type() == KeyObject::kKeyTypePrivate) {
         if (m_usageMap.find("sign") == m_usageMap.end())
-            return Runtime::setError("WebCrypto: private key must have 'sign' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: private key must have 'sign' usage");
         if (m_usageMap.find("verify") != m_usageMap.end())
-            return Runtime::setError("WebCrypto: private key must not have 'verify' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: private key must not have 'verify' usage");
     } else {
         if (m_usageMap.find("verify") == m_usageMap.end())
-            return Runtime::setError("WebCrypto: public key must have 'verify' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: public key must have 'verify' usage");
         if (m_usageMap.find("sign") != m_usageMap.end())
-            return Runtime::setError("WebCrypto: public key must not have 'sign' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: public key must not have 'sign' usage");
     }
 
     return 0;
@@ -210,8 +210,7 @@ result_t CryptoKey::check_ecdsa_import_param()
 {
     const char* namedCurve = m_key->namedCurve();
     if (!namedCurve || qstricmp(namedCurve, m_algorithm->get("namedCurve").string().c_str()) != 0)
-        return Runtime::setError("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.",
-            namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.", namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
 
     return check_asymmetric_import_usage();
 }
@@ -227,8 +226,7 @@ result_t CryptoKey::check_ecdh_import_param()
 {
     const char* namedCurve = m_key->namedCurve();
     if (!namedCurve || qstricmp(namedCurve, m_algorithm->get("namedCurve").string().c_str()) != 0)
-        return Runtime::setError("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.",
-            namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("WebCrypto: invalid key algorithm, key curve '%s' does not match '%s'.", namedCurve ? namedCurve : "(null)", m_algorithm->get("namedCurve").string().c_str());
 
     // Check ECDH specific import usages
     if (m_key->type() == KeyObject::kKeyTypePrivate) {
@@ -239,18 +237,18 @@ result_t CryptoKey::check_ecdh_import_param()
             hasValidUsage = true;
 
         if (!hasValidUsage)
-            return Runtime::setError("WebCrypto: ECDH private key must have 'deriveKey' or 'deriveBits' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH private key must have 'deriveKey' or 'deriveBits' usage");
 
         // Check for invalid usages
         for (auto& it : m_usageMap) {
             if (qstrcmp(it.first.c_str(), "deriveKey")
                 && qstrcmp(it.first.c_str(), "deriveBits"))
-                return Runtime::setError("WebCrypto: ECDH private key must not have '" + it.first + "' usage");
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH private key must not have '" + it.first + "' usage");
         }
     } else {
         // Public keys for ECDH should have no usages
         if (!m_usageMap.empty())
-            return Runtime::setError("WebCrypto: ECDH public key must not have any usages");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH public key must not have any usages");
     }
 
     return 0;
@@ -281,13 +279,13 @@ result_t CryptoKey::check_hmac_import_param()
     bool hasVerify = m_usageMap.find("verify") != m_usageMap.end();
 
     if (!hasSign && !hasVerify)
-        return Runtime::setError("WebCrypto: HMAC key must have at least 'sign' or 'verify' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC key must have at least 'sign' or 'verify' usage");
 
     // Check for invalid usages
     for (auto& it : m_usageMap) {
         if (qstrcmp(it.first.c_str(), "sign")
             && qstrcmp(it.first.c_str(), "verify"))
-            return Runtime::setError("WebCrypto: HMAC key must not have '" + it.first + "' usage");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC key must not have '" + it.first + "' usage");
     }
 
     return 0;
@@ -296,16 +294,16 @@ result_t CryptoKey::check_hmac_import_param()
 result_t CryptoKey::check_name(exlib::string name)
 {
     if (m_key_type == kKeyNameECDSA && qstricmp(name.c_str(), "ecdsa"))
-        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'ECDSA' but got '%s'.", name.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("CryptoKey: invalid key algorithm, expected 'ECDSA' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameEd25519 && qstricmp(name.c_str(), "ed25519"))
-        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'Ed25519' but got '%s'.", name.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("CryptoKey: invalid key algorithm, expected 'Ed25519' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameECDH && qstricmp(name.c_str(), "ecdh"))
-        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'ECDH' but got '%s'.", name.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("CryptoKey: invalid key algorithm, expected 'ECDH' but got '%s'.", name.c_str());
 
     if (m_key_type == kKeyNameHMAC && qstricmp(name.c_str(), "hmac"))
-        return Runtime::setError("CryptoKey: invalid key algorithm, expected 'HMAC' but got '%s'.", name.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("CryptoKey: invalid key algorithm, expected 'HMAC' but got '%s'.", name.c_str());
 
     return 0;
 }

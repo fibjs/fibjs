@@ -27,7 +27,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     exlib::string path;
     hr = GetConfigValue(o, "path", path);
     if (hr.is_param_missing())
-        return CHECK_ERROR(Runtime::setError("console: Missing path."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Missing path."));
     if (hr.failed())
         return hr;
 
@@ -60,11 +60,11 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             int32_t i;
 
             if (l > 4 || l < 2)
-                return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown split mode."));
 
             for (i = 0; i < l - 1; i++)
                 if (!qisdigit(split[i]))
-                    return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown split mode."));
                 else
                     m_split_size = m_split_size * 10 + split[i] - '0';
 
@@ -75,7 +75,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             else if (split[i] == 'g')
                 m_split_size <<= 30;
             else
-                return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown split mode."));
         }
     } else if (!hr.is_param_missing())
         return hr;
@@ -87,10 +87,10 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
         return hr;
     else {
         if (m_split_size == 0 && m_split_mode == 0)
-            return CHECK_ERROR(Runtime::setError("console: Missing split mode."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Missing split mode."));
 
         if (m_count < 2 || m_count > MAX_COUNT)
-            return CHECK_ERROR(Runtime::setError("console: Count must between 2 to 128."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: Count must between 2 to 128."));
     }
 
     return 0;

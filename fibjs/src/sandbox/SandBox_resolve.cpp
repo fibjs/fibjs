@@ -93,7 +93,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
     }
 
     if (!module->Has(_context, strExports).FromMaybe(false))
-        return Runtime::setError("SandBox: unknown error during module loading.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: unknown error during module loading.");
 
     retVal = module->Get(_context, strExports).FromMaybe(v8::Local<v8::Value>());
 
@@ -397,7 +397,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
             return hr;
 
         if (v.IsEmpty() || !v->IsObject())
-            return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + module_name1 + "'"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + module_name1 + "'"));
 
         v8::Local<v8::Object> o = v.As<v8::Object>();
 
@@ -538,15 +538,15 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
             if (!resolve_export(exports)) {
                 if (script_name.empty())
-                    return CHECK_ERROR(Runtime::setError("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
                 else
-                    return CHECK_ERROR(Runtime::setError("SandBox: Package subpath '" + script_name + "' is not defined by 'exports' in '" + module_name1 + "'"));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Package subpath '" + script_name + "' is not defined by 'exports' in '" + module_name1 + "'"));
             }
         } else if (script_name.empty()) {
             JSValue main = o->Get(context, isolate->NewString("main", 4));
             if (!IsEmpty(main)) {
                 if (!main->IsString() && !main->IsStringObject())
-                    return CHECK_ERROR(Runtime::setError("SandBox: 'main' in '" + module_name1 + "' must be a string"));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'main' in '" + module_name1 + "' must be a string"));
 
                 script_name = isolate->toString(main);
             }
@@ -627,7 +627,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
                 return hr;
 
             if (v.IsEmpty() || !v->IsObject())
-                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + fname1 + "'"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + fname1 + "'"));
 
             // Read "type" field directly instead of GetConfigValue.
             // GetConfigValue sets Runtime::m_error to the key name ("type")
@@ -720,14 +720,14 @@ static const char* predefine_exts[] = {
 result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {
     if (extname.empty())
-        return Runtime::setError(CALL_E_INVALIDARG, "SandBox: extension name must not be empty.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: extension name must not be empty.").with_result(CALL_E_INVALIDARG);
 
     if (extname[0] != '.')
-        return Runtime::setError(CALL_E_INVALIDARG, "SandBox: extension name must start with '.', got '%s'.", extname.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("SandBox: extension name must start with '.', got '%s'.", extname.c_str()).with_result(CALL_E_INVALIDARG);
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
         if (extname == predefine_exts[i])
-            return CHECK_ERROR(Runtime::setError("SandBox: '" + extname + "' is reserved extension name!"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: '" + extname + "' is reserved extension name!"));
 
     obj_ptr<ExtLoader> loader;
 

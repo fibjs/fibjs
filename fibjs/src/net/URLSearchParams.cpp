@@ -48,8 +48,7 @@ result_t URLSearchParams_base::_new(Union_URLSearchParams_init init, obj_ptr<URL
         // way the DOM and node report it
         result_t hr = retVal->append(std::get<v8::Local<v8::Array>>(init));
         if (hr.is_bad_var_type())
-            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                ->with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs."));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs.");
 
         return hr;
     }
@@ -105,8 +104,7 @@ static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchP
                     if (entries->IsArray()) {
                         result_t hr = params->append(entries.As<v8::Array>());
                         if (hr.is_bad_var_type())
-                            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                                ->with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs."));
+                            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to construct 'URLSearchParams': sequence elements must be pairs.");
                         return hr;
                     }
                 }

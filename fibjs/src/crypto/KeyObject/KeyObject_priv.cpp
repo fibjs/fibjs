@@ -90,7 +90,7 @@ result_t KeyObject::ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buf
     BIOPointer bio(BIO_new_mem_buf(key_pem, key_pem_len));
     m_pkey = PEM_read_bio_PrivateKey(bio, nullptr, PasswordCallback, passphrase);
     if (m_pkey == nullptr)
-        return CHECK_ERROR(Runtime::setError("Private key not recognized"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Private key not recognized"));
 
     m_keyType = kKeyTypePrivate;
 
@@ -152,18 +152,18 @@ result_t KeyObject::ParsePrivateKey(exlib::string format, exlib::string type, ex
         } else if (type == "sec1")
             m_pkey = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &p, _key->length());
         else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
     } else if (format == "raw") {
         int32_t key_type = okp_curve_nid(namedCurve.c_str());
 
         if (key_type == NID_undef) {
             int32_t cid = GetCurveFromName(namedCurve.c_str());
             if (cid == NID_undef)
-                return Runtime::setError("Invalid curve name: " + namedCurve);
+                return result_t::make(CALL_E_EXCEPTION).with_message("Invalid curve name: " + namedCurve);
 
             ECPointer ec = EC_KEY_new_by_curve_name(cid);
             if (ec == nullptr)
-                return Runtime::setError("Invalid namedCurve: " + namedCurve);
+                return result_t::make(CALL_E_EXCEPTION).with_message("Invalid namedCurve: " + namedCurve);
 
             BignumPointer d = BN_bin2bn(_key->data(), _key->length(), nullptr);
             const EC_GROUP* group = EC_KEY_get0_group(ec);
@@ -188,7 +188,7 @@ result_t KeyObject::ParsePrivateKey(exlib::string format, exlib::string type, ex
                 return openssl_error();
         }
     } else
-        return Runtime::setError("Invalid format: " + format);
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
     if (m_pkey == nullptr)
         return openssl_error();
@@ -250,7 +250,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     Buffer* pass_buf = NULL;
     if (passphrase != nullptr) {
         if (cipher == nullptr)
-            return Runtime::setError("cipher is required when passphrase is set");
+            return result_t::make(CALL_E_EXCEPTION).with_message("cipher is required when passphrase is set");
         pass_buf = Buffer::Cast(passphrase);
     }
 
@@ -260,7 +260,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     if (format.empty() || format == "pem") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-                return Runtime::setError("pkcs1 only support RSA key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("pkcs1 only support RSA key");
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = PEM_write_bio_RSAPrivateKey(bio, rsa, cipher,
@@ -273,14 +273,14 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
         } else if (type == "sec1") {
             int nid = EVP_PKEY_id(m_pkey);
             if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
-                return Runtime::setError("spki only support EC and SM2 key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("spki only support EC and SM2 key");
 
             ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
             ret = PEM_write_bio_ECPrivateKey(bio, ec, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
         } else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -292,7 +292,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     } else if (format == "der") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-                return Runtime::setError("pkcs1 only support RSA key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("pkcs1 only support RSA key");
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = i2d_RSAPrivateKey_bio(bio, rsa);
@@ -303,12 +303,12 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
         } else if (type == "sec1") {
             int nid = EVP_PKEY_id(m_pkey);
             if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
-                return Runtime::setError("spki only support EC and SM2 key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("spki only support EC and SM2 key");
 
             ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
             ret = i2d_ECPrivateKey_bio(bio, ec);
         } else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -366,9 +366,9 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
                 retVal = buf;
             }
         } else
-            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
-        return Runtime::setError("Invalid format: " + format);
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
     return 0;
 }

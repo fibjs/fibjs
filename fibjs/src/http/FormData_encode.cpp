@@ -354,7 +354,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
 
             pair& _pair = m_map[i];
             if (_pair.second.type() != Variant::VT_String) {
-                return Runtime::setError("FormData encode: field '" + _pair.first + "' contains non-string value (File/Blob), use multipart/form-data encoding instead");
+                return result_t::make(CALL_E_EXCEPTION).with_message("FormData encode: field '" + _pair.first + "' contains non-string value (File/Blob), use multipart/form-data encoding instead");
             }
 
             exlib::string encodedKey, encodedValue;
@@ -452,8 +452,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
             } else {
                 obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
                 if (!file) {
-                    return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                        ->with_message("FormData encode: field '" + _pair.first + "' is not a valid file object"));
+                    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("FormData encode: field '" + _pair.first + "' is not a valid file object");
                 }
 
                 part.is_file = true;
@@ -586,7 +585,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
         retVal = new Blob(resultBuffer, contentType);
         return 0;
     } else {
-        return Runtime::setError("FormData encode: unsupported content type: " + type);
+        return result_t::make(CALL_E_EXCEPTION).with_message("FormData encode: unsupported content type: " + type);
     }
 }
 

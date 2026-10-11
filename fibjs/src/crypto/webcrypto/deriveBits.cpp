@@ -39,7 +39,7 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
         // Get the public key for ECDH
         v8::Local<v8::Value> _public = algorithm->Get(context, isolate->NewString("public")).FromMaybe(v8::Local<v8::Value>());
         if (_public.IsEmpty() || !_public->IsObject())
-            return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH algorithm must have 'public' property");
 
         obj_ptr<CryptoKey_base> publicKey;
         hr = GetArgumentValue(isolate, _public, publicKey);
@@ -85,37 +85,37 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
 
     // Check if the baseKey has 'deriveBits' usage
     if (_baseKey->m_usageMap.find("deriveBits") == _baseKey->m_usageMap.end())
-        return Runtime::setError("WebCrypto: baseKey does not have deriveBits usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: baseKey does not have deriveBits usage");
 
     // For ECDH, baseKey must be a private key
     if (qstricmp(name.c_str(), "ecdh") == 0 && _baseKey->type() != KeyObject::kKeyTypePrivate)
-        return Runtime::setError("WebCrypto: ECDH baseKey must be a private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH baseKey must be a private key");
 
     if (qstricmp(name.c_str(), "ecdh") == 0) {
         // the public key is carried in ctx[1]; the string form of the algorithm
         // has no 'public' member, which is an error for ECDH
         if (std::holds_alternative<exlib::string>(algorithm))
-            return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH algorithm must have 'public' property");
 
         result_t ctx_hr = ac.ctx(1);
         if (ctx_hr.failed() || ac.ctxv()[1].object() == NULL)
-            return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH algorithm must have 'public' property");
 
         CryptoKey* publicKey = (CryptoKey*)ac.ctxv()[1].object();
 
         // Validate that the public key is indeed public
         if (publicKey->type() != KeyObject::kKeyTypePublic)
-            return Runtime::setError("WebCrypto: algorithm.public must be a public key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: algorithm.public must be a public key");
 
         // Validate that both keys are ECDH keys
         if (publicKey->m_key_type != kKeyNameECDH)
-            return Runtime::setError("WebCrypto: algorithm.public must be an ECDH key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: algorithm.public must be an ECDH key");
 
         // Validate that both keys use the same curve
         exlib::string baseCurve = _baseKey->m_algorithm->get("namedCurve").string();
         exlib::string publicCurve = publicKey->m_algorithm->get("namedCurve").string();
         if (qstricmp(baseCurve.c_str(), publicCurve.c_str()) != 0)
-            return Runtime::setError("WebCrypto: key curves must match");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: key curves must match");
 
         // Perform ECDH key agreement using OpenSSL EVP_PKEY API
         obj_ptr<Buffer_base> derivedBits;
@@ -163,7 +163,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
                 return hr;
 
             if (bytesNeeded > derivedLength)
-                return Runtime::setError("WebCrypto: requested length exceeds available bits");
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: requested length exceeds available bits");
 
             // If we need to truncate
             if (bytesNeeded < derivedLength) {
@@ -204,7 +204,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
         return 0;
     }
 
-    return Runtime::setError("WebCrypto: unsupported algorithm for deriveBits: " + name);
+    return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unsupported algorithm for deriveBits: " + name);
 }
 
 

@@ -68,7 +68,7 @@ public:
             }
 
             if (m_hr.is_exception())
-                Runtime::setError(m_message);
+                result_t(result_t::make(CALL_E_EXCEPTION).with_message(m_message));
 
             if (m_hr.failed())
                 return next(m_hr);

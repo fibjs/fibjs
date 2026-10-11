@@ -277,9 +277,7 @@ private:
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod, &pendding);
         if (hr.is_not_found())
-            return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    ->with_code("ERR_MODULE_NOT_FOUND")
-                    ->with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
+            return result_t::make(CALL_E_EXCEPTION).with_code("ERR_MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module);
 
         if (hr.failed())
             return hr;
@@ -304,7 +302,7 @@ private:
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
-                        return CHECK_ERROR(Runtime::setError(err_msg));
+                        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate — do NOT read
@@ -341,7 +339,7 @@ private:
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod);
         if (hr.is_not_found())
-            return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
 
         if (hr.failed())
             return hr;
@@ -362,7 +360,7 @@ private:
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
-                        return CHECK_ERROR(Runtime::setError(err_msg));
+                        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate — do NOT read
@@ -894,7 +892,7 @@ result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
     if (!in_cjs)
-        return Runtime::setError("SandBox: ECMAScript modules are not supported in require; please use import instead.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: ECMAScript modules are not supported in require; please use import instead.");
 
     obj_ptr<esm_importer> importer = new esm_importer(ctx->m_sb);
     return importer->require(name, src, args[2].As<v8::Object>());

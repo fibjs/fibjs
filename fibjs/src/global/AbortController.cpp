@@ -173,12 +173,10 @@ result_t AbortSignal::throwIfAborted()
         // AbortError (or TimeoutError for AbortSignal.timeout()) by default.
         if (!m_has_value_reason) {
             if (m_reason == "TimeoutError")
-                return Runtime::setError(ErrorPayload::make(errtype::kTimeoutError)
-                    ->with_message("The operation timed out."));
-            return Runtime::setError(ErrorPayload::make(errtype::kAbortError)
-                ->with_message("The operation was aborted."));
+                return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTimeoutError).with_message("The operation timed out.");
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kAbortError).with_message("The operation was aborted.");
         }
-        return Runtime::setError(m_reason);
+        return result_t::make(CALL_E_EXCEPTION).with_message(m_reason);
     }
     return 0;
 }

@@ -343,8 +343,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
-            "MySQL: columns() requires server-side prepared statements (v2)"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: columns() requires server-side prepared statements (v2)").with_result(CALL_E_INVALID_CALL));
     }
 
     // Cursor reset: drain the remaining result and release the concurrency
@@ -388,8 +387,7 @@ result_t mysql::prepareStmt(db_tmpl<MySQL_base, mysql>* db,
     exlib::string sql, obj_ptr<Statement_base>& retVal)
 {
     if (!db->m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL,
-            "MySQL: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     // v1: text protocol + client-side escaped binding; compilation is deferred
     // until the Statement opens (no server-side prepared statements, the SQL is
@@ -409,7 +407,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "openMySQL: connection string must start with 'mysql:'."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openMySQL: connection string must start with 'mysql:'.").with_result(CALL_E_INVALIDARG));
 
     obj_ptr<Url> u = new Url();
 
@@ -511,7 +509,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle 
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (m_activeStmt)
         return db_stmt_busy_error();
@@ -545,7 +543,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle 
 result_t mysql::get_rxBufferSize(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = UMConnection_GetRxBufferSize(m_conn);
     return 0;
@@ -554,7 +552,7 @@ result_t mysql::get_rxBufferSize(int32_t& retVal)
 result_t mysql::set_rxBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     UMConnection_SetRxBufferSize(m_conn, newVal);
     return 0;
@@ -563,7 +561,7 @@ result_t mysql::set_rxBufferSize(int32_t newVal)
 result_t mysql::get_txBufferSize(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = UMConnection_GetTxBufferSize(m_conn);
     return 0;
@@ -572,7 +570,7 @@ result_t mysql::get_txBufferSize(int32_t& retVal)
 result_t mysql::set_txBufferSize(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     UMConnection_SetTxBufferSize(m_conn, newVal);
     return 0;
@@ -584,7 +582,7 @@ result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     // Query MySQL information_schema to get all tables in current database
     exlib::string sql = "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name";
@@ -597,7 +595,7 @@ result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, A
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "MySQL: connection is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("MySQL: connection is closed.").with_result(CALL_E_INVALID_CALL));
 
     // Query MySQL information_schema to get table column information
     exlib::string escapedTableName = escape_string(tableName);

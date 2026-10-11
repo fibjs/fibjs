@@ -29,7 +29,7 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
     retVal = doc;
@@ -60,7 +60,7 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
             return 0;
 
         if (!v->IsNumber())
-            return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "xml: option '%s' must be a number.", name));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("xml: option '%s' must be a number.", name).with_result(CALL_E_INVALIDARG));
 
         double d = v->NumberValue(context).FromMaybe(0);
 
@@ -93,7 +93,7 @@ result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Loca
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG));
 
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);
@@ -167,13 +167,13 @@ result_t XmlDocument::checkNode(XmlNode_base* newChild)
     if (type == xml_base::C_ELEMENT_NODE) {
         if (m_element) {
             if (m_element != newChild)
-                return Runtime::setError("XmlDocument: The document node contains only one element node.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("XmlDocument: The document node contains only one element node.");
         } else
             m_element = (XmlElement_base*)newChild;
     } else if (type == xml_base::C_DOCUMENT_TYPE_NODE) {
         if (m_doctype) {
             if (m_doctype != newChild)
-                return Runtime::setError("XmlDocument: The document node contains only one doctype node.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("XmlDocument: The document node contains only one doctype node.");
         } else
             m_doctype = (XmlDocumentType_base*)newChild;
     }
@@ -448,7 +448,7 @@ result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<
 
     // Cannot import Document nodes
     if (type == xml_base::C_DOCUMENT_NODE)
-        return Runtime::setError("XmlDocument: Cannot import a document node.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("XmlDocument: Cannot import a document node.");
 
     // Clone the node (which creates a copy with this document as owner)
     obj_ptr<XmlNode_base> clonedNode;
@@ -475,7 +475,7 @@ result_t XmlDocument::adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>
 
     // Cannot adopt Document nodes
     if (type == xml_base::C_DOCUMENT_NODE)
-        return Runtime::setError("XmlDocument: Cannot adopt a document node.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("XmlDocument: Cannot adopt a document node.");
 
     // Remove the node from its current parent (if any)
     XmlNodeImpl* impl = XmlNodeImpl::fromNode(adoptedNode);

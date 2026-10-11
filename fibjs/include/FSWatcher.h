@@ -128,7 +128,7 @@ public:
     result_t start()
     {
         if (m_closed)
-            return CHECK_ERROR(Runtime::setError("watch: cannot re-start one closed FSWatcher."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("watch: cannot re-start one closed FSWatcher."));
 
         if (m_started)
             return 0;

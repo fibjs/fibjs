@@ -141,14 +141,14 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
     if (async_func || func->IsAsyncFunction()) {
         func1 = isolate->NewFunction("sync", promise_stub, func);
         if (func1.IsEmpty())
-            return CHECK_ERROR(Runtime::setError("function alloc error."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
         v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async"))).FromMaybe(v8::Local<v8::Value>());
 
         func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), func);
     } else {
         func1 = isolate->NewFunction("sync", sync_stub, func);
         if (func1.IsEmpty())
-            return CHECK_ERROR(Runtime::setError("function alloc error."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
         v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise"))).FromMaybe(v8::Local<v8::Value>());
 
         func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);

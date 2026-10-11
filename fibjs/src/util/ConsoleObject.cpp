@@ -51,19 +51,19 @@ result_t ConsoleObject_base::_new(v8::Local<v8::Value> stdout_val, v8::Local<v8:
             options->Get(context, isolate->NewString("stderr")).ToLocal(&stderr_val);
 
             if (stdout_val.IsEmpty() || stdout_val->IsNullOrUndefined())
-                return Runtime::setError("ConsoleObject: options.stdout is required.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: options.stdout is required.");
 
             if (!is_writable(isolate, stdout_val, stdout_obj))
-                return Runtime::setError("ConsoleObject: stdout must have a write() method.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: stdout must have a write() method.");
         } else
-            return Runtime::setError("ConsoleObject: stdout must have a write() method.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: stdout must have a write() method.");
     }
 
     v8::Local<v8::Object> stderr_obj;
     if (stderr_val.IsEmpty() || stderr_val->IsNullOrUndefined() || stderr_val->IsUndefined())
         stderr_obj = stdout_obj;
     else if (!is_writable(isolate, stderr_val, stderr_obj))
-        return Runtime::setError("ConsoleObject: stderr must have a write() method.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: stderr must have a write() method.");
 
     retVal = new ConsoleObject(isolate->m_isolate, stdout_obj, stderr_obj);
     return 0;
@@ -72,7 +72,7 @@ result_t ConsoleObject_base::_new(v8::Local<v8::Value> stdout_val, v8::Local<v8:
 result_t util_base::debuglog(exlib::string section, obj_ptr<ConsoleObject_base>& retVal)
 {
     if (section.empty())
-        return Runtime::setError("ConsoleObject: section is required.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: section is required.");
 
     retVal = new ConsoleObject(section);
     return 0;
@@ -81,7 +81,7 @@ result_t util_base::debuglog(exlib::string section, obj_ptr<ConsoleObject_base>&
 result_t util_base::debuglog(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<ConsoleObject_base>& retVal)
 {
     if (section.empty())
-        return Runtime::setError("ConsoleObject: section is required.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: section is required.");
 
     retVal = new ConsoleObject(section, fn);
     return 0;

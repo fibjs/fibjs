@@ -20,16 +20,16 @@ result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t&
     int32_t p;
     p = (int32_t)range.find(',', 0);
     if (p >= 0)
-        return Runtime::setError("Parse Range-String Error, unexpected token ','!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Parse Range-String Error, unexpected token ','!");
     p = (int32_t)range.find('-', 0);
     if (p < 0)
-        return Runtime::setError("Parse Range-String Error, expect next token '-'!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Parse Range-String Error, expect next token '-'!");
 
     exlib::string b = range.substr(0, p);
     exlib::string e = range.substr(p + 1);
 
     if (b.empty() && e.empty())
-        return Runtime::setError("Parse Range-String Error, first-byte-pos required!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Parse Range-String Error, first-byte-pos required!");
     if (!b.empty() && e.empty()) {
         bpos = atoll(b.c_str());
         epos = fsize;
@@ -45,7 +45,7 @@ result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t&
     }
 
     if (bpos < 0 || bpos > epos || epos > fsize)
-        return Runtime::setError("Parse Range-String Error, invalid range string '" + range + "' which is out of file size range!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Parse Range-String Error, invalid range string '" + range + "' which is out of file size range!");
 
     return 0;
 }
@@ -67,13 +67,13 @@ result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, o
 result_t RangeStream_base::_new(SeekableStream_base* stm, int64_t begin, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     if (begin < 0)
-        return Runtime::setError("'begin' must be non-negative integer!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("'begin' must be non-negative integer!");
 
     int64_t sz;
     stm->size(sz);
 
     if (begin > sz)
-        return Runtime::setError("'begin' cannot be greater than stream’s size");
+        return result_t::make(CALL_E_EXCEPTION).with_message("'begin' cannot be greater than stream’s size");
 
     retVal = new RangeStream(stm, begin, end);
     return 0;
@@ -81,7 +81,7 @@ result_t RangeStream_base::_new(SeekableStream_base* stm, int64_t begin, int64_t
 result_t RangeStream_base::_new(Stream_base* stm, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     if (end < 0)
-        return Runtime::setError("'end' must be non-negative integer!");
+        return result_t::make(CALL_E_EXCEPTION).with_message("'end' must be non-negative integer!");
 
     // if the passed stream is a SeekableStream, use seekable mode with begin=0
     obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(stm);

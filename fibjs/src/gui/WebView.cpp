@@ -179,11 +179,11 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
 
     exlib::string& titlebar_style = titlebar->style.value();
     if (titlebar_style != "show" && titlebar_style != "hide" && titlebar_style != "transparent")
-        return Runtime::setError("WebView: titlebar style must be 'show', 'hide' or 'transparent', but got '" + titlebar_style + "'");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebView: titlebar style must be 'show', 'hide' or 'transparent', but got '" + titlebar_style + "'");
 
     exlib::string& titlebar_height = titlebar->height.value();
     if (titlebar_height != "normal" && titlebar_height != "tall")
-        return Runtime::setError("WebView: titlebar height must be 'normal', 'tall', but got '" + titlebar_height + "'");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebView: titlebar height must be 'normal', 'tall', but got '" + titlebar_height + "'");
 
     if (m_options->icon.has_value()) {
         Variant var;
@@ -193,7 +193,7 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
 
         m_icon = (Buffer*)var.object();
         if (!m_icon)
-            return Runtime::setError("Window icon is empty");
+            return result_t::make(CALL_E_EXCEPTION).with_message("Window icon is empty");
     }
 
     if (m_options->menu.has_value())
@@ -230,7 +230,7 @@ result_t WebView::check_status(AsyncHandle& ac)
     }
 
     if (!m_window)
-        return Runtime::setError("WebView: webview is closed");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebView: webview is closed");
 
     return 0;
 }

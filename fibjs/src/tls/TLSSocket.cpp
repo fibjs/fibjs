@@ -152,9 +152,7 @@ static result_t tls_handshake_error(SSL* ssl)
         exlib::string reason = X509_verify_cert_error_string(vr);
 
         if (code)
-            return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    ->with_code(code)
-                    ->with_message(reason));
+            return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(reason);
 
         // Unknown verification result: fall back to the upper-snake form.
         exlib::string c = reason;
@@ -166,9 +164,7 @@ static result_t tls_handshake_error(SSL* ssl)
                 c[i] = (char)(ch - 'a' + 'A');
         }
 
-        return Runtime::setError(ErrorPayload::make(errtype::kError)
-                ->with_code(c)
-                ->with_message(reason));
+        return result_t::make(CALL_E_EXCEPTION).with_code(c).with_message(reason);
     }
 
     return openssl_error();
@@ -269,7 +265,7 @@ public:
             return tls_handshake_error(m_sock->m_tls);
         }
 
-        return Runtime::setError("handshake failed");
+        return result_t::make(CALL_E_EXCEPTION).with_message("handshake failed");
     }
 
     virtual result_t error(result_t v)
@@ -311,7 +307,7 @@ public:
             return next(handshake);
         }
 
-        return Runtime::setError("socket closed");
+        return result_t::make(CALL_E_EXCEPTION).with_message("socket closed");
     }
 
 public:
@@ -632,7 +628,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
             if (m_state == SSL_ERROR_NONE)
                 return next(write);
 
-            return Runtime::setError("write failed");
+            return result_t::make(CALL_E_EXCEPTION).with_message("write failed");
         }
 
         result_t lock(exlib::Locker& l, AsyncEvent* pThis)

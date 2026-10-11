@@ -53,7 +53,7 @@ public:
         }
 
         if (!m_tray)
-            return Runtime::setError("Tray: tray is closed");
+            return result_t::make(CALL_E_EXCEPTION).with_message("Tray: tray is closed");
 
         return 0;
     }

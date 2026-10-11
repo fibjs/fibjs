@@ -37,7 +37,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
             return hr;
 
         if (hr.is(1))
-            return CHECK_ERROR(Runtime::setError("Public key not recognized"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
     } else {
@@ -48,7 +48,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
             return hr;
 
         if (hr.is(1))
-            return CHECK_ERROR(Runtime::setError("Public key not recognized"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
     }
@@ -109,7 +109,7 @@ result_t KeyObject::createPublicKeyFromKeyObject(KeyObject_base* key)
 {
     KeyObject* keyObj = (KeyObject*)key;
     if (keyObj->type() == kKeyTypeSecret)
-        return Runtime::setError("cannot create public key from a secret key.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("cannot create public key from a secret key.");
 
     return createPublicKeyFromPKey(keyObj->pkey());
 }
@@ -225,18 +225,18 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
         else if (type == "spki")
             m_pkey = d2i_PUBKEY(nullptr, &p, _key->length());
         else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
     } else if (format == "raw") {
         int32_t key_type = okp_curve_nid(namedCurve.c_str());
 
         if (key_type == NID_undef) {
             int32_t cid = GetCurveFromName(namedCurve.c_str());
             if (cid == NID_undef)
-                return Runtime::setError("Invalid curve name: " + namedCurve);
+                return result_t::make(CALL_E_EXCEPTION).with_message("Invalid curve name: " + namedCurve);
 
             ECPointer ec = EC_KEY_new_by_curve_name(cid);
             if (ec == nullptr)
-                return Runtime::setError("Invalid curve name: " + namedCurve);
+                return result_t::make(CALL_E_EXCEPTION).with_message("Invalid curve name: " + namedCurve);
 
             const EC_GROUP* group = EC_KEY_get0_group(ec);
             ECPointPointer point = EC_POINT_new(group);
@@ -254,7 +254,7 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
                 return openssl_error();
         }
     } else
-        return Runtime::setError("Invalid format: " + format);
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
     if (m_pkey == nullptr)
         return openssl_error();
@@ -309,14 +309,14 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     if (format.empty() || format == "pem") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-                return Runtime::setError("pkcs1 only support RSA key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("pkcs1 only support RSA key");
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = PEM_write_bio_RSAPublicKey(bio, rsa);
         } else if (type == "spki" || type == "") {
             ret = PEM_write_bio_PUBKEY(bio, m_pkey);
         } else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -328,14 +328,14 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     } else if (format == "der") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-                return Runtime::setError("pkcs1 only support RSA key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("pkcs1 only support RSA key");
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = i2d_RSAPublicKey_bio(bio, rsa);
         } else if (type == "spki" || type == "") {
             ret = i2d_PUBKEY_bio(bio, m_pkey);
         } else
-            return Runtime::setError("Invalid type: " + type);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -366,15 +366,15 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
             else if (type == "hybrid")
                 form = POINT_CONVERSION_HYBRID;
             else
-                return Runtime::setError("Invalid type: " + type);
+                return result_t::make(CALL_E_EXCEPTION).with_message("Invalid type: " + type);
 
             const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(m_pkey);
             if (ec == nullptr)
-                return Runtime::setError("only support EC key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("only support EC key");
 
             const EC_POINT* point = EC_KEY_get0_public_key(ec);
             if (point == nullptr)
-                return Runtime::setError("only support EC key");
+                return result_t::make(CALL_E_EXCEPTION).with_message("only support EC key");
 
             size_t len = EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, nullptr, 0, nullptr);
             if (len == 0)
@@ -407,9 +407,9 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
                 retVal = buf;
             }
         } else
-            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
+            return result_t::make(CALL_E_EXCEPTION).with_message("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
-        return Runtime::setError("Invalid format: " + format);
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
     return 0;
 }

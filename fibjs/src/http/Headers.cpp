@@ -25,8 +25,7 @@ result_t Headers_base::_new(Union_Headers_init init, obj_ptr<Headers_base>& retV
         // the DOM and node report it
         result_t hr = retVal->append(std::get<v8::Local<v8::Array>>(init));
         if (hr.is_bad_var_type())
-            return Runtime::setError(CALL_E_TYPEMISMATCH,
-                "Failed to construct 'Headers': sequence elements must be pairs.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("Failed to construct 'Headers': sequence elements must be pairs.").with_result(CALL_E_TYPEMISMATCH);
 
         return hr;
     }

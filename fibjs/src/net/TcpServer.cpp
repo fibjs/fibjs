@@ -309,9 +309,7 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
     if (m_running || m_socket) {
         // Node.js reports a second listen on the same server as
         // ERR_SERVER_ALREADY_LISTEN; align code and message.
-        return Runtime::setError(ErrorPayload::make(errtype::kError)
-                ->with_code("ERR_SERVER_ALREADY_LISTEN")
-                ->with_message("Listen method has been called more than once without closing."));
+        return result_t::make(CALL_E_EXCEPTION).with_code("ERR_SERVER_ALREADY_LISTEN").with_message("Listen method has been called more than once without closing.");
     }
 
     result_t hr = create(addr, port, m_hdlr);

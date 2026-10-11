@@ -51,7 +51,7 @@ result_t Http2Session::init(Stream_base* conn)
     nghttp2_session_callbacks_del(callbacks);
 
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Session: session creation failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: session creation failed: ") + nghttp2_strerror(rv));
 
     // Submit initial SETTINGS frame
     nghttp2_settings_entry iv[] = {
@@ -61,7 +61,7 @@ result_t Http2Session::init(Stream_base* conn)
 
     rv = m_nghttp2.submit_settings(iv, sizeof(iv) / sizeof(iv[0]));
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
 
     // Increase the connection-level flow control window (stream 0).
     // SETTINGS_INITIAL_WINDOW_SIZE only affects per-stream windows;
@@ -70,7 +70,7 @@ result_t Http2Session::init(Stream_base* conn)
     if (!m_is_server) {
         rv = m_nghttp2.submit_window_update(0, 16 * 1024 * 1024 - 65535);
         if (rv != 0)
-            return Runtime::setError(exlib::string("Http2Session: submit window_update failed: ") + nghttp2_strerror(rv));
+            return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit window_update failed: ") + nghttp2_strerror(rv));
     }
 
     return 0;
@@ -354,7 +354,7 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
         AsyncHandle hac = std::move(stream->m_headers_ac);
         stream->m_headers_lock.unlock();
         if (hac)
-            hac.apost(CHECK_ERROR(Runtime::setError("Http2Stream: stream closed before headers received")));
+            hac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
     }
     m_stream_lock.unlock();
 }
@@ -387,7 +387,7 @@ result_t Http2Session::collectPendingData(obj_ptr<Buffer_base>& buf)
     ssize_t len = m_nghttp2.collect_output(pending);
 
     if (len < 0)
-        return Runtime::setError(exlib::string("Http2Session: mem_send failed: ") + nghttp2_strerror((int)len));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: mem_send failed: ") + nghttp2_strerror((int)len));
 
     if (!pending.empty())
         buf = new Buffer(pending.c_str(), pending.length());
@@ -400,7 +400,7 @@ result_t Http2Session::collectPendingData(obj_ptr<Buffer_base>& buf)
 result_t Http2Session::sendPendingData()
 {
     if (m_destroyed)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
@@ -679,7 +679,7 @@ static result_t build_settings_object(NgHttp2Handler& handler, bool remote, obj_
 result_t Http2Session::get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal)
 {
     if (!m_nghttp2)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     return build_settings_object(m_nghttp2, true, retVal);
 }
@@ -687,7 +687,7 @@ result_t Http2Session::get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal)
 result_t Http2Session::get_localSettings(obj_ptr<LocalSettingsType>& retVal)
 {
     if (!m_nghttp2)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     return build_settings_object(m_nghttp2, false, retVal);
 }
@@ -726,10 +726,10 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal)
 {
     if (m_is_server)
-        return Runtime::setError("Http2Session: request() is only available on client sessions.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: request() is only available on client sessions.");
 
     if (m_destroyed || m_closed)
-        return Runtime::setError("Http2Session: session is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is closed.");
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -843,7 +843,7 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
 
     if (stream_id < 0) {
         m_request_lock.unlock();
-        return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
     }
 
     obj_ptr<Http2Stream> stream = new Http2Stream(this, stream_id);
@@ -868,10 +868,10 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
     bool endStream, obj_ptr<Http2Stream>& retVal)
 {
     if (m_is_server)
-        return Runtime::setError("Http2Session: request() is only available on client sessions.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: request() is only available on client sessions.");
 
     if (m_destroyed || m_closed)
-        return Runtime::setError("Http2Session: session is closed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is closed.");
 
     // Build nghttp2_nv array from headers
     std::vector<nghttp2_nv> nva(headers.size());
@@ -905,7 +905,7 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
 
     if (stream_id < 0) {
         m_request_lock.unlock();
-        return Runtime::setError(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
     }
 
     obj_ptr<Http2Stream> stream = new Http2Stream(this, stream_id);
@@ -927,11 +927,11 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
 result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
 {
     if (m_destroyed || !m_nghttp2)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     int rv = m_nghttp2.submit_goaway(lastStreamId, code);
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Session: submit goaway failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit goaway failed: ") + nghttp2_strerror(rv));
 
     asyncFlushOutput();
     return 0;
@@ -943,11 +943,11 @@ result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_destroyed || !m_nghttp2)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     int rv = m_nghttp2.submit_ping();
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Session: submit ping failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit ping failed: ") + nghttp2_strerror(rv));
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
@@ -965,7 +965,7 @@ result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
 result_t Http2Session::settings(v8::Local<v8::Object> settings)
 {
     if (m_destroyed || !m_nghttp2)
-        return Runtime::setError("Http2Session: session is destroyed.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
 
     Isolate* isolate = holder();
     std::vector<nghttp2_settings_entry> iv;
@@ -986,7 +986,7 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
 
     int rv = m_nghttp2.submit_settings(iv.data(), iv.size());
     if (rv != 0)
-        return Runtime::setError(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
 
     asyncFlushOutput();
     return 0;

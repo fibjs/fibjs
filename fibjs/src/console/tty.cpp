@@ -66,7 +66,7 @@ result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Obj
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", _fd));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
 
     retVal = new TTYInputStream(_fd);
     return 0;
@@ -108,7 +108,7 @@ result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::O
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "fd %d is not a TTY.", _fd));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
 
     retVal = new TTYOutputStream(_fd);
     return 0;
@@ -132,7 +132,7 @@ result_t TTYOutputStream::clearLine(int32_t dir)
         outLog(console_base::C_PRINT, kClearLine);
         break;
     default:
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "clearLine: invalid direction %d, expected -1, 0, or 1.", dir));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(CALL_E_INVALIDARG));
     }
 
     return 0;
@@ -151,7 +151,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (x < 0)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "cursorTo: x must be non-negative, received %d.", x));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(CALL_E_INVALIDARG));
 
     char numStr[64];
 

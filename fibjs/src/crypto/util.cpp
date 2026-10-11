@@ -37,7 +37,7 @@ result_t crypto_base::timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSaf
     Buffer* _b = (Buffer*)bufB.get();
 
     if (_a->length() != _b->length())
-        return Runtime::setError("Buffer lengths must be equal, got %d and %d.", (int)_a->length(), (int)_b->length());
+        return result_t::make(CALL_E_EXCEPTION).with_format("Buffer lengths must be equal, got %d and %d.", (int)_a->length(), (int)_b->length());
 
     retVal = CRYPTO_memcmp(_a->data(), _b->data(), _a->length()) == 0;
 

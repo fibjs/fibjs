@@ -61,7 +61,7 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
         return hr;
 
     if (!tray->m_options->icon.has_value())
-        return Runtime::setError("Tray icon is required");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Tray icon is required");
 
     Variant var;
     hr = fs_base::ac_readFile(tray->m_options->icon.value(), "", var);
@@ -70,7 +70,7 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
 
     tray->m_icon = (Buffer*)var.object();
     if (!tray->m_icon)
-        return Runtime::setError("Tray icon is empty");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Tray icon is empty");
 
     if (tray->m_options->menu.has_value())
         tray->m_menu = new ValueHolder(tray->m_options->menu.value()->wrap());

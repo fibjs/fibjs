@@ -107,7 +107,7 @@ public:
                 if (num >= 0 && num < console_base::C_NOTSET)
                     m_levels[num] = true;
                 else
-                    return CHECK_ERROR(Runtime::setError("console: too many logger."));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: too many logger."));
             }
 
             m_levels[console_base::C_PRINT] = true;

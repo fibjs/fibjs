@@ -20,7 +20,7 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mssql:", 6))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "openMSSQL: connection string must start with 'mssql:'."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openMSSQL: connection string must start with 'mssql:'.").with_result(CALL_E_INVALIDARG));
 
 #ifdef _WIN32
     const char* driver = "SQL Server";

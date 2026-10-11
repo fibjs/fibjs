@@ -64,10 +64,10 @@ private:
     result_t is_ready()
     {
         if (!m_stream)
-            return Runtime::setError("socket not connected.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("socket not connected.");
 
         if (m_closed)
-            return Runtime::setError("socket closed.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("socket closed.");
 
         return 0;
     }
@@ -75,7 +75,7 @@ private:
     result_t is_not_connected()
     {
         if (m_stream)
-            return Runtime::setError("socket already connected.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("socket already connected.");
 
         return 0;
     }

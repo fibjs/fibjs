@@ -31,12 +31,10 @@ result_t openssl_error()
                 code += (char)((c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c);
         }
 
-        return Runtime::setError(ErrorPayload::make(errtype::kError)
-                ->with_code(code)
-                ->with_message(ERR_error_string(err, NULL)));
+        return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(ERR_error_string(err, NULL));
     }
 
-    return Runtime::setError(ERR_error_string(err, NULL));
+    return result_t::make(CALL_E_EXCEPTION).with_message(ERR_error_string(err, NULL));
 }
 
 }

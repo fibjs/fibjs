@@ -65,7 +65,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             "_Cancel", GTK_RESPONSE_CANCEL,
             "_Open", GTK_RESPONSE_ACCEPT);
     else
-        return Runtime::setError("Invalid dialog type: " + opts->type.value());
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid dialog type: " + opts->type.value());
 
     if (opts->title.has_value())
         gtk_window_set_title(GTK_WINDOW(dialog), opts->title.value().c_str());

@@ -342,7 +342,7 @@ static result_t base58Decode(const char* data, size_t sz, exlib::string& retVal)
 
     buffer.resize(binsz);
     if (!b58tobin(buffer.data(), &binsz, data, sz))
-        return CHECK_ERROR(Runtime::setError("base58: encode error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("base58: encode error."));
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz);
 
@@ -375,9 +375,9 @@ result_t base58_base::decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer
 
     buffer.resize(binsz);
     if (!b58tobin(buffer.data(), &binsz, data.c_str(), data.length()))
-        return CHECK_ERROR(Runtime::setError("base58: decode error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("base58: decode error."));
     if (b58check(buffer.c_str() + buffer.length() - binsz, binsz, data.c_str(), data.length()) != chk_ver)
-        return CHECK_ERROR(Runtime::setError("base58: check error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("base58: check error."));
 
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz + 1, binsz - 5);
@@ -528,7 +528,7 @@ result_t encoding_base::encode(Union_encode_data data, exlib::string codec, exli
 static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "encoding: Unknown codec: '%s'.", codec.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown codec: '%s'.", codec.c_str()).with_result(CALL_E_INVALID_CALL));
 
     Buffer* _data = Buffer::Cast(data);
 
@@ -577,7 +577,7 @@ static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, e
 result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "encoding: Unknown codec: '%s'.", codec.c_str()));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown codec: '%s'.", codec.c_str()).with_result(CALL_E_INVALID_CALL));
 
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined"))
         retVal = new Buffer(str.c_str(), str.length());
@@ -699,7 +699,7 @@ static result_t multibase_encode_buffer(Buffer_base* data, exlib::string codec, 
         return 0;
     }
 
-    return CHECK_ERROR(Runtime::setError("multibase: unknown codec: '%s'.", codec.c_str()));
+    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("multibase: unknown codec: '%s'.", codec.c_str()));
 }
 
 result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -721,7 +721,7 @@ result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal
         return base58Decode(p + 1, (int32_t)sz - 1, retVal);
     }
 
-    return CHECK_ERROR(Runtime::setError("multibase: unknown codec: '%c'.", type));
+    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("multibase: unknown codec: '%c'.", type));
 }
 
 static const char* URITable = " ! #$ &'()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";

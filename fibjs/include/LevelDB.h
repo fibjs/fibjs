@@ -105,12 +105,12 @@ private:
         char16_t* wstr = new char16_t[wchars_num + 1];
         MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), (wchar_t*)wstr, wchars_num + 1);
 
-        result_t hr = Runtime::setError(utf16to8String(wstr, wchars_num));
+        result_t hr = result_t::make(CALL_E_EXCEPTION).with_message(utf16to8String(wstr, wchars_num));
         delete[] wstr;
 
         return hr;
 #else
-        return Runtime::setError(s.ToString());
+        return result_t::make(CALL_E_EXCEPTION).with_message(s.ToString());
 #endif
     }
 

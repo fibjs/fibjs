@@ -43,21 +43,21 @@ result_t CryptoKey::generate_hmac()
         obj_ptr<NObject> hashObj;
 
         if (m_algorithm->get("hash", hash).failed() || (hashObj = (NObject*)hash.object()) == NULL)
-            return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC requires hash parameter");
 
         Variant hashName;
         if (hashObj->get("name", hashName).failed())
-            return Runtime::setError("WebCrypto: HMAC requires hash parameter");
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC requires hash parameter");
 
         const EVP_MD* md = _evp_md_type(hashName.string().c_str());
         if (md == NULL)
-            return Runtime::setError("WebCrypto: unknown hash algorithm: " + hashName.string());
+            return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unknown hash algorithm: " + hashName.string());
 
         length = EVP_MD_block_size(md) * 8;
     }
 
     if (length % 8 != 0)
-        return Runtime::setError("WebCrypto: HMAC key length must be a multiple of 8 bits");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC key length must be a multiple of 8 bits");
 
     // the resolved length is part of the key algorithm (WebCrypto)
     m_algorithm->add("length", length);
@@ -107,7 +107,7 @@ result_t CryptoKey::generate_ecdsa()
     Variant v;
 
     if (m_usageMap.find("sign") == m_usageMap.end())
-        return Runtime::setError("WebCrypto: ECDSA key must have 'sign' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDSA key must have 'sign' usage");
 
     obj_ptr<generateKeyPairParam> param = new generateKeyPairParam();
     m_algorithm->get("namedCurve", v);
@@ -126,7 +126,7 @@ result_t CryptoKey::generate_ecdsa()
 result_t CryptoKey::generate_ed25519()
 {
     if (m_usageMap.find("sign") == m_usageMap.end())
-        return Runtime::setError("WebCrypto: Ed25519 key must have 'sign' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: Ed25519 key must have 'sign' usage");
 
     m_key = new KeyObject();
     result_t hr = m_key->generateKey("Ed25519", nullptr);
@@ -145,7 +145,7 @@ result_t CryptoKey::generate_ecdh()
         hasValidUsage = true;
 
     if (!hasValidUsage)
-        return Runtime::setError("WebCrypto: ECDH key must have 'deriveKey' or 'deriveBits' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH key must have 'deriveKey' or 'deriveBits' usage");
 
     Variant v;
     obj_ptr<generateKeyPairParam> param = new generateKeyPairParam();
@@ -196,7 +196,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
 
     obj_ptr<CryptoKey> key = (CryptoKey*)ac.ctxv()[0].object();
     if (key == NULL)
-        return Runtime::setError("WebCrypto: the key parameters were not read");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: the key parameters were not read");
 
     result_t hr = key->generate();
     if (hr.failed())

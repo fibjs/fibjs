@@ -94,7 +94,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
                 return openssl_error();
         }
     } else if (!hr.is_param_missing())
-        return Runtime::setError("subject must be object");
+        return result_t::make(CALL_E_EXCEPTION).with_message("subject must be object");
 
     exlib::string hashAlgorithm = EVP_PKEY_id(key->pkey()) == EVP_PKEY_SM2 ? "sm3" : "sha256";
     hr = GetConfigValue(options, "hashAlgorithm", hashAlgorithm, true);
@@ -103,7 +103,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
 
     md_ = _evp_md_type(hashAlgorithm.c_str());
     if (md_ == nullptr)
-        return Runtime::setError("unknown digest algorithm: '%s'.", hashAlgorithm.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("unknown digest algorithm: '%s'.", hashAlgorithm.c_str());
 
     return 0;
 }
@@ -251,7 +251,7 @@ result_t X509CertificateRequest::checkPrivateKey(KeyObject_base* privateKey, boo
 {
     KeyObject* key = (KeyObject*)privateKey;
     if (key->type() != KeyObject::kKeyTypePrivate)
-        return Runtime::setError("key must be a private KeyObject.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("key must be a private KeyObject.");
 
     retVal = X509_REQ_check_private_key(m_csr, key->pkey()) != 0;
     return 0;
@@ -286,7 +286,7 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
             }
         }
         if (p == 8)
-            return Runtime::setError("unknown item: " + item);
+            return result_t::make(CALL_E_EXCEPTION).with_message("unknown item: " + item);
     }
 
     X509V3_CTX v3_ctx;
@@ -403,13 +403,13 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
     {
         const X509_NAME* xn = X509_REQ_get_subject_name(m_csr);
         if (xn == nullptr)
-            return Runtime::setError("no subject in csr");
+            return result_t::make(CALL_E_EXCEPTION).with_message("no subject in csr");
         if (!X509_set_subject_name(cert, xn))
             return openssl_error();
 
         EVPKeyPointer pubkey = X509_REQ_get_pubkey(m_csr);
         if (pubkey == nullptr)
-            return Runtime::setError("no public key in csr");
+            return result_t::make(CALL_E_EXCEPTION).with_message("no public key in csr");
         if (!X509_set_pubkey(cert, pubkey))
             return openssl_error();
     }

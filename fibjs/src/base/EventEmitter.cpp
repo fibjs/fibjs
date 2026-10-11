@@ -417,7 +417,7 @@ result_t JSTrigger::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, 
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return CHECK_ERROR(Runtime::setError("function alloc error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
 
     wrap->Set(context, NewString("_func"), func).IsJust();
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
@@ -449,7 +449,7 @@ result_t JSTrigger::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::F
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return CHECK_ERROR(Runtime::setError("function alloc error."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
 
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
 
@@ -533,7 +533,7 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
 result_t JSTrigger::setMaxListeners(int32_t n)
 {
     if (n < 0)
-        return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+        return result_t::make(CALL_E_EXCEPTION).with_message("\"defaultMaxListeners\" must be a positive number");
 
     o->SetPrivate(context, v8::Private::ForApi(isolate, NewString("_maxListeners")), v8::Integer::New(isolate, n));
     return 0;
@@ -554,7 +554,7 @@ result_t JSTrigger::getMaxListeners(int32_t& retVal)
 result_t JSTrigger::set_defaultMaxListeners(int32_t newVal)
 {
     if (newVal < 0)
-        return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+        return result_t::make(CALL_E_EXCEPTION).with_message("\"defaultMaxListeners\" must be a positive number");
 
     Isolate* isolate = Isolate::current();
     isolate->m_defaultMaxListeners = newVal;
@@ -723,7 +723,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (hr.failed())
         return hr;
 
-    return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
+    return !msg.empty() ? CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(msg)) : result_t(0);
 }
 
 result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -770,7 +770,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 
         if (hr.failed())
             return hr;
-        return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
+        return !msg.empty() ? CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(msg)) : result_t(0);
     }
 
     // String path: convert to exlib::string and use _emit (handles "error" etc.)

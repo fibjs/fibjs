@@ -120,7 +120,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
 
     Isolate* isolate = Isolate::current(cb);
     if (isolate->m_id != 1)
-        return Runtime::setError("rtc.bind() can only be called in the main isolate");
+        return result_t::make(CALL_E_EXCEPTION).with_message("rtc.bind() can only be called in the main isolate");
 
     static v8::Global<v8::Function> s_cb_global;
     s_cb_global.Reset(isolate->m_isolate, cb);
@@ -160,9 +160,9 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
             }); }, isolate);
 
     if (ret == -1)
-        return Runtime::setError("rtc.listen() need to be called before RTCPeerConnection object is created");
+        return result_t::make(CALL_E_EXCEPTION).with_message("rtc.listen() need to be called before RTCPeerConnection object is created");
     else if (ret < 0)
-        return Runtime::setError("rtc.listen() failed to bind to the specified port");
+        return result_t::make(CALL_E_EXCEPTION).with_message("rtc.listen() failed to bind to the specified port");
 
     exlib::string key = rtc_listen_key(bind_address, local_port);
     isolate->m_rtcListenHolders[key] = new RTCListenHoldToken(isolate, bind_address, local_port);
@@ -179,7 +179,7 @@ result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id != 1)
-        return Runtime::setError("rtc.stopListen() can only be called in the main isolate");
+        return result_t::make(CALL_E_EXCEPTION).with_message("rtc.stopListen() can only be called in the main isolate");
 
     auto it = isolate->m_rtcListenHolders.find(rtc_listen_key(bind_address, local_port));
     if (it == isolate->m_rtcListenHolders.end()) {
@@ -260,7 +260,7 @@ result_t rtc_base::startServer(v8::Local<v8::Object> config)
 
     juice_server_t* server = juice_server_create(&server_config);
     if (!server)
-        return Runtime::setError("Failed to create the server");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to create the server");
 
     return 0;
 }
@@ -361,7 +361,7 @@ result_t rtc_base::set_loglevel(exlib::string newVal)
     else if (newVal == "none")
         level = rtc::LogLevel::None;
     else
-        return Runtime::setError("Invalid log level: '%s'.", newVal.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid log level: '%s'.", newVal.c_str());
 
     rtc::InitLogger(level);
     s_level = level;

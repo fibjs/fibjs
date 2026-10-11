@@ -256,7 +256,7 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         }
 
         if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && (!g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, WEBKIT_JAVASCRIPT_ERROR_SCRIPT_FAILED) || (error->message && *(error->message)))) {
-            data->m_ac.post(Runtime::setError(error->message));
+            data->m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message(error->message));
             g_clear_error(&error);
             delete data;
             return;
@@ -269,7 +269,7 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         JSCException* exception = jsc_context_get_exception(jsc_value_get_context(value));
 
         if (exception) {
-            data->m_ac.post(Runtime::setError(jsc_exception_get_message(exception)));
+            data->m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message(jsc_exception_get_message(exception)));
             jsc_context_clear_exception(jsc_value_get_context(value));
         } else {
             jsc2Variant(value, data->m_retVal);
@@ -457,7 +457,7 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
     capture_callback_data* cb_data = static_cast<capture_callback_data*>(user_data);
 
     if (error) {
-        cb_data->m_ac.post(Runtime::setError(error->message));
+        cb_data->m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message(error->message));
         delete cb_data;
 
         g_error_free(error);
@@ -476,7 +476,7 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
         cb_data->m_ac.post(0);
         delete cb_data;
     } else {
-        cb_data->m_ac.post(Runtime::setError("Failed to capture screenshot"));
+        cb_data->m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message("Failed to capture screenshot"));
         delete cb_data;
     }
 }

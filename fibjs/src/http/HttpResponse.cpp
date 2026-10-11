@@ -626,7 +626,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
             if (len < 12 || c_str[8] != ' '
                 || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
                 || qisdigit(c_str[12]))
-                return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + m_strLine));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: bad protocol: " + m_strLine));
 
             m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
             m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
@@ -654,7 +654,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
-        return CHECK_ERROR(Runtime::setError("HttpResponse: only accept BufferedStream object."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object."));
 
     return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(0);
 }
@@ -674,7 +674,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
             return hr;
 
         if (!_options->header_only.value() && _options->content_length.has_value())
-            return Runtime::setError("HttpResponse: content_length option is only valid for header_only response");
+            return result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: content_length option is only valid for header_only response");
 
         ac.ctxv().resize(1);
         ac.ctxv()[0] = _options;
@@ -852,7 +852,7 @@ result_t HttpResponse::redirect(exlib::string url)
 result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 {
     if (statusCode != 301 && statusCode != 302 && statusCode != 307)
-        return CHECK_ERROR(Runtime::setError("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
 
     m_statusCode = statusCode;
     setHeader("Location", url);
@@ -955,7 +955,7 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
 {
     // Streaming responses cannot be cloned (body is a live socket stream)
     if (m_message->m_bodyStream)
-        return CHECK_ERROR(Runtime::setError("Response body is a streaming body and cannot be cloned."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Response body is a streaming body and cannot be cloned."));
 
     obj_ptr<HttpResponse> resp = new HttpResponse();
 

@@ -315,7 +315,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
             if (maxlen > 0
                 && ((int32_t)pThis->m_strbuf.size() + (pos - pThis->m_pos)
                     > maxlen + mklen))
-                return CHECK_ERROR(Runtime::setError("readUntil: input data too long"));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("readUntil: input data too long"));
 
             pThis->append(pos - pThis->m_pos);
 

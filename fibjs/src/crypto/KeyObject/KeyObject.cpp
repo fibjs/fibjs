@@ -76,7 +76,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         return hr;
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
     if (privateKey_->type() != KeyObject::kKeyTypePrivate)
-        return Runtime::setError("property 'privateKey' must be a private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("property 'privateKey' must be a private key");
     int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
 
     obj_ptr<KeyObject_base> publicKey;
@@ -85,11 +85,11 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         return hr;
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
     if (publicKey_->type() != KeyObject::kKeyTypePublic)
-        return Runtime::setError("property 'publicKey' must be a public key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("property 'publicKey' must be a public key");
     int32_t publicKeyType = EVP_PKEY_id(publicKey_->pkey());
 
     if (privateKeyType != publicKeyType)
-        return Runtime::setError("privateKey and publicKey must have the same type");
+        return result_t::make(CALL_E_EXCEPTION).with_message("privateKey and publicKey must have the same type");
 
     if (privateKeyType == EVP_PKEY_SM2) {
         const EC_POINT* pub_key = EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(publicKey_->pkey()));
@@ -218,7 +218,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
 
     if (param->format == "jwk") {
         if (param->passphrase)
-            return Runtime::setError("The property 'options.passphrase' is not supported for 'jwk' format.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("The property 'options.passphrase' is not supported for 'jwk' format.");
 
         Variant _json;
         hr = export_json(_json);
@@ -238,14 +238,14 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
         }
 
         puts(param->format.c_str());
-        return CHECK_ERROR(Runtime::setError("The property 'options.format' must be one of: undefined, 'buffer', 'jwk'."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("The property 'options.format' must be one of: undefined, 'buffer', 'jwk'."));
     case kKeyTypePublic:
         return ExportPublicKey(param, retVal, false); // Use Buffer for crypto module compatibility
     case kKeyTypePrivate:
         return ExportPrivateKey(param, retVal, false); // Use Buffer for crypto module compatibility
     }
 
-    return Runtime::setError("Invalid key type: %d.", m_keyType);
+    return result_t::make(CALL_E_EXCEPTION).with_format("Invalid key type: %d.", m_keyType);
 }
 
 result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
@@ -292,10 +292,10 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
                 return createPublicKeyFromKeyObject(key__);
 
             if (key__->m_keyType == kKeyTypeSecret)
-                return Runtime::setError("cannot create private key from a secret key.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("cannot create private key from a secret key.");
 
             if (key__->m_keyType == kKeyTypePublic)
-                return Runtime::setError("cannot create private key from a public key.");
+                return result_t::make(CALL_E_EXCEPTION).with_message("cannot create private key from a public key.");
 
             if (EVP_PKEY_id(key__->m_pkey) == EVP_PKEY_SM2) {
                 const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key__->m_pkey);

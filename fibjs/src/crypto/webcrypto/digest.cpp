@@ -47,7 +47,7 @@ result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data
 
     const EVP_MD* md = _evp_md_type(alg.c_str());
     if (md == NULL)
-        return CHECK_ERROR(Runtime::setError("subtle: unknown algorithm: " + alg));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("subtle: unknown algorithm: " + alg));
 
     EVPMDPointer ctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(ctx, md, NULL);

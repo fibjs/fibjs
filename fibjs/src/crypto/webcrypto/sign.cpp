@@ -149,14 +149,14 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
 
     // Check if the key has 'sign' usage
     if (_key->m_usageMap.find("sign") == _key->m_usageMap.end())
-        return Runtime::setError("WebCrypto: key does not have 'sign' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: key does not have 'sign' usage");
 
     // HMAC uses the hash from the key algorithm
     if (qstricmp(name.c_str(), "hmac") == 0) {
         // HMAC requires special handling with secret key
         const EVP_MD* md = _evp_md_type(hash.c_str());
         if (!md)
-            return Runtime::setError("Invalid hash algorithm: " + hash);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid hash algorithm: " + hash);
 
         KeyObject* key_obj = (KeyObject*)_key->m_key.get();
         EVPMDPointer context = EVP_MD_CTX_new();
@@ -262,14 +262,14 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
 
     // Check if the key has 'verify' usage
     if (_key->m_usageMap.find("verify") == _key->m_usageMap.end())
-        return Runtime::setError("WebCrypto: key does not have 'verify' usage");
+        return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: key does not have 'verify' usage");
 
     // HMAC uses the hash from the key algorithm
     if (qstricmp(name.c_str(), "hmac") == 0) {
         // HMAC verification: sign the data and compare with provided signature
         const EVP_MD* md = _evp_md_type(hash.c_str());
         if (!md)
-            return Runtime::setError("Invalid hash algorithm: " + hash);
+            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid hash algorithm: " + hash);
 
         KeyObject* key_obj = (KeyObject*)_key->m_key.get();
         EVPMDPointer context = EVP_MD_CTX_new();

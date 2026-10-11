@@ -23,7 +23,7 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
         return 0;
 
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is_type_mismatch())
-        return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
     if (!js_obj_has_value(options, context, name))
         return CALL_E_PARAMNOTOPTIONAL;
@@ -31,7 +31,7 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
     v8::Local<v8::Value> value = options->Get(context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>());
     hr = X509Certificate_base::load(value, retVal);
     if (hr.failed())
-        return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
+        return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
     return 0;
 }
@@ -195,7 +195,7 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
 
     if (key) {
         if (!m_cert)
-            return Runtime::setError("SecureContext: cert must be set before key.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: cert must be set before key.");
 
         bool matched;
         hr = m_cert->checkPrivateKey(key, matched);
@@ -203,13 +203,13 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
             return hr;
 
         if (!matched)
-            return Runtime::setError("SecureContext: key and cert do not match.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: key and cert do not match.");
 
         SSL_CTX_use_PrivateKey(m_ctx, key.As<KeyObject>()->pkey());
 
         m_key = key;
     } else if (m_cert)
-        return Runtime::setError("SecureContext: key must be set before cert.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: key must be set before cert.");
 
     return 0;
 }
@@ -274,7 +274,7 @@ inline result_t ver_id(const exlib::string& ver, int32_t& retVal)
     else if (ver == "TLSv1.3")
         retVal = TLS1_3_VERSION;
     else
-        return Runtime::setError("SecureContext: TLS version \"" + ver + "\" is not supported.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: TLS version \"" + ver + "\" is not supported.");
 
     return 0;
 }
@@ -314,7 +314,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
 
     hr = GetConfigValue(options, "maxVersion", ver, true);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: maxVersion must be a valid string.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: maxVersion must be a valid string.");
 
     if (!hr.is_param_missing()) {
         hr = ver_id(ver, maxVersion);
@@ -324,7 +324,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
 
     hr = GetConfigValue(options, "minVersion", ver, true);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: minVersion must be a valid string.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: minVersion must be a valid string.");
 
     if (!hr.is_param_missing()) {
         hr = ver_id(ver, minVersion);
@@ -337,7 +337,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
 
     hr = GetConfigValue(options, "secureProtocol", secureProtocol, true);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: secureProtocol must be a valid string.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: secureProtocol must be a valid string.");
 
     if (hr.is_param_missing() || secureProtocol == "TLS_method") {
         method = TLS_method();
@@ -347,7 +347,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
         method = TLS_server_method();
     } else {
         if (minVersion != 0 || maxVersion != 0)
-            return Runtime::setError("SecureContext: secureProtocol \" + secureProtocol + \" does not support minVersion or maxVersion.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: secureProtocol \" + secureProtocol + \" does not support minVersion or maxVersion.");
 
         if (secureProtocol == "SSLv23_method") {
             maxVersion = TLS1_2_VERSION;
@@ -395,11 +395,11 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
             minVersion = maxVersion = TLS1_3_VERSION;
             method = TLS_server_method();
         } else
-            return Runtime::setError("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported.");
     }
 
     if (isServer && method == TLS_client_method())
-        return Runtime::setError("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported for server.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported for server.");
 
     init_ctx(method);
 
@@ -448,15 +448,15 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
 
     hr = GetConfigValue(options, "requestCert", requestCert);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: requestCert must be a valid boolean.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: requestCert must be a valid boolean.");
 
     hr = GetConfigValue(options, "rejectUnverified", rejectUnverified);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: rejectUnverified must be a valid boolean.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: rejectUnverified must be a valid boolean.");
 
     hr = GetConfigValue(options, "rejectUnauthorized", rejectUnauthorized);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: rejectUnauthorized must be a valid boolean.");
 
     if (!requestCert)
         verify_mode = SSL_VERIFY_NONE;
@@ -505,26 +505,26 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
     int32_t SNICacheSize;
     hr = GetConfigValue(options, "SNICacheSize", SNICacheSize);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: SNICacheSize must be a valid number.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: SNICacheSize must be a valid number.");
     if (!hr.is_param_missing())
         m_sniContexts.resize(SNICacheSize);
 
     int64_t SNICacheIdleTimeout = 300;
     hr = GetConfigValue(options, "SNICacheIdleTimeout", SNICacheIdleTimeout);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: SNICacheIdleTimeout must be a valid number.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: SNICacheIdleTimeout must be a valid number.");
 
     int64_t SNICacheTimeout = 300;
     hr = GetConfigValue(options, "SNICacheTimeout", SNICacheTimeout);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: SNICacheTimeout must be a valid number.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: SNICacheTimeout must be a valid number.");
 
     m_sniContexts.set_timeout(SNICacheIdleTimeout, SNICacheTimeout);
 
     v8::Local<v8::Function> js_sn_resolver;
     hr = GetConfigValue(options, "SNIResolver", js_sn_resolver);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: SNIResolver must be a valid function.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: SNIResolver must be a valid function.");
 
     if (!hr.is_param_missing()) {
         m_sn_callback.Reset(isolate->m_isolate, js_sn_resolver);
@@ -592,7 +592,7 @@ result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
 
     hr = GetConfigValue(options, "sessionTimeout", timeout);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return Runtime::setError("SecureContext: sessionTimeout must be a valid number.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: sessionTimeout must be a valid number.");
 
     if (!hr.is_param_missing())
         if (SSL_CTX_set_timeout(m_ctx, timeout) <= 0)
@@ -681,7 +681,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
         return hr;
 
     if (!val->IsArray())
-        return Runtime::setError("SecureContext: alpnProtocols must be an array of strings.");
+        return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: alpnProtocols must be an array of strings.");
 
     v8::Local<v8::Array> arr = val.As<v8::Array>();
     uint32_t len = arr->Length();
@@ -693,12 +693,12 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
     for (uint32_t i = 0; i < len; i++) {
         v8::Local<v8::Value> item = arr->Get(context, i).FromMaybe(v8::Local<v8::Value>());
         if (item.IsEmpty() || !item->IsString())
-            return Runtime::setError("SecureContext: alpnProtocols must be an array of strings.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: alpnProtocols must be an array of strings.");
 
         v8::String::Utf8Value proto(isolate->m_isolate, item);
         int proto_len = proto.length();
         if (proto_len == 0 || proto_len > 255)
-            return Runtime::setError("SecureContext: ALPN protocol length must be 1-255.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: ALPN protocol length must be 1-255.");
 
         m_alpnProtos.push_back(static_cast<unsigned char>(proto_len));
         m_alpnProtos.insert(m_alpnProtos.end(), *proto, *proto + proto_len);
@@ -708,7 +708,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
         SSL_CTX_set_alpn_select_cb(m_ctx, alpn_select_callback, this);
     } else {
         if (SSL_CTX_set_alpn_protos(m_ctx, m_alpnProtos.data(), m_alpnProtos.size()) != 0)
-            return Runtime::setError("SecureContext: failed to set ALPN protocols.");
+            return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: failed to set ALPN protocols.");
     }
 
     return 0;

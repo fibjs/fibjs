@@ -26,7 +26,7 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
     try {
         retVal = new RTCIceCandidate(candidate, sdpMid);
     } catch (std::exception& e) {
-        return Runtime::setError(e.what());
+        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
     return 0;

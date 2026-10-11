@@ -101,7 +101,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     Scope _scope(this);
 
     if (is_relative(srcname))
-        return CHECK_ERROR(Runtime::setError("SandBox: AddScript does not accept relative path."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: AddScript does not accept relative path."));
 
     path_base::normalize(srcname, srcname);
 
@@ -135,9 +135,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     if (hr.failed()) {
         // Node.js reports a failed module lookup as MODULE_NOT_FOUND.
         if (hr.is(CALL_E_FILE_NOT_FOUND))
-            return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    ->with_code("MODULE_NOT_FOUND")
-                    ->with_message("Cannot find module '" + id + "'"));
+            return result_t::make(CALL_E_EXCEPTION).with_code("MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "'");
         return hr;
     } else if (!IsEmpty(mod))
         return wait_module(mod, retVal);

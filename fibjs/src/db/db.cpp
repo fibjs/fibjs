@@ -38,6 +38,6 @@ result_t db_base::open(exlib::string connString, obj_ptr<DbConnection_base>& ret
     if (!qstrcmp(connString.c_str(), "dm:", 3))
         return openDM(connString, retVal, std::move(ac));
 
-    return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "db.open: unknown protocol in connection string '%s'.", connString.c_str()));
+    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("db.open: unknown protocol in connection string '%s'.", connString.c_str()).with_result(CALL_E_INVALIDARG));
 }
 }

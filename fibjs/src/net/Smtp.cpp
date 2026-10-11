@@ -59,7 +59,7 @@ public:
         if (qisdigit(strLine[0]) && qisdigit(strLine[1]) && qisdigit(strLine[2])
             && strLine[3] == ' ') {
             if (strLine[0] == '5')
-                return CHECK_ERROR(Runtime::setError(strLine));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(strLine));
 
             return recv_ok();
         }

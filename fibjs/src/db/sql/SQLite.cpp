@@ -45,7 +45,7 @@ result_t db_base::openSQLite(exlib::string connString,
 result_t SQLite::open(const char* file)
 {
     if (sqlite3_open_v2(file, (sqlite3**)&m_conn, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file));
+        result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file));
         sqlite3_close((sqlite3*)m_conn);
         m_conn = NULL;
         return hr;
@@ -190,10 +190,8 @@ public:
             int32_t r = sqlite3_step(m_stmt);
             if (r != SQLITE_DONE) {
                 if (r == SQLITE_ERROR)
-                    return CHECK_ERROR(Runtime::setError(
-                        sqlite3_errmsg((sqlite3*)m_db->m_conn)));
-                return CHECK_ERROR(Runtime::setError(
-                    "SQLite: statement execution failed"));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_db->m_conn)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: statement execution failed"));
             }
         }
 
@@ -223,7 +221,7 @@ public:
             return 0;
         }
 
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_db->m_conn)));
+        result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_db->m_conn)));
         return hr;
     }
 
@@ -364,29 +362,28 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
     exlib::string sql, obj_ptr<Statement_base>& retVal)
 {
     if (!db->m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     sqlite3_stmt* stmt = NULL;
     const char* pTail = NULL;
 
     if (sqlite3_prepare_v2((sqlite3*)db->m_conn, sql.c_str(),
             (int32_t)sql.length(), &stmt, &pTail)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)db->m_conn)));
+        result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)db->m_conn)));
         if (stmt)
             sqlite3_finalize(stmt);
         return hr;
     }
 
     if (!stmt)
-        return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: Query was empty"));
 
     // prepare accepts a single statement only
     while (qisspace(*pTail))
         pTail++;
     if (*pTail) {
         sqlite3_finalize(stmt);
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG,
-            "SQLite: prepare accepts a single statement only"));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: prepare accepts a single statement only").with_result(CALL_E_INVALIDARG));
     }
 
     obj_ptr<Statement> st = new Statement(sql, new SQLiteStmtImpl((SQLite*)db, stmt));
@@ -400,7 +397,7 @@ result_t SQLite::close(AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     // Cascade-close active cursors (finalize statements not yet released) to
     // keep sqlite3_close from failing
@@ -423,7 +420,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     if (m_activeStmt)
         return db_stmt_busy_error();
@@ -436,14 +433,14 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
         sqlite3_stmt* stmt = 0;
 
         if (sqlite3_prepare_v2((sqlite3*)m_conn, pStr, sLen, &stmt, &pStr1)) {
-            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+            result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_conn)));
             if (stmt)
                 sqlite3_finalize(stmt);
             return hr;
         }
 
         if (!stmt)
-            return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: Query was empty"));
 
         sLen -= (int32_t)(pStr1 - pStr);
 
@@ -475,7 +472,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
                     break;
                 else {
                     sqlite3_finalize(stmt);
-                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_conn)));
                 }
             }
         } else {
@@ -485,7 +482,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
                     sqlite3_last_insert_rowid((sqlite3*)m_conn));
             else {
                 sqlite3_finalize(stmt);
-                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_conn)));
             }
         }
 
@@ -514,7 +511,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
 result_t SQLite::get_fileName(exlib::string& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = m_file;
     return 0;
@@ -523,7 +520,7 @@ result_t SQLite::get_fileName(exlib::string& retVal)
 result_t SQLite::get_timeout(int32_t& retVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     retVal = m_nCmdTimeout;
     return 0;
@@ -532,7 +529,7 @@ result_t SQLite::get_timeout(int32_t& retVal)
 result_t SQLite::set_timeout(int32_t newVal)
 {
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     m_nCmdTimeout = newVal;
 
@@ -548,7 +545,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     int32_t rc;
     struct sqlite3* db2 = NULL;
@@ -562,7 +559,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
     }
 
     if (sqlite3_open_v2(c_str, &db2, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError("%s: \"%s\"", sqlite3_errmsg(db2), c_str));
+        result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("%s: \"%s\"", sqlite3_errmsg(db2), c_str));
         return hr;
     }
 
@@ -580,7 +577,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 
         sqlite3_backup_finish(pBackup);
     } else {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+        result_t hr = CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_conn)));
         sqlite3_close(db2);
         return hr;
     }
@@ -596,7 +593,7 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     // Query SQLite system table to get all user tables
     exlib::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
@@ -609,7 +606,7 @@ result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, 
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!m_conn)
-        return CHECK_ERROR(Runtime::setError(CALL_E_INVALID_CALL, "SQLite: database is closed."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SQLite: database is closed.").with_result(CALL_E_INVALID_CALL));
 
     // Query SQLite table structure and format to match information_schema style
     exlib::string escapedTableName = escape_string(tableName);

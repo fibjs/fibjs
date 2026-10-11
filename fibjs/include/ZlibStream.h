@@ -73,11 +73,9 @@ private:
                     : (err == Z_MEM_ERROR ? "Z_MEM_ERROR" : nullptr));
 
                 if (code)
-                    return Runtime::setError(ErrorPayload::make(errtype::kError)
-                            ->with_code(code)
-                            ->with_message(zError(err)));
+                    return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(zError(err));
 
-                return CHECK_ERROR(Runtime::setError(zError(err)));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zError(err)));
             }
 
             if (m_pThis->strm.avail_out == ZLIB_CHUNK)

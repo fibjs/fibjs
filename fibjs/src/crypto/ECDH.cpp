@@ -24,11 +24,11 @@ result_t crypto_base::createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal
 {
     // Check for undefined/null curve parameter
     if (curve.empty())
-        return Runtime::setError("The \"curve\" argument must be of type string. Received undefined");
+        return result_t::make(CALL_E_EXCEPTION).with_message("The \"curve\" argument must be of type string. Received undefined");
 
     int cid = GetCurveFromName(curve.c_str());
     if (cid == NID_undef)
-        return Runtime::setError("Invalid EC curve name");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid EC curve name");
 
     retVal = new ECDH(curve);
     return 0;
@@ -40,7 +40,7 @@ result_t ECDH::ensureKey()
     if (!m_ec) {
         int cid = GetCurveFromName(m_curve.c_str());
         if (cid == NID_undef)
-            return Runtime::setError("Invalid curve name: '%s'.", m_curve.c_str());
+            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid curve name: '%s'.", m_curve.c_str());
 
         m_ec = EC_KEY_new_by_curve_name(cid);
         if (!m_ec)
@@ -63,7 +63,7 @@ result_t ECDH::validatePointFormat(const exlib::string& format)
         return 0; // Valid formats
     }
 
-    return Runtime::setError("Invalid ECDH format: " + format);
+    return result_t::make(CALL_E_EXCEPTION).with_message("Invalid ECDH format: " + format);
 }
 
 result_t ECDH::generateKeys(exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal)
@@ -91,25 +91,25 @@ result_t ECDH::generateKeys(exlib::string outputEncoding, exlib::string format, 
 result_t ECDH::getPrivateKey(exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
     if (!m_ec || !m_keysGenerated || !m_privateKeySet)
-        return Runtime::setError("Failed to get ECDH private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH private key");
 
     const BIGNUM* priv_key = EC_KEY_get0_private_key(m_ec);
     if (!priv_key)
-        return Runtime::setError("Failed to get ECDH private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH private key");
 
     // Use the curve order size to determine the fixed-length output,
     // so that leading zeros are preserved (matching Node.js behavior).
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     if (!group)
-        return Runtime::setError("Failed to get ECDH private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH private key");
 
     BIGNUM* order = BN_new();
     if (!order)
-        return Runtime::setError("Failed to get ECDH private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH private key");
 
     if (!EC_GROUP_get_order(group, order, NULL)) {
         BN_free(order);
-        return Runtime::setError("Failed to get ECDH private key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH private key");
     }
 
     int key_len = BN_num_bytes(order);
@@ -124,7 +124,7 @@ result_t ECDH::getPrivateKey(exlib::string encoding, v8::Local<v8::Value>& retVa
 result_t ECDH::getPublicKey(exlib::string encoding, exlib::string format, v8::Local<v8::Value>& retVal)
 {
     if (!m_ec || (!m_keysGenerated && !m_publicKeySet))
-        return Runtime::setError("Failed to get ECDH public key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH public key");
 
     result_t hr = validatePointFormat(format);
     if (hr.failed())
@@ -132,11 +132,11 @@ result_t ECDH::getPublicKey(exlib::string encoding, exlib::string format, v8::Lo
 
     const EC_POINT* point = EC_KEY_get0_public_key(m_ec);
     if (!point)
-        return Runtime::setError("Failed to get ECDH public key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH public key");
 
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     if (!group)
-        return Runtime::setError("Failed to get ECDH public key");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to get ECDH public key");
 
     // Determine point conversion format
     point_conversion_form_t form = POINT_CONVERSION_UNCOMPRESSED;
@@ -176,7 +176,7 @@ result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::s
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return Runtime::setError("Invalid buffer type");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid buffer type");
 
     // Convert buffer to BIGNUM
     BignumPointer priv_bn = BN_bin2bn((const unsigned char*)key_buf->data(), key_buf->length(), nullptr);
@@ -191,7 +191,7 @@ result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::s
 
     // Validate private key: must be in range [1, order-1]
     if (BN_is_zero(priv_bn) || BN_cmp(priv_bn, order) >= 0)
-        return Runtime::setError("Private key is not valid for specified curve");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Private key is not valid for specified curve");
 
     // Set the private key
     if (EC_KEY_set_private_key(m_ec, priv_bn) != 1)
@@ -234,7 +234,7 @@ result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::strin
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return Runtime::setError("Invalid buffer type");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid buffer type");
 
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     ECPointPointer point = EC_POINT_new(group);
@@ -243,11 +243,11 @@ result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::strin
 
     // Convert octets to point
     if (EC_POINT_oct2point(group, point, key_buf->data(), key_buf->length(), nullptr) != 1)
-        return Runtime::setError("Failed to convert Buffer to EC_POINT");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to convert Buffer to EC_POINT");
 
     // Validate the point is on the curve
     if (EC_POINT_is_on_curve(group, point, nullptr) != 1)
-        return Runtime::setError("Public key is not valid for specified curve");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Public key is not valid for specified curve");
 
     if (EC_KEY_set_public_key(m_ec, point) != 1)
         return openssl_error();
@@ -271,17 +271,17 @@ result_t ECDH::computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib:
         other_key_buffer = std::get<obj_ptr<Buffer_base>>(otherKey);
 
     if (!m_ec || !m_privateKeySet)
-        return Runtime::setError("Private key not set");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Private key not set");
 
     // Check if we have a public key set that doesn't match the private key
     if (m_publicKeySet) {
         // This means setPublicKey was called after setPrivateKey, which breaks the key pair
-        return Runtime::setError("Invalid key pair");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid key pair");
     }
 
     Buffer* other_pub_buf = Buffer::Cast(other_key_buffer);
     if (!other_pub_buf)
-        return Runtime::setError("Invalid buffer type");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid buffer type");
 
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     ECPointPointer other_point = EC_POINT_new(group);
@@ -290,11 +290,11 @@ result_t ECDH::computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib:
 
     // Convert other party's public key to point
     if (EC_POINT_oct2point(group, other_point, (const unsigned char*)other_pub_buf->data(), other_pub_buf->length(), nullptr) != 1)
-        return Runtime::setError("Public key is not valid for specified curve");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Public key is not valid for specified curve");
 
     // Validate the other party's public key is on the same curve
     if (EC_POINT_is_on_curve(group, other_point, nullptr) != 1)
-        return Runtime::setError("Public key is not valid for specified curve");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Public key is not valid for specified curve");
 
     // Get field size to determine shared secret length
     int field_size = EC_GROUP_get_degree(group);
@@ -329,15 +329,15 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
         key_buffer = std::get<obj_ptr<Buffer_base>>(key);
 
     if (curve.empty())
-        return Runtime::setError("The \"curve\" argument must be of type string. Received undefined");
+        return result_t::make(CALL_E_EXCEPTION).with_message("The \"curve\" argument must be of type string. Received undefined");
 
     int cid = GetCurveFromName(curve.c_str());
     if (cid == NID_undef)
-        return Runtime::setError("Invalid EC curve name: '%s'.", curve.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid EC curve name: '%s'.", curve.c_str());
 
     // Validate format
     if (!format.empty() && format != "uncompressed" && format != "compressed" && format != "hybrid")
-        return Runtime::setError("Invalid ECDH format: " + format);
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid ECDH format: " + format);
 
     // Create temporary ECDH object to use helper functions
     ECDH temp_ecdh(curve);
@@ -347,7 +347,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return Runtime::setError("Invalid buffer type");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid buffer type");
 
     // Get EC_GROUP through a public method
     const EC_GROUP* group = temp_ecdh.getGroup();
@@ -357,7 +357,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
 
     // Convert input key to point
     if (EC_POINT_oct2point(group, point, key_buf->data(), key_buf->length(), nullptr) != 1)
-        return Runtime::setError("Failed to convert Buffer to EC_POINT");
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to convert Buffer to EC_POINT");
 
     // Determine output point format
     point_conversion_form_t form = POINT_CONVERSION_UNCOMPRESSED;

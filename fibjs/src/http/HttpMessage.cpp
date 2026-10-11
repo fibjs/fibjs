@@ -247,7 +247,7 @@ public:
             m_buffer.Release();
 
             if (m_contentLength != (int32_t)m_body_length)
-                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is not complete."));
         }
 
         sz1 = m_pThis->getData(nullptr, 0, m_content_length);
@@ -277,7 +277,7 @@ public:
 
         obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_pThis->body());
         if (!seekable)
-            return CHECK_ERROR(Runtime::setError("HttpMessage: request body must be seekable."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: request body must be seekable."));
         seekable->rewind();
         return m_pThis->body()->copyTo(m_stm, m_contentLength, m_copySize, next(body_ok));
     }
@@ -285,7 +285,7 @@ public:
     ON_STATE(asyncSendTo, body_ok)
     {
         if (m_contentLength != m_copySize)
-            return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
+            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is not complete."));
         return next();
     }
 
@@ -336,10 +336,10 @@ result_t HttpMessage::json(Variant& retVal, AsyncHandle ac)
     exlib::string strType;
 
     if (firstHeader("Content-Type", strType).is_return_null())
-        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: Content-Type is missing."));
 
     if (strType.find("json") == exlib::string::npos)
-        return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: Invalid content type."));
 
     return Message::json(retVal, std::move(ac));
 }
@@ -355,14 +355,14 @@ result_t HttpMessage::pack(Variant& retVal, AsyncHandle ac)
     exlib::string strType;
 
     if (firstHeader("Content-Type", strType).is_return_null())
-        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: Content-Type is missing."));
 
     size_t pos = strType.find(';');
     if (pos != exlib::string::npos)
         strType = strType.substr(0, pos);
 
     if (strType != "application/msgpack")
-        return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: Invalid content type."));
 
     return Message::pack(retVal, std::move(ac));
 }
@@ -375,26 +375,22 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
     exlib::string strType;
 
     if (firstHeader("Content-Type", strType).is_return_null())
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            ->with_message("Failed to execute 'formData' on 'Body': Content-Type is missing.")));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': Content-Type is missing."));
 
     bool is_multipart = qstristr(strType.c_str(), "multipart/form-data") != NULL;
     bool is_urlencoded = qstristr(strType.c_str(), "urlencoded") != NULL;
 
     if (!is_multipart && !is_urlencoded)
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            ->with_message("Failed to execute 'formData' on 'Body': the Content-Type is not a form type.")));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the Content-Type is not a form type."));
 
     if (is_multipart && qstristr(strType.c_str(), "boundary") == NULL)
-        return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            ->with_message("Failed to execute 'formData' on 'Body': the multipart Content-Type is missing a boundary.")));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the multipart Content-Type is missing a boundary."));
 
     return consumeBody([this, &retVal, strType, is_multipart](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
 
         if (n.is_return_null() || !data)
-            return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                ->with_message("Failed to execute 'formData' on 'Body': the body is empty."));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the body is empty.");
 
         obj_ptr<FormData> form = new FormData();
         result_t hr;
@@ -464,7 +460,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
                         && ((m_pThis->m_contentLength < 0)
                             || (m_pThis->m_maxBodySize >= 0
                                 && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)))
-                        return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
+                        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is too huge."));
 
                     {
                         result_t hr = m_pThis->appendHeader(m_strLine);
@@ -480,7 +476,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
 
                     p.skipSpace();
                     if (qstricmp(p.now(), "chunked"))
-                        return CHECK_ERROR(Runtime::setError("HttpMessage: unknown transfer-encoding."));
+                        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: unknown transfer-encoding."));
 
                     m_pThis->m_bChunked = true;
 
@@ -498,7 +494,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
                 }
 
                 if (m_headCount > m_pThis->m_maxHeadersCount)
-                    return CHECK_ERROR(Runtime::setError("HttpMessage: too many headers."));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: too many headers."));
 
                 return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, this);
             }
@@ -521,7 +517,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
-        return CHECK_ERROR(Runtime::setError("HttpMessage: only accept BufferedStream object."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: only accept BufferedStream object."));
 
     _stm->get_stream(m_socket);
     m_stm = _stm;
@@ -574,7 +570,7 @@ result_t HttpMessage::readBody(AsyncHandle ac)
         ON_STATE(asyncReadBody, body)
         {
             if (m_pThis->m_contentLength > 0 && m_pThis->m_contentLength != m_copySize)
-                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
+                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is not complete."));
 
             m_body->rewind();
             return next();
@@ -592,7 +588,7 @@ result_t HttpMessage::readBody(AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_stm)
-        return CHECK_ERROR(Runtime::setError("HttpMessage: stream is not set."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: stream is not set."));
 
     return (new asyncReadBody(this, m_stm.As<BufferedStream_base>(), std::move(ac)))->post(0);
 }
@@ -651,7 +647,7 @@ result_t HttpMessage::appendHeader(exlib::string& strLine)
     p.skipWord(':');
     p2 = p.pos;
     if (0 == p2 || !p.want(':'))
-        return CHECK_ERROR(Runtime::setError("HttpMessage: bad header: " + strLine));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad header: " + strLine));
 
     p.skipSpace();
     appendHeader(p.string, p2, p.now(), p.left());
@@ -752,7 +748,7 @@ result_t HttpMessage::set_protocol(exlib::string newVal)
 
     if (qstrcmp(c_str, "HTTP/", 5) || !qisdigit(c_str[5]) || c_str[6] != '.'
         || !qisdigit(c_str[7]) || c_str[8])
-        return CHECK_ERROR(Runtime::setError("HttpMessage: bad protocol version."));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad protocol version."));
 
     m_keepAlive = ((c_str[5] - '0') * 10 + c_str[7] - '0') > 10;
 
@@ -799,7 +795,7 @@ result_t HttpMessage::get_maxHeadersCount(int32_t& retVal)
 result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "maxHeadersCount must be non-negative, received %d.", newVal));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -814,7 +810,7 @@ result_t HttpMessage::get_maxHeaderSize(int32_t& retVal)
 result_t HttpMessage::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(Runtime::setError(CALL_E_OUTRANGE, "maxHeaderSize must be non-negative, received %d.", newVal));
+        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
 
     m_maxHeaderSize = newVal;
     return 0;
