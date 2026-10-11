@@ -106,7 +106,7 @@ exlib::string getResultMessage(result_t hr)
 
         if (s.length() > 0)
             return s;
-    } else if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    } else if (hr.is_param_missing()) {
         exlib::string s = Runtime::errMessage();
 
         if (s.length() > 0)

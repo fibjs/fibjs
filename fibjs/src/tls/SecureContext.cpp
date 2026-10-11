@@ -22,7 +22,7 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
     if (hr == 0)
         return 0;
 
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL) && !hr.is(CALL_E_TYPEMISMATCH))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is(CALL_E_TYPEMISMATCH))
         return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
     if (!js_obj_has_value(options, context, name))
@@ -41,7 +41,7 @@ result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isSer
     result_t hr;
 
     hr = GetConfigValue(options, "secureContext", retVal, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (!hr.is_param_missing())
         return hr;
 
     obj_ptr<SecureContext> ctx = new SecureContext();
@@ -126,10 +126,10 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
     Isolate* isolate = holder();
     obj_ptr<X509Certificate_base> ca;
     result_t hr = load_cert_option(options, "ca", ca);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (!hr.is_param_missing())
         return set_ca(ca);
     else if (!isServer)
         return set_ca(isolate->m_ctx.As<SecureContext>()->m_ca);
@@ -229,10 +229,10 @@ result_t SecureContext::set_cert(v8::Local<v8::Object> options)
     obj_ptr<X509Certificate_base> certs;
 
     result_t hr = load_cert_option(options, "cert", certs);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         X509Certificate* now = certs.As<X509Certificate>();
 
         SSL_CTX_use_certificate(m_ctx, now->cert());
@@ -313,20 +313,20 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
     int32_t minVersion = 0;
 
     hr = GetConfigValue(options, "maxVersion", ver, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: maxVersion must be a valid string.");
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         hr = ver_id(ver, maxVersion);
         if (hr.failed())
             return hr;
     }
 
     hr = GetConfigValue(options, "minVersion", ver, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: minVersion must be a valid string.");
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         hr = ver_id(ver, minVersion);
         if (hr.failed())
             return hr;
@@ -336,10 +336,10 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
     exlib::string secureProtocol;
 
     hr = GetConfigValue(options, "secureProtocol", secureProtocol, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: secureProtocol must be a valid string.");
 
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL) || secureProtocol == "TLS_method") {
+    if (hr.is_param_missing() || secureProtocol == "TLS_method") {
         method = TLS_method();
     } else if (secureProtocol == "TLS_client_method") {
         method = TLS_client_method();
@@ -447,15 +447,15 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
     bool rejectUnauthorized = !isServer;
 
     hr = GetConfigValue(options, "requestCert", requestCert);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: requestCert must be a valid boolean.");
 
     hr = GetConfigValue(options, "rejectUnverified", rejectUnverified);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: rejectUnverified must be a valid boolean.");
 
     hr = GetConfigValue(options, "rejectUnauthorized", rejectUnauthorized);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
 
     if (!requestCert)
@@ -504,29 +504,29 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
 
     int32_t SNICacheSize;
     hr = GetConfigValue(options, "SNICacheSize", SNICacheSize);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: SNICacheSize must be a valid number.");
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (!hr.is_param_missing())
         m_sniContexts.resize(SNICacheSize);
 
     int64_t SNICacheIdleTimeout = 300;
     hr = GetConfigValue(options, "SNICacheIdleTimeout", SNICacheIdleTimeout);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: SNICacheIdleTimeout must be a valid number.");
 
     int64_t SNICacheTimeout = 300;
     hr = GetConfigValue(options, "SNICacheTimeout", SNICacheTimeout);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: SNICacheTimeout must be a valid number.");
 
     m_sniContexts.set_timeout(SNICacheIdleTimeout, SNICacheTimeout);
 
     v8::Local<v8::Function> js_sn_resolver;
     hr = GetConfigValue(options, "SNIResolver", js_sn_resolver);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: SNIResolver must be a valid function.");
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         m_sn_callback.Reset(isolate->m_isolate, js_sn_resolver);
         m_sniContexts.set_resolver([this](exlib::string key, obj_ptr<SecureContext>& ctx) -> bool {
             struct Param {
@@ -591,10 +591,10 @@ result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
     int32_t timeout;
 
     hr = GetConfigValue(options, "sessionTimeout", timeout);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("SecureContext: sessionTimeout must be a valid number.");
 
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (!hr.is_param_missing())
         if (SSL_CTX_set_timeout(m_ctx, timeout) <= 0)
             return openssl_error();
 
@@ -675,7 +675,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
 
     v8::Local<v8::Value> val;
     hr = GetConfigValue(options, "alpnProtocols", val);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.is_param_missing())
         return 0;
     if (hr.failed())
         return hr;

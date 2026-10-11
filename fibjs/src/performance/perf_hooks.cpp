@@ -41,7 +41,7 @@ result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
     result_t hr;
 
     hr = GetConfigValue(options, "entryTypes", entryTypes, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (entryTypes.empty()) {
@@ -204,7 +204,7 @@ result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> option
 
     double _now = perf_now();
     hr = GetConfigValue(options, "startTime", _now, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     v8::Local<v8::Value> detail;
@@ -293,7 +293,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
 
     double durationTime = 0;
     hr = GetConfigValue(options, "duration", durationTime, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     double endTime;

@@ -111,14 +111,14 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
     KeyObject* key__ = key_.As<KeyObject>();
 
     hr = GetConfigValue(key, "padding", padding, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     const EVP_MD* digest = nullptr;
     if (useo_aep) {
         exlib::string oaepHash = "sha1";
         hr = GetConfigValue(key, "oaepHash", oaepHash, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         digest = _evp_md_type(oaepHash.c_str());
@@ -132,7 +132,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
         hr = GetArgumentValue(isolate, v, oaep_label, false);
         if (hr.failed())
             return hr;
-    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    } else if (!hr.is_param_missing())
         return hr;
 
     return PKEY_cipher<EVP_PKEY_cipher_init, EVP_PKEY_cipher>(key__->pkey(), padding, digest, oaep_label, buffer, retVal);
@@ -145,7 +145,7 @@ static result_t optionsStringToBuffer(v8::Local<v8::Object> key, exlib::string s
     exlib::string encoding = "utf8";
 
     result_t hr = GetConfigValue(key, "encoding", encoding, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return Buffer_base::from(str, encoding, retVal);

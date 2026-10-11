@@ -133,7 +133,7 @@ result_t get_protocols(v8::Local<v8::Object> opts, std::vector<exlib::string>& p
     bool hasProtocols = opts->Has(context, protocolsKey).FromMaybe(false);
 
     hr = GetConfigValue(opts, "protocol", protocol);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hasProtocols) {

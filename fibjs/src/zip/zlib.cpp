@@ -20,7 +20,7 @@ static result_t parse_level_option(v8::Local<v8::Object> options, AsyncHandle ac
 {
     int32_t level = zlib_base::C_DEFAULT_COMPRESSION;
     result_t hr = GetConfigValue(options, "level", level, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     ac.ctxv().resize(1);
@@ -33,7 +33,7 @@ static result_t parse_max_output_option(v8::Local<v8::Object> options, AsyncHand
 {
     int32_t maxOutputLength = -1;
     result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     ac.ctxv().resize(1);

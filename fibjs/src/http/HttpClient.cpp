@@ -331,51 +331,51 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
         return hr;
 
     hr = GetConfigValue(options, "keepAlive", m_keepAlive);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "timeout", m_timeout);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableCookie", m_enableCookie);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "autoRedirect", m_autoRedirect);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableEncoding", m_enableEncoding);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableH2", m_enableH2);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxHeadersCount", m_maxHeadersCount);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxHeaderSize", m_maxHeaderSize);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxBodySize", m_maxBodySize);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "userAgent", m_userAgent);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "poolTimeout", m_poolTimeout);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxFreeSockets", m_maxFreeSockets);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     Isolate* isolate = Isolate::current(options);
@@ -731,11 +731,11 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
 
     // Check lowercase variants first (higher priority)
     hr = GetConfigValue(newVal, "http_proxy", http_proxy);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "HTTP_PROXY", http_proxy);
     }
-    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.ok() || hr.is_param_missing()) {
         if (hr.ok()) {
             hr = set_http_proxy(http_proxy);
             if (hr.failed())
@@ -746,11 +746,11 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
     }
 
     hr = GetConfigValue(newVal, "https_proxy", https_proxy);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "HTTPS_PROXY", https_proxy);
     }
-    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.ok() || hr.is_param_missing()) {
         if (hr.ok()) {
             hr = set_https_proxy(https_proxy);
             if (hr.failed())
@@ -761,11 +761,11 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
     }
 
     hr = GetConfigValue(newVal, "no_proxy", no_proxy);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "NO_PROXY", no_proxy);
     }
-    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.ok() || hr.is_param_missing()) {
         if (hr.ok())
             m_no_proxy = no_proxy;
     } else {

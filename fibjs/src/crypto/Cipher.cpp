@@ -99,7 +99,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
 
     // Check keyLength filter
     hr = GetConfigValue(options, "keyLength", expected_key_length, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hr == 0) {
@@ -109,7 +109,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
 
     // Check ivLength filter
     hr = GetConfigValue(options, "ivLength", expected_iv_length, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hr == 0) {
@@ -429,7 +429,7 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
         int auth_tag_len = kNoAuthTagLength;
 
         hr = GetConfigValue(options, "authTagLength", auth_tag_len, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = InitAuthenticated(iv_len, auth_tag_len);
@@ -518,7 +518,7 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     if (mode == EVP_CIPH_CCM_MODE) {
         int plaintext_len = kNoAuthTagLength;
         result_t hr = GetConfigValue(options, "plaintextLength", plaintext_len, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         if (plaintext_len < 0)
@@ -551,7 +551,7 @@ result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> option
         exlib::string encoding = "utf8";
 
         hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = commonDecode(encoding, _buffer, _buffer);

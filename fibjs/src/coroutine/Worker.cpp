@@ -130,7 +130,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 {
     bool isEval = false;
     result_t hr = GetConfigValue(opts, "eval", isEval, false);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (!isEval) {

@@ -90,17 +90,17 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
 
     bool persistent = true;
     hr = GetConfigValue(options, "persistent", persistent, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     bool recursive = false;
     hr = GetConfigValue(options, "recursive", recursive, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     exlib::string encoding = "utf8";
     hr = GetConfigValue(options, "encoding", encoding, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive, encoding);
@@ -129,17 +129,17 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
     if (pSW == NULL) {
         bool persistent = true;
         hr = GetConfigValue(options, "persistent", persistent, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         bool useBigInt = false;
         hr = GetConfigValue(options, "bigint", useBigInt, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         int32_t interval = DEFAULT_STATS_WATCH_INTERVAL;
         hr = GetConfigValue(options, "interval", interval, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         pSW = new StatsWatcher(safe_name, persistent, interval, useBigInt);

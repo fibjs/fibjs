@@ -147,7 +147,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
             return hr;
 
         hr = GetConfigValue(o, "encoding", encoding, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = commonDecode(encoding, _buf, _buf);

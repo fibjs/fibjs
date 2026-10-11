@@ -522,7 +522,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
                 encoding = "utf8";
 
                 result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(opt), "encoding", encoding, true);
-                if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+                if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
                     return hr;
             }
 
@@ -1134,7 +1134,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
                 encoding = "utf8";
 
             result_t hr = GetConfigValue(options, "encoding", encoding, true);
-            if (!bBuffer && hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+            if (!bBuffer && hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
                 return hr;
 
             result_t _e = check_encoding(encoding);

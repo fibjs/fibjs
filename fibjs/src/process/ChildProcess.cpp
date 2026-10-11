@@ -252,7 +252,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     int32_t count = 3;
     v8::Local<v8::Value> v;
     hr = GetConfigValue(options, "stdio", v);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         // fork 默认 stdio 为 inherit（与 Node 一致）；silent:true 时改为 pipe。
         // Node 语义：silent 仅在未显式提供 stdio 时生效，spawn 没有 silent 选项。
         bool silent = false;
@@ -366,7 +366,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 
     int32_t uid;
     hr = GetConfigValue(options, "uid", uid);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
 
@@ -376,7 +376,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 
     int32_t gid;
     hr = GetConfigValue(options, "gid", gid);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
 

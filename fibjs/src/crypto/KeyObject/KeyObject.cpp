@@ -274,7 +274,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 
     exlib::string format = "pem";
     hr = GetConfigValue(key, "format", format, true);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         v8::Local<v8::Value> k;
 
         hr = GetConfigValue(key, "key", k);

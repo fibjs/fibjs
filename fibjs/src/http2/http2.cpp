@@ -84,7 +84,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         v8::Local<v8::Value> alpnVal;
         hr = GetConfigValue(options, "alpnProtocols", alpnVal);
         v8::Local<v8::Object> connectOpts = options;
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) || alpnVal.IsEmpty()) {
+        if (hr.is_param_missing() || alpnVal.IsEmpty()) {
             connectOpts = options->Clone();
             v8::Local<v8::Array> alpn = v8::Array::New(isolate->m_isolate, 1);
             alpn->Set(context, 0, isolate->NewString("h2")).IsJust();

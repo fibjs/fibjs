@@ -140,7 +140,7 @@ bool FSWatcher::removeItem(WatchItem* item)
 
     m_items.erase(it);
 
-        /* Recursively remove descendants. Their events are not emitted
+                /* Recursively remove descendants. Their events are not emitted
      * separately: the removal of the ancestor already represents the whole
      * subtree going away (same as Node.js). */
     std::vector<WatchItem*> children;
@@ -204,7 +204,7 @@ void FSWatcher::rescanDir(WatchItem* item, bool emit_new)
 
     closedir(dir);
 
-        /* Unwatch direct children that are no longer on disk. This is the
+                /* Unwatch direct children that are no longer on disk. This is the
      * fallback for events that were never delivered to the child watcher
      * itself (e.g. a directory moved out of the tree: inotify reports it to
      * the parent, not to the moved directory's watchers). */
@@ -308,7 +308,7 @@ int32_t FSWatcher::startRecursive()
 
     err = uv_fs_event_start(&root->handle, item_cb, m_filename.c_str(), 0);
     if (err != 0) {
-                /* Close callback frees the item; not marked as root so that the
+                                /* Close callback frees the item; not marked as root so that the
          * caller's failure path performs the matching Unref(). */
         uv_close((uv_handle_t*)&root->handle, item_close_cb);
         return err;

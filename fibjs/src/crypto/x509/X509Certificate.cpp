@@ -604,7 +604,7 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
     int flags = 0;
     exlib::string subject("default");
     result_t hr = GetConfigValue(options, "subject", subject, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (subject == "always")
@@ -634,7 +634,7 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
     int flags = 0;
     exlib::string subject("default");
     result_t hr = GetConfigValue(options, "subject", subject, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (subject == "always")
@@ -646,28 +646,28 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
 
     bool wildcards = true;
     hr = GetConfigValue(options, "wildcards", wildcards, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (!wildcards)
         flags |= X509_CHECK_FLAG_NO_WILDCARDS;
 
     bool partialWildcards = true;
     hr = GetConfigValue(options, "partialWildcards", partialWildcards, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (!partialWildcards)
         flags |= X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
 
     bool multiLabelWildcards = false;
     hr = GetConfigValue(options, "multiLabelWildcards", multiLabelWildcards, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (!multiLabelWildcards)
         flags |= X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;
 
     bool singleLabelSubdomains = false;
     hr = GetConfigValue(options, "singleLabelSubdomains", singleLabelSubdomains, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (singleLabelSubdomains)
         flags |= X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;

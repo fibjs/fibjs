@@ -75,12 +75,12 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     bool reuseAddr = false;
     hr = GetConfigValue(opts, "reuseAddr", reuseAddr);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     bool ipv6Only = false;
     hr = GetConfigValue(opts, "ipv6Only", ipv6Only);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     exlib::string type;
@@ -98,11 +98,11 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
         return hr;
 
     hr = GetConfigValue(opts, "recvBufferSize", s->m_recvbuf_size);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(opts, "sendBufferSize", s->m_sendbuf_size);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     retVal = s;

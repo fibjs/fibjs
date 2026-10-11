@@ -566,17 +566,17 @@ result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::
         result_t hr;
 
         hr = GetConfigValue(opt, "skip", it->m_skip, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = GetConfigValue(opt, "limit", it->m_limit, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
         if (it->m_limit == 0)
             return Runtime::setError("limit must be greater than 0");
 
         hr = GetConfigValue(opt, "reverse", it->m_reverse, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     }
 

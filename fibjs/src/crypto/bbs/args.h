@@ -34,7 +34,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     exlib::string suite = "Bls12381Sha256";
     hr = GetConfigValue(opts, "suite", suite);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (suite == "Bls12381Sha256")
         ac.ctxv()[1] = Bls12381Sha256;
@@ -45,13 +45,13 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     obj_ptr<Buffer_base> header;
     hr = GetConfigValue(opts, "header", header);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     ac.ctxv()[2] = header;
 
     obj_ptr<Buffer_base> proof_header;
     hr = GetConfigValue(opts, "proof_header", proof_header);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     ac.ctxv()[3] = proof_header;
 

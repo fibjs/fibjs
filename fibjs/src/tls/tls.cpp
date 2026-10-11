@@ -203,7 +203,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         ac.ctxv()[1] = timeout;
@@ -265,7 +265,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         ac.ctxv()[1] = timeout;

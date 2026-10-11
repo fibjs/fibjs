@@ -188,7 +188,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     bool ordered;
     hr = GetConfigValue(options, "ordered", ordered, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.reliability.unordered = !ordered;
@@ -196,7 +196,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     int32_t maxPacketLifeTime;
     hr = GetConfigValue(options, "maxPacketLifeTime", maxPacketLifeTime, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.reliability.maxPacketLifeTime = std::chrono::milliseconds(maxPacketLifeTime);
@@ -204,7 +204,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     int32_t maxRetransmits;
     hr = GetConfigValue(options, "maxRetransmits", maxRetransmits, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.reliability.maxRetransmits = maxRetransmits;
@@ -212,7 +212,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     exlib::string protocol;
     hr = GetConfigValue(options, "protocol", protocol, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.protocol = protocol;
@@ -220,7 +220,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     bool negotiated;
     hr = GetConfigValue(options, "negotiated", negotiated, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.negotiated = negotiated;
@@ -228,7 +228,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     int32_t id;
     hr = GetConfigValue(options, "id", id, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         init.id = id;
@@ -665,7 +665,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string bindAddress;
     hr = GetConfigValue(options, "bindAddress", bindAddress, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.bindAddress = bindAddress;
@@ -673,7 +673,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string certificateType;
     hr = GetConfigValue(options, "certificateType", certificateType, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         if (certificateType == "default")
@@ -688,7 +688,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string iceTransportPolicy;
     hr = GetConfigValue(options, "iceTransportPolicy", iceTransportPolicy, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         if (iceTransportPolicy == "all")
@@ -701,7 +701,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     v8::Local<v8::Array> iceServers;
     hr = GetConfigValue(options, "iceServers", iceServers, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
 
@@ -765,7 +765,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.portRangeBegin = config.portRangeEnd = port;
@@ -773,7 +773,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     int32_t maxMessageSize;
     hr = GetConfigValue(options, "maxMessageSize", maxMessageSize, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.maxMessageSize = maxMessageSize;
@@ -781,7 +781,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     bool enableIceUdpMux;
     hr = GetConfigValue(options, "enableIceUdpMux", enableIceUdpMux, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.enableIceUdpMux = enableIceUdpMux;
@@ -789,7 +789,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     bool disableFingerprintVerification;
     hr = GetConfigValue(options, "disableFingerprintVerification", disableFingerprintVerification, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.disableFingerprintVerification = disableFingerprintVerification;
@@ -797,7 +797,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string iceUfrag;
     hr = GetConfigValue(options, "iceUfrag", iceUfrag, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.iceUfrag = iceUfrag;
@@ -805,7 +805,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string icePwd;
     hr = GetConfigValue(options, "icePwd", icePwd, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.icePwd = icePwd;
@@ -813,7 +813,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string certPem;
     hr = GetConfigValue(options, "certPem", certPem, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.certificatePemFile = certPem;
@@ -821,7 +821,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string keyPem;
     hr = GetConfigValue(options, "keyPem", keyPem, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.keyPemFile = keyPem;
@@ -829,7 +829,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 
     exlib::string keyPass;
     hr = GetConfigValue(options, "keyPass", keyPass, true);
-    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (!hr.is_param_missing()) {
         if (hr.failed())
             return hr;
         config.keyPemPass = keyPass;

@@ -35,7 +35,7 @@ result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     file->m_name = name;
 
     result_t hr = GetConfigValue(options, "lastModified", file->m_lastModified, true);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         date_t d;
         d.now();
         file->m_lastModified = d.date();
@@ -73,7 +73,7 @@ result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retV
     }
 
     hr = GetConfigValue(options, "name", name, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL)) {
         return hr;
     }
 
@@ -219,7 +219,7 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
 
             if (!buffer) {
                 hr = GetArgumentValue(isolate, part, buffer);
-                if (hr.failed() && !hr.is(CALL_E_TYPEMISMATCH)) {
+                if (hr.failed_other_than(CALL_E_TYPEMISMATCH)) {
                     return hr;
                 }
             }

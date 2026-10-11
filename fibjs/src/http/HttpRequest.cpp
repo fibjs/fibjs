@@ -60,7 +60,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
         }
 
         hr = GetConfigValue(opts, "headers", headers);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.is_param_missing())
             headers = new Headers();
         else if (hr.failed())
             return hr;
@@ -93,7 +93,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
         }
     } else {
         hr = GetConfigValue(opts, "headers", headers);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.is_param_missing())
             headers = new Headers();
         else if (hr.failed())
             return hr;
@@ -104,7 +104,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     if (hr == 0) {
         keepAlive = ka;
         has_keepAlive = true;
-    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    } else if (!hr.is_param_missing())
         return hr;
 
     {

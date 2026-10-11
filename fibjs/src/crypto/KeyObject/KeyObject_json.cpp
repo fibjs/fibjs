@@ -86,41 +86,41 @@ result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
         BignumPointer qi;
 
         hr = GetJwkValue(key, "d", d);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown)
+        if (hr.is_param_missing() && type == kKeyTypeUnknown)
             he = 1;
         else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "p", p);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
+        if (hr.is_param_missing() && type == kKeyTypeUnknown) {
             if (he++ != 1)
                 return hr;
         } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "q", q);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
+        if (hr.is_param_missing() && type == kKeyTypeUnknown) {
             if (he++ != 2)
                 return hr;
         } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "dp", dp);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
+        if (hr.is_param_missing() && type == kKeyTypeUnknown) {
             if (he++ != 3)
                 return hr;
         } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "dq", dq);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
+        if (hr.is_param_missing() && type == kKeyTypeUnknown) {
             if (he++ != 4)
                 return hr;
         } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "qi", qi);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
+        if (hr.is_param_missing() && type == kKeyTypeUnknown) {
             if (he++ != 5)
                 return hr;
         } else if (hr.failed())
@@ -251,7 +251,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
     if (type == kKeyTypeUnknown) {
         exlib::string d;
         hr = GetJwkValue(key, "d", d);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.is_param_missing()) {
             // No private key component, this is a public key
             exlib::string x;
             hr = GetJwkValue(key, "x", x);

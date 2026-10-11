@@ -49,16 +49,16 @@ result_t TLSServer_base::_new(v8::Local<v8::Object> options, Union_TLSServer_lis
 
     exlib::string address;
     hr = GetConfigValue(options, "address", address, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     // if port is provided, bind immediately; otherwise deferred mode
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.is_param_missing())
         return _new(ctx, listener, retVal, This);
 
     return _new(ctx, address, port, listener, retVal, This);

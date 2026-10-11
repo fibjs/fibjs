@@ -79,16 +79,16 @@ result_t TcpServer_base::_new(v8::Local<v8::Object> options, Union_TcpServer_lis
 {
     exlib::string address;
     result_t hr = GetConfigValue(options, "address", address, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     // if port is provided, bind immediately; otherwise deferred mode
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+    if (hr.is_param_missing()) {
         if (!address.empty())
             return _new(address, listener, retVal, This);
         return _new(listener, retVal, This);

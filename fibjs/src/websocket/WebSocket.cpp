@@ -140,7 +140,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
     v8::Local<v8::String> protocolsKey = isolate->NewString("protocols", 9);
     bool hasProtocols = opts->Has(context, protocolsKey).FromMaybe(false);
     result_t hr = GetConfigValue(opts, "protocol", protocol);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hasProtocols) {
@@ -549,7 +549,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         return hr;
 
     hr = GetConfigValue(opts, "headers", headers);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.is_param_missing())
         headers = new Headers();
     else if (hr.failed())
         return hr;

@@ -256,7 +256,7 @@ private:
     /* true on platforms where libuv does not support UV_FS_EVENT_RECURSIVE */
     static bool needSelfRecursive();
 
-        /* self-implemented recursive watching (Linux): one inotify watcher per entry,
+                /* self-implemented recursive watching (Linux): one inotify watcher per entry,
      * new directories are registered by rescanning on directory change events,
      * mirroring how Node.js implements recursive watch where libuv cannot. */
     int32_t startRecursive();

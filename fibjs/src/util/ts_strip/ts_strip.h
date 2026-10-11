@@ -16,7 +16,7 @@
 namespace fibjs {
 namespace ts_strip {
 
-        /**
+                /**
      * Strip TypeScript type annotations from source code
      * 
      * This function removes TS-only syntax while preserving line/column positions
@@ -34,7 +34,7 @@ namespace ts_strip {
      */
     exlib::string strip(const exlib::string& source);
 
-        /**
+                /**
      * Strip TypeScript type annotations into a buffer of its own
      *
      * `source` is never written to: the erasing happens on a copy this function

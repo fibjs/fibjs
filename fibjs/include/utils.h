@@ -240,6 +240,14 @@ public:
         return code >= 0;
     }
 
+    // A failure that is not <c>: the "propagate anything but this code" idiom
+    // (`failed() && !is(c)`), e.g. GetConfigValue's strict mode reports
+    // CALL_E_PARAMNOTOPTIONAL for an absent option.
+    bool failed_other_than(int32_t c) const
+    {
+        return code < 0 && code != c;
+    }
+
     bool is(int32_t c) const
     {
         return code == c;
@@ -290,6 +298,13 @@ public:
     bool is_return_undefined() const
     {
         return code == CALL_RETURN_UNDEFINED;
+    }
+
+    // Strict option parsing (`GetConfigValue(..., true)`) reports this when the
+    // option was not provided at all.
+    bool is_param_missing() const
+    {
+        return code == CALL_E_PARAMNOTOPTIONAL;
     }
 };
 
@@ -453,7 +468,7 @@ enum {
     }                                                                                                           \
     while (0)                                                                                                   \
         ;                                                                                                       \
-    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is(CALL_E_PARAMNOTOPTIONAL) && !hr.is(CALL_E_TYPEMISMATCH)    \
+    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is_param_missing() && !hr.is(CALL_E_TYPEMISMATCH)    \
             && hr_argc != CALL_E_BADPARAMCOUNT && hr_argc != CALL_E_PARAMNOTOPTIONAL))                          \
         break;                                                                                                  \
     bStrict = false;                                                                                            \
@@ -1307,7 +1322,7 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<
     result_t hr = GetConfigValue(o, key, n1, bStrict);
     if (hr.ok())
         n = n1;
-    else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    else if (!hr.is_param_missing())
         return hr;
 
     return 0;

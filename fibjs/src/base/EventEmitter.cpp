@@ -433,7 +433,7 @@ result_t JSTrigger::addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Func
 {
     bool _once = false;
     result_t hr = GetConfigValue(options, "once", _once, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return _once ? once(ev, func, retVal) : on(ev, func, retVal);

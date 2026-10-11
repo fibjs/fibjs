@@ -26,15 +26,15 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
             enc = kSigEncP1363;
         else if (dsaEncoding != "der")
             return Runtime::setError("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
-    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    } else if (!hr.is_param_missing())
         return hr;
 
     hr = GetConfigValue(key, "padding", padding, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(key, "saltLength", salt_len, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return 0;

@@ -51,7 +51,7 @@ result_t KeyObject::toX25519_privateKey(v8::Local<v8::Object> options)
     if (key_type == EVP_PKEY_ED25519) {
         bool toX25519 = false;
         result_t hr = GetConfigValue(options, "toX25519", toX25519, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         if (toX25519) {
@@ -209,7 +209,7 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
     exlib::string namedCurve;
 
     hr = GetConfigValue(key, "format", format, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     obj_ptr<Buffer_base> _key;
@@ -219,16 +219,16 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
 
     obj_ptr<Buffer_base> _passphrase;
     hr = GetConfigValue(key, "passphrase", _passphrase);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (format == "der") {
         hr = GetConfigValue(key, "type", type, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     } else if (format == "raw") {
         hr = GetConfigValue(key, "namedCurve", namedCurve, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     }
 

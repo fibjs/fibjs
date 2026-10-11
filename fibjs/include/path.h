@@ -671,13 +671,13 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
 
     exlib::string dir;
     hr = GetConfigValue(pathObject, "dir", dir, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     exlib::string root;
 
     hr = GetConfigValue(pathObject, "root", root, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     bool dirFromRoot = false;
@@ -688,19 +688,19 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
 
     exlib::string base;
     hr = GetConfigValue(pathObject, "base", base, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (!base.length()) {
         exlib::string tmp;
         hr = GetConfigValue(pathObject, "name", tmp, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         base += tmp;
 
         hr = GetConfigValue(pathObject, "ext", tmp, true);
-        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         base += tmp;

@@ -26,7 +26,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
     exlib::string path;
     hr = GetConfigValue(o, "path", path);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.is_param_missing())
         return CHECK_ERROR(Runtime::setError("console: Missing path."));
     if (hr.failed())
         return hr;
@@ -77,11 +77,11 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             else
                 return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
         }
-    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
+    } else if (!hr.is_param_missing())
         return hr;
 
     hr = GetConfigValue(o, "count", m_count);
-    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
+    if (hr.is_param_missing())
         m_count = MAX_COUNT;
     else if (hr.failed())
         return hr;

@@ -83,7 +83,7 @@ public:
         v8::Local<v8::Array> levels;
 
         hr = GetConfigValue(o, "levels", levels);
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.is_param_missing()) {
         } else if (hr.failed())
             return hr;
         else {
