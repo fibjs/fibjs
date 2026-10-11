@@ -2318,7 +2318,7 @@ describe("child_process", () => {
 
         function waitBothEvents(events) {
             for (var i = 0; i < 100 && events.length < 2; i++)
-                coroutine.sleep(10);
+                coroutine.sleep(50);
             return events;
         }
 
@@ -2378,8 +2378,12 @@ describe("child_process", () => {
             var p = child_process.spawn(cmd, ['hold'], { cwd: runnerDir, stdio: 'ignore' });
             var events = captureEvents(p);
 
-            // run for a while so the script really is inside `sleep 25`
-            coroutine.sleep(800);
+            // wait until the script really is inside `sleep 25`: the wrapper
+            // has to boot first (an emulated target needs more than a second,
+            // a fixed sleep would race)
+            var t0 = Date.now();
+            while (leftovers('sleep 25') === '' && Date.now() - t0 < 20000)
+                coroutine.sleep(50);
             assert.notEqual(leftovers('sleep 25'), '', "the script's sleep should be running");
 
             p.kill('SIGTERM');
@@ -2390,7 +2394,11 @@ describe("child_process", () => {
                 ['close', null, 'SIGTERM']
             ]);
 
-            coroutine.sleep(300);
+            // the shell's process group dies with it; a slow target may need a
+            // moment to reap the sleep
+            t0 = Date.now();
+            while (leftovers('sleep 25') !== '' && Date.now() - t0 < 5000)
+                coroutine.sleep(50);
             assert.equal(leftovers('sleep 25'), '', "the script's sleep must be gone");
         });
     });

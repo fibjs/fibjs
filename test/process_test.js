@@ -418,25 +418,36 @@ describe('process', () => {
             }
         }
 
-        it("runs a signal listener and lets it decide the exit code", () => {
-            var cp = child_process.spawn(cmd, ['-e',
-                'process.on("SIGTERM",()=>{process.exit(7)});setInterval(()=>{},50)'
-            ], { stdio: 'ignore' });
+        // A fixed sleep cannot tell that the child reached JS: an emulated
+        // target needs more than a second to boot (test/process/signal1.js
+        // makes the same point), and a signal delivered before the listener
+        // exists kills the child by default action. Each child announces
+        // itself on stdout instead.
+        function spawnReady(code) {
+            var cp = child_process.spawn(cmd, ['-e', code],
+                { stdio: ['ignore', 'pipe', 'ignore'] });
 
-            coroutine.sleep(400);
+            new io.BufferedStream(cp.stdout).readLine(); // blocks until ready
+
+            return cp;
+        }
+
+        it("runs a signal listener and lets it decide the exit code", () => {
+            var cp = spawnReady(
+                'process.on("SIGTERM",()=>{process.exit(7)});console.log("ready");setInterval(()=>{},50)');
+
             cp.kill('SIGTERM');
 
             assert.equal(cp.join(), 7, "the listener has to run and decide the exit code");
         });
 
         it("terminates a JS loop that never yields", () => {
-            var cp = child_process.spawn(cmd, ['-e', 'while(true);'], { stdio: 'ignore' });
+            var cp = spawnReady('console.log("ready");while(true);');
 
-            coroutine.sleep(400);
             cp.kill('SIGTERM');
 
             var t0 = Date.now();
-            while (childAlive(cp.pid) && Date.now() - t0 < 5000)
+            while (childAlive(cp.pid) && Date.now() - t0 < 15000)
                 coroutine.sleep(50);
 
             if (childAlive(cp.pid))
@@ -447,11 +458,12 @@ describe('process', () => {
         });
 
         it("self kill with a listener keeps running instead of crashing", () => {
-            var code = 'process.on("SIGTERM",()=>{});process.kill(process.pid,"SIGTERM");setInterval(()=>{},50)';
-
             for (var i = 0; i < 5; i++) {
-                var cp = child_process.spawn(cmd, ['-e', code], { stdio: 'ignore' });
+                var cp = spawnReady(
+                    'process.on("SIGTERM",()=>{});console.log("ready");process.kill(process.pid,"SIGTERM");setInterval(()=>{},50)');
 
+                // the self kill fired right after the marker: a crash would
+                // have taken the process down by now
                 coroutine.sleep(500);
                 assert.isTrue(childAlive(cp.pid), "iteration " + i + " of the self kill crashed");
 
