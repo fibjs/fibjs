@@ -673,7 +673,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return v8::Intercepted::kNo;\n');
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                    txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                    txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr.is_return_null())\n        return v8::Intercepted::kNo;\n');
                     txts.push('    NAMED_METHOD_RETURN();\n}\n');
                     txts.push(`inline void ${cls}_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
@@ -686,7 +686,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return v8::Intercepted::kNo;\n`);
                         if (fn.deprecated)
                             txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                        txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                        txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr.is_return_null())\n        return v8::Intercepted::kNo;\n');
                         txts.push('    NAMED_METHOD_VOID();\n}\n');
                         txts.push(`inline v8::Intercepted ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
                         txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
@@ -699,7 +699,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                    txts.push('    hr = pInst->_indexed_getter(index, vr);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                    txts.push('    hr = pInst->_indexed_getter(index, vr);\n    if (hr.is_return_null())\n        return v8::Intercepted::kNo;\n');
                     txts.push('    NAMED_METHOD_RETURN();\n}\n');
 
                     if (!fn.readonly) {

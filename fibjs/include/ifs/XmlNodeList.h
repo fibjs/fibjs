@@ -127,7 +127,7 @@ inline v8::Intercepted XmlNodeList_base::i_IndexedGetter(uint32_t index, const v
     PROPERTY_ENTER();
 
     hr = pInst->_indexed_getter(index, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return v8::Intercepted::kNo;
 
     NAMED_METHOD_RETURN();

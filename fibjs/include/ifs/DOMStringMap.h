@@ -81,7 +81,7 @@ inline v8::Intercepted DOMStringMap_base::i_NamedGetter(v8::Local<v8::Name> prop
         return v8::Intercepted::kNo;
 
     hr = pInst->_named_getter(k, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return v8::Intercepted::kNo;
 
     NAMED_METHOD_RETURN();
@@ -111,7 +111,7 @@ inline v8::Intercepted DOMStringMap_base::i_NamedSetter(v8::Local<v8::Name> prop
         return v8::Intercepted::kNo;
 
     hr = pInst->_named_setter(k, v0);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return v8::Intercepted::kNo;
 
     NAMED_METHOD_VOID();
@@ -143,7 +143,7 @@ inline v8::Intercepted DOMStringMap_base::i_IndexedGetter(uint32_t index, const 
     PROPERTY_ENTER();
 
     hr = pInst->_indexed_getter(index, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return v8::Intercepted::kNo;
 
     NAMED_METHOD_RETURN();
