@@ -110,7 +110,8 @@ typedef int32_t SOCKET;
 
 namespace fibjs {
 
-typedef int32_t result_t;
+// result_t is defined below: it is a class now, and its predicates need the
+// CALL_E_* code space.
 
 #define CALL_RETURN_NULL 100000
 #define CALL_RETURN_UNDEFINED 100001
@@ -206,6 +207,95 @@ constexpr const char* kTimeoutError = "TimeoutError";
 #define CALL_E_NETNAME_DELETED (-ERROR_NETNAME_DELETED)
 #define CALL_E_CLOSED_SOCKET CALL_E_BAD_FILE
 #endif
+
+// Return code of every fibjs operation. It is a class (not a bare int) so the
+// common checks become named predicates instead of hard coded comparisons and,
+// in a later step of the migration, the structured error payload can ride with
+// the value. Until then it still converts to and from int32_t implicitly, so
+// existing call sites keep compiling unchanged.
+class result_t {
+public:
+    int32_t code = 0;
+
+    result_t() = default;
+    result_t(int32_t c)
+        : code(c)
+    {
+    }
+
+    // Compatibility conversion; removed in P4 of the migration.
+    operator int32_t() const
+    {
+        return code;
+    }
+
+    // Semantic checks (P2 replaces the hard coded comparisons with these).
+    bool failed() const
+    {
+        return code < 0;
+    }
+
+    bool ok() const
+    {
+        return code >= 0;
+    }
+
+    bool is(int32_t c) const
+    {
+        return code == c;
+    }
+
+    // A real system error (errno domain): the internal CALL_E_* codes live
+    // below CALL_E_MAX, and success (0) must not classify as one either.
+    bool is_system_error() const
+    {
+        return code < 0 && code > CALL_E_MAX;
+    }
+
+    bool is_internal_error() const
+    {
+        return code <= CALL_E_MAX;
+    }
+
+    int32_t errno_value() const
+    {
+        return is_system_error() ? -code : 0;
+    }
+
+    bool is_pending() const
+    {
+        return code == CALL_E_PENDDING;
+    }
+
+    bool is_nosync() const
+    {
+        return code == CALL_E_NOSYNC;
+    }
+
+    bool is_exception() const
+    {
+        return code == CALL_E_EXCEPTION;
+    }
+
+    bool is_javascript() const
+    {
+        return code == CALL_E_JAVASCRIPT;
+    }
+
+    bool is_return_null() const
+    {
+        return code == CALL_RETURN_NULL;
+    }
+
+    bool is_return_undefined() const
+    {
+        return code == CALL_RETURN_UNDEFINED;
+    }
+};
+
+// P1 keeps the 4-byte layout so the calling convention (and the addon ABI)
+// stays identical; P5 (payload carried by the value) raises this deliberately.
+static_assert(sizeof(result_t) == sizeof(int32_t), "result_t must stay 4 bytes until P5");
 
 #define STREAM_BUFF_SIZE 65536
 
@@ -1172,7 +1262,7 @@ result_t getVariantValue(Isolate* isolate, v8::Local<v8::Value> v,
               : (done = tryVariantAlternative<Is>(isolate, v, n, bStrict, hr)))...
     };
 
-    return done ? 0 : hr;
+    return done ? result_t(0) : hr;
 }
 
 template <typename... Ts>
@@ -1871,7 +1961,10 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 #ifndef NDEBUG
 #define CHECK_ERROR(hr) fibjs::_error_checker((hr), __FILE__, __LINE__)
 #else
-#define CHECK_ERROR(hr) (hr)
+// Same type as the debug path (_error_checker returns result_t): a bare `(hr)`
+// would leave the type of a macro argument (int vs result_t) visible in
+// conditional expressions, which is ambiguous while result_t converts both ways.
+#define CHECK_ERROR(hr) result_t(hr)
 #endif
 
 extern bool g_no_deprecation;

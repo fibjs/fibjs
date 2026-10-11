@@ -723,7 +723,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (hr < 0)
         return hr;
 
-    return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
+    return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
 }
 
 result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -770,7 +770,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 
         if (hr < 0)
             return hr;
-        return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
+        return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
     }
 
     // String path: convert to exlib::string and use _emit (handles "error" etc.)

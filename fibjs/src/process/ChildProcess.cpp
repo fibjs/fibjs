@@ -927,7 +927,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
     // Use whichever fd is available (both should point to the same pty)
     int fd_to_use = (m_stdinfd != -1) ? m_stdinfd : m_stdoutfd;
     int result = ioctl(fd_to_use, TIOCSWINSZ, &winsize);
-    return result == 0 ? 0 : CHECK_ERROR(Runtime::setError("resize failed"));
+    return result == 0 ? result_t(0) : CHECK_ERROR(Runtime::setError("resize failed"));
 #endif
 }
 

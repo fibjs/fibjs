@@ -57,7 +57,7 @@ public:
     static result_t setError(const ErrorPayload& payload)
     {
         return setError(payload, payload.error_type_name.c_str(),
-            payload.result_code != 0 ? payload.result_code : CALL_E_EXCEPTION,
+            payload.result_code != 0 ? payload.result_code : result_t(CALL_E_EXCEPTION),
             payload.message);
     }
 

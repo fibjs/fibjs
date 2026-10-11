@@ -654,7 +654,7 @@ void Isolate::get_stderr(obj_ptr<Stream_base>& retVal)
     retVal = m_stderr;
 }
 
-result_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
+int32_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
     v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
 {
     if (m_pipe_fn.IsEmpty())

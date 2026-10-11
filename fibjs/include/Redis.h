@@ -277,7 +277,7 @@ public:
     static result_t retValue(Variant& v, obj_ptr<Buffer_base>& retVal)
     {
         retVal = Buffer_base::getInstance(v.object());
-        return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
+        return retVal ? result_t(0) : CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
     static result_t retValue(Variant& v, exlib::string& retVal)
@@ -291,7 +291,7 @@ public:
     static result_t retValue(Variant& v, obj_ptr<NArray>& retVal)
     {
         retVal = (NArray*)v.object();
-        return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
+        return retVal ? result_t(0) : CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
     static result_t retValue(Variant& v, bool& retVal)

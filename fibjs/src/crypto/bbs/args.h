@@ -142,7 +142,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
     // otherwise the KeyObject alternative, parsed without touching V8
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         result_t hr = bbs_get_args(std::get<obj_ptr<KeyObject_base>>(key), priv, ac);
-        return hr == CALL_E_NOSYNC ? 0 : hr;
+        return hr == CALL_E_NOSYNC ? result_t(0) : hr;
     }
 
     return Runtime::setError(CALL_E_TYPEMISMATCH,
