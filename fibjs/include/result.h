@@ -161,6 +161,15 @@ public:
         return m_payload.get();
     }
 
+    // The shared handle for the interim transports (T4a): the value keeps the
+    // payload private; the handle grants reading / passing / cloning -- no
+    // writer surface once ErrorPayload's mutators become result_t-only (T4b).
+    // Batch 2 removes it together with the stash.
+    obj_ptr<ErrorPayload> payload_ref() const
+    {
+        return m_payload;
+    }
+
     // ----- creation: the builder is the only writable shape -----
     class builder;
     static builder make(int32_t code);

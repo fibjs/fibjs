@@ -365,7 +365,9 @@ public:
         // The payload and the error description belong to this thread; the emit
         // runs on the JS thread, so both are carried across explicitly.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        obj_ptr<ErrorPayload> payload = m_base->takePendingErrorPayload();
+        obj_ptr<ErrorPayload> pending = m_base->takePendingErrorPayload();
+        obj_ptr<ErrorPayload> found = v.payload_ref();
+        obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(pending);
         m_isolate->sync([stream, v, desc, payload]() -> int32_t {
             JSFiber::EnterJsScope s;
 

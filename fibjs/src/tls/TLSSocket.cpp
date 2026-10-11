@@ -278,18 +278,34 @@ public:
         // description travels the same way: a handshake failure is a
         // CALL_E_EXCEPTION whose name/message live in per-thread state.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-        if (!m_server_name.empty())
-            payload->arg("servername", m_server_name);
-        setErrorPayload(payload);
+        obj_ptr<ErrorPayload> eff;
+        {
+            obj_ptr<ErrorPayload> carried = v.payload_ref();
+
+            if (carried && !carried->empty()) {
+                // The description already rides with the value: enrich the
+                // value itself (the value-first consumers prefer it).
+                if (!m_server_name.empty())
+                    v = result_t(result_t::inherit(std::move(v)).arg("servername", m_server_name));
+                eff = v.payload_ref()->clone();
+            } else {
+                // No carried description: keep the stash path (an enrichment
+                // that fabricated an args-only payload would shadow the
+                // thread-state description).
+                eff = takeErrorPayload();
+                if (!m_server_name.empty())
+                    eff->arg("servername", m_server_name);
+            }
+            setErrorPayload(eff->clone());
+        }
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;
-            m_isolate->sync([sock, v, desc, payload]() -> int32_t {
+            m_isolate->sync([sock, v, desc, eff]() -> int32_t {
                 JSFiber::EnterJsScope s;
 
-                Runtime::applyErrorDescription(desc, payload);
+                Runtime::applyErrorDescription(desc, eff);
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;

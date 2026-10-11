@@ -23,7 +23,9 @@ public:
         add("type", type);
 
         if (type == "error" && !code.has_value()) {
-            obj_ptr<ErrorPayload> payload = takeErrorPayload();
+            obj_ptr<ErrorPayload> stashed = takeErrorPayload();
+            obj_ptr<ErrorPayload> found = code.payload_ref();
+            obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
 
             if (!payload->code.empty())
                 add("code", payload->code);

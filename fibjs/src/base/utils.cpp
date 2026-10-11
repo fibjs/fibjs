@@ -546,7 +546,11 @@ static bool is_fd_syscall(const exlib::string& syscall)
 
 static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::string type_name, exlib::string msg)
 {
-    obj_ptr<ErrorPayload> payload = takeErrorPayload();
+    // The stash mirror is always consumed (its liveness must not leak into the
+    // next unrelated error); the value-carried description wins when present.
+    obj_ptr<ErrorPayload> stashed = takeErrorPayload();
+    obj_ptr<ErrorPayload> found = hr.payload_ref();
+    obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
 
     // Precedence: payload name (crosses threads) > caller name > hr default.
     if (!payload->error_type_name.empty())

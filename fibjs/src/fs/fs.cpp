@@ -3236,7 +3236,9 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     // The open failure (description and payload) belongs to the calling thread;
     // the emit runs on the JS thread, so both are carried across.
     Runtime::ErrorDescription desc = Runtime::captureErrorDescription(hr);
-    obj_ptr<ErrorPayload> payload = takeErrorPayload();
+    obj_ptr<ErrorPayload> stashed = takeErrorPayload();
+    obj_ptr<ErrorPayload> found = hr.payload_ref();
+    obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
 
     async([stm, hr, desc, payload, isolate]() {
         // the emit must run on the JS thread with a valid context

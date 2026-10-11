@@ -2274,7 +2274,34 @@ public:
         // well, so it is captured here and restored in the emit fiber: without
         // it an aborted request would report "[0] Success" there.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        obj_ptr<ErrorPayload> payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
+
+        obj_ptr<ErrorPayload> payload;
+        {
+            obj_ptr<ErrorPayload> carried = v.payload_ref();
+
+            if (carried && !carried->empty()) {
+                // The description already rides with the value: enrich the
+                // value itself with the request context (the value-first
+                // consumers prefer it).
+                exlib::string url_str = sanitize_url_for_error(m_o->u);
+
+                if (!m_o->method.empty() || !url_str.empty()) {
+                    result_t::builder b = result_t::inherit(std::move(v));
+
+                    if (!m_o->method.empty())
+                        b = std::move(b).arg("method", m_o->method);
+                    if (!url_str.empty())
+                        b = std::move(b).arg("url", url_str);
+                    v = result_t(std::move(b));
+                }
+                payload = v.payload_ref()->clone();
+            } else {
+                // No carried description: keep the stash path (an enrichment
+                // that fabricated an args-only payload would shadow the
+                // thread-state description).
+                payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
+            }
+        }
 
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {

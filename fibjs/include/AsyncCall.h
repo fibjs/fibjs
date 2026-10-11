@@ -374,7 +374,8 @@ public:
                 // rule as AsyncBackgroundWrite's emit path.
                 if (hr.failed()) {
                     m_desc = Runtime::captureErrorDescription(hr);
-                    m_payload = takeErrorPayload();
+                    obj_ptr<ErrorPayload> found = hr.payload_ref();
+                    m_payload = (found && !found->empty()) ? std::move(found) : takeErrorPayload();
                 }
             }
 
