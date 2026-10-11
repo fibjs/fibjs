@@ -53,7 +53,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 
         ON_STATE(asyncCopy, write)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return next();
 
             int32_t blen = Buffer::Cast(m_buf)->length();
@@ -71,7 +71,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             // as an internal code. Those are normal ends of the operation and
             // must not build detail that the error path would only discard;
             // only a real I/O failure gets the failing leg named.
-            if (v < 0 && v > CALL_E_MAX) {
+            if (v.is_system_error()) {
                 ErrorPayload payload = takeErrorPayload();
 
                 if (at(write))
@@ -131,7 +131,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
 
             ON_STATE(AsyncCopy, write)
             {
-                if (n == CALL_RETURN_NULL)
+                if (n.is_return_null())
                     return error(0);
 
                 if (m_data->m_states[m_from].CompareAndSwap(

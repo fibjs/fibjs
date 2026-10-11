@@ -1079,7 +1079,7 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                     obj_ptr<XmlElement_base> parentEl;
                     result_t hr = element->get_parentElement(parentEl);
 
-                    while (hr == 0 && parentEl) {
+                    while (hr.has_value() && parentEl) {
                         exlib::string parentTag;
                         parentEl->get_tagName(parentTag);
                         if (!qstricmp(parentTag.c_str(), "OPTGROUP")) {

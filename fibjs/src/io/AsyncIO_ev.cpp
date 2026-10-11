@@ -221,7 +221,7 @@ public:
     // 到达这里；二次完成会让调用方状态机跑两次终态转换（double delete）。
     // unlock=false 仅用于排队期早退的 SOCKET_ERROR 路径（fd 已失效，该方向不会
     // 再有新操作排队，不归还 socket 锁）。
-    void complete(int32_t v, bool unlock = true)
+    void complete(result_t v, bool unlock = true)
     {
         if (m_completed.exchange(true))
             return;
@@ -237,7 +237,7 @@ public:
         delete this;
     }
 
-    void ready(int32_t v)
+    void ready(result_t v)
     {
         complete(v);
     }

@@ -172,7 +172,7 @@ static result_t bbsSign_(std::vector<obj_ptr<Buffer_base>>& messages, obj_ptr<Bu
 {
     // the key and the options come from the sync phase (ctx[0..3])
     result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     int suite = ac.ctxv()[1].intVal();
@@ -195,7 +195,7 @@ static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_b
 {
     // the key and the options come from the sync phase (ctx[0..3])
     result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     blst_p2 pk = get_pk(ac.ctxv()[0].object());
@@ -222,7 +222,7 @@ static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_bas
 {
     // the key and the options come from the sync phase (ctx[0..3])
     result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     Signature s;
@@ -333,7 +333,7 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
 {
     // the key and the options come from the sync phase (ctx[0..3])
     result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     blst_p2 pk = get_pk(ac.ctxv()[0].object());

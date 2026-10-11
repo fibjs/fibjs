@@ -93,11 +93,11 @@ void uv_post(std::function<void(void)> proc)
     uv_post(new UVPost(proc));
 }
 
-int uv_call(std::function<int(void)> proc)
+result_t uv_call(std::function<result_t(void)> proc)
 {
     class UVCall : public AsyncEvent {
     public:
-        UVCall(std::function<int(void)>& proc)
+        UVCall(std::function<result_t(void)>& proc)
             : AsyncEvent(NULL)
             , m_proc(proc)
         {
@@ -112,8 +112,8 @@ int uv_call(std::function<int(void)> proc)
         }
 
     public:
-        std::function<int(void)> m_proc;
-        int m_res;
+        std::function<result_t(void)> m_proc;
+        result_t m_res;
         exlib::Event m_event;
     };
 

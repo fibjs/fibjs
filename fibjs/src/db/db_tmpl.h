@@ -272,7 +272,7 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         exlib::string str = ac.ctxv()[0].string();
@@ -300,7 +300,7 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         exlib::string str = ac.ctxv()[0].string();
@@ -417,7 +417,7 @@ public:
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         // In fiber: take the Variant args from m_ctx (m_ctx[0] is the SQL).

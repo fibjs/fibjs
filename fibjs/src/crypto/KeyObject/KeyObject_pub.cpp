@@ -36,7 +36,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         if (hr.failed())
             return hr;
 
-        if (hr == 1)
+        if (hr.is(1))
             return CHECK_ERROR(Runtime::setError("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
@@ -47,7 +47,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         if (hr.failed())
             return hr;
 
-        if (hr == 1)
+        if (hr.is(1))
             return CHECK_ERROR(Runtime::setError("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
@@ -166,14 +166,14 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
     hr = TryParsePublicKey(bp, "PUBLIC KEY", [](const unsigned char** p, long l) {
         return d2i_PUBKEY(nullptr, p, l);
     });
-    if (hr != 1)
+    if (!hr.is(1))
         return hr;
 
     BIO_reset(bp);
     hr = TryParsePublicKey(bp, "RSA PUBLIC KEY", [](const unsigned char** p, long l) {
         return d2i_PublicKey(EVP_PKEY_RSA, nullptr, p, l);
     });
-    if (hr != 1)
+    if (!hr.is(1))
         return hr;
 
     BIO_reset(bp);
@@ -181,7 +181,7 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
         X509Pointer x509(d2i_X509(nullptr, p, l));
         return x509 ? X509_get_pubkey(x509) : nullptr;
     });
-    if (hr != 1)
+    if (!hr.is(1))
         return hr;
 
     BIO_reset(bp);
@@ -206,7 +206,10 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
 
     if (format == "pem") {
         hr = ParsePublicKeyPEM((const char*)_key->data(), _key->length());
-        if (hr <= 0)
+        // has_value() = a public key was parsed (0); failed() = a real error.
+        // The 1 sentinel means "not recognized" and falls through to the
+        // private-key parse below.
+        if (hr.has_value() || hr.failed())
             return hr;
 
         hr = ParsePrivateKey(format, type, namedCurve, _passphrase, key);

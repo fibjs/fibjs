@@ -259,7 +259,7 @@ struct CovDir {
     {
         exlib::string cwd;
 
-        if (process_base::cwd(cwd) < 0)
+        if (process_base::cwd(cwd).failed())
             return;
 
         dir.assign(cwd.c_str());

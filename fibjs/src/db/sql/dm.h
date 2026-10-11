@@ -94,7 +94,7 @@ public:
 
         if (point.empty()) {
             result_t r = execute("COMMIT", retVal, std::move(ac));
-            if (r < 0)
+            if (r.failed())
                 return r;
 
             return odbc_set_autocommit(m_conn, true);
@@ -119,7 +119,7 @@ public:
 
         if (point.empty()) {
             result_t r = execute("ROLLBACK", retVal, std::move(ac));
-            if (r < 0)
+            if (r.failed())
                 return r;
 
             return odbc_set_autocommit(m_conn, true);

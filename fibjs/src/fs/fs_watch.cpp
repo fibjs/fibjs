@@ -85,7 +85,7 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
 {
     result_t hr;
     exlib::string safe_name;
-    if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
+    if ((hr = get_safe_abs_path(fname, safe_name)).failed())
         return 0;
 
     bool persistent = true;
@@ -121,7 +121,7 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
 {
     result_t hr;
     exlib::string safe_name;
-    if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
+    if ((hr = get_safe_abs_path(fname, safe_name)).failed())
         return 0;
 
     obj_ptr<StatsWatcher> pSW;
@@ -161,7 +161,7 @@ result_t fs_base::unwatchFile(exlib::string fname)
 {
     result_t hr;
     exlib::string safe_name;
-    if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
+    if ((hr = get_safe_abs_path(fname, safe_name)).failed())
         return 0;
 
     obj_ptr<StatsWatcher> pSW;
@@ -177,7 +177,7 @@ result_t fs_base::unwatchFile(exlib::string fname, v8::Local<v8::Function> callb
 {
     result_t hr;
     exlib::string safe_name;
-    if ((hr = get_safe_abs_path(fname, safe_name)) < 0)
+    if ((hr = get_safe_abs_path(fname, safe_name)).failed())
         return 0;
 
     obj_ptr<StatsWatcher> pSW;

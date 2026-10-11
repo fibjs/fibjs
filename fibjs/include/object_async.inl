@@ -9,7 +9,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	_t ac(NULL, Isolate::current()); \
@@ -26,7 +26,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	_t ac(NULL, isolate); \
@@ -43,7 +43,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 	}; \
@@ -66,7 +66,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[0])->m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {this}; \
@@ -84,7 +84,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[0])->m( \
 				this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {this}; \
@@ -102,7 +102,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 	}; \
@@ -126,7 +126,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0}; \
@@ -145,7 +145,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0}; \
@@ -163,7 +163,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -191,7 +191,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
@@ -210,7 +210,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
@@ -228,7 +228,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -256,7 +256,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0}; \
@@ -275,7 +275,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0}; \
@@ -294,7 +294,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -319,7 +319,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
@@ -338,7 +338,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[1])->m( \
 				*(T0*) args[0], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
@@ -357,7 +357,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -382,7 +382,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
@@ -401,7 +401,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
@@ -420,7 +420,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -449,7 +449,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
@@ -468,7 +468,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
@@ -487,7 +487,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -516,7 +516,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
@@ -535,7 +535,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
@@ -554,7 +554,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -580,7 +580,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
@@ -599,7 +599,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[2])->m( \
 				*(T0*) args[0], *(T1*) args[1], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
@@ -618,7 +618,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -644,7 +644,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -663,7 +663,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -682,7 +682,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -712,7 +712,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -731,7 +731,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -750,7 +750,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -780,7 +780,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -799,7 +799,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
@@ -818,7 +818,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -845,7 +845,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -864,7 +864,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[3])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
@@ -883,7 +883,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -910,7 +910,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -929,7 +929,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -948,7 +948,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -979,7 +979,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -998,7 +998,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -1017,7 +1017,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1048,7 +1048,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -1067,7 +1067,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
@@ -1086,7 +1086,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1114,7 +1114,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -1133,7 +1133,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[4])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
@@ -1152,7 +1152,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1180,7 +1180,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -1199,7 +1199,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -1218,7 +1218,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1250,7 +1250,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -1269,7 +1269,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -1288,7 +1288,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1320,7 +1320,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -1339,7 +1339,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
@@ -1358,7 +1358,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1387,7 +1387,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -1406,7 +1406,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[5])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
@@ -1425,7 +1425,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1454,7 +1454,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -1473,7 +1473,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -1492,7 +1492,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1525,7 +1525,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -1544,7 +1544,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -1563,7 +1563,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1596,7 +1596,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -1615,7 +1615,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
@@ -1634,7 +1634,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1664,7 +1664,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -1683,7 +1683,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[6])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
@@ -1702,7 +1702,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1732,7 +1732,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -1751,7 +1751,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -1770,7 +1770,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1804,7 +1804,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -1823,7 +1823,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -1842,7 +1842,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -1876,7 +1876,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -1895,7 +1895,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
@@ -1914,7 +1914,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -1945,7 +1945,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -1964,7 +1964,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[7])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
@@ -1983,7 +1983,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -2014,7 +2014,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -2033,7 +2033,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -2052,7 +2052,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -2087,7 +2087,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -2106,7 +2106,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -2125,7 +2125,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -2160,7 +2160,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -2179,7 +2179,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
@@ -2198,7 +2198,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -2230,7 +2230,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -2249,7 +2249,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[8])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
@@ -2268,7 +2268,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -2300,7 +2300,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -2319,7 +2319,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -2338,7 +2338,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -2374,7 +2374,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
@@ -2393,7 +2393,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
@@ -2412,7 +2412,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -2448,7 +2448,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -2467,7 +2467,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
@@ -2486,7 +2486,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), m_v8.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -2519,7 +2519,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
@@ -2538,7 +2538,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[9])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
@@ -2557,7 +2557,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), m_v8.c_value(), this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
 	private: \
 		_at<T0> m_v0; \
@@ -2590,7 +2590,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
@@ -2609,7 +2609,7 @@
 			setAsync(); \
 			result_t hr = cls::m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
@@ -2628,7 +2628,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = cls::m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), m_v8.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
@@ -2665,7 +2665,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[10])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
@@ -2684,7 +2684,7 @@
 			setAsync(); \
 			result_t hr = ((cls*)args[10])->m( \
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
-			if(hr != CALL_E_PENDDING)post(hr); \
+			if(!hr.is_pending())post(hr); \
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
@@ -2703,7 +2703,7 @@
 		{ \
 			setAsync(); \
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.c_value(), m_v1.c_value(), m_v2.c_value(), m_v3.c_value(), m_v4.c_value(), m_v5.c_value(), m_v6.c_value(), m_v7.c_value(), m_v8.c_value(), retVal, this); \
-			if (hr != CALL_E_PENDDING)post(hr); \
+			if (!hr.is_pending())post(hr); \
 		} \
     	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \

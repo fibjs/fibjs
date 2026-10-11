@@ -12,6 +12,7 @@
 #include "QuickArray.h"
 #include "LruCache.h"
 #include "utf8.h"
+#include "result.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
@@ -147,8 +148,10 @@ public:
     }
 
 public:
-    void sync(std::function<int(void)> func);
-    void sync_urgent(std::function<int(void)> func);
+    // Run func on the JS thread; its return value is the task's completion
+    // code (SyncFunc::js_invoke returns it as the event's result).
+    void sync(std::function<result_t(void)> func);
+    void sync_urgent(std::function<result_t(void)> func);
     void post_task(exlib::linkitem* task)
     {
         Ref();
@@ -291,7 +294,7 @@ public:
     typedef v8::Platform* (*platform_creator)();
 
     void Ref();
-    void Unref(int32_t hr = 0);
+    void Unref(result_t hr = 0);
     void registerHoldingObject(object_base* obj);
     void unregisterHoldingObject(object_base* obj);
     void stopHoldingObjects();
@@ -309,7 +312,7 @@ public:
 
 public:
     int32_t m_id;
-    int32_t m_hr;
+    result_t m_hr;
     exlib::string m_fname;
     exlib::string m_jsCode;
 
@@ -333,7 +336,7 @@ public:
     // conn.iterate(...)) works with the promise-style API)
     v8::Global<v8::Function> m_asyncIterFn;
 
-    int32_t call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
+    result_t call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
         v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
 
     // Private symbol for storing async context on Promise objects
@@ -433,8 +436,8 @@ public:
 
     // 解析缓存族：只缓存成功结果（负结果不入库），
     // 详见 plans/sandbox-resolve-cache-remediation-plan.md
-    LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;
-    LruCache<std::pair<int, exlib::string>> m_realpath_cache;
+    LruCache<std::pair<result_t, obj_ptr<Buffer_base>>> m_file_cache;
+    LruCache<std::pair<result_t, exlib::string>> m_realpath_cache;
     LruCache<int32_t> m_stat_cache; // 0 = file, 1 = directory; only successful results are cached
 
 public:

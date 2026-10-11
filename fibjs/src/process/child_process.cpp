@@ -239,7 +239,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             else {
                 exlib::string s;
 
-                if (buf->toString(codec, 0, s) < 0)
+                if (buf->toString(codec, 0, s).failed())
                     v = buf;
                 else
                     v = s;
@@ -538,7 +538,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             else {
                 exlib::string s;
 
-                if (buf->toString(codec, 0, s) < 0)
+                if (buf->toString(codec, 0, s).failed())
                     v = buf;
                 else
                     v = s;

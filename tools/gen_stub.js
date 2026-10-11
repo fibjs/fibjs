@@ -75,7 +75,7 @@ function gen_stub(argn, bInst, bRet) {
         s += '); \\'
         txt.push(s);
 
-        txt.push('			if(hr != CALL_E_PENDDING)post(hr); \\');
+        txt.push('			if(!hr.is_pending())post(hr); \\');
         txt.push('		} \\');
 
         txt.push('	}; \\');
@@ -162,7 +162,7 @@ function gen_stub(argn, bInst, bRet) {
         s += 'this); \\';
         txt.push(s);
 
-        txt.push('			if (hr != CALL_E_PENDDING)post(hr); \\\n' + '		} \\');
+        txt.push('			if (!hr.is_pending())post(hr); \\\n' + '		} \\');
 
         if (bRet) {
             txt.push('    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \\');

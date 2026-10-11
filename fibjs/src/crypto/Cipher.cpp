@@ -102,7 +102,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    if (hr == 0) {
+    if (hr.ok()) {
         if (key_length != expected_key_length)
             return CALL_RETURN_UNDEFINED;
     }
@@ -112,7 +112,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    if (hr == 0) {
+    if (hr.ok()) {
         // Special handling for CCM and OCB modes which support variable IV lengths
         if (mode == EVP_CIPH_CCM_MODE) {
             // CCM mode supports IV length from 7 to 13 bytes

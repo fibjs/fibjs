@@ -57,7 +57,7 @@ public:
     static result_t setError(const ErrorPayload& payload)
     {
         return setError(payload, payload.error_type_name.c_str(),
-            payload.result_code != 0 ? payload.result_code : result_t(CALL_E_EXCEPTION),
+            payload.result_code.has_value() ? result_t(CALL_E_EXCEPTION) : payload.result_code,
             payload.message);
     }
 
@@ -147,7 +147,7 @@ public:
         exlib::string message;
 
         // A state code of 0 means "nothing was captured".
-        bool valid() const { return code != 0; }
+        bool valid() const { return !code.has_value(); }
     };
 
     // Non-consuming peek: the async-call capture that follows the emit still

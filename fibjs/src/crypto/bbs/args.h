@@ -24,7 +24,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     obj_ptr<KeyObject_base> key_;
     hr = priv ? crypto_base::createPrivateKey(opts, key_) : crypto_base::createPublicKey(opts, key_);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     if (EVP_PKEY_get_id(key_.As<KeyObject>()->pkey()) != EVP_PKEY_BLS12_381_G2)

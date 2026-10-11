@@ -289,9 +289,9 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             // Awoken by onData (n=0), onEnd/onClose (n=CALL_RETURN_NULL or error)
             m_stream->m_read_lock.unlock(this);
             m_locked = false;
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return next(CALL_RETURN_NULL);
-            if (n < 0)
+            if (n.failed())
                 return n;
             return next();
         }

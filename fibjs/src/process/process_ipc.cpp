@@ -67,7 +67,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         }
 
     public:
-        int emit()
+        result_t emit()
         {
             JSFiber::EnterJsScope s;
             v8::Local<v8::Object> o = m_ipc->m_o.Get(m_ipc->m_isolate->m_isolate);
@@ -139,12 +139,12 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
         ON_STATE(asyncRead, event)
         {
-            if (n == CALL_RETURN_NULL) {
+            if (n.is_return_null()) {
                 m_this->m_stream->_emit("close");
                 return next();
             }
 
-            m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() -> int {
+            m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() -> result_t {
                 return msg->emit();
             });
 

@@ -37,15 +37,15 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
 
                 exlib::string hash;
                 // Extract hash string from either object {name: "SHA-256"} or direct string "SHA-256"
-                if (hr == 0 && hashValue.type() == Variant::VT_Object) {
+                if (hr.has_value() && hashValue.type() == Variant::VT_Object) {
                     obj_ptr<NObject> hashObj = (NObject*)hashValue.object();
                     if (hashObj) {
                         Variant nameValue;
-                        if (hashObj->get("name", nameValue) == 0 && nameValue.type() == Variant::VT_String) {
+                        if (hashObj->get("name", nameValue).has_value() && nameValue.type() == Variant::VT_String) {
                             hash = nameValue.string();
                         }
                     }
-                } else if (hr == 0 && hashValue.type() == Variant::VT_String) {
+                } else if (hr.has_value() && hashValue.type() == Variant::VT_String) {
                     hash = hashValue.string();
                 }
 
@@ -147,7 +147,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
 
     // the algorithm object and the key data were read in the sync phase
     result_t ctx_hr = ac.ctx(format == "jwk" ? 1 : 2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     result_t hr;

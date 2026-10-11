@@ -130,7 +130,7 @@ result_t zlib_base::deflate(Union_deflate_data data, Union_deflate_level level, 
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         lv = ac.ctxv()[0].intVal();
@@ -167,7 +167,7 @@ result_t zlib_base::inflate(Union_inflate_data data, Union_inflate_maxSize maxSi
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         ms = ac.ctxv()[0].intVal();
@@ -232,7 +232,7 @@ result_t zlib_base::gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize,
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         ms = ac.ctxv()[0].intVal();
@@ -270,7 +270,7 @@ result_t zlib_base::deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_leve
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         lv = ac.ctxv()[0].intVal();
@@ -309,7 +309,7 @@ result_t zlib_base::inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxS
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         ms = ac.ctxv()[0].intVal();
@@ -359,7 +359,7 @@ result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buff
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         lv = ac.ctxv()[0].intVal();
@@ -398,7 +398,7 @@ result_t zlib_base::unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, ob
     else {
         // the options object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         ms = ac.ctxv()[0].intVal();

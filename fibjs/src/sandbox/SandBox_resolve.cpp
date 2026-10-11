@@ -149,7 +149,7 @@ v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::str
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     Isolate* isolate = holder();
-    std::pair<int, obj_ptr<Buffer_base>> result;
+    std::pair<result_t, obj_ptr<Buffer_base>> result;
 
     if (isolate->m_file_cache.lookup(fname, result)) {
         data = result.second;
@@ -233,7 +233,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
                         got += n;
                     }
 
-                    if (result.first >= 0) {
+                    if (result.first.ok()) {
                         if (got > 0)
                             result.second = new Buffer(store, 0, (size_t)got);
                         else
@@ -248,7 +248,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     }
 
     // 读取失败的结果不入缓存，避免同进程内包元数据（package.json）持续“读不到”
-    if (result.first >= 0)
+    if (result.first.ok())
         isolate->m_file_cache.set(fname, result);
 
     data = result.second;
@@ -258,7 +258,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
 {
     Isolate* isolate = holder();
-    std::pair<int, exlib::string> result;
+    std::pair<result_t, exlib::string> result;
 
     if (isolate->m_realpath_cache.lookup(fname, result)) {
         retVal = result.second;
@@ -279,12 +279,12 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
     // 不存在）时调用方回退到原路径，行为不变。
     AutoReq req;
     result.first = uv_fs_realpath(NULL, &req, fname.c_str(), NULL);
-    if (result.first >= 0)
+    if (result.first.ok())
         result.second = (const char*)req.ptr;
 #endif
 
     // 失败结果不入缓存（与 file_type / loadFile 同策略）
-    if (result.first >= 0)
+    if (result.first.ok())
         isolate->m_realpath_cache.set(fname, result);
 
     retVal = result.second;

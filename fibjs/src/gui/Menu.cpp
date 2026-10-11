@@ -252,7 +252,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
     if (mi->icon.has_value()) {
         Variant var;
         hr = fs_base::ac_readFile(mi->icon.value(), "", var);
-        if (hr)
+        if (hr.failed())
             return hr;
 
         mi->m_icon = (Buffer*)var.object();
@@ -347,7 +347,9 @@ result_t Menu::getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal)
 
         if (item->submenu.has_value()) {
             result_t hr = item->submenu.value()->getMenuItemById(id, retVal);
-            if (hr == 0)
+            // has_value() = found (0); a miss is CALL_RETURN_NULL (100000),
+            // which ok() would mistake for success and return a null item.
+            if (hr.has_value())
                 return 0;
         }
     }

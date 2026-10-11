@@ -206,16 +206,16 @@ public:
 
         switch (m_wait) {
         case kWaitStart:
-            matched = (n == kWakeStart);
+            matched = (n.is(kWakeStart));
             break;
         case kWaitDelivery:
-            matched = (n == kWakeDeliveryDone);
+            matched = (n.is(kWakeDeliveryDone));
             break;
         case kWaitResume:
-            matched = (n == kWakeResume || n == kWakeStart);
+            matched = (n.is(kWakeResume) || n.is(kWakeStart));
             break;
         case kWaitDrain:
-            matched = (n == kWakeDrain || n == kWakeResume);
+            matched = (n.is(kWakeDrain) || n.is(kWakeResume));
             break;
         default:
             matched = false;
@@ -225,7 +225,7 @@ public:
         if (!matched)
             return park();
 
-        if (n == kWakeDeliveryDone && m_base->m_paused) {
+        if (n.is(kWakeDeliveryDone) && m_base->m_paused) {
             m_wait = kWaitResume;
             return park();
         }
@@ -250,7 +250,7 @@ public:
             return m_this->close(next(auto_destroy_done));
         }
 
-        if (n == CALL_RETURN_NULL) {
+        if (n.is_return_null()) {
             m_base->m_readEnded = true;
             m_base->m_ended = true;
             m_this->_emit("end");
@@ -335,8 +335,8 @@ public:
             return v;
         }
 
-        if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
-            || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
+        if (v.is(CALL_E_BAD_FILE) || v.is(CALL_E_INVALID_CALL)
+            || v.is(CALL_E_NETNAME_DELETED) || v.is(CALL_E_CLOSED_SOCKET)) {
             m_base->m_readEnded = true;
             m_base->m_ended = true;
             m_this->_emit("end");
@@ -348,7 +348,7 @@ public:
             return v;
         }
 
-        if (v == CALL_E_TIMEOUT) {
+        if (v.is(CALL_E_TIMEOUT)) {
             obj_ptr<Stream_base> stream = m_this;
             m_isolate->sync([stream]() -> int32_t {
                 JSFiber::EnterJsScope s;
@@ -457,7 +457,7 @@ public:
 
         ON_STATE(AsyncReadVariant, done)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return next(CALL_RETURN_NULL);
 
             if (!m_pThis->m_decoder) {
@@ -586,7 +586,7 @@ public:
 
         ON_STATE(AsyncReadAll, process)
         {
-            if (n == CALL_RETURN_NULL) {
+            if (n.is_return_null()) {
                 if (m_buf.size() == 0)
                     return next(CALL_RETURN_NULL);
                 m_retVal = m_buf.buffer();
@@ -1091,10 +1091,10 @@ public:
     // Called when connection is established (for Socket)
     // Decrements m_state by 1
     // err: 0 = success, other = error code
-    void on_connected(int32_t err = 0)
+    void on_connected(result_t err = 0)
     {
         if (m_state.dec() == 0) {
-            if (err == 0) {
+            if (err.ok()) {
                 reader->start();
             } else {
                 reader->apost(err);

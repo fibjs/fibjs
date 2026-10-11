@@ -361,14 +361,14 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // the flag is read before the continuation is handed over (P4)
     bool throwIfNoEntry = ac.ctxv()[0].boolVal();
 
     result_t hr = lstat(path, retVal, std::move(ac));
-    if (hr.failed() && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    if (hr.failed() && !throwIfNoEntry && (hr.is(UV_ENOENT) || hr.is(UV_ENOTDIR)))
         return CALL_RETURN_UNDEFINED;
 
     return hr;
@@ -423,14 +423,14 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // the flag is read before the continuation is handed over (P4)
     bool throwIfNoEntry = ac.ctxv()[0].boolVal();
 
     result_t hr = stat(path, retVal, std::move(ac));
-    if (hr.failed() && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    if (hr.failed() && !throwIfNoEntry && (hr.is(UV_ENOENT) || hr.is(UV_ENOTDIR)))
         return CALL_RETURN_UNDEFINED;
 
     return hr;

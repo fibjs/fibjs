@@ -616,7 +616,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
 
         ON_STATE(asyncReadFrom, command)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return CHECK_ERROR(CALL_E_CLOSED);
 
             result_t hr;
@@ -815,7 +815,7 @@ result_t HttpResponse::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal
             // No URL decoding: per RFC 6265 cookie values are opaque strings,
             // and %XX in Set-Cookie (e.g. better-auth's base64 session token)
             // must be stored and sent back verbatim.
-            if (cookie->parseRaw(str) >= 0)
+            if (cookie->parseRaw(str).ok())
                 m_cookies.push_back(cookie);
         }
 
@@ -984,7 +984,7 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
 result_t HttpResponse::resume(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (m_message->get_body(body) == 0 && body) {
+    if (m_message->get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->resume(r);
     }
@@ -995,7 +995,7 @@ result_t HttpResponse::resume(obj_ptr<Message_base>& retVal)
 result_t HttpResponse::pause(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (m_message->get_body(body) == 0 && body) {
+    if (m_message->get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->pause(r);
     }

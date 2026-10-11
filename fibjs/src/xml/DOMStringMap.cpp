@@ -146,7 +146,7 @@ result_t DOMStringMap::_named_enumerator(v8::Local<v8::Array>& retVal)
 
     for (int32_t i = 0; i < len; i++) {
         obj_ptr<XmlAttr_base> attr;
-        if (attrs->item(i, attr) < 0)
+        if (attrs->item(i, attr).failed())
             break;
 
         exlib::string name;

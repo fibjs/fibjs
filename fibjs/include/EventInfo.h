@@ -15,20 +15,20 @@ namespace fibjs {
 class EventInfo : public NObject {
 public:
     EventInfo(obj_ptr<object_base> target, exlib::string type,
-        int32_t code = 0, exlib::string reason = "")
+        result_t code = 0, exlib::string reason = "")
         : m_target(target)
         , m_type(type)
     {
         add("target", target);
         add("type", type);
 
-        if (type == "error" && code) {
+        if (type == "error" && !code.has_value()) {
             ErrorPayload payload = takeErrorPayload();
 
             if (!payload.code.empty())
                 add("code", payload.code);
             else
-                add("code", code);
+                add("code", code.code);
 
             if (payload.has_errno)
                 add("errno", payload.errno_value);
@@ -52,8 +52,8 @@ public:
             }
 
             error_payload_delivered(payload);
-        } else if (code)
-            add("code", code);
+        } else if (!code.has_value())
+            add("code", code.code);
 
         if (!reason.empty())
             add("reason", reason);

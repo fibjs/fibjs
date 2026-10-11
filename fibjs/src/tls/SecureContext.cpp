@@ -19,7 +19,7 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
     v8::Local<v8::Context> context = isolate->context();
     result_t hr = GetConfigValue(options, name, retVal);
 
-    if (hr == 0)
+    if (hr.ok())
         return 0;
 
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is_type_mismatch())
@@ -46,7 +46,7 @@ result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isSer
 
     obj_ptr<SecureContext> ctx = new SecureContext();
     hr = ctx->init(options, isServer);
-    if (hr)
+    if (hr.failed())
         return hr;
 
     retVal = ctx;

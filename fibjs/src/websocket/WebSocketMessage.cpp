@@ -226,7 +226,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
         {
             int32_t blen;
 
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
             Buffer* buf = Buffer::Cast(m_buf);
@@ -439,7 +439,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
 
         ON_STATE(asyncReadFrom, extHead)
         {
-            if (n == CALL_RETURN_NULL) {
+            if (n.is_return_null()) {
                 m_pThis->m_error = 1001;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
@@ -503,7 +503,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
 
         ON_STATE(asyncReadFrom, extReady)
         {
-            if (n == CALL_RETURN_NULL) {
+            if (n.is_return_null()) {
                 m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }

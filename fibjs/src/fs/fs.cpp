@@ -372,16 +372,16 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
     ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
     ctx_hr = ac.ctx(2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
     ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // Read the ctx slots out before the call moves the handle: the
@@ -459,7 +459,7 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
         // the object form is carried in ctx[0]; an entry that never ran the
         // sync phase (the async-only compile cache one) must report that
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         encoding = ac.ctxv()[0].string();
@@ -532,7 +532,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
         }
 
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         encoding = ac.ctxv()[0].string();
@@ -541,7 +541,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
     // Node.js validates the encoding even when the data is a Buffer.
     {
         result_t _e = check_encoding(encoding);
-        if (_e < 0)
+        if (_e.failed())
             return _e;
     }
 
@@ -713,7 +713,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, Variant mode,
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -1064,14 +1064,14 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
         }
 
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         encoding = ac.ctxv()[0].string();
 
         if (!bFd) {
             ctx_hr = ac.ctx(1);
-            if (ctx_hr < 0)
+            if (ctx_hr.failed())
                 return ctx_hr;
 
             flag = ac.ctxv()[1].string();
@@ -1094,7 +1094,7 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
     if (bFd) {
         obj_ptr<FileHandle_base> fdHandle;
         result_t fd_hr = filehandle_from_union(fname, fdHandle);
-        if (fd_hr < 0)
+        if (fd_hr.failed())
             return fd_hr;
 
         return read_file_fd(fdHandle, encoding, retVal, std::move(ac));
@@ -1138,7 +1138,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
                 return hr;
 
             result_t _e = check_encoding(encoding);
-            if (_e < 0)
+            if (_e.failed())
                 return _e;
             ac.ctxv()[0] = encoding;
 
@@ -1155,7 +1155,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
 
         // the sync phase filled the three slots together
         result_t ctx_hr = ac.ctx(2);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         encoding = ac.ctxv()[0].string();
@@ -1191,7 +1191,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
     if (bFd) {
         obj_ptr<FileHandle_base> fdHandle;
         result_t fd_hr = filehandle_from_union(fname, fdHandle);
-        if (fd_hr < 0)
+        if (fd_hr.failed())
             return fd_hr;
 
         return write_file_fd(fdHandle, buf, retVal, std::move(ac));
@@ -1228,7 +1228,7 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
             // Node.js validates the encoding even when the data is a Buffer
             GetConfigValue(opts, "encoding", encoding, true);
             result_t _e = check_encoding(encoding);
-            if (_e < 0)
+            if (_e.failed())
                 return _e;
             ac.ctxv()[0] = encoding;
 
@@ -1245,7 +1245,7 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
 
         // the sync phase filled the three slots together
         result_t ctx_hr = ac.ctx(2);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         encoding.clear();
@@ -1285,7 +1285,7 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
     if (bFd) {
         obj_ptr<FileHandle_base> fdHandle;
         result_t fd_hr = filehandle_from_union(fname, fdHandle);
-        if (fd_hr < 0)
+        if (fd_hr.failed())
             return fd_hr;
 
         return append_file_fd(fdHandle, buf, retVal, std::move(ac));
@@ -1642,7 +1642,7 @@ static result_t readlink_options(exlib::string path, v8::Local<v8::Object> optio
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -1832,7 +1832,7 @@ static result_t realpath_options(exlib::string path, v8::Local<v8::Object> optio
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -1902,7 +1902,7 @@ static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal,
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -2049,7 +2049,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
     }
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     bool recursive = ac.ctxv()[0].boolVal();
@@ -2256,7 +2256,7 @@ public:
 
         result_t post(result_t hr) override
         {
-            if (hr < 0) {
+            if (hr.failed()) {
                 m_parent->m_ac.apost(hr);
                 delete m_parent;
             } else {
@@ -2308,7 +2308,7 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHand
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     bool recursive = ac.ctxv()[0].boolVal();
@@ -2342,7 +2342,7 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
     }
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     bool recursive = ac.ctxv()[0].boolVal();
@@ -2532,7 +2532,7 @@ result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle a
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -2570,7 +2570,7 @@ result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncHandle
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -2619,7 +2619,7 @@ result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, Async
     }
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     AutoReq req;
@@ -2647,7 +2647,7 @@ result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, Asyn
     }
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     AutoReq req;
@@ -2680,7 +2680,7 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
         return hr;
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     AutoReq req;
@@ -2957,7 +2957,7 @@ public:
 
         result_t post(result_t hr) override
         {
-            if (hr < 0) {
+            if (hr.failed()) {
                 m_parent->m_ac.apost(hr);
                 delete m_parent;
             } else {
@@ -3014,7 +3014,7 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
     }
 
     result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     bool recursive = ac.ctxv()[0].boolVal();
@@ -3132,7 +3132,7 @@ static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, 
     }
 
     result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     // hoisted: the call below moves the handle, and the argument expressions are
@@ -3291,7 +3291,7 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
     }
 
     result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     exlib::string flags = ac.ctxv()[0].string();
@@ -3336,7 +3336,7 @@ result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> o
     }
 
     result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     exlib::string flags = ac.ctxv()[0].string();

@@ -91,8 +91,8 @@ static struct {
 // Default error class name for an internal result code ("" = generic Error).
 static const char* getDefaultErrorTypeName(result_t hr)
 {
-    if (hr > CALL_E_MIN && hr < CALL_E_MAX) {
-        int idx = CALL_E_MAX - hr;
+    if (hr.has_error_info()) {
+        int idx = CALL_E_MAX - hr.code;
         if (idx >= 0 && idx < (int)(sizeof(s_error_info) / sizeof(s_error_info[0])))
             return s_error_info[idx].name;
     }
@@ -113,20 +113,20 @@ exlib::string getResultMessage(result_t hr)
             return "property " + s + " is not optional.";
     }
 
-    if (hr > CALL_E_MIN && hr < CALL_E_MAX)
-        return fmtString(-hr, s_error_info[CALL_E_MAX - hr].message);
+    if (hr.has_error_info())
+        return fmtString(-hr.code, s_error_info[CALL_E_MAX - hr.code].message);
 
-    const char* uv_str = uv_error(hr);
+    const char* uv_str = uv_error(hr.code);
     if (uv_str)
-        return fmtString(-hr, uv_str);
+        return fmtString(-hr.code, uv_str);
 
-    hr = -hr;
+    hr = -hr.code;
 
 #ifdef _WIN32
     char16_t MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)MsgBuf, 1024, NULL)) {
+            NULL, hr.code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)MsgBuf, 1024, NULL)) {
         exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
@@ -137,7 +137,7 @@ exlib::string getResultMessage(result_t hr)
 
     return fmtString(hr, "Unknown error.");
 #else
-    return fmtString(hr, strerror(hr));
+    return fmtString(hr, strerror(hr.code));
 #endif
 }
 
@@ -499,7 +499,7 @@ exlib::string summarize_for_error(object_base* obj)
     if (buffer) {
         int32_t length = 0;
 
-        if (buffer->get_length(length) != 0)
+        if (buffer->get_length(length).failed())
             return "<Buffer>";
 
         return error_buffer_summary(length);
@@ -562,17 +562,17 @@ exlib::string summarize_for_error(const Variant& value)
 // "<CODE>: <text>, <syscall> '<path>'".
 static exlib::string error_text(result_t hr)
 {
-    if (hr > CALL_E_MIN && hr < CALL_E_MAX)
-        return s_error_info[CALL_E_MAX - hr].message;
+    if (hr.has_error_info())
+        return s_error_info[CALL_E_MAX - hr.code].message;
 
-    const char* uv_str = uv_error(hr);
+    const char* uv_str = uv_error(hr.code);
     if (uv_str)
         return uv_str;
 
     if (hr.ok())
         return exlib::string();
 
-    return strerror((int)-hr);
+    return strerror((int)-hr.code);
 }
 
 // Node.js omits the path for the fd based syscalls (there is no path to
@@ -601,11 +601,11 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
     v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 
-    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr.code)).IsJust();
 
-    const char* _name = uv_error_name(hr);
+    const char* _name = uv_error_name(hr.code);
     if (!_name) {
-        int uv_err = uv_translate_sys_error(-hr);
+        int uv_err = uv_translate_sys_error(-hr.code);
         if (uv_err != UV_UNKNOWN)
             _name = uv_error_name(uv_err);
     }
@@ -625,7 +625,7 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
         if (payload.has_errno)
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload.errno_value)).IsJust();
         else if (hr.is_system_error())
-            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr)).IsJust();
+            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr.code)).IsJust();
 
         if (!payload.syscall.empty())
             e->Set(context, isolate->NewString("syscall"), isolate->NewString(payload.syscall)).IsJust();

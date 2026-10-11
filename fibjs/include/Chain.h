@@ -54,7 +54,7 @@ public:
         {
             result_t hr;
 
-            if (n == CALL_RETURN_NULL || m_hr == CALL_RETURN_NULL) {
+            if (n.is_return_null() || m_hr.is_return_null()) {
                 bool end = false;
 
                 m_hr = 0;
@@ -67,10 +67,10 @@ public:
                 m_next = m_hdrs[m_pos++];
             }
 
-            if (m_hr == CALL_E_EXCEPTION)
+            if (m_hr.is_exception())
                 Runtime::setError(m_message);
 
-            if (m_hr < 0)
+            if (m_hr.failed())
                 return next(m_hr);
 
             m_hdlr = m_next;
@@ -97,7 +97,7 @@ public:
                 JSFiber::EnterJsScope s;
 
                 m_hr = js_run();
-                if (m_hr == CALL_E_EXCEPTION)
+                if (m_hr.is_exception())
                     m_message = Runtime::errMessage();
             }
 

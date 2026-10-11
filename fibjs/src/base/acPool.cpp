@@ -168,13 +168,13 @@ AsyncEvent::~AsyncEvent()
 {
 }
 
-void AsyncEvent::async(int32_t type)
+void AsyncEvent::async(result_t type)
 {
-    if (type == CALL_E_NOSYNC)
+    if (type.is_nosync())
         s_acPool->put(this);
-    else if (type == CALL_E_LONGSYNC)
+    else if (type.is(CALL_E_LONGSYNC))
         s_lsPool->put(this);
-    else if (type == CALL_E_GUICALL)
+    else if (type.is(CALL_E_GUICALL))
         putGuiPool(this);
 }
 
@@ -278,11 +278,11 @@ void AsyncCallBack::processPromiseResult()
 {
     v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
 
-    if (m_v == CALL_RETURN_NULL)
+    if (m_v.is_return_null())
         resolver->Resolve(m_isolate->context(), v8::Null(m_isolate->m_isolate)).IsJust();
-    else if (m_v == CALL_RETURN_UNDEFINED)
+    else if (m_v.is_return_undefined())
         resolver->Resolve(m_isolate->context(), v8::Undefined(m_isolate->m_isolate)).IsJust();
-    else if (m_v >= 0) {
+    else if (m_v.ok()) {
         std::vector<v8::Local<v8::Value>> args;
 
         {
@@ -319,7 +319,7 @@ void AsyncCallBack::processPromiseResult()
         // The name-based entry keeps the payload restored by applyErrorContext
         // (its code / args are part of the error, not disposable state).
         applyErrorContext();
-        if (m_v == CALL_E_EXCEPTION)
+        if (m_v.is_exception())
             Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
         v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
@@ -352,17 +352,17 @@ int AsyncCallBack::syncFunc()
         std::vector<v8::Local<v8::Value>> args;
         v8::Local<v8::Function> func = m_cb.Get(m_isolate->m_isolate).As<v8::Function>();
 
-        if (m_v == CALL_RETURN_NULL) {
+        if (m_v.is_return_null()) {
             args.resize(2);
             args[0] = v8::Null(m_isolate->m_isolate);
             args[1] = v8::Null(m_isolate->m_isolate);
-        } else if (m_v >= 0) {
+        } else if (m_v.ok()) {
             args.resize(1);
             args[0] = v8::Null(m_isolate->m_isolate);
             to_args(args);
         } else {
             applyErrorContext();
-            if (m_v == CALL_E_EXCEPTION)
+            if (m_v.is_exception())
                 Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
             args.resize(1);
@@ -418,8 +418,8 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
                 promise->Set(m_isolate->context(), async_iter_symbol, async_iter_fn).IsJust();
         }
 
-        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
-            if (hr == CALL_E_EXCEPTION) {
+        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
+            if (hr.is_exception()) {
                 m_error_code = Runtime::errCode();
                 m_error_type_name = Runtime::errTypeName();
                 m_error = Runtime::errMessage();
@@ -434,7 +434,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
         if (m_ctxo)
             args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
 
-        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL) {
+        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
             post_result(hr);
             return CALL_RETURN_UNDEFINED;
         }
@@ -442,7 +442,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
 
     m_v = hr;
     if (m_pThis == NULL || m_pThis->enterTask(this)) {
-        if (hr == CALL_E_NOSYNC) {
+        if (hr.is_nosync()) {
             Isolate::LeaveJsScope _rt(m_isolate);
             invoke();
 

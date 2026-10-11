@@ -354,7 +354,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
-        int32_t send_base64(exlib::string str)
+        result_t send_base64(exlib::string str)
         {
             obj_ptr<Buffer> buf = new Buffer(str.c_str(), str.length());
             exlib::string s;

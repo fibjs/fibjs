@@ -91,10 +91,10 @@ static result_t name_hash_from_key(CryptoKey* key, const exlib::string& name, ex
         Variant v;
         obj_ptr<NObject> hashObj;
 
-        if (key->m_algorithm->get("hash", v) >= 0 && (hashObj = (NObject*)v.object()) != NULL) {
+        if (key->m_algorithm->get("hash", v).ok() && (hashObj = (NObject*)v.object()) != NULL) {
             Variant hashName;
 
-            if (hashObj->get("name", hashName) >= 0 && hashName.type() == Variant::VT_String)
+            if (hashObj->get("name", hashName).ok() && hashName.type() == Variant::VT_String)
                 hash = hashName.string();
         }
     }
@@ -140,7 +140,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
             return hr;
     } else {
         result_t ctx_hr = ac.ctx(1);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         name = ac.ctxv()[0].string();
@@ -253,7 +253,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
             return hr;
     } else {
         result_t ctx_hr = ac.ctx(1);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         name = ac.ctxv()[0].string();

@@ -244,10 +244,10 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
         // Move children from document element's root
         obj_ptr<XmlElement_base> docElement;
         hr = doc->get_documentElement(docElement);
-        if (hr == 0 && docElement) {
+        if (hr.has_value()) {
             obj_ptr<XmlNode_base> node;
             obj_ptr<XmlNode_base> out;
-            while (docElement->get_firstChild(node) == 0) {
+            while (docElement->get_firstChild(node).has_value()) {
                 appendChild(node, out);
             }
         }
@@ -261,10 +261,10 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
         // Move children from body element
         obj_ptr<XmlElement_base> body;
         hr = doc->get_body(body);
-        if (hr == 0 && body) {
+        if (hr.has_value()) {
             obj_ptr<XmlNode_base> node;
             obj_ptr<XmlNode_base> out;
-            while (body->get_firstChild(node) == 0) {
+            while (body->get_firstChild(node).has_value()) {
                 appendChild(node, out);
             }
         }
@@ -313,7 +313,7 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     // Insert all new nodes before this element, then remove this element
     obj_ptr<XmlNode_base> node;
     obj_ptr<XmlNode_base> out;
-    while (body->get_firstChild(node) == 0) {
+    while (body->get_firstChild(node).has_value()) {
         parent->insertBefore(node, this, out);
     }
 
@@ -593,14 +593,14 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string& prefix)
     exlib::string _namespaceURI;
     int32_t i;
 
-    if (!prefix.empty() && lookupNamespaceURI(prefix, _namespaceURI) == CALL_RETURN_NULL)
+    if (!prefix.empty() && lookupNamespaceURI(prefix, _namespaceURI).is_return_null())
         setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
     else if (_namespaceURI != namespaceURI) {
         char buf[64];
 
         for (i = 0; i < 65536; i++) {
             snprintf(buf, sizeof(buf), "a%d", i);
-            if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_NULL) {
+            if (lookupNamespaceURI(buf, _namespaceURI).is_return_null()) {
                 prefix = buf;
                 setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
                 return;
@@ -884,7 +884,7 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
         XmlNode_base* refNode = this;
 
         obj_ptr<XmlNode_base> node;
-        while (docElement->get_firstChild(node) == 0) {
+        while (docElement->get_firstChild(node).has_value()) {
             switch (pos) {
             case 0: // beforebegin
                 if (!m_parent)
@@ -931,7 +931,7 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
         XmlNode_base* refNode = this;
 
         obj_ptr<XmlNode_base> node;
-        while (body->get_firstChild(node) == 0) {
+        while (body->get_firstChild(node).has_value()) {
             switch (pos) {
             case 0: // beforebegin
                 if (!m_parent)

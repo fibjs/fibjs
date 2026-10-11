@@ -321,10 +321,10 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
     ctx_hr = ac.ctx(1);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     TLSSocket_base* ssl_sock = (TLSSocket_base*)ac.ctxv()[0].object();

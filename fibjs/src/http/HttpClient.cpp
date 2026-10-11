@@ -121,11 +121,11 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
     resp->set_statusCode(200);
 
     exlib::string mimeType;
-    if (mime_base::getType(path, mimeType) >= 0 && !mimeType.empty())
+    if (mime_base::getType(path, mimeType).ok() && !mimeType.empty())
         resp->setHeader("Content-Type", mimeType);
 
     int64_t size = 0;
-    if (file.size(size) >= 0)
+    if (file.size(size).ok())
         resp->setHeader("Content-Length", std::to_string(size).c_str());
 
     if (method == "HEAD") {
@@ -272,7 +272,7 @@ static inline exlib::string build_h2_pool_key(const exlib::string& connUrl,
     key.append("|cert=");
     if (ctx) {
         obj_ptr<X509Certificate_base> cert;
-        if (ctx->get_cert(cert) == 0 && cert) {
+        if (ctx->get_cert(cert).has_value()) {
             exlib::string fp;
             cert->get_fingerprint256(fp);
             key.append(fp);
@@ -285,7 +285,7 @@ static inline exlib::string build_h2_pool_key(const exlib::string& connUrl,
     key.append("|ca=");
     if (ctx) {
         obj_ptr<X509Certificate_base> ca;
-        if (ctx->get_ca(ca) == 0 && ca) {
+        if (ctx->get_ca(ca).has_value()) {
             exlib::string fp;
             ca->get_fingerprint256(fp);
             key.append(fp);
@@ -1006,7 +1006,7 @@ result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpC
         if (domain.empty())
             hc->set_domain(u->hostname());
 
-        if (update(hc) == 0)
+        if (update(hc).ok())
             m_cookies.push_back(hc);
     }
 
@@ -1127,7 +1127,7 @@ public:
 
             ON_STATE(asyncRead, done)
             {
-                if (n == CALL_RETURN_NULL && m_bs->m_cleanup) {
+                if (n.is_return_null() && m_bs->m_cleanup) {
                     // Release socket before save_conn to prevent double-close.
                     m_bs->m_socket.Release();
                     auto fn = std::move(m_bs->m_cleanup);
@@ -1215,13 +1215,13 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             // on the wire. The reply is authoritative - fall through to reading
             // it, and report the upload error only when no response can be read,
             // so a real transport failure still surfaces with the send leg's code.
-            if (v < 0 && at(send)) {
+            if (v.failed() && at(send)) {
                 m_send_hr = v;
                 next(recv);
                 return 0;
             }
 
-            if (v < 0 && m_send_hr < 0)
+            if (v.failed() && m_send_hr.failed())
                 return m_send_hr;
 
             return v;
@@ -1280,7 +1280,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                     // Wire cleanup so EOF returns the connection to the pool.
                     // connUrl is extracted from the Host header; falls back to no pooling.
                     exlib::string host;
-                    if (m_req->firstHeader("Host", host) == 0 && !host.empty()) {
+                    if (m_req->firstHeader("Host", host).has_value() && !host.empty()) {
                         auto hc = m_hc;
                         auto conn = m_conn;
                         bool keepAlive;
@@ -1638,7 +1638,7 @@ public:
 
     ON_STATE(asyncRequest, socks_connect)
     {
-        if (n == CALL_RETURN_NULL)
+        if (n.is_return_null())
             return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
         exlib::string strBuffer;
@@ -1680,7 +1680,7 @@ public:
 
     ON_STATE(asyncRequest, socks_connect_res_5_bytes)
     {
-        if (n == CALL_RETURN_NULL)
+        if (n.is_return_null())
             return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
         Buffer* buf = Buffer::Cast(m_buffer);
@@ -1703,7 +1703,7 @@ public:
 
     ON_STATE(asyncRequest, socks_connected)
     {
-        if (n == CALL_RETURN_NULL)
+        if (n.is_return_null())
             return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
         // discard socks server response
@@ -1919,7 +1919,7 @@ public:
         // submitting request so that submit + resume_data + collect
         // can happen atomically under one lock.
         exlib::string body_data;
-        if (n != CALL_RETURN_NULL && m_buffer) {
+        if (!n.is_return_null() && m_buffer) {
             Buffer* buf = Buffer::Cast(m_buffer);
             body_data.append((const char*)buf->data(), buf->length());
             m_buffer.Release();
@@ -2004,7 +2004,7 @@ public:
         if (h2_headers) {
             // Extract :status
             Variant status_var;
-            if (h2_headers->get(":status", status_var) == 0) {
+            if (h2_headers->get(":status", status_var).has_value()) {
                 exlib::string status_str = status_var.string();
                 resp_status = atoi(status_str.c_str());
                 resp->set_statusCode(resp_status);
@@ -2037,7 +2037,7 @@ public:
 
     ON_STATE(asyncRequest, h2_probe_done)
     {
-        if (n == CALL_RETURN_NULL) {
+        if (n.is_return_null()) {
             bool stream_lost_after_headers = !m_h2stream->m_recv_end
                 && (m_h2stream->m_closed || m_h2stream->m_destroyed
                     || (m_h2session && (m_h2session->m_closed || m_h2session->m_destroyed)));
@@ -2091,7 +2091,7 @@ public:
         m_retVal->get_keepAlive(keepAlive);
         if (keepAlive && !m_h2session) {
             obj_ptr<Stream_base> bodyStream;
-            if (m_retVal->get_body(bodyStream) == 0 && bodyStream) {
+            if (m_retVal->get_body(bodyStream).has_value()) {
                 BodyStream* bs = static_cast<BodyStream*>(bodyStream.get());
                 auto hc = m_hc;
                 // Proxy connections are pooled under proxy URL; direct under connUrl.
@@ -2121,11 +2121,11 @@ public:
 
         HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
         exlib::string encoding;
-        if (resp->firstHeader("Content-Encoding", encoding) == CALL_RETURN_NULL)
+        if (resp->firstHeader("Content-Encoding", encoding).is_return_null())
             return next(end);
 
         obj_ptr<Stream_base> bodyStream;
-        if (resp->get_body(bodyStream) != 0 || !bodyStream)
+        if (resp->get_body(bodyStream).failed() || !bodyStream)
             return next(end);
 
         m_decodeStream = new MemoryStream();
@@ -2300,14 +2300,14 @@ public:
         return v;
     }
 
-    bool can_retry_transport_error(int32_t v)
+    bool can_retry_transport_error(result_t v)
     {
-        if (v == CALL_E_TIMEOUT || v == CALL_E_ABORT)
+        if (v.is(CALL_E_TIMEOUT) || v.is(CALL_E_ABORT))
             return false;
 
         if (m_o->signal) {
             bool aborted;
-            if (m_o->signal->get_aborted(aborted) >= 0 && aborted)
+            if (m_o->signal->get_aborted(aborted).ok() && aborted)
                 return false;
         }
 
@@ -2323,7 +2323,7 @@ public:
             return false;
 
         exlib::string method;
-        if (!m_req || m_req->get_method(method) < 0)
+        if (!m_req || m_req->get_method(method).failed())
             return false;
 
         return !qstricmp(method.c_str(), "GET") || !qstricmp(method.c_str(), "HEAD");
@@ -2342,7 +2342,7 @@ public:
             return false;
 
         exlib::string method;
-        if (!m_req || m_req->get_method(method) < 0)
+        if (!m_req || m_req->get_method(method).failed())
             return false;
 
         return !qstricmp(method.c_str(), "GET") || !qstricmp(method.c_str(), "HEAD");
@@ -2357,7 +2357,7 @@ public:
             return false;
 
         exlib::string method;
-        if (!m_req || m_req->get_method(method) < 0)
+        if (!m_req || m_req->get_method(method).failed())
             return false;
 
         return !qstricmp(method.c_str(), "GET");
@@ -2535,7 +2535,7 @@ result_t HttpClient::requestSync(exlib::string method, exlib::string url, v8::Lo
         return get_request_opts(method, url, opts, ac);
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
@@ -2549,7 +2549,7 @@ result_t HttpClient::requestSync(exlib::string method, exlib::string url,
         return get_request_opts(method, url, opts, ac);
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
@@ -3189,8 +3189,8 @@ public:
         // its AbortError/TimeoutError DOMException. Note that
         // errTypeName()/errMessage() consume the pending error state, so it must
         // be restored explicitly.
-        exlib::string type_name = (v == CALL_E_EXCEPTION) ? Runtime::errTypeName() : exlib::string();
-        exlib::string msg = (v == CALL_E_EXCEPTION)
+        exlib::string type_name = (v.is_exception()) ? Runtime::errTypeName() : exlib::string();
+        exlib::string msg = (v.is_exception())
             ? Runtime::errMessage()
             : getResultMessage(v);
 
@@ -3232,7 +3232,7 @@ public:
         if (m_o->signal) {
             obj_ptr<Stream_base> bodyStream;
             result_t body_hr = resp->get_body(bodyStream);
-            if (body_hr == 0 && bodyStream) {
+            if (body_hr.has_value()) {
                 Http2Stream_base* h2s = Http2Stream_base::getInstance(bodyStream);
                 if (h2s) {
                     // HTTP/2: register abort callback to reset the stream
@@ -3321,7 +3321,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();

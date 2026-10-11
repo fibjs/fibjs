@@ -93,7 +93,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
     // a UrlObject or a URL components object: both resolve to a UrlObject
     obj_ptr<UrlObject_base> obj;
     result_t obj_hr = urlobject_from_union(url, obj);
-    if (obj_hr < 0)
+    if (obj_hr.failed())
         return obj_hr;
 
     obj_ptr<Url> u = (Url*)obj.get();

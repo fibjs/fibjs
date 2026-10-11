@@ -216,7 +216,7 @@ void Worker::_main()
         s.m_hr = m_isolate->m_topSandbox->run_worker_source(m_isolate->m_fname, m_isolate->m_jsCode, m_peer_worker);
     else
         s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_peer_worker);
-    if (s.m_hr < 0) {
+    if (s.m_hr.failed()) {
         // 终止已生效且 JS 已解栈回到这里：清掉粘性终止标志，避免毒化收尾期 JS。
         // 父侧收尾任务可能在本线程还没观察到中断时就先跑过了（见 requestTerminate
         // 里的说明），那种情况下标志一直留到现在，必须在这里清。

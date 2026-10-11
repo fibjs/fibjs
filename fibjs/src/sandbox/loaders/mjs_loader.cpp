@@ -293,7 +293,7 @@ private:
             SandBox::ModuleTypeInfo info;
 
             hr = m_sb->resolveModuleType(id, info);
-            if (hr)
+            if (hr.failed())
                 return hr;
 
             if (info.type == SandBox::ModuleType::kCommonJS) {
@@ -351,7 +351,7 @@ private:
             SandBox::ModuleTypeInfo info;
 
             hr = m_sb->resolveModuleType(id, info);
-            if (hr)
+            if (hr.failed())
                 return hr;
 
             if (info.type == SandBox::ModuleType::kCommonJS) {

@@ -38,7 +38,7 @@ result_t crypto_base::createCertificateRequest(Union_createCertificateRequest_cs
     } else
         hr = csr_->load_csr(std::get<obj_ptr<Buffer_base>>(csr));
 
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = csr_;
@@ -79,7 +79,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     name = X509_NAME_new();
     v8::Local<v8::Object> subject;
     hr = GetConfigValue(options, subject_name, subject, true);
-    if (hr == 0) {
+    if (hr.ok()) {
         v8::Local<v8::Array> props = subject->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
         int32_t len = props->Length();
         for (int i = 0; i < len; i++) {
@@ -87,7 +87,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
 
             GetConfigValue(props, i, key_, true);
             hr = GetConfigValue(subject, key_.c_str(), value_, true);
-            if (hr != 0)
+            if (hr.failed())
                 return hr;
 
             if (X509_NAME_add_entry_by_txt(name, key_.c_str(), MBSTRING_ASC, (unsigned char*)value_.c_str(), -1, -1, 0) != 1)
@@ -163,7 +163,7 @@ result_t X509CertificateRequest::get_publicKey(obj_ptr<KeyObject_base>& retVal)
 
     obj_ptr<KeyObject> key = new KeyObject();
     result_t hr = key->createPublicKeyFromPKey(pkey);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = m_publicKey = key;
@@ -273,7 +273,7 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
     for (int32_t i = 0; i < len; i++) {
         exlib::string item;
         hr = GetConfigValue(list, i, item, true);
-        if (hr != 0)
+        if (hr.failed())
             return hr;
 
         int32_t p;

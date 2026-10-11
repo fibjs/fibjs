@@ -18,11 +18,12 @@ extern uv_loop_t* s_uv_loop;
 void uv_post(AsyncEvent* task);
 void uv_post(std::function<void(void)> proc);
 
-int uv_call(std::function<int(void)> proc);
-inline int uv_async(std::function<int(void)> proc)
+result_t uv_call(std::function<result_t(void)> proc);
+inline result_t uv_async(std::function<result_t(void)> proc)
 {
-    int ret = uv_call(proc);
-    return ret ? ret : CALL_E_PENDDING;
+    result_t ret = uv_call(proc);
+
+    return ret.failed() ? ret : result_t(CALL_E_PENDDING);
 }
 
 class AutoReq : public uv_fs_t {

@@ -31,7 +31,7 @@ public:
     {
         Variant v;
         result_t ret = first(name, v);
-        if (ret == 0) {
+        if (ret.has_value()) {
             v.toString(retVal);
         }
         return ret;

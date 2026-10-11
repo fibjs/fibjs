@@ -319,7 +319,7 @@ static bool is_connection_gone(result_t hr)
         return true;
     }
 
-    switch (uv_translate_sys_error(-hr)) {
+    switch (uv_translate_sys_error(-hr.code)) {
     case UV_ECONNRESET:
     case UV_EPIPE:
     case UV_ENOTCONN:
@@ -476,7 +476,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     SendOptions* opts = (SendOptions*)ac.ctxv()[0].object();

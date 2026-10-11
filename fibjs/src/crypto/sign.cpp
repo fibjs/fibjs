@@ -21,7 +21,7 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
 
     exlib::string dsaEncoding;
     hr = GetConfigValue(key, "dsaEncoding", dsaEncoding, true);
-    if (hr == 0) {
+    if (hr.ok()) {
         if (dsaEncoding == "ieee-p1363")
             enc = kSigEncP1363;
         else if (dsaEncoding != "der")
@@ -230,7 +230,7 @@ result_t Sign::sign(Union_sign_privateKey privateKey, exlib::string encoding, v8
     else
         hr = crypto_base::createPrivateKey(std::get<obj_ptr<Buffer_base>>(privateKey), key);
 
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     return sign_keyobj(key, encoding, retVal);
@@ -383,7 +383,7 @@ result_t Verify::verify(Union_verify_privateKey privateKey, Union_verify_signatu
     else
         hr = crypto_base::createPublicKey(std::get<obj_ptr<Buffer_base>>(privateKey), key);
 
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     if (std::holds_alternative<obj_ptr<Buffer_base>>(signature))
@@ -592,7 +592,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 
             obj_ptr<KeyObject_base> key_;
             hr = crypto_base::createPrivateKey(opt, key_);
-            if (hr != 0)
+            if (hr.failed())
                 return hr;
             ac.ctxv()[1] = key_;
 
@@ -612,7 +612,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 
     // the algorithm and the object key options were prepared in the sync phase
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     exlib::string algo = ac.ctxv()[0].string();
@@ -634,7 +634,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
     if (bObject) {
         // the key and its options come from the sync phase
         result_t ctx_hr = ac.ctx(4);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         key_ = (KeyObject_base*)ac.ctxv()[1].object();
@@ -648,12 +648,12 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {
         result_t hr = crypto_base::createPrivateKey(std::get<obj_ptr<Buffer_base>>(key), key_);
-        if (hr != 0)
+        if (hr.failed())
             return hr;
     } else {
         // createPrivateKey parses the string itself, it is not decoded here
         result_t hr = crypto_base::createPrivateKey(std::get<exlib::string>(key), key_);
-        if (hr != 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -691,7 +691,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
 
             obj_ptr<KeyObject_base> key_;
             hr = crypto_base::createPublicKey(opt, key_);
-            if (hr != 0)
+            if (hr.failed())
                 return hr;
             ac.ctxv()[1] = key_;
 
@@ -711,7 +711,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
 
     // the algorithm and the object key options were prepared in the sync phase
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     exlib::string algo = ac.ctxv()[0].string();
@@ -741,7 +741,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
     if (bObject) {
         // the key and its options come from the sync phase
         result_t ctx_hr = ac.ctx(4);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         key_ = (KeyObject_base*)ac.ctxv()[1].object();
@@ -755,11 +755,11 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {
         result_t hr = crypto_base::createPublicKey(std::get<obj_ptr<Buffer_base>>(key), key_);
-        if (hr != 0)
+        if (hr.failed())
             return hr;
     } else {
         result_t hr = crypto_base::createPublicKey(std::get<exlib::string>(key), key_);
-        if (hr != 0)
+        if (hr.failed())
             return hr;
     }
 

@@ -332,7 +332,7 @@ result_t StringDecoder::defaultWrite(Buffer_base* buf, exlib::string& retVal)
 
     if (m_lastNeed != 0) {
         hr = fillLast(buf, r);
-        if (hr == CALL_RETURN_NULL) {
+        if (hr.is_return_null()) {
             retVal = "";
             return 0;
         }

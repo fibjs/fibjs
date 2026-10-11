@@ -32,7 +32,7 @@ result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data
     } else {
         // the algorithm object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         alg = ac.ctxv()[0].string();

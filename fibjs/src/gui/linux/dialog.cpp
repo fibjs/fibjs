@@ -38,7 +38,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();

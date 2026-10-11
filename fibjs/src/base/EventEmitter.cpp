@@ -282,7 +282,7 @@ result_t JSTrigger::onEventChange(exlib::string type, v8::Local<v8::Value> ev, v
     return _emit(type, _args, 2, b);
 }
 
-int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
+result_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
@@ -294,7 +294,7 @@ int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function>
     return 0;
 }
 
-int32_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
+result_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
@@ -323,7 +323,7 @@ void JSTrigger::spliceOne(v8::Local<v8::Array> esa, int32_t index)
         .IsJust();
 }
 
-int32_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
+result_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     if (esa.IsEmpty())
         return 0;

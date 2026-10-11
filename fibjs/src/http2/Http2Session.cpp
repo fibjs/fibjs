@@ -585,7 +585,7 @@ void Http2Session::startLoops()
 
         ON_STATE(asyncReadLoop, process)
         {
-            if (n == CALL_RETURN_NULL || m_session->m_destroyed || (!m_buf && m_pending_input.empty())) {
+            if (n.is_return_null() || m_session->m_destroyed || (!m_buf && m_pending_input.empty())) {
                 m_session->m_closed = true;
                 m_session->m_close_event.set();
                 m_session->closeAllStreams();
@@ -971,17 +971,17 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
     std::vector<nghttp2_settings_entry> iv;
 
     int32_t val;
-    if (GetConfigValue(settings, "headerTableSize", val, true) == 0)
+    if (GetConfigValue(settings, "headerTableSize", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_HEADER_TABLE_SIZE, (uint32_t)val });
-    if (GetConfigValue(settings, "enablePush", val, true) == 0)
+    if (GetConfigValue(settings, "enablePush", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_ENABLE_PUSH, (uint32_t)val });
-    if (GetConfigValue(settings, "maxConcurrentStreams", val, true) == 0)
+    if (GetConfigValue(settings, "maxConcurrentStreams", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, (uint32_t)val });
-    if (GetConfigValue(settings, "initialWindowSize", val, true) == 0)
+    if (GetConfigValue(settings, "initialWindowSize", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE, (uint32_t)val });
-    if (GetConfigValue(settings, "maxFrameSize", val, true) == 0)
+    if (GetConfigValue(settings, "maxFrameSize", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_MAX_FRAME_SIZE, (uint32_t)val });
-    if (GetConfigValue(settings, "maxHeaderListSize", val, true) == 0)
+    if (GetConfigValue(settings, "maxHeaderListSize", val, true).ok())
         iv.push_back({ NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE, (uint32_t)val });
 
     int rv = m_nghttp2.submit_settings(iv.data(), iv.size());

@@ -236,7 +236,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     exlib::string password;
     JSValue v;
 
-    if (GetConfigValue(args, "protocol", str, true) >= 0) {
+    if (GetConfigValue(args, "protocol", str, true).ok()) {
         const char* p = str.c_str();
         int32_t len = str.length();
 
@@ -258,11 +258,11 @@ result_t Url::format(v8::Local<v8::Object> args)
     }
 
     bool slashes = is_slashed_protocol(url.c_str());
-    if (GetConfigValue(args, "slashes", slashes) >= 0 && slashes)
+    if (GetConfigValue(args, "slashes", slashes).ok() && slashes)
         url += "//";
     m_slashes = slashes;
 
-    if (GetConfigValue(args, "auth", str, true) >= 0) {
+    if (GetConfigValue(args, "auth", str, true).ok()) {
         size_t pos = str.find(':');
         if (pos != exlib::string::npos) {
             username = str.substr(0, pos);
@@ -284,10 +284,10 @@ result_t Url::format(v8::Local<v8::Object> args)
     }
 
     bool hasHost = false;
-    if (GetConfigValue(args, "host", str, true) >= 0) {
+    if (GetConfigValue(args, "host", str, true).ok()) {
         url += ada::idna::to_ascii(str);
         hasHost = true;
-    } else if (GetConfigValue(args, "hostname", str, true) >= 0) {
+    } else if (GetConfigValue(args, "hostname", str, true).ok()) {
         if (str.find(':') != exlib::string::npos && str[0] != '[')
             url += '[' + str + ']';
         else
@@ -296,7 +296,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         // the legacy format renders the port, so a number is accepted like in node
         JSValue port;
 
-        if (GetConfigValue(args, "port", port) >= 0)
+        if (GetConfigValue(args, "port", port).ok())
             url += ":" + isolate->toString(port);
 
         hasHost = true;
@@ -309,14 +309,14 @@ result_t Url::format(v8::Local<v8::Object> args)
         m_slashes = true;
     }
 
-    if (GetConfigValue(args, "pathname", str, true) >= 0) {
+    if (GetConfigValue(args, "pathname", str, true).ok()) {
         if (hasHost && !isJavascript) {
             if (!is_slash(str[0]))
                 url += "/";
             Url::encodeURI(str, str, pathTable);
         }
         url += str;
-    } else if (GetConfigValue(args, "path", str, true) >= 0) {
+    } else if (GetConfigValue(args, "path", str, true).ok()) {
         if (hasHost && !isJavascript && is_slashed_protocol(url.c_str())) {
             if (!str.empty() && !is_slash(str[0]) && str[0] != '?')
                 url += "/";
@@ -334,10 +334,10 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (!IsEmpty(v))
         set_query(v);
 
-    if (GetConfigValue(args, "search", str, true) >= 0)
+    if (GetConfigValue(args, "search", str, true).ok())
         set_search(str);
 
-    if (GetConfigValue(args, "hash", str, true) >= 0)
+    if (GetConfigValue(args, "hash", str, true).ok())
         set_hash(str);
 
     return 0;

@@ -188,7 +188,7 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     if (m_options->icon.has_value()) {
         Variant var;
         hr = fs_base::ac_readFile(m_options->icon.value(), "", var);
-        if (hr)
+        if (hr.failed())
             return hr;
 
         m_icon = (Buffer*)var.object();

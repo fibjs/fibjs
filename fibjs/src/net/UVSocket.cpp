@@ -253,7 +253,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 m_sock->isolate_unref();
         }
 
-        ErrorPayload error_payload(int32_t status) const
+        ErrorPayload error_payload(result_t status) const
         {
             ErrorPayload payload = ErrorPayload::from_system(status).with_syscall("connect");
 
@@ -405,7 +405,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     ConnectOptions* opt = (ConnectOptions*)ac.ctxv()[0].object();

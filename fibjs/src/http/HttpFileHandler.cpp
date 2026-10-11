@@ -38,7 +38,7 @@ result_t HttpFileHandler::create(exlib::string root, bool autoIndex, obj_ptr<Han
 
     path_base::normalize(root, root_);
     result_t hr = fs_base::ac_stat(root_, stat);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     bool isDir;
@@ -55,7 +55,7 @@ result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> optio
 
     path_base::normalize(root, root_);
     result_t hr = fs_base::ac_stat(root_, stat);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     bool isDir;
@@ -77,7 +77,7 @@ result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> optio
     hdlr->m_immutable = immutable.value_or(false);
 
     v8::Local<v8::Value> headersVal;
-    if (GetConfigValue(options, "headers", headersVal) == 0 && IsJSObject(headersVal)) {
+    if (GetConfigValue(options, "headers", headersVal).ok() && IsJSObject(headersVal)) {
         v8::Local<v8::Object> headersObj = headersVal.As<v8::Object>();
         Isolate* isolate = Isolate::current(headersObj);
         v8::Local<v8::Context> context = isolate->context();
@@ -136,7 +136,7 @@ void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_bas
         }
     }
 
-    if (m_cacheControl && m_maxAge > 0 && rep->firstHeader("Cache-Control", str) == CALL_RETURN_NULL) {
+    if (m_cacheControl && m_maxAge > 0 && rep->firstHeader("Cache-Control", str).is_return_null()) {
         char s[64];
         if (m_immutable)
             snprintf(s, sizeof(s), "public, max-age=%lld, immutable", (long long)m_maxAge);
@@ -328,8 +328,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             exlib::string lastModified;
-            if (m_req->firstHeader("If-Modified-Since", lastModified)
-                != CALL_RETURN_NULL) {
+            if (!m_req->firstHeader("If-Modified-Since", lastModified)
+                    .is_return_null()) {
                 date_t d1;
                 double diff;
 
@@ -347,7 +347,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep->appendHeader("Last-Modified", lastModified);
 
             exlib::string range;
-            if (m_req->firstHeader("Range", range) != CALL_RETURN_NULL) {
+            if (!m_req->firstHeader("Range", range).is_return_null()) {
                 if (qstricmp(range.c_str(), "bytes=", 6)) {
                     m_rep->set_statusCode(416);
 
@@ -357,7 +357,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 range = range.substr(6);
 
                 obj_ptr<RangeStream_base> stm;
-                if (RangeStream_base::_new(m_file, range, stm) != 0) {
+                if (RangeStream_base::_new(m_file, range, stm).failed()) {
                     m_rep->set_statusCode(416);
 
                     return next(CALL_RETURN_NULL);

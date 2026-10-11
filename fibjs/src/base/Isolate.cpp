@@ -106,11 +106,11 @@ static void FiberProcIsolate(void* p)
     JSFiber::FiberProcRunJavascript(p);
 }
 
-void Isolate::sync(std::function<int(void)> func)
+void Isolate::sync(std::function<result_t(void)> func)
 {
     class SyncFunc : public AsyncEvent {
     public:
-        SyncFunc(std::function<int(void)> func)
+        SyncFunc(std::function<result_t(void)> func)
             : m_func(func)
         {
         }
@@ -123,17 +123,17 @@ void Isolate::sync(std::function<int(void)> func)
         }
 
     private:
-        std::function<int(void)> m_func;
+        std::function<result_t(void)> m_func;
     };
 
     post_task(new SyncFunc(func));
 }
 
-void Isolate::sync_urgent(std::function<int(void)> func)
+void Isolate::sync_urgent(std::function<result_t(void)> func)
 {
     class SyncFunc : public AsyncEvent {
     public:
-        SyncFunc(std::function<int(void)> func)
+        SyncFunc(std::function<result_t(void)> func)
             : m_func(func)
         {
         }
@@ -146,7 +146,7 @@ void Isolate::sync_urgent(std::function<int(void)> func)
         }
 
     private:
-        std::function<int(void)> m_func;
+        std::function<result_t(void)> m_func;
     };
 
     post_urgent_task(new SyncFunc(func));
@@ -535,7 +535,7 @@ void Isolate::stopHoldingObjects()
         obj->stop();
 }
 
-void Isolate::Unref(int32_t hr)
+void Isolate::Unref(result_t hr)
 {
     if (m_ref.dec() == 0) {
         if (m_parent_worker) {
@@ -543,7 +543,7 @@ void Isolate::Unref(int32_t hr)
             obj_ptr<Worker> mainWorker = peerWorker ? peerWorker->m_peer_worker : nullptr;
 
             if (mainWorker) {
-                int32_t exitCode = hr < 0 ? 1 : m_exitCode;
+                int32_t exitCode = hr.failed() ? 1 : m_exitCode;
                 mainWorker->holder()->sync([mainWorker, exitCode]() -> int {
                     JSFiber::EnterJsScope s;
                     mainWorker->onIsolateIdle(exitCode);
@@ -579,7 +579,7 @@ void Isolate::Unref(int32_t hr)
 
             // 本任务自身持有 1 个 ref：m_ref == 1 即「没有其它持有者」（含 ref'd worker）
             if (isolate->m_ref == 1) {
-                if (isolate->m_hr >= 0) {
+                if (isolate->m_hr.ok()) {
                     // A signal that arrived while the program was finishing wins over
                     // the ordinary exit(0): the caller has to see 128 + signum.
                     process_signal_reraise_pending();
@@ -654,7 +654,7 @@ void Isolate::get_stderr(obj_ptr<Stream_base>& retVal)
     retVal = m_stderr;
 }
 
-int32_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
+result_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> destination,
     v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
 {
     if (m_pipe_fn.IsEmpty())

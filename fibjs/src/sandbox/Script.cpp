@@ -23,7 +23,7 @@ result_t Script_base::_new(exlib::string code, v8::Local<v8::Object> opts,
     s->wrap(This);
 
     result_t hr = s->init(code, opts);
-    if (hr == 0)
+    if (hr.ok())
         retVal = s;
 
     return hr;

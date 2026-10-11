@@ -664,7 +664,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         ON_STATE(asyncInvoke, invoke)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return next(CALL_RETURN_NULL);
 
             exlib::string str;
@@ -684,7 +684,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 exlib::string origin;
 
-                if (m_req->firstHeader("origin", origin) != CALL_RETURN_NULL) {
+                if (!m_req->firstHeader("origin", origin).is_return_null()) {
                     m_rep->setHeader("Access-Control-Allow-Credentials", "true");
                     m_rep->setHeader("Access-Control-Allow-Origin", origin);
 
@@ -718,7 +718,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (sent)
                 return next(end);
 
-            if (m_rep->firstHeader("Server", str) == CALL_RETURN_NULL)
+            if (m_rep->firstHeader("Server", str).is_return_null())
                 m_rep->appendHeader("Server", m_pThis->m_serverName);
 
             d.now();
@@ -726,7 +726,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep->get_statusCode(s);
             if (s == 200 && !m_options) {
                 m_rep->hasHeader("Last-Modified", t);
-                if (!t && (m_rep->firstHeader("Cache-Control", str) == CALL_RETURN_NULL)) {
+                if (!t && (m_rep->firstHeader("Cache-Control", str).is_return_null())) {
                     m_rep->appendHeader("Cache-Control", "no-cache, no-store");
                     m_rep->appendHeader("Expires", "-1");
                 }
@@ -748,7 +748,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (m_pThis->m_enableEncoding && len > 128 && len < 1024 * 1024 * 64) {
                 exlib::string hdr;
 
-                if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL) {
+                if (!m_req->firstHeader("Accept-Encoding", hdr).is_return_null()) {
                     int32_t type = 0;
 
                     if (qstristr(hdr.c_str(), "gzip"))
@@ -757,7 +757,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         type = 2;
 
                     if (type != 0) {
-                        if (m_rep->firstHeader("Content-Type", hdr) != CALL_RETURN_NULL) {
+                        if (!m_rep->firstHeader("Content-Type", hdr).is_return_null()) {
                             const char* pKey = hdr.c_str();
                             if (qstricmp(hdr.c_str(), "text/", 5)
                                 && !bsearch(&pKey, &s_zipTypes, ARRAYSIZE(s_zipTypes),
@@ -768,14 +768,14 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     }
 
                     if (type != 0) {
-                        if (m_rep->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL)
+                        if (!m_rep->firstHeader("Content-Encoding", hdr).is_return_null())
                             type = 0;
                     }
 
                     if (type != 0) {
                         m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
 
-                        if (m_rep->get_body(m_body) != CALL_RETURN_NULL && m_body) {
+                        if (!m_rep->get_body(m_body).is_return_null() && m_body) {
                             obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);
                             if (!seekable)
                                 return CHECK_ERROR(Runtime::setError("HttpHandler: response body must be seekable for compression."));
@@ -825,7 +825,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             if (at(read)) {
-                if (v == CALL_E_CLOSED)
+                if (v.is(CALL_E_CLOSED))
                     return next(CALL_RETURN_NULL);
 
                 m_rep->set_keepAlive(false);

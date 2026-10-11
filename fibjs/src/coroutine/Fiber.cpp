@@ -97,7 +97,7 @@ void JSFiber::start(bool urgent)
     }
 
     Ref();
-    auto func = [this]() -> int {
+    auto func = [this]() -> result_t {
         return js_invoke();
     };
 

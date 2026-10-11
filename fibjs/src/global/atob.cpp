@@ -203,7 +203,7 @@ result_t global_base::btoa(v8::Local<v8::Value> data_, exlib::string& retVal)
     exlib::string data;
     {
         result_t hr_ = GetDOMStringValue(data_, data);
-        if (hr_ < 0)
+        if (hr_.failed())
             return hr_;
     }
 
@@ -228,7 +228,7 @@ result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
     exlib::string data;
     {
         result_t hr_ = GetDOMStringValue(data_, data);
-        if (hr_ < 0)
+        if (hr_.failed())
             return hr_;
     }
 

@@ -46,7 +46,7 @@ public:
         m_pThis->m_buf.clear();
         m_pThis->m_pos = 0;
 
-        if (n != CALL_RETURN_NULL) {
+        if (!n.is_return_null()) {
             m_buf->toString(m_pThis->m_buf);
             m_buf.Release();
         } else
@@ -237,7 +237,7 @@ result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>&
 
         if (hr.failed())
             return hr;
-        if (hr > 0)
+        if (hr.is_return_null())
             return 0;
 
         retVal.push_back(str);

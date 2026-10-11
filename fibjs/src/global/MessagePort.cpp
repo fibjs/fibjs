@@ -114,7 +114,7 @@ result_t MessagePort::postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array
     if (!isCrossIsolatePort)
         return peer->enqueueSerializedMessage(serialized);
 
-    peer->get_holder()->sync([peer, serialized]() -> int {
+    peer->get_holder()->sync([peer, serialized]() -> result_t {
         JSFiber::EnterJsScope s;
         return peer->enqueueSerializedMessage(serialized);
     });
@@ -237,7 +237,7 @@ bool MessagePort::receiveMessage(v8::Local<v8::Value>& retVal)
     if (m_queue.empty())
         isolate_unref();
 
-    return v8_base::deserialize(data, retVal) >= 0;
+    return v8_base::deserialize(data, retVal).ok();
 }
 
 bool MessagePort::hasMessageListeners()

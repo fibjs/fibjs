@@ -68,7 +68,7 @@ bool shouldRetryAsESM(exlib::string err_msg, Buffer_base* src, exlib::string nam
     // module" every time. ts_compile() caches, and this is the failure path.
     obj_ptr<Buffer_base> js_src;
     if (typescript) {
-        if (cts_Loader::ts_compile(isolate, src, js_src) < 0)
+        if (cts_Loader::ts_compile(isolate, src, js_src).failed())
             return false;
         src = js_src;
     }

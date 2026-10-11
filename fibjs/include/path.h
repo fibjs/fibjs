@@ -1318,10 +1318,10 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
     result_t hr;
 
     hr = _resolve_win32(from);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     hr = _resolve_win32(to);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (from == to) {

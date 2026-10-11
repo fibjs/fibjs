@@ -74,7 +74,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
         if (headers) {
             Variant ct;
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            if (headers->first("Content-Type", ct).is_return_null())
                 headers->set("Content-Type", stringDefaultType);
         }
     } else if ((params = URLSearchParams_base::getInstance(body)) != NULL) {
@@ -86,14 +86,14 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
         buf = new Buffer(s.c_str(), s.length());
         if (headers) {
             Variant ct;
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            if (headers->first("Content-Type", ct).is_return_null())
                 headers->set("Content-Type", "application/x-www-form-urlencoded");
         }
-    } else if (IsJSBuffer(body, false) && GetArgumentValue(isolate, body, buf) == 0) {
+    } else if (IsJSBuffer(body, false) && GetArgumentValue(isolate, body, buf).ok()) {
         // Handle Buffer type directly
         if (headers) {
             Variant ct;
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            if (headers->first("Content-Type", ct).is_return_null())
                 headers->set("Content-Type", "application/octet-stream");
         }
     } else {
@@ -102,7 +102,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
         if (headers) {
             Variant ct;
-            if (headers->first("Content-Type", ct) != CALL_RETURN_NULL) {
+            if (!headers->first("Content-Type", ct).is_return_null()) {
                 has_ContentType = true;
                 userType = ct.string();
             }
@@ -132,7 +132,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
             if (headers) {
                 Variant ct;
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL) {
+                if (headers->first("Content-Type", ct).is_return_null()) {
                     exlib::string mimeType;
                     blob->get_type(mimeType);
                     if (mimeType.empty())
@@ -151,7 +151,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
             if (headers) {
                 Variant ct;
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                if (headers->first("Content-Type", ct).is_return_null())
                     headers->set("Content-Type", stringDefaultType);
             }
         } else if (body->IsObject()) {
@@ -192,7 +192,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
             if (headers) {
                 Variant ct;
-                if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+                if (headers->first("Content-Type", ct).is_return_null())
                     headers->set("Content-Type", binaryDefaultType);
             }
         }
@@ -335,7 +335,7 @@ result_t HttpMessage::json(Variant& retVal, AsyncHandle ac)
 {
     exlib::string strType;
 
-    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+    if (firstHeader("Content-Type", strType).is_return_null())
         return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
     if (strType.find("json") == exlib::string::npos)
@@ -354,7 +354,7 @@ result_t HttpMessage::pack(Variant& retVal, AsyncHandle ac)
 {
     exlib::string strType;
 
-    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+    if (firstHeader("Content-Type", strType).is_return_null())
         return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
     size_t pos = strType.find(';');
@@ -374,7 +374,7 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
     // can be parsed into a FormData, anything else is a TypeError.
     exlib::string strType;
 
-    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+    if (firstHeader("Content-Type", strType).is_return_null())
         return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
             .with_message("Failed to execute 'formData' on 'Body': Content-Type is missing.")));
 
@@ -392,7 +392,7 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
     return consumeBody([this, &retVal, strType, is_multipart](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
 
-        if (n == CALL_RETURN_NULL || !data)
+        if (n.is_return_null() || !data)
             return Runtime::setError(ErrorPayload::make(errtype::kTypeError)
                 .with_message("Failed to execute 'formData' on 'Body': the body is empty."));
 

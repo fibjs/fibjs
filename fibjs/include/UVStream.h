@@ -449,7 +449,7 @@ public:
 
         virtual result_t post(result_t v) override
         {
-            if (v < 0) {
+            if (v.failed()) {
                 obj_ptr<Stream_base> stream = m_pThis;
                 Isolate* isolate = m_isolate;
                 // Same cross-thread rule as the other emit paths: the error

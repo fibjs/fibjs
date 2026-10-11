@@ -269,7 +269,7 @@ static void extract_opts(v8::Local<v8::Object> opts, ZlibMode mode,
 
     // windowBits from opts overrides default only if explicitly set
     int32_t wb = 0;
-    if (GetConfigValue(opts, "windowBits", wb, true) == 0)
+    if (GetConfigValue(opts, "windowBits", wb, true).ok())
         windowBits = wb;
 }
 

@@ -512,7 +512,7 @@ result_t XmlDocument::get_title(exlib::string& retVal)
     XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl) {
         obj_ptr<XmlElement_base> title;
-        if (pEl->getFirstElementsByTagName("title", title) == CALL_RETURN_NULL)
+        if (pEl->getFirstElementsByTagName("title", title).is_return_null())
             return 0;
 
         return title->get_textContent(retVal);

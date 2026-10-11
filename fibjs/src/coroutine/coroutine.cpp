@@ -86,7 +86,7 @@ private:
             m_async_ctx.Reset(m_isolate->m_isolate, current->m_async_ctx.Get(m_isolate->m_isolate));
 
         for (i = 0; i < m_fibers; i++)
-            m_isolate->sync([this]() -> int {
+            m_isolate->sync([this]() -> result_t {
                 return _worker();
             });
 

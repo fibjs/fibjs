@@ -35,18 +35,18 @@ result_t CryptoKey::generate_hmac()
     int32_t length = 0;
     Variant v;
 
-    if (m_algorithm->get("length", v) >= 0)
+    if (m_algorithm->get("length", v).ok())
         length = v.intVal();
 
     if (length <= 0) {
         Variant hash;
         obj_ptr<NObject> hashObj;
 
-        if (m_algorithm->get("hash", hash) < 0 || (hashObj = (NObject*)hash.object()) == NULL)
+        if (m_algorithm->get("hash", hash).failed() || (hashObj = (NObject*)hash.object()) == NULL)
             return Runtime::setError("WebCrypto: HMAC requires hash parameter");
 
         Variant hashName;
-        if (hashObj->get("name", hashName) < 0)
+        if (hashObj->get("name", hashName).failed())
             return Runtime::setError("WebCrypto: HMAC requires hash parameter");
 
         const EVP_MD* md = _evp_md_type(hashName.string().c_str());
@@ -191,7 +191,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
 
     // the algorithm object was read in the sync phase
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<CryptoKey> key = (CryptoKey*)ac.ctxv()[0].object();

@@ -138,7 +138,7 @@ result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exli
     }
 
     result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     exlib::string cmd = ac.ctxv()[2].string();

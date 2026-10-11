@@ -193,7 +193,7 @@ result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        retVal = (n == CALL_RETURN_NULL || !data) ? new Buffer("", 0) : data;
+        retVal = (n.is_return_null() || !data) ? new Buffer("", 0) : data;
         return 0;
     }, std::move(ac)))->post(0);
 }
@@ -205,7 +205,7 @@ result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHand
 
     return (new asyncConsumeBody(this, [this, type, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n == CALL_RETURN_NULL || !data)
+        if (n.is_return_null() || !data)
             data = new Buffer("", 0);
         retVal = new Blob(data, type);
         return 0;
@@ -263,7 +263,7 @@ result_t Message::text(exlib::string& retVal, AsyncHandle ac)
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n == CALL_RETURN_NULL || !data) { retVal = ""; return 0; }
+        if (n.is_return_null() || !data) { retVal = ""; return 0; }
         return data->toString(retVal);
     }, std::move(ac)))->post(0);
 }
@@ -275,7 +275,7 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHa
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n == CALL_RETURN_NULL || !data) { retVal = NewBackingStore(0); return 0; }
+        if (n.is_return_null() || !data) { retVal = NewBackingStore(0); return 0; }
         retVal = data.As<Buffer>()->backingStore();
         return 0;
     }, std::move(ac)))->post(0);
@@ -296,7 +296,7 @@ result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[0].object();
@@ -313,7 +313,7 @@ result_t Message::json(Variant& retVal, AsyncHandle ac)
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n == CALL_RETURN_NULL || !data)
+        if (n.is_return_null() || !data)
             return CALL_RETURN_NULL;
         exlib::string str;
         data->toString(str);
@@ -345,7 +345,7 @@ result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<Buffer_base> buf = (Buffer_base*)ac.ctxv()[0].object();
@@ -361,7 +361,7 @@ result_t Message::pack(Variant& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
-        if (n == CALL_RETURN_NULL || !data)
+        if (n.is_return_null() || !data)
             return CALL_RETURN_NULL;
         Buffer* buf = data.As<Buffer>();
         retVal.setMsgpack(exlib::string((const char*)buf->data(), buf->length()));
@@ -472,13 +472,13 @@ result_t Message::onEventChange(exlib::string type, exlib::string ev, v8::Local<
 {
     if (type == "newListener" && is_stream_event(ev)) {
         obj_ptr<Stream_base> body;
-        if (get_body(body) == 0 && body) {
+        if (get_body(body).has_value()) {
             v8::Local<v8::Object> retVal;
             body->on(body->holder()->NewString(ev), func, retVal);
         }
     } else if (type == "removeListener" && is_stream_event(ev)) {
         obj_ptr<Stream_base> body;
-        if (get_body(body) == 0 && body) {
+        if (get_body(body).has_value()) {
             v8::Local<v8::Object> retVal;
             body->off(body->holder()->NewString(ev), func, retVal);
         }
@@ -496,7 +496,7 @@ result_t Message::clone(obj_ptr<Message_base>& retVal)
 result_t Message::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (get_body(body) == 0 && body) {
+    if (get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->setEncoding(encoding, r);
     }
@@ -507,7 +507,7 @@ result_t Message::setEncoding(exlib::string encoding, obj_ptr<Message_base>& ret
 result_t Message::resume(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (get_body(body) == 0 && body) {
+    if (get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->resume(r);
     }
@@ -517,7 +517,7 @@ result_t Message::resume(obj_ptr<Message_base>& retVal)
 result_t Message::pause(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (get_body(body) == 0 && body) {
+    if (get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->pause(r);
     }
@@ -533,7 +533,7 @@ result_t Message::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> o
 result_t Message::unpipe(Stream_base* destination)
 {
     obj_ptr<Stream_base> body;
-    if (get_body(body) == 0 && body)
+    if (get_body(body).has_value())
         body->unpipe(destination);
     return 0;
 }

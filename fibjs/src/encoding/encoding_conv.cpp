@@ -44,7 +44,7 @@ result_t encoding_conv::encode(exlib::string data, exlib::string& retVal)
         return 0;
     }
 
-    if (ucs_encode(data, retVal) == 0)
+    if (ucs_encode(data, retVal).ok())
         return 0;
 
     int32_t _sz;
@@ -81,7 +81,7 @@ result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVa
         return 0;
     }
 
-    if (ucs_decode(data, sz, retVal) == 0)
+    if (ucs_decode(data, sz, retVal).ok())
         return 0;
 
     int32_t _sz;

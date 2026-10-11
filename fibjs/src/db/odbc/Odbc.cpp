@@ -466,7 +466,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 for (int32_t i = 0; i < columns; i++) {
                     Variant v;
 
-                    hr = odbc_fetchValue(stmt, i + 1, types[i], v);
+                    hr = odbc_fetchValue(stmt, i + 1, types[i], v).code;
                     if (hr < 0)
                         break;
 
@@ -494,7 +494,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
     } while (0);
 
     if (hr < 0)
-        hr = odbc_set_error(SQL_HANDLE_STMT, stmt);
+        hr = odbc_set_error(SQL_HANDLE_STMT, stmt).code;
     else
         hr = 0;
 
@@ -863,7 +863,7 @@ public:
         for (int32_t i = 0; i < m_columns; i++) {
             Variant v;
             result_t hr2 = odbc_fetchValue(m_stmt, i + 1, m_types[i], v);
-            if (hr2 < 0)
+            if (hr2.failed())
                 return hr2;
             row->add(m_names[i], v);
         }
@@ -1075,7 +1075,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
 
     int32_t rows = 0;
     result_t r = fetchColumns(tableName, rows);
-    if (r < 0) {
+    if (r.failed()) {
         SQLFreeStmt(stmt, SQL_DROP);
         return r;
     }
@@ -1101,7 +1101,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
             }
 
             r = fetchColumns(tn, rows);
-            if (r < 0) {
+            if (r.failed()) {
                 SQLFreeStmt(stmt, SQL_DROP);
                 return r;
             }

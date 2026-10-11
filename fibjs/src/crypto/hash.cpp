@@ -264,7 +264,7 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
         return CHECK_ERROR(Runtime::setError(CALL_E_INVALIDARG, "scrypt: keylen must be positive, received %d.", keylen));
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     ScryptOptions* opt = (ScryptOptions*)ac.ctxv()[0].object();

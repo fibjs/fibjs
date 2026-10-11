@@ -261,7 +261,7 @@ public:
 
     obj_ptr<Buffer_base> m_buf;
     exlib::Event m_event;
-    int32_t m_result;
+    result_t m_result;
     bool m_blocking;
 };
 

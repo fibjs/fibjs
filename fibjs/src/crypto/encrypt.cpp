@@ -90,7 +90,7 @@ result_t PKEY_cipher(Buffer_base* key, int padding, Buffer_base* buffer, obj_ptr
 {
     obj_ptr<KeyObject_base> key_;
     result_t hr = createKey(key, key_);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     return PKEY_cipher<EVP_PKEY_cipher_init, EVP_PKEY_cipher>(key_, padding, buffer, retVal);
@@ -128,7 +128,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
 
     obj_ptr<Buffer_base> oaep_label;
     hr = GetConfigValue(key, "oaepLabel", v);
-    if (hr == 0) {
+    if (hr.ok()) {
         hr = GetArgumentValue(isolate, v, oaep_label, false);
         if (hr.failed())
             return hr;

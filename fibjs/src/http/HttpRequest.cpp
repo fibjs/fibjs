@@ -78,7 +78,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
             body->writeBuffer(buf, nullptr);
             Variant ct;
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            if (headers->first("Content-Type", ct).is_return_null())
                 headers->set("Content-Type", "application/json");
         } else if (!(v = opts->Get(context, isolate->NewString("pack", 4)))->IsUndefined()) {
             body = new MemoryStream();
@@ -88,7 +88,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
                 return hr;
             body->writeBuffer(buf, nullptr);
             Variant ct;
-            if (headers->first("Content-Type", ct) == CALL_RETURN_NULL)
+            if (headers->first("Content-Type", ct).is_return_null())
                 headers->set("Content-Type", "application/msgpack");
         }
     } else {
@@ -101,7 +101,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
 
     bool ka;
     hr = GetConfigValue(opts, "keepAlive", ka);
-    if (hr == 0) {
+    if (hr.ok()) {
         keepAlive = ka;
         has_keepAlive = true;
     } else if (!hr.is_param_missing())
@@ -110,10 +110,10 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     {
         int32_t t;
         result_t t_hr = GetConfigValue(opts, "timeout", t);
-        if (t_hr == 0) {
+        if (t_hr.ok()) {
             timeout = t;
             has_timeout = true;
-        } else if (t_hr != CALL_E_PARAMNOTOPTIONAL)
+        } else if (!t_hr.is_param_missing())
             return t_hr;
     }
 
@@ -122,14 +122,14 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     // Parse signal option; ignore type mismatch or missing key
     {
         result_t sig_hr = GetConfigValue(opts, "signal", signal);
-        if (sig_hr < 0 && sig_hr != CALL_E_PARAMNOTOPTIONAL)
+        if (sig_hr.failed() && !sig_hr.is_param_missing())
             signal = nullptr; // wrong type - treat as no signal
     }
 
     {
         bool s;
         result_t s_hr = GetConfigValue(opts, "streaming", s);
-        if (s_hr == 0)
+        if (s_hr.ok())
             streaming = s;
     }
 
@@ -189,7 +189,7 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool re
     // Body fallback: use request's body if opts didn't provide one
     if (!body) {
         obj_ptr<Stream_base> req_body_stream;
-        if (req->get_body(req_body_stream) == 0 && req_body_stream) {
+        if (req->get_body(req_body_stream).has_value()) {
             body = SeekableStream_base::getInstance(req_body_stream);
             if (!body)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: request body must be seekable."));
@@ -233,7 +233,7 @@ void HttpRequest::set_options(const Options& o, bool replace_headers)
             // request must not survive as a duplicate (the standard keeps one)
             if (o.body) {
                 Variant ct;
-                if (o.headers->first("Content-Type", ct) != CALL_RETURN_NULL)
+                if (!o.headers->first("Content-Type", ct).is_return_null())
                     removeHeader("Content-Type");
             }
 
@@ -299,7 +299,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
 
     if (method == "GET" || method == "HEAD") {
         obj_ptr<Stream_base> body;
-        if (req->get_body(body) == 0 && body)
+        if (req->get_body(body).has_value())
             return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
                     .with_message("Request: GET/HEAD requests cannot have a body")));
     }
@@ -906,7 +906,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
 
         ON_STATE(asyncReadFrom, command)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return CHECK_ERROR(CALL_E_CLOSED);
 
             _parser p(m_strLine);
@@ -1018,9 +1018,9 @@ result_t HttpRequest::set_url(exlib::string newVal)
 result_t HttpRequest::get_href(exlib::string& retVal)
 {
     exlib::string protocol;
-    if (firstHeader("X-Forwarded-Proto", protocol) == CALL_RETURN_NULL || protocol.empty()) {
+    if (firstHeader("X-Forwarded-Proto", protocol).is_return_null() || protocol.empty()) {
         obj_ptr<Stream_base> socket;
-        if (m_message->get_socket(socket) == 0 && socket) {
+        if (m_message->get_socket(socket).has_value()) {
             if (TLSSocket_base::getInstance(socket))
                 protocol = "https";
             else
@@ -1031,7 +1031,7 @@ result_t HttpRequest::get_href(exlib::string& retVal)
     }
 
     exlib::string host;
-    if (firstHeader("Host", host) == CALL_RETURN_NULL || host.empty())
+    if (firstHeader("Host", host).is_return_null() || host.empty())
         host = "localhost";
 
     retVal = protocol;
@@ -1096,7 +1096,7 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
             exlib::string strType;
             bool bUpload = false;
 
-            if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+            if (firstHeader("Content-Type", strType).is_return_null())
                 return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
             if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
@@ -1108,7 +1108,7 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
             obj_ptr<Buffer_base> buf;
             obj_ptr<Stream_base> _body_stream;
 
-            if (get_body(_body_stream) == CALL_RETURN_NULL || !_body_stream)
+            if (get_body(_body_stream).is_return_null() || !_body_stream)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: body is empty."));
             obj_ptr<SeekableStream_base> _body = SeekableStream_base::getInstance(_body_stream);
             if (!_body)
@@ -1200,7 +1200,7 @@ result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
 result_t HttpRequest::resume(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (m_message->get_body(body) == 0 && body) {
+    if (m_message->get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->resume(r);
     }
@@ -1211,7 +1211,7 @@ result_t HttpRequest::resume(obj_ptr<Message_base>& retVal)
 result_t HttpRequest::pause(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<Stream_base> body;
-    if (m_message->get_body(body) == 0 && body) {
+    if (m_message->get_body(body).has_value()) {
         obj_ptr<Stream_base> r;
         body->pause(r);
     }

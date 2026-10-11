@@ -56,7 +56,7 @@ result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, o
     stm->size(sz);
 
     result_t hr = _parseRange(range, sz, begin, end);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = new RangeStream(stm, begin, end);
@@ -163,14 +163,14 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 
             ON_STATE(asyncRead, ready)
             {
-                if (n >= 0 && n != CALL_RETURN_NULL) {
+                if (n.ok() && !n.is_return_null()) {
                     int32_t len = Buffer::Cast(m_retVal)->length();
                     m_pThis->real_pos += len;
                 }
 
                 result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_base::C_SEEK_SET);
 
-                if (n != CALL_RETURN_NULL || hr.failed())
+                if (!n.is_return_null() || hr.failed())
                     return next(hr);
                 else
                     return next(n);
@@ -220,7 +220,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 
             ON_STATE(asyncReadRaw, ready)
             {
-                if (n >= 0 && n != CALL_RETURN_NULL) {
+                if (n.ok() && !n.is_return_null()) {
                     int32_t len = Buffer::Cast(m_retVal)->length();
                     m_pThis->real_pos += len;
                 }

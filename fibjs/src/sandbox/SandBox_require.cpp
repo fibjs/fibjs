@@ -134,7 +134,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     hr = resolve(base, id, data, mod);
     if (hr.failed()) {
         // Node.js reports a failed module lookup as MODULE_NOT_FOUND.
-        if (hr == -ENOENT)
+        if (hr.is(CALL_E_FILE_NOT_FOUND))
             return Runtime::setError(ErrorPayload::make(errtype::kError)
                     .with_code("MODULE_NOT_FOUND")
                     .with_message("Cannot find module '" + id + "'"));

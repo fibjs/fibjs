@@ -88,17 +88,17 @@ public:
     }
 
     result_t onEventChange(exlib::string type, v8::Local<v8::Value> ev, v8::Local<v8::Function> func);
-    int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
+    result_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
 
     // String overload for internal C++ callers
-    int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+    result_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         return putFunction(esa, func, static_cast<v8::Local<v8::Value>>(NewString(ev)));
     }
 
-    int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
+    result_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
     void spliceOne(v8::Local<v8::Array> esa, int32_t index);
-    int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
+    result_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
     result_t _map(v8::Local<v8::Object> m,
         result_t (JSTrigger::*fn)(v8::Local<v8::Value>, v8::Local<v8::Function>, v8::Local<v8::Object>&),
         v8::Local<v8::Object>& retVal);
@@ -270,7 +270,7 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_variant_args[i] = args[i];
 
-            m_isolate->sync([this]() -> int {
+            m_isolate->sync([this]() -> result_t {
                 return emitter_func();
             });
         }
@@ -283,7 +283,7 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_value_args[i].Reset(m_isolate->m_isolate, args[i]);
 
-            m_isolate->sync([this]() -> int {
+            m_isolate->sync([this]() -> result_t {
                 return emitter_func();
             });
         }

@@ -242,7 +242,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     }
 
     result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac.ctxv()[0].object();

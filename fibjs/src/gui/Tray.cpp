@@ -65,7 +65,7 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
 
     Variant var;
     hr = fs_base::ac_readFile(tray->m_options->icon.value(), "", var);
-    if (hr)
+    if (hr.failed())
         return hr;
 
     tray->m_icon = (Buffer*)var.object();

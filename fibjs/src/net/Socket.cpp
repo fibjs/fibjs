@@ -425,7 +425,7 @@ public:
             m_sock->isolate_unref();
     }
 
-    ErrorPayload error_payload(int32_t v) const
+    ErrorPayload error_payload(result_t v) const
     {
         ErrorPayload payload = ErrorPayload::from_system(v).with_syscall("connect");
 
@@ -441,18 +441,18 @@ public:
     {
         if (!m_bEvent) {
             ErrorPayload payload;
-            if (v < 0) {
+            if (v.failed()) {
                 payload = error_payload(v);
                 m_sock->setPendingErrorPayload(payload);
             }
-            m_sock->on_connected(v < 0 ? v : result_t(0));
+            m_sock->on_connected(v.failed() ? v : result_t(0));
 
-            if (v < 0)
+            if (v.failed())
                 setErrorPayload(payload);
 
             m_ac.post(v);
         } else {
-            if (v < 0) {
+            if (v.failed()) {
                 ErrorPayload payload = error_payload(v);
 
                 m_sock->setPendingErrorPayload(payload);
@@ -523,7 +523,7 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     ConnectOptions* opt = (ConnectOptions*)ac.ctxv()[0].object();

@@ -119,7 +119,7 @@ static bool isRelativePattern(const exlib::string& pattern)
         // If normalized path is different and doesn't start with /, it might be relative
         bool isAbs = false;
         result_t absCheck = path_base::isAbsolute(normalized, isAbs);
-        if (absCheck >= 0 && !isAbs && normalized.length() >= 2) {
+        if (absCheck.ok() && !isAbs && normalized.length() >= 2) {
             return normalized.substr(0, 2) == "./"
 #ifdef _WIN32
                 || normalized.substr(0, 2) == ".\\"
@@ -509,7 +509,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     obj_ptr<GlobOptions> _opts = (GlobOptions*)ac.ctxv()[0].object();

@@ -233,8 +233,8 @@ result_t TcpServer::start()
                 return next();
             }
 
-            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL
-                || v == CALL_E_NETNAME_DELETED || v == CALL_E_CLOSED_SOCKET) {
+            if (v.is(CALL_E_BAD_FILE) || v.is(CALL_E_INVALID_CALL)
+                || v.is(CALL_E_NETNAME_DELETED) || v.is(CALL_E_CLOSED_SOCKET)) {
                 // only emit 'close' if stop() hasn't already done so
                 if (m_pThis->m_running) {
                     m_pThis->m_running = false;

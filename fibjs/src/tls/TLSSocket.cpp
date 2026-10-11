@@ -506,7 +506,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
 
         ON_STATE(AsyncRead, read)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 m_sock->m_eof = 1;
 
             if (!m_sock->m_eof) {

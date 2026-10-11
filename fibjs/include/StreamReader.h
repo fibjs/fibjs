@@ -41,7 +41,7 @@ public:
         ON_STATE(AsyncRead, done)
         {
             m_retVal = new ReadType();
-            if (n == CALL_RETURN_NULL || !m_buf) {
+            if (n.is_return_null() || !m_buf) {
                 m_retVal->done = true;
                 m_retVal->value = new Buffer();
                 m_reader->resolve_closed();

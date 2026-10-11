@@ -77,7 +77,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
         // the algorithm (and, for ECDH, the public key) was prepared by the
         // sync phase
         result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr < 0)
+        if (ctx_hr.failed())
             return ctx_hr;
 
         name = ac.ctxv()[0].string();
@@ -98,7 +98,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
             return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
 
         result_t ctx_hr = ac.ctx(1);
-        if (ctx_hr < 0 || ac.ctxv()[1].object() == NULL)
+        if (ctx_hr.failed() || ac.ctxv()[1].object() == NULL)
             return Runtime::setError("WebCrypto: ECDH algorithm must have 'public' property");
 
         CryptoKey* publicKey = (CryptoKey*)ac.ctxv()[1].object();

@@ -61,7 +61,9 @@ public:
         return 0;
     }
 
-    void async(int32_t type);
+    // The pool to run this event on, named by the bridge code it came with
+    // (NOASYNC / LONGSYNC / GUICALL); a no-op for any other code.
+    void async(result_t type);
     virtual void invoke()
     {
     }
@@ -124,7 +126,7 @@ protected:
         // Success path: nothing to carry. The slot stays empty instead of
         // constructing an empty payload, and an event that never failed never
         // allocates one either.
-        if (v >= 0) {
+        if (v.ok()) {
             m_errorPayload.reset();
             return;
         }
@@ -373,7 +375,7 @@ public:
 
             virtual void invoke() override
             {
-                if (m_hr < 0)
+                if (m_hr.failed())
                     Runtime::applyErrorDescription(m_desc, m_payload);
 
                 m_h.post(m_hr);
@@ -424,7 +426,7 @@ public:
     virtual result_t post(result_t v)
     {
         captureErrorContext(v);
-        if (v == CALL_E_EXCEPTION) {
+        if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();
@@ -438,14 +440,14 @@ public:
 
     result_t check_result(result_t hr)
     {
-        if (hr == CALL_E_NOSYNC) {
+        if (hr.is_nosync()) {
             Isolate::LeaveJsScope _rt(m_isolate);
             invoke();
             weak.wait();
 
             if (_rt.is_terminating())
                 m_v = CALL_E_TIMEOUT;
-        } else if (hr == CALL_E_LONGSYNC || hr == CALL_E_GUICALL) {
+        } else if (hr.is(CALL_E_LONGSYNC) || hr.is(CALL_E_GUICALL)) {
             async(hr);
 
             if (!weak.isSet()) {
@@ -455,14 +457,14 @@ public:
                 if (_rt.is_terminating())
                     m_v = CALL_E_TIMEOUT;
             }
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
         else
             m_v = hr;
 
-        if (m_v < 0)
+        if (m_v.failed())
             applyErrorContext();
-        if (m_v == CALL_E_EXCEPTION)
+        if (m_v.is_exception())
             Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
@@ -495,7 +497,7 @@ public:
     virtual result_t post(result_t v)
     {
         captureErrorContext(v);
-        if (v == CALL_E_EXCEPTION) {
+        if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();
@@ -509,17 +511,17 @@ public:
 
     result_t check_result(result_t hr)
     {
-        if (hr == CALL_E_NOSYNC)
+        if (hr.is_nosync())
             invoke();
-        else if (hr == CALL_E_LONGSYNC || hr == CALL_E_GUICALL)
+        else if (hr.is(CALL_E_LONGSYNC) || hr.is(CALL_E_GUICALL))
             async(hr);
         else
             return hr;
 
         weak.wait();
-        if (m_v < 0)
+        if (m_v.failed())
             applyErrorContext();
-        if (m_v == CALL_E_EXCEPTION)
+        if (m_v.is_exception())
             Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
@@ -869,7 +871,7 @@ inline void AsyncState::state_lock_violation(const char* what, result_t v, void*
     fprintf(stderr, "\n[fibjs] AsyncState phase lock violation: %s\n", what);
     fprintf(stderr, "  machine=%p epoch=%d expect=%d state=%p next=%p value=%d caller=%p\n",
         (void*)this, m_epoch.load(std::memory_order_relaxed), m_cont.expect.load(),
-        (void*)m_state, (void*)m_next, (int32_t)v, caller);
+        (void*)m_state, (void*)m_next, v.code, caller);
     fprintf(stderr, "  violating stack:\n");
     ex_print_stack_trace();
     fflush(stderr);
@@ -1107,7 +1109,7 @@ public:
     result_t post_result(result_t v)
     {
         captureErrorContext(v);
-        if (v == CALL_E_EXCEPTION) {
+        if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
             m_error = Runtime::errMessage();

@@ -17,7 +17,7 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
     SandBox::ModuleTypeInfo info;
 
     hr = ctx->m_sb->resolveModuleType(name, info);
-    if (hr)
+    if (hr.failed())
         return hr;
 
     if (info.type == SandBox::kCommonJS) {

@@ -275,7 +275,7 @@ result_t X509Certificate_base::_new(Union_X509Certificate_cert cert, obj_ptr<X50
 
     obj_ptr<X509Certificate> cert_ = new X509Certificate();
     result_t hr = cert_->load_cert(buf);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = cert_;
@@ -334,7 +334,7 @@ result_t X509Certificate_base::_new(std::vector<Union_X509Certificate_certs>& ce
 
     obj_ptr<X509Certificate> cert_ = new X509Certificate();
     result_t hr = cert_->load_cert(bufs);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = cert_;
@@ -488,7 +488,7 @@ result_t X509Certificate::get_publicKey(obj_ptr<KeyObject_base>& retVal)
 
     obj_ptr<KeyObject> key = new KeyObject();
     result_t hr = key->createPublicKeyFromPKey(pkey);
-    if (hr != 0)
+    if (hr.failed())
         return hr;
 
     retVal = m_publicKey = key;

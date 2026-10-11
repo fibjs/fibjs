@@ -242,7 +242,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
 
         ON_STATE(asyncCommand, bulk_ok)
         {
-            if (n == CALL_RETURN_NULL)
+            if (n.is_return_null())
                 return setResult(CALL_RETURN_NULL);
 
             int32_t sz = Buffer::Cast(m_buffer)->length();
