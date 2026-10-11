@@ -328,6 +328,23 @@ public:
     {
         return code == CALL_E_BADVARTYPE;
     }
+
+    // A failure about how the arguments were provided: the overload arity, a
+    // missing strict option, or a value that does not convert. The argument
+    // bridge retries these leniently (see CHECK_ARGUMENT).
+    bool is_arg_error() const
+    {
+        return code == CALL_E_BADPARAMCOUNT || code == CALL_E_PARAMNOTOPTIONAL || code == CALL_E_TYPEMISMATCH;
+    }
+
+    // The async bridge's control codes: the call has to be made in another form
+    // (sync / async / long sync / gui) or is still in progress. They are not
+    // failures to report.
+    bool is_bridge_code() const
+    {
+        return code == CALL_E_NOSYNC || code == CALL_E_NOASYNC || code == CALL_E_LONGSYNC
+            || code == CALL_E_GUICALL || code == CALL_E_PENDDING;
+    }
 };
 
 // P1 keeps the 4-byte layout so the calling convention (and the addon ABI)
@@ -490,9 +507,8 @@ enum {
     }                                                                                                           \
     while (0)                                                                                                   \
         ;                                                                                                       \
-    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is_param_missing() && !hr.is_type_mismatch()    \
-            && hr_argc != CALL_E_BADPARAMCOUNT && hr_argc != CALL_E_PARAMNOTOPTIONAL))                          \
-        break;                                                                                                  \
+    if (!bStrict || (!hr.is_arg_error() && !hr_argc.is(CALL_E_BADPARAMCOUNT) && !hr_argc.is_param_missing())) \
+        break;                                                                                          \
     bStrict = false;                                                                                            \
     }                                                                                                           \
     while (true)                                                                                                \
@@ -1982,7 +1998,7 @@ void errorLog(exlib::string msg);
 
 inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 {
-    if (hr.failed() && !hr.is_nosync() && !hr.is(CALL_E_NOASYNC) && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL) && !hr.is_pending()) {
+    if (hr.failed() && !hr.is_bridge_code()) {
         exlib::string str = file;
         char tmp[64];
 
