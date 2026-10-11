@@ -276,7 +276,7 @@ private:
 
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod, &pendding);
-        if (hr.is(CALL_E_FILE_NOT_FOUND))
+        if (hr.is_not_found())
             return Runtime::setError(ErrorPayload::make(errtype::kError)
                     .with_code("ERR_MODULE_NOT_FOUND")
                     .with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
@@ -340,7 +340,7 @@ private:
 
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod);
-        if (hr.is(CALL_E_FILE_NOT_FOUND))
+        if (hr.is_not_found())
             return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
 
         if (hr.failed())

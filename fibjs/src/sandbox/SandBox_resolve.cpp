@@ -575,11 +575,11 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
     if (!script_name.empty()) {
         hr = resolvePackage(mods, module_name1, "", data, type, out, retVal);
-        if (!hr.is(CALL_E_FILE_NOT_FOUND))
+        if (!hr.is_not_found())
             return hr;
 
         hr = resolvePackage(mods, module_name1 + ".zip$", "", data, type, out, retVal);
-        if (!hr.is(CALL_E_FILE_NOT_FOUND))
+        if (!hr.is_not_found())
             return hr;
     }
 
@@ -691,7 +691,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     // 跳过整轮 package/index 探测（省 1 次 open + 6 次 stat）
     if (base_type >= 0) {
         hr = resolvePackage(_mods, module_name, script_name, data, type, out, retVal);
-        if (!hr.is(CALL_E_FILE_NOT_FOUND))
+        if (!hr.is_not_found())
             return hr;
     }
 
@@ -702,7 +702,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     exlib::string zip_container = module_name + ".zip";
     if (file_type(zip_container) >= 0) {
         hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
-        if (!hr.is(CALL_E_FILE_NOT_FOUND))
+        if (!hr.is_not_found())
             return hr;
     }
 
