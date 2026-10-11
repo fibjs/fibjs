@@ -135,15 +135,15 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
                             transferList.push_back(v8::Local<v8::ArrayBuffer>::Cast(item));
                         } else {
                             return CHECK_ERROR(Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
-                                                                     .with_code("ERR_INVALID_ARG_TYPE")
-                                                                     .format("The \"options.transfer\" property must contain only ArrayBuffer objects")));
+                                                                     ->with_code("ERR_INVALID_ARG_TYPE")
+                                                                     ->format("The \"options.transfer\" property must contain only ArrayBuffer objects")));
                         }
                     }
                 }
             } else if (!transferValue->IsUndefined()) {
                 return CHECK_ERROR(Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
-                                                         .with_code("ERR_INVALID_ARG_TYPE")
-                                                         .format("The \"options.transfer\" property must be an array")));
+                                                         ->with_code("ERR_INVALID_ARG_TYPE")
+                                                         ->format("The \"options.transfer\" property must be an array")));
             }
         }
     }

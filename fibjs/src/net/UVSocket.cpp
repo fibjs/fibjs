@@ -253,14 +253,15 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 m_sock->isolate_unref();
         }
 
-        ErrorPayload error_payload(result_t status) const
+        obj_ptr<ErrorPayload> error_payload(result_t status) const
         {
-            ErrorPayload payload = ErrorPayload::from_system(status).with_syscall("connect");
+            obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(status);
 
+            payload->with_syscall("connect");
             if (m_use_path)
-                payload.with_path(m_target).arg("path", m_target);
+                payload->with_path(m_target)->arg("path", m_target);
             else
-                payload.with_hostname(m_target).arg("host", m_target).arg("port", m_port);
+                payload->with_hostname(m_target)->arg("host", m_target)->arg("port", m_port);
 
             return payload;
         }
@@ -287,18 +288,18 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                     // The connect error also travels to the socket's own error
                     // emission, which runs on the isolate thread: keep a copy
                     // here (see AsyncStreamBase::takePendingErrorPayload).
-                    ErrorPayload payload = error_payload(status);
+                    obj_ptr<ErrorPayload> payload = error_payload(status);
 
-                    m_sock->setPendingErrorPayload(payload);
+                    m_sock->setPendingErrorPayload(payload->clone());
                     setErrorPayload(payload);
                 }
 
                 m_ac.apost(status);
             } else {
                 if (status < 0) {
-                    ErrorPayload payload = error_payload(status);
+                    obj_ptr<ErrorPayload> payload = error_payload(status);
 
-                    m_sock->setPendingErrorPayload(payload);
+                    m_sock->setPendingErrorPayload(payload->clone());
                     setErrorPayload(payload);
                     (new EventInfo(m_sock, "error", status))->emit();
                 } else {

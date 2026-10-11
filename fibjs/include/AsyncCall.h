@@ -127,27 +127,26 @@ protected:
         // constructing an empty payload, and an event that never failed never
         // allocates one either.
         if (v.ok()) {
-            m_errorPayload.reset();
+            m_errorPayload = nullptr;
             return;
         }
 
-        ErrorPayload payload = takeErrorPayload();
+        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-        if (payload.empty()) {
-            m_errorPayload.reset();
+        if (!payload || payload->empty()) {
+            m_errorPayload = nullptr;
             return;
         }
 
-        if (m_errorPayload)
-            *m_errorPayload = std::move(payload);
-        else
-            m_errorPayload.reset(new ErrorPayload(std::move(payload)));
+        m_errorPayload = std::move(payload);
     }
 
     void applyErrorContext() const
     {
         if (m_errorPayload && !m_errorPayload->empty())
-            setErrorPayload(*m_errorPayload);
+            // The stash keeps its own copy: the transports take-mutate-set it,
+            // and a shared object would leak those mutations back here.
+            setErrorPayload(m_errorPayload->clone());
     }
 
 protected:
@@ -167,9 +166,16 @@ protected:
         return m_errorPayload ? *m_errorPayload : emptyErrorPayload();
     }
 
+    // The carried payload as a shared handle (the slot keeps its own ref); an
+    // event that never failed returns null, which setError treats as empty.
+    obj_ptr<ErrorPayload> errorPayloadRef() const
+    {
+        return m_errorPayload;
+    }
+
 private:
     kStateType m_state;
-    std::unique_ptr<ErrorPayload> m_errorPayload;
+    obj_ptr<ErrorPayload> m_errorPayload;
 };
 
 // A single-owner handle to a continuation event, and the only way to name one
@@ -386,7 +392,7 @@ public:
             AsyncHandle m_h;
             result_t m_hr;
             Runtime::ErrorDescription m_desc;
-            ErrorPayload m_payload;
+            obj_ptr<ErrorPayload> m_payload;
         };
 
         (new AsyncPost(std::move(*this), hr))->async(mode);
@@ -465,7 +471,7 @@ public:
         if (m_v.failed())
             applyErrorContext();
         if (m_v.is_exception())
-            Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
+            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
     }
@@ -522,7 +528,7 @@ public:
         if (m_v.failed())
             applyErrorContext();
         if (m_v.is_exception())
-            Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
+            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
 
         return m_v;
     }

@@ -1242,234 +1242,20 @@ exlib::string summarize_for_error(object_base* obj);
 // Parameter summary entry carried by ErrorPayload. Values are pre-rendered
 // summaries instead of raw objects: a payload travels across fibers/threads
 // and must never keep JS handles nor unbounded data alive.
-struct ErrorArg {
-    exlib::string name;
-    exlib::string value;
-};
+// ErrorArg / ErrorPayload live in result.h (below result_t: the payload rides
+// with the value, and the header ordering makes that possible).
 
-// Bounds for arg summaries. Longer names/values are truncated with a trailing
-// "..." marker so a single payload cannot grow without limit.
-const int32_t kErrorArgNameMaxLength = 64;
-const int32_t kErrorArgValueMaxLength = 128;
-
-// ---------------------------------------------------------------------------
-// Debug instrument (off by default): define FIBJS_ERR_PAYLOAD_TRACE to track
-// whether a built ErrorPayload is ever delivered to JavaScript. Every payload
-// whose last instance is destroyed without reaching BuildError / EventInfo is
-// reported on stderr together with its creation backtrace: such a payload was
-// built for nothing, or was silently dropped on the way to the caller. Enable
-// with -DFIBJS_ERR_PAYLOAD_TRACE (or by uncommenting the define below) while
-// hunting wasted builds - the "trace active" banner it prints would otherwise
-// disturb tests that compare child process stderr.
-// ---------------------------------------------------------------------------
-// #define FIBJS_ERR_PAYLOAD_TRACE
-
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-#include <memory>
-
-struct ErrorPayload;
-
-struct ErrorPayloadTrace {
-    uint64_t id = 0;
-    bool delivered = false;
-    int depth = 0;
-    void* frames[8] = {};
-};
-
-uint64_t error_payload_trace_next_id();
-void error_payload_trace_record(ErrorPayloadTrace& trace);
-void error_payload_trace_lost(const ErrorPayload& payload);
-#endif
-
-struct ErrorPayload {
-    exlib::string error_type_name;
-    exlib::string syscall;
-    exlib::string path;
-    // Second path of a two-path operation (rename / symlink / link / copyfile):
-    // Node reports "<syscall> '<path>' -> '<path2>'".
-    exlib::string path2;
-    exlib::string hostname;
-    exlib::string code;
-    exlib::string message;
-    result_t result_code = 0;
-    bool has_errno = false;
-    int32_t errno_value = 0;
-    std::vector<ErrorArg> args;
-
-    static ErrorPayload make(const char* error_type_name = nullptr, result_t result_code = 0)
-    {
-        ErrorPayload payload;
-
-        if (error_type_name)
-            payload.error_type_name = error_type_name;
-        payload.result_code = result_code;
-
-        return payload;
-    }
-
-    static ErrorPayload from_system(result_t hr)
-    {
-        ErrorPayload payload;
-        payload.has_errno = true;
-        payload.errno_value = hr.code();
-        return payload;
-    }
-
-    static ErrorPayload from_uv(int32_t status)
-    {
-        return from_system(status);
-    }
-
-    ErrorPayload& with_type_name(const exlib::string& value)
-    {
-        error_type_name = value;
-        return *this;
-    }
-
-    ErrorPayload& with_syscall(const char* value)
-    {
-        syscall = value ? value : "";
-        return *this;
-    }
-
-    ErrorPayload& with_path(const exlib::string& value)
-    {
-        path = value;
-        return *this;
-    }
-
-    ErrorPayload& with_path2(const exlib::string& value)
-    {
-        path2 = value;
-        return *this;
-    }
-
-    ErrorPayload& with_hostname(const exlib::string& value)
-    {
-        hostname = value;
-        return *this;
-    }
-
-    ErrorPayload& with_code(const exlib::string& value)
-    {
-        code = value;
-        return *this;
-    }
-
-    ErrorPayload& with_message(const exlib::string& value)
-    {
-        message = value;
-        return *this;
-    }
-
-    ErrorPayload& with_errno(int32_t value)
-    {
-        has_errno = true;
-        errno_value = value;
-        return *this;
-    }
-
-    ErrorPayload& result(result_t code)
-    {
-        result_code = code;
-        return *this;
-    }
-
-    // printf-style formatted message, consistent with Runtime::setError(fmt, ...)
-    ErrorPayload& format(const char* fmt, ...);
-
-    ErrorPayload& arg(const char* name, const exlib::string& value);
-    ErrorPayload& arg(const char* name, const char* value)
-    {
-        return arg(name, value ? exlib::string(value) : exlib::string());
-    }
-    ErrorPayload& arg(const char* name, int32_t value);
-    ErrorPayload& arg(const char* name, uint32_t value);
-    ErrorPayload& arg(const char* name, int64_t value);
-    ErrorPayload& arg(const char* name, uint64_t value);
-    ErrorPayload& arg(const char* name, bool value);
-    ErrorPayload& arg(const char* name, double value);
-    ErrorPayload& arg(const char* name, const Variant& value)
-    {
-        return arg(name, summarize_for_error(value));
-    }
-    // Object arguments render through summarize_for_error: Buffer objects
-    // report their length, Stream objects announce the class family.
-    ErrorPayload& arg(const char* name, object_base* value)
-    {
-        return arg(name, summarize_for_error(value));
-    }
-
-    // Sensitive values never enter the payload, not even truncated.
-    ErrorPayload& arg_redacted(const char* name);
-    ErrorPayload& arg_object(const char* name, const char* class_name);
-    ErrorPayload& arg_buffer(const char* name, int64_t length);
-
-    bool has_args() const
-    {
-        return !args.empty();
-    }
-
-    bool empty() const
-    {
-        return error_type_name.empty() && syscall.empty() && path.empty() && path2.empty() && hostname.empty()
-            && code.empty() && message.empty() && result_code.has_value() && !has_errno && args.empty();
-    }
-
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-    std::shared_ptr<ErrorPayloadTrace> m_trace;
-
-    // A payload that leaves without being delivered is reported by the last
-    // instance that goes away (the shared record makes copies of one payload
-    // count as a single build).
-    ~ErrorPayload()
-    {
-        if (m_trace && m_trace.use_count() == 1 && !m_trace->delivered)
-            error_payload_trace_lost(*this);
-    }
-
-    void trace_ensure()
-    {
-        if (!m_trace && !empty()) {
-            m_trace = std::make_shared<ErrorPayloadTrace>();
-            m_trace->id = error_payload_trace_next_id();
-            error_payload_trace_record(*m_trace);
-        }
-    }
-
-    void trace_delivered()
-    {
-        if (m_trace)
-            m_trace->delivered = true;
-    }
-#endif
-
-private:
-    void append_arg(const exlib::string& name, const exlib::string& value);
-};
-
-void setErrorPayload(const ErrorPayload& data);
-ErrorPayload takeErrorPayload();
+void setErrorPayload(obj_ptr<ErrorPayload> data);
+obj_ptr<ErrorPayload> takeErrorPayload();
 void clearErrorPayload();
 
 // Attach a payload and return the original result code, so call sites can read
 // as `return setErrorPayload(hr, payload);` (same shape as
 // setSystemErrorPayload(hr, syscall, ...)).
-inline result_t setErrorPayload(result_t hr, const ErrorPayload& data)
+inline result_t setErrorPayload(result_t hr, obj_ptr<ErrorPayload> data)
 {
-    setErrorPayload(data);
+    setErrorPayload(std::move(data));
     return hr;
-}
-
-// Delivery to JavaScript (BuildError / EventInfo) completes the lifecycle of a
-// tracked payload; without tracing this is a no-op.
-inline void error_payload_delivered(ErrorPayload& payload)
-{
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-    payload.trace_delivered();
-#else
-    (void)payload;
-#endif
 }
 
 v8::Local<v8::Value> FillError(result_t hr);v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
@@ -1594,19 +1380,19 @@ inline result_t setSystemErrorPayload(result_t hr, const char* syscall,
     if (hr.is_system_error()) {
         // Augment instead of replace: an inner layer may already have attached
         // a string code, message or parameter summaries to the same failure.
-        ErrorPayload payload = takeErrorPayload();
+        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-        payload.has_errno = true;
-        payload.errno_value = hr.code();
+        payload->has_errno = true;
+        payload->errno_value = hr.code();
 
         if (syscall)
-            payload.with_syscall(syscall);
+            payload->with_syscall(syscall);
         if (!path.empty())
-            payload.with_path(path);
+            payload->with_path(path);
         if (!hostname.empty())
-            payload.with_hostname(hostname);
+            payload->with_hostname(hostname);
 
-        setErrorPayload(payload);
+        setErrorPayload(std::move(payload));
     }
 
     return hr;
@@ -1619,10 +1405,10 @@ inline result_t setSystemErrorPayload2(result_t hr, const char* syscall,
     result_t ret = setSystemErrorPayload(hr, syscall, path);
 
     if (ret.is_system_error()) {
-        ErrorPayload payload = takeErrorPayload();
+        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-        payload.with_path2(path2);
-        setErrorPayload(payload);
+        payload->with_path2(path2);
+        setErrorPayload(std::move(payload));
     }
 
     return ret;
@@ -1631,16 +1417,16 @@ inline result_t setSystemErrorPayload2(result_t hr, const char* syscall,
 inline void setErrorPayload(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    ErrorPayload payload;
+    obj_ptr<ErrorPayload> payload = new ErrorPayload();
 
     if (syscall)
-        payload.with_syscall(syscall);
+        payload->with_syscall(syscall);
     if (!path.empty())
-        payload.with_path(path);
+        payload->with_path(path);
     if (!hostname.empty())
-        payload.with_hostname(hostname);
+        payload->with_hostname(hostname);
 
-    setErrorPayload(payload);
+    setErrorPayload(std::move(payload));
 }
 
 inline result_t LastError(const char* syscall, const exlib::string& path = exlib::string(),

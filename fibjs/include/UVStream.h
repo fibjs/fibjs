@@ -455,7 +455,7 @@ public:
                 // Same cross-thread rule as the other emit paths: the error
                 // description and the payload must travel with the closure.
                 Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-                ErrorPayload payload = takeErrorPayload();
+                obj_ptr<ErrorPayload> payload = takeErrorPayload();
                 isolate->sync([stream, v, desc, payload]() -> int32_t {
                     JSFiber::EnterJsScope s;
 

@@ -11,10 +11,6 @@
 #include <csignal>
 #include "TextColor.h"
 
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-#include <execinfo.h>
-#include <atomic>
-#endif
 
 namespace fibjs {
 
@@ -25,7 +21,7 @@ static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
         len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
-    s.resize(snprintf(s.data(), len + 17, "[%d] %s", hr, str));
+    s.resize(snprintf(s.data(), len + 17, "[%d] %s", hr.code(), str));
 
     return s;
 }
@@ -260,95 +256,42 @@ static v8::Local<v8::Value> MakeException(Isolate* isolate, const exlib::string&
 // error so that BuildError can attach Node.js compatible errno/syscall/path fields
 // and parameter summaries. The whole payload is kept - including args, message and
 // result code - so no structured information is lost on the way to the JS boundary.
-static thread_local ErrorPayload s_err_payload;
+static thread_local obj_ptr<ErrorPayload> s_err_payload;
 
-void setErrorPayload(const ErrorPayload& data)
+void setErrorPayload(obj_ptr<ErrorPayload> data)
 {
-    s_err_payload = data;
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-    s_err_payload.trace_ensure();
-#endif
+    s_err_payload = std::move(data);
 }
 
-ErrorPayload takeErrorPayload()
+obj_ptr<ErrorPayload> takeErrorPayload()
 {
-    ErrorPayload data = std::move(s_err_payload);
+    obj_ptr<ErrorPayload> data = std::move(s_err_payload);
 
-    s_err_payload = ErrorPayload();
-    return data;
+    s_err_payload = nullptr;
+
+    // The value semantics of the old take: callers may always mutate the
+    // result (augment / add args), so an empty stash yields an empty payload,
+    // never a null handle.
+    return data ? std::move(data) : obj_ptr<ErrorPayload>(new ErrorPayload());
 }
 
 void clearErrorPayload()
 {
-    s_err_payload = ErrorPayload();
+    s_err_payload = nullptr;
 }
 
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-static std::atomic<uint64_t> s_trace_next_id { 0 };
-static std::atomic<uint64_t> s_trace_built { 0 };
-static std::atomic<uint64_t> s_trace_lost { 0 };
-
-static void error_payload_trace_summary()
+// The old Runtime::setError side effect, reproduced at builder landing: the
+// real code rides in the payload (result_code == 0 means "no explicit code"
+// and reports as the generic CALL_E_EXCEPTION sentinel).
+void mirror_error_state(const ErrorPayload& payload)
 {
-    fprintf(stderr, "[errpayload] summary built=%llu lost=%llu delivered=%llu\n",
-        (unsigned long long)s_trace_built.load(), (unsigned long long)s_trace_lost.load(),
-        (unsigned long long)(s_trace_built.load() - s_trace_lost.load()));
+    Runtime* rt = Runtime::current();
+
+    rt->m_code = payload.result_code.has_value() ? result_t(CALL_E_EXCEPTION) : payload.result_code;
+    rt->m_error = payload.message;
+    rt->m_errorTypeName = payload.error_type_name;
 }
 
-uint64_t error_payload_trace_next_id()
-{
-    static bool s_init = false;
-
-    if (!s_init) {
-        s_init = true;
-
-        // fibjs exits through _exit() on the normal path, so the atexit
-        // summary is only a best effort; the banner proves the instrument is
-        // live and every LOST line carries the running counters.
-        fprintf(stderr, "[errpayload] trace active\n");
-        atexit(error_payload_trace_summary);
-    }
-
-    s_trace_built.fetch_add(1);
-    return s_trace_next_id.fetch_add(1) + 1;
-}
-
-void error_payload_trace_record(ErrorPayloadTrace& trace)
-{
-    trace.depth = backtrace(trace.frames, (int)(sizeof(trace.frames) / sizeof(trace.frames[0])));
-}
-
-void error_payload_trace_lost(const ErrorPayload& payload)
-{
-    exlib::string args;
-
-    for (const ErrorArg& arg : payload.args) {
-        if (!args.empty())
-            args.append(", ");
-        args.append(arg.name);
-        args.append("=");
-        args.append(arg.value);
-    }
-
-    uint64_t lost = s_trace_lost.fetch_add(1) + 1;
-
-    fprintf(stderr, "[errpayload] LOST #%llu code=\"%s\" errno=%d syscall=\"%s\" path=\"%s\" hostname=\"%s\" message=\"%s\" args={%s} built=%llu lost=%llu\n",
-        (unsigned long long)payload.m_trace->id, payload.code.c_str(),
-        payload.has_errno ? payload.errno_value : 0, payload.syscall.c_str(),
-        payload.path.c_str(), payload.hostname.c_str(), payload.message.c_str(),
-        args.c_str(), (unsigned long long)s_trace_built.load(), (unsigned long long)lost);
-
-    if (payload.m_trace && payload.m_trace->depth > 0) {
-        char** symbols = backtrace_symbols(payload.m_trace->frames, payload.m_trace->depth);
-
-        if (symbols) {
-            for (int i = 0; i < payload.m_trace->depth; i++)
-                fprintf(stderr, "[errpayload]   #%d %s\n", i, symbols[i]);
-            free(symbols);
-        }
-    }
-}
-#endif
 
 // ---------------------------------------------------------------------------
 // ErrorPayload builder: formatted messages and bounded parameter summaries.
@@ -386,18 +329,6 @@ void ErrorPayload::append_arg(const exlib::string& name, const exlib::string& va
     // no information and would let one payload grow without bound.
     for (const ErrorArg& existing : args) {
         if (existing.name == arg.name && existing.value == arg.value) {
-#ifdef FIBJS_ERR_PAYLOAD_TRACE
-            void* frames[8];
-            int depth = backtrace(frames, 8);
-            char** symbols = backtrace_symbols(frames, depth);
-
-            fprintf(stderr, "[errpayload] DUP arg %s=%s (args now %d)\n", arg.name.c_str(), arg.value.c_str(), (int)args.size());
-            if (symbols) {
-                for (int i = 0; i < depth; i++)
-                    fprintf(stderr, "[errpayload]   #%d %s\n", i, symbols[i]);
-                free(symbols);
-            }
-#endif
             return;
         }
     }
@@ -405,7 +336,7 @@ void ErrorPayload::append_arg(const exlib::string& name, const exlib::string& va
     args.push_back(arg);
 }
 
-ErrorPayload& ErrorPayload::format(const char* fmt, ...)
+obj_ptr<ErrorPayload> ErrorPayload::format(const char* fmt, ...)
 {
     if (fmt) {
         va_list va;
@@ -418,62 +349,90 @@ ErrorPayload& ErrorPayload::format(const char* fmt, ...)
         message.assign(buf);
     }
 
-    return *this;
+    return this;
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, const exlib::string& value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, const exlib::string& value)
 {
     append_arg(name ? name : "", value);
-    return *this;
+    return this;
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, int32_t value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, int32_t value)
 {
     char buf[32];
     snprintf(buf, sizeof(buf), "%d", value);
     return arg(name, exlib::string(buf));
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, uint32_t value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, uint32_t value)
 {
     char buf[32];
     snprintf(buf, sizeof(buf), "%u", value);
     return arg(name, exlib::string(buf));
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, int64_t value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, int64_t value)
 {
     char buf[32];
     snprintf(buf, sizeof(buf), "%lld", (long long)value);
     return arg(name, exlib::string(buf));
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, uint64_t value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, uint64_t value)
 {
     char buf[32];
     snprintf(buf, sizeof(buf), "%llu", (unsigned long long)value);
     return arg(name, exlib::string(buf));
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, bool value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, bool value)
 {
     return arg(name, exlib::string(value ? "true" : "false"));
 }
 
-ErrorPayload& ErrorPayload::arg(const char* name, double value)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, double value)
 {
     char buf[64];
     snprintf(buf, sizeof(buf), "%g", value);
     return arg(name, exlib::string(buf));
 }
 
-ErrorPayload& ErrorPayload::arg_redacted(const char* name)
+// Variant / object summaries need summarize_for_error (utils.h) plus the
+// complete Variant / object_base types -- out-of-line on purpose.
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, const Variant& value)
 {
-    append_arg(name ? name : "", "<redacted>");
-    return *this;
+    return arg(name, summarize_for_error(value));
 }
 
-ErrorPayload& ErrorPayload::arg_object(const char* name, const char* class_name)
+obj_ptr<ErrorPayload> ErrorPayload::arg(const char* name, object_base* value)
+{
+    return arg(name, summarize_for_error(value));
+}
+
+result_t::builder&& result_t::builder::with_format(const char* fmt, ...)
+{
+    if (fmt) {
+        va_list va;
+        char buf[1024];
+
+        va_start(va, fmt);
+        vsnprintf(buf, sizeof(buf), fmt, va);
+        va_end(va);
+
+        ensure()->message.assign(buf);
+    }
+
+    return std::move(*this);
+}
+
+obj_ptr<ErrorPayload> ErrorPayload::arg_redacted(const char* name)
+{
+    append_arg(name ? name : "", "<redacted>");
+    return this;
+}
+
+obj_ptr<ErrorPayload> ErrorPayload::arg_object(const char* name, const char* class_name)
 {
     exlib::string summary = "<Object ";
 
@@ -483,7 +442,7 @@ ErrorPayload& ErrorPayload::arg_object(const char* name, const char* class_name)
     return arg(name, summary);
 }
 
-ErrorPayload& ErrorPayload::arg_buffer(const char* name, int64_t length)
+obj_ptr<ErrorPayload> ErrorPayload::arg_buffer(const char* name, int64_t length)
 {
     return arg(name, error_buffer_summary(length));
 }
@@ -587,13 +546,11 @@ static bool is_fd_syscall(const exlib::string& syscall)
 
 static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::string type_name, exlib::string msg)
 {
-    ErrorPayload payload = takeErrorPayload();
-
-    error_payload_delivered(payload);
+    obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
     // Precedence: payload name (crosses threads) > caller name > hr default.
-    if (!payload.error_type_name.empty())
-        type_name = payload.error_type_name;
+    if (!payload->error_type_name.empty())
+        type_name = payload->error_type_name;
     if (type_name.empty())
         type_name = getDefaultErrorTypeName(hr);
 
@@ -611,8 +568,8 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
     }
 
     exlib::string final_code;
-    if (!payload.code.empty())
-        final_code = payload.code;
+    if (!payload->code.empty())
+        final_code = payload->code;
     else if (_name)
         final_code = _name;
 
@@ -620,48 +577,48 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
         e->Set(context, isolate->NewString("code"), isolate->NewString(final_code)).IsJust();
 
     // Node.js compatible error fields, filled in by the module that raised the error
-    if (!payload.empty()) {
+    if (!payload->empty()) {
         // Node.js reports errno as a negative value for system errors
-        if (payload.has_errno)
-            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload.errno_value)).IsJust();
+        if (payload->has_errno)
+            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload->errno_value)).IsJust();
         else if (hr.is_system_error())
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr.code())).IsJust();
 
-        if (!payload.syscall.empty())
-            e->Set(context, isolate->NewString("syscall"), isolate->NewString(payload.syscall)).IsJust();
+        if (!payload->syscall.empty())
+            e->Set(context, isolate->NewString("syscall"), isolate->NewString(payload->syscall)).IsJust();
 
-        if (!payload.path.empty())
-            e->Set(context, isolate->NewString("path"), isolate->NewString(payload.path)).IsJust();
+        if (!payload->path.empty())
+            e->Set(context, isolate->NewString("path"), isolate->NewString(payload->path)).IsJust();
 
         // Node.js exposes the second path of a two-path operation as `dest`.
-        if (!payload.path2.empty())
-            e->Set(context, isolate->NewString("dest"), isolate->NewString(payload.path2)).IsJust();
+        if (!payload->path2.empty())
+            e->Set(context, isolate->NewString("dest"), isolate->NewString(payload->path2)).IsJust();
 
-        if (!payload.hostname.empty())
-            e->Set(context, isolate->NewString("hostname"), isolate->NewString(payload.hostname)).IsJust();
+        if (!payload->hostname.empty())
+            e->Set(context, isolate->NewString("hostname"), isolate->NewString(payload->hostname)).IsJust();
 
         // A module that wrote the full text (fs cp / rm style Node errors) wins
         // over the text derived from code + syscall below.
-        if (!payload.message.empty())
-            msg = payload.message;
+        if (!payload->message.empty())
+            msg = payload->message;
 
         // Node.js renders a system error as "<CODE>: <text>, <syscall> '<path>'"
         // for filesystem calls, "<syscall> <CODE> <address>" for sockets (the
         // address is the host or the unix path), "<CODE>: <text>, <syscall>" when
         // there is no path - which is what a Node program reads from err.message.
-        if (!payload.syscall.empty() && !final_code.empty() && payload.message.empty()) {
-            if (!payload.hostname.empty())
-                msg = payload.syscall + " " + final_code + " " + payload.hostname;
-            else if (!payload.path.empty() && payload.syscall == "connect")
-                msg = payload.syscall + " " + final_code + " " + payload.path;
-            else if (!payload.path.empty() && !is_fd_syscall(payload.syscall)) {
-                msg = final_code + ": " + error_text(hr) + ", " + payload.syscall + " '" + payload.path + "'";
+        if (!payload->syscall.empty() && !final_code.empty() && payload->message.empty()) {
+            if (!payload->hostname.empty())
+                msg = payload->syscall + " " + final_code + " " + payload->hostname;
+            else if (!payload->path.empty() && payload->syscall == "connect")
+                msg = payload->syscall + " " + final_code + " " + payload->path;
+            else if (!payload->path.empty() && !is_fd_syscall(payload->syscall)) {
+                msg = final_code + ": " + error_text(hr) + ", " + payload->syscall + " '" + payload->path + "'";
 
-                if (!payload.path2.empty())
-                    msg += " -> '" + payload.path2 + "'";
+                if (!payload->path2.empty())
+                    msg += " -> '" + payload->path2 + "'";
             }
             else
-                msg = final_code + ": " + error_text(hr) + ", " + payload.syscall;
+                msg = final_code + ": " + error_text(hr) + ", " + payload->syscall;
         }
 
         // MakeException() set the message it was given; when the payload refined
@@ -705,10 +662,10 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
             }
         }
 
-        if (!payload.args.empty()) {
+        if (!payload->args.empty()) {
             v8::Local<v8::Object> args = v8::Object::New(isolate->m_isolate);
 
-            for (const ErrorArg& arg : payload.args)
+            for (const ErrorArg& arg : payload->args)
                 args->Set(context, isolate->NewString(arg.name), isolate->NewString(arg.value)).IsJust();
 
             // Diagnostic view only, keep it read-only so user code cannot turn

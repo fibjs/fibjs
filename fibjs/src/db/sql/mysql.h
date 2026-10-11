@@ -115,9 +115,9 @@ private:
 
         if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
                 &errType)) {
-            ErrorPayload payload;
+            obj_ptr<ErrorPayload> payload = new ErrorPayload();
             if (errCode > 0)
-                payload.with_errno(errCode);
+                payload->with_errno(errCode);
             return Runtime::setError(payload, CALL_E_EXCEPTION,
                 errorMessage ? exlib::string(errorMessage) : exlib::string());
         }

@@ -23,35 +23,33 @@ public:
         add("type", type);
 
         if (type == "error" && !code.has_value()) {
-            ErrorPayload payload = takeErrorPayload();
+            obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-            if (!payload.code.empty())
-                add("code", payload.code);
+            if (!payload->code.empty())
+                add("code", payload->code);
             else
                 add("code", code.code());
 
-            if (payload.has_errno)
-                add("errno", payload.errno_value);
-            if (!payload.syscall.empty())
-                add("syscall", payload.syscall);
-            if (!payload.path.empty())
-                add("path", payload.path);
-            if (!payload.hostname.empty())
-                add("hostname", payload.hostname);
+            if (payload->has_errno)
+                add("errno", payload->errno_value);
+            if (!payload->syscall.empty())
+                add("syscall", payload->syscall);
+            if (!payload->path.empty())
+                add("path", payload->path);
+            if (!payload->hostname.empty())
+                add("hostname", payload->hostname);
 
             // Parameter summaries travel with the event just like the scalar
             // fields above: the payload is consumed on the completing thread
             // and the object is converted on the JS thread later on.
-            if (!payload.args.empty()) {
+            if (!payload->args.empty()) {
                 obj_ptr<NObject> args = new NObject();
 
-                for (const ErrorArg& arg : payload.args)
+                for (const ErrorArg& arg : payload->args)
                     args->add(arg.name, arg.value);
 
                 add("args", (obj_base*)args);
             }
-
-            error_payload_delivered(payload);
         } else if (!code.has_value())
             add("code", code.code());
 

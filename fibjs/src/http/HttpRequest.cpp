@@ -56,7 +56,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
                 c = toupper((unsigned char)c);
             if (m_upper == "GET" || m_upper == "HEAD")
                 return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                    .with_message("Request: GET/HEAD requests cannot have a body")));
+                    ->with_message("Request: GET/HEAD requests cannot have a body")));
         }
 
         hr = GetConfigValue(opts, "headers", headers);
@@ -301,7 +301,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
         obj_ptr<Stream_base> body;
         if (req->get_body(body).has_value())
             return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                    .with_message("Request: GET/HEAD requests cannot have a body")));
+                    ->with_message("Request: GET/HEAD requests cannot have a body")));
     }
 
     retVal = req;

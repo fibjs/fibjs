@@ -84,8 +84,8 @@ public:
     {
         if (m_closed)
             return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    .with_code("ERR_ZLIB_BINDING_CLOSED")
-                    .with_message("zlib binding closed"));
+                    ->with_code("ERR_ZLIB_BINDING_CLOSED")
+                    ->with_message("zlib binding closed"));
 
         obj_ptr<Buffer> input = Buffer::Cast(chunk);
         m_strm.avail_in = (uInt)input->length();
@@ -114,8 +114,8 @@ public:
                     : (ret == Z_STREAM_ERROR ? "Z_STREAM_ERROR" : "Z_MEM_ERROR");
 
                 return Runtime::setError(ErrorPayload::make(errtype::kError)
-                        .with_code(code)
-                        .with_message(msg));
+                        ->with_code(code)
+                        ->with_message(msg));
             }
 
             uInt have = ZLIB_CODEC_CHUNK - m_strm.avail_out;
@@ -194,8 +194,8 @@ public:
     {
         if (m_closed)
             return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    .with_code("ERR_ZLIB_BINDING_CLOSED")
-                    .with_message("zlib binding closed"));
+                    ->with_code("ERR_ZLIB_BINDING_CLOSED")
+                    ->with_message("zlib binding closed"));
 
         if (!is_deflate())
             return CHECK_ERROR(CALL_E_INVALID_CALL);

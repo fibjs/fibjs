@@ -18,6 +18,10 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <vector>
+
+#include "qstring.h"
+#include "obj_ptr.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,9 +29,22 @@
 
 namespace fibjs {
 
+class ErrorPayload;
+class Variant;
+class object_base;
+
+// The interim thread mirror (utils.cpp): a content copy of a value's payload
+// for the not-yet-migrated transports; batch 2 removes it with them.
+void setErrorPayload(obj_ptr<ErrorPayload> data);
+
+// The interim thread-state mirror (utils.cpp): reproduces the old
+// Runtime::setError side effects (m_code / m_error / m_errorTypeName) at
+// builder landing, so the still existing errCode/errMessage readers keep
+// working while producers migrate; 5c narrows the state to real exceptions.
+void mirror_error_state(const ErrorPayload& payload);
+
 #define CALL_RETURN_NULL 100000
 #define CALL_RETURN_UNDEFINED 100001
-
 #define CALL_E_MAX -20000
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT (CALL_E_MAX - 1)
@@ -112,6 +129,7 @@ namespace fibjs {
 // existing call sites keep compiling unchanged.
 class result_t {
     int32_t m_code = 0;
+    obj_ptr<ErrorPayload> m_payload;   // private; const view via payload()
 
 public:
     result_t() = default;
@@ -129,6 +147,26 @@ public:
     {
         return m_code;
     }
+
+    // The description that rides with the value (read-only; the write path is
+    // the builder below -- the value type has no writer, so a moved or copied
+    // value can never be modified).
+    bool has_payload() const
+    {
+        return (const ErrorPayload*)m_payload != nullptr;
+    }
+
+    const ErrorPayload* payload() const
+    {
+        return m_payload.get();
+    }
+
+    // ----- creation: the builder is the only writable shape -----
+    class builder;
+    static builder make(int32_t code);
+    static builder from_system(result_t hr);
+    static builder from_uv(int32_t status);
+    static builder inherit(result_t&& base);
 
     // Semantic checks (P2 replaces the hard coded comparisons with these).
     bool failed() const
@@ -276,8 +314,381 @@ public:
     }
 };
 
-// P1 keeps the 4-byte layout so the calling convention (and the addon ABI)
-// stays identical; P5 (payload carried by the value) raises this deliberately.
-static_assert(sizeof(result_t) == sizeof(int32_t), "result_t must stay 4 bytes until P5");
+// The 4-byte P1 layout grew to 16B in P5: code + null payload pointer on the
+// success path (two stores, no atomic, no allocation); the description is
+// allocated only on failures.
+static_assert(sizeof(result_t) == 16, "result_t is { int32_t, obj_ptr<ErrorPayload> }");
+
+// ---------------------------------------------------------------------------
+// The description that rides with a failing result_t. Refcounted (obj_base):
+// copies share, drops release. Construction and modification belong to
+// result_t / its builder (P4-final/T4 tighten the surface further).
+// ---------------------------------------------------------------------------
+struct ErrorArg {
+    exlib::string name;
+    exlib::string value;
+};
+
+// Bounds for arg summaries. Longer names/values are truncated with a trailing
+// "..." marker so a single payload cannot grow without limit.
+const int32_t kErrorArgNameMaxLength = 64;
+const int32_t kErrorArgValueMaxLength = 128;
+
+struct ErrorPayload : public obj_base {
+    exlib::string error_type_name;
+    exlib::string syscall;
+    exlib::string path;
+    // Second path of a two-path operation (rename / symlink / link / copyfile):
+    // Node reports "<syscall> '<path>' -> '<path2>'".
+    exlib::string path2;
+    exlib::string hostname;
+    exlib::string code;
+    exlib::string message;
+    result_t result_code = 0;
+    bool has_errno = false;
+    int32_t errno_value = 0;
+    std::vector<ErrorArg> args;
+
+    static obj_ptr<ErrorPayload> make(const char* error_type_name = nullptr, result_t result_code = 0)
+    {
+        obj_ptr<ErrorPayload> payload = new ErrorPayload();
+
+        if (error_type_name)
+            payload->error_type_name = error_type_name;
+        payload->result_code = result_code;
+
+        return payload;
+    }
+
+    static obj_ptr<ErrorPayload> from_system(result_t hr)
+    {
+        obj_ptr<ErrorPayload> payload = new ErrorPayload();
+        payload->has_errno = true;
+        payload->errno_value = hr.code();
+        return payload;
+    }
+
+    static obj_ptr<ErrorPayload> from_uv(int32_t status)
+    {
+        return from_system(status);
+    }
+
+    // Content clone (the thread mirror / explicit copies). The mirror must not
+    // share: the transports take-mutate-set the stash until batch 2 rewires
+    // them, and a shared object would leak those mutations back into the value.
+    obj_ptr<ErrorPayload> clone() const
+    {
+        obj_ptr<ErrorPayload> p = new ErrorPayload();
+
+        p->error_type_name = error_type_name;
+        p->syscall = syscall;
+        p->path = path;
+        p->path2 = path2;
+        p->hostname = hostname;
+        p->code = code;
+        p->message = message;
+        p->result_code = result_code;
+        p->has_errno = has_errno;
+        p->errno_value = errno_value;
+        p->args = args;
+        return p;
+    }
+
+    obj_ptr<ErrorPayload> with_type_name(const exlib::string& value)
+    {
+        error_type_name = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_syscall(const char* value)
+    {
+        syscall = value ? value : "";
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_path(const exlib::string& value)
+    {
+        path = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_path2(const exlib::string& value)
+    {
+        path2 = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_hostname(const exlib::string& value)
+    {
+        hostname = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_code(const exlib::string& value)
+    {
+        code = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_message(const exlib::string& value)
+    {
+        message = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> with_errno(int32_t value)
+    {
+        has_errno = true;
+        errno_value = value;
+        return this;
+    }
+
+    obj_ptr<ErrorPayload> result(result_t code)
+    {
+        result_code = code;
+        return this;
+    }
+
+    // printf-style formatted message, consistent with Runtime::setError(fmt, ...)
+    obj_ptr<ErrorPayload> format(const char* fmt, ...);
+
+    obj_ptr<ErrorPayload> arg(const char* name, const exlib::string& value);
+    obj_ptr<ErrorPayload> arg(const char* name, const char* value)
+    {
+        return arg(name, value ? exlib::string(value) : exlib::string());
+    }
+    obj_ptr<ErrorPayload> arg(const char* name, int32_t value);
+    obj_ptr<ErrorPayload> arg(const char* name, uint32_t value);
+    obj_ptr<ErrorPayload> arg(const char* name, int64_t value);
+    obj_ptr<ErrorPayload> arg(const char* name, uint64_t value);
+    obj_ptr<ErrorPayload> arg(const char* name, bool value);
+    obj_ptr<ErrorPayload> arg(const char* name, double value);
+    obj_ptr<ErrorPayload> arg(const char* name, const Variant& value);
+    // Object arguments render through summarize_for_error: Buffer objects
+    // report their length, Stream objects announce the class family.
+    obj_ptr<ErrorPayload> arg(const char* name, object_base* value);
+
+    // Sensitive values never enter the payload, not even truncated.
+    obj_ptr<ErrorPayload> arg_redacted(const char* name);
+    obj_ptr<ErrorPayload> arg_object(const char* name, const char* class_name);
+    obj_ptr<ErrorPayload> arg_buffer(const char* name, int64_t length);
+
+    bool has_args() const
+    {
+        return !args.empty();
+    }
+
+    bool empty() const
+    {
+        return error_type_name.empty() && syscall.empty() && path.empty() && path2.empty() && hostname.empty()
+            && code.empty() && message.empty() && result_code.has_value() && !has_errno && args.empty();
+    }
+
+private:
+    void append_arg(const exlib::string& name, const exlib::string& value);
+};
+
+// ---------------------------------------------------------------------------
+// builder: the description under construction -- the only writable shape.
+// Factories return builders; every with_*/arg mutates in place and returns the
+// same builder; the chain lands into a result_t through the conversion below.
+// `result_t` itself has no writer, so "write belongs to creation" is enforced
+// by the type system (a moved or copied value can never be modified).
+// ---------------------------------------------------------------------------
+class result_t::builder {
+public:
+    builder&& with_message(const exlib::string& value) &&
+    {
+        ensure()->message = value;
+        return std::move(*this);
+    }
+
+    builder&& with_type_name(const exlib::string& value) &&
+    {
+        ensure()->error_type_name = value;
+        return std::move(*this);
+    }
+
+    builder&& with_code(const exlib::string& value) &&
+    {
+        ensure()->code = value;
+        return std::move(*this);
+    }
+
+    builder&& with_syscall(const char* value) &&
+    {
+        ensure()->with_syscall(value);
+        return std::move(*this);
+    }
+
+    builder&& with_path(const exlib::string& value) &&
+    {
+        ensure()->path = value;
+        return std::move(*this);
+    }
+
+    builder&& with_path2(const exlib::string& value) &&
+    {
+        ensure()->path2 = value;
+        return std::move(*this);
+    }
+
+    builder&& with_hostname(const exlib::string& value) &&
+    {
+        ensure()->hostname = value;
+        return std::move(*this);
+    }
+
+    builder&& with_errno(int32_t value) &&
+    {
+        ErrorPayload* p = ensure();
+        p->has_errno = true;
+        p->errno_value = value;
+        return std::move(*this);
+    }
+
+    builder&& with_result(result_t code) &&
+    {
+        ensure()->result_code = code;
+        return std::move(*this);
+    }
+
+    // printf-style formatted message; defined in utils.cpp.
+    builder&& with_format(const char* fmt, ...);
+
+    builder&& arg(const char* name, const exlib::string& value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, const char* value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, int32_t value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, uint32_t value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, int64_t value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, uint64_t value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, bool value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, double value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, const Variant& value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg(const char* name, object_base* value) &&
+    {
+        ensure()->arg(name, value);
+        return std::move(*this);
+    }
+    builder&& arg_redacted(const char* name) &&
+    {
+        ensure()->arg_redacted(name);
+        return std::move(*this);
+    }
+    builder&& arg_object(const char* name, const char* class_name) &&
+    {
+        ensure()->arg_object(name, class_name);
+        return std::move(*this);
+    }
+    builder&& arg_buffer(const char* name, int64_t length) &&
+    {
+        ensure()->arg_buffer(name, length);
+        return std::move(*this);
+    }
+
+    // Landing: the builder becomes an immutable value. The description also
+    // mirrors into the thread stash (transitional: the transports still read
+    // the stash; batch 2 rewires them to the value and drops the mirror).
+    operator result_t() &&;
+
+private:
+    friend class result_t;
+
+    explicit builder(int32_t code)
+        : m_code(code)
+    {
+    }
+
+    ErrorPayload* ensure()
+    {
+        if (!m_payload)
+            m_payload = new ErrorPayload();
+        return m_payload;
+    }
+
+    int32_t m_code = 0;
+    obj_ptr<ErrorPayload> m_payload;
+};
+
+inline result_t::builder result_t::make(int32_t code)
+{
+    return builder(code);
+}
+
+inline result_t::builder result_t::from_system(result_t hr)
+{
+    builder b(hr.code());
+    ErrorPayload* p = b.ensure();
+
+    p->has_errno = true;
+    p->errno_value = hr.code();
+    return b;
+}
+
+inline result_t::builder result_t::from_uv(int32_t status)
+{
+    return from_system(status);
+}
+
+// Take over a base value's description and keep building on it (the augment
+// path: "create a new value on the base of the old one"; zero clone).
+inline result_t::builder result_t::inherit(result_t&& base)
+{
+    builder b(base.m_code);
+
+    b.m_payload = std::move(base.m_payload);
+    return b;
+}
+
+inline result_t::builder::operator result_t() &&
+{
+    result_t r(m_code);
+
+    r.m_payload = std::move(m_payload);
+    if (r.m_payload) {
+        // The interim mirrors (batch 2 / 5c remove them): the stash for the
+        // un-migrated transports, the thread state for the errCode/errMessage
+        // readers -- both are content copies, never shared.
+        setErrorPayload(r.m_payload->clone());
+        mirror_error_state(*r.m_payload);
+    }
+    return r;
+}
 
 }

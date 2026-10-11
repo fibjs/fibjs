@@ -74,8 +74,8 @@ private:
 
                 if (code)
                     return Runtime::setError(ErrorPayload::make(errtype::kError)
-                            .with_code(code)
-                            .with_message(zError(err)));
+                            ->with_code(code)
+                            ->with_message(zError(err)));
 
                 return CHECK_ERROR(Runtime::setError(zError(err)));
             }

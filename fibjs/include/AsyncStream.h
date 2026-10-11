@@ -60,16 +60,18 @@ public:
     Isolate* m_streamIsolate = nullptr;
     obj_ptr<ValueHolder> m_streamHolder;
 
-    void setPendingErrorPayload(const ErrorPayload& payload)
+    void setPendingErrorPayload(obj_ptr<ErrorPayload> payload)
     {
-        m_pendingErrorPayload = payload;
+        m_pendingErrorPayload = std::move(payload);
     }
 
-    ErrorPayload takePendingErrorPayload()
+    obj_ptr<ErrorPayload> takePendingErrorPayload()
     {
-        ErrorPayload payload = std::move(m_pendingErrorPayload);
-        m_pendingErrorPayload = ErrorPayload();
-        return payload;
+        obj_ptr<ErrorPayload> data = std::move(m_pendingErrorPayload);
+
+        // Same value semantics as takeErrorPayload: callers may always mutate
+        // the result, so an empty slot yields an empty payload, never null.
+        return data ? std::move(data) : obj_ptr<ErrorPayload>(new ErrorPayload());
     }
 
     // Write queue state (all protected by m_writeLock)
@@ -78,7 +80,7 @@ public:
     size_t m_writeBytes = 0;
     size_t m_writeHighWaterMark = 16384;
     bool m_needDrain = false;
-    ErrorPayload m_pendingErrorPayload;
+    obj_ptr<ErrorPayload> m_pendingErrorPayload;
 
     static size_t roundUpPow2(size_t n)
     {
@@ -363,7 +365,7 @@ public:
         // The payload and the error description belong to this thread; the emit
         // runs on the JS thread, so both are carried across explicitly.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        ErrorPayload payload = m_base->takePendingErrorPayload();
+        obj_ptr<ErrorPayload> payload = m_base->takePendingErrorPayload();
         m_isolate->sync([stream, v, desc, payload]() -> int32_t {
             JSFiber::EnterJsScope s;
 

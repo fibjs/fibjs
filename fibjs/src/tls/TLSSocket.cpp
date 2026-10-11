@@ -153,8 +153,8 @@ static result_t tls_handshake_error(SSL* ssl)
 
         if (code)
             return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    .with_code(code)
-                    .with_message(reason));
+                    ->with_code(code)
+                    ->with_message(reason));
 
         // Unknown verification result: fall back to the upper-snake form.
         exlib::string c = reason;
@@ -167,8 +167,8 @@ static result_t tls_handshake_error(SSL* ssl)
         }
 
         return Runtime::setError(ErrorPayload::make(errtype::kError)
-                .with_code(c)
-                .with_message(reason));
+                ->with_code(c)
+                ->with_message(reason));
     }
 
     return openssl_error();
@@ -282,10 +282,10 @@ public:
         // description travels the same way: a handshake failure is a
         // CALL_E_EXCEPTION whose name/message live in per-thread state.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        ErrorPayload payload = takeErrorPayload();
+        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
         if (!m_server_name.empty())
-            payload.arg("servername", m_server_name);
+            payload->arg("servername", m_server_name);
         setErrorPayload(payload);
 
         if (m_isolate) {

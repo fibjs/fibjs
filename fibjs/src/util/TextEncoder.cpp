@@ -27,8 +27,8 @@ result_t TextEncoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
         // Node.js: a bad label is ERR_ENCODING_NOT_SUPPORTED; fibjs resolves real
         // codecs here (an extension - Node's TextEncoder ignores the label).
         return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
-                .with_code("ERR_ENCODING_NOT_SUPPORTED")
-                .format("The \"%s\" encoding is not supported", codec.c_str())));
+                ->with_code("ERR_ENCODING_NOT_SUPPORTED")
+                ->format("The \"%s\" encoding is not supported", codec.c_str())));
 
     retVal = new TextEncoder(canonicalName);
     return 0;
@@ -124,8 +124,8 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: RangeError + ERR_ENCODING_NOT_SUPPORTED
         return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_INVALIDARG)
-                .with_code("ERR_ENCODING_NOT_SUPPORTED")
-                .format("The \"%s\" encoding is not supported", codec.c_str())));
+                ->with_code("ERR_ENCODING_NOT_SUPPORTED")
+                ->format("The \"%s\" encoding is not supported", codec.c_str())));
 
     // Parse options
     bool fatal = false;

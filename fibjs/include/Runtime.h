@@ -26,7 +26,7 @@ public:
     // Single entry for every producer. The description is stored in the
     // per-thread state (the same-thread path) and the type name is written into
     // the payload as well, so it survives crossing a thread/fiber boundary.
-    static result_t setError(const ErrorPayload& payload, const char* type_name, result_t code, exlib::string err)
+    static result_t setError(obj_ptr<ErrorPayload> payload, const char* type_name, result_t code, exlib::string err)
     {
         Runtime* rt = Runtime::current();
 
@@ -34,36 +34,38 @@ public:
         rt->m_error = err;
         rt->m_errorTypeName = type_name ? type_name : "";
 
-        ErrorPayload p = payload;
-        if (p.error_type_name.empty() && type_name && *type_name)
-            p.error_type_name = type_name;
-        setErrorPayload(p);
+        if (!payload)
+            payload = new ErrorPayload();
+        if (payload->error_type_name.empty() && type_name && *type_name)
+            payload->error_type_name = type_name;
+        // The stash keeps its own copy: its consumers take-mutate-set it.
+        setErrorPayload(payload->clone());
         return CALL_E_EXCEPTION;
     }
 
-    static result_t setError(const ErrorPayload& payload, const char* type_name, exlib::string err)
+    static result_t setError(obj_ptr<ErrorPayload> payload, const char* type_name, exlib::string err)
     {
-        return setError(payload, type_name, CALL_E_EXCEPTION, err);
+        return setError(std::move(payload), type_name, CALL_E_EXCEPTION, err);
     }
 
-    static result_t setError(const ErrorPayload& payload, result_t code, exlib::string err)
+    static result_t setError(obj_ptr<ErrorPayload> payload, result_t code, exlib::string err)
     {
-        return setError(payload, payload.error_type_name.c_str(), code, err);
+        return setError(std::move(payload), payload->error_type_name.c_str(), code, err);
     }
 
     // Payload-only entry: uses the result code / message / error type name
     // carried by the payload itself. A payload without an explicit result code
     // is reported as a generic CALL_E_EXCEPTION.
-    static result_t setError(const ErrorPayload& payload)
+    static result_t setError(obj_ptr<ErrorPayload> payload)
     {
-        return setError(payload, payload.error_type_name.c_str(),
-            payload.result_code.has_value() ? result_t(CALL_E_EXCEPTION) : payload.result_code,
-            payload.message);
+        return setError(std::move(payload), payload->error_type_name.c_str(),
+            payload->result_code.has_value() ? result_t(CALL_E_EXCEPTION) : payload->result_code,
+            payload->message);
     }
 
     static result_t setError(result_t code, exlib::string err)
     {
-        return setError(ErrorPayload(), "", code, err);
+        return setError(new ErrorPayload(), "", code, err);
     }
 
     static result_t setError(result_t code, const char* fmt, ...)
@@ -78,7 +80,7 @@ public:
             err.assign(buf);
         }
 
-        return setError(ErrorPayload(), "", code, err);
+        return setError(new ErrorPayload(), "", code, err);
     }
 
     static result_t setParamError(const char* name = nullptr)
@@ -107,7 +109,7 @@ public:
         va_end(args);
         err.assign(buf);
 
-        return setError(ErrorPayload(), "", CALL_E_EXCEPTION, err);
+        return setError(new ErrorPayload(), "", CALL_E_EXCEPTION, err);
     }
 
     static exlib::string errMessage()
@@ -168,17 +170,21 @@ public:
     // Restore a description captured by captureErrorDescription() together with
     // the payload carried across the boundary. Both are applied in one step so
     // that restoring the description cannot clear the payload first.
-    static void applyErrorDescription(const ErrorDescription& desc, const ErrorPayload& payload)
+    static void applyErrorDescription(const ErrorDescription& desc, obj_ptr<ErrorPayload> payload)
     {
+        if (!payload)
+            payload = new ErrorPayload();
+
         if (desc.valid()) {
             Runtime* rt = Runtime::current();
             rt->m_code = desc.code;
             rt->m_error = desc.message;
-            rt->m_errorTypeName = payload.error_type_name;
+            rt->m_errorTypeName = payload->error_type_name;
         }
 
-        if (!payload.empty())
-            setErrorPayload(payload);
+        // The stash keeps its own copy: its consumers take-mutate-set it.
+        if (!payload->empty())
+            setErrorPayload(payload->clone());
     }
 
     Isolate* isolate()
@@ -221,6 +227,10 @@ private:
     exlib::string m_error;
     exlib::string m_errorTypeName;
     Isolate* m_isolate;
+
+    // Builder-landing mirror (result.h): reproduces the old setError state
+    // side effects while producers migrate; 5c narrows it.
+    friend void mirror_error_state(const ErrorPayload& payload);
 };
 
 } /* namespace fibjs */

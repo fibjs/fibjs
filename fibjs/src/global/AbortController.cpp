@@ -174,9 +174,9 @@ result_t AbortSignal::throwIfAborted()
         if (!m_has_value_reason) {
             if (m_reason == "TimeoutError")
                 return Runtime::setError(ErrorPayload::make(errtype::kTimeoutError)
-                    .with_message("The operation timed out."));
+                    ->with_message("The operation timed out."));
             return Runtime::setError(ErrorPayload::make(errtype::kAbortError)
-                .with_message("The operation was aborted."));
+                ->with_message("The operation was aborted."));
         }
         return Runtime::setError(m_reason);
     }

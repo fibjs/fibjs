@@ -278,8 +278,8 @@ private:
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod, &pendding);
         if (hr.is_not_found())
             return Runtime::setError(ErrorPayload::make(errtype::kError)
-                    .with_code("ERR_MODULE_NOT_FOUND")
-                    .with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
+                    ->with_code("ERR_MODULE_NOT_FOUND")
+                    ->with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
 
         if (hr.failed())
             return hr;

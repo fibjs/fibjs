@@ -39,8 +39,8 @@ DECLARE_MODULE(fs);
 static result_t setRangeError(const char* msg)
 {
     return Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_OUTRANGE)
-            .with_code("ERR_OUT_OF_RANGE")
-            .with_message(msg));
+            ->with_code("ERR_OUT_OF_RANGE")
+            ->with_message(msg));
 }
 
 // Node prints NaN / Infinity by name, integers without a fractional part.
@@ -91,8 +91,8 @@ static exlib::string node_received_text(Variant& v)
 static result_t setOutOfRange(const char* name, const char* range, exlib::string received)
 {
     return Runtime::setError(ErrorPayload::make(errtype::kRangeError, CALL_E_OUTRANGE)
-            .with_code("ERR_OUT_OF_RANGE")
-            .format("The value of \"%s\" is out of range. It must be %s. Received %s",
+            ->with_code("ERR_OUT_OF_RANGE")
+            ->format("The value of \"%s\" is out of range. It must be %s. Received %s",
                 name, range, received.c_str()));
 }
 
@@ -100,16 +100,16 @@ static result_t setOutOfRange(const char* name, const char* range, exlib::string
 static result_t setInvalidArgValue(const char* name, const char* must_be, exlib::string received)
 {
     return Runtime::setError(ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
-            .with_code("ERR_INVALID_ARG_VALUE")
-            .format("The argument '%s' %s. Received %s", name, must_be, received.c_str()));
+            ->with_code("ERR_INVALID_ARG_VALUE")
+            ->format("The argument '%s' %s. Received %s", name, must_be, received.c_str()));
 }
 
 // Node.js ERR_INVALID_ARG_TYPE: TypeError with the "Received type ..." wording.
 static result_t setInvalidArgType(const char* name, const char* must_be, exlib::string received)
 {
     return Runtime::setError(ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
-            .with_code("ERR_INVALID_ARG_TYPE")
-            .format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str()));
+            ->with_code("ERR_INVALID_ARG_TYPE")
+            ->format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str()));
 }
 
 // Node.js time argument: Date object | unix timestamp in seconds | date string
@@ -1419,11 +1419,11 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
                 result_t hr = LastError();
 
                 if (hr.is_system_error()) {
-                    ErrorPayload payload = ErrorPayload::from_system(hr)
-                                               .with_syscall("write")
-                                               .arg("buffer", buffer)
-                                               .arg("length", length)
-                                               .arg("position", position);
+                    obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
+                                               ->with_syscall("write")
+                                               ->arg("buffer", buffer)
+                                               ->arg("length", length)
+                                               ->arg("position", position);
                     return CHECK_ERROR(setErrorPayload(hr, payload));
                 }
 
@@ -2369,12 +2369,12 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
             // Node.js: SystemError + ERR_FS_EISDIR, errno is the raw value
             return setErrorPayload(UV_EISDIR,
                 ErrorPayload::make(errtype::kError)
-                    .with_type_name("SystemError")
-                    .with_code("ERR_FS_EISDIR")
-                    .with_errno(-UV_EISDIR)
-                    .with_syscall("rm")
-                    .with_path(path)
-                    .format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str()));
+                    ->with_type_name("SystemError")
+                    ->with_code("ERR_FS_EISDIR")
+                    ->with_errno(-UV_EISDIR)
+                    ->with_syscall("rm")
+                    ->with_path(path)
+                    ->format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str()));
         }
 
         uv_fs_req_cleanup(&req);
@@ -2778,8 +2778,8 @@ public:
                 // not a system error): the description travels through the
                 // exception channel instead of the raw uv code.
                 Runtime::setError(ErrorPayload::make(errtype::kError)
-                        .with_code("ERR_FS_EISDIR")
-                        .format("Recursive option not enabled, cannot copy a directory: %s/",
+                        ->with_code("ERR_FS_EISDIR")
+                        ->format("Recursive option not enabled, cannot copy a directory: %s/",
                             pThis->m_requestPath.c_str()));
                 pThis->m_ac.apost(CALL_E_EXCEPTION);
                 delete pThis;
@@ -2873,12 +2873,12 @@ public:
             // Node.js: SystemError + ERR_FS_CP_EEXIST
             setErrorPayload(ret,
                 ErrorPayload::make(errtype::kError)
-                    .with_type_name("SystemError")
-                    .with_code("ERR_FS_CP_EEXIST")
-                    .with_errno(-UV_EEXIST)
-                    .with_syscall("cp")
-                    .with_path(pThis->m_dest)
-                    .format("Target already exists: cp returned EEXIST (%s already exists) %s",
+                    ->with_type_name("SystemError")
+                    ->with_code("ERR_FS_CP_EEXIST")
+                    ->with_errno(-UV_EEXIST)
+                    ->with_syscall("cp")
+                    ->with_path(pThis->m_dest)
+                    ->format("Target already exists: cp returned EEXIST (%s already exists) %s",
                         pThis->m_dest.c_str(), pThis->m_dest.c_str()));
         } else if (ret < 0)
             setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
@@ -2991,8 +2991,8 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
         // Node.js: copying onto itself is refused up front.
         if (src == dest)
             return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kError)
-                    .with_code("ERR_FS_CP_EINVAL")
-                    .format("src and dest cannot be the same %s", src.c_str())));
+                    ->with_code("ERR_FS_CP_EINVAL")
+                    ->format("src and dest cannot be the same %s", src.c_str())));
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
@@ -3249,7 +3249,7 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     // The open failure (description and payload) belongs to the calling thread;
     // the emit runs on the JS thread, so both are carried across.
     Runtime::ErrorDescription desc = Runtime::captureErrorDescription(hr);
-    ErrorPayload payload = takeErrorPayload();
+    obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
     async([stm, hr, desc, payload, isolate]() {
         // the emit must run on the JS thread with a valid context

@@ -32,8 +32,8 @@ result_t openssl_error()
         }
 
         return Runtime::setError(ErrorPayload::make(errtype::kError)
-                .with_code(code)
-                .with_message(ERR_error_string(err, NULL)));
+                ->with_code(code)
+                ->with_message(ERR_error_string(err, NULL)));
     }
 
     return Runtime::setError(ERR_error_string(err, NULL));

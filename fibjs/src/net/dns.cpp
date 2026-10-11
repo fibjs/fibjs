@@ -113,14 +113,14 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 opt->family = 6;
             else
                 return Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
-                                             .format("Invalid family: %s", family.c_str())
-                                             .arg("family", family));
+                                             ->format("Invalid family: %s", family.c_str())
+                                             ->arg("family", family));
         } else {
             int32_t family = std::get<int32_t>(opt->family.value());
             if (family != 0 && family != 4 && family != 6)
                 return Runtime::setError(ErrorPayload::make("TypeError", CALL_E_INVALIDARG)
-                                             .format("Invalid family: %d", family)
-                                             .arg("family", family));
+                                             ->format("Invalid family: %d", family)
+                                             ->arg("family", family));
         }
 
         ac.ctxv().resize(1);
@@ -152,14 +152,14 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 exlib::string code;
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
                     code = "ENOTFOUND";
-                ErrorPayload payload = ErrorPayload::from_uv(status)
-                                           .with_syscall("getaddrinfo")
-                                           .with_hostname(hostname)
-                                           .arg("hostname", hostname)
-                                           .arg("family", family)
-                                           .arg("all", all);
+                obj_ptr<ErrorPayload> payload = ErrorPayload::from_uv(status)
+                                           ->with_syscall("getaddrinfo")
+                                           ->with_hostname(hostname)
+                                           ->arg("hostname", hostname)
+                                           ->arg("family", family)
+                                           ->arg("all", all);
                 if (!code.empty())
-                    payload.with_code(code);
+                    payload->with_code(code);
                 setErrorPayload(payload);
                 resolver->_ac.post(status);
                 delete resolver;

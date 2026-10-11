@@ -425,14 +425,15 @@ public:
             m_sock->isolate_unref();
     }
 
-    ErrorPayload error_payload(result_t v) const
+    obj_ptr<ErrorPayload> error_payload(result_t v) const
     {
-        ErrorPayload payload = ErrorPayload::from_system(v).with_syscall("connect");
+        obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(v);
 
+        payload->with_syscall("connect");
         if (m_use_path)
-            payload.with_path(m_target).arg("path", m_target);
+            payload->with_path(m_target)->arg("path", m_target);
         else
-            payload.with_hostname(m_target).arg("host", m_target).arg("port", m_port);
+            payload->with_hostname(m_target)->arg("host", m_target)->arg("port", m_port);
 
         return payload;
     }
@@ -440,10 +441,12 @@ public:
     virtual result_t post(result_t v)
     {
         if (!m_bEvent) {
-            ErrorPayload payload;
+            obj_ptr<ErrorPayload> payload = new ErrorPayload();
             if (v.failed()) {
                 payload = error_payload(v);
-                m_sock->setPendingErrorPayload(payload);
+                // Two independent copies (the old value semantics): the pending
+                // slot is consumed by the reader, the stash by the JS boundary.
+                m_sock->setPendingErrorPayload(payload->clone());
             }
             m_sock->on_connected(v.failed() ? v : result_t(0));
 
@@ -453,9 +456,9 @@ public:
             m_ac.post(v);
         } else {
             if (v.failed()) {
-                ErrorPayload payload = error_payload(v);
+                obj_ptr<ErrorPayload> payload = error_payload(v);
 
-                m_sock->setPendingErrorPayload(payload);
+                m_sock->setPendingErrorPayload(payload->clone());
                 setErrorPayload(payload);
                 (new EventInfo(m_sock, "error", v))->emit();
                 m_sock->on_connected(v);

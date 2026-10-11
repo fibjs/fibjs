@@ -164,7 +164,7 @@ public:
     ON_STATE(asyncConsumeBody, alreadyUsed)
     {
         return next(CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            .with_message("body has already been consumed"))));
+            ->with_message("body has already been consumed"))));
     }
 
 private:

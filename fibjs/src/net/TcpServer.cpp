@@ -310,8 +310,8 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
         // Node.js reports a second listen on the same server as
         // ERR_SERVER_ALREADY_LISTEN; align code and message.
         return Runtime::setError(ErrorPayload::make(errtype::kError)
-                .with_code("ERR_SERVER_ALREADY_LISTEN")
-                .with_message("Listen method has been called more than once without closing."));
+                ->with_code("ERR_SERVER_ALREADY_LISTEN")
+                ->with_message("Listen method has been called more than once without closing."));
     }
 
     result_t hr = create(addr, port, m_hdlr);
@@ -319,9 +319,9 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
         // Node.js reports a failed listen with syscall "listen"; the bind is an
         // implementation detail of it.
         if (hr.is_system_error()) {
-            ErrorPayload payload = takeErrorPayload();
+            obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-            payload.with_syscall("listen");
+            payload->with_syscall("listen");
             setErrorPayload(payload);
         }
 

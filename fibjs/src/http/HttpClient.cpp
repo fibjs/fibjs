@@ -55,10 +55,10 @@ static result_t setAbortError(AbortSignal_base* signal)
 
     if (s && s->is_timeout_abort())
         return Runtime::setError(ErrorPayload::make(errtype::kTimeoutError)
-            .with_message("The operation timed out."));
+            ->with_message("The operation timed out."));
 
     return Runtime::setError(ErrorPayload::make(errtype::kAbortError)
-        .with_message("The operation was aborted."));
+        ->with_message("The operation was aborted."));
 }
 
 // Diagnostics-only view of a request URL: protocol/host/path/query with the
@@ -81,15 +81,15 @@ static exlib::string sanitize_url_for_error(Url* url)
 
 // Attach request diagnostics to an error payload: the method plus a sanitized
 // URL, so the failing request can be identified without leaking secrets.
-static ErrorPayload with_request_args(ErrorPayload payload,
+static obj_ptr<ErrorPayload> with_request_args(obj_ptr<ErrorPayload> payload,
     const exlib::string& method, Url* url)
 {
     if (!method.empty())
-        payload.arg("method", method);
+        payload->arg("method", method);
 
     exlib::string url_str = sanitize_url_for_error(url);
     if (!url_str.empty())
-        payload.arg("url", url_str);
+        payload->arg("url", url_str);
 
     return payload;
 }
@@ -107,7 +107,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
 
     if (method != "GET" && method != "HEAD")
         return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-            .with_message("fetch(file:): only GET and HEAD are supported")));
+            ->with_message("fetch(file:): only GET and HEAD are supported")));
 
     FileStream file;
     hr = file.open(path, "r");
@@ -2172,7 +2172,7 @@ public:
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
             return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                .with_message("fetch: redirect not allowed")));
+                ->with_message("fetch: redirect not allowed")));
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -2189,7 +2189,7 @@ public:
 
         if (m_urls.find(m_url) != m_urls.end())
             return CHECK_ERROR(Runtime::setError(ErrorPayload::make(errtype::kTypeError)
-                .with_message("HttpClient: redirect cycle")));
+                ->with_message("HttpClient: redirect cycle")));
 
         // 303: per spec force GET and clear request body
         if (status == 303) {
@@ -2279,7 +2279,7 @@ public:
         // well, so it is captured here and restored in the emit fiber: without
         // it an aborted request would report "[0] Success" there.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        ErrorPayload payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
+        obj_ptr<ErrorPayload> payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
 
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {
@@ -2294,7 +2294,7 @@ public:
                 req->_emit("error", &err, 1, retVal);
                 return 0;
             });
-        } else if (!payload.empty())
+        } else if (!payload->empty())
             setErrorPayload(payload);
 
         return v;
@@ -3195,11 +3195,11 @@ public:
             : getResultMessage(v);
 
         if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError) {
-            Runtime::setError(ErrorPayload(), type_name.c_str(), CALL_E_EXCEPTION, msg);
+            Runtime::setError(new ErrorPayload(), type_name.c_str(), CALL_E_EXCEPTION, msg);
             return CALL_E_EXCEPTION;
         }
 
-        Runtime::setError(ErrorPayload::make(errtype::kTypeError).with_message(msg));
+        Runtime::setError(ErrorPayload::make(errtype::kTypeError)->with_message(msg));
         return CALL_E_EXCEPTION;
     }
 

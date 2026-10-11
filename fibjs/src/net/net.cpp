@@ -81,7 +81,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
         return CHECK_ERROR(Runtime::setError(
             ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
-                .format("resolve: invalid address family %d.", family)));
+                ->format("resolve: invalid address family %d.", family)));
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
@@ -118,11 +118,11 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                     code = "ENOTFOUND";
 
                 setErrorPayload(ErrorPayload::from_uv(status)
-                                    .with_syscall("getaddrinfo")
-                                    .with_hostname(hostname)
-                                    .with_code(code)
-                                    .arg("hostname", hostname)
-                                    .arg("family", family));
+                                    ->with_syscall("getaddrinfo")
+                                    ->with_hostname(hostname)
+                                    ->with_code(code)
+                                    ->arg("hostname", hostname)
+                                    ->arg("family", family));
                 resolver->_ac.post(status);
                 delete resolver;
                 return;
@@ -143,18 +143,18 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 int32_t family = resolver->_family;
 #ifdef _WIN32
                 setErrorPayload(ErrorPayload::from_system(-WSAHOST_NOT_FOUND)
-                                    .with_syscall("getaddrinfo")
-                                    .with_hostname(hostname)
-                                    .with_code("ENOTFOUND")
-                                    .arg("hostname", hostname)
-                                    .arg("family", family));
+                                    ->with_syscall("getaddrinfo")
+                                    ->with_hostname(hostname)
+                                    ->with_code("ENOTFOUND")
+                                    ->arg("hostname", hostname)
+                                    ->arg("family", family));
                 resolver->_ac.post(-WSAHOST_NOT_FOUND);
 #else
                 setErrorPayload(ErrorPayload::from_system(-ETIME)
-                                    .with_syscall("getaddrinfo")
-                                    .with_hostname(hostname)
-                                    .arg("hostname", hostname)
-                                    .arg("family", family));
+                                    ->with_syscall("getaddrinfo")
+                                    ->with_hostname(hostname)
+                                    ->arg("hostname", hostname)
+                                    ->arg("family", family));
                 resolver->_ac.post(-ETIME);
 #endif
             } else
@@ -198,7 +198,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
         return CHECK_ERROR(Runtime::setError(
             ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
-                .format("connect: unknown protocol in url '%s'.", url.c_str())));
+                ->format("connect: unknown protocol in url '%s'.", url.c_str())));
 
     if (!qstrcmp(url.c_str(), "tcp:", 4)) {
         obj_ptr<Url> u = new Url();
@@ -211,7 +211,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (port.length() == 0)
             return CHECK_ERROR(Runtime::setError(
                 ErrorPayload::make(errtype::kTypeError, CALL_E_INVALIDARG)
-                    .format("connect: missing port in url '%s'.", url.c_str())));
+                    ->format("connect: missing port in url '%s'.", url.c_str())));
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;

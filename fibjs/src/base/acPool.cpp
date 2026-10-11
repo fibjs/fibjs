@@ -320,7 +320,7 @@ void AsyncCallBack::processPromiseResult()
         // (its code / args are part of the error, not disposable state).
         applyErrorContext();
         if (m_v.is_exception())
-            Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
+            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
 
         v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
         resolver->Reject(m_isolate->context(), FillError(m_v, stack)).IsJust();
@@ -363,7 +363,7 @@ int AsyncCallBack::syncFunc()
         } else {
             applyErrorContext();
             if (m_v.is_exception())
-                Runtime::setError(errorPayload(), m_error_type_name.c_str(), m_error_code, m_error);
+                Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
 
             args.resize(1);
             v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);

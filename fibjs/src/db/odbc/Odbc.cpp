@@ -155,12 +155,12 @@ exlib::string odbc_error(int32_t handleType, void* handle)
 static result_t odbc_set_error(int32_t handleType, void* handle)
 {
     OdbcDiagInfo info = odbc_error_info(handleType, handle);
-    ErrorPayload payload;
+    obj_ptr<ErrorPayload> payload = new ErrorPayload();
 
     if (!info.sqlstate.empty())
-        payload.with_code(info.sqlstate);
+        payload->with_code(info.sqlstate);
     if (info.has_native)
-        payload.with_errno(info.native);
+        payload->with_errno(info.native);
 
     return Runtime::setError(payload, CALL_E_EXCEPTION, info.message);
 }
@@ -309,11 +309,11 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
             }
             odbc_disconnect(conn);
             conn = NULL;
-            ErrorPayload payload;
+            obj_ptr<ErrorPayload> payload = new ErrorPayload();
             if (!info.sqlstate.empty())
-                payload.with_code(info.sqlstate);
+                payload->with_code(info.sqlstate);
             if (info.has_native)
-                payload.with_errno(info.native);
+                payload->with_errno(info.native);
             return Runtime::setError(payload, CALL_E_EXCEPTION, err);
         }
     }
@@ -363,13 +363,13 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         // Connection parameters for diagnostics - psql / mssql / dm / odbc all
         // share this entry. The password never enters the payload, not even as
         // a truncated summary.
-        ErrorPayload payload = takeErrorPayload();
+        obj_ptr<ErrorPayload> payload = takeErrorPayload();
 
-        payload.arg("host", u->hostname())
-            .arg("port", port)
-            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
-            .arg("user", username)
-            .arg_redacted("password");
+        payload->arg("host", u->hostname())
+            ->arg("port", port)
+            ->arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
+            ->arg("user", username)
+            ->arg_redacted("password");
 
         return setErrorPayload(hr, payload);
     }

@@ -199,10 +199,10 @@ result_t FileStream::Write(const char* p, int32_t sz)
             result_t hr = LastError();
 
             if (hr.is_system_error()) {
-                ErrorPayload payload = ErrorPayload::from_system(hr)
-                                           .with_syscall("write")
-                                           .with_path(name)
-                                           .arg("length", sz);
+                obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
+                                           ->with_syscall("write")
+                                           ->with_path(name)
+                                           ->arg("length", sz);
                 return CHECK_ERROR(setErrorPayload(hr, payload));
             }
 
