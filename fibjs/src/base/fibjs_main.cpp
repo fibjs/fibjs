@@ -22,11 +22,11 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     V8_SCOPE(isolate->m_isolate);
 
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname);
-    if (hr >= 0) {
+    if (hr.ok()) {
         run_test(console_base::C_ERROR);
     }
 
-    if (hr < 0) {
+    if (hr.failed()) {
         THROW_ERROR();
     }
 }

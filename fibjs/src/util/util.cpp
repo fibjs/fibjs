@@ -189,7 +189,7 @@ static result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
         JSArray names = obj->GetPropertyNames(_context);
         for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
             result_t hr = _deepFreeze(isolate, JSValue(obj->Get(_context, JSValue(names->Get(_context, i)))));
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
@@ -663,7 +663,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
                         return CHECK_ERROR(Runtime::setError("util: circular reference object."));
 
                 result_t hr = util_flatten(o1, shallow, retVal, flatten_list);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 cnt = retVal->Length();

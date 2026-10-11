@@ -365,7 +365,7 @@ public:
                 // across the hop would lose its description (message / type /
                 // payload) and be reported as a bare code. Same cross-thread
                 // rule as AsyncBackgroundWrite's emit path.
-                if (hr < 0) {
+                if (hr.failed()) {
                     m_desc = Runtime::captureErrorDescription(hr);
                     m_payload = takeErrorPayload();
                 }
@@ -681,7 +681,7 @@ protected:
             if (m_cont.expect.load(std::memory_order_relaxed) == m_epoch.load(std::memory_order_relaxed))
                 ++m_epoch;
 #endif
-            if (hr < 0) {
+            if (hr.failed()) {
                 applyErrorContext();
                 hr = error(hr);
             }
@@ -692,7 +692,7 @@ protected:
                 ++m_epoch;
 #endif
 
-            if (hr < 0 || !m_next) {
+            if (hr.failed() || !m_next) {
                 if (bAsyncState && m_ac)
                     m_ac.post(hr);
 
@@ -702,7 +702,7 @@ protected:
 
             m_state = m_next;
             hr = m_state(this, hr);
-        } while (hr != CALL_E_PENDDING);
+        } while (!hr.is_pending());
 
         return hr;
     }

@@ -32,7 +32,7 @@ result_t StringDecoder::end(Union_end_buf buf, exlib::string& retVal)
         obj_ptr<Buffer_base> data;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return (this->*m_end2)(data, retVal);
@@ -47,7 +47,7 @@ result_t StringDecoder::write(Union_write_buf buf, exlib::string& retVal)
         obj_ptr<Buffer_base> data;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return (this->*m_write)(data, retVal);
@@ -62,7 +62,7 @@ result_t StringDecoder::text(Union_text_buf buf, int32_t i, exlib::string& retVa
         obj_ptr<Buffer_base> data;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return (this->*m_text)(data, i, retVal);
@@ -77,7 +77,7 @@ result_t StringDecoder::fillLast(Union_fillLast_buf buf, exlib::string& retVal)
         obj_ptr<Buffer_base> data;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(buf), "utf8", data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return (this->*m_fillLast)(data, retVal);

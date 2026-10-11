@@ -20,14 +20,14 @@ result_t _new_tcpServer(exlib::string addr, int32_t port,
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(listener, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TcpServer> svr = new TcpServer();
     svr->wrap(This);
 
     hr = svr->create(addr, port, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -64,7 +64,7 @@ result_t TcpServer_base::_new(Union_TcpServer_listener listener,
     // no-port constructor: store handler only, call listen() to bind
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(listener, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TcpServer> svr = new TcpServer();
@@ -79,16 +79,16 @@ result_t TcpServer_base::_new(v8::Local<v8::Object> options, Union_TcpServer_lis
 {
     exlib::string address;
     result_t hr = GetConfigValue(options, "address", address, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     // if port is provided, bind immediately; otherwise deferred mode
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         if (!address.empty())
             return _new(address, listener, retVal, This);
         return _new(listener, retVal, This);
@@ -119,15 +119,15 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     hr = Socket_base::_new(ipv6 ? net_base::C_AF_INET6 : ipv4 ? net_base::C_AF_INET
                                                               : net_base::C_AF_UNIX,
         m_socket);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = m_socket->bind(addr, port, false);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = m_socket->listen(1024);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     set_handler(listener);
@@ -315,10 +315,10 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
     }
 
     result_t hr = create(addr, port, m_hdlr);
-    if (hr < 0) {
+    if (hr.failed()) {
         // Node.js reports a failed listen with syscall "listen"; the bind is an
         // implementation detail of it.
-        if (hr > CALL_E_MAX) {
+        if (hr.is_system_error()) {
             ErrorPayload payload = takeErrorPayload();
 
             payload.with_syscall("listen");

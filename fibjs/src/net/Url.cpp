@@ -24,7 +24,7 @@ result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->format(args);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return u->get_href(retVal);
@@ -47,7 +47,7 @@ result_t url_base::parse(exlib::string url, bool parseQueryString,
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->legacy_parse(url, parseQueryString);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = u;
@@ -84,7 +84,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
         obj_ptr<Url> parsed = new Url();
 
         result_t hr = parsed->parse(std::get<exlib::string>(url));
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return fileURLToPath(parsed, options, retVal);
@@ -280,7 +280,7 @@ result_t url_base::format(Union_format_urlObject urlObject, v8::Local<v8::Object
 {
     obj_ptr<UrlObject_base> u;
     result_t hr = urlobject_from_union(urlObject, u);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Temporary minimal implementation for compilation

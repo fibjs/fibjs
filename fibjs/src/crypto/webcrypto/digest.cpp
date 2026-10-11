@@ -23,7 +23,7 @@ result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data
         ac.ctxv().resize(1);
 
         result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(algorithm), "name", alg, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = alg;

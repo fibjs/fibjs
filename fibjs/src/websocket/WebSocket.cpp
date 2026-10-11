@@ -140,7 +140,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
     v8::Local<v8::String> protocolsKey = isolate->NewString("protocols", 9);
     bool hasProtocols = opts->Has(context, protocolsKey).FromMaybe(false);
     result_t hr = GetConfigValue(opts, "protocol", protocol);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hasProtocols) {
@@ -149,7 +149,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
             return CALL_E_JAVASCRIPT;
 
         hr = GetArgumentValue(isolate, protocolsValue, protocolList);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -159,7 +159,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
         protocols.push_back(protocol);
 
     hr = normalize_protocols(protocols, normalizedProtocols);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     protocolHeader = join_protocols(normalizedProtocols);
@@ -442,10 +442,10 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             }
 
             hr = m_httprep->firstHeader("Upgrade", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr == CALL_RETURN_NULL) {
+            if (hr.is_return_null()) {
                 m_this->endConnect(1002, "missing Upgrade header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
             }
@@ -463,10 +463,10 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             }
 
             hr = m_httprep->firstHeader("Sec-WebSocket-Accept", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr == CALL_RETURN_NULL) {
+            if (hr.is_return_null()) {
                 m_this->endConnect(1002, "missing Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
             }
@@ -477,14 +477,14 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             }
 
             hr = m_httprep->firstHeader("Sec-WebSocket-Protocol", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (!m_this->m_protocols.empty()) {
                 std::vector<exlib::string> requested;
                 split_protocol_header(m_this->m_protocols, requested);
 
-                if (hr == CALL_RETURN_NULL) {
+                if (hr.is_return_null()) {
                     m_this->endConnect(1002, "missing Sec-WebSocket-Protocol header.");
                     return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Protocol header."));
                 }
@@ -495,14 +495,14 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 }
 
                 m_this->m_protocol = v;
-            } else if (hr != CALL_RETURN_NULL)
+            } else if (!hr.is_return_null())
                 m_this->m_protocol = v;
 
             hr = m_httprep->firstHeader("Sec-WebSocket-Extensions", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && m_this->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18))
+            if (!hr.is_return_null() && m_this->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18))
                 m_this->enableCompress();
 
             m_httprep->get_stream(m_this->m_stream);
@@ -545,13 +545,13 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     GetConfigValue(opts, "maxPayload", maxPayload);
 
     hr = load_protocol_options(opts, protocols);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetConfigValue(opts, "headers", headers);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
         headers = new Headers();
-    else if (hr < 0)
+    else if (hr.failed())
         return hr;
 
     GetConfigValue(opts, "httpClient", hc);
@@ -849,7 +849,7 @@ result_t WebSocket::send(v8::Local<v8::Value> data)
     // a value that is not binary data is sent as its string form
     exlib::string str;
     result_t hr = GetDOMStringValue(data, str);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return send_text(str);

@@ -111,7 +111,7 @@ inline bool compare_number(exlib::string& str, exlib::string& str1)
 inline void append_split(std::vector<std::pair<QuickArray<exlib::string>&, int32_t>>& props,
     StringBuffer& buf, int32_t type)
 {
-    /**
+        /**
      * "┌─", "─┬─", "─┐\n"
      * "├─", "─┼─", "─┤\n"
      * "└─", "─┴─", "─┘"

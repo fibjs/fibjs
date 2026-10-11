@@ -80,9 +80,9 @@ result_t DOMStringMap::_indexed_getter(uint32_t index, Variant& retVal)
 
     exlib::string value;
     result_t hr = m_element->getAttribute(name, value);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return CALL_RETURN_NULL;
 
     retVal = value;
@@ -95,9 +95,9 @@ result_t DOMStringMap::_named_getter(exlib::string property, Variant& retVal)
 
     exlib::string value;
     result_t hr = m_element->getAttribute(name, value);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return CALL_RETURN_NULL;
 
     retVal = value;

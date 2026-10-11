@@ -399,7 +399,7 @@ public:
 
         uv_os_fd_t fd;
         result_t hr = uv_fileno(&m_handle, &fd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (int32_t)(intptr_t)fd;
@@ -707,7 +707,7 @@ public:
         result_t hr = uv_call([&] {
             return uv_pipe_init(s_uv_loop, &stream->m_pipe, ipc);
         });
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         stream->m_nonblockWrite = true;

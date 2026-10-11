@@ -53,7 +53,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
         sbox->initRequire(require);
 
     result_t hr = sbox->add(mods);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = sbox;
@@ -293,7 +293,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
             return CALL_E_JAVASCRIPT;
 
         hr = add(isolate->toString(k), v);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

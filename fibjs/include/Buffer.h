@@ -161,7 +161,7 @@ public:
 
         exlib::string str;
         result_t hr = toString(codec, 0, str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = str;
@@ -177,7 +177,7 @@ public:
 
         exlib::string str;
         result_t hr = toString(codec, 0, str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = holder()->NewString(str);
@@ -193,7 +193,7 @@ public:
 
         exlib::string str;
         result_t hr = toString(codec, 0, str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = str;

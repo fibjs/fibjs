@@ -26,7 +26,7 @@ result_t db_base::openLevelDB(exlib::string connString,
 
     obj_ptr<LevelDB> db = new LevelDB();
     hr = db->open(c_str);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = db;
@@ -73,7 +73,7 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
 {
     if (std::holds_alternative<exlib::string>(v)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(v);
@@ -92,7 +92,7 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
     obj_ptr<Buffer_base> keyBuf;
 
     result_t hr = leveldb_to_buffer(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = (Buffer*)keyBuf.get();
@@ -123,7 +123,7 @@ result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHand
     obj_ptr<Buffer_base> keyBuf;
 
     result_t hr = leveldb_to_buffer(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = (Buffer*)keyBuf.get();
@@ -201,7 +201,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
         exlib::string s;
 
         hr = GetArgumentValue(isolate, v, s);
-        if (hr < 0)
+        if (hr.failed())
             return CHECK_ERROR(hr);
 
         ks[i] = s;
@@ -233,13 +233,13 @@ result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
     obj_ptr<Buffer_base> keyBuf;
 
     result_t hr = leveldb_to_buffer(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> valBuf;
 
     hr = leveldb_to_buffer(value, valBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf_key = (Buffer*)keyBuf.get();
@@ -274,7 +274,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
 
         exlib::string value1;
         hr = getValue(JSValue(map->Get(context, k)), value1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         batch_->Put(leveldb::Slice(key.c_str(), key.length()),
@@ -304,7 +304,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     for (i = 0; i < len; i++) {
         exlib::string key;
         hr = getValue(JSValue(keys->Get(context, i)), key);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         batch_->Delete(leveldb::Slice(key.c_str(), key.length()));
@@ -327,7 +327,7 @@ result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
     obj_ptr<Buffer_base> keyBuf;
 
     result_t hr = leveldb_to_buffer(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = (Buffer*)keyBuf.get();
@@ -457,7 +457,7 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
 
     do {
         hr = ac__iter();
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         for (i = 0; i < m_count; i++) {
@@ -501,7 +501,7 @@ result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Function> func)
     obj_ptr<Buffer_base> buf;
 
     result_t hr = leveldb_to_buffer(from, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return forEachCore(buf, NULL, v8::Local<v8::Object>(), func);
@@ -512,13 +512,13 @@ result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Loca
     obj_ptr<Buffer_base> fromBuf;
 
     result_t hr = leveldb_to_buffer(from, fromBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> toBuf;
 
     hr = leveldb_to_buffer(to, toBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return forEachCore(fromBuf, toBuf, v8::Local<v8::Object>(), func);
@@ -534,7 +534,7 @@ result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8
     obj_ptr<Buffer_base> buf;
 
     result_t hr = leveldb_to_buffer(from, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return forEachCore(buf, NULL, opt, func);
@@ -545,13 +545,13 @@ result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Loca
     obj_ptr<Buffer_base> fromBuf;
 
     result_t hr = leveldb_to_buffer(from, fromBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> toBuf;
 
     hr = leveldb_to_buffer(to, toBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return forEachCore(fromBuf, toBuf, opt, func);
@@ -566,17 +566,17 @@ result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::
         result_t hr;
 
         hr = GetConfigValue(opt, "skip", it->m_skip, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = GetConfigValue(opt, "limit", it->m_limit, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
         if (it->m_limit == 0)
             return Runtime::setError("limit must be greater than 0");
 
         hr = GetConfigValue(opt, "reverse", it->m_reverse, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     }
 

@@ -19,7 +19,7 @@ result_t TLSHandler_base::_new(SecureContext_base* context, Union_TLSHandler_han
 {
     obj_ptr<Handler_base> _handler;
     result_t hr = handler_from_union(handler, _handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new TLSHandler(context);
@@ -33,7 +33,7 @@ result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Union_TLSHandler_h
 {
     obj_ptr<SecureContext_base> ctx;
     result_t hr = tls_base::createSecureContext(options, true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _new(ctx, handler, retVal, This);
@@ -113,7 +113,7 @@ result_t TLSHandler::setSecureContext(v8::Local<v8::Object> options)
 {
     obj_ptr<SecureContext_base> ctx;
     result_t hr = tls_base::createSecureContext(options, true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_ctx = ctx;

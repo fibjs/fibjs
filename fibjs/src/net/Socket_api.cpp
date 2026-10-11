@@ -39,7 +39,7 @@ namespace socket {
 
         obj_ptr<Stream_base> retVal;
         result_t hr = ((Socket_base*)sock)->cc_connect(port, host, 0, retVal);
-        if (hr < 0) {
+        if (hr.failed()) {
             Runtime::setError(hr, (const char*)nullptr);
             return 0;
         }
@@ -72,12 +72,12 @@ namespace socket {
         obj_ptr<Buffer_base> retVal;
 
         result_t hr = ((Socket_base*)sock)->cc_recv(cbBuffer, retVal);
-        if (hr < 0) {
+        if (hr.failed()) {
             Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }
 
-        if (hr == CALL_RETURN_NULL)
+        if (hr.is_return_null())
             return 0;
 
         Buffer* buf = Buffer::Cast(retVal);
@@ -101,12 +101,12 @@ namespace socket {
         obj_ptr<Buffer_base> retVal;
 
         result_t hr = ((Socket_base*)sock)->cc_readBuffer(cbBuffer, retVal);
-        if (hr < 0) {
+        if (hr.failed()) {
             Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }
 
-        if (hr == CALL_RETURN_NULL)
+        if (hr.is_return_null())
             return 0;
 
         Buffer* buf = Buffer::Cast(retVal);
@@ -134,7 +134,7 @@ namespace socket {
 
         int32_t len;
         result_t hr = ((Socket_base*)sock)->cc_send(buf, len);
-        if (hr < 0) {
+        if (hr.failed()) {
             Runtime::setError(hr, (const char*)nullptr);
             return -1;
         }

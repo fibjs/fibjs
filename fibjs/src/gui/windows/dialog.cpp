@@ -22,7 +22,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
         obj_ptr<DialogOptions> opts;
         result_t hr = DialogOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);

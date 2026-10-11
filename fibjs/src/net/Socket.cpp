@@ -147,7 +147,7 @@ result_t Socket::create(int32_t family, obj_ptr<Socket_base>& retVal)
     obj_ptr<Socket> sock = new Socket();
 
     result_t hr = sock->create(family);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = sock;
@@ -487,7 +487,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
 #ifdef _WIN32
     if (!m_bBind) {
         result_t hr = bind(0, TRUE);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 #endif
@@ -512,7 +512,7 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -596,7 +596,7 @@ result_t Socket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (int32_t)data.length();

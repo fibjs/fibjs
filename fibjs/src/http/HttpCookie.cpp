@@ -118,7 +118,7 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = false;

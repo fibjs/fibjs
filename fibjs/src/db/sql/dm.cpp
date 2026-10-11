@@ -32,7 +32,7 @@ result_t db_base::openDM(exlib::string connString, obj_ptr<DbConnection_base>& r
 
     OdbcConnectOptions options = { "Server", true, true };
     result_t hr = odbc_connect(connString, driver, port, conn->m_conn, &options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = conn;

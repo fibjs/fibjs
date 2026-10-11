@@ -350,11 +350,11 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<Cpu
     result_t hr;
 
     hr = GetConfigValue(previousValue, "user", _user, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(previousValue, "system", _system, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     _user = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec - _user;

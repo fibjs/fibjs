@@ -74,7 +74,7 @@ public:
 
         obj_ptr<Buffer_base> buf;
         result_t hr = Buffer_base::from(std::get<exlib::string>(chunk), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return _processChunk(buf.get(), flushFlag, retVal);

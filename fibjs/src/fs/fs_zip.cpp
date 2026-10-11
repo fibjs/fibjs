@@ -95,7 +95,7 @@ result_t fs_base::setZipFS(exlib::string fname, Union_setZipFS_data data)
     // a string is the zip data itself, encoded as utf8
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return set_zip_fs(fname, buf.get());
@@ -108,12 +108,12 @@ static result_t set_zip_fs(exlib::string fname, Buffer_base* data)
     obj_ptr<cache_node> _node;
 
     hr = zip_base::cc_open(data, "r", "utf-8", zfile);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     std::vector<obj_ptr<ZipFile_base::ReadAllType>> list;
     hr = zfile->cc_readAll("", list);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string safe_name;
@@ -293,7 +293,7 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHa
 {
     obj_ptr<ZipFile_base::ReadAllType> zi;
     result_t hr = resolve_zip_file(path, zi, std::move(ac));
-    if (hr >= 0) {
+    if (hr.ok()) {
         obj_ptr<Stat> pStat = new Stat();
         pStat->init();
 
@@ -319,14 +319,14 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHan
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(path, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // the isolate is read before the continuation is handed over (P4)
     Isolate* isolate = ac.isolate();
 
     hr = zip_stat(safe_name, retVal, std::move(ac));
-    if (hr >= 0)
+    if (hr.ok())
         return 0;
 
     if (!isolate->m_enable_FileSystem)
@@ -368,7 +368,7 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
     bool throwIfNoEntry = ac.ctxv()[0].boolVal();
 
     result_t hr = lstat(path, retVal, std::move(ac));
-    if (hr < 0 && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    if (hr.failed() && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
         return CALL_RETURN_UNDEFINED;
 
     return hr;
@@ -381,14 +381,14 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHand
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(path, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // the isolate is read before the continuation is handed over (P4)
     Isolate* isolate = ac.isolate();
 
     hr = zip_stat(safe_name, retVal, std::move(ac));
-    if (hr >= 0)
+    if (hr.ok())
         return 0;
 
     if (!isolate->m_enable_FileSystem)
@@ -430,7 +430,7 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
     bool throwIfNoEntry = ac.ctxv()[0].boolVal();
 
     result_t hr = stat(path, retVal, std::move(ac));
-    if (hr < 0 && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
+    if (hr.failed() && !throwIfNoEntry && (hr == UV_ENOENT || hr == UV_ENOTDIR))
         return CALL_RETURN_UNDEFINED;
 
     return hr;
@@ -459,7 +459,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // the isolate is read before the continuation is handed over (P4)
@@ -467,7 +467,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 
     obj_ptr<ZipFile_base::ReadAllType> zi;
     hr = resolve_zip_file(safe_name, zi, std::move(ac));
-    if (hr >= 0) {
+    if (hr.ok()) {
         obj_ptr<Buffer_base> data;
         exlib::string strData;
         date_t _d;
@@ -486,7 +486,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 
     obj_ptr<FileStream> pFile = new FileStream();
     hr = pFile->open(safe_name, flags);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = pFile;
@@ -505,12 +505,12 @@ static result_t open_file_int(exlib::string fname, int32_t flags,
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
     hr = file_open(safe_name, flags, 0666, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new FileStream(_fd);

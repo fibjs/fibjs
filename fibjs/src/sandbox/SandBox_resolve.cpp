@@ -160,13 +160,13 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         obj_ptr<Stat_base> stat;
         result_t hr = fs_base::cc_stat(fname, stat, isolate);
         result.first = hr;
-        if (hr >= 0)
+        if (hr.ok())
             result.second = new Buffer();
     } else if (strchr(fname.c_str(), '$') != nullptr) {
         // zip 虚拟路径：uv 之下不可见，仍走 fs_base 的 zip VFS 实现
         Variant var;
         result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
-        if (hr == CALL_RETURN_NULL) {
+        if (hr.is_return_null()) {
             result.second = new Buffer();
             result.first = 0;
         } else {
@@ -197,7 +197,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 
                 Variant var;
                 result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
-                if (hr == CALL_RETURN_NULL) {
+                if (hr.is_return_null()) {
                     result.second = new Buffer();
                     result.first = 0;
                 } else {
@@ -325,7 +325,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     if (ftype == 0) {
         // File exists, now do realpath
         hr = realpath(fname, fname1);
-        if (hr < 0)
+        if (hr.failed())
             fname1 = fname;
 
         if (retVal) {
@@ -337,7 +337,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         }
 
         hr = loadFile(fname1, data);
-        if (hr >= 0) {
+        if (hr.ok()) {
             fname = fname1;
             return 0;
         }
@@ -354,7 +354,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             continue; // Not a file, skip
 
         hr = realpath(fname2, fname1);
-        if (hr < 0)
+        if (hr.failed())
             fname1 = fname2;
 
         if (retVal) {
@@ -366,7 +366,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         }
 
         hr = loadFile(fname1, data);
-        if (hr >= 0) {
+        if (hr.ok()) {
             fname = fname1;
             return 0;
         }
@@ -387,13 +387,13 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     module_name1 = module_name;
     appendPath(module_name1, "package.json");
     hr = loadFile(module_name1, bin);
-    if (hr >= 0) {
+    if (hr.ok()) {
         v8::Local<v8::Value> v;
         exlib::string buf;
 
         bin->toString(buf);
         hr = json_base::decode(buf, v);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (v.IsEmpty() || !v->IsObject())
@@ -559,7 +559,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
         path_base::normalize(module_name1, module_name1);
 
         hr = resolveFile(mods, module_name1, data, retVal);
-        if (hr >= 0) {
+        if (hr.ok()) {
             out = module_name1;
             return hr;
         }
@@ -568,18 +568,18 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     exlib::string module_name2 = module_name1;
     appendPath(module_name2, "index");
     hr = resolveFile(mods, module_name2, data, retVal);
-    if (hr >= 0) {
+    if (hr.ok()) {
         out = module_name2;
         return hr;
     }
 
     if (!script_name.empty()) {
         hr = resolvePackage(mods, module_name1, "", data, type, out, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND)
+        if (!hr.is(CALL_E_FILE_NOT_FOUND))
             return hr;
 
         hr = resolvePackage(mods, module_name1 + ".zip$", "", data, type, out, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND)
+        if (!hr.is(CALL_E_FILE_NOT_FOUND))
             return hr;
     }
 
@@ -617,13 +617,13 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
 
         appendPath(fname1, "package.json");
         hr = loadFile(fname1, bin);
-        if (hr >= 0) {
+        if (hr.ok()) {
             v8::Local<v8::Value> v;
             exlib::string buf;
 
             bin->toString(buf);
             hr = json_base::decode(buf, v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (v.IsEmpty() || !v->IsObject())
@@ -681,7 +681,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
 
     if (script_name.empty()) {
         hr = resolveFile(_mods, module_name, data, retVal, base_type);
-        if (hr >= 0) {
+        if (hr.ok()) {
             out = module_name;
             return hr;
         }
@@ -691,7 +691,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     // 跳过整轮 package/index 探测（省 1 次 open + 6 次 stat）
     if (base_type >= 0) {
         hr = resolvePackage(_mods, module_name, script_name, data, type, out, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND)
+        if (!hr.is(CALL_E_FILE_NOT_FOUND))
             return hr;
     }
 
@@ -702,7 +702,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     exlib::string zip_container = module_name + ".zip";
     if (file_type(zip_container) >= 0) {
         hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND)
+        if (!hr.is(CALL_E_FILE_NOT_FOUND))
             return hr;
     }
 
@@ -859,7 +859,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 base = fname;
 
                 hr = resolveFile(fname, id, data, type, id, &retVal);
-                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND))
                     return hr;
 
                 path_base::dirname(base, fname);
@@ -917,7 +917,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 appendPath(fname, module_name);
 
                 hr = resolveFile(fname, script_name, data, type, id, &retVal);
-                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND))
                     return hr;
 
                 path_base::dirname(base, fname);
@@ -941,7 +941,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     if (!qstrcmp(id.c_str(), "file:", 5)) {
         exlib::string path;
         result_t hr = url_base::fileURLToPath(id, v8::Local<v8::Object>(), path);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         id = path;
     }
@@ -990,7 +990,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         }
 
         hr = resolveId(id, retVal);
-        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
+        if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND)) {
             // Check for pendding promise if module is being loaded
             if (pendding && !IsEmpty(retVal)) {
                 v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
@@ -1002,7 +1002,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         }
 
         hr = resolveModule(base, id, data, type, retVal);
-        if (hr >= 0) {
+        if (hr.ok()) {
             // Cache the resolved path
             _resolve_cache->Set(_context, v8_cache_key, isolate->NewString(id)).IsJust();
         }
@@ -1033,7 +1033,7 @@ result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& r
     v8::Local<v8::Object> v;
 
     hr = resolve(base, id, data, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = id;

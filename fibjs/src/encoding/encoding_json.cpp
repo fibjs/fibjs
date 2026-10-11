@@ -268,7 +268,7 @@ inline result_t _jsonDecode(exlib::string data,
                     i::Handle<i::Object> el1;
 
                     hr = ParseJsonValue(el);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     el1 = el.ToHandleChecked();
@@ -310,7 +310,7 @@ inline result_t _jsonDecode(exlib::string data,
                     i::MaybeHandle<i::Object> value;
 
                     hr = ParseJsonString(key, str);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     if (c0_ != ':')
@@ -319,7 +319,7 @@ inline result_t _jsonDecode(exlib::string data,
                     AdvanceSkipWhitespace();
 
                     hr = ParseJsonValue(value);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     i::Handle<i::String> name = i::Object::ToString(v8_isolate, key.ToHandleChecked()).ToHandleChecked();
@@ -396,7 +396,7 @@ inline result_t _jsonDecode(exlib::string data,
         {
             i::MaybeHandle<i::Object> maybe;
             result_t hr = ParseJsonValue(maybe);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (!Utils::ToMaybeLocal(maybe).ToLocal(&retVal))

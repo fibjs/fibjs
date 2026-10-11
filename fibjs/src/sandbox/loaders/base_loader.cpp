@@ -79,7 +79,7 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     v8::Local<v8::Script> script;
 
     hr = compile(ctx, src, name, arg_names, script);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Isolate* isolate = ctx->m_sb->holder();

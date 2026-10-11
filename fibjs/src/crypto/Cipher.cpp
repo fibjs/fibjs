@@ -99,7 +99,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
 
     // Check keyLength filter
     hr = GetConfigValue(options, "keyLength", expected_key_length, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hr == 0) {
@@ -109,7 +109,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
 
     // Check ivLength filter
     hr = GetConfigValue(options, "ivLength", expected_iv_length, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hr == 0) {
@@ -183,11 +183,11 @@ result_t crypto_base::createCipher(exlib::string algorithm, Union_createCipher_k
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_string_arg(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = ci->init(algorithm, keyBuf, options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = ci;
@@ -203,17 +203,17 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipher
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_key_args(key, keyBuf, ko);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> ivBuf;
     hr = cipher_string_arg(iv, ivBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
             : ci->initiv(algorithm, keyBuf, ivBuf, options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = ci;
@@ -228,11 +228,11 @@ result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDeciph
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_string_arg(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = ci->init(algorithm, keyBuf, options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = ci;
@@ -248,17 +248,17 @@ result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDeci
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_key_args(key, keyBuf, ko);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> ivBuf;
     hr = cipher_string_arg(iv, ivBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
             : ci->initiv(algorithm, keyBuf, ivBuf, options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = ci;
@@ -429,11 +429,11 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
         int auth_tag_len = kNoAuthTagLength;
 
         hr = GetConfigValue(options, "authTagLength", auth_tag_len, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = InitAuthenticated(iv_len, auth_tag_len);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -478,7 +478,7 @@ result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encodi
         exlib::string _buffer = std::get<exlib::string>(buffer);
 
         hr = commonDecode(encoding, _buffer, _buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = setAuthTag(_buffer.c_str(), _buffer.length());
@@ -490,7 +490,7 @@ result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encodi
         hr = setAuthTag((const char*)buf->data(), buf->length());
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = this;
@@ -518,7 +518,7 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     if (mode == EVP_CIPH_CCM_MODE) {
         int plaintext_len = kNoAuthTagLength;
         result_t hr = GetConfigValue(options, "plaintextLength", plaintext_len, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         if (plaintext_len < 0)
@@ -551,11 +551,11 @@ result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> option
         exlib::string encoding = "utf8";
 
         hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = commonDecode(encoding, _buffer, _buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = setAAD(_buffer.c_str(), _buffer.length(), options);
@@ -567,7 +567,7 @@ result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> option
         hr = setAAD((const char*)buf->data(), buf->length(), options);
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = this;
@@ -617,7 +617,7 @@ result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local
     else
         hr = m_decoder->write(out, str);
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = holder()->NewString(str);
@@ -659,7 +659,7 @@ result_t Cipher::update(Union_update_data data, exlib::string inputEncoding, exl
         exlib::string _data = std::get<exlib::string>(data);
 
         result_t hr = commonDecode(inputEncoding, _data, _data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return update((const unsigned char*)_data.c_str(), _data.length(), outputEncoding, retVal);

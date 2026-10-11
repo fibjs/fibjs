@@ -257,7 +257,7 @@ static bool is_node_bin_script(const exlib::string& cmd)
     Variant var;
     result_t hr = fs_base::cc_readFile(path, "", var, Isolate::current());
 
-    if (hr < 0)
+    if (hr.failed())
         return false;
 
     Buffer* b = (Buffer*)var.object();
@@ -538,7 +538,7 @@ static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args,
 
     process_signal_forward_children(false);
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t code = exec_retVal->exitCode;
@@ -583,7 +583,7 @@ result_t SandBox::run_main(exlib::string fname)
             path_base::normalize(fname, fname);
 
         hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
-        if (hr < 0) {
+        if (hr.failed()) {
             if (isAbs)
                 return hr;
 
@@ -599,7 +599,7 @@ result_t SandBox::run_main(exlib::string fname)
                 exlib::string resolved = bin_path;
 
                 hr = resolveFile(resolved, "", bin, kCommonJS, resolved, NULL);
-                if (hr >= 0) {
+                if (hr.ok()) {
                     Buffer* b = Buffer::Cast(bin);
 
                     // A node/fibjs script runs on fibjs itself; anything else
@@ -614,7 +614,7 @@ result_t SandBox::run_main(exlib::string fname)
                 }
             }
 
-            if (hr < 0) {
+            if (hr.failed()) {
                 // package.json scripts of the nearest package, run from its root
                 exlib::string pkg_root;
 
@@ -627,12 +627,12 @@ result_t SandBox::run_main(exlib::string fname)
                 v8::Local<v8::Context> context = isolate->context();
 
                 hr = loadFile(pkg_root + "/package.json", bin);
-                if (hr < 0)
+                if (hr.failed())
                     return CALL_E_FILE_NOT_FOUND;
 
                 bin->toString(buf);
                 hr = json_base::decode(buf, v);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 if (v.IsEmpty() || !v->IsObject())
@@ -667,7 +667,7 @@ result_t SandBox::run_main(exlib::string fname)
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Context context(this, fname);
@@ -684,7 +684,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     bool isAbs;
 
     hr = absolute_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     path_base::isAbsolute(fname, isAbs);
@@ -694,12 +694,12 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
 
     obj_ptr<Buffer_base> bin;
     hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Context context(this, fname);
@@ -716,7 +716,7 @@ result_t SandBox::run_worker_source(exlib::string fname, exlib::string source, W
     bool isAbs;
 
     hr = absolute_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     path_base::isAbsolute(fname, isAbs);
@@ -728,7 +728,7 @@ result_t SandBox::run_worker_source(exlib::string fname, exlib::string source, W
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Context context(this, fname);
@@ -747,7 +747,7 @@ result_t SandBox::run(exlib::string fname, bool in_cjs)
     bool isAbs;
 
     hr = absolute_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     path_base::isAbsolute(fname, isAbs);
@@ -757,12 +757,12 @@ result_t SandBox::run(exlib::string fname, bool in_cjs)
 
     obj_ptr<Buffer_base> bin;
     hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Context context(this, fname);

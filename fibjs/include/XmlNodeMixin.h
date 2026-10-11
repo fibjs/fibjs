@@ -224,7 +224,7 @@ public:
         // documentElement and doctype, the only children a document may hold: they are
         // the entry point of its content and, being outermost, cannot form a cycle.
         result_t hr = BaseInterface::toJSON(key, retVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (retVal.IsEmpty() || !retVal->IsObject())

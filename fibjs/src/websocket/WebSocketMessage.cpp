@@ -94,7 +94,7 @@ result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncHandl
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_message->write(buf.get(), retVal, std::move(ac));
@@ -635,9 +635,9 @@ result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
 
     obj_ptr<Buffer_base> data;
     result_t hr = body->readAll(data, NULL);
-    if (hr == CALL_RETURN_NULL || !data)
+    if (hr.is_return_null() || !data)
         return CALL_RETURN_NULL;
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (type == 1 /* ws.TEXT */) {

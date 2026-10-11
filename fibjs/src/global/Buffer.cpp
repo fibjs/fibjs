@@ -105,7 +105,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
             int32_t num;
 
             hr = GetArgumentValue(isolate, v, num);
-            if (hr < 0)
+            if (hr.failed())
                 return CHECK_ERROR(hr);
 
             _str[i] = (uint8_t)num;
@@ -174,7 +174,7 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffe
 {
     exlib::string strBuf;
     result_t hr = commonDecode(codec, str, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
@@ -235,7 +235,7 @@ v8::Local<v8::Value> Buffer::load_module()
 
     TryCatch try_catch;
     result_t hr = sbox->require("internal/buffer", "/builtin", _buffer);
-    if (hr < 0 || try_catch.HasCaught() || _buffer.IsEmpty()) {
+    if (hr.failed() || try_catch.HasCaught() || _buffer.IsEmpty()) {
         // require 失败（抛异常，或被 worker 终止中断打断）时 _buffer 是**空句柄**。
         // 直接把它交给 Object::Set 会走到 V8 内部解引用空 handle 而崩溃
         // （实测栈：Object::Set → PropertySetterCallback → Handle<Object>::operator*）。
@@ -400,7 +400,7 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, obj_ptr<Buffer
         exlib::string s;
 
         result_t hr = GetArgumentValue(isolate, v, s);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return Buffer_base::from(s, "utf8", n);
@@ -655,7 +655,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string strBuf;
     result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -748,7 +748,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string strBuf;
     result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -832,7 +832,7 @@ result_t Buffer_base::byteLength(exlib::string str, exlib::string codec, int32_t
     obj_ptr<Buffer_base> buf;
 
     result_t hr = from(str, codec, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (int32_t)Buffer::Cast(buf)->length();
@@ -855,7 +855,7 @@ result_t Buffer_base::byteLength(Union_byteLength_str str, int32_t& retVal)
         : Union_from_datas(std::get<std::shared_ptr<v8::BackingStore>>(str));
 
     result_t hr = from(datas, 0, -1, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (int32_t)Buffer::Cast(buf)->length();
@@ -894,7 +894,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, str, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     max_length = (int32_t)strBuf.length();
@@ -922,7 +922,7 @@ result_t Buffer::fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffe
 {
     if (std::holds_alternative<int32_t>(v)) {
         result_t hr = generateEnd((int32_t)length(), offset, end);
-        if (hr < 0)
+        if (hr.failed())
             return CHECK_ERROR(hr);
 
         memset(data() + offset, std::get<int32_t>(v) & 255, end - offset);
@@ -930,7 +930,7 @@ result_t Buffer::fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffe
         Buffer* v_data = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(v));
 
         result_t hr = fill(v_data->data(), v_data->length(), offset, end);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -944,7 +944,7 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
         return 0;
 
     result_t hr = generateEnd((int32_t)length(), offset, end);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
 
     uint8_t* _data = data();
@@ -972,11 +972,11 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::strin
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fill((const uint8_t*)strBuf.c_str(), strBuf.length(), offset, end);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = this;
@@ -996,7 +996,7 @@ result_t Buffer::fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>
 result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
 {
     result_t hr = generateEnd((int32_t)length(), offset, end);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
 
     memset(data() + offset, v & 255, end - offset);
@@ -1008,7 +1008,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
 {
     Buffer* v_data = Buffer::Cast(v);
     result_t hr = fill(v_data->data(), v_data->length(), offset, end);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return 0;
@@ -1021,11 +1021,11 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::strin
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fill((const uint8_t*)strBuf.c_str(), strBuf.length(), offset, end);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return 0;
@@ -1125,7 +1125,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
 #define READ_NUMBER(t, le)                                                 \
     t v = 0;                                                               \
     result_t hr = readNumber(offset, (char*)&v, sizeof(v), sizeof(v), le); \
-    if (hr < 0)                                                            \
+    if (hr.failed())                                                            \
         return hr;                                                         \
     retVal = v;                                                            \
     return 0;
@@ -1135,7 +1135,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
         return CALL_E_INVALIDARG;                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
-    if (hr < 0)                                                     \
+    if (hr.failed())                                                     \
         return hr;                                                  \
     retVal = v;                                                     \
     return 0;
@@ -1145,7 +1145,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
         return CALL_E_INVALIDARG;                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
-    if (hr < 0)                                                     \
+    if (hr.failed())                                                     \
         return hr;                                                  \
     if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                 \
         v |= ((t) - 1) << (8 * sz);                                 \
@@ -1294,7 +1294,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
 #define WRITE_NUMBER(t, le)                                                         \
     t v = (t)value;                                                                 \
     result_t hr = writeNumber(offset, (char*)&v, sizeof(v), sizeof(v), le, retVal); \
-    if (hr < 0)                                                                     \
+    if (hr.failed())                                                                     \
         return hr;                                                                  \
     return 0;
 
@@ -1303,7 +1303,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
         return CALL_E_INVALIDARG;                                            \
     t v = (t)value;                                                          \
     result_t hr = writeNumber(offset, (char*)&v, sz, sizeof(v), le, retVal); \
-    if (hr < 0)                                                              \
+    if (hr.failed())                                                              \
         return hr;                                                           \
     return 0;
 
@@ -1467,7 +1467,7 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
     }
 
     result_t hr = validOffset(buf_length, offset);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
 
     const uint8_t* _data = data();
@@ -1514,7 +1514,7 @@ result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
         offset = buf_length - 1;
 
     result_t hr = validOffset(buf_length, offset);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
 
     const uint8_t* _data = data();

@@ -74,11 +74,11 @@ result_t v8_base::start(exlib::string fname, int32_t time, int32_t interval, obj
     obj_ptr<SeekableStream_base> f;
     OptArgs args;
     result_t hr = normalize_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fs_base::ac_openFile(fname, "a", f);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     v8::Local<v8::Object> _data = f->wrap();

@@ -1214,7 +1214,7 @@ void run_test(int32_t mode)
 
         v8::Local<v8::Object> ret;
         result_t hr = _case::run(mode, ret);
-        if (hr < 0) {
+        if (hr.failed()) {
             ThrowResult(hr);
         }
 

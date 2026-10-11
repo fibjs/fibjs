@@ -144,7 +144,7 @@ result_t Service_base::restart(exlib::string name)
     result_t hr;
 
     hr = stop(name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return start(name);

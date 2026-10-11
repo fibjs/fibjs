@@ -34,7 +34,7 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
     // Load options using ResponseOptions
     obj_ptr<HttpResponse::ResponseOptions> opts;
     hr = HttpResponse::ResponseOptions::load(options, opts);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (opts->status.has_value())
@@ -50,7 +50,7 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
         } else {
             hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(headersVar).get());
         }
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -60,7 +60,7 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
     resp->get_headers(hdrs);
 
     hr = body_to_stream(isolate, body, stm, hdrs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (stm)
@@ -141,7 +141,7 @@ result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncHandle ac
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_message->write(buf.get(), retVal, std::move(ac));
@@ -181,7 +181,7 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
         // them.
         exlib::string str;
         result_t hr = json_base::encode(data, str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(2);
@@ -189,7 +189,7 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
 
         obj_ptr<HttpResponse::ResponseOptions> opts;
         hr = HttpResponse::ResponseOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Normalize headers to a C++ object: the v8::Local alternative is
@@ -633,7 +633,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
 
             m_strLine.resize(8);
             hr = m_pThis->set_protocol(m_strLine);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (m_headerOnly)
@@ -670,7 +670,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
         result_t hr = Options::load(options, _options);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (!_options->header_only.value() && _options->content_length.has_value())
@@ -699,7 +699,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options,
         obj_ptr<Options> _options;
         Isolate* isolate = Isolate::current(options);
         result_t hr = Options::load(options, _options);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -830,13 +830,13 @@ result_t HttpResponse::addCookie(Union_addCookie_cookie cookie)
 {
     obj_ptr<HttpCookie_base> cookie_;
     result_t hr = ctor_object_from_union<HttpCookie_base>(cookie, cookie_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     std::vector<obj_ptr<HttpCookie_base>> cookies;
 
     hr = get_cookies(cookies);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_cookies.push_back(cookie_);
@@ -887,7 +887,7 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
     // Load options
     obj_ptr<HttpResponse::ResponseOptions> opts;
     hr = HttpResponse::ResponseOptions::load(options, opts);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (opts->status.has_value())
@@ -900,14 +900,14 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
             hr = resp->setHeader(std::get<v8::Local<v8::Object>>(hv));
         else
             hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(hv).get());
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
     // Serialize to JSON and set Content-Type
     exlib::string jsonStr;
     hr = json_base::encode(data, jsonStr);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     resp->setHeader("Content-Type", "application/json");

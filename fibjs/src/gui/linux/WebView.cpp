@@ -64,7 +64,7 @@ exlib::string WebView::internal_getUrl()
 result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(m_webview), url.c_str());
@@ -75,7 +75,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = internal_getUrl();
@@ -86,7 +86,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_load_html(WEBKIT_WEB_VIEW(m_webview), html.c_str(), nullptr);
@@ -129,7 +129,7 @@ void gethtml_cb(GObject* object, GAsyncResult* result, gpointer user_data)
 result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
@@ -148,7 +148,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
     }
 
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = internal_isReady();
@@ -159,7 +159,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_reload(WEBKIT_WEB_VIEW(m_webview));
@@ -170,7 +170,7 @@ result_t WebView::reload(AsyncHandle ac)
 result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_go_back(WEBKIT_WEB_VIEW(m_webview));
@@ -181,7 +181,7 @@ result_t WebView::goBack(AsyncHandle ac)
 result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_go_forward(WEBKIT_WEB_VIEW(m_webview));
@@ -287,7 +287,7 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
 result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), code.c_str(), nullptr, eval_cb, new eval_callback_data(retVal, std::move(ac)));
@@ -297,7 +297,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     gtk_window_set_title(GTK_WINDOW(m_window), title.c_str());
@@ -308,7 +308,7 @@ result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     const char* title = gtk_window_get_title(GTK_WINDOW(m_window));
@@ -324,7 +324,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = gtk_widget_get_visible(GTK_WIDGET(m_window)) != 0;
@@ -335,7 +335,7 @@ result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!gtk_widget_get_visible(GTK_WIDGET(m_window))) {
@@ -348,7 +348,7 @@ result_t WebView::show(AsyncHandle ac)
 result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (gtk_widget_get_visible(GTK_WIDGET(m_window))) {
@@ -361,7 +361,7 @@ result_t WebView::hide(AsyncHandle ac)
 result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     gtk_window_resize(GTK_WINDOW(m_window), width, height);
@@ -372,7 +372,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int width, height;
@@ -388,7 +388,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     gtk_window_move(GTK_WINDOW(m_window), left, top);
@@ -399,7 +399,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int left, top;
@@ -415,7 +415,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     GtkWindow* window = GTK_WINDOW(m_window);
@@ -427,7 +427,7 @@ result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     GtkWindow* window = GTK_WINDOW(m_window);
@@ -484,7 +484,7 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
 result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
@@ -499,7 +499,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_options->hideOnClose = false;
@@ -511,7 +511,7 @@ result_t WebView::close(AsyncHandle ac)
 result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     encoding_base::jsstr(msg, false, msg);

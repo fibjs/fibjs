@@ -89,7 +89,7 @@ public:
             ON_STATE(asyncInvoke, init_session)
             {
                 result_t hr = m_session->init(m_stm);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 m_pThis->addSession(m_session);
@@ -151,14 +151,14 @@ result_t Http2Server_base::_new(SecureContext_base* context, Union_Http2Server_h
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Http2Server> svr = new Http2Server();
     svr->wrap(This);
 
     hr = svr->create(context, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -177,14 +177,14 @@ result_t Http2Server_base::_new(SecureContext_base* context, exlib::string addr,
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Http2Server> svr = new Http2Server();
     svr->wrap(This);
 
     hr = svr->create(context, addr, port, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -196,7 +196,7 @@ result_t Http2Server_base::_new(v8::Local<v8::Object> options, Union_Http2Server
 {
     obj_ptr<SecureContext_base> ctx;
     result_t hr = tls_base::createSecureContext(options, true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _new(ctx, hdlr, retVal, This);
@@ -216,7 +216,7 @@ result_t Http2Server::create(SecureContext_base* context, Handler_base* hdlr)
 
     obj_ptr<TLSServer_base> _server;
     hr = TLSServer_base::_new(context, h2handler, _server);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     SetPrivate("handler", h2handler->wrap());
@@ -240,7 +240,7 @@ result_t Http2Server::create(SecureContext_base* context, exlib::string addr,
 
     obj_ptr<TLSServer_base> _server;
     hr = TLSServer_base::_new(context, addr, port, h2handler, _server);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     SetPrivate("handler", h2handler->wrap());

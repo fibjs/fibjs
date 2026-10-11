@@ -15,7 +15,7 @@ result_t add_url(std::vector<obj_ptr<Url>>& urls, exlib::string& url)
 {
     obj_ptr<Url> u = new Url();
     result_t hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (u->hostname().empty())
@@ -36,7 +36,7 @@ result_t HttpRepeater_base::_new(exlib::string url, obj_ptr<HttpRepeater_base>& 
 {
     obj_ptr<HttpRepeater> repeater = new HttpRepeater();
     result_t hr = add_url(repeater->m_urls, url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = repeater;
@@ -47,7 +47,7 @@ result_t HttpRepeater_base::_new(std::vector<exlib::string>& urls, obj_ptr<HttpR
 {
     obj_ptr<HttpRepeater> repeater = new HttpRepeater();
     result_t hr = repeater->load(urls);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = repeater;
@@ -79,7 +79,7 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
 
     for (int32_t i = 0; i < len; i++) {
         hr = add_url(_urls, urls[i]);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

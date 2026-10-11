@@ -116,7 +116,7 @@ static void emit_signal(Isolate* isolate, const char* name)
         hr = t._emit(name, NULL, 0, r);
     }
 
-    if (!r || hr < 0)
+    if (!r || hr.failed())
         // no listener: leave like the signal says instead of exit(1)
         process_signal_exit_pending();
     else

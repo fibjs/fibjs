@@ -19,7 +19,7 @@ result_t Chain_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs,
     chain->wrap(This);
 
     result_t hr = chain->append(hdlrs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = chain;
@@ -60,7 +60,7 @@ result_t Chain::append(Union_append_hdlr hdlr)
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t no = (int32_t)m_array.size();
@@ -84,7 +84,7 @@ result_t Chain::append(std::vector<obj_ptr<Handler_base>>& hdlrs)
 
     for (i = 0; i < len; i++) {
         hr = append(hdlrs[i]);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

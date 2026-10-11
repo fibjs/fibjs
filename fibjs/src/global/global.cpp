@@ -28,7 +28,7 @@ result_t global_base::get_globalThis(v8::Local<v8::Object>& retVal)
 result_t global_base::run(exlib::string fname)
 {
     result_t hr = absolute_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return Isolate::current()->m_topSandbox->run(fname);

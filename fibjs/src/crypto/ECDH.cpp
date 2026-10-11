@@ -69,11 +69,11 @@ result_t ECDH::validatePointFormat(const exlib::string& format)
 result_t ECDH::generateKeys(exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal)
 {
     result_t hr = ensureKey();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = validatePointFormat(format);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Generate new key pair
@@ -127,7 +127,7 @@ result_t ECDH::getPublicKey(exlib::string encoding, exlib::string format, v8::Lo
         return Runtime::setError("Failed to get ECDH public key");
 
     result_t hr = validatePointFormat(format);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     const EC_POINT* point = EC_KEY_get0_public_key(m_ec);
@@ -165,13 +165,13 @@ result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::s
 
     if (std::holds_alternative<exlib::string>(privateKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), encoding, key_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         key_buffer = std::get<obj_ptr<Buffer_base>>(privateKey);
 
     result_t hr = ensureKey();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
@@ -223,13 +223,13 @@ result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::strin
 
     if (std::holds_alternative<exlib::string>(publicKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(publicKey), encoding, key_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         key_buffer = std::get<obj_ptr<Buffer_base>>(publicKey);
 
     result_t hr = ensureKey();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
@@ -265,7 +265,7 @@ result_t ECDH::computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib:
 
     if (std::holds_alternative<exlib::string>(otherKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(otherKey), inputEncoding, other_key_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         other_key_buffer = std::get<obj_ptr<Buffer_base>>(otherKey);
@@ -323,7 +323,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
 
     if (std::holds_alternative<exlib::string>(key)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(key), inputEncoding, key_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         key_buffer = std::get<obj_ptr<Buffer_base>>(key);
@@ -342,7 +342,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
     // Create temporary ECDH object to use helper functions
     ECDH temp_ecdh(curve);
     result_t hr = temp_ecdh.ensureKey();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* key_buf = Buffer::Cast(key_buffer);

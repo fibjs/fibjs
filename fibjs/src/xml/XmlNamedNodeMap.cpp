@@ -214,7 +214,7 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el)
         child->m_owner = (XmlElement*)el->m_node;
         obj_ptr<XmlAttr_base> retVal;
         hr = to->setNamedItem(child, retVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

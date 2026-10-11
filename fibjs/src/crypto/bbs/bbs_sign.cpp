@@ -238,7 +238,7 @@ static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_bas
     std::vector<int32_t> idx_j;
 
     result_t hr = get_index(index, msg_len, idx_i, idx_j);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Generators gens(msg_len, suite);
@@ -352,7 +352,7 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
     std::vector<int32_t> idx_j;
 
     result_t hr = get_index(index, msg_len, idx_i, idx_j);
-    if (hr < 0) {
+    if (hr.failed()) {
         retVal = false;
         return 0;
     }
@@ -421,7 +421,7 @@ static result_t messages_to_buffers(std::vector<T>& messages, std::vector<obj_pt
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(messages[i]), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         msgs.push_back(buf);
@@ -435,13 +435,13 @@ result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Uni
     obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = bbs_prepare_key(privateKey, true, ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     std::vector<obj_ptr<Buffer_base>> msgs;
 
     hr = messages_to_buffers(messages, msgs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return bbsSign_(msgs, retVal, ac);
@@ -452,14 +452,14 @@ result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages,
     Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac)
 {
     result_t hr = bbs_prepare_key(publicKey, false, ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> sigBuf;
 
     if (std::holds_alternative<exlib::string>(signature)) {
         hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
@@ -467,7 +467,7 @@ result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages,
     std::vector<obj_ptr<Buffer_base>> msgs;
 
     hr = messages_to_buffers(messages, msgs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return bbsVerify_(msgs, sigBuf, retVal, ac);
@@ -478,14 +478,14 @@ result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<U
     std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = bbs_prepare_key(publicKey, false, ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> sigBuf;
 
     if (std::holds_alternative<exlib::string>(signature)) {
         hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
@@ -493,7 +493,7 @@ result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<U
     std::vector<obj_ptr<Buffer_base>> msgs;
 
     hr = messages_to_buffers(messages, msgs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return proofGen_(sigBuf, msgs, index, retVal, ac);
@@ -504,14 +504,14 @@ result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messa
     Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac)
 {
     result_t hr = bbs_prepare_key(publicKey, false, ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> proofBuf;
 
     if (std::holds_alternative<exlib::string>(proof)) {
         hr = Buffer_base::from(std::get<exlib::string>(proof), "utf8", proofBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         proofBuf = std::get<obj_ptr<Buffer_base>>(proof);
@@ -519,7 +519,7 @@ result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messa
     std::vector<obj_ptr<Buffer_base>> msgs;
 
     hr = messages_to_buffers(messages, msgs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return proofVerify_(msgs, index, proofBuf, retVal, ac);

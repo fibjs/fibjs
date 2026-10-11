@@ -60,20 +60,20 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
         }
 
         hr = GetConfigValue(opts, "headers", headers);
-        if (hr == CALL_E_PARAMNOTOPTIONAL)
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
             headers = new Headers();
-        else if (hr < 0)
+        else if (hr.failed())
             return hr;
 
         if (has_body) {
             hr = body_to_stream(isolate, v, body, headers.get(), urlEncoded_default);
-            if (hr < 0 && hr != CALL_RETURN_NULL)
+            if (hr.failed() && !hr.is_return_null())
                 return hr;
         } else if (!(v = opts->Get(context, isolate->NewString("json", 4)))->IsUndefined()) {
             body = new MemoryStream();
             exlib::string s;
             hr = json_base::encode(v, s);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             obj_ptr<Buffer_base> buf = new Buffer(s.c_str(), s.length());
             body->writeBuffer(buf, nullptr);
@@ -84,7 +84,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             body = new MemoryStream();
             obj_ptr<Buffer_base> buf;
             hr = msgpack_base::encode(v, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             body->writeBuffer(buf, nullptr);
             Variant ct;
@@ -93,9 +93,9 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
         }
     } else {
         hr = GetConfigValue(opts, "headers", headers);
-        if (hr == CALL_E_PARAMNOTOPTIONAL)
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
             headers = new Headers();
-        else if (hr < 0)
+        else if (hr.failed())
             return hr;
     }
 
@@ -104,7 +104,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     if (hr == 0) {
         keepAlive = ka;
         has_keepAlive = true;
-    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     {
@@ -146,7 +146,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     // Resolve URL: merge url string with URL-override fields in opts
     if (!url.empty()) {
         hr = resolve_url(url, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -161,7 +161,7 @@ result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Obje
 {
     obj_ptr<Url> base = new Url();
     result_t hr = base->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Url> override = new Url();
@@ -169,7 +169,7 @@ result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Obje
 
     obj_ptr<UrlObject_base> resolved;
     hr = base->resolve(override->href(), resolved);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     u = resolved.As<Url>();
@@ -183,7 +183,7 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool re
     req->get_url(url);
     u = new Url();
     result_t hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Body fallback: use request's body if opts didn't provide one
@@ -251,7 +251,7 @@ result_t HttpRequest_base::_new(exlib::string url, v8::Local<v8::Object> options
 {
     HttpRequest::Options o;
     result_t hr = o.from_opts("GET", "", options, false, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpRequest> req = new HttpRequest();
@@ -267,7 +267,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
 {
     obj_ptr<Message_base> cloned;
     result_t hr = request->clone(cloned);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpRequest> req = static_cast<HttpRequest*>(cloned.get());
@@ -277,7 +277,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
 
     HttpRequest::Options o;
     hr = o.from_opts(cur_method, "", options, false, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // an explicit init.headers replaces the headers of the copied request;
@@ -378,7 +378,7 @@ result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_message->write(buf.get(), retVal, std::move(ac));
@@ -938,7 +938,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
 
             hr = m_pThis->set_protocol(p.now());
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             return m_pThis->m_message->readFrom(m_stm, next());
@@ -1115,7 +1115,7 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: body must be seekable."));
             _body->rewind();
             result_t hr = _body->cc_readBuffer((int32_t)len, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (bUpload) {

@@ -48,7 +48,7 @@ result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Dig
         // before the merge (it had no codec parameter)
         exlib::string _data;
         result_t hr = commonDecode(codec, std::get<exlib::string>(data), _data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (m_bMac)
@@ -98,7 +98,7 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 
     obj_ptr<Buffer> buf;
     result_t hr = digest(buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return buf->toValue(codec, retVal);

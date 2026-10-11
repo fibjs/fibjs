@@ -16,11 +16,11 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
     exlib::string candidate, sdpMid;
 
     hr = GetConfigValue(description, "candidate", candidate, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetConfigValue(description, "sdpMid", sdpMid, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     try {

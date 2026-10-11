@@ -193,7 +193,7 @@ result_t WebView::createWebView()
     else if (m_options->file.has_value()) {
         obj_ptr<UrlObject_base> u;
         result_t hr = url_base::pathToFileURL(m_options->file.value(), v8::Local<v8::Object>(), u);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         u->get_href(url);

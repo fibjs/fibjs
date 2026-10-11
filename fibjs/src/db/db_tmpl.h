@@ -119,7 +119,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
         METHOD_NAME("DbConnection.begin");
         hr = pThis->ac_begin(point);
     }
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     v8::Local<v8::Context> func_context;
@@ -259,7 +259,7 @@ public:
         if (ac.isSync()) {
             exlib::string str;
             result_t hr = format(sql, args, str);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             ac.ctxv().resize(1);
@@ -287,7 +287,7 @@ public:
         if (ac.isSync()) {
             exlib::string str;
             result_t hr = fmt(opts, str);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             ac.ctxv().resize(1);
@@ -407,7 +407,7 @@ public:
             Isolate* isolate = Isolate::current();
             for (int32_t i = 0; i < args.Length(); i++) {
                 result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i + 1]);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
             return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -431,7 +431,7 @@ public:
 
         obj_ptr<Statement_base> stmt;
         result_t hr = prepare(sql_str, stmt, std::move(ac));
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return ((Statement*)(Statement_base*)stmt)->iteratePrepared(params, retVal);

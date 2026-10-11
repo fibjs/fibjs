@@ -18,9 +18,9 @@ static result_t GetConfigValue(NObject* obj, const char* key, exlib::string& ret
 {
     Variant v;
     result_t hr = obj->get(key, v);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (v.type() != Variant::VT_String)
@@ -35,7 +35,7 @@ static result_t GetJwkValue(NObject* obj, const char* key, exlib::string& retVal
 {
     exlib::string s;
     result_t hr = GetConfigValue(obj, key, s);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     base64Decode(s.c_str(), s.length(), retVal);
@@ -46,7 +46,7 @@ static result_t GetJwkValue(NObject* obj, const char* key, BIGNUM*& n)
 {
     exlib::string s;
     result_t hr = GetJwkValue(obj, key, s);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     n = BN_bin2bn((const unsigned char*)s.c_str(), s.length(), nullptr);
@@ -61,11 +61,11 @@ result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
     BignumPointer e;
 
     hr = GetJwkValue(key, "e", e);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetJwkValue(key, "n", n);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     RsaPointer rsa = RSA_new();
@@ -86,44 +86,44 @@ result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
         BignumPointer qi;
 
         hr = GetJwkValue(key, "d", d);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown)
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown)
             he = 1;
-        else if (hr < 0)
+        else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "p", p);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
             if (he++ != 1)
                 return hr;
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "q", q);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
             if (he++ != 2)
                 return hr;
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "dp", dp);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
             if (he++ != 3)
                 return hr;
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "dq", dq);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
             if (he++ != 4)
                 return hr;
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
 
         hr = GetJwkValue(key, "qi", qi);
-        if (hr == CALL_E_PARAMNOTOPTIONAL && type == kKeyTypeUnknown) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) && type == kKeyTypeUnknown) {
             if (he++ != 5)
                 return hr;
-        } else if (hr < 0)
+        } else if (hr.failed())
             return hr;
 
         if (he == 0) {
@@ -180,7 +180,7 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
 
     exlib::string crv_name;
     hr = GetConfigValue(key, "crv", crv_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int nid = GetCurveFromName(crv_name.c_str());
@@ -191,11 +191,11 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
     BignumPointer y;
 
     hr = GetJwkValue(key, "x", x);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetJwkValue(key, "y", y);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ECKeyPointer ec = EC_KEY_new_by_curve_name(nid);
@@ -208,10 +208,10 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
     if (type == kKeyTypePrivate || type == kKeyTypeUnknown) {
         BignumPointer d;
         hr = GetJwkValue(key, "d", d);
-        if (hr < 0 && type == kKeyTypePrivate)
+        if (hr.failed() && type == kKeyTypePrivate)
             return hr;
 
-        if (hr >= 0) {
+        if (hr.ok()) {
             if (EC_KEY_set_private_key(ec, d) != 1)
                 return openssl_error();
 
@@ -241,7 +241,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
 
     exlib::string crv_name;
     hr = GetConfigValue(key, "crv", crv_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int nid = okp_curve_nid(crv_name.c_str());
@@ -251,11 +251,11 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
     if (type == kKeyTypeUnknown) {
         exlib::string d;
         hr = GetJwkValue(key, "d", d);
-        if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
             // No private key component, this is a public key
             exlib::string x;
             hr = GetJwkValue(key, "x", x);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_pkey = EVP_PKEY_new_raw_public_key(nid, nullptr, (const unsigned char*)x.c_str(), x.length());
@@ -265,7 +265,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
             type = kKeyTypePublic;
         } else {
             // Has private key component
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_pkey = EVP_PKEY_new_raw_private_key(nid, nullptr, (const unsigned char*)d.c_str(), d.length());
@@ -277,7 +277,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
     } else if (type == kKeyTypePrivate) {
         exlib::string d;
         hr = GetJwkValue(key, "d", d);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_pkey = EVP_PKEY_new_raw_private_key(nid, nullptr, (const unsigned char*)d.c_str(), d.length());
@@ -286,7 +286,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
     } else {
         exlib::string x;
         hr = GetJwkValue(key, "x", x);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_pkey = EVP_PKEY_new_raw_public_key(nid, nullptr, (const unsigned char*)x.c_str(), x.length());
@@ -305,7 +305,7 @@ result_t KeyObject::ImportJWKKey(NObject* jwk, KeyType type)
 
     exlib::string kty;
     hr = GetConfigValue(jwk, "kty", kty);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (kty == "RSA")
@@ -318,7 +318,7 @@ result_t KeyObject::ImportJWKKey(NObject* jwk, KeyType type)
         // Handle symmetric key (HMAC) import
         exlib::string k;
         hr = GetConfigValue(jwk, "k", k);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Decode base64url key data

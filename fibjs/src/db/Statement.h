@@ -127,7 +127,7 @@ private:
         Isolate* isolate = holder();
         for (int32_t i = 0; i < args.Length(); i++) {
             result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i]);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             if (ac.ctxv()[i].type() == Variant::VT_Date) {
                 date_t d = args[i];
@@ -145,7 +145,7 @@ private:
             return CHECK_ERROR(CALL_E_CLOSED);
 
         result_t hr = m_impl->open(args, hasResult);
-        if (hr < 0) {
+        if (hr.failed()) {
             finish();
             return hr;
         }

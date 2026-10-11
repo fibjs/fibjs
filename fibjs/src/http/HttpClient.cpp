@@ -98,7 +98,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
 {
     exlib::string path;
     result_t hr = url_base::fileURLToPath(o->u->href(), v8::Local<v8::Object>(), path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string method = o->method;
@@ -111,7 +111,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
 
     FileStream file;
     hr = file.open(path, "r");
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpResponse> resp = new HttpResponse();
@@ -137,15 +137,15 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
     obj_ptr<Buffer_base> buf;
     hr = file.cc_readAll(buf);
     file.cc_close();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
-    if (hr == CALL_RETURN_NULL || !buf)
+    if (hr.is_return_null() || !buf)
         buf = new Buffer();
 
     obj_ptr<MemoryStream> body = new MemoryStream();
     hr = body->writeBuffer(buf, nullptr);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     body->rewind();
@@ -174,7 +174,7 @@ static inline bool http_conn_looks_alive(Stream_base* conn)
 
     bool alive;
     result_t hr = sock->isAlive(alive);
-    if (hr < 0)
+    if (hr.failed())
         return false;
 
     return alive;
@@ -316,7 +316,7 @@ result_t HttpClient_base::_new(Union_HttpClient_options options, obj_ptr<HttpCli
     hc->wrap(This);
 
     result_t hr = hc->init(std::get<v8::Local<v8::Object>>(options));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = hc;
@@ -327,62 +327,62 @@ result_t HttpClient_base::_new(Union_HttpClient_options options, obj_ptr<HttpCli
 result_t HttpClient::init(v8::Local<v8::Object> options)
 {
     result_t hr = tls_base::createSecureContext(options, false, m_context);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetConfigValue(options, "keepAlive", m_keepAlive);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "timeout", m_timeout);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableCookie", m_enableCookie);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "autoRedirect", m_autoRedirect);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableEncoding", m_enableEncoding);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "enableH2", m_enableH2);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxHeadersCount", m_maxHeadersCount);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxHeaderSize", m_maxHeaderSize);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxBodySize", m_maxBodySize);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "userAgent", m_userAgent);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "poolTimeout", m_poolTimeout);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(options, "maxFreeSockets", m_maxFreeSockets);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     Isolate* isolate = Isolate::current(options);
     v8::Local<v8::Value> v = options->Get(isolate->context(), isolate->NewString("proxyEnv")).FromMaybe(v8::Local<v8::Value>());
     if (!v.IsEmpty() && v->IsObject()) {
         hr = set_proxyEnv(v8::Local<v8::Object>::Cast(v));
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -640,7 +640,7 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
         result_t hr;
 
         hr = u->parse(newVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         exlib::string protocol = u->protocol();
@@ -677,7 +677,7 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
         result_t hr;
 
         hr = u->parse(newVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         exlib::string protocol = u->protocol();
@@ -731,14 +731,14 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
 
     // Check lowercase variants first (higher priority)
     hr = GetConfigValue(newVal, "http_proxy", http_proxy);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "HTTP_PROXY", http_proxy);
     }
-    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
-        if (hr >= 0) {
+    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.ok()) {
             hr = set_http_proxy(http_proxy);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     } else {
@@ -746,14 +746,14 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
     }
 
     hr = GetConfigValue(newVal, "https_proxy", https_proxy);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "HTTPS_PROXY", https_proxy);
     }
-    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
-        if (hr >= 0) {
+    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.ok()) {
             hr = set_https_proxy(https_proxy);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     } else {
@@ -761,12 +761,12 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
     }
 
     hr = GetConfigValue(newVal, "no_proxy", no_proxy);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         // Try uppercase variant
         hr = GetConfigValue(newVal, "NO_PROXY", no_proxy);
     }
-    if (hr >= 0 || hr == CALL_E_PARAMNOTOPTIONAL) {
-        if (hr >= 0)
+    if (hr.ok() || hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.ok())
             m_no_proxy = no_proxy;
     } else {
         return hr;
@@ -987,7 +987,7 @@ result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpC
 
     obj_ptr<Url> u = new Url();
     hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_lock.lock();
@@ -1025,7 +1025,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 
     obj_ptr<Url> u = new Url();
     hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_lock.lock();
@@ -1724,7 +1724,7 @@ public:
 
         HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
         hr = resp->get_statusCode(status);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (status != 200) {
@@ -1813,7 +1813,7 @@ public:
         m_h2session->m_authority = m_sslhost;
 
         result_t hr = m_h2session->init(m_conn);
-        if (hr < 0) {
+        if (hr.failed()) {
             m_hc->h2_fail(m_h2PoolKey, hr);
             m_is_h2_leader = false;
             return hr;
@@ -1903,7 +1903,7 @@ public:
     ON_STATE(asyncRequest, h2_submit_no_body)
     {
         result_t hr = m_h2session->request(m_h2_hdrs, m_h2_endStream, m_h2stream);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // No asyncFlushOutput needed: request() atomically collects
@@ -2161,7 +2161,7 @@ public:
 
         HttpResponse_base* resp = static_cast<HttpResponse_base*>(m_retVal.get());
         hr = resp->get_statusCode(status);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         bool isRedirect = (status == 301 || status == 302 || status == 303
@@ -2179,7 +2179,7 @@ public:
             return complete();
 
         hr = m_retVal->firstHeader("location", location);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_o->u->resolve(location, u1);
@@ -2488,7 +2488,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
     obj_ptr<Url> u = new Url();
     result_t hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     o->u = u;
 
@@ -2504,7 +2504,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     o->agent = this;
 
     result_t hr = o->from_opts(method, url, opts, urlEncodedDefault, false, skip_body);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Object-only overload: build URL entirely from opts fields
@@ -2519,7 +2519,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
         o->req_holder = new ValueHolder(o->req->wrap());
         v8::Local<v8::Object> _r;
         hr = o->req->once(o->req->holder()->NewString("response"), callback, _r);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -2580,7 +2580,7 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
 {
     result_t hr = get_request_opts(method, url, opts, ac,
         v8::Local<v8::Function>(), true);
-    if (hr != CALL_E_NOSYNC)
+    if (!hr.is_nosync())
         return hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
@@ -2600,7 +2600,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request(method, url, opts, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2626,7 +2626,7 @@ result_t HttpClient::fire_callback_request(exlib::string method, exlib::string u
     obj_ptr<HttpMessage_base>& retVal, AsyncHandle& ac, bool auto_send)
 {
     result_t hr = get_request_opts(method, url, opts, ac, callback, true);
-    if (hr != CALL_E_NOSYNC)
+    if (!hr.is_nosync())
         return hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
@@ -2644,7 +2644,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request(method, url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2666,7 +2666,7 @@ result_t HttpClient::request(exlib::string url, v8::Local<v8::Function> callback
         obj_ptr<HttpMessage_base> msg;
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2695,7 +2695,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("GET", url, opts, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2712,7 +2712,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2730,7 +2730,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("GET", url, opts, callback, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2764,7 +2764,7 @@ result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
     if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("POST", url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2798,7 +2798,7 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
     if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("DELETE", url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2832,7 +2832,7 @@ result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
     if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("PUT", url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2866,7 +2866,7 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
     if (ac.isSync()) {
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         result_t hr = fire_callback_request("PATCH", url, opts, callback, msg, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2888,7 +2888,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_request("HEAD", url, opts, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2904,7 +2904,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     if (ac.isSync()) {
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2921,7 +2921,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
         v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
         obj_ptr<HttpMessage_base> msg;
         result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, ac, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
@@ -2945,7 +2945,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_request(method, url, opts, msg, h_ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -2972,7 +2972,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request(method, url, opts, callback, msg, h_ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3012,7 +3012,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_request("GET", url, opts, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3028,7 +3028,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("GET", url, opts, callback, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3045,7 +3045,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("GET", url, opts, callback, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3132,7 +3132,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_request("HEAD", url, opts, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3147,7 +3147,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
     AsyncHandle h_ac(&ac);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3163,7 +3163,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
     v8::Local<v8::Object> opts = v8::Object::New(Isolate::current()->m_isolate);
     obj_ptr<HttpMessage_base> msg;
     result_t hr = fire_callback_request("HEAD", url, opts, callback, msg, h_ac, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
@@ -3281,7 +3281,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
         if (std::holds_alternative<exlib::string>(request)) {
             // the url form: the string is the url, init carries method/headers/body
             hr = o->from_opts("GET", std::get<exlib::string>(request), opts, false, true);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             // Object-only overload: build URL entirely from opts fields
@@ -3299,7 +3299,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
             req->get_method(req_method);
 
             hr = o->from_opts(req_method, "", opts, false, true);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             // an explicit init.headers replaces the headers of the request;
@@ -3311,7 +3311,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
             bool replace_headers = !headers_val.IsEmpty() && !headers_val->IsUndefined();
 
             hr = o->apply_from_request(req, replace_headers);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 

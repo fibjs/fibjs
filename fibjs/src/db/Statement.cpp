@@ -16,21 +16,21 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
         // Main thread: v8 args → Variant stored in ac->m_ctx (must not touch v8
         // in a fiber)
         result_t hr = stashArgs(args, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
     bool hasResult = false;
     result_t hr = openImpl(ac.ctxv(), hasResult);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (hasResult) {
         obj_ptr<NObject> row;
         bool done = false;
         hr = fetchRow(row, done);
-        if (hr < 0) {
+        if (hr.failed()) {
             finish();
             return hr;
         }
@@ -48,14 +48,14 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
     bool hasResult = false;
     result_t hr = openImpl(ac.ctxv(), hasResult);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<NArray> arr = new NArray();
@@ -65,7 +65,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
             obj_ptr<NObject> row;
             bool done = false;
             hr = fetchRow(row, done);
-            if (hr < 0)
+            if (hr.failed())
                 break;
             if (done)
                 break;
@@ -77,7 +77,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
         int64_t changes = 0;
         int64_t lastInsertId = 0;
         hr = m_impl->runResult(changes, lastInsertId);
-        if (hr >= 0) {
+        if (hr.ok()) {
             arr->add("affected", changes);
             arr->add("insertId", lastInsertId);
         }
@@ -85,7 +85,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
 
     finish();
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = arr;
@@ -96,14 +96,14 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
     bool hasResult = false;
     result_t hr = openImpl(ac.ctxv(), hasResult);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Discard the result set (run semantics: only the impact stats matter);
@@ -113,18 +113,18 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
             obj_ptr<NObject> row;
             bool done = false;
             hr = fetchRow(row, done);
-            if (hr < 0 || done)
+            if (hr.failed() || done)
                 break;
         }
     }
 
     int64_t changes = 0;
     int64_t lastInsertId = 0;
-    if (hr >= 0)
+    if (hr.ok())
         hr = m_impl->runResult(changes, lastInsertId);
 
     finish();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // NObject is a fibjs wrapper (handles the v8 context internally) and is
@@ -142,7 +142,7 @@ result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncH
 {
     if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
@@ -155,7 +155,7 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
 {
     bool hasResult = false;
     result_t hr = openImpl(args, hasResult);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // No result set: return an empty iterator (done is immediately true)
@@ -207,7 +207,7 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     obj_ptr<NObject> row;
     bool done = false;
     result_t hr = m_stmt->fetchRow(row, done);
-    if (hr < 0) {
+    if (hr.failed()) {
         close();
         return hr;
     }

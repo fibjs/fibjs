@@ -76,7 +76,7 @@ result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retV
 result_t v8_base::saveSnapshot(exlib::string fname)
 {
     result_t hr = normalize_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HeapSnapshot_base> snapshot;
@@ -87,12 +87,12 @@ result_t v8_base::saveSnapshot(exlib::string fname)
 result_t v8_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal)
 {
     result_t hr = normalize_file_path_like(fname, fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HeapSnapshot> hs = new HeapSnapshot();
     hr = hs->load(fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = hs;
@@ -126,7 +126,7 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
     for (int32_t i = 0; i < (int32_t)a->Length(); i++) {
         T vr;
         hr = GetArgumentValue(isolate, JSValue(a->Get(context, i)), vr, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         n.append(vr);
@@ -181,11 +181,11 @@ result_t HeapSnapshot::load(exlib::string fname)
 
     exlib::string data;
     hr = fs_base::ac_readTextFile(fname, data);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = json_base::decode(data, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     data.resize(0);
 
@@ -195,17 +195,17 @@ result_t HeapSnapshot::load(exlib::string fname)
     o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("nodes"))),
         nodes);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("edges"))),
         edges);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("strings"))),
         names);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     v = o->Get(context, isolate->NewString("snapshot"));
@@ -214,11 +214,11 @@ result_t HeapSnapshot::load(exlib::string fname)
 
     o = v.As<v8::Object>();
     hr = GetConfigValue(o, "node_count", node_count);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetConfigValue(o, "edge_count", edge_count);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     v = o->Get(context, isolate->NewString("meta"));
@@ -228,12 +228,12 @@ result_t HeapSnapshot::load(exlib::string fname)
     o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("node_fields"))),
         node_fields);
-    if (hr < 0 || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
+    if (hr.failed() || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("edge_fields"))),
         edge_fields);
-    if (hr < 0 || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
+    if (hr.failed() || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     if (node_fields.size() * node_count != nodes.size())
@@ -247,7 +247,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), node_types);
-    if (hr < 0 || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
+    if (hr.failed() || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     v = o->Get(context, isolate->NewString("edge_types"));
@@ -255,7 +255,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), edge_types);
-    if (hr < 0 || checkArray(edge_types, edge_types_chk, ARRAYSIZE(edge_types_chk)))
+    if (hr.failed() || checkArray(edge_types, edge_types_chk, ARRAYSIZE(edge_types_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     int32_t node_pos = 0, edge_pos = 0;
@@ -432,11 +432,11 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
     result_t hr;
 
     hr = bufs.open(fname);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = bufs.file->Write(meta, sizeof(meta) - 1);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     count = (int32_t)m_nodes.size();
@@ -458,7 +458,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
                                    "\"trace_function_count\":0},\n\"nodes\":[",
         count, child_count);
     hr = bufs.append(buf, n);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     for (i = 0; i < count; i++) {
@@ -480,12 +480,12 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
         else
             n = snprintf(buf, sizeof(buf), ",%d,%d,%d,%d,%d,0\n", _type, _name_id, _id, _size, _child);
         hr = bufs.append(buf, n);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
     hr = bufs.append("],\n\"edges\":[");
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     for (i = 0; i < count; i++) {
@@ -515,14 +515,14 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
             else
                 n = snprintf(buf, sizeof(buf), ",%d,%d,%d\n", _type, _name_id, _toindex);
             hr = bufs.append(buf, n);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
 
     hr = bufs.append("],\n\"trace_function_infos\":[],\n\"trace_tree\":[],\n"
                      "\"samples\":[],\n\"strings\":[");
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     count = (int32_t)_ids.names.size();
@@ -531,18 +531,18 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
             hr = bufs.append('\"');
         else
             hr = bufs.append("\",\n\"", 4);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         str.resize(0);
         encoding_base::jsstr(_ids.names[i], true, str);
         hr = bufs.append(str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
     hr = bufs.append("\"]}", 3);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     return 0;
 }

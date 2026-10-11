@@ -443,7 +443,7 @@ enum {
 
 #define LOAD_RETURN() \
     CHECK_ARGUMENT()  \
-    if (hr >= 0) {    \
+    if (hr.ok()) {    \
         retVal = vr;  \
         return 0;     \
     }                 \
@@ -453,7 +453,7 @@ enum {
     }                                                                                                           \
     while (0)                                                                                                   \
         ;                                                                                                       \
-    if (!bStrict || (hr != CALL_E_BADPARAMCOUNT && hr != CALL_E_PARAMNOTOPTIONAL && hr != CALL_E_TYPEMISMATCH    \
+    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is(CALL_E_PARAMNOTOPTIONAL) && !hr.is(CALL_E_TYPEMISMATCH)    \
             && hr_argc != CALL_E_BADPARAMCOUNT && hr_argc != CALL_E_PARAMNOTOPTIONAL))                          \
         break;                                                                                                  \
     bStrict = false;                                                                                            \
@@ -463,11 +463,11 @@ enum {
 
 #define PROPERTY_SET_LEAVE() \
     CHECK_ARGUMENT()         \
-    if (hr < 0)              \
+    if (hr.failed())              \
         ThrowResult(hr);
 
 #define THROW_ERROR()                                                 \
-    if (hr == CALL_E_JAVASCRIPT) {                                    \
+    if (hr.is_javascript()) {                                    \
         args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>())); \
         return;                                                       \
     }                                                                 \
@@ -475,7 +475,7 @@ enum {
     return;
 
 #define NAMED_THROW_ERROR()                                           \
-    if (hr == CALL_E_JAVASCRIPT) {                                    \
+    if (hr.is_javascript()) {                                    \
         args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>())); \
         return v8::Intercepted::kNo;                                  \
     }                                                                 \
@@ -484,13 +484,13 @@ enum {
 
 #define METHOD_RETURN()                                                    \
     CHECK_ARGUMENT()                                                       \
-    if (hr == CALL_RETURN_UNDEFINED)                                       \
+    if (hr.is_return_undefined())                                       \
         return;                                                            \
-    if (hr == CALL_RETURN_NULL) {                                          \
+    if (hr.is_return_null()) {                                          \
         args.GetReturnValue().SetNull();                                   \
         return;                                                            \
     }                                                                      \
-    if (hr >= 0) {                                                         \
+    if (hr.ok()) {                                                         \
         args.GetReturnValue().Set(V8_RETURN(GetReturnValue(isolate, vr))); \
         return;                                                            \
     }                                                                      \
@@ -498,13 +498,13 @@ enum {
 
 #define ASYNC_METHOD_RETURN()                                                  \
     CHECK_ARGUMENT()                                                           \
-    if (hr == CALL_RETURN_UNDEFINED)                                           \
+    if (hr.is_return_undefined())                                           \
         return;                                                                \
-    if (hr == CALL_RETURN_NULL) {                                              \
+    if (hr.is_return_null()) {                                              \
         args.GetReturnValue().SetNull();                                       \
         return;                                                                \
     }                                                                          \
-    if (hr >= 0) {                                                             \
+    if (hr.ok()) {                                                             \
         args.GetReturnValue().Set(V8_RETURN(GetReturnValue(isolate, vr)));     \
         return;                                                                \
     }                                                                          \
@@ -529,13 +529,13 @@ enum {
 
 #define NAMED_METHOD_RETURN()                                              \
     CHECK_ARGUMENT()                                                       \
-    if (hr == CALL_RETURN_UNDEFINED)                                       \
+    if (hr.is_return_undefined())                                       \
         return v8::Intercepted::kNo;                                       \
-    if (hr == CALL_RETURN_NULL) {                                          \
+    if (hr.is_return_null()) {                                          \
         args.GetReturnValue().SetNull();                                   \
         return v8::Intercepted::kNo;                                       \
     }                                                                      \
-    if (hr >= 0) {                                                         \
+    if (hr.ok()) {                                                         \
         args.GetReturnValue().Set(V8_RETURN(GetReturnValue(isolate, vr))); \
         return v8::Intercepted::kYes;                                      \
     }                                                                      \
@@ -543,13 +543,13 @@ enum {
 
 #define METHOD_VOID() \
     CHECK_ARGUMENT()  \
-    if (hr >= 0)      \
+    if (hr.ok())      \
         return;       \
     THROW_ERROR()
 
 #define ASYNC_METHOD_VOID()                                                    \
     CHECK_ARGUMENT()                                                           \
-    if (hr >= 0)                                                               \
+    if (hr.ok())                                                               \
         return;                                                                \
     if (!cb.IsEmpty() && args.Data()->IsTrue()) {                              \
         v8::Local<v8::Promise::Resolver> _resolver =                           \
@@ -562,14 +562,14 @@ enum {
 
 #define NAMED_METHOD_VOID()          \
     CHECK_ARGUMENT()                 \
-    if (hr >= 0) {                   \
+    if (hr.ok()) {                   \
         return v8::Intercepted::kNo; \
     }                                \
     NAMED_THROW_ERROR()
 
 #define CONSTRUCT_RETURN()                                                                                \
     CHECK_ARGUMENT()                                                                                      \
-    if (hr >= 0) {                                                                                        \
+    if (hr.ok()) {                                                                                        \
         args.GetReturnValue().Set(V8_RETURN(vr->wrap(Isolate::current(args.GetIsolate()), args.This()))); \
         return;                                                                                           \
     }                                                                                                     \
@@ -578,26 +578,26 @@ enum {
 #define PROPERTY_VAL(t)                                 \
     t v0;                                               \
     hr = GetArgumentValue(isolate, value, v0, bStrict); \
-    if (hr < 0)                                         \
+    if (hr.failed())                                         \
         break;
 
 #define ARG(t, n)                                           \
     t v##n;                                                 \
     hr = GetArgumentValue(isolate, args[n], v##n, bStrict); \
-    if (hr < 0)                                             \
+    if (hr.failed())                                             \
         break;
 
 #define STRICT_ARG(t, n)                                 \
     t v##n;                                              \
     hr = GetArgumentValue(isolate, args[n], v##n, true); \
-    if (hr < 0)                                          \
+    if (hr.failed())                                          \
         break;
 
 #define OPT_ARG(t, n, d)                                                \
     t v##n = (d);                                                       \
     if ((n) < argc && !(args[n]->IsUndefined() || args[n]->IsNull())) { \
         hr = GetArgumentValue(isolate, args[n], v##n, bStrict);         \
-        if (hr < 0)                                                     \
+        if (hr.failed())                                                     \
             break;                                                      \
     }
 
@@ -828,7 +828,7 @@ public:                                                  \
 
 #define LOAD_OPTION_MEMBER(r, data, elem)                                 \
     hr = GetConfigValue(opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
-    if (hr < 0)                                                           \
+    if (hr.failed())                                                           \
         return hr;
 
 #define LOAD_OPTIONS(Class, Members)                                      \
@@ -947,7 +947,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int32
     int64_t num;
 
     result_t hr = GetArgumentValue(isolate, v, num, bStrict);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (num < -2147483648ll || num > 2147483647ll)
@@ -983,7 +983,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, date_
 
         double n;
         result_t hr = GetArgumentValue(isolate, v, n);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         d = n;
@@ -1218,7 +1218,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
             return CALL_E_JAVASCRIPT;
         T n;
         result_t hr = GetArgumentValue(isolate, v1, n, false);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         r.push_back(n);
@@ -1243,7 +1243,7 @@ bool tryVariantAlternative(Isolate* isolate, v8::Local<v8::Value> v,
 {
     std::variant_alternative_t<I, std::variant<Ts...>> value;
     hr = GetArgumentValue(isolate, v, value, bStrict);
-    if (hr < 0)
+    if (hr.failed())
         return false;
 
     n = std::move(value);
@@ -1305,9 +1305,9 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<
     T n1;
     Isolate* isolate = Isolate::current(o);
     result_t hr = GetConfigValue(o, key, n1, bStrict);
-    if (hr >= 0)
+    if (hr.ok())
         n = n1;
-    else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return 0;
@@ -1760,7 +1760,7 @@ inline result_t LastError()
 inline result_t setSystemErrorPayload(result_t hr, const char* syscall,
     const exlib::string& path = exlib::string(), const exlib::string& hostname = exlib::string())
 {
-    if (hr < 0 && hr > CALL_E_MAX) {
+    if (hr.is_system_error()) {
         // Augment instead of replace: an inner layer may already have attached
         // a string code, message or parameter summaries to the same failure.
         ErrorPayload payload = takeErrorPayload();
@@ -1945,7 +1945,7 @@ void errorLog(exlib::string msg);
 
 inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 {
-    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL && hr != CALL_E_PENDDING) {
+    if (hr.failed() && !hr.is_nosync() && !hr.is(CALL_E_NOASYNC) && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL) && !hr.is_pending()) {
         exlib::string str = file;
         char tmp[64];
 

@@ -191,7 +191,7 @@ public:
     // Bytes the result needs: the source length, plus the lowered assignments.
     size_t resultSize() const { return m_length + insertionsSize(); }
 
-    /**
+        /**
      * Write the stripped source with the insertions applied into `dst`, which must
      * hold resultSize() bytes.
      *
@@ -278,7 +278,7 @@ private:
         return currentToken();
     }
 
-    /**
+        /**
      * Can the regex body [start, p) have invalidated the tokens that follow it?
      *
      * scanAllTokens() only carries state for template literals (brace depth) and it
@@ -522,7 +522,7 @@ private:
         return 0;
     }
 
-    /**
+        /**
      * Index of the first token whose `pos` is >= `pos`, or m_tokens.size() when
      * there is no such token.
      *
@@ -623,7 +623,7 @@ private:
 
     // ========== Core parsing helpers (from TypeRunner) ==========
     
-    /**
+        /**
      * canParseSemicolon - from TypeRunner parser2.h line 1544
      */
     bool canParseSemicolon() const {
@@ -637,7 +637,7 @@ private:
             || currentToken().hadLineBreak;
     }
     
-    /**
+        /**
      * tryParseSemicolon - from TypeRunner parser2.h line 1554
      */
     bool tryParseSemicolon() {

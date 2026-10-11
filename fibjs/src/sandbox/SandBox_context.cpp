@@ -27,7 +27,7 @@ static void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string id;
     result_t hr = GetArgumentValue(isolate, args[0], id);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -48,8 +48,8 @@ static void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string v;
     hr = sbox->resolve(id, strPath, v);
-    if (hr < 0) {
-        if (hr == CALL_E_JAVASCRIPT) {
+    if (hr.failed()) {
+        if (hr.is_javascript()) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
             return;
         }
@@ -79,7 +79,7 @@ static void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string id;
     result_t hr = GetArgumentValue(isolate, args[0], id);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -100,8 +100,8 @@ static void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Value> v;
     hr = sbox->run_module(id, strPath, v, true);
-    if (hr < 0) {
-        if (hr == CALL_E_JAVASCRIPT) {
+    if (hr.failed()) {
+        if (hr.is_javascript()) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
             return;
         }
@@ -130,7 +130,7 @@ static void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string id;
     result_t hr = GetArgumentValue(isolate, args[0], id);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -158,8 +158,8 @@ static void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     hr = sbox->run(id, true);
-    if (hr < 0) {
-        if (hr == CALL_E_JAVASCRIPT) {
+    if (hr.failed()) {
+        if (hr.is_javascript()) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
             return;
         }
@@ -188,7 +188,7 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     exlib::string id;
     result_t hr = GetArgumentValue(isolate, args[0], id);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -196,7 +196,7 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (!qstrcmp(id.c_str(), "file:", 5)) {
         exlib::string path;
         hr = url_base::fileURLToPath(id, v8::Local<v8::Object>(), path);
-        if (hr < 0) {
+        if (hr.failed()) {
             ThrowResult(hr);
             return;
         }

@@ -133,7 +133,7 @@ result_t get_protocols(v8::Local<v8::Object> opts, std::vector<exlib::string>& p
     bool hasProtocols = opts->Has(context, protocolsKey).FromMaybe(false);
 
     hr = GetConfigValue(opts, "protocol", protocol);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (hasProtocols) {
@@ -142,7 +142,7 @@ result_t get_protocols(v8::Local<v8::Object> opts, std::vector<exlib::string>& p
             return CALL_E_JAVASCRIPT;
 
         hr = GetArgumentValue(isolate, protocolsValue, protocolList);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -166,7 +166,7 @@ result_t WebSocket_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Funct
     GetConfigValue(opts, "maxPayload", maxPayload);
 
     result_t hr = get_protocols(opts, protocols);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new WebSocketHandler(accept, perMessageDeflate, maxPayload, protocols);
@@ -220,20 +220,20 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             result_t hr;
 
             hr = m_httpreq->firstHeader("Upgrade", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr.is_return_null())
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Upgrade header."));
 
             if (qstricmp(v.c_str(), "websocket"))
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid Upgrade header."));
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Version", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr.is_return_null())
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Version header."));
 
             if (qstricmp(v.c_str(), "13"))
@@ -245,10 +245,10 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid connection header."));
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Key", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr.is_return_null())
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Key header."));
 
             exlib::string key(v);
@@ -269,17 +269,17 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             exlib::string protocol;
             hr = m_httpreq->firstHeader("Sec-WebSocket-Protocol", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && select_protocol(m_pThis->m_protocols, v, protocol))
+            if (!hr.is_return_null() && select_protocol(m_pThis->m_protocols, v, protocol))
                 m_httprep->appendHeader("Sec-WebSocket-Protocol", protocol);
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Extensions", v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && m_pThis->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
+            if (!hr.is_return_null() && m_pThis->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
                 m_httprep->appendHeader("Sec-WebSocket-Extensions", "permessage-deflate");
                 m_compress = true;
             }
@@ -292,9 +292,9 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             obj_ptr<WebSocketHandler> pHandler = m_pThis;
             exlib::string protocol;
             result_t hr = m_httprep->firstHeader("Sec-WebSocket-Protocol", protocol);
-            if (hr == CALL_RETURN_NULL)
+            if (hr.is_return_null())
                 protocol.clear();
-            else if (hr < 0)
+            else if (hr.failed())
                 return hr;
 
             // 把票交给 WebSocket：握手/结束由 endConnect 持票回投

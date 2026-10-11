@@ -23,7 +23,7 @@ result_t json_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string
     v8::Local<v8::Value> v;
 
     result_t hr = json_base::decode(strScript, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     v8::Local<v8::Object> module = args[2].As<v8::Object>();

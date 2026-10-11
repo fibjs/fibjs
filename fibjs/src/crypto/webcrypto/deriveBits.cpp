@@ -26,13 +26,13 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
 
     exlib::string name;
     hr = GetConfigValue(algorithm, "name", name, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ac.ctxv()[0] = name;
 
     hr = baseKey->check_name(name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (qstricmp(name.c_str(), "ecdh") == 0) {
@@ -43,7 +43,7 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
 
         obj_ptr<CryptoKey_base> publicKey;
         hr = GetArgumentValue(isolate, _public, publicKey);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[1] = publicKey;
@@ -61,7 +61,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
         // it (plans/async-phase-discipline-audit-2026-10-05.md §3-F9)
         if (!std::holds_alternative<exlib::string>(algorithm)) {
             result_t hr = get_ecdh_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)baseKey, ac);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -159,7 +159,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
             int32_t bytesNeeded = (length + 7) / 8;
             int32_t derivedLength;
             hr = derivedBits->get_length(derivedLength);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (bytesNeeded > derivedLength)
@@ -169,7 +169,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
             if (bytesNeeded < derivedLength) {
                 obj_ptr<Buffer_base> truncated;
                 hr = Buffer_base::allocUnsafe(bytesNeeded, truncated);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 // Get raw data from source buffer
@@ -196,7 +196,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
 
         int32_t bufLen;
         hr = derivedBits->get_length(bufLen);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         std::shared_ptr<v8::BackingStore> finalResult = NewBackingStore(bufLen);
         memcpy(finalResult->Data(), ((Buffer*)derivedBits.get())->data(), bufLen);

@@ -188,7 +188,7 @@ public:
     {
         if (m_locker.lock(this)) {
             result_t hr = process();
-            if (hr != CALL_E_PENDDING) {
+            if (!hr.is_pending()) {
                 cleanup_timer();
                 m_locker.unlock(this);
                 delete this;
@@ -211,7 +211,7 @@ public:
     {
         result_t hr = process();
 
-        if (hr == CALL_E_PENDDING)
+        if (hr.is_pending())
             post();
         else
             ready(hr);
@@ -440,7 +440,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     if (addr_info.addr(host) < 0) {
         exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (addr_info.addr(strAddr) < 0)

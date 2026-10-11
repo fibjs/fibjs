@@ -89,7 +89,7 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base>& retVa
     result_t hr;
 
     hr = m_data.splitText(offset, ret);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new XmlCDATASection(m_document, ret);

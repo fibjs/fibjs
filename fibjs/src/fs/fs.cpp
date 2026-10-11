@@ -176,7 +176,7 @@ static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& 
 
     int32_t _fd;
     result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (_fd < 0)
@@ -204,7 +204,7 @@ static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& 
 static result_t fs_common_encode(exlib::string codec, exlib::string data, exlib::string& retVal)
 {
     result_t hr = check_encoding(codec);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return commonEncode(codec, data, retVal);
@@ -330,7 +330,7 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
         if (strBuf.length() > 0) {
             int32_t written = 0;
             result_t hr = buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", written);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             bytesRead = written;
         }
@@ -403,7 +403,7 @@ result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, 
 
     int32_t n;
     result_t hr = fs_base::write(this, buffer, offset, length, position, n, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Node.js: filehandle.write() resolves with { bytesWritten, buffer }
@@ -428,7 +428,7 @@ result_t FileHandle::write(exlib::string string, int32_t position, exlib::string
     {
         exlib::string strData = string;
         result_t hr = fs_common_encode(encoding, strData, strData);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         buf = new Buffer(strData.c_str(), strData.length());
@@ -474,7 +474,7 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
     // Node.js validates the encoding before reading.
     {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -522,7 +522,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
                 encoding = "utf8";
 
                 result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(opt), "encoding", encoding, true);
-                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
                     return hr;
             }
 
@@ -556,7 +556,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
         // the string is encoded before the handle is touched
         exlib::string strData = std::get<exlib::string>(data);
         result_t hr = fs_common_encode(encoding, strData, strData);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         buf = new Buffer(strData.c_str(), strData.length());
@@ -662,12 +662,12 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return setSystemErrorPayload(hr, "open", fname);
 
     retVal = new FileHandle(_fd);
@@ -683,12 +683,12 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return setSystemErrorPayload(hr, "open", fname);
 
     retVal = new FileHandle(_fd);
@@ -704,7 +704,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, Variant mode,
 
         int32_t _mode;
         result_t hr = to_mode_value(mode, _mode);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _mode;
@@ -730,7 +730,7 @@ result_t fs_base::close(Union_close_fd fd, AsyncHandle ac)
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return handle->close(std::move(ac));
@@ -745,7 +745,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
 
     obj_ptr<SeekableStream_base> pFile;
     result_t hr = openFile(fname, flags, pFile, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return BufferedStream_base::_new(pFile, retVal);
@@ -762,18 +762,18 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     result_t hr;
 
     hr = openFile(fname, "r", f, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    if (hr == CALL_RETURN_NULL) {
+    if (hr.is_return_null()) {
         retVal.clear();
         return 0;
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return buf->toString(retVal);
@@ -788,7 +788,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
     // Node.js reports an unknown encoding before it opens the file.
     {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -796,7 +796,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
     result_t hr;
 
     hr = fs_base::openFile(fname, flag, f, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Fast path for utf8: read directly to string to avoid Buffer intermediate
@@ -809,7 +809,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
             hr = pFile->readAllText(strBuf);
             f->cc_close();
 
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             retVal = strBuf;
@@ -822,10 +822,10 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
-    if (hr == CALL_RETURN_NULL) {
+    if (hr.is_return_null()) {
         if (encoding != "") {
             exlib::string str;
             retVal = str;
@@ -852,7 +852,7 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
     result_t hr;
 
     hr = ac_openTextStream(fname, "r", pFile);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return pFile->readLines(maxlines, retVal);
@@ -868,7 +868,7 @@ static result_t open_file_for_write(exlib::string fname, exlib::string flag, int
     // an explicit creation mode only applies to the real filesystem
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!ac.isolate()->m_enable_FileSystem)
@@ -876,7 +876,7 @@ static result_t open_file_for_write(exlib::string fname, exlib::string flag, int
 
     obj_ptr<FileStream> pFile = new FileStream();
     hr = pFile->open(safe_name, flag, mode);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = pFile;
@@ -894,7 +894,7 @@ static result_t write_file_ext(exlib::string fname, Buffer_base* data, exlib::st
     result_t hr;
 
     hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = Buffer::Cast(data)->length();
@@ -914,7 +914,7 @@ static result_t write_text_file_ext(exlib::string fname, exlib::string txt, exli
     result_t hr;
 
     hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> buf = new Buffer(txt.c_str(), txt.length());
@@ -943,7 +943,7 @@ static result_t append_file_ext(exlib::string fname, exlib::string flag, int32_t
     result_t hr;
 
     hr = open_file_for_write(fname, flag, mode, f, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = Buffer::Cast(data)->length();
@@ -960,7 +960,7 @@ static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Varian
 
     int32_t _fd;
     result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (_fd < 0)
@@ -995,7 +995,7 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
 
     int32_t _fd;
     result_t hr = fd->get_fd(_fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (_fd < 0)
@@ -1085,7 +1085,7 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
     // descriptor form leaves the label to the conversion
     if (!bFd) {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -1134,7 +1134,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
                 encoding = "utf8";
 
             result_t hr = GetConfigValue(options, "encoding", encoding, true);
-            if (!bBuffer && hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            if (!bBuffer && hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
                 return hr;
 
             result_t _e = check_encoding(encoding);
@@ -1171,7 +1171,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
     // Node.js validates the encoding even when the data is a Buffer
     {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -1182,7 +1182,7 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
     else {
         exlib::string strData = std::get<exlib::string>(data);
         result_t hr = fs_common_encode(encoding, strData, strData);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         buf = new Buffer(strData.c_str(), strData.length());
@@ -1261,7 +1261,7 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
     // Node.js validates the encoding even when the data is a Buffer
     {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -1275,7 +1275,7 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
 
         if (!encoding.empty()) {
             result_t hr = fs_common_encode(encoding, strData, strData);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -1308,7 +1308,7 @@ static result_t fd_from_union(Variant& fd, int32_t& _fd)
         _fd = std::get<int32_t>(fd);
     else {
         result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -1326,7 +1326,7 @@ result_t fs_base::read(Union_read_fd fd, Buffer_base* buffer, int32_t offset, in
 
     int32_t _fd;
     result_t hr = fd_from_union(fd, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t bufLength = Buffer::Cast(buffer)->length();
@@ -1383,7 +1383,7 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
 
     int32_t _fd;
     result_t hr = fd_from_union(fd, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t bufLength = Buffer::Cast(buffer)->length();
@@ -1418,7 +1418,7 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
             if (n < 0) {
                 result_t hr = LastError();
 
-                if (hr > CALL_E_MAX) {
+                if (hr.is_system_error()) {
                     ErrorPayload payload = ErrorPayload::from_system(hr)
                                                .with_syscall("write")
                                                .arg("buffer", buffer)
@@ -1448,13 +1448,13 @@ result_t fs_base::write(Union_write_fd fd, exlib::string string, int32_t positio
 
     int32_t _fd;
     result_t hr = fd_from_union(fd, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> buf;
 
     hr = encoding_conv(encoding).encode(string, buf);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
 
     return write(fd, buf, 0, -1, position, retVal, std::move(ac));
@@ -1467,7 +1467,7 @@ result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncHand
 
     int32_t _fd;
     result_t hr = fd_from_union(fd, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1494,7 +1494,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1519,7 +1519,7 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncHandle ac)
     }
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1532,11 +1532,11 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncHandle
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(oldPath, oldPath);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = normalize_file_path_like(newPath, newPath);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1550,7 +1550,7 @@ result_t fs_base::unlink(exlib::string path, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1563,11 +1563,11 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(target, target);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = normalize_file_path_like(linkpath, linkpath);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int _type = 0;
@@ -1599,7 +1599,7 @@ static result_t path_to_variant(const exlib::string& path, const exlib::string& 
 
     exlib::string str;
     result_t hr = buf->toString(encoding, 0, str);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = str;
@@ -1613,7 +1613,7 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1660,7 +1660,7 @@ static result_t readlink_encoding(exlib::string path, exlib::string encoding, Va
 
     Variant link;
     result_t hr = fs_base::readlink(path, link, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return path_to_variant(link.string(), encoding, retVal);
@@ -1680,7 +1680,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = coerce_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string resolved;
@@ -1749,7 +1749,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
         // Check if this component is a symlink
         obj_ptr<Stat_base> stat;
         hr = cc_lstat(testPath, stat, ac.isolate());
-        if (hr < 0)
+        if (hr.failed())
             return setSystemErrorPayload(hr, "lstat", testPath);
 
         bool isSymlink = false;
@@ -1762,7 +1762,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
             // Read the symlink target
             Variant linkValue;
             hr = cc_readlink(testPath, linkValue, ac.isolate());
-            if (hr < 0)
+            if (hr.failed())
                 return setSystemErrorPayload(hr, "readlink", testPath);
 
             exlib::string linkTarget = linkValue.string();
@@ -1850,7 +1850,7 @@ static result_t realpath_encoding(exlib::string path, exlib::string encoding, Va
 
     Variant resolved;
     result_t hr = fs_base::realpath(path, resolved, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return path_to_variant(resolved.string(), encoding, retVal);
@@ -1877,7 +1877,7 @@ static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal,
         return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -1893,7 +1893,7 @@ static result_t mkdir_variant(exlib::string path, Variant mode, Variant& retVal,
 
         int32_t _mode;
         result_t hr = to_mode_value(mode, _mode);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _mode;
@@ -2056,7 +2056,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
     int32_t mode = ac.ctxv()[1].intVal();
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!recursive)
@@ -2349,7 +2349,7 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
     bool force = ac.ctxv()[1].boolVal();
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!recursive) {
@@ -2399,7 +2399,7 @@ result_t fs_base::fchmod(Union_fchmod_fd fd, int32_t mode, AsyncHandle ac)
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
@@ -2416,7 +2416,7 @@ result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncHand
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
@@ -2433,7 +2433,7 @@ result_t fs_base::fsync(Union_fsync_fd fd, AsyncHandle ac)
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
@@ -2450,12 +2450,12 @@ result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncHandle ac)
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
     hr = handle->get_fd(_fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Node.js compatibility: a negative length is treated as zero
@@ -2472,7 +2472,7 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncH
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -2523,7 +2523,7 @@ result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle a
 
         int32_t _mode;
         result_t hr = to_mode_value(mode_value, _mode);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _mode;
@@ -2561,7 +2561,7 @@ result_t fs_base::lchmod(exlib::string path, Union_lchmod_mode mode, AsyncHandle
 
         int32_t _mode;
         result_t hr = to_mode_value(mode_value, _mode);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _mode;
@@ -2605,11 +2605,11 @@ result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, Async
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = to_unix_timestamp(mtime, _mtime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _atime;
@@ -2633,11 +2633,11 @@ result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, Asyn
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = to_unix_timestamp(mtime, _mtime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _atime;
@@ -2661,11 +2661,11 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
 
         double _atime, _mtime;
         result_t hr = to_unix_timestamp(atime, _atime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = to_unix_timestamp(mtime, _mtime);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _atime;
@@ -2676,7 +2676,7 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
 
     int32_t _fd;
     result_t hr = fd_from_union(fd, _fd);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     result_t ctx_hr = ac.ctx(1);
@@ -2693,11 +2693,11 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(from, from);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = normalize_file_path_like(to, to);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -2712,7 +2712,7 @@ result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncHandle ac)
 
     obj_ptr<FileHandle_base> handle;
     result_t hr = filehandle_from_union(fd, handle);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t _fd;
@@ -2728,11 +2728,11 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(from, from);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = normalize_file_path_like(to, to);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -3023,11 +3023,11 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
     int32_t mode = ac.ctxv()[3].intVal();
 
     result_t hr = normalize_file_path_like(src, src);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = normalize_file_path_like(dest, dest);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!force)
@@ -3057,7 +3057,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHand
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     AutoReq req;
@@ -3080,7 +3080,7 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
     // Node.js validates the encoding up front, before adding any entry.
     {
         result_t hr = check_encoding(encoding);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -3098,7 +3098,7 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
 
     exlib::string str;
     result_t hr = buf->toString(encoding, 0, str);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     list->append(str);
@@ -3166,7 +3166,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
     obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     os_normalize(path, path, true);
@@ -3192,7 +3192,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
                 retVal->append(pDirEntry);
             } else {
                 hr = append_dirent_name(retVal, dirent.name, encoding);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
             if (dirent.type == UV_DIRENT_DIR && recursive)
@@ -3220,7 +3220,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
                     retVal->append(pDirEntry);
                 } else {
                     hr = append_dirent_name(retVal, full_path.c_str(), encoding);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
                 }
                 if (dirent.type == UV_DIRENT_DIR)
@@ -3300,7 +3300,7 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
 
     obj_ptr<SeekableStream_base> stm;
     result_t hr = openFile(fname, flags, stm, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return stream_open_error(fname, flags, hr, retVal);
 
     if (start >= 0 || end >= 0) {
@@ -3344,7 +3344,7 @@ result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> o
 
     obj_ptr<SeekableStream_base> stm;
     result_t hr = openFile(fname, flags, stm, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return stream_open_error(fname, flags, hr, retVal);
 
     // Node.js: options.start sets the offset of the first write
@@ -3353,7 +3353,7 @@ result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> o
         if (pFileBase) {
             FileStream* pFile = static_cast<FileStream*>(pFileBase);
             hr = pFile->seek(start, SEEK_SET);
-            if (hr < 0)
+            if (hr.failed())
                 return stream_open_error(fname, flags, hr, retVal);
         }
     }

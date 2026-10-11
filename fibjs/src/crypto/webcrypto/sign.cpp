@@ -21,13 +21,13 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
 
     exlib::string name;
     hr = GetConfigValue(algorithm, "name", name, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ac.ctxv()[0] = name;
 
     hr = key->check_name(name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (qstricmp(name.c_str(), "ecdsa") == 0) {
@@ -40,11 +40,11 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
             else {
                 v8::Local<v8::Object> _hash_obj;
                 hr = GetArgumentValue(isolate, _hash, _hash_obj, true);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 hr = GetConfigValue(_hash_obj, "name", hash, true);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
         }
@@ -58,14 +58,14 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
         exlib::string hash;
         v8::Local<v8::Object> key_algorithm;
         result_t hr = key->get_algorithm(key_algorithm);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         v8::Local<v8::Value> _hash = key_algorithm->Get(context, isolate->NewString("hash")).FromMaybe(v8::Local<v8::Value>());
         if (!_hash.IsEmpty() && _hash->IsObject()) {
             v8::Local<v8::Object> _hash_obj = v8::Local<v8::Object>::Cast(_hash);
             hr = GetConfigValue(_hash_obj, "name", hash, true);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -82,7 +82,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
 static result_t name_hash_from_key(CryptoKey* key, const exlib::string& name, exlib::string& hash)
 {
     result_t hr = key->check_name(name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hash.clear();
@@ -112,7 +112,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
         // (plans/async-phase-discipline-audit-2026-10-05.md §3-F10)
         if (std::holds_alternative<v8::Local<v8::Object>>(algorithm)) {
             result_t hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -125,7 +125,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
         data_buffer = std::get<obj_ptr<Buffer_base>>(data);
     else {
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", data_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -136,7 +136,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
         name = std::get<exlib::string>(algorithm);
 
         result_t hr = name_hash_from_key(_key, name, hash);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else {
         result_t ctx_hr = ac.ctx(1);
@@ -183,7 +183,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
     if (qstricmp(name.c_str(), "ed25519") == 0) {
         obj_ptr<Buffer_base> sig_buffer;
         result_t hr = _sign("", data_buffer, _key->m_key, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, sig_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         Buffer* buf = Buffer::Cast(sig_buffer);
@@ -197,7 +197,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
 
     obj_ptr<Buffer_base> sig_buffer;
     result_t hr = _sign(hash, data_buffer, _key->m_key, kSigEncP1363, DEFAULT_PADDING, NO_SALTLEN, sig_buffer);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = Buffer::Cast(sig_buffer);
@@ -217,7 +217,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         // C++-only and is resolved in the async phase (see sign above)
         if (std::holds_alternative<v8::Local<v8::Object>>(algorithm)) {
             result_t hr = get_options(std::get<v8::Local<v8::Object>>(algorithm), (CryptoKey*)key, ac);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -230,7 +230,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         signature_buffer = std::get<obj_ptr<Buffer_base>>(signature);
     else {
         result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", signature_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -238,7 +238,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         data_buffer = std::get<obj_ptr<Buffer_base>>(data);
     else {
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", data_buffer);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -249,7 +249,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         name = std::get<exlib::string>(algorithm);
 
         result_t hr = name_hash_from_key(_key, name, hash);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else {
         result_t ctx_hr = ac.ctx(1);

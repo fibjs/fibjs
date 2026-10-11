@@ -75,7 +75,7 @@ public:
         mod->SetPrivate(_context, strIsModule, v8::True(m_isolate->m_isolate)).IsJust();
 
         result_t hr = evaluate(id, mod, root_module);
-        if (hr < 0) {
+        if (hr.failed()) {
             saveModule();
             return hr;
         }
@@ -111,7 +111,7 @@ public:
 
         // Resolve all static imports
         result_t hr = resolveModuleTree(fname, root_module);
-        if (hr >= 0) {
+        if (hr.ok()) {
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
                 hr = CALL_E_JAVASCRIPT;
@@ -136,7 +136,7 @@ public:
         if (--m_sb->m_module_pendings == 0)
             m_sb->module_deps_map.clear();
 
-        if (hr < 0) {
+        if (hr.failed()) {
             saveModule();
             return hr;
         }
@@ -186,12 +186,12 @@ public:
         bool isCJS = false;
 
         hr = resove_module(id, base, data, exports, pendding, isCJS);
-        if (hr < 0) {
+        if (hr.failed()) {
             // When hr == CALL_E_JAVASCRIPT, a V8 exception is already pending
             // (e.g. the CJS module threw at runtime). Calling ThrowResult would
             // construct a generic "JavaScript error." and overwrite the real
             // pending exception. Let V8 propagate the original exception instead.
-            if (hr != CALL_E_JAVASCRIPT)
+            if (!hr.is_javascript())
                 ThrowResult(hr);
             return v8::MaybeLocal<v8::Promise>();
         }
@@ -250,7 +250,7 @@ public:
         }
 
         hr = evaluate(id, mod, root_module);
-        if (hr >= 0) {
+        if (hr.ok()) {
             v8::Local<v8::Promise::Resolver> resolver = m_resolver.Get(m_isolate->m_isolate);
             if (resolver.IsEmpty())
                 return v8::MaybeLocal<v8::Promise>();
@@ -276,12 +276,12 @@ private:
 
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod, &pendding);
-        if (hr == CALL_E_FILE_NOT_FOUND)
+        if (hr.is(CALL_E_FILE_NOT_FOUND))
             return Runtime::setError(ErrorPayload::make(errtype::kError)
                     .with_code("ERR_MODULE_NOT_FOUND")
                     .with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // If pendding promise is returned, let caller handle it
@@ -298,14 +298,14 @@ private:
 
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr == CALL_E_EXCEPTION) {
+                if (hr.is_exception()) {
                     exlib::string err_msg = Runtime::errMessage();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
                         return CHECK_ERROR(Runtime::setError(err_msg));
-                } else if (hr < 0) {
+                } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate — do NOT read
                     // Runtime::errMessage() which may contain a stale message
@@ -324,7 +324,7 @@ private:
             isCJS = !isESM;
 
             hr = m_sb->wait_module(mod, exports);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             return 0;
@@ -340,10 +340,10 @@ private:
 
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod);
-        if (hr == CALL_E_FILE_NOT_FOUND)
+        if (hr.is(CALL_E_FILE_NOT_FOUND))
             return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (IsEmpty(mod)) {
@@ -356,14 +356,14 @@ private:
 
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr == CALL_E_EXCEPTION) {
+                if (hr.is_exception()) {
                     exlib::string err_msg = Runtime::errMessage();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
                         return CHECK_ERROR(Runtime::setError(err_msg));
-                } else if (hr < 0) {
+                } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate — do NOT read
                     // Runtime::errMessage() which may contain a stale message
@@ -394,7 +394,7 @@ private:
             }
 
             hr = m_sb->wait_module(mod, exports);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             return 0;
@@ -439,7 +439,7 @@ private:
             return root_module;
 
         result_t hr = resolveModuleTree(id, root_module);
-        if (hr >= 0) {
+        if (hr.ok()) {
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
                 hr = CALL_E_JAVASCRIPT;
@@ -457,8 +457,8 @@ private:
             }
         }
 
-        if (hr < 0) {
-            if (hr != CALL_E_JAVASCRIPT)
+        if (hr.failed()) {
+            if (!hr.is_javascript())
                 ThrowResult(hr);
             return v8::Local<v8::Module>();
         }
@@ -646,7 +646,7 @@ private:
             m_sb->m_pending_module = base;
 
             hr = resove_module(id, pname, data, exports, isCJS);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             v8::Local<v8::Module> dep_module = compile_module(id, data.As<Buffer>(), exports, isCJS);
@@ -656,7 +656,7 @@ private:
             deps.emplace(dep_id, v8::Global<v8::Module>(m_isolate->m_isolate, dep_module));
 
             hr = resolveModuleTree(id, dep_module);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 

@@ -68,7 +68,7 @@ exlib::string fs_url_to_path(const exlib::string& url)
     obj_ptr<UrlObject_base> u;
 
     result_t hr = url_base::parse("file:" + url.substr(3), false, false, u);
-    if (hr < 0)
+    if (hr.failed())
         return "";
 
     exlib::string path;
@@ -287,7 +287,7 @@ result_t WebView::createWebView()
                                 Variant var;
                                 result_t hr = fs_base::cc_readFile(fname, "", var, Isolate::main());
 
-                                if (hr >= 0) {
+                                if (hr.ok()) {
                                     async([fname, args, deferral, var]() {
                                         Buffer* _buf = (Buffer*)var.object();
 
@@ -345,7 +345,7 @@ result_t WebView::createWebView()
                 else if (m_options->file.has_value()) {
                     obj_ptr<UrlObject_base> u;
                     result_t hr = url_base::pathToFileURL(m_options->file.value(), v8::Local<v8::Object>(), u);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     u->get_href(url);

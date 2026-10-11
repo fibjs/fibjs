@@ -155,7 +155,7 @@ public:
             T v;
 
             hr = GetConfigValue(jsarray, i, v);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             append(v);
@@ -243,7 +243,7 @@ public:
         v8::Local<v8::Object> obj;
 
         result_t hr = valueOf(obj);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = obj;
@@ -279,7 +279,7 @@ public:
         v8::Local<v8::Object> obj;
 
         result_t hr = valueOf(obj);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = obj;

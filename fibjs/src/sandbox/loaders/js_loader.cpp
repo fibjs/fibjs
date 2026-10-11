@@ -26,14 +26,14 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
 
     if (info.type == SandBox::kCommonJS) {
         hr = m_cjs.run(ctx, src, name, arg_names, args, in_cjs);
-        if (hr >= 0)
+        if (hr.ok())
             return hr;
 
         // If CJS compilation failed, check if the source uses ESM syntax
         // and retry as ESM (supporting require(esm) like Node.js v22.12+).
         // CALL_E_EXCEPTION indicates a stored Runtime error (syntax error),
         // as opposed to CALL_E_JAVASCRIPT (pending V8 exception at runtime).
-        if (hr == CALL_E_EXCEPTION) {
+        if (hr.is_exception()) {
             exlib::string err_msg = Runtime::errMessage();
 
             // Detection is only for files nothing else has classified. When

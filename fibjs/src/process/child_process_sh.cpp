@@ -124,7 +124,7 @@ result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exli
         exlib::string cmd = AsyncShell::process_command(strings, args);
 
         result_t hr = exec_prepare(cmd, v8::Local<v8::Object>(), *(obj_ptr<ExecFileType>*)nullptr, ac);
-        if (hr != CALL_E_NOSYNC)
+        if (!hr.is_nosync())
             return hr;
 
         // exec/execFile 与本函数共享同一个 ac，而 execFile 的 sync 相位会重建
@@ -155,7 +155,7 @@ static void js_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Array> strings;
     result_t hr = GetArgumentValue(isolate, args[0], strings, true);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -167,7 +167,7 @@ static void js_ssh(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     obj_ptr<child_process_base::ExecFileType> retVal;
     hr = child_process_base::ac_execFile("ssh", _args, v8::Local<v8::Object>(), retVal);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }

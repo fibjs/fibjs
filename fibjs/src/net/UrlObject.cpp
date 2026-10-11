@@ -72,7 +72,7 @@ result_t UrlObject_base::_new(exlib::string url, Union_UrlObject_base base,
     // a UrlObject or a URL components object: both resolve to a UrlObject
     obj_ptr<UrlObject_base> b;
     result_t hr = urlobject_from_union(base, b);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!b)
@@ -80,7 +80,7 @@ result_t UrlObject_base::_new(exlib::string url, Union_UrlObject_base base,
 
     exlib::string href;
     hr = b->get_href(href);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return parse(url, href, retVal);
@@ -92,7 +92,7 @@ result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->format(args);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = u;
@@ -123,7 +123,7 @@ result_t UrlObject_base::parse(exlib::string url, exlib::string base, obj_ptr<Ur
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(url, base);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = u;
@@ -363,7 +363,7 @@ result_t Url::get_href(exlib::string& retVal)
         if (m_searchParams) {
             exlib::string searchStr;
             result_t hr = m_searchParams->toString(searchStr);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_url->set_search(searchStr);
@@ -629,7 +629,7 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
     if (newVal->IsString() || newVal->IsStringObject()) {
         exlib::string query;
         result_t hr = GetArgumentValue(holder(), newVal, query, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return set_search(query);
@@ -707,7 +707,7 @@ result_t Url::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     exlib::string href;
     result_t hr = get_href(href);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Isolate* isolate = holder();
@@ -724,7 +724,7 @@ result_t Url::parse_search_params()
 
         m_searchParams = new URLSearchParams();
         result_t hr = m_searchParams->parse(search);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

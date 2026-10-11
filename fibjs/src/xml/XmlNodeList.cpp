@@ -645,11 +645,11 @@ result_t XmlNodeList::cloneChilds(XmlNode_base* to)
         result_t hr;
 
         hr = child->m_node->cloneNode(false, clone);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = frame.dst->appendChild(clone, out);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (child->m_childs->hasChildNodes())

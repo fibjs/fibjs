@@ -78,7 +78,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
             delete this;
 
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             bool r;
@@ -164,7 +164,7 @@ result_t ChildProcess::Ipc::send(Stream_base* stream, v8::Local<v8::Value> msg)
 {
     exlib::string s;
     result_t hr = json_base::encode(msg, s);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     s.append(1, '\n');

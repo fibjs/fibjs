@@ -18,7 +18,7 @@ result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
 
     if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
         result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         _fd = std::get<int32_t>(fd);
@@ -55,14 +55,14 @@ result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Obj
 
     if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
         result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         _fd = std::get<int32_t>(fd);
 
     bool _tty;
     result_t hr = tty_base::isatty(_fd, _tty);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!_tty)
@@ -97,14 +97,14 @@ result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::O
 
     if (std::holds_alternative<obj_ptr<FileHandle_base>>(fd)) {
         result_t hr = std::get<obj_ptr<FileHandle_base>>(fd)->get_fd(_fd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         _fd = std::get<int32_t>(fd);
 
     bool _tty;
     result_t hr = tty_base::isatty(_fd, _tty);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!_tty)

@@ -26,15 +26,15 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
             enc = kSigEncP1363;
         else if (dsaEncoding != "der")
             return Runtime::setError("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
-    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(key, "padding", padding, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(key, "saltLength", salt_len, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return 0;
@@ -138,7 +138,7 @@ result_t Sign::update(Union_update_data data, exlib::string codec, obj_ptr<Sign_
         // before the merge (it had no codec parameter)
         exlib::string _data;
         result_t hr = commonDecode(codec, std::get<exlib::string>(data), _data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
@@ -249,7 +249,7 @@ result_t Sign::sign_opts(v8::Local<v8::Object> key, exlib::string encoding, v8::
 
     obj_ptr<KeyObject_base> key_;
     hr = crypto_base::createPrivateKey(key, key_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* key__ = key_.As<KeyObject>();
 
@@ -257,7 +257,7 @@ result_t Sign::sign_opts(v8::Local<v8::Object> key, exlib::string encoding, v8::
     int padding = DEFAULT_PADDING;
     int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
     hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return sign(key__, enc, padding, salt_len, encoding, retVal);
@@ -278,7 +278,7 @@ result_t Verify::update(Union_update_data data, exlib::string codec, obj_ptr<Ver
         // before the merge (it had no codec parameter)
         exlib::string _data;
         result_t hr = commonDecode(codec, std::get<exlib::string>(data), _data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
@@ -349,7 +349,7 @@ result_t Verify::verify(KeyObject_base* key, exlib::string signature, exlib::str
 {
     exlib::string _signature;
     result_t hr = commonDecode(encoding, signature, _signature);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     return verify(key, (const unsigned char*)_signature.c_str(), _signature.length(), enc, padding, salt_len, retVal);
 }
@@ -405,7 +405,7 @@ result_t Verify::verify_opts(v8::Local<v8::Object> key, Buffer_base* signature, 
 
     obj_ptr<KeyObject_base> key_;
     hr = crypto_base::createPublicKey(key, key_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* key__ = key_.As<KeyObject>();
 
@@ -413,7 +413,7 @@ result_t Verify::verify_opts(v8::Local<v8::Object> key, Buffer_base* signature, 
     int padding = DEFAULT_PADDING;
     int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
     hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return verify(key__, signature, enc, padding, salt_len, retVal);
@@ -432,7 +432,7 @@ result_t Verify::verify_opts(v8::Local<v8::Object> key, exlib::string signature,
 
     obj_ptr<KeyObject_base> key_;
     hr = crypto_base::createPublicKey(key, key_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* key__ = key_.As<KeyObject>();
 
@@ -440,7 +440,7 @@ result_t Verify::verify_opts(v8::Local<v8::Object> key, exlib::string signature,
     int padding = DEFAULT_PADDING;
     int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
     hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return verify(key__, signature, encoding, enc, padding, salt_len, retVal);
@@ -472,7 +472,7 @@ result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::
         return 0;
 
     result_t hr = GetArgumentValue(isolate, algorithm, retVal, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (retVal.empty())
@@ -583,7 +583,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 
         exlib::string algo;
         result_t hr = get_algorithm(isolate, algorithm, algo);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         ac.ctxv()[0] = algo;
 
@@ -600,7 +600,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
             int padding = DEFAULT_PADDING;
             int salt_len = NO_SALTLEN;
             hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             ac.ctxv()[2] = (int)enc;
             ac.ctxv()[3] = padding;
@@ -621,7 +621,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
     obj_ptr<Buffer_base> buf;
     if (std::holds_alternative<exlib::string>(data)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(data);
@@ -682,7 +682,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
 
         exlib::string algo;
         result_t hr = get_algorithm(isolate, algorithm, algo);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         ac.ctxv()[0] = algo;
 
@@ -699,7 +699,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
             int padding = DEFAULT_PADDING;
             int salt_len = NO_SALTLEN;
             hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             ac.ctxv()[2] = (int)enc;
             ac.ctxv()[3] = padding;
@@ -720,7 +720,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
     obj_ptr<Buffer_base> dataBuf;
     if (std::holds_alternative<exlib::string>(data)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", dataBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         dataBuf = std::get<obj_ptr<Buffer_base>>(data);
@@ -728,7 +728,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
     obj_ptr<Buffer_base> sigBuf;
     if (std::holds_alternative<exlib::string>(signature)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         sigBuf = std::get<obj_ptr<Buffer_base>>(signature);

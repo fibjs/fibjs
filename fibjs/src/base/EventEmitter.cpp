@@ -124,7 +124,7 @@ result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func
     v8::Local<v8::Value> evVal = fibjs::NewString(e.isolate, ev);
 
     hr = e.off(evVal, r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return e.on(evVal, func, r);
@@ -137,7 +137,7 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& fun
     v8::Local<v8::Array> r;
 
     hr = listeners(fibjs::NewString(e.isolate, ev), r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (r->Length() == 0)
@@ -286,7 +286,7 @@ int32_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function>
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t len = esa->Length();
@@ -298,7 +298,7 @@ int32_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Fu
 {
     result_t hr;
     hr = onEventChange("newListener", ev, func);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t len = esa->Length();
@@ -347,7 +347,7 @@ int32_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Functi
             spliceOne(esa, i);
             result_t hr;
             hr = onEventChange("removeListener", ev, func);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             return 0;
         }
@@ -433,7 +433,7 @@ result_t JSTrigger::addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Func
 {
     bool _once = false;
     result_t hr = GetConfigValue(options, "once", _once, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return _once ? once(ev, func, retVal) : on(ev, func, retVal);
@@ -513,7 +513,7 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
         for (i = 0; i < strLen; i++) {
             JSValue v = strKeys->Get(context, i);
             hr = off(v, retVal);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     } else {
@@ -521,7 +521,7 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
             // Pass raw value (string or Symbol) directly to off()
             JSValue v = evs->Get(context, i);
             hr = off(v, retVal);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
@@ -646,7 +646,7 @@ result_t JSTrigger::fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value>* 
             else {
                 obj_ptr<Fiber_base> f;
                 hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, f);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
                 evs.append(f);
             }
@@ -676,7 +676,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
 
     // Use NewString to convert to v8::Value so GetHiddenList (Value overload) works
     hr = fireTrigger(GetHiddenList(NewString(ev)), args, argCount, evs, ff);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ev == "error" && ff.IsEmpty()) {
@@ -720,7 +720,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
         retVal = true;
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
@@ -749,7 +749,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
         result_t hr;
 
         hr = fireTrigger(GetHiddenList(ev), datas.data(), (int32_t)datas.size(), evs, ff);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (!ff.IsEmpty()) {
@@ -768,7 +768,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
             retVal = true;
         }
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : result_t(0);
     }
@@ -1642,7 +1642,7 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Object> emitter = args[0].As<v8::Object>();
     exlib::string event;
     result_t hr = GetArgumentValue(_isolate, args[1], event, true);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }
@@ -1886,7 +1886,7 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Object> emitter = args[0].As<v8::Object>();
     exlib::string event;
     result_t hr = GetArgumentValue(_isolate, args[1], event, true);
-    if (hr < 0) {
+    if (hr.failed()) {
         ThrowResult(hr);
         return;
     }

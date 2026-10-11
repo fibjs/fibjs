@@ -34,7 +34,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     exlib::string suite = "Bls12381Sha256";
     hr = GetConfigValue(opts, "suite", suite);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     if (suite == "Bls12381Sha256")
         ac.ctxv()[1] = Bls12381Sha256;
@@ -45,13 +45,13 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     obj_ptr<Buffer_base> header;
     hr = GetConfigValue(opts, "header", header);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     ac.ctxv()[2] = header;
 
     obj_ptr<Buffer_base> proof_header;
     hr = GetConfigValue(opts, "proof_header", proof_header);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
     ac.ctxv()[3] = proof_header;
 
@@ -114,7 +114,7 @@ static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncHandle& a
     result_t hr = 0;
 
     std::visit([&hr, priv, &ac](auto& val) {
-        if (hr >= 0)
+        if (hr.ok())
             hr = bbs_get_args(val, priv, ac);
     }, key);
 
@@ -142,7 +142,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
     // otherwise the KeyObject alternative, parsed without touching V8
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         result_t hr = bbs_get_args(std::get<obj_ptr<KeyObject_base>>(key), priv, ac);
-        return hr == CALL_E_NOSYNC ? result_t(0) : hr;
+        return hr.is_nosync() ? result_t(0) : hr;
     }
 
     return Runtime::setError(CALL_E_TYPEMISMATCH,

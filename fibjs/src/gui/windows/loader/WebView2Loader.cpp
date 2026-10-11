@@ -851,7 +851,7 @@ HRESULT FindEmbeddedClientDll(const wchar_t* embeddedEdgeSubFolder,
       path[1] != L'\\') {
     WString modulePath;
     HRESULT hr = GetModulePath(nullptr, &modulePath);
-    if (hr < 0) {
+    if (hr.failed()) {
       return hr;
     }
     outClientPath->Assign(modulePath.String(), modulePath.Length());

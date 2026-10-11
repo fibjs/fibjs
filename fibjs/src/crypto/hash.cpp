@@ -105,7 +105,7 @@ result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = union_to_buffer(key, keyBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = Buffer::Cast(keyBuf);
@@ -121,7 +121,7 @@ result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
 
     obj_ptr<Buffer_base> dataBuf;
     result_t hr = union_to_buffer(data, dataBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = Buffer::Cast(dataBuf);
@@ -149,15 +149,15 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
     result_t hr;
 
     hr = union_to_buffer(password, passwordBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = union_to_buffer(salt, saltOut);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = union_to_buffer(info, infoOut);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = Buffer::Cast(passwordBuf);
@@ -199,11 +199,11 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
     result_t hr;
 
     hr = union_to_buffer(password, passwordBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = union_to_buffer(salt, saltOut);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* buf = Buffer::Cast(passwordBuf);
@@ -236,7 +236,7 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
     obj_ptr<ScryptOptions> opt;
     Isolate* isolate = Isolate::current(options);
     result_t hr = ScryptOptions::load(options, opt);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Validate N is a power of 2 and greater than 1
@@ -273,11 +273,11 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
     result_t hr;
 
     hr = union_to_buffer(password, passwordBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = union_to_buffer(salt, saltOut);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Buffer* pwd = Buffer::Cast(passwordBuf);

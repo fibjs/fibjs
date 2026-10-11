@@ -28,7 +28,7 @@ inline result_t coerce_file_path_like(exlib::string input, exlib::string& out)
 inline result_t normalize_file_path_like(exlib::string input, exlib::string& out)
 {
     result_t hr = coerce_file_path_like(input, out);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     path_base::normalize(out, out);
@@ -38,7 +38,7 @@ inline result_t normalize_file_path_like(exlib::string input, exlib::string& out
 inline result_t absolute_file_path_like(exlib::string input, exlib::string& out)
 {
     result_t hr = normalize_file_path_like(input, out);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     bool isAbs = false;

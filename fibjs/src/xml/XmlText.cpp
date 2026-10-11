@@ -91,7 +91,7 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base>& retVal)
     result_t hr;
 
     hr = m_data.splitText(offset, ret);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new XmlText(m_document, ret);

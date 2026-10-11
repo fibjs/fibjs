@@ -76,7 +76,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
     obj_ptr<Odbc> conn = new Odbc();
 
     result_t hr = odbc_connect(connString, NULL, -1, conn->m_conn);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = conn;
@@ -327,7 +327,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(connString);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<URLSearchParams_base> q;
@@ -340,10 +340,10 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 
     exlib::string str;
     hr = q->first("Driver", v);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         hr = q->first("driver", v);
 
-    if (hr != CALL_RETURN_NULL) {
+    if (!hr.is_return_null()) {
         str = v.string();
         driver = str.c_str();
     } else if (driver == NULL)
@@ -359,7 +359,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     hr = odbc_connect(driver, u->hostname().c_str(), port,
         username.c_str(), password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
-    if (hr < 0) {
+    if (hr.failed()) {
         // Connection parameters for diagnostics - psql / mssql / dm / odbc all
         // share this entry. The password never enters the payload, not even as
         // a truncated summary.
@@ -764,7 +764,7 @@ public:
 
         exlib::string full;
         result_t hr = odbcFormatSQL(m_sql.c_str(), args, m_esc, full);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         SQLRETURN sqlhr = SQLAllocStmt(m_conn, &m_stmt);

@@ -47,7 +47,7 @@ private:
         obj_ptr<Buffer_base> data;
 
         hr = strm->cc_readBuffer((int32_t)size, data);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return 0;
 
         Buffer* buff = Buffer::Cast(data);
@@ -63,7 +63,7 @@ private:
         obj_ptr<Buffer_base> data = new Buffer(buf, size);
 
         hr = strm->cc_writeBuffer(data);
-        if (hr < 0)
+        if (hr.failed())
             return 0;
 
         return size;
@@ -76,7 +76,7 @@ private:
         int64_t pos;
 
         hr = strm->tell(pos);
-        if (hr < 0)
+        if (hr.failed())
             return -1;
 
         return pos;
@@ -103,7 +103,7 @@ private:
         }
 
         hr = strm->seek(offset, fseek_origin);
-        if (hr < 0)
+        if (hr.failed())
             return -1;
 
         return 0;
@@ -115,7 +115,7 @@ private:
         SeekableStream_base* strm = (SeekableStream_base*)stream;
 
         hr = strm->cc_close();
-        if (hr < 0)
+        if (hr.failed())
             return -1;
 
         return 0;
@@ -178,7 +178,7 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncHandle a
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = normalize_file_path_like(filename, filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return ifZipFile(filename, retVal);
@@ -209,7 +209,7 @@ static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::stri
         hr = fs_base::openFile(path, "w", file, std::move(ac));
     else if ((mod == "a") || (mod == "a+")) {
         hr = fs_base::cc_exists(path, exists);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (!exists)
@@ -221,7 +221,7 @@ static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::stri
     else
         hr = fs_base::openFile(path, "r", file, std::move(ac));
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return zip_open_strm(file.get(), mod, codec, retVal);
@@ -289,7 +289,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).decode(filename_inzip, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new T();
@@ -339,7 +339,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
         obj_ptr<ZipFile_base::GetinfoType> info;
 
         hr = get_info(info);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal.push_back(info->filename);
@@ -382,7 +382,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
         obj_ptr<ZipFile_base::InfolistType> item;
 
         hr = get_info(item);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal.push_back(item);
@@ -412,7 +412,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
@@ -450,7 +450,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
         if (err > 0) {
             obj_ptr<Buffer_base> buffer = new Buffer(buf, err);
             hr = strm->cc_writeBuffer(buffer);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     } while (err > 0);
@@ -470,11 +470,11 @@ result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
     strm = new MemoryStream();
 
     hr = extract(strm, password);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = strm->rewind();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return strm->cc_readAll(retVal);
@@ -490,7 +490,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t err;
@@ -511,7 +511,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t err;
@@ -522,7 +522,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     hr = fs_base::openFile(path, "w", file, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return extract(file, password);
@@ -538,7 +538,7 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t err;
@@ -560,12 +560,12 @@ result_t ZipFile::checkGuard(exlib::string path)
         if (*tmpptr == PATH_SLASH) {
             exlib::string pathToCheck(ptr, tmpptr - ptr);
             hr = fs_base::cc_exists(pathToCheck, exists);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             if (!exists) {
                 Variant mkdirResult;
                 hr = fs_base::cc_mkdir(pathToCheck, 0777, mkdirResult);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
         }
@@ -601,7 +601,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             bool exists;
 
             result_t hr = fs_base::cc_exists(m_path, exists);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             if (!exists)
                 return CHECK_ERROR(Runtime::setError("ZipFile: no such file or directory"));
@@ -626,7 +626,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             obj_ptr<ZipFile_base::GetinfoType> info;
 
             result_t hr = m_pThis->get_info(info);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_fpath1 = m_path;
@@ -643,7 +643,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
 
             m_fpath = m_fpath1;
             result_t hr = fs_base::cc_exists(m_fpath, exists);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_fpath1 += "?";
@@ -661,7 +661,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
         ON_STATE(asyncExtractAll, extract)
         {
             result_t hr = m_pThis->extract(m_file, m_password);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             m_i++;
@@ -713,11 +713,11 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
         obj_ptr<ZipFile_base::ReadAllType> info;
 
         hr = get_info(info);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = read(password, info->data);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal.push_back(info);
@@ -741,9 +741,9 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
         obj_ptr<Buffer_base> buf;
 
         hr = strm->cc_readBuffer(BUF_SIZE, buf);
-        if (hr == CALL_RETURN_NULL)
+        if (hr.is_return_null())
             break;
-        else if (hr < 0)
+        else if (hr.failed())
             return hr;
 
         Buffer* buff = Buffer::Cast(buf);
@@ -770,7 +770,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 
     if (!password.empty()) {
         hr = getFileCrc(strm, crc);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -791,7 +791,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 
     exlib::string _filename;
     hr = encoding_conv(m_codec).encode(filename, _filename);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     err = zipOpenNewFileInZip3_64(m_zip, _filename.c_str(), &zi, NULL,
@@ -804,9 +804,9 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     strm->rewind();
     do {
         hr = strm->cc_readBuffer(BUF_SIZE, buf);
-        if (hr == CALL_RETURN_NULL)
+        if (hr.is_return_null())
             break;
-        else if (hr < 0)
+        else if (hr.failed())
             return hr;
 
         buff = Buffer::Cast(buf);
@@ -837,7 +837,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
     obj_ptr<SeekableStream_base> file;
 
     hr = fs_base::openFile(filename, "r", file, std::move(ac));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return write(inZipName, password, file);
@@ -858,7 +858,7 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::strin
     strm->writeBuffer(data, nullptr);
 
     hr = strm->rewind();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return write(inZipName, password, strm);

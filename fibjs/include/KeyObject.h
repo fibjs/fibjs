@@ -14,7 +14,7 @@ namespace fibjs {
 
 #define GET_OPT_PARAM(name)                             \
     hr = GetConfigValue(options, #name, o->name, true); \
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)        \
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))        \
         return hr;
 
 class generateKeyPairParam : public obj_base {
@@ -72,9 +72,9 @@ public:
 
         v8::Local<v8::Object> opt;
         hr = GetConfigValue(options, key, opt, true);
-        if (hr == CALL_E_PARAMNOTOPTIONAL)
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
             return 0;
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return load(opt, retVal);

@@ -57,7 +57,7 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
 
     Isolate* isolate = Isolate::current(opt);
     result_t hr = Tray::OpenOptions::load(opt, tray->m_options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!tray->m_options->icon.has_value())

@@ -74,11 +74,11 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
     result_t hr;
 
     hr = read("maxElementDepth", depth);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = read("maxNodeCount", nodes);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     limits.max_element_depth = (int32_t)depth;
@@ -97,7 +97,7 @@ result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Loca
 
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // XmlDocument is the only XmlDocument_base implementation in this module
@@ -207,7 +207,7 @@ result_t XmlDocument::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
     obj_ptr<XmlNode_base>& retVal)
 {
     result_t hr = checkNode(newChild);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_childs->insertBefore(newChild, refChild, retVal);
@@ -217,7 +217,7 @@ result_t XmlDocument::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
     obj_ptr<XmlNode_base>& retVal)
 {
     result_t hr = checkNode(newChild);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_childs->insertAfter(newChild, refChild, retVal);
@@ -237,7 +237,7 @@ result_t XmlDocument::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
         m_doctype.Release();
 
     result_t hr = checkNode(newChild);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_childs->replaceChild(newChild, oldChild, retVal);
@@ -256,7 +256,7 @@ result_t XmlDocument::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
 result_t XmlDocument::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     result_t hr = checkNode(newChild);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return m_childs->appendChild(newChild, retVal);
@@ -272,7 +272,7 @@ result_t XmlDocument::load(Union_load_source source, v8::Local<v8::Object> optio
 {
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (std::holds_alternative<exlib::string>(source))
@@ -370,7 +370,7 @@ result_t XmlDocument::load(Buffer_base* source, const XmlParseLimits& limits)
     }
 
     hr = load(strBuf, limits);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return 0;
@@ -453,7 +453,7 @@ result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<
     // Clone the node (which creates a copy with this document as owner)
     obj_ptr<XmlNode_base> clonedNode;
     result_t hr = importedNode->cloneNode(deep, clonedNode);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Set the owner document of the cloned node to this document

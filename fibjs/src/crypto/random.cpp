@@ -31,7 +31,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal)
     uint8_t* buf = buf_rand->data();
 
     result_t hr = fibjs::randomBytes(buf, size);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = buf_rand;
@@ -50,7 +50,7 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
         // The randomly filled buffer is the result: decoding has to happen
         // before it is validated and filled, so it is decoded here.
         result_t hr = Buffer_base::from(std::get<exlib::string>(buffer), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(buffer);
@@ -75,7 +75,7 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
 
     int32_t copied;
     result_t hr = buf->set(rand, offset, copied);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = buf;

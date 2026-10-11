@@ -436,7 +436,7 @@ result_t assert_base::property(v8::Local<v8::Value> object,
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(r, "property", object, prop, msg);
@@ -447,7 +447,7 @@ result_t assert_base::notProperty(v8::Local<v8::Value> object,
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(!r, "notProperty", object, prop, msg);
@@ -488,7 +488,7 @@ result_t assert_base::deepProperty(v8::Local<v8::Value> object,
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(r, "deepProperty", object, prop, msg);
@@ -499,7 +499,7 @@ result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(!r, "notDeepProperty", object, prop, msg);
@@ -531,7 +531,7 @@ result_t assert_base::propertyVal(v8::Local<v8::Value> object,
     v8::Local<v8::Value> got;
 
     result_t hr = has_val(object, prop, value, r, got);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(r, "propertyVal", object, value, msg, prop);
@@ -545,7 +545,7 @@ result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
     v8::Local<v8::Value> got;
 
     result_t hr = has_val(object, prop, value, r, got);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(!r, "propertyNotVal", object, value, msg, prop);
@@ -592,7 +592,7 @@ result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
     v8::Local<v8::Value> got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(r, "deepPropertyVal", object, value, msg, prop);
@@ -606,7 +606,7 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
     v8::Local<v8::Value> got;
 
     result_t hr = deep_has_val(object, prop, value, r, got);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _test(!r, "deepPropertyNotVal", object, value, msg, prop);

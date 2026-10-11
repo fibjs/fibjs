@@ -41,7 +41,7 @@ static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_ba
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     result_t hr = s->create(family, 0);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = s;
@@ -60,7 +60,7 @@ result_t dgram_base::createSocket(Union_createSocket_opts opts, v8::Local<v8::Fu
     obj_ptr<DgramSocket_base>& retVal)
 {
     result_t hr = createSocket(opts, retVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     v8::Local<v8::Object> r;
@@ -75,17 +75,17 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     bool reuseAddr = false;
     hr = GetConfigValue(opts, "reuseAddr", reuseAddr);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     bool ipv6Only = false;
     hr = GetConfigValue(opts, "ipv6Only", ipv6Only);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     exlib::string type;
     hr = GetConfigValue(opts, "type", type);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t family = get_family(type);
@@ -94,15 +94,15 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = GetConfigValue(opts, "recvBufferSize", s->m_recvbuf_size);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(opts, "sendBufferSize", s->m_sendbuf_size);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     retVal = s;
@@ -217,12 +217,12 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
 
         int32_t port;
         hr = GetConfigValue(opts, "port", port);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         exlib::string addr;
         hr = GetConfigValue(opts, "address", addr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(2);
@@ -263,7 +263,7 @@ result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string addres
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return send(buf.get(), port, address, retVal, std::move(ac));
@@ -308,7 +308,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     result_t hr;
     if (!m_bound) {
         hr = bind_core(0, "");
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -326,7 +326,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     if (addr_info.addr(address.c_str()) < 0) {
         exlib::string strAddr;
         hr = net_base::cc_resolve(address, m_family, strAddr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (addr_info.addr(strAddr.c_str()) < 0)
@@ -367,7 +367,7 @@ result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, in
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> msg1;
@@ -388,7 +388,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     result_t hr;
     if (!m_bound) {
         hr = bind_core(0, "");
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

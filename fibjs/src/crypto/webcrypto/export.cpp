@@ -24,7 +24,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
 
     if (format == "jwk") {
         result_t hr = ckey->m_key->export_json(retVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // For HMAC keys, add the 'alg' field to the JWK
@@ -120,7 +120,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
 
         obj_ptr<CryptoKey> key = new CryptoKey();
         hr = key->get_param(algObj, extractable, usages);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = key;
@@ -128,7 +128,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         if (format == "jwk") {
             v8::Local<v8::Object> o;
             hr = GetArgumentValue(isolate, keyData, o, true);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             obj_ptr<NObject> jwk = new NObject();
@@ -137,7 +137,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         } else {
             obj_ptr<Buffer_base> buf;
             hr = GetArgumentValue(isolate, keyData, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             ac.ctxv()[2] = buf;
         }
@@ -161,7 +161,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         if (jwk == NULL)
             return Runtime::setError("WebCrypto: the key data was not read");
         hr = key->m_key->ImportJWKKey(jwk, KeyObject::kKeyTypeUnknown);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = key;
@@ -188,7 +188,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         } else
             return Runtime::setError("WebCrypto: unknown key format: " + format);
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = key;

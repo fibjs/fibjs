@@ -198,7 +198,7 @@ result_t FileStream::Write(const char* p, int32_t sz)
         if (n < 0) {
             result_t hr = LastError();
 
-            if (hr > CALL_E_MAX) {
+            if (hr.is_system_error()) {
                 ErrorPayload payload = ErrorPayload::from_system(hr)
                                            .with_syscall("write")
                                            .with_path(name)
@@ -232,7 +232,7 @@ result_t FileStream::open(exlib::string fname, exlib::string flags, int32_t mode
     close();
 
     result_t hr = normalize_file_path_like(fname, name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return file_open(name, flags, mode, m_fd);

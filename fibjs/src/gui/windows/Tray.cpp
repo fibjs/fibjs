@@ -85,7 +85,7 @@ void Tray::createTray()
 result_t Tray::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NOTIFYICONDATA* _tray = (NOTIFYICONDATA*)m_tray;

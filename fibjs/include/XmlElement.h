@@ -186,7 +186,7 @@ public:
             }
 
             result_t hr = el->getAttribute("xmlns", def_ns);
-            if (hr != CALL_RETURN_NULL)
+            if (!hr.is_return_null())
                 return 0;
 
             p = p->m_parent;

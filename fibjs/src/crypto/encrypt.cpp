@@ -106,19 +106,19 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
 
     obj_ptr<KeyObject_base> key_;
     hr = createKey(key, key_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* key__ = key_.As<KeyObject>();
 
     hr = GetConfigValue(key, "padding", padding, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     const EVP_MD* digest = nullptr;
     if (useo_aep) {
         exlib::string oaepHash = "sha1";
         hr = GetConfigValue(key, "oaepHash", oaepHash, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         digest = _evp_md_type(oaepHash.c_str());
@@ -130,9 +130,9 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
     hr = GetConfigValue(key, "oaepLabel", v);
     if (hr == 0) {
         hr = GetArgumentValue(isolate, v, oaep_label, false);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
-    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return PKEY_cipher<EVP_PKEY_cipher_init, EVP_PKEY_cipher>(key__->pkey(), padding, digest, oaep_label, buffer, retVal);
@@ -145,7 +145,7 @@ static result_t optionsStringToBuffer(v8::Local<v8::Object> key, exlib::string s
     exlib::string encoding = "utf8";
 
     result_t hr = GetConfigValue(key, "encoding", encoding, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     return Buffer_base::from(str, encoding, retVal);
@@ -187,7 +187,7 @@ result_t crypto_base::privateDecrypt(Union_privateDecrypt_privateKey privateKey,
     if (std::holds_alternative<exlib::string>(buffer)) {
         result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
             std::get<exlib::string>(buffer), buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(buffer);
@@ -205,7 +205,7 @@ result_t crypto_base::privateDecrypt(Union_privateDecrypt_privateKey privateKey,
 
     if (std::holds_alternative<exlib::string>(privateKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), "utf8", keyBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         keyBuf = std::get<obj_ptr<Buffer_base>>(privateKey);
@@ -226,7 +226,7 @@ result_t crypto_base::privateEncrypt(Union_privateEncrypt_privateKey privateKey,
     if (std::holds_alternative<exlib::string>(buffer)) {
         result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
             std::get<exlib::string>(buffer), buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(buffer);
@@ -244,7 +244,7 @@ result_t crypto_base::privateEncrypt(Union_privateEncrypt_privateKey privateKey,
 
     if (std::holds_alternative<exlib::string>(privateKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), "utf8", keyBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         keyBuf = std::get<obj_ptr<Buffer_base>>(privateKey);
@@ -265,7 +265,7 @@ result_t crypto_base::publicDecrypt(Union_publicDecrypt_publicKey privateKey, Un
     if (std::holds_alternative<exlib::string>(buffer)) {
         result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
             std::get<exlib::string>(buffer), buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(buffer);
@@ -283,7 +283,7 @@ result_t crypto_base::publicDecrypt(Union_publicDecrypt_publicKey privateKey, Un
 
     if (std::holds_alternative<exlib::string>(privateKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), "utf8", keyBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         keyBuf = std::get<obj_ptr<Buffer_base>>(privateKey);
@@ -304,7 +304,7 @@ result_t crypto_base::publicEncrypt(Union_publicEncrypt_publicKey privateKey, Un
     if (std::holds_alternative<exlib::string>(buffer)) {
         result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
             std::get<exlib::string>(buffer), buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         buf = std::get<obj_ptr<Buffer_base>>(buffer);
@@ -322,7 +322,7 @@ result_t crypto_base::publicEncrypt(Union_publicEncrypt_publicKey privateKey, Un
 
     if (std::holds_alternative<exlib::string>(privateKey)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(privateKey), "utf8", keyBuf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         keyBuf = std::get<obj_ptr<Buffer_base>>(privateKey);

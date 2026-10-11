@@ -160,7 +160,7 @@ result_t SandBox::Context::repl()
 
         exlib::string line;
         hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
-        if (hr < 0)
+        if (hr.failed())
             break;
 
         if (line.empty())

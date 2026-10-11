@@ -139,7 +139,7 @@ result_t Smtp::connect(exlib::string url, AsyncHandle ac)
             result_t hr;
 
             hr = m_u->parse(m_url);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             return net_base::connect(m_url, m_pThis->m_timeout,

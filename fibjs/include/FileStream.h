@@ -95,7 +95,7 @@ public:
         // handle and friends) end the operation normally, and a successful
         // write must never touch the payload (CALL_E_MAX is negative, so the
         // upper bound alone would also match hr == 0).
-        if (hr < 0 && hr > CALL_E_MAX) {
+        if (hr.is_system_error()) {
             ErrorPayload payload = takeErrorPayload();
 
             payload.arg("buffer", data);
@@ -185,7 +185,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         }
 #endif
 
-        if (hr > CALL_E_MAX) {
+        if (hr.is_system_error()) {
             ErrorPayload payload = ErrorPayload::from_system(hr)
                                        .with_syscall("open")
                                        .with_path(fname)
@@ -268,7 +268,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
         }
 #endif
 
-        if (hr > CALL_E_MAX) {
+        if (hr.is_system_error()) {
             ErrorPayload payload = ErrorPayload::from_system(hr)
                                        .with_syscall("open")
                                        .with_path(fname)

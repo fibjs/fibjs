@@ -239,7 +239,7 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
     } else {
         // Read from provided proxyEnv object
         result_t hr = hc->set_proxyEnv(proxyEnv);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Get the values that were set
@@ -508,7 +508,7 @@ result_t http_base::createServer(Union_createServer_hdlr hdlr, obj_ptr<HttpServe
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return HttpServer_base::_new(handler, retVal);
@@ -519,7 +519,7 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
 {
     obj_ptr<HttpsServer_base> server;
     result_t hr = HttpsServer_base::_new(context, hdlr, server);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = server;
@@ -530,7 +530,7 @@ result_t http_base::createServer(Union_createServer_options options, Union_creat
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
@@ -547,7 +547,7 @@ result_t http_base::createServer(Union_createServer_options options, Union_creat
     if (hasCert || hasCa) {
         obj_ptr<SecureContext_base> ctx;
         result_t hr = tls_base::createSecureContext(opts, true, ctx);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return create_server_by_context(ctx.get(), handler, retVal);

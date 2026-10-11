@@ -22,7 +22,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(key);
 
         hr = keyObj->createAsymmetricKey(options, KeyObject::kKeyTypePublic);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = keyObj->toX25519_publicKey(options);
@@ -33,7 +33,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         exlib::string strKey = std::get<exlib::string>(key);
 
         hr = keyObj->ParsePublicKeyPEM(strKey.c_str(), (int)strKey.length());
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (hr == 1)
@@ -44,7 +44,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         Buffer* key_buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(key));
 
         hr = keyObj->ParsePublicKeyPEM((const char*)key_buf->data(), key_buf->length());
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (hr == 1)
@@ -53,7 +53,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         hr = keyObj->fixSM2PublicKey();
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = keyObj;
@@ -87,7 +87,7 @@ result_t KeyObject::toX25519_publicKey(v8::Local<v8::Object> options)
     if (key_type == EVP_PKEY_ED25519) {
         bool toX25519 = false;
         result_t hr = GetConfigValue(options, "toX25519", toX25519, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         if (toX25519) {
@@ -210,7 +210,7 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
             return hr;
 
         hr = ParsePrivateKey(format, type, namedCurve, _passphrase, key);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_keyType = kKeyTypePublic;
@@ -272,26 +272,26 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
     exlib::string namedCurve;
 
     hr = GetConfigValue(key, "format", format, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     obj_ptr<Buffer_base> _key;
     hr = GetKeyBuffer(isolate, key, _key);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> _passphrase;
     hr = GetConfigValue(key, "passphrase", _passphrase);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (format == "der") {
         hr = GetConfigValue(key, "type", type, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     } else if (format == "raw") {
         hr = GetConfigValue(key, "namedCurve", namedCurve, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
     }
 
@@ -422,7 +422,7 @@ result_t KeyObject::ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value
     Variant _retVal;
 
     hr = ExportPublicKey(param, _retVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = _retVal;

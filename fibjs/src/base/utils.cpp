@@ -101,12 +101,12 @@ static const char* getDefaultErrorTypeName(result_t hr)
 
 exlib::string getResultMessage(result_t hr)
 {
-    if (hr == CALL_E_EXCEPTION) {
+    if (hr.is_exception()) {
         exlib::string s = Runtime::errMessage();
 
         if (s.length() > 0)
             return s;
-    } else if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    } else if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         exlib::string s = Runtime::errMessage();
 
         if (s.length() > 0)
@@ -569,7 +569,7 @@ static exlib::string error_text(result_t hr)
     if (uv_str)
         return uv_str;
 
-    if (hr >= 0)
+    if (hr.ok())
         return exlib::string();
 
     return strerror((int)-hr);
@@ -624,7 +624,7 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
         // Node.js reports errno as a negative value for system errors
         if (payload.has_errno)
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload.errno_value)).IsJust();
-        else if (hr < 0 && hr > CALL_E_MAX)
+        else if (hr.is_system_error())
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr)).IsJust();
 
         if (!payload.syscall.empty())
@@ -724,7 +724,7 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
 
 static void resolveException(result_t& hr, exlib::string& type_name, exlib::string& msg)
 {
-    if (hr == CALL_E_EXCEPTION) {
+    if (hr.is_exception()) {
         hr = Runtime::errCode();
         type_name = Runtime::errTypeName();
         msg = Runtime::errMessage();
@@ -919,7 +919,7 @@ exlib::string GetException(v8::Local<v8::Value> err, bool repl, bool trace)
 
 exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl, bool trace)
 {
-    if (hr < 0 && hr != CALL_E_JAVASCRIPT)
+    if (hr.failed() && !hr.is_javascript())
         return getResultMessage(hr);
 
     Isolate* isolate = Isolate::current();
@@ -948,7 +948,7 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 {
     exlib::string msg;
 
-    if (try_catch.HasCaught() || hr < 0) {
+    if (try_catch.HasCaught() || hr.failed()) {
         msg = GetException(try_catch, hr, repl, true);
         errorLog(msg);
     }

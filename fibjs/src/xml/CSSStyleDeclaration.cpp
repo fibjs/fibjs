@@ -321,7 +321,7 @@ exlib::string style_name_to_css(exlib::string name)
 result_t CSSStyleDeclaration::get_cssText(exlib::string& retVal)
 {
     result_t hr = m_element->getAttribute("style", retVal);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         retVal.clear();
 
     return 0;

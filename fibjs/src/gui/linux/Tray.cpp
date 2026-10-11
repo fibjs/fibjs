@@ -65,7 +65,7 @@ void Tray::createTray()
 result_t Tray::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     app_indicator_set_status((AppIndicator*)m_tray, APP_INDICATOR_STATUS_PASSIVE);

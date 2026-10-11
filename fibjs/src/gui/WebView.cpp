@@ -19,12 +19,12 @@ namespace fibjs {
 result_t WebView::loadFile(exlib::string file, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<UrlObject_base> u;
     hr = url_base::pathToFileURL(file, v8::Local<v8::Object>(), u);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string url;
@@ -38,7 +38,7 @@ result_t WebView::loadFile(exlib::string file, AsyncHandle ac)
 result_t WebView::waitFor(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (internal_isReady() && (url.empty() || url == internal_getUrl()))
@@ -93,7 +93,7 @@ void WebView::app_rpc(exlib::string json)
 
             exlib::string method;
             hr = GetConfigValue(req, "method", method, true);
-            if (hr < 0) {
+            if (hr.failed()) {
                 result->Set(context, isolate->NewString("error"), isolate->NewString("method is required")).IsJust();
                 break;
             }
@@ -127,7 +127,7 @@ void WebView::app_rpc(exlib::string json)
 
             std::vector<v8::Local<v8::Value>> params;
             hr = GetConfigValue(req, "params", params);
-            if (hr < 0) {
+            if (hr.failed()) {
                 result->Set(context, isolate->NewString("error"), isolate->NewString("params is required")).IsJust();
                 break;
             }
@@ -165,7 +165,7 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
 {
     Isolate* isolate = Isolate::current(opt);
     result_t hr = OpenOptions::load(opt, m_options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TitlebarOptions> titlebar;
@@ -264,7 +264,7 @@ void WebView::release()
 result_t WebView::open(exlib::string url, v8::Local<v8::Object> opt)
 {
     result_t hr = setup(opt);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_options->url = url;
@@ -275,7 +275,7 @@ result_t WebView::open(exlib::string url, v8::Local<v8::Object> opt)
 result_t WebView::open(v8::Local<v8::Object> opt)
 {
     result_t hr = setup(opt);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return async_open();
@@ -284,7 +284,7 @@ result_t WebView::open(v8::Local<v8::Object> opt)
 result_t WebView::openFile(exlib::string file, v8::Local<v8::Object> opt)
 {
     result_t hr = setup(opt);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_options->file = file;

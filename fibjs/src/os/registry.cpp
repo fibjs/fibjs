@@ -259,7 +259,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, std::vector<
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return r.listSubKey(retVal);
@@ -269,7 +269,7 @@ result_t registry_base::listValue(int32_t root, exlib::string key, std::vector<e
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return r.listValue(retVal);
@@ -279,7 +279,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
 {
     Registry r;
     result_t hr = r.open(root, key);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return r.get(retVal);
@@ -289,7 +289,7 @@ result_t registry_base::get(int32_t root, exlib::string key, exlib::string name,
 {
     Registry r;
     result_t hr = r.open(root, key, name);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return r.get(retVal);
@@ -300,7 +300,7 @@ result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data
 {
     Registry r;
     result_t hr = r.open(root, key, true, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
@@ -363,7 +363,7 @@ result_t set_reg(int32_t root, exlib::string key, exlib::string name, int32_t ty
 {
     Registry r;
     result_t hr = r.open(root, key, name, true, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
@@ -425,7 +425,7 @@ result_t registry_base::has(int32_t root, exlib::string key, bool& retVal)
 {
     Registry r;
     result_t hr = r.open(root, key);
-    if (hr < 0) {
+    if (hr.failed()) {
         retVal = false;
         return 0;
     }
@@ -445,7 +445,7 @@ result_t registry_base::has(int32_t root, exlib::string key, exlib::string name,
 {
     Registry r;
     result_t hr = r.open(root, key, name);
-    if (hr < 0) {
+    if (hr.failed()) {
         retVal = false;
         return 0;
     }
@@ -465,7 +465,7 @@ result_t registry_base::del(int32_t root, exlib::string key)
 {
     Registry r;
     result_t hr = r.open(root, key, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     LONG lResult = RegDeleteValueW(r.hKey, (const wchar_t*)r.skey.c_str());
@@ -482,7 +482,7 @@ result_t registry_base::del(int32_t root, exlib::string key, exlib::string name)
 {
     Registry r;
     result_t hr = r.open(root, key, name, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     LONG lResult = RegDeleteValueW(r.hKey, (const wchar_t*)r.skey.c_str());

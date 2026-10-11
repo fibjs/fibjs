@@ -236,7 +236,7 @@ result_t Message::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
     obj_ptr<Buffer_base> buf;
 
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return write(buf.get(), retVal, std::move(ac));
@@ -286,7 +286,7 @@ result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     if (ac.isSync()) {
         exlib::string str;
         result_t hr = json_base::encode(data, str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -335,7 +335,7 @@ result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     if (ac.isSync()) {
         obj_ptr<Buffer_base> buf;
         result_t hr = msgpack_base::encode(data, buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -567,7 +567,7 @@ void Message::copyTo(Message* target)
 
         m_body->seek(pos, fs_base::C_SEEK_SET);
 
-        if (hr >= 0 && buf) {
+        if (hr.ok() && buf) {
             obj_ptr<MemoryStream> ms = new MemoryStream();
             ms->writeBuffer(buf, nullptr);
             ms->rewind();

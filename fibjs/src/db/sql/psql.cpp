@@ -30,10 +30,10 @@ static bool has_driver_override(exlib::string connString)
 
     Variant v;
     result_t hr = q->first("Driver", v);
-    if (hr == CALL_RETURN_NULL)
+    if (hr.is_return_null())
         hr = q->first("driver", v);
 
-    return hr != CALL_RETURN_NULL;
+    return !hr.is_return_null();
 }
 
 static const char* resolve_default_driver(exlib::string connString)
@@ -72,7 +72,7 @@ result_t db_base::openPSQL(exlib::string connString, obj_ptr<DbConnection_base>&
 
     OdbcConnectOptions options = { "Servername", false };
     result_t hr = odbc_connect(connString, driver, port, conn->m_conn, &options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = conn;

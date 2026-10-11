@@ -33,7 +33,7 @@ result_t querystring_base::parse(exlib::string str, exlib::string sep,
 
     obj_ptr<HttpCollection> c = new HttpCollection();
     hr = c->parse(str, sep.c_str(), eq.c_str());
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = c;
@@ -69,7 +69,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
         encoding_base::encodeURIComponent(strKey, true, strKey);
 
         hr = GetArgumentValue(isolate, v, vs, true);
-        if (hr >= 0) {
+        if (hr.ok()) {
             int32_t len1 = vs->Length();
             int32_t i1;
 

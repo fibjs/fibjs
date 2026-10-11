@@ -98,7 +98,7 @@ result_t MessagePort::postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array
 
     obj_ptr<Buffer_base> serialized;
     result_t hr = v8_base::serialize(data, serialized);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (hasTransfer) {
@@ -181,7 +181,7 @@ result_t MessagePort::emitSerializedMessage(Buffer_base* data)
 {
     v8::Local<v8::Value> value;
     result_t hr = v8_base::deserialize(data, value);
-    if (hr >= 0) {
+    if (hr.ok()) {
         if (m_raw_message_mode) {
             if (m_message_target)
                 return m_message_target->emitMessage(value);

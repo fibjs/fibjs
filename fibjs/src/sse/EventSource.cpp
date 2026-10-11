@@ -288,7 +288,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     AsyncHandle h_ac(ac);
     result_t hr = hc.As<HttpClient>()->get_request_opts(default_method, url, options, h_ac);
-    if (hr != CALL_E_NOSYNC)
+    if (!hr.is_nosync())
         return hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
@@ -306,7 +306,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 // ERROR_NETNAME_DELETED(64) -> ECONNRESET）。
 static bool is_connection_gone(result_t hr)
 {
-    if (hr >= 0)
+    if (hr.ok())
         return false;
 
     // socket 层可能回投 libuv 错误码，也可能回投原始系统 errno（Windows 上不是同一套
@@ -462,7 +462,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
 
         obj_ptr<SendOptions> opts;
         result_t hr = SendOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);

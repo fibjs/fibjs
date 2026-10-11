@@ -49,7 +49,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
         Variant var;
         result_t hr = fs_base::cc_readFile(fname, "", var, Isolate::main());
 
-        if (hr >= 0) {
+        if (hr.ok()) {
             async([fname, request, var]() {
                 Buffer* _buf = (Buffer*)var.object();
                 GInputStream* stream = _buf ? g_memory_input_stream_new_from_data(_buf->data(), _buf->length(), NULL)

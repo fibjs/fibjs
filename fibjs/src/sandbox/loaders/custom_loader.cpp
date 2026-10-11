@@ -35,7 +35,7 @@ result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::
         return CALL_E_JAVASCRIPT;
 
     result_t hr = GetArgumentValue(isolate, fileContent, strScript, true);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(hr);
     // read filecontent and compile to strScript :end
 

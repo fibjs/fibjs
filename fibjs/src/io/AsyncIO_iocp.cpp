@@ -145,7 +145,7 @@ public:
         }
 
         result_t hr = process();
-        if (hr != CALL_E_PENDDING)
+        if (!hr.is_pending())
             asyncProc::ready(0, hr);
     }
 
@@ -349,7 +349,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     if (addr_info.addr(host.c_str()) < 0) {
         exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (addr_info.addr(strAddr.c_str()) < 0)
@@ -420,7 +420,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 
     obj_ptr<Socket> s = new Socket(true);
     result_t hr = s->create(m_family);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = s;

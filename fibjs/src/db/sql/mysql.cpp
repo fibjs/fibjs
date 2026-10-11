@@ -277,7 +277,7 @@ public:
 
         exlib::string full;
         result_t hr = formatMySQL(m_sql.c_str(), args, full);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_conn = (Connection*)m_db->m_conn;
@@ -414,7 +414,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(connString);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t nPort = 3306;
@@ -434,7 +434,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     hr = conn->connect(u->hostname().c_str(), nPort, username.c_str(),
         password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "");
-    if (hr < 0) {
+    if (hr.failed()) {
         // Augment the driver error with the connection parameters. The password
         // never reaches the payload, not even as a truncated summary.
         ErrorPayload payload = takeErrorPayload();

@@ -147,7 +147,7 @@ public:
             else
                 hr = append(isolate->toString(k), (Variant)v);
 
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -166,7 +166,7 @@ public:
 
         for (i = 0; i < len; i++) {
             result_t hr = append(name, (Variant)JSValue(values->Get(context, i)));
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -202,7 +202,7 @@ public:
             Variant value = (Variant)pairValue;
 
             result_t hr = append(key, value);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -278,7 +278,7 @@ public:
         remove(name);
         for (i = 0; i < len; i++) {
             result_t hr = append(name, (Variant)JSValue(values->Get(context, i)));
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -715,7 +715,7 @@ public:
 
             if (hasSegment) {
                 result_t hr = append(strKey, strValue);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
         }

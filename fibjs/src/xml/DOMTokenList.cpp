@@ -107,7 +107,7 @@ result_t DOMTokenList::add(OptArgs args)
     for (int32_t i = 0; i < argc; i++) {
         exlib::string token;
         result_t hr = GetArgumentValue(isolate, args[i], token);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Skip empty tokens and tokens with whitespace
@@ -133,7 +133,7 @@ result_t DOMTokenList::remove(OptArgs args)
     for (int32_t i = 0; i < argc; i++) {
         exlib::string token;
         result_t hr = GetArgumentValue(isolate, args[i], token);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         auto it = std::find(tokens.begin(), tokens.end(), token);
@@ -157,7 +157,7 @@ result_t DOMTokenList::toggle(exlib::string token, OptArgs args, bool& retVal)
     if (args.Length() > 0) {
         bool force;
         result_t hr = GetArgumentValue(holder(), args[0], force);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (force) {

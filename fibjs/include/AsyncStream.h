@@ -644,7 +644,7 @@ public:
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(data, "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return static_cast<T*>(this)->writeBuffer(buf, std::move(ac));
@@ -723,7 +723,7 @@ public:
         if (ac.isSync()) {
             obj_ptr<Buffer_base> buf;
             result_t hr = Buffer_base::from(data, encoding, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             return enqueueWrite(buf, retVal, std::move(ac));
         }
@@ -733,7 +733,7 @@ public:
         if (ev == NULL) {
             obj_ptr<Buffer_base> buf;
             result_t hr = Buffer_base::from(data, encoding, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
             retVal = true;
             return static_cast<T*>(this)->writeBuffer(buf, std::move(ac));
@@ -1012,7 +1012,7 @@ public:
 
         obj_ptr<Buffer_base> buf;
         result_t hr = Buffer_base::from(data, encoding, buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = 0;

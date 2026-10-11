@@ -69,7 +69,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
         exlib::string str = isolate->toString(body);
 
         hr = Buffer_base::from(str, "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (headers) {
@@ -80,7 +80,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
     } else if ((params = URLSearchParams_base::getInstance(body)) != NULL) {
         exlib::string s;
         hr = params->toString(s);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         buf = new Buffer(s.c_str(), s.length());
@@ -116,7 +116,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
             exlib::string type = has_ContentType ? userType : "multipart/form-data";
 
             hr = formData->encode(type, blob);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             buf = blob.As<Blob>()->m_impl.getBuffer();
@@ -146,7 +146,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
             exlib::string s = isolate->toString(body);
 
             hr = Buffer_base::from(s, "utf8", buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (headers) {
@@ -161,7 +161,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
             // multipart one without boundary, which is completed below).
             obj_ptr<FormData_base> converted;
             hr = GetArgumentValue(isolate, body, converted);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             exlib::string mimeType;
@@ -174,7 +174,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
                 mimeType = "multipart/form-data";
 
             hr = converted->encode(mimeType, blob);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             buf = blob.As<Blob>()->m_impl.getBuffer();
@@ -187,7 +187,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
             }
         } else {
             hr = GetArgumentValue(isolate, body, buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (headers) {
@@ -407,7 +407,7 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
             hr = form->parse(strForm);
         }
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = form;
@@ -468,7 +468,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
 
                     {
                         result_t hr = m_pThis->appendHeader(m_strLine);
-                        if (hr < 0)
+                        if (hr.failed())
                             return hr;
 
                         m_headCount++;
@@ -485,13 +485,13 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
                     m_pThis->m_bChunked = true;
 
                     result_t hr = m_pThis->appendHeader(m_strLine);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     m_headCount++;
                 } else {
                     result_t hr = m_pThis->appendHeader(m_strLine);
-                    if (hr < 0)
+                    if (hr.failed())
                         return hr;
 
                     m_headCount++;
@@ -925,7 +925,7 @@ result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
 {
     bool has;
     result_t hr = m_headers->has(name, has);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!has)
@@ -933,7 +933,7 @@ result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
 
     Variant value;
     hr = m_headers->first(name, value);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = value;

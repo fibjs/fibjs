@@ -125,7 +125,7 @@ static result_t execFile_prepare(exlib::string command, v8::Local<v8::Array> arg
     }
 
     result_t hr = child_process_base::spawn(command, args, opts, cp);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ac.ctxo() = cp;
@@ -232,7 +232,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
 
             stream->rewind();
             result_t hr = stream->cc_readAll(buf);
-            if (hr == CALL_RETURN_NULL)
+            if (hr.is_return_null())
                 v.setNull();
             else if (codec == "buffer")
                 v = buf;
@@ -527,7 +527,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
 
             stream->rewind();
             result_t hr = stream->cc_readAll(buf);
-            if (hr == CALL_RETURN_NULL) {
+            if (hr.is_return_null()) {
                 if (codec != "buffer")
                     v = exlib::string("");
                 else
@@ -637,7 +637,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         }
 
         result_t hr = child_process_base::spawn(command, args, opts, cp);
-        if (hr < 0) {
+        if (hr.failed()) {
             retVal = new child_process_base::SpawnSyncType();
 
             retVal->pid = 0;
@@ -691,7 +691,7 @@ result_t child_process_base::execSync(exlib::string command, v8::Local<v8::Objec
 
     obj_ptr<ExecType> exec_retVal;
     result_t hr = ac_exec(command, options, exec_retVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Check if child process exited with non-zero code
@@ -712,7 +712,7 @@ result_t child_process_base::execFileSync(exlib::string command, v8::Local<v8::A
 
     obj_ptr<ExecFileType> exec_retVal;
     result_t hr = ac_execFile(command, args, options, exec_retVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Check if child process exited with non-zero code
@@ -806,7 +806,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit")).IsJust();
 
         result_t hr = spawn(command, args, opts, cp);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxo() = cp;

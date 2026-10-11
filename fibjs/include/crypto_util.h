@@ -135,7 +135,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
     result_t hr;
     v8::Local<v8::Value> v;
     hr = GetConfigValue(o, "key", v, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (v->IsString()) {
@@ -143,22 +143,22 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
         exlib::string encoding = "utf8";
 
         hr = GetArgumentValue(isolate, v, _buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = GetConfigValue(o, "encoding", encoding, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         hr = commonDecode(encoding, _buf, _buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         buf = new Buffer((const unsigned char*)_buf.c_str(), _buf.length());
     } else {
         obj_ptr<Buffer_base> _buf;
         hr = GetArgumentValue(isolate, v, _buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         buf = _buf;
     }

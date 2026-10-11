@@ -32,7 +32,7 @@ result_t db_base::openRedis(exlib::string connString,
         obj_ptr<Url> u = new Url();
 
         result_t hr = u->parse(c_str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         host = u->hostname();
@@ -54,7 +54,7 @@ result_t Redis::connect(const char* host, int32_t port, AsyncHandle ac)
     result_t hr;
 
     hr = Socket_base::_new(net_base::C_AF_INET, m_sock);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_stmBuffered = new BufferedStream(m_sock);

@@ -86,7 +86,7 @@ result_t TLSSocket_base::_new(v8::Local<v8::Object> options, bool isServer, obj_
 {
     obj_ptr<SecureContext_base> context;
     result_t hr = tls_base::createSecureContext(options, isServer, context);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return _new(context, retVal, This);
@@ -325,7 +325,7 @@ public:
 result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncHandle ac)
 {
     result_t hr = is_not_connected();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ac.isSync()) {
@@ -358,7 +358,7 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, v8::
 result_t TLSSocket::accept(Stream_base* socket, AsyncHandle ac)
 {
     result_t hr = is_not_connected();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ac.isSync()) {
@@ -577,7 +577,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
     };
 
     result_t hr = is_ready();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ac.isSync())
@@ -648,7 +648,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
     };
 
     result_t hr = is_ready();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ac.isSync())
@@ -709,7 +709,7 @@ result_t TLSSocket::close(AsyncHandle ac)
     };
 
     result_t hr = is_ready();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (ac.isSync())

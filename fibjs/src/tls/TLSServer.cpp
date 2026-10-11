@@ -24,14 +24,14 @@ result_t TLSServer_base::_new(SecureContext_base* context, exlib::string addr, i
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(listener, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TLSServer> svr = new TLSServer();
     svr->wrap(This);
 
     hr = svr->create(context, addr, port, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -44,21 +44,21 @@ result_t TLSServer_base::_new(v8::Local<v8::Object> options, Union_TLSServer_lis
 {
     obj_ptr<SecureContext_base> ctx;
     result_t hr = tls_base::createSecureContext(options, true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string address;
     hr = GetConfigValue(options, "address", address, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t port;
     hr = GetConfigValue(options, "port", port, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     // if port is provided, bind immediately; otherwise deferred mode
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
         return _new(ctx, listener, retVal, This);
 
     return _new(ctx, address, port, listener, retVal, This);
@@ -70,14 +70,14 @@ result_t TLSServer_base::_new(SecureContext_base* context, Union_TLSServer_liste
     // no-port constructor: store handler and context, call listen() to bind
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(listener, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TLSServer> svr = new TLSServer();
     svr->wrap(This);
 
     hr = svr->setup(context, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -90,7 +90,7 @@ result_t TLSServer::setup(SecureContext_base* context, Handler_base* listener)
     result_t hr;
     obj_ptr<TLSHandler_base> _handler;
     hr = TLSHandler_base::_new(context, listener, _handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TcpServer> _server = new TcpServer();
@@ -110,11 +110,11 @@ result_t TLSServer::create(SecureContext_base* context, exlib::string addr, int3
     obj_ptr<TLSHandler_base> _handler;
 
     hr = TLSHandler_base::_new(context, listener, _handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = TcpServer_base::_new(addr, port, _handler, _server);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     SetPrivate("handler", _handler->wrap());

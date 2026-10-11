@@ -170,7 +170,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 
                 result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_base::C_SEEK_SET);
 
-                if (n != CALL_RETURN_NULL || hr < 0)
+                if (n != CALL_RETURN_NULL || hr.failed())
                     return next(hr);
                 else
                     return next(n);

@@ -36,7 +36,7 @@ result_t Dir::load()
 
     exlib::string path;
     result_t hr = normalize_file_path_like(m_path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     os_normalize(path, path, true);
@@ -76,7 +76,7 @@ result_t Dir::read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac)
         return CALL_RETURN_NULL;
 
     result_t hr = load();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Node.js: read() returns null once the iteration is finished
@@ -102,7 +102,7 @@ result_t Dir::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
         result_t hr = load();
-        if (hr < 0) {
+        if (hr.failed()) {
             cb(hr, false);
             return;
         }
@@ -130,7 +130,7 @@ result_t Dir::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr = load();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<NextType> result = new NextType();

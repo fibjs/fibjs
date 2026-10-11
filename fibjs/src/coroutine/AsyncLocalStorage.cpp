@@ -27,7 +27,7 @@ result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<Asy
     static std::atomic<int32_t> s_nextId { 0 };
 
     result_t hr = ALSOptions::load(options, opts);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     als->m_id = s_nextId.fetch_add(1);
@@ -37,7 +37,7 @@ result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<Asy
         // the name is rendered as a DOM string, so a number is "123"
         exlib::string name;
         hr = GetDOMStringValue(opts->name.value(), name);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         als->m_name = name;
     }

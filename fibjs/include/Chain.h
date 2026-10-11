@@ -80,7 +80,7 @@ public:
             AsyncEvent* ticket = next(invoke);
 
             hr = m_hdlr->invoke(m_v, m_next, ticket);
-            if (hr == CALL_E_NOASYNC) {
+            if (hr.is(CALL_E_NOASYNC)) {
                 // handler 转 JS 线程执行：票交由 js_invoke() 持票回投
                 m_jsTicket.store(ticket);
                 m_hdlr->holder()->post_task(this);
@@ -120,7 +120,7 @@ public:
 
             while (true) {
                 hr = hdlr1->invoke(m_v, hdlr2, &ac);
-                if (hr == CALL_E_NOSYNC) {
+                if (hr.is_nosync()) {
                     if (!m_vholder)
                         m_vholder = new ValueHolder(m_v->wrap());
 
@@ -128,10 +128,10 @@ public:
                     return 0;
                 }
 
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
-                if (hr == CALL_RETURN_NULL) {
+                if (hr.is_return_null()) {
                     bool end = false;
 
                     if (m_msg)

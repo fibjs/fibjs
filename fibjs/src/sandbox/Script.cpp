@@ -36,29 +36,29 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
 
     exlib::string filename("<anonymous>");
     hr = GetConfigValue(opts, "filename", filename, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t lineOffset = 0;
     hr = GetConfigValue(opts, "lineOffset", lineOffset, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     int32_t columnOffset = 0;
     hr = GetConfigValue(opts, "columnOffset", columnOffset, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     exlib::string type;
     hr = GetConfigValue(opts, "type", type, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     m_isModule = (type == "module");
 
     obj_ptr<Buffer_base> cachedData;
     hr = GetConfigValue(opts, "cachedData", cachedData, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     v8::ScriptCompiler::CompileOptions compile_options = v8::ScriptCompiler::kNoCompileOptions;
@@ -121,7 +121,7 @@ result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<
     v8::Local<v8::Object> global;
 
     result_t hr = vm_base::createContext(contextObject, v8::Object::New(isolate->m_isolate), global);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     vm_get_global(contextObject, global);
@@ -143,7 +143,7 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
 
     int32_t timeout = 0;
     result_t hr = GetConfigValue(opts, "timeout", timeout, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (m_isModule) {
@@ -164,7 +164,7 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
         TimeoutScope ts(timeout);
         result = script->Run(isolate->context());
         hr = ts.result(result.IsEmpty() ? CALL_E_JAVASCRIPT : 0);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         result = script->Run(isolate->context());

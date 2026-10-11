@@ -69,7 +69,7 @@ result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> context
 
     obj_ptr<Script_base> script;
     result_t hr = Script_base::_new(code, o, script);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return script->runInContext(contextifiedObject, o, retVal);
@@ -84,7 +84,7 @@ result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> cont
 
     obj_ptr<Script_base> script;
     result_t hr = Script_base::_new(code, o, script);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return script->runInNewContext(contextObject, o, retVal);
@@ -99,7 +99,7 @@ result_t vm_base::runInThisContext(exlib::string code, Union_runInThisContext_op
 
     obj_ptr<Script_base> script;
     result_t hr = Script_base::_new(code, o, script);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return script->runInThisContext(o, retVal);

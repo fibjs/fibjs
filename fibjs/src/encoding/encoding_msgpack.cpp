@@ -132,11 +132,11 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             msgpack_pack_map(&pk, ka.size());
             for (i = 0; i < (int32_t)ka.size(); i++) {
                 hr = pack(ka[i]);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 hr = pack(va[i]);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -153,7 +153,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             msgpack_pack_array(&pk, len);
             for (i = 0; i < len; i++) {
                 hr = pack((JSValue)element->Get(context, i));
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -174,7 +174,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             msgpack_pack_map(&pk, size);
             for (i = 0; i < len; i++) {
                 hr = pack((JSValue)arr->Get(context, i));
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -189,7 +189,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
 
     MsgpackPacker mp;
     result_t hr = mp.pack(data);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new Buffer(mp.sbuf.data, mp.sbuf.size);
@@ -206,7 +206,7 @@ result_t msgpack_base::decode(Union_decode_data data, v8::Local<v8::Value>& retV
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return msgpack_decode_buffer(buf, retVal);
@@ -337,7 +337,7 @@ static result_t msgpack_decode_buffer(Buffer_base* data, v8::Local<v8::Value>& r
     MsgpackUnPacker mu;
 
     result_t hr = mu.unpack(data);
-    if (hr < 0)
+    if (hr.failed())
         return 0;
 
     retVal = mu.jsValue();

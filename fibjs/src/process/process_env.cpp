@@ -138,12 +138,12 @@ result_t process_base::loadEnvFile(exlib::string path)
         path = ".env";
 
     result_t hr = normalize_file_path_like(path, path);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string content;
     hr = fs_base::ac_readTextFile(path, content);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     dotenv_parser::store_t store;

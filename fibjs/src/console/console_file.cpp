@@ -19,16 +19,16 @@ namespace fibjs {
 result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 {
     result_t hr = logger::config(isolate, o);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_isolate = isolate;
 
     exlib::string path;
     hr = GetConfigValue(o, "path", path);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
         return CHECK_ERROR(Runtime::setError("console: Missing path."));
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     path_base::normalize(path, path);
@@ -48,7 +48,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
     exlib::string split("1m");
     hr = GetConfigValue(o, "split", split);
-    if (hr >= 0) {
+    if (hr.ok()) {
         if ((split == "day"))
             m_split_mode = date_t::_DAY;
         else if ((split == "hour"))
@@ -77,13 +77,13 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             else
                 return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
         }
-    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     hr = GetConfigValue(o, "count", m_count);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
         m_count = MAX_COUNT;
-    else if (hr < 0)
+    else if (hr.failed())
         return hr;
     else {
         if (m_split_size == 0 && m_split_mode == 0)
@@ -107,7 +107,7 @@ void file_logger::clearFile()
         hr = fs_base::cc_readdir(".", fd, m_isolate);
     else
         hr = fs_base::cc_readdir(m_folder, fd, m_isolate);
-    if (hr < 0)
+    if (hr.failed())
         return;
 
     std::vector<exlib::string> files;
@@ -183,11 +183,11 @@ result_t file_logger::initFile()
         name.append(m_name2);
 
         hr = f->open(name, "a+");
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = f->tell(m_size);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         m_file = f;
@@ -205,7 +205,7 @@ result_t file_logger::write(AsyncEvent* ac)
         result_t hr;
 
         hr = initFile();
-        if (hr < 0) {
+        if (hr.failed()) {
             while ((p1 = m_workinglogs.getHead()) != 0)
                 delete p1;
 
@@ -229,7 +229,7 @@ result_t file_logger::write(AsyncEvent* ac)
 
         if (m_file) {
             hr = m_file->Write(outBuffer);
-            if (hr < 0)
+            if (hr.failed())
                 m_file.Release();
 
             m_size += outBuffer.length();

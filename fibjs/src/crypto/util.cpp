@@ -19,7 +19,7 @@ result_t crypto_base::timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSaf
 
     if (std::holds_alternative<exlib::string>(a)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(a), "utf8", bufA);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         bufA = std::get<obj_ptr<Buffer_base>>(a);
@@ -28,7 +28,7 @@ result_t crypto_base::timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSaf
 
     if (std::holds_alternative<exlib::string>(b)) {
         result_t hr = Buffer_base::from(std::get<exlib::string>(b), "utf8", bufB);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else
         bufB = std::get<obj_ptr<Buffer_base>>(b);

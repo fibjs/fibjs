@@ -126,7 +126,7 @@ private:
     SyntaxKind scanIdentifierOrKeyword();
     SyntaxKind scanNumber();
 
-    /**
+        /**
      * Consume a run of digits, allowing `_` numeric separators between two of them
      * (`1_000`, `0x1_0`). A `_` that is not surrounded by digits ends the run, so
      * `1_` scans as `1` and `_` rather than as one literal.

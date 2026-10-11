@@ -182,12 +182,12 @@ static_assert(sizeof(v8::Local<v8::Value>) == sizeof(napi_value),
 template <class T>
 class Global : public v8::PersistentBase<T> {
 public:
-    /**
+        /**
      * A Global with no storage cell.
      */
     V8_INLINE Global() = default;
 
-    /**
+        /**
      * Construct a Global from a Local.
      * When the Local is non-empty, a new storage cell is created
      * pointing to the same object, and no flags are set.
@@ -200,7 +200,7 @@ public:
         static_assert(std::is_base_of<T, S>::value, "type check");
     }
 
-    /**
+        /**
      * Construct a Global from a PersistentBase.
      * When the Persistent is non-empty, a new storage cell is created
      * pointing to the same object, and no flags are set.
@@ -213,25 +213,25 @@ public:
         static_assert(std::is_base_of<T, S>::value, "type check");
     }
 
-    /**
+        /**
      * Move constructor.
      */
     V8_INLINE Global(Global&& other);
 
     V8_INLINE ~Global() { this->Reset(); }
 
-    /**
+        /**
      * Move via assignment.
      */
     template <class S>
     V8_INLINE Global& operator=(Global<S>&& rhs);
 
-    /**
+        /**
      * Pass allows returning uniques from functions, etc.
      */
     Global Pass() { return static_cast<Global&&>(*this); }
 
-    /*
+        /*
      * For compatibility with Chromium's base::Bind (base::Passed).
      */
     using MoveOnlyTypeForCPP03 = void;

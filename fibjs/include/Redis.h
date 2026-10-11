@@ -154,7 +154,7 @@ public:
 
             for (i = 0; i < (int32_t)keys->Length(); i++) {
                 hr = add(JSValue(keys->Get(context, i)));
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -179,11 +179,11 @@ public:
                 JSValue v = keys->Get(context, i);
 
                 hr = add(v);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 hr = add(JSValue(kvs->Get(context, v)));
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -197,7 +197,7 @@ public:
 
             for (i = 0; i < args.Length(); i++) {
                 hr = add(args[i]);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -212,7 +212,7 @@ public:
 
             for (i = 0; i < (int32_t)args.size(); i++) {
                 hr = add(args[i]);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 
@@ -225,7 +225,7 @@ public:
             exlib::string str;
 
             hr = GetArgumentValue(Isolate::current(), v, str);
-            if (hr < 0)
+            if (hr.failed())
                 return CHECK_ERROR(hr);
             return add(str);
         }
@@ -236,7 +236,7 @@ public:
             result_t hr = 0;
 
             std::visit([&hr, this](auto& val) {
-                if (hr >= 0)
+                if (hr.ok())
                     hr = add(val);
             }, v);
 
@@ -340,18 +340,18 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);
@@ -363,22 +363,22 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);
@@ -390,26 +390,26 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a2);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);
@@ -421,30 +421,30 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a2);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a3);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);
@@ -456,34 +456,34 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a2);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a3);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a4);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);
@@ -495,38 +495,38 @@ public:
         result_t hr;
 
         hr = chkCommand(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         _param ps;
         Variant v;
 
         hr = ps.add(cmd);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a1);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a2);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a3);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a4);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ps.add(a5);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr.failed() || hr.is_return_null())
             return hr;
 
         return retValue(v, retVal);

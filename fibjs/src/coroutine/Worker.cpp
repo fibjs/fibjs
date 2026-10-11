@@ -130,7 +130,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 {
     bool isEval = false;
     result_t hr = GetConfigValue(opts, "eval", isEval, false);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (!isEval) {
@@ -143,7 +143,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
             return throw_worker_path_error(Isolate::current(opts));
 
         hr = absolute_file_path_like(path, path);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         path_base::isAbsolute(path, isAbs);
@@ -157,20 +157,20 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
     v = true;
     hr = GetConfigValue(opts, "file_system", v, false);
-    if (hr >= 0)
+    if (hr.ok())
         worker->m_isolate->m_enable_FileSystem = v;
 
     v = false;
     hr = GetConfigValue(opts, "safe_buffer", v, false);
-    if (hr >= 0)
+    if (hr.ok())
         worker->m_isolate->m_safe_buffer = v;
 
     v8::Local<v8::Value> data;
     hr = GetConfigValue(opts, "workerData", data, false);
-    if (hr >= 0) {
+    if (hr.ok()) {
         obj_ptr<Buffer_base> workerData;
         hr = v8_base::serialize(data, workerData);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         worker->m_peer_worker->m_workerData = workerData;

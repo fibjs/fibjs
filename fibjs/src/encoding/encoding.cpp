@@ -355,7 +355,7 @@ static result_t base58Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& 
 {
     exlib::string buffer;
     result_t hr = base58Decode(data, sz, buffer);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new Buffer(buffer.c_str(), buffer.length());
@@ -516,7 +516,7 @@ result_t encoding_base::encode(Union_encode_data data, exlib::string codec, exli
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return encoding_encode_buffer(buf, codec, retVal);
@@ -628,7 +628,7 @@ result_t multibase_base::encode(Union_encode_data data, exlib::string codec, exl
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return multibase_encode_buffer(buf, codec, retVal);

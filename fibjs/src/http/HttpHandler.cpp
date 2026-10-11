@@ -592,7 +592,7 @@ result_t HttpHandler_base::_new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpHandler> ht_hdlr = new HttpHandler();

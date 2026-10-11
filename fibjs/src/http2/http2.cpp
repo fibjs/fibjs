@@ -30,7 +30,7 @@ result_t http2_base::createServer(Union_createServer_options options, Union_crea
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
@@ -38,7 +38,7 @@ result_t http2_base::createServer(Union_createServer_options options, Union_crea
 
     obj_ptr<SecureContext_base> ctx;
     hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return create_server_by_context(ctx.get(), handler, retVal);
@@ -51,7 +51,7 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
     svr->wrap();
 
     result_t hr = svr->create(context, hdlr);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -68,7 +68,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         // Parse URL
         obj_ptr<Url> u = new Url();
         result_t hr = u->parse(authority);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         exlib::string proto = u->protocol();
@@ -84,7 +84,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         v8::Local<v8::Value> alpnVal;
         hr = GetConfigValue(options, "alpnProtocols", alpnVal);
         v8::Local<v8::Object> connectOpts = options;
-        if (hr == CALL_E_PARAMNOTOPTIONAL || alpnVal.IsEmpty()) {
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL) || alpnVal.IsEmpty()) {
             connectOpts = options->Clone();
             v8::Local<v8::Array> alpn = v8::Array::New(isolate->m_isolate, 1);
             alpn->Set(context, 0, isolate->NewString("h2")).IsJust();
@@ -94,7 +94,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         // Create SecureContext from connectOpts
         obj_ptr<SecureContext_base> ctx;
         hr = tls_base::createSecureContext(connectOpts, false, ctx);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Create TLS socket
@@ -172,12 +172,12 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         ON_STATE(asyncConnect, init_session)
         {
             result_t hr = m_session->init(m_ssl_sock);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             // Collect pending SETTINGS frame for async write
             hr = m_session->collectPendingData(m_pending_buf);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (m_pending_buf)

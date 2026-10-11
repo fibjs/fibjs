@@ -156,7 +156,7 @@ public:
     {
         ErrorDescription desc;
 
-        if (hr == CALL_E_EXCEPTION) {
+        if (hr.is_exception()) {
             Runtime* rt = Runtime::current();
             desc.code = rt->m_code;
             desc.message = rt->m_error;

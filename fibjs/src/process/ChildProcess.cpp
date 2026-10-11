@@ -225,7 +225,7 @@ result_t ChildProcess::create_pipe(int32_t idx)
     }
 
     result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx, onClose);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     stdios[idx].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
@@ -252,7 +252,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     int32_t count = 3;
     v8::Local<v8::Value> v;
     hr = GetConfigValue(options, "stdio", v);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         // fork 默认 stdio 为 inherit（与 Node 一致）；silent:true 时改为 pipe。
         // Node 语义：silent 仅在未显式提供 stdio 时生效，spawn 没有 silent 选项。
         bool silent = false;
@@ -263,13 +263,13 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     } else {
         exlib::string s;
         hr = GetArgumentValue(isolate, v, s, true);
-        if (hr >= 0) {
+        if (hr.ok()) {
             for (i = 0; i < 3; i++)
                 stddefs[i] = s;
         } else {
             v8::Local<v8::Array> a;
             hr = GetArgumentValue(isolate, v, a, true);
-            if (hr >= 0) {
+            if (hr.ok()) {
                 count = a->Length();
                 if (count > MAX_STDIO)
                     count = MAX_STDIO;
@@ -328,7 +328,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
                 stdios[i].flags = UV_IGNORE;
             } else if (s == "pipe") {
                 hr = create_pipe(i);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             } else if (s == "ipc") {
                 if (m_ipc >= 0)
@@ -338,7 +338,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
 
                 m_ipc = i;
                 hr = create_pipe(i);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             } else {
                 stdios[i].flags = UV_INHERIT_FD;
@@ -366,8 +366,8 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 
     int32_t uid;
     hr = GetConfigValue(options, "uid", uid);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
+    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.failed())
             return hr;
 
         uv_options.flags |= UV_PROCESS_SETUID;
@@ -376,8 +376,8 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 
     int32_t gid;
     hr = GetConfigValue(options, "gid", gid);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
+    if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        if (hr.failed())
             return hr;
 
         uv_options.flags |= UV_PROCESS_SETGID;
@@ -389,7 +389,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     GetConfigValue(options, "env", opt_envs_v);
     if (IsEmpty(opt_envs_v)) {
         hr = process_base::get_env(opt_envs);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     } else if (opt_envs_v->IsObject()) {
         if (!opt_envs_v->ToObject(context).ToLocal(&opt_envs))
@@ -420,7 +420,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         exlib::string& ks = envStr[p];
 
         hr = GetArgumentValue(isolate, k, ks);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (ks == "NODE_CHANNEL_FD")
@@ -432,7 +432,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         // node renders every environment value (and name) as its string form:
         // spawn(cmd, [], { env: { COUNT_LEN: 500 } }) passes "500"
         hr = GetDOMStringValue(v, vs);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ks.append(1, '=');
@@ -540,20 +540,20 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     Isolate* isolate = holder();
 
     hr = fill_stdio(options, fork);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fill_env(options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_command = command;
     hr = fill_arg(args);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fill_opt(options);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t timeout = 0;
@@ -605,7 +605,7 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
         return err;
     });
-    if (hr < 0) {
+    if (hr.failed()) {
         // Node.js compatible shape (errno/code/syscall/path) plus the executed
         // command and its argv as bounded summaries, so a missing executable is
         // identifiable without parsing the message.

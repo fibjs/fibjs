@@ -102,7 +102,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
         obj_ptr<LookupOptions> opt;
         Isolate* isolate = Isolate::current(options);
         result_t hr = LookupOptions::load(options, opt);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (opt->family->index() == 0) {

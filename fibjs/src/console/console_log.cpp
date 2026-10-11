@@ -151,13 +151,13 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
 
     if (lgr) {
         result_t hr = lgr->config(isolate, cfg);
-        if (hr < 0) {
+        if (hr.failed()) {
             lgr->stop();
             return hr;
         }
 
         hr = addLogger(lgr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -186,17 +186,17 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
         exlib::string s;
 
         hr = GetArgumentValue(isolate, v, s, true);
-        if (hr != CALL_E_TYPEMISMATCH)
+        if (!hr.is(CALL_E_TYPEMISMATCH))
             hr = console_base::add(s);
         else {
             v8::Local<v8::Object> o;
             hr = GetArgumentValue(isolate, v, o, true);
-            if (hr != CALL_E_TYPEMISMATCH)
+            if (!hr.is(CALL_E_TYPEMISMATCH))
                 hr = console_base::add(o);
             else
                 return CALL_E_TYPEMISMATCH;
         }
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

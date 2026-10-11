@@ -65,7 +65,7 @@ result_t CryptoKey::generate_hmac()
     std::vector<uint8_t> key(length / 8);
 
     result_t hr = randomBytes(key.data(), (int32_t)key.size());
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_key = new KeyObject();
@@ -78,7 +78,7 @@ result_t CryptoKey::createPublicKey()
     obj_ptr<KeyObject_base> publicKey;
     result_t hr = crypto_base::createPublicKey(
         crypto_base::Union_createPublicKey_key(obj_ptr<KeyObject_base>(m_key.get())), publicKey);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_publicKey = new CryptoKey();
@@ -117,7 +117,7 @@ result_t CryptoKey::generate_ecdsa()
 
     m_key = new KeyObject();
     result_t hr = m_key->generateKey("EC", param);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return createPublicKey();
@@ -130,7 +130,7 @@ result_t CryptoKey::generate_ed25519()
 
     m_key = new KeyObject();
     result_t hr = m_key->generateKey("Ed25519", nullptr);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return createPublicKey();
@@ -154,7 +154,7 @@ result_t CryptoKey::generate_ecdh()
 
     m_key = new KeyObject();
     result_t hr = m_key->generateKey("EC", param);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return createPublicKey();
@@ -181,7 +181,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
 
         obj_ptr<CryptoKey> key = new CryptoKey();
         hr = key->get_param(algObj, extractable, usages);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = key;
@@ -199,7 +199,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
         return Runtime::setError("WebCrypto: the key parameters were not read");
 
     result_t hr = key->generate();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (key->m_publicKey) {

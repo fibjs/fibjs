@@ -34,7 +34,7 @@ result_t db_base::openSQLite(exlib::string connString,
 
     obj_ptr<SQLite> db = new SQLite();
     hr = db->open(c_str);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = db;
@@ -178,7 +178,7 @@ public:
 
         for (size_t i = 0; i < args.size(); i++) {
             result_t hr = bindValue(m_stmt, (int32_t)i + 1, args[i]);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 

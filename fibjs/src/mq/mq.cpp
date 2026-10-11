@@ -26,7 +26,7 @@ result_t Handler_base::_new(exlib::string hdlr, obj_ptr<Handler_base>& retVal,
     if (!qstrcmp(hdlr.c_str(), "http:", 5) || !qstrcmp(hdlr.c_str(), "https:", 6)) {
         obj_ptr<HttpRepeater_base> repeater;
         result_t hr = HttpRepeater_base::_new(hdlr, repeater, This);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = repeater;
@@ -41,7 +41,7 @@ result_t Handler_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<H
 {
     obj_ptr<Chain_base> chain;
     result_t hr = Chain_base::_new(hdlrs, chain, This);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = chain;
@@ -54,7 +54,7 @@ result_t Handler_base::_new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& re
 {
     obj_ptr<Routing_base> routing;
     result_t hr = Routing_base::_new(map, routing, This);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = routing;
@@ -93,7 +93,7 @@ result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
     // (plans/async-phase-discipline-audit-2026-10-05.md §4.5)
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler, ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return (new Chain::asyncInvoke(handler, v, std::move(ac)))->post(0);

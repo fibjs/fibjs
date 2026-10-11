@@ -210,7 +210,7 @@ result_t global_base::btoa(v8::Local<v8::Value> data_, exlib::string& retVal)
     // Convert UTF-8 to Latin1 and validate
     exlib::string latin1Data;
     result_t hr = utf8ToLatin1(data, latin1Data);
-    if (hr < 0) {
+    if (hr.failed()) {
         return hr;
     }
 
@@ -236,7 +236,7 @@ result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
     std::string latin1Data;
     std::string stdData(data.c_str(), data.length());
     result_t hr = nodeBase64Decode(stdData, latin1Data);
-    if (hr < 0) {
+    if (hr.failed()) {
         return hr;
     }
 

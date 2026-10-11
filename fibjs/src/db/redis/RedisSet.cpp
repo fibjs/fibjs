@@ -56,7 +56,7 @@ result_t RedisSet::randMember(v8::Local<v8::Value>& retVal)
     result_t hr;
 
     hr = m_rdb->doCommand("SRANDMEMBER", m_key, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = GetReturnValue(holder(), v);
@@ -70,7 +70,7 @@ result_t RedisSet::randMember(int32_t count, v8::Local<v8::Value>& retVal)
     result_t hr;
 
     hr = m_rdb->doCommand("SRANDMEMBER", m_key, count, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     
     retVal = GetReturnValue(holder(), v);

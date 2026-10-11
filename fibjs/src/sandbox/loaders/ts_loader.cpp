@@ -22,7 +22,7 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
 
     if (info.type == SandBox::kCommonJS) {
         hr = m_cts.run(ctx, src, name, arg_names, args, in_cjs);
-        if (hr >= 0)
+        if (hr.ok())
             return hr;
 
         // A `.ts` file is as ambiguous as a `.js` one: neither the extension nor
@@ -31,7 +31,7 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         // TypeScript file written as an ES module fails to load unless the
         // nearest package.json happens to say "type": "module" - which is what
         // Node.js does too, but Node reaches the same conclusion by itself.
-        if (hr == CALL_E_EXCEPTION) {
+        if (hr.is_exception()) {
             exlib::string err_msg = Runtime::errMessage();
 
             // Detection is only for files nothing else has classified. When

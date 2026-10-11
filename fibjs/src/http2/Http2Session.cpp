@@ -404,7 +404,7 @@ result_t Http2Session::sendPendingData()
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     if (!buf) {
         return 0;
@@ -424,7 +424,7 @@ void Http2Session::asyncFlushOutput()
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
-    if (hr < 0 || !buf)
+    if (hr.failed() || !buf)
         return;
 
     enqueueFlush(new AsyncFlushItem(buf));
@@ -951,7 +951,7 @@ result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
 
     obj_ptr<Buffer_base> buf;
     result_t hr = collectPendingData(buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = 0;

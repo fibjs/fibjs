@@ -18,7 +18,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(srcname, l);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Isolate* isolate = holder();
@@ -69,7 +69,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     mod->DeletePrivate(_context, strPendding).IsJust();
 
-    if (hr < 0) {
+    if (hr.failed()) {
         // delete from modules
         mod->Delete(_context, strExports).IsJust();
         _mods->Delete(_context, strModule).IsJust();
@@ -107,7 +107,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 
     v8::Local<v8::Object> mod;
     result_t hr = installScript(srcname, script, mod, false);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return wait_module(mod, retVal);
@@ -119,7 +119,7 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
     obj_ptr<Buffer_base> buf;
 
     result_t hr = Buffer_base::from(script, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return addScript(srcname, buf.get(), retVal);
@@ -132,7 +132,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     v8::Local<v8::Object> mod;
 
     hr = resolve(base, id, data, mod);
-    if (hr < 0) {
+    if (hr.failed()) {
         // Node.js reports a failed module lookup as MODULE_NOT_FOUND.
         if (hr == -ENOENT)
             return Runtime::setError(ErrorPayload::make(errtype::kError)
@@ -143,7 +143,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
         return wait_module(mod, retVal);
 
     hr = installScript(id, data, mod, in_cjs);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return wait_module(mod, retVal);

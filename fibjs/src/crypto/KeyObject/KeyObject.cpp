@@ -40,7 +40,7 @@ static result_t _createSecretKey(const unsigned char* key, size_t size, obj_ptr<
 {
     obj_ptr<KeyObject> keyObj = new KeyObject();
     result_t hr = keyObj->createSecretKey(key, size);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = keyObj;
@@ -53,7 +53,7 @@ result_t crypto_base::createSecretKey(Union_createSecretKey_key key, exlib::stri
         exlib::string _key = std::get<exlib::string>(key);
 
         result_t hr = commonDecode(encoding, _key, _key);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return _createSecretKey((const unsigned char*)_key.c_str(), _key.length(), retVal);
@@ -72,7 +72,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
 
     obj_ptr<KeyObject_base> privateKey;
     hr = GetConfigValue(options, "privateKey", privateKey, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
     if (privateKey_->type() != KeyObject::kKeyTypePrivate)
@@ -81,7 +81,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
 
     obj_ptr<KeyObject_base> publicKey;
     hr = GetConfigValue(options, "publicKey", publicKey, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
     if (publicKey_->type() != KeyObject::kKeyTypePublic)
@@ -222,7 +222,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
 
         Variant _json;
         hr = export_json(_json);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal = _json;
@@ -255,12 +255,12 @@ result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>&
 
     obj_ptr<keyEncodingParam> param;
     hr = keyEncodingParam::load(options, param);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Variant v;
     hr = ExportKey(param, v);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = v;
@@ -274,11 +274,11 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 
     exlib::string format = "pem";
     hr = GetConfigValue(key, "format", format, true);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         v8::Local<v8::Value> k;
 
         hr = GetConfigValue(key, "key", k);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (IsJSObject(k))
@@ -312,14 +312,14 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 
             return 0;
         }
-    } else if (hr < 0)
+    } else if (hr.failed())
         return hr;
 
     if (format == "jwk") {
         v8::Local<v8::Object> jwk;
 
         hr = GetConfigValue(key, "key", jwk, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return ImportJWKKey(jwk, type);
@@ -356,7 +356,7 @@ result_t KeyObject::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     Variant _json;
     result_t hr = export_json(_json);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = _json;

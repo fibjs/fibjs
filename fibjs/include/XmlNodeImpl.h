@@ -138,7 +138,7 @@ public:
     {
         if (deep) {
             result_t hr = m_childs->cloneChilds(to);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
 
@@ -276,7 +276,7 @@ public:
             if (node) {
                 obj_ptr<XmlNode_base> retVal;
                 result_t hr = m_parent->m_childs->insertBefore(node, m_node, retVal);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
         }
@@ -308,7 +308,7 @@ public:
             if (node) {
                 obj_ptr<XmlNode_base> retVal;
                 result_t hr = m_parent->m_childs->insertBefore(node, m_node, retVal);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
         }
@@ -338,7 +338,7 @@ public:
             if (node) {
                 obj_ptr<XmlNode_base> retVal;
                 result_t hr = m_parent->m_childs->insertAfter(node, refNode, retVal);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
                 // Update reference node for next insertion
                 refNode = node;

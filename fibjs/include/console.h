@@ -83,8 +83,8 @@ public:
         v8::Local<v8::Array> levels;
 
         hr = GetConfigValue(o, "levels", levels);
-        if (hr == CALL_E_PARAMNOTOPTIONAL) {
-        } else if (hr < 0)
+        if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
+        } else if (hr.failed())
             return hr;
         else {
             for (i = 0; i < console_base::C_NOTSET; i++)
@@ -101,7 +101,7 @@ public:
                 int32_t num;
 
                 hr = GetArgumentValue(isolate, l, num);
-                if (hr < 0)
+                if (hr.failed())
                     return CHECK_ERROR(hr);
 
                 if (num >= 0 && num < console_base::C_NOTSET)
@@ -122,7 +122,7 @@ public:
         bool bStop = false;
 
         do {
-            if (hr < 0) {
+            if (hr.failed()) {
                 m_lock.lock();
                 m_bWorking = false;
                 bStop = m_bStop;
@@ -145,7 +145,7 @@ public:
             m_lock.unlock();
 
             hr = write(this);
-        } while (hr != CALL_E_PENDDING);
+        } while (!hr.is_pending());
 
         if (bStop)
             destroy();

@@ -204,7 +204,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         obj_ptr<Url> u = new Url();
 
         result_t hr = u->parse(url);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         exlib::string port = u->port();
@@ -219,7 +219,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         obj_ptr<Socket_base> socket;
 
         hr = Socket_base::_new(family, socket);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return socket->connect(nPort, u->hostname(), timeout, retVal, std::move(ac));
@@ -227,7 +227,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         obj_ptr<Socket_base> socket;
 
         result_t hr = Socket_base::_new(net_base::C_AF_UNIX, socket);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return socket->connect(url.substr(5), timeout, retVal, std::move(ac));
@@ -244,7 +244,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
     obj_ptr<Socket_base> socket;
     result_t hr = Socket_base::_new(family, socket);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return socket->connect(port, host, timeout, retVal, std::move(ac));
@@ -256,7 +256,7 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -301,7 +301,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
 
             obj_ptr<Socket_base> socket;
             result_t hr = create_socket(family, socket);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             ac.ctxv().resize(1);
@@ -325,7 +325,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
         int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
         result_t hr = create_socket(family, holder);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         socket = holder;
@@ -361,7 +361,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(2);
@@ -372,7 +372,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
         obj_ptr<Socket_base> socket;
         hr = Socket_base::_new(family, socket);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[1] = socket;
@@ -404,7 +404,7 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
     result_t hr;
 
     hr = Smtp_base::_new(retVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal->set_timeout(timeout);

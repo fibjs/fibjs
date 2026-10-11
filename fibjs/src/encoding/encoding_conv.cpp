@@ -66,7 +66,7 @@ result_t encoding_conv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal)
     exlib::string strBuf;
 
     result_t hr = encode(data, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());

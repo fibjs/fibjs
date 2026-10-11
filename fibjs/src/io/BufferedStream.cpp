@@ -35,7 +35,7 @@ public:
             m_pThis->m_pos = 0;
         }
 
-        if (hr != CALL_E_PENDDING)
+        if (!hr.is_pending())
             return next(hr);
 
         return m_pThis->m_stm->readBuffer(-1, m_buf, next(ready));
@@ -136,7 +136,7 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     result_t hr = asyncRead::process(this, bytes, retVal, false);
-    if (hr != CALL_E_PENDDING)
+    if (!hr.is_pending())
         return hr;
 
     if (ac.isSync())
@@ -186,7 +186,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
 
             if (streamEnd || size == (int32_t)pThis->m_strbuf.size()) {
                 result_t hr = pThis->m_iconv.decode(pThis->m_strbuf.str(), retVal);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 if (retVal.length() == 0)
@@ -209,7 +209,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
     };
 
     result_t hr = asyncRead::process(this, size, retVal, false);
-    if (hr != CALL_E_PENDDING)
+    if (!hr.is_pending())
         return hr;
 
     if (ac.isSync())
@@ -235,7 +235,7 @@ result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>&
     while (true) {
         hr = ac_readLine(-1, str);
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         if (hr > 0)
             return 0;
@@ -321,7 +321,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 
             if (streamEnd || (pThis->m_temp == mklen)) {
                 result_t hr = pThis->m_iconv.decode(pThis->m_strbuf.str(), retVal);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 if (pThis->m_temp == mklen) {
@@ -349,7 +349,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
     };
 
     result_t hr = asyncRead::process(this, mk, maxlen, retVal, false);
-    if (hr != CALL_E_PENDDING)
+    if (!hr.is_pending())
         return hr;
 
     if (ac.isSync())
@@ -366,7 +366,7 @@ result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncHand
     exlib::string strBuf;
 
     result_t hr = m_iconv.encode(txt, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
@@ -383,7 +383,7 @@ result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncHand
     exlib::string strBuf;
 
     result_t hr = m_iconv.encode(txt, strBuf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     strBuf.append(m_eol.length() > 0 ? m_eol : exlib::string("\n", 1));

@@ -168,7 +168,7 @@ result_t TextDecoder::decode(Union_decode_data data, v8::Local<v8::Object> opts,
         obj_ptr<Buffer_base> buf;
 
         result_t hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         return decode(buf, !stream, retVal);
@@ -224,7 +224,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
     }
 
     result_t hr = ensureConverter();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Allocate UChar buffer: worst case each byte becomes one UChar
@@ -314,7 +314,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
 result_t TextDecoder::decode(exlib::string& retVal)
 {
     result_t hr = ensureConverter();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Flush remaining bytes in converter

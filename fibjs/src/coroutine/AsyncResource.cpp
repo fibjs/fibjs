@@ -216,7 +216,7 @@ result_t AsyncResource_base::bind(v8::Local<v8::Function> fn, exlib::string type
     // Create an internal AsyncResource
     obj_ptr<AsyncResource_base> ar;
     result_t hr = _new(type, Union_AsyncResource_triggerAsyncId(0.0), ar);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Use the instance bind method

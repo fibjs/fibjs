@@ -22,7 +22,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     for (int32_t i = 0; i < len; i++) {
         exlib::string usage;
         hr = GetConfigValue(usages, i, usage, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (qstrcmp(usage.c_str(), "sign")
@@ -39,7 +39,7 @@ result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8
     }
 
     hr = GetConfigValue(params, "name", name, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (qstricmp(name.c_str(), "ECDSA") == 0)
@@ -77,7 +77,7 @@ result_t CryptoKey::get_ecdsa_param(v8::Local<v8::Object> params)
     m_algorithm->add("name", "ECDSA");
 
     hr = GetConfigValue(params, "namedCurve", namedCurve, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (qstricmp(namedCurve.c_str(), "P-256") == 0)
@@ -109,7 +109,7 @@ result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
     m_algorithm->add("name", "ECDH");
 
     hr = GetConfigValue(params, "namedCurve", namedCurve, true);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (qstricmp(namedCurve.c_str(), "P-256") == 0)
@@ -143,7 +143,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     // Get hash parameter - similar pattern to ECDSA
     v8::Local<v8::Value> _hash;
     hr = GetConfigValue(params, "hash", _hash);
-    if (hr < 0 || _hash.IsEmpty() || _hash->IsUndefined())
+    if (hr.failed() || _hash.IsEmpty() || _hash->IsUndefined())
         return Runtime::setError("WebCrypto: HMAC requires hash parameter");
 
     if (_hash->IsString() || _hash->IsStringObject()) {
@@ -151,11 +151,11 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
     } else {
         v8::Local<v8::Object> _hash_obj;
         hr = GetArgumentValue(isolate, _hash, _hash_obj, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = GetConfigValue(_hash_obj, "name", hash, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 

@@ -30,7 +30,7 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
         else
             return uv_tcp_init(s_uv_loop, &sock->m_tcp);
     });
-    if (hr < 0)
+    if (hr.failed())
         return setSystemErrorPayload(hr, "socket");
 
     retVal = sock;
@@ -93,7 +93,7 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
 
     retVal = addr_info.str();
@@ -107,7 +107,7 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
 
     retVal = addr_info.port();
@@ -121,7 +121,7 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
 
     retVal = addr_info.str();
@@ -135,7 +135,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr < 0)
+    if (hr.failed())
         return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
 
     retVal = addr_info.port();
@@ -363,7 +363,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         if (addr_info.addr(host) < 0) {
             exlib::string strAddr;
             result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
 
             if (addr_info.addr(strAddr) < 0)
@@ -394,7 +394,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         obj_ptr<ConnectOptions> opts;
         Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -498,7 +498,7 @@ result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = (int32_t)data.length();
@@ -552,7 +552,7 @@ result_t UVSocket::isAlive(bool& retVal)
 
     int32_t fd;
     result_t hr = get_fd(fd);
-    if (hr < 0)
+    if (hr.failed())
         return 0;
 
     return socket_isAlive((SOCKET)fd, retVal);

@@ -48,7 +48,7 @@ result_t cts_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     // Strip TypeScript types and compile as JS directly (fast path)
     obj_ptr<Buffer_base> js_src;
     result_t hr = ts_compile(isolate, src, js_src);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return cjs_Loader::compile(ctx, js_src, name, arg_names, script);

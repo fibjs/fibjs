@@ -194,7 +194,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
     obj_ptr<MenuItem> mi;
     Isolate* isolate = Isolate::current(item);
     result_t hr = MenuItem::load(item, mi);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!mi->type.has_value()) {
@@ -275,7 +275,7 @@ result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
 {
     for (auto& item : items) {
         result_t hr = append(item);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
     }
 
@@ -289,7 +289,7 @@ result_t Menu::append(v8::Local<v8::Object> item)
 
     obj_ptr<MenuItem> mi;
     result_t hr = MenuItem::create(item, mi);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_items.push_back(mi);
@@ -308,7 +308,7 @@ result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
 
     obj_ptr<MenuItem> mi;
     result_t hr = MenuItem::create(item, mi);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_items.insert(m_items.begin() + pos, mi);

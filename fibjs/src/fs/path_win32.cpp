@@ -141,7 +141,7 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
         }
 
         result_t hr = _resolve_win32(str);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (str[0] == '\\' && str[1] == '\\') {

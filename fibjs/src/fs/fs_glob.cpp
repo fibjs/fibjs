@@ -75,7 +75,7 @@ static exlib::string normalizePath(const exlib::string& path)
 {
     exlib::string normalized;
     result_t hr = path_base::normalize(path, normalized);
-    return (hr >= 0) ? normalized : path;
+    return (hr.ok()) ? normalized : path;
 }
 
 // Helper function to check if a path should be ignored
@@ -115,7 +115,7 @@ static bool isRelativePattern(const exlib::string& pattern)
     // Also check using path module's resolve functionality to detect relative patterns
     exlib::string normalized;
     result_t hr = path_base::normalize(pattern, normalized);
-    if (hr >= 0) {
+    if (hr.ok()) {
         // If normalized path is different and doesn't start with /, it might be relative
         bool isAbs = false;
         result_t absCheck = path_base::isAbsolute(normalized, isAbs);
@@ -140,7 +140,7 @@ static bool isAbsolutePattern(const exlib::string& pattern)
 
     bool retVal;
     result_t hr = path_base::isAbsolute(pattern, retVal);
-    return (hr >= 0) ? retVal : false;
+    return (hr.ok()) ? retVal : false;
 }
 
 #ifdef _WIN32
@@ -172,14 +172,14 @@ static exlib::string normalizePattern(const exlib::string& pattern)
             // Use path module to normalize the remaining pattern
             exlib::string normalized;
             result_t hr = path_base::normalize(withoutPrefix, normalized);
-            return (hr >= 0) ? normalized : withoutPrefix;
+            return (hr.ok()) ? normalized : withoutPrefix;
         }
     }
 
     // For non-relative patterns, still normalize them using path module
     exlib::string normalized;
     result_t hr = path_base::normalize(pattern, normalized);
-    return (hr >= 0) ? normalized : pattern;
+    return (hr.ok()) ? normalized : pattern;
 }
 
 // Helper function to check if path contains directories
@@ -193,7 +193,7 @@ static bool hasDirectory(const exlib::string& pattern)
     // Use path module's dirname to check if pattern has directory components
     exlib::string dirname;
     result_t hr = path_base::dirname(pattern, dirname);
-    if (hr >= 0) {
+    if (hr.ok()) {
         // If dirname is not "." and not empty, then the pattern contains directories
         return !dirname.empty() && dirname != ".";
     }
@@ -212,7 +212,7 @@ static exlib::string getDirectoryPart(const exlib::string& pattern)
 {
     exlib::string dirname;
     result_t hr = path_base::dirname(pattern, dirname);
-    if (hr >= 0 && !dirname.empty() && dirname != ".") {
+    if (hr.ok() && !dirname.empty() && dirname != ".") {
         return dirname;
     }
     return "";
@@ -224,7 +224,7 @@ static exlib::string getFilenamePart(const exlib::string& pattern)
 {
     exlib::string basename;
     result_t hr = path_base::basename(pattern, "", basename);
-    return (hr >= 0) ? basename : pattern;
+    return (hr.ok()) ? basename : pattern;
 }
 
 // Helper function to split pattern into components
@@ -239,7 +239,7 @@ static std::vector<exlib::string> splitPattern(const exlib::string& pattern)
     // First normalize the pattern to handle various path formats consistently
     exlib::string normalized;
     result_t hr = path_base::normalize(pattern, normalized);
-    const exlib::string& workingPattern = (hr >= 0) ? normalized : pattern;
+    const exlib::string& workingPattern = (hr.ok()) ? normalized : pattern;
 
     size_t start = 0;
     size_t pos = 0;
@@ -423,7 +423,7 @@ static void walkDirectorySimple(
             // Normalize the result to ensure consistent path format
             exlib::string normalized;
             result_t hr = path_base::normalize(relativePath, normalized);
-            if (hr >= 0) {
+            if (hr.ok()) {
                 relativePath = normalized;
             }
         }
@@ -500,7 +500,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
         obj_ptr<GlobOptions> _opts;
         result_t hr = GlobOptions::load(opts, _opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = _opts;
@@ -623,7 +623,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
                         // Use os_join for cross-platform path construction
                         result_t hr = os_join(baseComponents, basePath);
-                        if (hr < 0) {
+                        if (hr.failed()) {
                             basePath = "";
                         }
                     } else if (isUNCPath(normalizedPattern)) {
@@ -645,7 +645,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
                         // Use os_join for cross-platform path construction
                         result_t hr = os_join(baseComponents, basePath);
-                        if (hr < 0) {
+                        if (hr.failed()) {
                             basePath = "";
                         }
                     }
@@ -658,7 +658,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
                     // Use os_join for cross-platform path construction
                     result_t hr = os_join(baseComponents, basePath);
-                    if (hr < 0) {
+                    if (hr.failed()) {
                         // This should not happen with os_join, but keep as safety fallback
                         basePath = ""; // Handle error case
                     }
@@ -687,7 +687,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
                     result_t hr = os_join(basePath, result.path, absolutePath);
 
                     // Fallback to manual construction if path module fails
-                    if (hr < 0) {
+                    if (hr.failed()) {
                         // This should rarely happen with os_join
                         absolutePath = basePath + result.path; // Simple fallback
                     }

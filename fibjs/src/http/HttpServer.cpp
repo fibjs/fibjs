@@ -25,14 +25,14 @@ result_t HttpServer_base::_new(exlib::string addr, int32_t port, Union_HttpServe
 
     obj_ptr<Handler_base> handler;
     hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpServer> svr = new HttpServer();
     svr->wrap(This);
 
     hr = svr->create(addr, port, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -55,14 +55,14 @@ result_t HttpServer_base::_new(Union_HttpServer_hdlr hdlr,
     // no-port constructor: store handler only, call listen() to bind
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<HttpServer> svr = new HttpServer();
     svr->wrap(This);
 
     hr = svr->setup(handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = svr;
@@ -75,7 +75,7 @@ result_t HttpServer::setup(Handler_base* hdlr)
     result_t hr;
     obj_ptr<HttpHandler_base> _handler;
     hr = HttpHandler_base::_new(hdlr, _handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<TcpServer> _server = new TcpServer();
@@ -95,7 +95,7 @@ result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr
     obj_ptr<HttpHandler_base> _handler;
 
     hr = HttpHandler_base::_new(hdlr, _handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     _server = new TcpServer();

@@ -105,9 +105,9 @@ result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& ret
         XmlElement* el = (XmlElement*)p->m_node;
         result_t hr = el->m_attrs->lookupPrefix(namespaceURI, retVal);
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
-        if (hr != CALL_RETURN_NULL)
+        if (!hr.is_return_null())
             return retVal.empty() ? CALL_RETURN_NULL : 0;
 
         p = p->m_parent;
@@ -129,9 +129,9 @@ result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& ret
         XmlElement* el = (XmlElement*)p->m_node;
         result_t hr = el->m_attrs->lookupNamespaceURI(prefix, retVal);
 
-        if (hr < 0)
+        if (hr.failed())
             return hr;
-        if (hr != CALL_RETURN_NULL)
+        if (!hr.is_return_null())
             return retVal.empty() ? CALL_RETURN_NULL : 0;
 
         p = p->m_parent;
@@ -146,7 +146,7 @@ result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     obj_ptr<XmlElement> el = new XmlElement(*this);
     result_t hr = m_attrs->cloneAttrs(el->m_attrs, el);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return XmlNodeImpl::cloneNode(el, deep, retVal);
@@ -238,7 +238,7 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
         exlib::string wrappedContent = "<root>" + newVal + "</root>";
         obj_ptr<XmlDocument> doc = new XmlDocument(true);
         hr = doc->load(wrappedContent);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Move children from document element's root
@@ -255,7 +255,7 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
         // For HTML documents, parse as HTML
         obj_ptr<XmlDocument> doc = new XmlDocument(false);
         hr = doc->load(newVal);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         // Move children from body element
@@ -290,7 +290,7 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     // does nothing; only a Document parent throws NoModificationAllowedError.
     obj_ptr<XmlNode_base> parent;
     result_t hr = get_parentNode(parent);
-    if (hr < 0 || parent == NULL)
+    if (hr.failed() || parent == NULL)
         return 0;
 
     int32_t parentType;
@@ -301,13 +301,13 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     // Parse the new HTML content
     obj_ptr<XmlDocument> doc = new XmlDocument(false);
     hr = doc->load(newVal);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Get the body element which contains the parsed nodes
     obj_ptr<XmlElement_base> body;
     hr = doc->get_body(body);
-    if (hr < 0 || body == NULL)
+    if (hr.failed() || body == NULL)
         return hr;
 
     // Insert all new nodes before this element, then remove this element
@@ -428,7 +428,7 @@ result_t XmlElement::getAttribute(exlib::string name, exlib::string& retVal)
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItem(name, node);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr.failed() || hr.is_return_null())
         return hr;
 
     return node->get_value(retVal);
@@ -441,7 +441,7 @@ result_t XmlElement::getAttributeNS(exlib::string namespaceURI, exlib::string lo
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItemNS(namespaceURI, localName, node);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr.failed() || hr.is_return_null())
         return hr;
 
     return node->get_value(retVal);
@@ -541,7 +541,7 @@ result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& 
         return CHECK_ERROR(CALL_RETURN_NULL);
 
     result_t hr = getElementByIdImpl(id, false, retVal);
-    if (hr != CALL_RETURN_NULL)
+    if (!hr.is_return_null())
         return hr;
 
     return CHECK_ERROR(CALL_RETURN_NULL);
@@ -568,10 +568,10 @@ result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItem(name, node);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
-    retVal = hr != CALL_RETURN_NULL;
+    retVal = !hr.is_return_null();
     return 0;
 }
 
@@ -581,10 +581,10 @@ result_t XmlElement::hasAttributeNS(exlib::string namespaceURI, exlib::string lo
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItemNS(namespaceURI, localName, node);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
-    retVal = hr != CALL_RETURN_NULL;
+    retVal = !hr.is_return_null();
     return 0;
 }
 
@@ -748,7 +748,7 @@ result_t XmlElement::append(OptArgs nodes)
         if (node) {
             obj_ptr<XmlNode_base> retVal;
             result_t hr = m_childs->appendChild(node, retVal);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
@@ -779,7 +779,7 @@ result_t XmlElement::prepend(OptArgs nodes)
             } else {
                 hr = m_childs->appendChild(node, retVal);
             }
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
@@ -848,7 +848,7 @@ result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_ba
         break;
     }
 
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = element;
@@ -872,12 +872,12 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
         exlib::string wrappedContent = "<root>" + html + "</root>";
         obj_ptr<XmlDocument> doc = new XmlDocument(true);
         hr = doc->load(wrappedContent);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         obj_ptr<XmlElement_base> docElement;
         hr = doc->get_documentElement(docElement);
-        if (hr < 0 || !docElement)
+        if (hr.failed() || !docElement)
             return hr;
 
         // Track the reference node for afterend position
@@ -908,23 +908,23 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
                 if (!m_parent)
                     continue;
                 hr = m_parent->m_childs->insertAfter(node, refNode, result);
-                if (hr >= 0)
+                if (hr.ok())
                     refNode = node;
                 break;
             }
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     } else {
         // For HTML documents, parse as HTML
         obj_ptr<XmlDocument> doc = new XmlDocument(false);
         hr = doc->load(html);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         obj_ptr<XmlElement_base> body;
         hr = doc->get_body(body);
-        if (hr < 0 || !body)
+        if (hr.failed() || !body)
             return hr;
 
         // Track the reference node for afterend position
@@ -955,11 +955,11 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
                 if (!m_parent)
                     continue;
                 hr = m_parent->m_childs->insertAfter(node, refNode, result);
-                if (hr >= 0)
+                if (hr.ok())
                     refNode = node;
                 break;
             }
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
     }
@@ -1017,19 +1017,19 @@ result_t XmlElement::toggleAttribute(exlib::string name, bool& retVal)
 
     bool has;
     result_t hr = hasAttribute(name, has);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (has) {
         // Attribute exists - remove it
         hr = removeAttribute(name);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         retVal = false;
     } else {
         // Attribute does not exist - add it with empty value
         hr = setAttribute(name, "");
-        if (hr < 0)
+        if (hr.failed())
             return hr;
         retVal = true;
     }
@@ -1045,14 +1045,14 @@ result_t XmlElement::toggleAttribute(exlib::string name, bool force, bool& retVa
 
     bool has;
     result_t hr = hasAttribute(name, has);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (force) {
         // force is true - ensure attribute exists
         if (!has) {
             hr = setAttribute(name, "");
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
         retVal = true;
@@ -1060,7 +1060,7 @@ result_t XmlElement::toggleAttribute(exlib::string name, bool force, bool& retVa
         // force is false - ensure attribute does not exist
         if (has) {
             hr = removeAttribute(name);
-            if (hr < 0)
+            if (hr.failed())
                 return hr;
         }
         retVal = false;

@@ -219,21 +219,21 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
 
         obj_ptr<generateKeyPairParam> param;
         hr = generateKeyPairParam::load(options, param);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[0] = param;
 
         obj_ptr<keyEncodingParam> publicKeyEncodingParam;
         hr = keyEncodingParam::load(options, "publicKeyEncoding", publicKeyEncodingParam);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[1] = publicKeyEncodingParam;
 
         obj_ptr<keyEncodingParam> privateKeyEncodingParam;
         hr = keyEncodingParam::load(options, "privateKeyEncoding", privateKeyEncodingParam);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[2] = privateKeyEncodingParam;
@@ -251,20 +251,20 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
 
     obj_ptr<KeyObject> privaterKey = new KeyObject();
     result_t hr = privaterKey->generateKey(type, param);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<KeyObject_base> publicKey;
     obj_ptr<KeyObject_base> privateKeyBase = privaterKey;
     hr = createPublicKey(Union_createPublicKey_key(privateKeyBase), publicKey);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     obj_ptr<keyEncodingParam> publicKeyEncodingParam = (keyEncodingParam*)ac.ctxv()[1].object();
     if (publicKeyEncodingParam) {
         Variant v;
         hr = publicKey.As<KeyObject>()->ExportKey(publicKeyEncodingParam, v);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal->publicKey = v;
@@ -275,7 +275,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     if (privateKeyEncodingParam) {
         Variant v;
         hr = privaterKey->ExportKey(privateKeyEncodingParam, v);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         retVal->privateKey = v;

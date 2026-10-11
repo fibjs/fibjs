@@ -31,7 +31,7 @@
  *   needs V8 or the current isolate even when built directly). Call sites read:
  *
  *       result_t hr = xxx_from_union(v, out, ac);
- *       if (hr < 0)
+ *       if (hr.failed())
  *           return hr;   // CALL_E_NOSYNC family -> hand off; other codes -> error
  *
  *   The exception is `filehandle_from_union`: both alternatives are C++-safe
@@ -98,7 +98,7 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
             else
                 return Handler_base::_new(value, retVal);
         }, hdlr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (retVal != NULL) {
@@ -219,7 +219,7 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
             else
                 return CALL_E_TYPEMISMATCH;
         }, v);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         if (retVal != NULL) {

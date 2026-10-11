@@ -41,13 +41,13 @@ result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
     result_t hr;
 
     hr = GetConfigValue(options, "entryTypes", entryTypes, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     if (entryTypes.empty()) {
         exlib::string type;
         hr = GetConfigValue(options, "type", type, true);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         entryTypes.push_back(type);
@@ -204,7 +204,7 @@ result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> option
 
     double _now = perf_now();
     hr = GetConfigValue(options, "startTime", _now, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     v8::Local<v8::Value> detail;
@@ -282,7 +282,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     exlib::string startMark;
     v8::Local<v8::Value> start;
     hr = GetConfigValue(options, "start", start);
-    if (hr >= 0) {
+    if (hr.ok()) {
         if (start->IsString()) {
             GetArgumentValue(isolate, start, startMark, true);
         } else if (start->IsNumber()) {
@@ -293,19 +293,19 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
 
     double durationTime = 0;
     hr = GetConfigValue(options, "duration", durationTime, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     double endTime;
     exlib::string endMark;
-    if (hr >= 0) {
+    if (hr.ok()) {
         endTime = startTime + durationTime;
         if (options->Has(isolate->context(), isolate->NewString("end")).FromMaybe(false))
             return Runtime::setError("end must not be specified when duration is specified");
     } else {
         v8::Local<v8::Value> end;
         hr = GetConfigValue(options, "end", end);
-        if (hr >= 0) {
+        if (hr.ok()) {
             if (end->IsString()) {
                 GetArgumentValue(isolate, end, endMark, true);
                 if (endMark.empty())

@@ -71,7 +71,7 @@ exlib::string WebView::internal_getUrl()
 result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::wstring wurl = utf8to16String(url);
@@ -84,7 +84,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = internal_getUrl();
@@ -95,7 +95,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::wstring whtml = utf8to16String(html);
@@ -108,7 +108,7 @@ result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // The WebView2 callback outlives this frame: the continuation travels in a
@@ -143,7 +143,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
     }
 
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = !m_isLoading;
@@ -154,7 +154,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ((ICoreWebView2*)m_webview)->Reload();
@@ -165,7 +165,7 @@ result_t WebView::reload(AsyncHandle ac)
 result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ((ICoreWebView2*)m_webview)->GoBack();
@@ -176,7 +176,7 @@ result_t WebView::goBack(AsyncHandle ac)
 result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     ((ICoreWebView2*)m_webview)->GoForward();
@@ -222,7 +222,7 @@ void json2Variant(nlohmann::json& json, Variant& retVal)
 result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     encoding_base::jsstr(code, false, code);
@@ -273,7 +273,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::wstring wtitle = utf8to16String(title);
@@ -285,7 +285,7 @@ result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     wchar_t wtitle[256];
@@ -298,7 +298,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = IsWindowVisible((HWND)m_window);
@@ -309,7 +309,7 @@ result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (!IsWindowVisible((HWND)m_window)) {
@@ -325,7 +325,7 @@ result_t WebView::show(AsyncHandle ac)
 result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (IsWindowVisible((HWND)m_window)) {
@@ -340,7 +340,7 @@ extern int dpix, dpiy;
 result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     SetWindowPos((HWND)m_window, nullptr, 0, 0, width * dpix / 96, height * dpiy / 96, SWP_NOZORDER | SWP_NOMOVE);
@@ -351,7 +351,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     RECT rect;
@@ -367,7 +367,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     SetWindowPos((HWND)m_window, nullptr, left * dpix / 96, top * dpiy / 96, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
@@ -378,7 +378,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     RECT rect;
@@ -394,7 +394,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     HWND hwnd = (HWND)m_window;
@@ -406,7 +406,7 @@ result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     HWND hwnd = (HWND)m_window;
@@ -418,7 +418,7 @@ result_t WebView::active(AsyncHandle ac)
 result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // The WebView2 callback outlives this frame: the continuation travels in a
@@ -467,7 +467,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_options->hideOnClose = false;
@@ -479,7 +479,7 @@ result_t WebView::close(AsyncHandle ac)
 result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     encoding_base::jsstr(msg, false, msg);

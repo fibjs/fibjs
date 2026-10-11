@@ -31,7 +31,7 @@ result_t crypto_base::createCertificateRequest(Union_createCertificateRequest_cs
         obj_ptr<Buffer_base> buf;
 
         hr = Buffer_base::from(std::get<exlib::string>(csr), "utf8", buf);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         hr = csr_->load_csr(buf);
@@ -72,7 +72,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
 
     obj_ptr<KeyObject_base> key_;
     hr = crypto_base::createPrivateKey(options, key_);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     key = key_.As<KeyObject>();
 
@@ -93,12 +93,12 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
             if (X509_NAME_add_entry_by_txt(name, key_.c_str(), MBSTRING_ASC, (unsigned char*)value_.c_str(), -1, -1, 0) != 1)
                 return openssl_error();
         }
-    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (!hr.is(CALL_E_PARAMNOTOPTIONAL))
         return Runtime::setError("subject must be object");
 
     exlib::string hashAlgorithm = EVP_PKEY_id(key->pkey()) == EVP_PKEY_SM2 ? "sm3" : "sha256";
     hr = GetConfigValue(options, "hashAlgorithm", hashAlgorithm, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     md_ = _evp_md_type(hashAlgorithm.c_str());
@@ -114,7 +114,7 @@ result_t X509CertificateRequest::create(v8::Local<v8::Object> options)
     X509NamePointer name;
     const EVP_MD* md;
     result_t hr = get_opt(options, "subject", key, name, md);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     X509ReqPointer csr = X509_REQ_new();
@@ -263,9 +263,9 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
     result_t hr;
 
     hr = GetConfigValue(options, key, list, true);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL))
         return 0;
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string str;
@@ -306,7 +306,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
     X509NamePointer name;
     const EVP_MD* md;
     result_t hr = get_opt(options, "issuer", key, name, md);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     X509Pointer cert = X509_new();
@@ -334,7 +334,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
         date_t validFrom;
         validFrom.now();
         hr = GetConfigValue(options, "validFrom", validFrom, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         time_t tm = validFrom.date() / 1000;
@@ -343,17 +343,17 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
         date_t validTo;
         hr = GetConfigValue(options, "validTo", validTo, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
-        if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (!hr.is(CALL_E_PARAMNOTOPTIONAL)) {
             tm = validTo.date() / 1000;
             if (X509_time_adj(xi->validity.notAfter, 0, &tm) == NULL)
                 return openssl_error();
         } else {
             int32_t days = 100;
             hr = GetConfigValue(options, "days", days, true);
-            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
                 return hr;
 
             if (X509_time_adj(xi->validity.notAfter, (long)60 * 60 * 24 * days, &tm) == NULL)
@@ -366,7 +366,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
         bool ca = false;
         hr = GetConfigValue(options, "ca", ca, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
         if (ca)
             basic_constraints.append(", CA:TRUE");
@@ -375,7 +375,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
         int32_t pathlen = -1;
         hr = GetConfigValue(options, "pathlen", pathlen, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
         if (pathlen >= 0) {
             char buf[64];
@@ -393,11 +393,11 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
     }
 
     hr = fill_option(cert, options, "keyUsage", NID_key_usage, xfKeyUsages);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     hr = fill_option(cert, options, "type", NID_netscape_cert_type, xfCertTypes);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     {

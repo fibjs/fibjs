@@ -246,13 +246,13 @@ public:
                 m_bStarted = true;
 
             hr = fs_base::cc_exists(m_target, existed, holder());
-            if (hr < 0)
+            if (hr.failed())
                 return;
 
             if (existed) {
                 obj_ptr<Stat_base> fileStat;
                 hr = fs_base::cc_stat(m_target, fileStat, holder());
-                if (hr < 0)
+                if (hr.failed())
                     return;
 
                 prev = cur;

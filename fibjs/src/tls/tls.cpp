@@ -162,7 +162,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
     obj_ptr<Url> u = new Url();
 
     result_t hr = u->parse(url);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     exlib::string port = u->port();
@@ -188,7 +188,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
         obj_ptr<SecureContext_base> ctx;
         result_t hr = createSecureContext(options, false, ctx);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
@@ -203,7 +203,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         ac.ctxv()[1] = timeout;
@@ -250,7 +250,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
 
         obj_ptr<SecureContext_base> ctx;
         result_t hr = createSecureContext(options, false, ctx);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
@@ -265,7 +265,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
 
         int32_t timeout = 0;
         hr = GetConfigValue(options, "timeout", timeout);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
             return hr;
 
         ac.ctxv()[1] = timeout;
@@ -297,7 +297,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
         obj_ptr<SecureContext_base> ctx;
         result_t hr = tls_base::createSecureContext(options, false, ctx);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         obj_ptr<TLSSocket> ssl_sock = new TLSSocket();
@@ -312,7 +312,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
         obj_ptr<ConnectOptions> opts;
         hr = ConnectOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv()[1] = opts;
@@ -352,7 +352,7 @@ result_t tls_base::createServer(Union_createServer_options options, Union_create
 {
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(listener, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (std::holds_alternative<obj_ptr<SecureContext_base>>(options))
@@ -360,7 +360,7 @@ result_t tls_base::createServer(Union_createServer_options options, Union_create
 
     obj_ptr<SecureContext_base> ctx;
     hr = tls_base::createSecureContext(std::get<v8::Local<v8::Object>>(options), true, ctx);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
     return TLSServer_base::_new(ctx, handler, retVal);
 }

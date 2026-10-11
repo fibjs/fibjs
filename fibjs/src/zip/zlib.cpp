@@ -20,7 +20,7 @@ static result_t parse_level_option(v8::Local<v8::Object> options, AsyncHandle ac
 {
     int32_t level = zlib_base::C_DEFAULT_COMPRESSION;
     result_t hr = GetConfigValue(options, "level", level, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     ac.ctxv().resize(1);
@@ -33,7 +33,7 @@ static result_t parse_max_output_option(v8::Local<v8::Object> options, AsyncHand
 {
     int32_t maxOutputLength = -1;
     result_t hr = GetConfigValue(options, "maxOutputLength", maxOutputLength, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
     ac.ctxv().resize(1);
@@ -66,7 +66,7 @@ static result_t process_to(DataVariant& data, Stream_base* stm, int32_t param, A
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     return (new StreamT(stm, param))->process(buf, std::move(ac));
@@ -120,7 +120,7 @@ result_t zlib_base::deflate(Union_deflate_data data, Union_deflate_level level, 
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t lv;
@@ -157,7 +157,7 @@ result_t zlib_base::inflate(Union_inflate_data data, Union_inflate_maxSize maxSi
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t ms;
@@ -192,7 +192,7 @@ result_t zlib_base::gzip(Union_gzip_data data, v8::Local<v8::Object> options, ob
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // the compile-cache entry (cc_gzip) runs the async phase without the sync
@@ -222,7 +222,7 @@ result_t zlib_base::gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize,
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t ms;
@@ -260,7 +260,7 @@ result_t zlib_base::deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_leve
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t lv;
@@ -299,7 +299,7 @@ result_t zlib_base::inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxS
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t ms;
@@ -349,7 +349,7 @@ result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buff
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t lv;
@@ -388,7 +388,7 @@ result_t zlib_base::unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, ob
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     int32_t ms;

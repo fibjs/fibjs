@@ -35,11 +35,11 @@ result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
     file->m_name = name;
 
     result_t hr = GetConfigValue(options, "lastModified", file->m_lastModified, true);
-    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         date_t d;
         d.now();
         file->m_lastModified = d.date();
-    } else if (hr < 0) {
+    } else if (hr.failed()) {
         return hr;
     }
 
@@ -68,12 +68,12 @@ result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retV
     exlib::string name;
 
     hr = GetConfigValue(options, "data", blobData);
-    if (hr < 0) {
+    if (hr.failed()) {
         return hr;
     }
 
     hr = GetConfigValue(options, "name", name, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL) {
+    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL)) {
         return hr;
     }
 
@@ -98,7 +98,7 @@ result_t BlobImpl::clone(BlobImpl& retVal)
 
     obj_ptr<Buffer_base> slicedBuffer;
     result_t hr = m_buffer.As<Buffer>()->subarray(0, bufferSize, slicedBuffer);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal.m_buffer = slicedBuffer;
@@ -118,7 +118,7 @@ result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, 
     // Use Buffer's subarray which handles all edge cases
     obj_ptr<Buffer_base> slicedBuffer;
     result_t hr = m_buffer.As<Buffer>()->subarray(start, end, slicedBuffer);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // Create new blob using same pattern as in _new function
@@ -219,7 +219,7 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
 
             if (!buffer) {
                 hr = GetArgumentValue(isolate, part, buffer);
-                if (hr < 0 && hr != CALL_E_TYPEMISMATCH) {
+                if (hr.failed() && !hr.is(CALL_E_TYPEMISMATCH)) {
                     return hr;
                 }
             }
@@ -231,11 +231,11 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
                 exlib::string partStr;
 
                 hr = GetDOMStringValue(part, partStr);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
 
                 hr = Buffer_base::from(partStr, "utf8", buffer);
-                if (hr < 0)
+                if (hr.failed())
                     return hr;
             }
 

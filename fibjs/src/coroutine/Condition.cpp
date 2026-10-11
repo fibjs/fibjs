@@ -53,7 +53,7 @@ result_t Condition::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
 result_t Condition::notify()
 {
     result_t hr = m_lockCond->release();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_cond.notify_one();
@@ -64,7 +64,7 @@ result_t Condition::notify()
 result_t Condition::notifyAll()
 {
     result_t hr = m_lockCond->release();
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_cond.notify_all();

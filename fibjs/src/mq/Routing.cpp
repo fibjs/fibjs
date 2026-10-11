@@ -247,7 +247,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
         obj_ptr<Routing_base> r;
 
         hr = GetArgumentValue(isolate, v, hdlr);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         append(method, isolate->toString(k), hdlr, r);
@@ -407,7 +407,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Union_appe
 
     obj_ptr<Handler_base> handler;
     result_t hr = handler_from_union(hdlr, handler);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (pattern.length() > 0 && pattern[0] != '^') {

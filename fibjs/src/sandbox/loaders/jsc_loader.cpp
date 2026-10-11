@@ -27,7 +27,7 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
 
     obj_ptr<Buffer_base> unz;
     hr = zlib_base::cc_gunzip(src, -1, unz);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     Isolate* isolate = ctx->m_sb->holder();
