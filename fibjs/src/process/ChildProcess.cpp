@@ -915,7 +915,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
 #ifdef _WIN32
     // Call resize function with process handle on Windows
     int result = pty_resize(&m_process, cols, rows);
-    return result == 0 ? 0 : CHECK_ERROR(Runtime::setError("resize failed"));
+    return result == 0 ? result_t(0) : CHECK_ERROR(Runtime::setError("resize failed"));
 #else
     // On POSIX systems, call ioctl directly
     struct winsize winsize;
