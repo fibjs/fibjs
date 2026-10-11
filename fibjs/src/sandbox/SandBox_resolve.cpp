@@ -859,7 +859,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 base = fname;
 
                 hr = resolveFile(fname, id, data, type, id, &retVal);
-                if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND))
+                if (!hr.is_not_found())
                     return hr;
 
                 path_base::dirname(base, fname);
@@ -917,7 +917,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 appendPath(fname, module_name);
 
                 hr = resolveFile(fname, script_name, data, type, id, &retVal);
-                if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND))
+                if (!hr.is_not_found())
                     return hr;
 
                 path_base::dirname(base, fname);
@@ -990,7 +990,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         }
 
         hr = resolveId(id, retVal);
-        if (!hr.is(CALL_E_FILE_NOT_FOUND) && !hr.is(CALL_E_PATH_NOT_FOUND)) {
+        if (!hr.is_not_found()) {
             // Check for pendding promise if module is being loaded
             if (pendding && !IsEmpty(retVal)) {
                 v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));

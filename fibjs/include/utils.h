@@ -306,6 +306,28 @@ public:
     {
         return code == CALL_E_PARAMNOTOPTIONAL;
     }
+
+    // The "no such file" family: on POSIX both macros are -ENOENT, on Windows
+    // they are distinct codes, so the family is their union. A check for one
+    // of the two codes must stay `is(CALL_E_...)`: using this predicate there
+    // would accept the other code as well on Windows.
+    bool is_not_found() const
+    {
+        return code == CALL_E_FILE_NOT_FOUND || code == CALL_E_PATH_NOT_FOUND;
+    }
+
+    // The value could not be converted to the type the API asked for.
+    bool is_type_mismatch() const
+    {
+        return code == CALL_E_TYPEMISMATCH;
+    }
+
+    // The input parameter is not a valid type: the inner collection / variant
+    // conversions report this and the callers remap it to a type error.
+    bool is_bad_var_type() const
+    {
+        return code == CALL_E_BADVARTYPE;
+    }
 };
 
 // P1 keeps the 4-byte layout so the calling convention (and the addon ABI)
@@ -468,7 +490,7 @@ enum {
     }                                                                                                           \
     while (0)                                                                                                   \
         ;                                                                                                       \
-    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is_param_missing() && !hr.is(CALL_E_TYPEMISMATCH)    \
+    if (!bStrict || (!hr.is(CALL_E_BADPARAMCOUNT) && !hr.is_param_missing() && !hr.is_type_mismatch()    \
             && hr_argc != CALL_E_BADPARAMCOUNT && hr_argc != CALL_E_PARAMNOTOPTIONAL))                          \
         break;                                                                                                  \
     bStrict = false;                                                                                            \

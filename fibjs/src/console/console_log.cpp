@@ -186,12 +186,12 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
         exlib::string s;
 
         hr = GetArgumentValue(isolate, v, s, true);
-        if (!hr.is(CALL_E_TYPEMISMATCH))
+        if (!hr.is_type_mismatch())
             hr = console_base::add(s);
         else {
             v8::Local<v8::Object> o;
             hr = GetArgumentValue(isolate, v, o, true);
-            if (!hr.is(CALL_E_TYPEMISMATCH))
+            if (!hr.is_type_mismatch())
                 hr = console_base::add(o);
             else
                 return CALL_E_TYPEMISMATCH;

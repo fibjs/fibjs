@@ -22,7 +22,7 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
     if (hr == 0)
         return 0;
 
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is(CALL_E_TYPEMISMATCH))
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is_type_mismatch())
         return Runtime::setError(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
     if (!js_obj_has_value(options, context, name))
