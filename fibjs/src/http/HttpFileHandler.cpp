@@ -385,7 +385,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return next(CALL_RETURN_NULL);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (at(start)) {
                 if (m_index) {

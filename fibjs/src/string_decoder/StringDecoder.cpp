@@ -321,7 +321,7 @@ result_t StringDecoder::simpleWrite(Buffer_base* buf, exlib::string& retVal)
 result_t StringDecoder::defaultWrite(Buffer_base* buf, exlib::string& retVal)
 {
     int32_t bufLen = Buffer::Cast(buf)->length();
-    int32_t hr = 0;
+    result_t hr = 0;
     int32_t i;
     exlib::string r = "";
 

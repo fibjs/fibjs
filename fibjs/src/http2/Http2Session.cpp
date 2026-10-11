@@ -472,7 +472,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             return next(CALL_RETURN_NULL);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             // Drain entire queue on error
             m_session->m_write_spinlock.lock();
@@ -639,7 +639,7 @@ void Http2Session::startLoops()
             return next(read);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             m_session->m_destroyed = true;
             m_session->m_close_event.set();
@@ -1041,7 +1041,7 @@ result_t Http2Session::close(AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             // Ignore write errors during close (e.g. broken pipe if the
             // remote side already closed the connection).

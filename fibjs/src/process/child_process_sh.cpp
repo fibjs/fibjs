@@ -50,7 +50,7 @@ public:
         return s;
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         if (m_exec_retVal->exitCode) {
             m_ac.post(Runtime::setError(process_output(m_exec_retVal->stderr, is_win32)));

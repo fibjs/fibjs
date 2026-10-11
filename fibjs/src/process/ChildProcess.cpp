@@ -748,7 +748,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
             setAsync();
         }
 
-        virtual int32_t post(int32_t v)
+        virtual result_t post(result_t v)
         {
             m_this->get_exitCode(m_retVal);
 

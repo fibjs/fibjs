@@ -209,7 +209,7 @@ AsyncCallBack::~AsyncCallBack()
     m_async_ctx.Reset();
 }
 
-int32_t AsyncCallBack::post(int32_t v)
+result_t AsyncCallBack::post(result_t v)
 {
     if (m_pThis)
         m_pThis->leave(this);
@@ -393,7 +393,7 @@ int AsyncCallBack::syncFunc()
     return 0;
 }
 
-int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v8::Value>& args)
+result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     if (m_is_promise) {
         v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();

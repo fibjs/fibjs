@@ -2254,7 +2254,7 @@ public:
         {
         }
 
-        int32_t post(int32_t hr) override
+        result_t post(result_t hr) override
         {
             if (hr < 0) {
                 m_parent->m_ac.apost(hr);
@@ -2955,7 +2955,7 @@ public:
         {
         }
 
-        int32_t post(int32_t hr) override
+        result_t post(result_t hr) override
         {
             if (hr < 0) {
                 m_parent->m_ac.apost(hr);

@@ -1207,7 +1207,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             return m_req->sendTo(m_conn, v8::Local<v8::Object>(), next(recv));
         }
 
-        int32_t error(int32_t v)
+        result_t error(result_t v)
         {
             // A server may answer and close before the request body is fully
             // uploaded (a 4xx body limit, an auth rejection): the pending body
@@ -2202,7 +2202,7 @@ public:
         return next(prepare);
     }
 
-    virtual int32_t error(int32_t v)
+    virtual result_t error(result_t v)
     {
         if (can_retry_transport_error(v) && m_reuse && (at(ssl_connect) || at(connected))) {
             m_reuse = false;
@@ -2363,7 +2363,7 @@ public:
         return !qstricmp(method.c_str(), "GET");
     }
 
-    int32_t complete()
+    result_t complete()
     {
         // Clear request-phase abort callbacks but keep the timer alive,
         // so AbortSignal.timeout() can still fire during body consumption.
@@ -2457,7 +2457,7 @@ public:
         isolate->Ref();
     }
 
-    virtual int32_t post(int32_t v) override
+    virtual result_t post(result_t v) override
     {
         m_isolate->Unref();
         delete this;
@@ -3183,7 +3183,7 @@ public:
         init(do_request);
     }
 
-    virtual int32_t error(int32_t v) override
+    virtual result_t error(result_t v) override
     {
         // Per Fetch spec, network errors are TypeErrors; an abort however keeps
         // its AbortError/TimeoutError DOMException. Note that

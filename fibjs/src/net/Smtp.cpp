@@ -67,7 +67,7 @@ public:
         return m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, this);
     }
 
-    virtual int32_t recv_ok()
+    virtual result_t recv_ok()
     {
         return next();
     }
@@ -184,7 +184,7 @@ result_t Smtp::connect(exlib::string url, AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t recv_ok()
+        virtual result_t recv_ok()
         {
             if (m_u->protocol() == "ssl:") {
                 m_pThis->m_tls = true;
@@ -194,7 +194,7 @@ result_t Smtp::connect(exlib::string url, AsyncHandle ac)
             return next(m_tls ? ssl_handshake : starttls);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (at(recv) && m_tls)
                 return next();
@@ -293,7 +293,7 @@ result_t Smtp::hello(exlib::string hostname, AsyncHandle ac)
             return next(hello);
         }
 
-        virtual int32_t recv_ok()
+        virtual result_t recv_ok()
         {
             switch (step) {
             case 0:
@@ -308,7 +308,7 @@ result_t Smtp::hello(exlib::string hostname, AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (at(recv) && step == 1)
                 return next();
@@ -376,7 +376,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             return send_base64(m_password);
         }
 
-        virtual int32_t recv_ok()
+        virtual result_t recv_ok()
         {
             switch (step) {
             case 0:
@@ -458,7 +458,7 @@ result_t Smtp::data(exlib::string txt, AsyncHandle ac)
             return m_stmBuffered->writeBuffer(buf, next(ok));
         }
 
-        virtual int32_t recv_ok()
+        virtual result_t recv_ok()
         {
             switch (step) {
             case 0:

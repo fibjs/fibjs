@@ -321,7 +321,7 @@ public:
     bool h2_acquire(exlib::string url,
         obj_ptr<Http2Session>* retSession,
         obj_ptr<Stream_base>* retConn,
-        AsyncState* machine, int32_t (*wait_fn)(AsyncState*, int32_t))
+        AsyncState* machine, result_t (*wait_fn)(AsyncState*, result_t))
     {
         s_h2_pending_lock.lock();
         auto it = s_h2_pending.find(url);
@@ -360,7 +360,7 @@ public:
     }
 
     // Leader calls this on failure. Propagates error to all queued waiters.
-    void h2_fail(exlib::string url, int32_t hr)
+    void h2_fail(exlib::string url, result_t hr)
     {
         H2PendingEntry* entry = nullptr;
 

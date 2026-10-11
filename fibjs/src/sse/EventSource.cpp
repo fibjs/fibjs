@@ -231,7 +231,7 @@ public:
         return m_sse_stm->readLine(4096, strLine, next(read_message));
     }
 
-    virtual int32_t error(int32_t v)
+    virtual result_t error(result_t v)
     {
         // 用户主动 close() 时（readyState 已置 CLOSED），关闭 socket 会让正在 readLine
         // 的读循环以错误收尾 —— 那不是连接故障，不该报 error 事件，否则"正常关闭"
@@ -348,7 +348,7 @@ public:
     // 认领后转发。票据自身由持有它的 AsyncHandle 拥有：投递后由 handle 释放，
     // 未投递则在 handle 弃置时释放 —— 所以这里不再自删，也不再需要 apost
     // （需要跨上下文投递时由外层 handle 的池任务完成，见 §2.6）。
-    virtual int32_t post(int32_t v) override
+    virtual result_t post(result_t v) override
     {
         if (m_claimed.xchg(1) == 0)
             m_target.post(v);
@@ -411,7 +411,7 @@ result_t EventSource::close(AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             // 对端已消失时终止分块写不出去，但关闭本身已经完成：按成功收尾，让
             // close() 正常返回、挂着的请求正常收尾（见 is_connection_gone）。

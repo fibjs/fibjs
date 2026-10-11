@@ -254,7 +254,7 @@ private:
     obj_ptr<ZipFile_base> m_zfile;
     std::vector<obj_ptr<ZipFile_base::ReadAllType>> m_list;
     date_t m_now;
-    int32_t (*m_after_open)(AsyncState*, int32_t) = nullptr;
+    result_t (*m_after_open)(AsyncState*, result_t) = nullptr;
 };
 
 static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)

@@ -108,13 +108,13 @@ public:
     AsyncStreamResume(const AsyncStreamResume&) = delete;
     AsyncStreamResume& operator=(const AsyncStreamResume&) = delete;
 
-    void commit(int32_t v)
+    void commit(result_t v)
     {
         finish(v, true);
     }
 
 private:
-    void finish(int32_t v, bool do_post)
+    void finish(result_t v, bool do_post)
     {
         if (!m_ev)
             return;
@@ -323,7 +323,7 @@ public:
         return CALL_E_PENDDING;
     }
 
-    virtual int32_t error(int32_t v)
+    virtual result_t error(result_t v)
     {
         if (m_isolate->is_terminating()) {
             m_base->m_readEnded = true;
@@ -913,7 +913,7 @@ public:
             return next(doWrite);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_ac) {
                 Event_base::getInstance(m_ac.ctxv()[2].object())->wait(this);

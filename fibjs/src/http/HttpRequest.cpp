@@ -666,7 +666,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t error(int32_t hr) override
+        virtual result_t error(result_t hr) override
         {
             if (m_ac)
                 m_ac.post(hr);
@@ -713,7 +713,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
             return next();
         }
 
-        virtual int32_t error(int32_t hr) override
+        virtual result_t error(result_t hr) override
         {
             if (m_ac)
                 m_ac.post(hr);
@@ -762,7 +762,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
             return next();
         }
 
-        virtual int32_t error(int32_t hr) override
+        virtual result_t error(result_t hr) override
         {
             if (m_ac)
                 m_ac.post(hr);
@@ -812,7 +812,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
             return next();
         }
 
-        virtual int32_t error(int32_t hr) override
+        virtual result_t error(result_t hr) override
         {
             if (m_ac)
                 m_ac.post(hr);

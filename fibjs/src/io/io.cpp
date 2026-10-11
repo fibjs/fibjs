@@ -65,7 +65,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             return m_to->writeBuffer(m_buf, next(read));
         }
 
-        int32_t error(int32_t v) override
+        result_t error(result_t v) override
         {
             // A closed stream - or any other non-I/O end of the copy - surfaces
             // as an internal code. Those are normal ends of the operation and
@@ -152,7 +152,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
                 return error(0);
             }
 
-            virtual int32_t error(int32_t v)
+            virtual result_t error(result_t v)
             {
                 if (m_data->m_states[m_from].xchg(BRIDGE_DONE) == BRIDGE_READ) {
                     m_data->m_states[m_to].xchg(BRIDGE_DONE);

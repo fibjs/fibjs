@@ -66,7 +66,7 @@ public:
     {
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         return 0;
     }
@@ -119,7 +119,7 @@ public:
     }
 
 protected:
-    void captureErrorContext(int32_t v)
+    void captureErrorContext(result_t v)
     {
         // Success path: nothing to carry. The slot stays empty instead of
         // constructing an empty payload, and an event that never failed never
@@ -421,7 +421,7 @@ public:
         return kAsyncCall;
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
@@ -436,7 +436,7 @@ public:
         return 0;
     }
 
-    int32_t check_result(int32_t hr)
+    result_t check_result(result_t hr)
     {
         if (hr == CALL_E_NOSYNC) {
             Isolate::LeaveJsScope _rt(m_isolate);
@@ -476,7 +476,7 @@ private:
     exlib::string m_error;
     result_t m_error_code = 0;
     exlib::string m_error_type_name;
-    int32_t m_v;
+    result_t m_v;
 };
 
 class CAsyncCall : public AsyncEvent {
@@ -492,7 +492,7 @@ public:
         return kCAsyncCall;
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
@@ -507,7 +507,7 @@ public:
         return 0;
     }
 
-    int32_t check_result(int32_t hr)
+    result_t check_result(result_t hr)
     {
         if (hr == CALL_E_NOSYNC)
             invoke();
@@ -533,7 +533,7 @@ private:
     exlib::string m_error;
     result_t m_error_code = 0;
     exlib::string m_error_type_name;
-    int32_t m_v;
+    result_t m_v;
 };
 
 class AsyncState : public AsyncEvent {
@@ -565,7 +565,7 @@ public:
 public:
     class ASResult {
     public:
-        ASResult(AsyncEvent* as, int32_t r)
+        ASResult(AsyncEvent* as, result_t r)
             : m_as(as)
             , m_r(r)
         {
@@ -597,31 +597,35 @@ public:
             return AsyncHandle(m_as);
         }
 
-        operator int32_t() const
+        // The verdict as the protocol return type: the code the machine
+        // stopped with (0 = accepted / completed synchronously). There is
+        // deliberately no int32_t conversion: the propagation channel must not
+        // be compressed back (varargs users write (int32_t) explicitly).
+        operator result_t() const
         {
             return m_r;
         }
 
     private:
         AsyncEvent* m_as;
-        int32_t m_r;
+        result_t m_r;
     };
 
 public:
-    ASResult next(int32_t (*fn)(AsyncState*, int32_t), int32_t r = 0)
+    ASResult next(result_t (*fn)(AsyncState*, result_t), result_t r = 0)
     {
         m_next = fn;
         return issue(r);
     }
 
-    ASResult next(int32_t r = 0)
+    ASResult next(result_t r = 0)
     {
         m_next = NULL;
         return issue(r);
     }
 
 private:
-    ASResult issue(int32_t r)
+    ASResult issue(result_t r)
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：发票。next() 只在机器已被派发（处于处理态）后使用：
@@ -635,7 +639,7 @@ private:
     }
 
 public:
-    bool at(int32_t (*fn)(AsyncState*, int32_t))
+    bool at(result_t (*fn)(AsyncState*, result_t))
     {
         return m_state == fn;
     }
@@ -643,7 +647,7 @@ public:
 public:
     // 设定状态机的入口状态（仅构造期、首次派发前使用）。
     // 与 next() 的区别：只声明“首次进入时执行的状态函数”，不发票、不发布代理。
-    void init(int32_t (*fn)(AsyncState*, int32_t))
+    void init(result_t (*fn)(AsyncState*, result_t))
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         if (m_epoch.load(std::memory_order_relaxed) != 0)
@@ -653,7 +657,15 @@ public:
     }
 
 public:
-    virtual int32_t post(int32_t v)
+    // Dispatch a value into the machine. The return is the *verdict*:
+    //   0        the value was accepted (a synchronous state may have run to
+    //            its end; nothing to report);
+    //   negative the machine stopped with that code - the driver delivers it
+    //            to the continuation (see post_(): `hr = error(hr)` then
+    //            `m_ac.post(hr)`).
+    // The ticket `next()` hands back is not part of this contract: the driver
+    // already knows the machine, so the ASResult converts to its code here.
+    virtual result_t post(result_t v)
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：初始派发是唯一合法的直连 post —— 相位必须正好从 0 走到 1。
@@ -665,7 +677,7 @@ public:
     }
 
 protected:
-    int32_t post_(int32_t v)
+    result_t post_(result_t v)
     {
         result_t hr = v;
         bool bAsyncState = m_bAsyncState;
@@ -723,7 +735,7 @@ public:
     // 直接异步派发（非虚）：把机器作为池任务启动。与 AsyncHandle::apost（把
     // 一个 continuation 交给池投递）不同，这里处理的是 self-owned 机器的启动；
     // 仅供静态类型为 AsyncState 的创建点使用（(new asyncXxx(...))->apost(0)）。
-    void apost(int32_t v)
+    void apost(result_t v)
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         // 状态锁：初始派发（异步形态），同 post()。
@@ -733,13 +745,14 @@ public:
         apost_(v);
     }
 
-    virtual int32_t error(int32_t v)
+    // Dispatch a failure; the verdict contract is the same as post().
+    virtual result_t error(result_t v)
     {
         return v;
     }
 
 protected:
-    void apost_(int32_t v)
+    void apost_(result_t v)
     {
         m_bAsyncState = true;
         m_v = v;
@@ -763,9 +776,9 @@ public:
 private:
     AsyncHandle m_ac;
     bool m_bAsyncState;
-    int32_t m_v;
-    int32_t (*m_state)(AsyncState*, int32_t);
-    int32_t (*m_next)(AsyncState*, int32_t);
+    result_t m_v;
+    result_t (*m_state)(AsyncState*, result_t);
+    result_t (*m_next)(AsyncState*, result_t);
 
 #if defined(FIBJS_ASYNC_STATE_CHECK)
 public:
@@ -785,8 +798,8 @@ public:
         }
 
         // 非虚：票的异步回投（仅检测模式；常规投递走 post()）。
-        void apost(int32_t v);
-        virtual int32_t post(int32_t v) override;
+        void apost(result_t v);
+        virtual result_t post(result_t v) override;
 
         // 票被当作 Task_base 唤醒时（exlib::Locker 等待链等，见 TLSSocket/http2
         // 读锁交棒）必须与宿主机器的 resume 语义一致：AsyncState::resume() 就是
@@ -810,7 +823,7 @@ public:
         }
 
     private:
-        void deliver(int32_t v, bool async);
+        void deliver(result_t v, bool async);
 
     public:
         AsyncState* m_owner;               // 宿主机器（构造时写入，见 §2）
@@ -818,7 +831,7 @@ public:
     };
 
 private:
-    void state_lock_violation(const char* what, int32_t v, void* caller);
+    void state_lock_violation(const char* what, result_t v, void* caller);
 
     std::atomic<int32_t> m_epoch { 0 };
     Continuation m_cont { this };
@@ -826,7 +839,7 @@ private:
 };
 
 #if defined(FIBJS_ASYNC_STATE_CHECK)
-inline void AsyncState::Continuation::deliver(int32_t v, bool async)
+inline void AsyncState::Continuation::deliver(result_t v, bool async)
 {
     AsyncState* machine = m_owner;
 
@@ -840,23 +853,23 @@ inline void AsyncState::Continuation::deliver(int32_t v, bool async)
         machine->post_(v);
 }
 
-inline int32_t AsyncState::Continuation::post(int32_t v)
+inline result_t AsyncState::Continuation::post(result_t v)
 {
     deliver(v, false);
     return 0;
 }
 
-inline void AsyncState::Continuation::apost(int32_t v)
+inline void AsyncState::Continuation::apost(result_t v)
 {
     deliver(v, true);
 }
 
-inline void AsyncState::state_lock_violation(const char* what, int32_t v, void* caller)
+inline void AsyncState::state_lock_violation(const char* what, result_t v, void* caller)
 {
     fprintf(stderr, "\n[fibjs] AsyncState phase lock violation: %s\n", what);
     fprintf(stderr, "  machine=%p epoch=%d expect=%d state=%p next=%p value=%d caller=%p\n",
         (void*)this, m_epoch.load(std::memory_order_relaxed), m_cont.expect.load(),
-        (void*)m_state, (void*)m_next, v, caller);
+        (void*)m_state, (void*)m_next, (int32_t)v, caller);
     fprintf(stderr, "  violating stack:\n");
     ex_print_stack_trace();
     fflush(stderr);
@@ -864,12 +877,12 @@ inline void AsyncState::state_lock_violation(const char* what, int32_t v, void* 
 }
 #endif
 
-#define ON_STATE(cls, fn)                            \
-    static int32_t fn(AsyncState* pState, int32_t n) \
-    {                                                \
-        return ((cls*)pState)->_##fn(n);             \
-    }                                                \
-    int32_t _##fn(int32_t n)
+#define ON_STATE(cls, fn)                                 \
+    static result_t fn(AsyncState* pState, result_t n)    \
+    {                                                     \
+        return ((cls*)pState)->_##fn(n);                  \
+    }                                                     \
+    result_t _##fn(result_t n)
 
 void async(std::function<void(void)> func, int32_t mode = CALL_E_NOSYNC);
 
@@ -1091,7 +1104,7 @@ public:
     }
 
 public:
-    int32_t post_result(int32_t v)
+    result_t post_result(result_t v)
     {
         captureErrorContext(v);
         if (v == CALL_E_EXCEPTION) {
@@ -1108,7 +1121,7 @@ public:
         return 0;
     }
 
-    virtual int32_t post(int32_t v);
+    virtual result_t post(result_t v);
 
     virtual Isolate* isolate()
     {
@@ -1116,7 +1129,7 @@ public:
         return m_isolate;
     }
 
-    int32_t check_result(int32_t hr, const v8::FunctionCallbackInfo<v8::Value>& args);
+    result_t check_result(result_t hr, const v8::FunctionCallbackInfo<v8::Value>& args);
 
 protected:
     void fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_base* obj);
@@ -1154,6 +1167,6 @@ private:
     exlib::string m_error_type_name;
     v8::Global<v8::StackTrace> m_stack_trace;
     v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
-    int32_t m_v;
+    result_t m_v;
 };
 }

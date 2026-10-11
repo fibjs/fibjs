@@ -154,7 +154,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
             }
         }
 
-        int32_t setResult(int32_t hr = 0)
+        result_t setResult(int32_t hr = 0)
         {
             while (m_lists.size()) {
                 int32_t idx = (int32_t)m_lists.size() - 1;
@@ -255,7 +255,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
             return setResult();
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_subMode == 1)
                 m_pThis->_emit("suberror");

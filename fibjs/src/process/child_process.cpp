@@ -154,7 +154,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 m_stdin->writeBuffer(m_buf, this);
             }
 
-            virtual int32_t post(int32_t v)
+            virtual result_t post(result_t v)
             {
                 if (m_phase == 0) {
                     m_phase = 1;
@@ -248,7 +248,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             return v;
         }
 
-        virtual int32_t post(int32_t v)
+        virtual result_t post(result_t v)
         {
             if (m_cnt.dec() == 0) {
                 if (m_closeStdinOnFinish && m_stdin)
@@ -293,6 +293,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         obj_ptr<MemoryStream> m_buferr;
         int64_t m_szerr;
 
+        // the child's exit code (negative for a signal death), not a result_t
         int32_t m_status;
     };
 
@@ -446,7 +447,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 m_stdin->writeBuffer(m_buf, this);
             }
 
-            virtual int32_t post(int32_t v)
+            virtual result_t post(result_t v)
             {
                 if (m_phase == 0) {
                     m_phase = 1;
@@ -546,7 +547,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             return v;
         }
 
-        virtual int32_t post(int32_t v)
+        virtual result_t post(result_t v)
         {
             if (m_cnt.dec() == 0) {
                 if (m_closeStdinOnFinish && m_stdin)
@@ -604,6 +605,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         obj_ptr<MemoryStream> m_buferr;
         int64_t m_szerr;
 
+        // the child's exit code (negative for a signal death), not a result_t
         int32_t m_status;
     };
 
@@ -775,7 +777,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
             m_cp->join(m_status, this);
         }
 
-        virtual int32_t post(int32_t v)
+        virtual result_t post(result_t v)
         {
             m_cp->get_exitCode(m_retVal);
 
@@ -787,6 +789,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
 
     private:
         obj_ptr<ChildProcess_base> m_cp;
+        // the child's exit code (negative for a signal death), not a result_t
         int32_t m_status;
         int32_t& m_retVal;
         AsyncHandle m_ac;

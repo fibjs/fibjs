@@ -812,7 +812,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return m_body->close(next(read));
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (at(invoke)) {
                 exlib::string err = getResultMessage(v);

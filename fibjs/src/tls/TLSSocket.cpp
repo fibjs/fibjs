@@ -272,7 +272,7 @@ public:
         return Runtime::setError("handshake failed");
     }
 
-    virtual int32_t error(int32_t v)
+    virtual result_t error(result_t v)
     {
         m_sock->on_connected(v);
 

@@ -1315,7 +1315,7 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
     exlib::string toOrig = "" + to;
 
     exlib::string str;
-    int32_t hr;
+    result_t hr;
 
     hr = _resolve_win32(from);
     if (hr < 0)

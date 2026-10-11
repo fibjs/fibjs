@@ -305,7 +305,7 @@ public:
         return next();
     }
 
-    virtual int32_t error(int32_t v)
+    virtual result_t error(result_t v)
     {
         m_this->endConnect(1001, "");
         return v;
@@ -515,7 +515,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             return next(0);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             m_this->m_holder.Release();
             m_this->endConnect(1002, "");
@@ -665,7 +665,7 @@ void WebSocket::startRecv(Isolate* isolate)
             return next(recv);
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_isolate->is_terminating()) {
                 m_this->endConnect(1001, "");

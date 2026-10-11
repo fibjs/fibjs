@@ -447,7 +447,7 @@ public:
             setAsync();
         }
 
-        virtual int32_t post(int32_t v) override
+        virtual result_t post(result_t v) override
         {
             if (v < 0) {
                 obj_ptr<Stream_base> stream = m_pThis;

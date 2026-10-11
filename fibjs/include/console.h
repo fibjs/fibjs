@@ -116,7 +116,7 @@ public:
         return 0;
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         result_t hr = v;
         bool bStop = false;

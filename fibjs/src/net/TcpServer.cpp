@@ -160,7 +160,7 @@ result_t TcpServer::start()
             return m_sock->close(next());
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             errorLog("TcpServer: " + getResultMessage(v));
             return next(close);
@@ -224,7 +224,7 @@ result_t TcpServer::start()
             return m_pThis->m_socket->accept(m_accept, next(invoke));
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_pThis->holder()->is_terminating()) {
                 if (m_pThis->m_running)

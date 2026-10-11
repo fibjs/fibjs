@@ -379,7 +379,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle 
             return copy(m_data, m_stm, m_size, m_mask, next());
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_take_over)
                 m_wss->m_deflate->attach(NULL);
@@ -566,7 +566,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
             return next();
         }
 
-        virtual int32_t error(int32_t v)
+        virtual result_t error(result_t v)
         {
             if (m_take_over)
                 m_wss->m_inflate->attach(NULL);

@@ -437,7 +437,7 @@ public:
         return payload;
     }
 
-    virtual int32_t post(int32_t v)
+    virtual result_t post(result_t v)
     {
         if (!m_bEvent) {
             ErrorPayload payload;
@@ -445,7 +445,7 @@ public:
                 payload = error_payload(v);
                 m_sock->setPendingErrorPayload(payload);
             }
-            m_sock->on_connected(v < 0 ? v : 0);
+            m_sock->on_connected(v < 0 ? v : result_t(0));
 
             if (v < 0)
                 setErrorPayload(payload);
