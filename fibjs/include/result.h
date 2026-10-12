@@ -122,6 +122,7 @@ class result_t {
     obj_ptr<ErrorPayload> m_payload;   // private; const view via payload()
 
 public:
+    // Success: code 0 and no description (the E1 form -- `return result_t();`).
     result_t() = default;
     result_t(int32_t c)
         : m_code(c)
@@ -164,10 +165,40 @@ public:
     static builder inherit(result_t&& base);
     static builder inherit_as(result_t&& base, result_t code);
 
+    // The bridge control codes as named constructions (E2 of the strict
+    // audit): protocol signals of the async bridge -- the sync / async /
+    // long-sync / gui call form, or still in progress -- not failures, and
+    // never carrying a description. Construction sites read by name; the raw
+    // codes stay for the predicates above.
+    static result_t pending()
+    {
+        return result_t(CALL_E_PENDDING);
+    }
+
+    static result_t nosync()
+    {
+        return result_t(CALL_E_NOSYNC);
+    }
+
+    static result_t noasync()
+    {
+        return result_t(CALL_E_NOASYNC);
+    }
+
+    static result_t longsync()
+    {
+        return result_t(CALL_E_LONGSYNC);
+    }
+
+    static result_t guicall()
+    {
+        return result_t(CALL_E_GUICALL);
+    }
+
     // The landing (defined below the builder): converts a builder into this
-    // immutable value and fires the interim mirrors. A constructor (rather
-    // than a conversion operator) so that direct-initialization forms --
-    // e.g. the CHECK_ERROR(<builder>) macro's result_t(hr) -- resolve too.
+    // immutable value. A constructor (rather than a conversion operator) so
+    // that direct-initialization forms -- e.g. the CHECK_ERROR(<builder>)
+    // macro's result_t(hr) -- resolve too.
     result_t(builder&& b);
 
     // Semantic checks (P2 replaces the hard coded comparisons with these).

@@ -93,11 +93,11 @@ void uv_post(std::function<void(void)> proc)
     uv_post(new UVPost(proc));
 }
 
-result_t uv_call(std::function<result_t(void)> proc)
+result_t uv_call(std::function<int32_t(void)> proc)
 {
     class UVCall : public AsyncEvent {
     public:
-        UVCall(std::function<result_t(void)>& proc)
+        UVCall(std::function<int32_t(void)>& proc)
             : AsyncEvent(NULL)
             , m_proc(proc)
         {
@@ -107,12 +107,20 @@ result_t uv_call(std::function<result_t(void)> proc)
 
         void invoke()
         {
-            m_res = m_proc();
+            // The junction frames the raw status here, once: a negative uv
+            // code is -errno (a system error), anything else is success.
+            int32_t ret = m_proc();
+
+            if (ret < 0)
+                m_res = result_t(result_t::from_system(ret));
+            else
+                m_res = result_t();
+
             m_event.set();
         }
 
     public:
-        std::function<result_t(void)> m_proc;
+        std::function<int32_t(void)> m_proc;
         result_t m_res;
         exlib::Event m_event;
     };

@@ -25,18 +25,12 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
     obj_ptr<UVSocket> sock = new UVSocket(family);
 
     result_t hr = uv_call([&] {
-        int32_t ret;
-
         if (family == net_base::C_AF_UNIX)
-            ret = uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
-        else
-            ret = uv_tcp_init(s_uv_loop, &sock->m_tcp);
-
-        if (ret < 0)
-            return result_t(result_t::from_system(ret).with_syscall("socket"));
-
-        return result_t();
+            return uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
+        return uv_tcp_init(s_uv_loop, &sock->m_tcp);
     });
+    if (hr.failed())
+        return result_t::from_system(hr).with_syscall("socket");
 
     retVal = sock;
 
@@ -218,13 +212,13 @@ void UVSocket::on_listen(uv_stream_t* server, int status)
 
 result_t UVSocket::listen(int32_t backlog)
 {
-    return uv_call([&] {
-        int32_t ret = uv_listen(&m_stream, backlog, on_listen);
-        if (ret < 0)
-            return result_t(result_t::from_system(ret).with_syscall("listen"));
-
-        return result_t();
+    result_t hr = uv_call([&] {
+        return uv_listen(&m_stream, backlog, on_listen);
     });
+    if (hr.failed())
+        return result_t::from_system(hr).with_syscall("listen");
+
+    return result_t();
 }
 
 result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
