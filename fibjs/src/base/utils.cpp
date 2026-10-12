@@ -252,37 +252,11 @@ static v8::Local<v8::Value> MakeException(Isolate* isolate, const exlib::string&
     return v8::Exception::Error(v8msg);
 }
 
-// Optional per-call error context: modules (e.g. fs) set it right before returning an
-// error so that BuildError can attach Node.js compatible errno/syscall/path fields
-// and parameter summaries. The whole payload is kept - including args, message and
-// result code - so no structured information is lost on the way to the JS boundary.
-static thread_local obj_ptr<ErrorPayload> s_err_payload;
-
-void setErrorPayload(obj_ptr<ErrorPayload> data)
-{
-    s_err_payload = std::move(data);
-}
-
-obj_ptr<ErrorPayload> takeErrorPayload()
-{
-    obj_ptr<ErrorPayload> data = std::move(s_err_payload);
-
-    s_err_payload = nullptr;
-
-    // The value semantics of the old take: callers may always mutate the
-    // result (augment / add args), so an empty stash yields an empty payload,
-    // never a null handle.
-    return data ? std::move(data) : obj_ptr<ErrorPayload>(new ErrorPayload());
-}
-
-void clearErrorPayload()
-{
-    s_err_payload = nullptr;
-}
-
-// The old Runtime::setError side effect, reproduced at builder landing: the
-// real code rides in the payload (result_code == 0 means "no explicit code"
-// and reports as the generic CALL_E_EXCEPTION sentinel).
+// The interim thread-state mirror: reproduces the old Runtime::setError side
+// effects (m_code / m_error / m_errorTypeName) at builder landing, so the
+// readers that do not hold the value yet (errCode / errMessage at the
+// CALL_E_EXCEPTION sentinel) keep working; 5c resolves the sentinel against
+// the real pending JS exception and this goes away with it.
 void mirror_error_state(const ErrorPayload& payload)
 {
     Runtime* rt = Runtime::current();
@@ -546,14 +520,12 @@ static bool is_fd_syscall(const exlib::string& syscall)
 
 static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::string type_name, exlib::string msg)
 {
-    // The stash mirror is always consumed (its liveness must not leak into the
-    // next unrelated error); the value-carried description wins when present.
-    obj_ptr<ErrorPayload> stashed = takeErrorPayload();
-    obj_ptr<ErrorPayload> found = hr.payload_ref();
-    obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
+    // The description rides with the failing value; a value without one
+    // (a pure sentinel) falls back to the scalar fields below.
+    const ErrorPayload* payload = hr.payload();
 
     // Precedence: payload name (crosses threads) > caller name > hr default.
-    if (!payload->error_type_name.empty())
+    if (payload && !payload->error_type_name.empty())
         type_name = payload->error_type_name;
     if (type_name.empty())
         type_name = getDefaultErrorTypeName(hr);
@@ -572,7 +544,7 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
     }
 
     exlib::string final_code;
-    if (!payload->code.empty())
+    if (payload && !payload->code.empty())
         final_code = payload->code;
     else if (_name)
         final_code = _name;
@@ -581,7 +553,7 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
         e->Set(context, isolate->NewString("code"), isolate->NewString(final_code)).IsJust();
 
     // Node.js compatible error fields, filled in by the module that raised the error
-    if (!payload->empty()) {
+    if (payload && !payload->empty()) {
         // Node.js reports errno as a negative value for system errors
         if (payload->has_errno)
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload->errno_value)).IsJust();
@@ -690,11 +662,17 @@ static void resolveException(result_t& hr, exlib::string& type_name, exlib::stri
 
         if (p && !p->empty()) {
             // Value-carried description (producers build it). result_code == 0
-            // means "no explicit code": the generic sentinel keeps hr.
-            if (!p->result_code.has_value())
-                hr = p->result_code;
+            // means "no explicit code": the generic sentinel keeps hr. The
+            // strings are copied out first, then the sentinel advances to the
+            // real code with the description kept -- the boundary reads it
+            // right after this (number / code / errno / fields).
             type_name = p->error_type_name;
             msg = p->message;
+
+            if (!p->result_code.has_value()) {
+                result_t code = p->result_code;
+                hr = result_t(result_t::inherit_as(std::move(hr), code));
+            }
             return;
         }
 

@@ -608,13 +608,12 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
         // command and its argv as bounded summaries, so a missing executable is
         // identifiable without parsing the message.
         exlib::string syscall = "spawn " + m_command;
-        obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
-                                   ->with_syscall(syscall.c_str())
-                                   ->with_path(m_command)
-                                   ->arg("command", m_command)
-                                   ->arg("argv", argv_summary(argStr));
 
-        return setErrorPayload(hr, payload);
+        return result_t::from_system(hr)
+            .with_syscall(syscall.c_str())
+            .with_path(m_command)
+            .arg("command", m_command)
+            .arg("argv", argv_summary(argStr));
     }
 
     if (m_ipc >= 0) {

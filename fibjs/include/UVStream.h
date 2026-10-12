@@ -452,14 +452,14 @@ public:
             if (v.failed()) {
                 obj_ptr<Stream_base> stream = m_pThis;
                 Isolate* isolate = m_isolate;
-                // Same cross-thread rule as the other emit paths: the error
-                // description and the payload must travel with the closure.
+                // Same cross-thread rule as the other emit paths: the value
+                // carries the description; only the sentinel state is
+                // thread-local and travels with the closure.
                 Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-                obj_ptr<ErrorPayload> payload = takeErrorPayload();
-                isolate->sync([stream, v, desc, payload]() -> int32_t {
+                isolate->sync([stream, v, desc]() -> int32_t {
                     JSFiber::EnterJsScope s;
 
-                    Runtime::applyErrorDescription(desc, payload);
+                    Runtime::applyErrorDescription(desc, v.payload());
 
                     v8::Local<v8::Value> err = FillError(v);
                     bool retVal;

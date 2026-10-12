@@ -316,11 +316,13 @@ void AsyncCallBack::processPromiseResult()
 
         resolver->Resolve(m_isolate->context(), result).IsJust();
     } else {
-        // The name-based entry keeps the payload restored by applyErrorContext
-        // (its code / args are part of the error, not disposable state).
-        applyErrorContext();
+        // The failing value carries its own description; the sentinel state
+        // was snapshotted into it by the producing path.
         if (m_v.is_exception())
-            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
+            m_v = result_t(result_t::inherit(std::move(m_v))
+                    .with_type_name(m_error_type_name)
+                    .with_result(m_error_code)
+                    .with_message(m_error));
 
         v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
         resolver->Reject(m_isolate->context(), FillError(m_v, stack)).IsJust();
@@ -329,7 +331,7 @@ void AsyncCallBack::processPromiseResult()
     delete this;
 }
 
-int AsyncCallBack::syncFunc()
+result_t AsyncCallBack::syncFunc()
 {
     JSFiber::EnterJsScope s;
 
@@ -361,9 +363,11 @@ int AsyncCallBack::syncFunc()
             args[0] = v8::Null(m_isolate->m_isolate);
             to_args(args);
         } else {
-            applyErrorContext();
             if (m_v.is_exception())
-                Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
+                m_v = result_t(result_t::inherit(std::move(m_v))
+                        .with_type_name(m_error_type_name)
+                        .with_result(m_error_code)
+                        .with_message(m_error));
 
             args.resize(1);
             v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);

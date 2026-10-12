@@ -60,27 +60,12 @@ public:
     Isolate* m_streamIsolate = nullptr;
     obj_ptr<ValueHolder> m_streamHolder;
 
-    void setPendingErrorPayload(obj_ptr<ErrorPayload> payload)
-    {
-        m_pendingErrorPayload = std::move(payload);
-    }
-
-    obj_ptr<ErrorPayload> takePendingErrorPayload()
-    {
-        obj_ptr<ErrorPayload> data = std::move(m_pendingErrorPayload);
-
-        // Same value semantics as takeErrorPayload: callers may always mutate
-        // the result, so an empty slot yields an empty payload, never null.
-        return data ? std::move(data) : obj_ptr<ErrorPayload>(new ErrorPayload());
-    }
-
     // Write queue state (all protected by m_writeLock)
     exlib::spinlock m_writeLock;
     std::list<AsyncHandle> m_writeQueue;
     size_t m_writeBytes = 0;
     size_t m_writeHighWaterMark = 16384;
     bool m_needDrain = false;
-    obj_ptr<ErrorPayload> m_pendingErrorPayload;
 
     static size_t roundUpPow2(size_t n)
     {
@@ -362,16 +347,13 @@ public:
         }
 
         obj_ptr<Stream_base> stream = m_this;
-        // The payload and the error description belong to this thread; the emit
-        // runs on the JS thread, so both are carried across explicitly.
+        // The description rides with the value; only the sentinel state belongs
+        // to this thread, so it is carried into the emit fiber explicitly.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        obj_ptr<ErrorPayload> pending = m_base->takePendingErrorPayload();
-        obj_ptr<ErrorPayload> found = v.payload_ref();
-        obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(pending);
-        m_isolate->sync([stream, v, desc, payload]() -> int32_t {
+        m_isolate->sync([stream, v, desc]() -> int32_t {
             JSFiber::EnterJsScope s;
 
-            Runtime::applyErrorDescription(desc, payload);
+            Runtime::applyErrorDescription(desc, v.payload());
 
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;

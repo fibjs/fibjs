@@ -72,13 +72,10 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             // must not build detail that the error path would only discard;
             // only a real I/O failure gets the failing leg named.
             if (v.is_system_error()) {
-                obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
                 if (at(write))
-                    payload->arg("to", m_to.get());
+                    v = result_t(result_t::inherit(std::move(v)).arg("to", m_to.get()));
                 else
-                    payload->arg("from", m_from.get());
-                setErrorPayload(payload);
+                    v = result_t(result_t::inherit(std::move(v)).arg("from", m_from.get()));
             }
 
             return v;

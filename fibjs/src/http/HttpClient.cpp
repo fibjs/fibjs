@@ -77,21 +77,6 @@ static exlib::string sanitize_url_for_error(Url* url)
     return str;
 }
 
-// Attach request diagnostics to an error payload: the method plus a sanitized
-// URL, so the failing request can be identified without leaking secrets.
-static obj_ptr<ErrorPayload> with_request_args(obj_ptr<ErrorPayload> payload,
-    const exlib::string& method, Url* url)
-{
-    if (!method.empty())
-        payload->arg("method", method);
-
-    exlib::string url_str = sanitize_url_for_error(url);
-    if (!url_str.empty())
-        payload->arg("url", url_str);
-
-    return payload;
-}
-
 static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal)
 {
     exlib::string path;
@@ -2259,65 +2244,46 @@ public:
         if (m_o->signal) {
             bool aborted;
             m_o->signal->get_aborted(aborted);
-            if (aborted) {
-                setAbortError(m_o->signal.get());
-                v = CALL_E_EXCEPTION;
-            }
+            if (aborted)
+                v = setAbortError(m_o->signal.get());
         }
 
-        // Attach request diagnostics to the terminal error. The payload is kept
-        // on this thread for the callback/promise path and passed by value into
-        // the event-emit fiber, which may run on another thread. Exactly one of
-        // the two stores runs, so a terminal error copies it once.
+        // Attach request diagnostics to the terminal error, carrying them on
+        // the value itself (they cross threads and fibers with it).
         //
         // The description of a CALL_E_EXCEPTION (name/message) is per-thread as
         // well, so it is captured here and restored in the emit fiber: without
         // it an aborted request would report "[0] Success" there.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
 
-        obj_ptr<ErrorPayload> payload;
         {
-            obj_ptr<ErrorPayload> carried = v.payload_ref();
+            exlib::string url_str = sanitize_url_for_error(m_o->u);
 
-            if (carried && !carried->empty()) {
-                // The description already rides with the value: enrich the
-                // value itself with the request context (the value-first
-                // consumers prefer it).
-                exlib::string url_str = sanitize_url_for_error(m_o->u);
+            if (!m_o->method.empty() || !url_str.empty()) {
+                result_t::builder b = result_t::inherit(std::move(v));
 
-                if (!m_o->method.empty() || !url_str.empty()) {
-                    result_t::builder b = result_t::inherit(std::move(v));
-
-                    if (!m_o->method.empty())
-                        b = std::move(b).arg("method", m_o->method);
-                    if (!url_str.empty())
-                        b = std::move(b).arg("url", url_str);
-                    v = result_t(std::move(b));
-                }
-                payload = v.payload_ref()->clone();
-            } else {
-                // No carried description: keep the stash path (an enrichment
-                // that fabricated an args-only payload would shadow the
-                // thread-state description).
-                payload = with_request_args(takeErrorPayload(), m_o->method, m_o->u);
+                if (!m_o->method.empty())
+                    b = std::move(b).arg("method", m_o->method);
+                if (!url_str.empty())
+                    b = std::move(b).arg("url", url_str);
+                v = result_t(std::move(b));
             }
         }
 
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {
             obj_ptr<HttpRequest> req = m_req;
-            req->holder()->sync([req, v, desc, payload]() -> int32_t {
+            req->holder()->sync([req, v, desc]() -> int32_t {
                 JSFiber::EnterJsScope s;
 
-                Runtime::applyErrorDescription(desc, payload);
+                Runtime::applyErrorDescription(desc, v.payload());
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
                 req->_emit("error", &err, 1, retVal);
                 return 0;
             });
-        } else if (!payload->empty())
-            setErrorPayload(payload);
+        }
 
         return v;
     }
@@ -3208,19 +3174,31 @@ public:
     virtual result_t error(result_t v) override
     {
         // Per Fetch spec, network errors are TypeErrors; an abort however keeps
-        // its AbortError/TimeoutError DOMException. Note that
-        // errTypeName()/errMessage() consume the pending error state, so it must
-        // be restored explicitly.
-        exlib::string type_name = (v.is_exception()) ? Runtime::errTypeName() : exlib::string();
-        exlib::string msg = (v.is_exception())
-            ? Runtime::errMessage()
-            : getResultMessage(v);
+        // its AbortError/TimeoutError DOMException. The description rides with
+        // the value; a bare sentinel falls back to the thread state, which the
+        // errTypeName()/errMessage() reads consume (so each is read once).
+        exlib::string type_name;
+        exlib::string msg;
+
+        if (v.is_exception()) {
+            const ErrorPayload* p = v.payload();
+
+            if (p && !p->empty()) {
+                type_name = p->error_type_name;
+                msg = p->message;
+            } else {
+                type_name = Runtime::errTypeName();
+                msg = Runtime::errMessage();
+            }
+        }
+
+        if (msg.empty())
+            msg = getResultMessage(v);
 
         if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError)
             return result_t::make(CALL_E_EXCEPTION).with_type_name(type_name.c_str()).with_message(msg);
 
-        result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message(msg));
-        return CALL_E_EXCEPTION;
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message(msg);
     }
 
     ON_STATE(asyncFetch, do_request)
@@ -3229,10 +3207,8 @@ public:
         if (m_o->signal) {
             bool aborted;
             m_o->signal->get_aborted(aborted);
-            if (aborted) {
-                setAbortError(m_o->signal.get());
-                return CALL_E_EXCEPTION;
-            }
+            if (aborted)
+                return setAbortError(m_o->signal.get());
         }
         return m_hc->requestSync(m_o.get(), m_httpMsg, next(do_wrap));
     }

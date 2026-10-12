@@ -630,8 +630,14 @@ result_t FileHandle::close(AsyncHandle ac)
     if (ac.isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_fd == -1)
-        return CHECK_ERROR(setSystemErrorPayload(UV_EBADF, "close"));
+    if (m_fd == -1) {
+        result_t hr_err = UV_EBADF;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("close"));
+    }
 
     int32_t fd = m_fd;
     m_fd = -1;
@@ -640,8 +646,14 @@ result_t FileHandle::close(AsyncHandle ac)
     // close(2) only means that it was not valid. On Windows the CRT sets errno
     // instead of the thread error, which would report whatever the previous call
     // left behind.
-    if (::_close(fd))
-        return CHECK_ERROR(setSystemErrorPayload(UV_EBADF, "close"));
+    if (::_close(fd)) {
+        result_t hr_err = UV_EBADF;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("close"));
+    }
 
     return 0;
 }
@@ -659,8 +671,15 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
-    if (hr.failed())
-        return setSystemErrorPayload(hr, "open", fname);
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("open")
+            .with_path(fname));
+    }
 
     retVal = new FileHandle(_fd);
 
@@ -680,8 +699,15 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
 
     int32_t _fd;
     hr = file_open(safe_name, flags, mode, _fd);
-    if (hr.failed())
-        return setSystemErrorPayload(hr, "open", fname);
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("open")
+            .with_path(fname));
+    }
 
     retVal = new FileHandle(_fd);
 
@@ -1002,8 +1028,14 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
     {
         AutoReq req;
         int32_t ret = uv_fs_ftruncate(NULL, &req, _fd, 0, NULL);
-        if (ret < 0)
-            return setSystemErrorPayload(ret, "write");
+        if (ret < 0) {
+            result_t hr_err = ret;
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("write"));
+        }
     }
 
     size_t pos = 0;
@@ -1094,7 +1126,15 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(read_file_ext(strName, flag, encoding, retVal, std::move(ac)), "open", strName);
+    {
+        result_t hr_err = read_file_ext(strName, flag, encoding, retVal, std::move(ac));
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("open")
+            .with_path(strName));
+    }
 }
 
 
@@ -1191,7 +1231,15 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(write_file_ext(strName, buf, flag, mode, retVal, std::move(ac)), "open", strName);
+    {
+        result_t hr_err = write_file_ext(strName, buf, flag, mode, retVal, std::move(ac));
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("open")
+            .with_path(strName));
+    }
 }
 
 
@@ -1285,7 +1333,15 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
 
     exlib::string strName = std::get<exlib::string>(fname);
 
-    return setSystemErrorPayload(append_file_ext(strName, flag, mode, buf, retVal, std::move(ac)), "open", strName);
+    {
+        result_t hr_err = append_file_ext(strName, flag, mode, buf, retVal, std::move(ac));
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("open")
+            .with_path(strName));
+    }
 }
 
 
@@ -1410,14 +1466,12 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
             if (n < 0) {
                 result_t hr = LastError();
 
-                if (hr.is_system_error()) {
-                    obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
-                                               ->with_syscall("write")
-                                               ->arg("buffer", buffer)
-                                               ->arg("length", length)
-                                               ->arg("position", position);
-                    return CHECK_ERROR(setErrorPayload(hr, payload));
-                }
+                if (hr.is_system_error())
+                    return CHECK_ERROR(result_t::from_system(hr)
+                                           .with_syscall("write")
+                                           .arg("buffer", buffer)
+                                           .arg("length", length)
+                                           .arg("position", position));
 
                 return CHECK_ERROR(hr);
             }
@@ -1464,8 +1518,14 @@ result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncHand
 
     AutoReq req;
     int32_t ret = uv_fs_fstat(NULL, &req, _fd, NULL);
-    if (ret < 0)
-        return setSystemErrorPayload(ret, "fstat");
+    if (ret < 0) {
+        result_t hr_err = ret;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("fstat"));
+    }
 
     obj_ptr<Stat> pStat = new Stat();
 
@@ -1515,7 +1575,15 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncHandle ac)
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_access(NULL, &req, path.c_str(), mode, NULL), "access", path);
+    {
+        result_t hr_err = uv_fs_access(NULL, &req, path.c_str(), mode, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("access")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncHandle ac)
@@ -1532,8 +1600,16 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncHandle
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload2(uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL),
-        "link", oldPath, newPath);
+    {
+        result_t hr_err = uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("link")
+            .with_path(oldPath)
+            .with_path2(newPath));
+    }
 }
 
 result_t fs_base::unlink(exlib::string path, AsyncHandle ac)
@@ -1546,7 +1622,15 @@ result_t fs_base::unlink(exlib::string path, AsyncHandle ac)
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_unlink(NULL, &req, path.c_str(), NULL), "unlink", path);
+    {
+        result_t hr_err = uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("unlink")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncHandle ac)
@@ -1570,8 +1654,16 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
         _type = 2;
 
     AutoReq req;
-    return setSystemErrorPayload2(uv_fs_symlink(NULL, &req, target.c_str(), linkpath.c_str(), _type, NULL),
-        "symlink", target, linkpath);
+    {
+        result_t hr_err = uv_fs_symlink(NULL, &req, target.c_str(), linkpath.c_str(), _type, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("symlink")
+            .with_path(target)
+            .with_path2(linkpath));
+    }
 }
 
 // Node.js: convert a raw path (utf8 bytes) to the requested encoding
@@ -1610,8 +1702,15 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncHandle ac)
 
     AutoReq req;
     int32_t ret = uv_fs_readlink(NULL, &req, path.c_str(), NULL);
-    if (ret < 0)
-        return setSystemErrorPayload(ret, "readlink", path);
+    if (ret < 0) {
+        result_t hr_err = ret;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("readlink")
+            .with_path(path));
+    }
 
     retVal = (const char*)req.ptr;
     return 0;
@@ -1741,8 +1840,15 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
         // Check if this component is a symlink
         obj_ptr<Stat_base> stat;
         hr = cc_lstat(testPath, stat, ac.isolate());
-        if (hr.failed())
-            return setSystemErrorPayload(hr, "lstat", testPath);
+        if (hr.failed()) {
+            result_t hr_err = hr;
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("lstat")
+                .with_path(testPath));
+        }
 
         bool isSymlink = false;
         stat->isSymbolicLink(isSymlink);
@@ -1754,8 +1860,15 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
             // Read the symlink target
             Variant linkValue;
             hr = cc_readlink(testPath, linkValue, ac.isolate());
-            if (hr.failed())
-                return setSystemErrorPayload(hr, "readlink", testPath);
+            if (hr.failed()) {
+                result_t hr_err = hr;
+                if (!hr_err.is_system_error())
+                    return hr_err;
+                return result_t(result_t::inherit(std::move(hr_err))
+                    .with_system_errno()
+                    .with_syscall("readlink")
+                    .with_path(testPath));
+            }
 
             exlib::string linkTarget = linkValue.string();
 
@@ -1873,7 +1986,15 @@ static result_t mkdir_numeric(exlib::string path, int32_t mode, Variant& retVal,
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL), "mkdir", path);
+    {
+        result_t hr_err = uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("mkdir")
+            .with_path(path));
+    }
 }
 
 // the octal string form: parsed in the sync phase, the number travels to the
@@ -1944,8 +2065,15 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
 
             int32_t ret = (int32_t)uv_fs_get_result(req);
             if (ret < 0 || !S_ISDIR(pThis->statbuf.st_mode)) {
-                setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
-                pThis->m_ac.apost(pThis->m_last_err);
+                                {
+                    result_t hr_err = pThis->m_last_err;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("mkdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
                 return;
             }
@@ -1985,8 +2113,15 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
             case UV_EACCES:
             case UV_ENOTDIR:
             case UV_EPERM:
-                setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("mkdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
                 return;
             case UV_ENOENT:
@@ -1998,8 +2133,15 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
                 uv_fs_req_cleanup(pThis);
                 ret = uv_fs_stat(s_uv_loop, pThis, pThis->m_path.c_str(), cb_stat);
                 if (ret != 0) {
-                    setSystemErrorPayload(pThis->m_last_err, "mkdir", pThis->m_requestPath);
-                    pThis->m_ac.apost(pThis->m_last_err);
+                                        {
+                        result_t hr_err = pThis->m_last_err;
+                        if (hr_err.is_system_error())
+                            hr_err = result_t::inherit(std::move(hr_err))
+                                .with_system_errno()
+                                .with_syscall("mkdir")
+                                .with_path(pThis->m_requestPath);
+                    pThis->m_ac.apost(hr_err);
+                    }
                     delete pThis;
                 }
                 return;
@@ -2008,8 +2150,15 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::cb_mkdir);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "mkdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("mkdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
         }
@@ -2089,8 +2238,15 @@ public:
                 // force: silently ignore nonexistent paths (Node.js behavior)
                 pThis->m_ac.apost(0);
             } else {
-                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
             }
             delete pThis;
             return;
@@ -2100,8 +2256,15 @@ public:
         if (S_ISREG(pThis->statbuf.st_mode)) {
             if (!pThis->m_rmFile) {
                 // rmdir does not delete files
-                setSystemErrorPayload(UV_ENOTDIR, "rmdir", pThis->m_requestPath);
-                pThis->m_ac.apost(UV_ENOTDIR);
+                                {
+                    result_t hr_err = UV_ENOTDIR;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
                 return;
             }
@@ -2109,8 +2272,15 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
             return;
@@ -2119,8 +2289,15 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_path.c_str(), 0, cb_scandir);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
             return;
@@ -2132,8 +2309,15 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_unlink(s_uv_loop, pThis, pThis->m_path.c_str(), cb_unlink);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
             return;
@@ -2146,8 +2330,15 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
-            setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("rmdir")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2168,8 +2359,15 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
-            setSystemErrorPayload(ret, "rmdir", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("rmdir")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2203,8 +2401,15 @@ public:
             uv_fs_req_cleanup(this);
             int32_t ret = uv_fs_rmdir(s_uv_loop, this, m_path.c_str(), cb_rmdir);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(m_requestPath);
+                m_ac.apost(hr_err);
+                }
                 delete this;
             }
             return;
@@ -2223,8 +2428,15 @@ public:
             AsyncUVRM* subRemover = new AsyncUVRM(entry_path, m_rmFile, m_force, new SubDirEvent(this));
             int32_t ret = uv_fs_stat(s_uv_loop, subRemover, entry_path.c_str(), cb_stat);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(m_requestPath);
+                m_ac.apost(hr_err);
+                }
                 delete subRemover;
                 delete this;
             }
@@ -2232,8 +2444,15 @@ public:
             // For files, unlink directly
             int32_t ret = uv_fs_unlink(s_uv_loop, this, entry_path.c_str(), cb_entry_removed);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "rmdir", m_requestPath);
-                m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("rmdir")
+                            .with_path(m_requestPath);
+                m_ac.apost(hr_err);
+                }
                 delete this;
             }
         }
@@ -2307,7 +2526,15 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHand
 
     if (!recursive) {
         AutoReq req;
-        return setSystemErrorPayload(uv_fs_rmdir(NULL, &req, path.c_str(), NULL), "rmdir", path);
+        {
+            result_t hr_err = uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("rmdir")
+                .with_path(path));
+        }
     }
 
     os_resolve(path);
@@ -2353,24 +2580,39 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
         if (ret < 0) {
             if (force && ret == UV_ENOENT)
                 return 0;
-            return CHECK_ERROR(setSystemErrorPayload(ret, "lstat", path));
+            {
+                result_t hr_err = ret;
+                if (!hr_err.is_system_error())
+                    return CHECK_ERROR(hr_err);
+                return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+                    .with_system_errno()
+                    .with_syscall("lstat")
+                    .with_path(path));
+            }
         }
 
         if (S_ISDIR(req.statbuf.st_mode)) {
             uv_fs_req_cleanup(&req);
             // Node.js: SystemError + ERR_FS_EISDIR, errno is the raw value
-            return setErrorPayload(UV_EISDIR,
-                ErrorPayload::make(errtype::kError)
-                    ->with_type_name("SystemError")
-                    ->with_code("ERR_FS_EISDIR")
-                    ->with_errno(-UV_EISDIR)
-                    ->with_syscall("rm")
-                    ->with_path(path)
-                    ->format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str()));
+            return result_t::make(UV_EISDIR)
+                .with_type_name("SystemError")
+                .with_code("ERR_FS_EISDIR")
+                .with_errno(-UV_EISDIR)
+                .with_syscall("rm")
+                .with_path(path)
+                .with_format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str());
         }
 
         uv_fs_req_cleanup(&req);
-        return CHECK_ERROR(setSystemErrorPayload(uv_fs_unlink(NULL, &req, path.c_str(), NULL), "unlink", path));
+        {
+            result_t hr_err = uv_fs_unlink(NULL, &req, path.c_str(), NULL);
+            if (!hr_err.is_system_error())
+                return CHECK_ERROR(hr_err);
+            return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("unlink")
+                .with_path(path));
+        }
     }
 
     os_resolve(path);
@@ -2398,7 +2640,14 @@ result_t fs_base::fchmod(Union_fchmod_fd fd, int32_t mode, AsyncHandle ac)
     handle->get_fd(_fd);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_fchmod(NULL, &req, _fd, mode, NULL), "fchmod");
+    {
+        result_t hr_err = uv_fs_fchmod(NULL, &req, _fd, mode, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("fchmod"));
+    }
 }
 
 result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncHandle ac)
@@ -2415,7 +2664,14 @@ result_t fs_base::fchown(Union_fchown_fd fd, int32_t uid, int32_t gid, AsyncHand
     handle->get_fd(_fd);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL), "fchown");
+    {
+        result_t hr_err = uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("fchown"));
+    }
 }
 
 result_t fs_base::fsync(Union_fsync_fd fd, AsyncHandle ac)
@@ -2432,7 +2688,14 @@ result_t fs_base::fsync(Union_fsync_fd fd, AsyncHandle ac)
     handle->get_fd(_fd);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_fsync(NULL, &req, _fd, NULL), "fsync");
+    {
+        result_t hr_err = uv_fs_fsync(NULL, &req, _fd, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("fsync"));
+    }
 }
 
 result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncHandle ac)
@@ -2455,7 +2718,14 @@ result_t fs_base::ftruncate(Union_ftruncate_fd fd, int32_t len, AsyncHandle ac)
         len = 0;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_ftruncate(NULL, &req, _fd, len, NULL), "ftruncate");
+    {
+        result_t hr_err = uv_fs_ftruncate(NULL, &req, _fd, len, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("ftruncate"));
+    }
 }
 
 result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncHandle ac)
@@ -2469,8 +2739,15 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncH
 
     AutoReq req;
     int32_t ret = uv_fs_statfs(NULL, &req, path.c_str(), NULL);
-    if (ret < 0)
-        return setSystemErrorPayload(ret, "statfs", path);
+    if (ret < 0) {
+        result_t hr_err = ret;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("statfs")
+            .with_path(path));
+    }
 
     uv_statfs_t* st = (uv_statfs_t*)req.ptr;
 
@@ -2498,7 +2775,15 @@ static result_t chmod_numeric(exlib::string path, int32_t mode, AsyncHandle ac)
         return CHECK_ERROR(setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode)));
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL), "chmod", path);
+    {
+        result_t hr_err = uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("chmod")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle ac)
@@ -2578,7 +2863,15 @@ result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncHandl
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL), "chown", path);
+    {
+        result_t hr_err = uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("chown")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncHandle ac)
@@ -2587,7 +2880,15 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncHand
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL), "lchown", path);
+    {
+        result_t hr_err = uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("lchown")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, AsyncHandle ac)
@@ -2615,7 +2916,15 @@ result_t fs_base::utimes(exlib::string path, Variant atime, Variant mtime, Async
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_utime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "utime", path);
+    {
+        result_t hr_err = uv_fs_utime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("utime")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, AsyncHandle ac)
@@ -2643,7 +2952,15 @@ result_t fs_base::lutimes(exlib::string path, Variant atime, Variant mtime, Asyn
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_lutime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "lutime", path);
+    {
+        result_t hr_err = uv_fs_lutime(NULL, &req, path.c_str(), ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("lutime")
+            .with_path(path));
+    }
 }
 
 result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, AsyncHandle ac)
@@ -2676,7 +2993,14 @@ result_t fs_base::futimes(Union_futimes_fd fd, Variant atime, Variant mtime, Asy
         return ctx_hr;
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_futime(NULL, &req, _fd, ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL), "futime");
+    {
+        result_t hr_err = uv_fs_futime(NULL, &req, _fd, ac.ctxv()[0].dblVal(), ac.ctxv()[1].dblVal(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("futime"));
+    }
 }
 
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncHandle ac)
@@ -2693,8 +3017,16 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncHandle ac)
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload2(uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL),
-        "rename", from, to);
+    {
+        result_t hr_err = uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("rename")
+            .with_path(from)
+            .with_path2(to));
+    }
 }
 
 result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncHandle ac)
@@ -2711,7 +3043,14 @@ result_t fs_base::fdatasync(Union_fdatasync_fd fd, AsyncHandle ac)
     handle->get_fd(_fd);
 
     AutoReq req;
-    return setSystemErrorPayload(uv_fs_fdatasync(NULL, &req, _fd, NULL), "fdatasync");
+    {
+        result_t hr_err = uv_fs_fdatasync(NULL, &req, _fd, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("fdatasync"));
+    }
 }
 
 result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncHandle ac)
@@ -2728,8 +3067,16 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
         return hr;
 
     AutoReq req;
-    return setSystemErrorPayload2(uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL),
-        "copyfile", from, to);
+    {
+        result_t hr_err = uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL);
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("copyfile")
+            .with_path(from)
+            .with_path2(to));
+    }
 }
 
 class AsyncUVCP : public uv_fs_t {
@@ -2758,8 +3105,15 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("copyfile")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2767,11 +3121,12 @@ public:
         if (S_ISDIR(pThis->statbuf.st_mode)) {
             if (!pThis->m_recursive) {
                 // Node.js: a plain Error with ERR_FS_EISDIR and no errno (it is
-                // not a system error): the description travels through the
-                // exception channel instead of the raw uv code.
-                result_t(result_t::make(CALL_E_EXCEPTION).with_code("ERR_FS_EISDIR").with_format("Recursive option not enabled, cannot copy a directory: %s/",
-                            pThis->m_requestPath.c_str()));
-                pThis->m_ac.apost(CALL_E_EXCEPTION);
+                // not a system error): the description rides with the sentinel
+                // instead of the raw uv code.
+                pThis->m_ac.apost(result_t::make(CALL_E_EXCEPTION)
+                    .with_code("ERR_FS_EISDIR")
+                    .with_format("Recursive option not enabled, cannot copy a directory: %s/",
+                        pThis->m_requestPath.c_str()));
                 delete pThis;
                 return;
             }
@@ -2780,8 +3135,15 @@ public:
             uv_fs_req_cleanup(pThis);
             ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_dest.c_str(), pThis->statbuf.st_mode & 0777, cb_mkdir);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("copyfile")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
         } else if (S_ISREG(pThis->statbuf.st_mode)) {
@@ -2790,8 +3152,15 @@ public:
             ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("copyfile")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
         } else {
@@ -2800,8 +3169,15 @@ public:
             ret = uv_fs_copyfile(s_uv_loop, pThis, pThis->m_src.c_str(), pThis->m_dest.c_str(),
                 pThis->m_mode, cb_copyfile);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-                pThis->m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("copyfile")
+                            .with_path(pThis->m_requestPath);
+                pThis->m_ac.apost(hr_err);
+                }
                 delete pThis;
             }
         }
@@ -2813,8 +3189,15 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0 && ret != UV_EEXIST) {
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("copyfile")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2823,8 +3206,15 @@ public:
         uv_fs_req_cleanup(pThis);
         ret = uv_fs_scandir(s_uv_loop, pThis, pThis->m_src.c_str(), 0, cb_scandir);
         if (ret != 0) {
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("copyfile")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
         }
     }
@@ -2835,8 +3225,15 @@ public:
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
         if (ret < 0) {
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("copyfile")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2861,19 +3258,25 @@ public:
 
         if (ret == UV_EEXIST && pThis->m_errorOnExist) {
             // Node.js: SystemError + ERR_FS_CP_EEXIST
-            setErrorPayload(ret,
-                ErrorPayload::make(errtype::kError)
-                    ->with_type_name("SystemError")
-                    ->with_code("ERR_FS_CP_EEXIST")
-                    ->with_errno(-UV_EEXIST)
-                    ->with_syscall("cp")
-                    ->with_path(pThis->m_dest)
-                    ->format("Target already exists: cp returned EEXIST (%s already exists) %s",
-                        pThis->m_dest.c_str(), pThis->m_dest.c_str()));
-        } else if (ret < 0)
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
+            pThis->m_ac.apost(result_t::make(ret)
+                .with_type_name("SystemError")
+                .with_code("ERR_FS_CP_EEXIST")
+                .with_errno(-UV_EEXIST)
+                .with_syscall("cp")
+                .with_path(pThis->m_dest)
+                .with_format("Target already exists: cp returned EEXIST (%s already exists) %s",
+                    pThis->m_dest.c_str(), pThis->m_dest.c_str()));
+        } else if (ret < 0) {
+            result_t hr_err = ret;
+            if (hr_err.is_system_error())
+                hr_err = result_t::inherit(std::move(hr_err))
+                             .with_system_errno()
+                             .with_syscall("copyfile")
+                             .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+        } else
+            pThis->m_ac.apost(ret);
 
-        pThis->m_ac.apost(ret);
         delete pThis;
     }
 
@@ -2890,8 +3293,15 @@ public:
         }
 
         if (ret < 0) {
-            setSystemErrorPayload(ret, "copyfile", pThis->m_requestPath);
-            pThis->m_ac.apost(ret);
+                        {
+                result_t hr_err = ret;
+                if (hr_err.is_system_error())
+                    hr_err = result_t::inherit(std::move(hr_err))
+                        .with_system_errno()
+                        .with_syscall("copyfile")
+                        .with_path(pThis->m_requestPath);
+            pThis->m_ac.apost(hr_err);
+            }
             delete pThis;
             return;
         }
@@ -2921,8 +3331,15 @@ public:
             AsyncUVCP* subCopier = new AsyncUVCP(src_path, dest_path, m_recursive, m_force, m_errorOnExist, m_mode, new SubDirEvent(this));
             int32_t ret = uv_fs_stat(s_uv_loop, subCopier, src_path.c_str(), cb_stat);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "copyfile", m_requestPath);
-                m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("copyfile")
+                            .with_path(m_requestPath);
+                m_ac.apost(hr_err);
+                }
                 delete subCopier;
                 delete this;
             }
@@ -2931,8 +3348,15 @@ public:
             int32_t ret = uv_fs_copyfile(s_uv_loop, this, src_path.c_str(), dest_path.c_str(),
                 m_mode, cb_entry_copied);
             if (ret != 0) {
-                setSystemErrorPayload(ret, "copyfile", m_requestPath);
-                m_ac.apost(ret);
+                                {
+                    result_t hr_err = ret;
+                    if (hr_err.is_system_error())
+                        hr_err = result_t::inherit(std::move(hr_err))
+                            .with_system_errno()
+                            .with_syscall("copyfile")
+                            .with_path(m_requestPath);
+                m_ac.apost(hr_err);
+                }
                 delete this;
             }
         }
@@ -3050,8 +3474,15 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHand
 
     AutoReq req;
     int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
-    if (ret < 0)
-        return setSystemErrorPayload(ret, "scandir", path);
+    if (ret < 0) {
+        result_t hr_err = ret;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("scandir")
+            .with_path(path));
+    }
 
     retVal = new NArray();
     uv_dirent_t dirent;
@@ -3233,17 +3664,14 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     obj_ptr<SeekableStream_base> stm = failed;
     Isolate* isolate = failed->holder();
 
-    // The open failure (description and payload) belongs to the calling thread;
-    // the emit runs on the JS thread, so both are carried across.
+    // The error description rides with the value; only the sentinel state
+    // belongs to this thread, so it is carried into the emit explicitly.
     Runtime::ErrorDescription desc = Runtime::captureErrorDescription(hr);
-    obj_ptr<ErrorPayload> stashed = takeErrorPayload();
-    obj_ptr<ErrorPayload> found = hr.payload_ref();
-    obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
 
-    async([stm, hr, desc, payload, isolate]() {
+    async([stm, hr, desc, isolate]() {
         // the emit must run on the JS thread with a valid context
-        isolate->sync([stm, hr, desc, payload]() -> int {
-            Runtime::applyErrorDescription(desc, payload);
+        isolate->sync([stm, hr, desc]() -> int {
+            Runtime::applyErrorDescription(desc, hr.payload());
 
             v8::Local<v8::Value> err = FillError(hr);
             bool retVal;

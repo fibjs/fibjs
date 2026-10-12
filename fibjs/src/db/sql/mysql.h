@@ -115,11 +115,10 @@ private:
 
         if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
                 &errType)) {
-            obj_ptr<ErrorPayload> payload = new ErrorPayload();
+            result_t::builder b = result_t::make(CALL_E_EXCEPTION);
             if (errCode > 0)
-                payload->with_errno(errCode);
-            return Runtime::setError(payload, CALL_E_EXCEPTION,
-                errorMessage ? exlib::string(errorMessage) : exlib::string());
+                b = std::move(b).with_errno(errCode);
+            return result_t(std::move(b).with_message(errorMessage ? exlib::string(errorMessage) : exlib::string()));
         }
         return Runtime::errNumber();
     }

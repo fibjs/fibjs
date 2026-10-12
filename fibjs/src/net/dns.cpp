@@ -148,16 +148,14 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 exlib::string code;
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
                     code = "ENOTFOUND";
-                obj_ptr<ErrorPayload> payload = ErrorPayload::from_uv(status)
-                                           ->with_syscall("getaddrinfo")
-                                           ->with_hostname(hostname)
-                                           ->arg("hostname", hostname)
-                                           ->arg("family", family)
-                                           ->arg("all", all);
-                if (!code.empty())
-                    payload->with_code(code);
-                setErrorPayload(payload);
-                resolver->_ac.post(status);
+
+                resolver->_ac.post(result_t::from_uv(status)
+                                       .with_syscall("getaddrinfo")
+                                       .with_hostname(hostname)
+                                       .with_code(code)
+                                       .arg("hostname", hostname)
+                                       .arg("family", family)
+                                       .arg("all", all));
                 delete resolver;
                 return;
             }

@@ -425,41 +425,28 @@ public:
             m_sock->isolate_unref();
     }
 
-    obj_ptr<ErrorPayload> error_payload(result_t v) const
-    {
-        obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(v);
+// The connect failure with its Node.js context; the value carries it to
+        // both consumers: the caller (m_ac.post) and the reader's error emit
+        // (on_connected).
+        result_t error_value(result_t v) const
+        {
+            return m_use_path
+                ? result_t::from_system(v).with_syscall("connect").with_path(m_target).arg("path", m_target)
+                : result_t::from_system(v).with_syscall("connect").with_hostname(m_target).arg("host", m_target).arg("port", m_port);
+        }
 
-        payload->with_syscall("connect");
-        if (m_use_path)
-            payload->with_path(m_target)->arg("path", m_target);
-        else
-            payload->with_hostname(m_target)->arg("host", m_target)->arg("port", m_port);
+        virtual result_t post(result_t v)
+        {
+            if (!m_bEvent) {
+                if (v.failed())
+                    v = error_value(v);
 
-        return payload;
-    }
+                m_sock->on_connected(v.failed() ? v : result_t(0));
+                m_ac.post(v);
+            } else {
+                if (v.failed()) {
+                    v = error_value(v);
 
-    virtual result_t post(result_t v)
-    {
-        if (!m_bEvent) {
-            obj_ptr<ErrorPayload> payload = new ErrorPayload();
-            if (v.failed()) {
-                payload = error_payload(v);
-                // Two independent copies (the old value semantics): the pending
-                // slot is consumed by the reader, the stash by the JS boundary.
-                m_sock->setPendingErrorPayload(payload->clone());
-            }
-            m_sock->on_connected(v.failed() ? v : result_t(0));
-
-            if (v.failed())
-                setErrorPayload(payload);
-
-            m_ac.post(v);
-        } else {
-            if (v.failed()) {
-                obj_ptr<ErrorPayload> payload = error_payload(v);
-
-                m_sock->setPendingErrorPayload(payload->clone());
-                setErrorPayload(payload);
                 (new EventInfo(m_sock, "error", v))->emit();
                 m_sock->on_connected(v);
             } else {

@@ -114,13 +114,12 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
                     code = "ENOTFOUND";
 
-                setErrorPayload(ErrorPayload::from_uv(status)
-                                    ->with_syscall("getaddrinfo")
-                                    ->with_hostname(hostname)
-                                    ->with_code(code)
-                                    ->arg("hostname", hostname)
-                                    ->arg("family", family));
-                resolver->_ac.post(status);
+                resolver->_ac.post(result_t::from_uv(status)
+                                       .with_syscall("getaddrinfo")
+                                       .with_hostname(hostname)
+                                       .with_code(code)
+                                       .arg("hostname", hostname)
+                                       .arg("family", family));
                 delete resolver;
                 return;
             }
@@ -139,20 +138,18 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 exlib::string hostname = resolver->_name;
                 int32_t family = resolver->_family;
 #ifdef _WIN32
-                setErrorPayload(ErrorPayload::from_system(-WSAHOST_NOT_FOUND)
-                                    ->with_syscall("getaddrinfo")
-                                    ->with_hostname(hostname)
-                                    ->with_code("ENOTFOUND")
-                                    ->arg("hostname", hostname)
-                                    ->arg("family", family));
-                resolver->_ac.post(-WSAHOST_NOT_FOUND);
+                resolver->_ac.post(result_t::from_system(-WSAHOST_NOT_FOUND)
+                                       .with_syscall("getaddrinfo")
+                                       .with_hostname(hostname)
+                                       .with_code("ENOTFOUND")
+                                       .arg("hostname", hostname)
+                                       .arg("family", family));
 #else
-                setErrorPayload(ErrorPayload::from_system(-ETIME)
-                                    ->with_syscall("getaddrinfo")
-                                    ->with_hostname(hostname)
-                                    ->arg("hostname", hostname)
-                                    ->arg("family", family));
-                resolver->_ac.post(-ETIME);
+                resolver->_ac.post(result_t::from_system(-ETIME)
+                                       .with_syscall("getaddrinfo")
+                                       .with_hostname(hostname)
+                                       .arg("hostname", hostname)
+                                       .arg("family", family));
 #endif
             } else
                 resolver->_ac.post(0);

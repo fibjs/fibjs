@@ -312,11 +312,20 @@ static inline void appendPath(exlib::string& buf, const exlib::string& other)
 #endif
 }
 
+// 探测链全部失败时选谁：最后一次失败若是带描述的 not-found（探测到的虚拟路径），
+// 它就是最有信息量的答案（调用方只读码决定“未找到”，码相同、描述更准）；
+// 其余情况保持合成的空描述 not-found。
+static result_t pick_not_found(result_t last, int32_t bare)
+{
+    return (last.is_not_found() && last.has_payload()) ? last : result_t(bare);
+}
+
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Object>* retVal, int32_t known_type)
 {
     size_t cnt = m_loaders.size();
     result_t hr;
+    result_t last_err = CALL_E_FILE_NOT_FOUND;
     exlib::string fname1;
 
     // Fast path: check if file exists before expensive realpath call
@@ -341,6 +350,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             fname = fname1;
             return 0;
         }
+        last_err = hr;
     }
 
     // Try with extensions
@@ -370,9 +380,12 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             fname = fname1;
             return 0;
         }
+        last_err = hr;
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    // 所有探测都失败：最后一次失败若是带描述的 not-found（探测到的虚拟路径），
+    // 它就是给调用者最有信息量的答案（调用方只读码决定“未找到”）
+    return pick_not_found(last_err, CALL_E_FILE_NOT_FOUND);
 }
 
 result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string module_name, exlib::string script_name,
@@ -572,18 +585,22 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
         out = module_name2;
         return hr;
     }
+    result_t last_err = hr;
 
     if (!script_name.empty()) {
         hr = resolvePackage(mods, module_name1, "", data, type, out, retVal);
         if (!hr.is_not_found())
             return hr;
+        last_err = hr;
 
         hr = resolvePackage(mods, module_name1 + ".zip$", "", data, type, out, retVal);
         if (!hr.is_not_found())
             return hr;
+        last_err = hr;
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    // 最后一次探测的描述（虚拟路径等）显式带回调用者，不靠线程槽残留兜底
+    return pick_not_found(last_err, CALL_E_FILE_NOT_FOUND);
 }
 
 result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
@@ -703,6 +720,11 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
     if (file_type(zip_container) >= 0) {
         hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
         if (!hr.is_not_found())
+            return hr;
+
+        // 最后一次探测：容器存在但不是 zip（目录/坏文件）时，其描述（虚拟路径）就是
+        // 最有信息量的答案，显式带回调用者（不再靠线程槽的残留兜底）。
+        if (hr.has_payload())
             return hr;
     }
 

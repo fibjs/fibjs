@@ -95,12 +95,8 @@ public:
         // handle and friends) end the operation normally, and a successful
         // write must never touch the payload (CALL_E_MAX is negative, so the
         // upper bound alone would also match hr == 0).
-        if (hr.is_system_error()) {
-            obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-            payload->arg("buffer", data);
-            setErrorPayload(payload);
-        }
+        if (hr.is_system_error())
+            return result_t::inherit(std::move(hr)).arg("buffer", data);
 
         return hr;
     }
@@ -185,13 +181,8 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         }
 #endif
 
-        if (hr.is_system_error()) {
-            obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
-                                       ->with_syscall("open")
-                                       ->with_path(fname)
-                                       ->arg("flags", flags);
-            return setErrorPayload(hr, payload);
-        }
+        if (hr.is_system_error())
+            return result_t::from_system(hr).with_syscall("open").with_path(fname).arg("flags", flags);
 
         return hr;
     }
@@ -268,13 +259,8 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
         }
 #endif
 
-        if (hr.is_system_error()) {
-            obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(hr)
-                                       ->with_syscall("open")
-                                       ->with_path(fname)
-                                       ->arg("flags", flags);
-            return setErrorPayload(hr, payload);
-        }
+        if (hr.is_system_error())
+            return result_t::from_system(hr).with_syscall("open").with_path(fname).arg("flags", flags);
 
         return hr;
     }

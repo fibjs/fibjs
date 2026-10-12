@@ -112,7 +112,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             [panel setCanChooseFiles:YES];
             [panel setCanChooseDirectories:NO];
         } else
-            return Runtime::setError("invalid dialog type: " + opts->type.value());
+            return result_t::make(CALL_E_EXCEPTION).with_message("invalid dialog type: " + opts->type.value());
 
         [panel setAllowsMultipleSelection:opts->multiSelections.value() ? YES : NO];
         [panel setAccessoryViewDisclosed:YES];

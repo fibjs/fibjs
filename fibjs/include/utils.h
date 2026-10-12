@@ -198,7 +198,6 @@ enum {
     result_t hr_argc = 0;                                   \
     bool bStrict = true;                                    \
     int32_t argc1 = args.Length();                          \
-    clearErrorPayload();                                    \
     do {                                                    \
         do {
 
@@ -210,7 +209,6 @@ enum {
     result_t hr_argc = 0;                                                                                  \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
-    clearErrorPayload();                                                                                   \
     v8::Local<v8::Object> cb;                                                                              \
     if (args.Data()->IsTrue())                                                                             \
         cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
@@ -1245,19 +1243,6 @@ exlib::string summarize_for_error(object_base* obj);
 // ErrorArg / ErrorPayload live in result.h (below result_t: the payload rides
 // with the value, and the header ordering makes that possible).
 
-void setErrorPayload(obj_ptr<ErrorPayload> data);
-obj_ptr<ErrorPayload> takeErrorPayload();
-void clearErrorPayload();
-
-// Attach a payload and return the original result code, so call sites can read
-// as `return setErrorPayload(hr, payload);` (same shape as
-// setSystemErrorPayload(hr, syscall, ...)).
-inline result_t setErrorPayload(result_t hr, obj_ptr<ErrorPayload> data)
-{
-    setErrorPayload(std::move(data));
-    return hr;
-}
-
 v8::Local<v8::Value> FillError(result_t hr);v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
 v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack);
 
@@ -1374,65 +1359,23 @@ inline result_t LastError()
 #endif
 }
 
-inline result_t setSystemErrorPayload(result_t hr, const char* syscall,
-    const exlib::string& path = exlib::string(), const exlib::string& hostname = exlib::string())
-{
-    if (hr.is_system_error()) {
-        // Augment instead of replace: an inner layer may already have attached
-        // a string code, message or parameter summaries to the same failure.
-        obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-        payload->has_errno = true;
-        payload->errno_value = hr.code();
-
-        if (syscall)
-            payload->with_syscall(syscall);
-        if (!path.empty())
-            payload->with_path(path);
-        if (!hostname.empty())
-            payload->with_hostname(hostname);
-
-        setErrorPayload(std::move(payload));
-    }
-
-    return hr;
-}
-
-// Two-path variant: Node.js reports "<syscall> '<path>' -> '<path2>'".
-inline result_t setSystemErrorPayload2(result_t hr, const char* syscall,
-    const exlib::string& path, const exlib::string& path2)
-{
-    result_t ret = setSystemErrorPayload(hr, syscall, path);
-
-    if (ret.is_system_error()) {
-        obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-        payload->with_path2(path2);
-        setErrorPayload(std::move(payload));
-    }
-
-    return ret;
-}
-
-inline void setErrorPayload(const char* syscall, const exlib::string& path = exlib::string(),
-    const exlib::string& hostname = exlib::string())
-{
-    obj_ptr<ErrorPayload> payload = new ErrorPayload();
-
-    if (syscall)
-        payload->with_syscall(syscall);
-    if (!path.empty())
-        payload->with_path(path);
-    if (!hostname.empty())
-        payload->with_hostname(hostname);
-
-    setErrorPayload(std::move(payload));
-}
-
+// Node.js compatible system-error context (errno + syscall + path/hostname).
+// A non-system error carries no such context and passes through untouched: the
+// fields only describe errno-domain failures, and marking a success value would
+// allocate a description that nothing can ever read.
 inline result_t LastError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    return setSystemErrorPayload(LastError(), syscall, path, hostname);
+    result_t hr = LastError();
+
+    if (!hr.is_system_error())
+        return hr;
+
+    return result_t::inherit(std::move(hr))
+        .with_system_errno()
+        .with_syscall(syscall)
+        .with_path(path)
+        .with_hostname(hostname);
 }
 
 // Error of a failed read(2). POSIX reports EBADF when the descriptor was opened
@@ -1455,7 +1398,16 @@ inline result_t ReadError()
 inline result_t ReadError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    return setSystemErrorPayload(ReadError(), syscall, path, hostname);
+    result_t hr = ReadError();
+
+    if (!hr.is_system_error())
+        return hr;
+
+    return result_t::inherit(std::move(hr))
+        .with_system_errno()
+        .with_syscall(syscall)
+        .with_path(path)
+        .with_hostname(hostname);
 }
 
 inline result_t SocketError()
@@ -1470,7 +1422,16 @@ inline result_t SocketError()
 inline result_t SocketError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    return setSystemErrorPayload(SocketError(), syscall, path, hostname);
+    result_t hr = SocketError();
+
+    if (!hr.is_system_error())
+        return hr;
+
+    return result_t::inherit(std::move(hr))
+        .with_system_errno()
+        .with_syscall(syscall)
+        .with_path(path)
+        .with_hostname(hostname);
 }
 
 exlib::string getResultMessage(result_t hr);

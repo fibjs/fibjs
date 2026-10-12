@@ -284,10 +284,10 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                                     } else {
                                         NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
                                         if (jsExceptionMessage) {
-                                            h->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                            h->post(result_t::make(CALL_E_EXCEPTION).with_message([jsExceptionMessage UTF8String]));
                                         } else {
                                             NSString* errorDescription = [error localizedDescription];
-                                            h->post(Runtime::setError([errorDescription UTF8String]));
+                                            h->post(result_t::make(CALL_E_EXCEPTION).with_message([errorDescription UTF8String]));
                                         }
                                     }
                                 } else {
@@ -456,7 +456,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
         return hr;
 
     if (fullPage)
-        return Runtime::setError("fullPage screenshot is not supported on macOS");
+        return result_t::make(CALL_E_EXCEPTION).with_message("fullPage screenshot is not supported on macOS");
 
     // The WebKit completion block outlives this frame: the continuation travels
     // in a heap box (the box is the unique holder; the block delivers from it).
@@ -475,7 +475,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
                                  [rep release];
                              } else {
-                                 h->post(Runtime::setError([[error localizedDescription] UTF8String]));
+                                 h->post(result_t::make(CALL_E_EXCEPTION).with_message([[error localizedDescription] UTF8String]));
                              }
                          }];
 

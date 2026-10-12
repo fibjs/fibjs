@@ -34,7 +34,15 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 
     ::_close(fd);
 
-    return setSystemErrorPayload(hr, "ftruncate", path);
+    {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("ftruncate")
+            .with_path(path));
+    }
 }
 }
 

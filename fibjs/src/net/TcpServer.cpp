@@ -316,12 +316,8 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
     if (hr.failed()) {
         // Node.js reports a failed listen with syscall "listen"; the bind is an
         // implementation detail of it.
-        if (hr.is_system_error()) {
-            obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-            payload->with_syscall("listen");
-            setErrorPayload(payload);
-        }
+        if (hr.is_system_error())
+            hr = result_t(result_t::inherit(std::move(hr)).with_syscall("listen"));
 
         return hr;
     }

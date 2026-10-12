@@ -30,8 +30,14 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
         else
             return uv_tcp_init(s_uv_loop, &sock->m_tcp);
     });
-    if (hr.failed())
-        return setSystemErrorPayload(hr, "socket");
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return hr_err;
+        return result_t(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("socket"));
+    }
 
     retVal = sock;
 
@@ -93,8 +99,14 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed())
-        return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("getpeername"));
+    }
 
     retVal = addr_info.str();
 
@@ -107,8 +119,14 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed())
-        return CHECK_ERROR(setSystemErrorPayload(hr, "getpeername"));
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("getpeername"));
+    }
 
     retVal = addr_info.port();
 
@@ -121,8 +139,14 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed())
-        return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("getsockname"));
+    }
 
     retVal = addr_info.str();
 
@@ -135,8 +159,14 @@ result_t UVSocket::get_localPort(int32_t& retVal)
     int32_t sz = sizeof(addr_info);
 
     result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed())
-        return CHECK_ERROR(setSystemErrorPayload(hr, "getsockname"));
+    if (hr.failed()) {
+        result_t hr_err = hr;
+        if (!hr_err.is_system_error())
+            return CHECK_ERROR(hr_err);
+        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
+            .with_system_errno()
+            .with_syscall("getsockname"));
+    }
 
     retVal = addr_info.port();
 
@@ -146,7 +176,14 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_family == net_base::C_AF_UNIX) {
-        return setSystemErrorPayload(uv_pipe_bind(&m_pipe, addr.c_str()), "bind");
+        {
+            result_t hr_err = uv_pipe_bind(&m_pipe, addr.c_str());
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("bind"));
+        }
     } else {
         inetAddr addr_info;
 
@@ -155,9 +192,15 @@ result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
         if (addr_info.addr(addr) < 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        return setSystemErrorPayload(uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
-                                         m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY)),
-            "bind");
+        {
+            result_t hr_err = uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
+                                         m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("bind"));
+        }
     }
 }
 
@@ -207,7 +250,14 @@ void UVSocket::on_listen(uv_stream_t* server, int status)
 result_t UVSocket::listen(int32_t backlog)
 {
     return uv_call([&] {
-        return setSystemErrorPayload(uv_listen(&m_stream, backlog, on_listen), "listen");
+        {
+            result_t hr_err = uv_listen(&m_stream, backlog, on_listen);
+            if (!hr_err.is_system_error())
+                return hr_err;
+            return result_t(result_t::inherit(std::move(hr_err))
+                .with_system_errno()
+                .with_syscall("listen"));
+        }
     });
 }
 
@@ -253,17 +303,14 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 m_sock->isolate_unref();
         }
 
-        obj_ptr<ErrorPayload> error_payload(result_t status) const
+        // The connect failure with its Node.js context; the value carries it to
+        // both consumers: the caller (m_ac) and the reader's error emit
+        // (on_connected).
+        result_t error_value(result_t status) const
         {
-            obj_ptr<ErrorPayload> payload = ErrorPayload::from_system(status);
-
-            payload->with_syscall("connect");
-            if (m_use_path)
-                payload->with_path(m_target)->arg("path", m_target);
-            else
-                payload->with_hostname(m_target)->arg("host", m_target)->arg("port", m_port);
-
-            return payload;
+            return m_use_path
+                ? result_t::from_system(status).with_syscall("connect").with_path(m_target).arg("path", m_target)
+                : result_t::from_system(status).with_syscall("connect").with_hostname(m_target).arg("host", m_target).arg("port", m_port);
         }
 
         // The generic timeout handler closes the stream, which makes libuv
@@ -281,30 +328,17 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             if (m_timedout && status == UV_ECANCELED)
                 status = CALL_E_TIMEOUT;
 
-            m_sock->on_connected(status < 0 ? status : 0);
+            result_t err = status < 0 ? error_value(status) : result_t(0);
+
+            m_sock->on_connected(err);
 
             if (!m_bEvent) {
-                if (status < 0) {
-                    // The connect error also travels to the socket's own error
-                    // emission, which runs on the isolate thread: keep a copy
-                    // here (see AsyncStreamBase::takePendingErrorPayload).
-                    obj_ptr<ErrorPayload> payload = error_payload(status);
-
-                    m_sock->setPendingErrorPayload(payload->clone());
-                    setErrorPayload(payload);
-                }
-
-                m_ac.apost(status);
+                m_ac.apost(err);
             } else {
-                if (status < 0) {
-                    obj_ptr<ErrorPayload> payload = error_payload(status);
-
-                    m_sock->setPendingErrorPayload(payload->clone());
-                    setErrorPayload(payload);
-                    (new EventInfo(m_sock, "error", status))->emit();
-                } else {
+                if (status < 0)
+                    (new EventInfo(m_sock, "error", err))->emit();
+                else
                     (new EventInfo(m_sock, "connect"))->emit();
-                }
             }
 
             if (m_timer_started)

@@ -120,61 +120,10 @@ public:
     }
 
 protected:
-    void captureErrorContext(result_t v)
-    {
-        // Success path: nothing to carry. The slot stays empty instead of
-        // constructing an empty payload, and an event that never failed never
-        // allocates one either.
-        if (v.ok()) {
-            m_errorPayload = nullptr;
-            return;
-        }
-
-        obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-        if (!payload || payload->empty()) {
-            m_errorPayload = nullptr;
-            return;
-        }
-
-        m_errorPayload = std::move(payload);
-    }
-
-    void applyErrorContext() const
-    {
-        if (m_errorPayload && !m_errorPayload->empty())
-            // The stash keeps its own copy: the transports take-mutate-set it,
-            // and a shared object would leak those mutations back here.
-            setErrorPayload(m_errorPayload->clone());
-    }
-
-protected:
     Isolate* m_isolate;
-
-    // Payloads only exist on failure: keeping them behind a pointer leaves every
-    // successfully completed event free of payload construction, and of the
-    // ~130 bytes the payload itself would otherwise occupy.
-    static const ErrorPayload& emptyErrorPayload()
-    {
-        static const ErrorPayload s_empty;
-        return s_empty;
-    }
-
-    const ErrorPayload& errorPayload() const
-    {
-        return m_errorPayload ? *m_errorPayload : emptyErrorPayload();
-    }
-
-    // The carried payload as a shared handle (the slot keeps its own ref); an
-    // event that never failed returns null, which setError treats as empty.
-    obj_ptr<ErrorPayload> errorPayloadRef() const
-    {
-        return m_errorPayload;
-    }
 
 private:
     kStateType m_state;
-    obj_ptr<ErrorPayload> m_errorPayload;
 };
 
 // A single-owner handle to a continuation event, and the only way to name one
@@ -366,23 +315,20 @@ public:
                 : m_h(std::move(h))
                 , m_hr(hr)
             {
-                // The error context is thread/fiber-local, so it must travel
-                // with the task: capture it here, in the caller's context, and
-                // restore it on the pool fiber - otherwise a failed delivery
-                // across the hop would lose its description (message / type /
-                // payload) and be reported as a bare code. Same cross-thread
-                // rule as AsyncBackgroundWrite's emit path.
-                if (hr.failed()) {
+                // The description rides with the value; only the sentinel's
+                // scalar state is thread/fiber-local, so it is captured here,
+                // in the caller's context, and restored on the pool fiber -
+                // otherwise a failed delivery across the hop would be
+                // resolved against the receiving thread's (empty) state.
+                // Same cross-thread rule as AsyncBackgroundWrite's emit path.
+                if (hr.failed())
                     m_desc = Runtime::captureErrorDescription(hr);
-                    obj_ptr<ErrorPayload> found = hr.payload_ref();
-                    m_payload = (found && !found->empty()) ? std::move(found) : takeErrorPayload();
-                }
             }
 
             virtual void invoke() override
             {
                 if (m_hr.failed())
-                    Runtime::applyErrorDescription(m_desc, m_payload);
+                    Runtime::applyErrorDescription(m_desc, m_hr.payload());
 
                 m_h.post(m_hr);
                 delete this;
@@ -392,7 +338,6 @@ public:
             AsyncHandle m_h;
             result_t m_hr;
             Runtime::ErrorDescription m_desc;
-            obj_ptr<ErrorPayload> m_payload;
         };
 
         (new AsyncPost(std::move(*this), hr))->async(mode);
@@ -431,7 +376,6 @@ public:
 
     virtual result_t post(result_t v)
     {
-        captureErrorContext(v);
         if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
@@ -468,10 +412,11 @@ public:
         else
             m_v = hr;
 
-        if (m_v.failed())
-            applyErrorContext();
         if (m_v.is_exception())
-            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
+            m_v = result_t(result_t::inherit(std::move(m_v))
+                    .with_type_name(m_error_type_name)
+                    .with_result(m_error_code)
+                    .with_message(m_error));
 
         return m_v;
     }
@@ -502,7 +447,6 @@ public:
 
     virtual result_t post(result_t v)
     {
-        captureErrorContext(v);
         if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
@@ -525,10 +469,11 @@ public:
             return hr;
 
         weak.wait();
-        if (m_v.failed())
-            applyErrorContext();
         if (m_v.is_exception())
-            Runtime::setError(errorPayloadRef(), m_error_type_name.c_str(), m_error_code, m_error);
+            m_v = result_t(result_t::inherit(std::move(m_v))
+                    .with_type_name(m_error_type_name)
+                    .with_result(m_error_code)
+                    .with_message(m_error));
 
         return m_v;
     }
@@ -680,7 +625,6 @@ public:
         if (++m_epoch != 1)
             state_lock_violation("non-initial post() (direct dispatch into a machine that has already been dispatched)", v, FIBJS_ASYNC_STATE_CALLER());
 #endif
-        captureErrorContext(v);
         return post_(v);
     }
 
@@ -702,7 +646,6 @@ protected:
                 ++m_epoch;
 #endif
             if (hr.failed()) {
-                applyErrorContext();
                 hr = error(hr);
             }
 
@@ -764,7 +707,6 @@ protected:
     {
         m_bAsyncState = true;
         m_v = v;
-        captureErrorContext(v);
 
         async(CALL_E_NOSYNC);
     }
@@ -1114,7 +1056,6 @@ public:
 public:
     result_t post_result(result_t v)
     {
-        captureErrorContext(v);
         if (v.is_exception()) {
             m_error_code = Runtime::errCode();
             m_error_type_name = Runtime::errTypeName();
@@ -1122,7 +1063,7 @@ public:
         }
 
         m_v = v;
-        m_isolate->sync([this]() -> int {
+        m_isolate->sync([this]() -> result_t {
             return syncFunc();
         });
 
@@ -1159,7 +1100,7 @@ protected:
     {
     }
 
-    int syncFunc();
+    result_t syncFunc();
 
     void processPromiseResult();
 

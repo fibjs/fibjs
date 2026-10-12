@@ -33,14 +33,11 @@ class ErrorPayload;
 class Variant;
 class object_base;
 
-// The interim thread mirror (utils.cpp): a content copy of a value's payload
-// for the not-yet-migrated transports; batch 2 removes it with them.
-void setErrorPayload(obj_ptr<ErrorPayload> data);
-
 // The interim thread-state mirror (utils.cpp): reproduces the old
 // Runtime::setError side effects (m_code / m_error / m_errorTypeName) at
-// builder landing, so the still existing errCode/errMessage readers keep
-// working while producers migrate; 5c narrows the state to real exceptions.
+// builder landing, so the still existing errCode / errMessage readers (the
+// CALL_E_EXCEPTION sentinel) keep working while the sentinel narrows; 5c
+// resolves it against the real pending JS exception.
 void mirror_error_state(const ErrorPayload& payload);
 
 #define CALL_RETURN_NULL 100000
@@ -161,21 +158,13 @@ public:
         return m_payload.get();
     }
 
-    // The shared handle for the interim transports (T4a): the value keeps the
-    // payload private; the handle grants reading / passing / cloning -- no
-    // writer surface once ErrorPayload's mutators become result_t-only (T4b).
-    // Batch 2 removes it together with the stash.
-    obj_ptr<ErrorPayload> payload_ref() const
-    {
-        return m_payload;
-    }
-
     // ----- creation: the builder is the only writable shape -----
     class builder;
     static builder make(int32_t code);
     static builder from_system(result_t hr);
     static builder from_uv(int32_t status);
     static builder inherit(result_t&& base);
+    static builder inherit_as(result_t&& base, result_t code);
 
     // The landing (defined below the builder): converts a builder into this
     // immutable value and fires the interim mirrors. A constructor (rather
@@ -337,7 +326,8 @@ static_assert(sizeof(result_t) == 16, "result_t is { int32_t, obj_ptr<ErrorPaylo
 // ---------------------------------------------------------------------------
 // The description that rides with a failing result_t. Refcounted (obj_base):
 // copies share, drops release. Construction and modification belong to
-// result_t / its builder (P4-final/T4 tighten the surface further).
+// result_t / its builder (batch 2: the write face is private, the free
+// payload APIs are gone).
 // ---------------------------------------------------------------------------
 struct ErrorArg {
     exlib::string name;
@@ -364,50 +354,15 @@ struct ErrorPayload : public obj_base {
     int32_t errno_value = 0;
     std::vector<ErrorArg> args;
 
-    static obj_ptr<ErrorPayload> make(const char* error_type_name = nullptr, result_t result_code = 0)
-    {
-        obj_ptr<ErrorPayload> payload = new ErrorPayload();
+    // Creation and every mutator belong to result_t / its builder: a
+    // description is built by a builder chain, attached to a value, and never
+    // modified afterwards (so copies may share it freely). Outside readers get
+    // the const view only (result_t::payload()).
+    friend class result_t;
+    friend class result_t::builder;
 
-        if (error_type_name)
-            payload->error_type_name = error_type_name;
-        payload->result_code = result_code;
-
-        return payload;
-    }
-
-    static obj_ptr<ErrorPayload> from_system(result_t hr)
-    {
-        obj_ptr<ErrorPayload> payload = new ErrorPayload();
-        payload->has_errno = true;
-        payload->errno_value = hr.code();
-        return payload;
-    }
-
-    static obj_ptr<ErrorPayload> from_uv(int32_t status)
-    {
-        return from_system(status);
-    }
-
-    // Content clone (the thread mirror / explicit copies). The mirror must not
-    // share: the transports take-mutate-set the stash until batch 2 rewires
-    // them, and a shared object would leak those mutations back into the value.
-    obj_ptr<ErrorPayload> clone() const
-    {
-        obj_ptr<ErrorPayload> p = new ErrorPayload();
-
-        p->error_type_name = error_type_name;
-        p->syscall = syscall;
-        p->path = path;
-        p->path2 = path2;
-        p->hostname = hostname;
-        p->code = code;
-        p->message = message;
-        p->result_code = result_code;
-        p->has_errno = has_errno;
-        p->errno_value = errno_value;
-        p->args = args;
-        return p;
-    }
+private:
+    ErrorPayload() = default;
 
     obj_ptr<ErrorPayload> with_type_name(const exlib::string& value)
     {
@@ -464,7 +419,7 @@ struct ErrorPayload : public obj_base {
         return this;
     }
 
-    // printf-style formatted message, consistent with Runtime::setError(fmt, ...)
+    // printf-style formatted message.
     obj_ptr<ErrorPayload> format(const char* fmt, ...);
 
     obj_ptr<ErrorPayload> arg(const char* name, const exlib::string& value);
@@ -488,6 +443,7 @@ struct ErrorPayload : public obj_base {
     obj_ptr<ErrorPayload> arg_object(const char* name, const char* class_name);
     obj_ptr<ErrorPayload> arg_buffer(const char* name, int64_t length);
 
+public:
     bool has_args() const
     {
         return !args.empty();
@@ -559,6 +515,17 @@ public:
         ErrorPayload* p = ensure();
         p->has_errno = true;
         p->errno_value = value;
+        return std::move(*this);
+    }
+
+    // A system error: the code of this value IS -errno, so the errno field is
+    // the code itself. The call sites that mount a system error rely on the
+    // marking without reading the raw code (P4-final gated code()).
+    builder&& with_system_errno() &&
+    {
+        ErrorPayload* p = ensure();
+        p->has_errno = true;
+        p->errno_value = m_code;
         return std::move(*this);
     }
 
@@ -686,17 +653,28 @@ inline result_t::builder result_t::inherit(result_t&& base)
     return b;
 }
 
+// Take over a base value's description and land it under a different code: the
+// JS boundary resolving a sentinel to the real code the description carries
+// (resolveException), the description kept on the value.
+inline result_t::builder result_t::inherit_as(result_t&& base, result_t code)
+{
+    builder b(code.code());
+
+    b.m_payload = std::move(base.m_payload);
+    return b;
+}
+
 inline result_t::result_t(builder&& b)
     : m_code(b.m_code)
 {
     m_payload = std::move(b.m_payload);
-    if (m_payload) {
-        // The interim mirrors (batch 2 / 5c remove them): the stash for the
-        // un-migrated transports, the thread state for the errCode/errMessage
-        // readers -- both are content copies, never shared.
-        setErrorPayload(m_payload->clone());
+
+    // The interim thread-state mirror (5c narrows it to the real-exception
+    // sentinel): the description also lands in the per-thread state, which the
+    // readers that do not hold the value yet (errCode / errMessage) still peek.
+    // Success values carry no description, so nothing lands for them.
+    if (m_payload)
         mirror_error_state(*m_payload);
-    }
 }
 
 }

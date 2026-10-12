@@ -67,8 +67,15 @@ public:
                 m_next = m_hdrs[m_pos++];
             }
 
-            if (m_hr.is_exception())
-                result_t(result_t::make(CALL_E_EXCEPTION).with_message(m_message));
+            if (m_hr.is_exception()) {
+                // The description rides with the value; a bare sentinel takes
+                // the message captured from the JS exception (the state read
+                // in js_invoke consumed it).
+                const ErrorPayload* p = m_hr.payload();
+
+                if (!p || p->empty())
+                    m_hr = result_t(result_t::make(CALL_E_EXCEPTION).with_message(m_message));
+            }
 
             if (m_hr.failed())
                 return next(m_hr);

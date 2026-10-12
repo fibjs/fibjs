@@ -155,14 +155,15 @@ exlib::string odbc_error(int32_t handleType, void* handle)
 static result_t odbc_set_error(int32_t handleType, void* handle)
 {
     OdbcDiagInfo info = odbc_error_info(handleType, handle);
-    obj_ptr<ErrorPayload> payload = new ErrorPayload();
+
+    result_t::builder b = result_t::make(CALL_E_EXCEPTION);
 
     if (!info.sqlstate.empty())
-        payload->with_code(info.sqlstate);
+        b = std::move(b).with_code(info.sqlstate);
     if (info.has_native)
-        payload->with_errno(info.native);
+        b = std::move(b).with_errno(info.native);
 
-    return Runtime::setError(payload, CALL_E_EXCEPTION, info.message);
+    return result_t(std::move(b).with_message(info.message));
 }
 
 result_t odbc_set_autocommit(void* conn, bool on)
@@ -309,12 +310,13 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
             }
             odbc_disconnect(conn);
             conn = NULL;
-            obj_ptr<ErrorPayload> payload = new ErrorPayload();
+
+            result_t::builder b = result_t::make(CALL_E_EXCEPTION);
             if (!info.sqlstate.empty())
-                payload->with_code(info.sqlstate);
+                b = std::move(b).with_code(info.sqlstate);
             if (info.has_native)
-                payload->with_errno(info.native);
-            return Runtime::setError(payload, CALL_E_EXCEPTION, err);
+                b = std::move(b).with_errno(info.native);
+            return result_t(std::move(b).with_message(err));
         }
     }
 
@@ -363,15 +365,12 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         // Connection parameters for diagnostics - psql / mssql / dm / odbc all
         // share this entry. The password never enters the payload, not even as
         // a truncated summary.
-        obj_ptr<ErrorPayload> payload = takeErrorPayload();
-
-        payload->arg("host", u->hostname())
-            ->arg("port", port)
-            ->arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
-            ->arg("user", username)
-            ->arg_redacted("password");
-
-        return setErrorPayload(hr, payload);
+        return result_t::inherit(std::move(hr))
+            .arg("host", u->hostname())
+            .arg("port", port)
+            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
+            .arg("user", username)
+            .arg_redacted("password");
     }
 
     return 0;

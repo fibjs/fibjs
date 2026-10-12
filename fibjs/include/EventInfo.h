@@ -23,34 +23,36 @@ public:
         add("type", type);
 
         if (type == "error" && !code.has_value()) {
-            obj_ptr<ErrorPayload> stashed = takeErrorPayload();
-            obj_ptr<ErrorPayload> found = code.payload_ref();
-            obj_ptr<ErrorPayload> payload = (found && !found->empty()) ? std::move(found) : std::move(stashed);
+            // The description rides with the failing value; a bare sentinel
+            // contributes only its code (nothing is read from thread state).
+            const ErrorPayload* payload = code.payload();
 
-            if (!payload->code.empty())
+            if (payload && !payload->code.empty())
                 add("code", payload->code);
             else
                 add("code", code.code());
 
-            if (payload->has_errno)
-                add("errno", payload->errno_value);
-            if (!payload->syscall.empty())
-                add("syscall", payload->syscall);
-            if (!payload->path.empty())
-                add("path", payload->path);
-            if (!payload->hostname.empty())
-                add("hostname", payload->hostname);
+            if (payload) {
+                if (payload->has_errno)
+                    add("errno", payload->errno_value);
+                if (!payload->syscall.empty())
+                    add("syscall", payload->syscall);
+                if (!payload->path.empty())
+                    add("path", payload->path);
+                if (!payload->hostname.empty())
+                    add("hostname", payload->hostname);
 
-            // Parameter summaries travel with the event just like the scalar
-            // fields above: the payload is consumed on the completing thread
-            // and the object is converted on the JS thread later on.
-            if (!payload->args.empty()) {
-                obj_ptr<NObject> args = new NObject();
+                // Parameter summaries travel with the event just like the scalar
+                // fields above: the payload is read on the completing thread and
+                // the object is converted on the JS thread later on.
+                if (!payload->args.empty()) {
+                    obj_ptr<NObject> args = new NObject();
 
-                for (const ErrorArg& arg : payload->args)
-                    args->add(arg.name, arg.value);
+                    for (const ErrorArg& arg : payload->args)
+                        args->add(arg.name, arg.value);
 
-                add("args", (obj_base*)args);
+                    add("args", (obj_base*)args);
+                }
             }
         } else if (!code.has_value())
             add("code", code.code());

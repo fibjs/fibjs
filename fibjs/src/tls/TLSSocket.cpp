@@ -272,40 +272,22 @@ public:
     {
         m_sock->on_connected(v);
 
-        // The SNI / verification host is the key context for a failed handshake.
-        // Keep the payload on this thread for the sync/callback path and pass a
-        // copy into the emit fiber, which may run on another thread. The error
-        // description travels the same way: a handshake failure is a
-        // CALL_E_EXCEPTION whose name/message live in per-thread state.
+        // The SNI / verification host is the key context for a failed handshake:
+        // enrich the value itself (it crosses into the emit fiber, which may run
+        // on another thread, and the sync/callback path reads it too). The error
+        // description travels the same way as in the other emit paths: the value
+        // carries it, only the sentinel state is thread-local.
         Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
 
-        obj_ptr<ErrorPayload> eff;
-        {
-            obj_ptr<ErrorPayload> carried = v.payload_ref();
-
-            if (carried && !carried->empty()) {
-                // The description already rides with the value: enrich the
-                // value itself (the value-first consumers prefer it).
-                if (!m_server_name.empty())
-                    v = result_t(result_t::inherit(std::move(v)).arg("servername", m_server_name));
-                eff = v.payload_ref()->clone();
-            } else {
-                // No carried description: keep the stash path (an enrichment
-                // that fabricated an args-only payload would shadow the
-                // thread-state description).
-                eff = takeErrorPayload();
-                if (!m_server_name.empty())
-                    eff->arg("servername", m_server_name);
-            }
-            setErrorPayload(eff->clone());
-        }
+        if (!m_server_name.empty())
+            v = result_t(result_t::inherit(std::move(v)).arg("servername", m_server_name));
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;
-            m_isolate->sync([sock, v, desc, eff]() -> int32_t {
+            m_isolate->sync([sock, v, desc]() -> int32_t {
                 JSFiber::EnterJsScope s;
 
-                Runtime::applyErrorDescription(desc, eff);
+                Runtime::applyErrorDescription(desc, v.payload());
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
