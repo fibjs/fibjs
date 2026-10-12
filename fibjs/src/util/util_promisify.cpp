@@ -99,7 +99,7 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
 
     func1 = isolate->NewFunction("promisify", promisify_stub, func);
     if (func1.IsEmpty())
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
     setAsyncFunctoin(func1);
 
     func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), func1);

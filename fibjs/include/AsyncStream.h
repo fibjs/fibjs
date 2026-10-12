@@ -565,7 +565,7 @@ public:
         }
 
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         (new AsyncReadVariant(this, bytes, retVal, std::move(ac)))->apost(0);
         return result_t::pending();
@@ -617,7 +617,7 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         (new AsyncReadAll(this, retVal, std::move(ac)))->apost(0);
         return result_t::pending();
@@ -642,7 +642,7 @@ public:
     virtual result_t writeBuffer(exlib::string data, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         obj_ptr<Buffer_base> buf;
 
@@ -820,7 +820,7 @@ public:
             }
             m_ended = true;
             retVal = this;
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
         }
 
         retVal = this;
@@ -981,7 +981,7 @@ public:
     virtual result_t end(int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         retVal = 0;
         (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(0);
@@ -991,7 +991,7 @@ public:
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         retVal = 0;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
@@ -1001,7 +1001,7 @@ public:
     virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         retVal = 0;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
@@ -1011,7 +1011,7 @@ public:
     virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         obj_ptr<Buffer_base> buf;
         result_t hr = Buffer_base::from(data, encoding, buf);

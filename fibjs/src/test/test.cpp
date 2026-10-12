@@ -115,7 +115,7 @@ public:
 
         _case* now = td->m_describe;
         if (!now)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         _case* p = new _case(name, level);
         p->m_describe_block.Reset(Isolate::current()->m_isolate, block);
@@ -178,7 +178,7 @@ public:
         if (!now)
             now = td->m_running;
         if (!now)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         _case* p = new _case(name, level);
         p->m_block.Reset(Isolate::current()->m_isolate, block);
@@ -198,7 +198,7 @@ public:
         if (!now)
             now = td->m_running;
         if (!now)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         QuickArray<v8::Global<v8::Function>>& fa = now->m_hooks[type];
         size_t sz = fa.size();
@@ -273,7 +273,7 @@ public:
             return 0;
 
         if (td->m_describe != td->m_root)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         td->m_describe = NULL;
 
@@ -1266,7 +1266,7 @@ result_t test_base::mustCall(v8::Local<v8::Function> func, v8::Local<v8::Functio
 {
     TestData* td = TestData::current();
     if (!td->m_running)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
@@ -1306,7 +1306,7 @@ result_t test_base::mustNotCall(v8::Local<v8::Function> func, v8::Local<v8::Func
 {
     TestData* td = TestData::current();
     if (!td->m_running)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     Isolate* isolate = Isolate::current();
     retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
@@ -1317,7 +1317,7 @@ result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
 {
     TestData* td = TestData::current();
     if (!td->m_running)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     Isolate* isolate = Isolate::current();
     retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));

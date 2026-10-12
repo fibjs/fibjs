@@ -138,7 +138,7 @@ result_t types_base::isPrimitive(v8::Local<v8::Value> v, bool& retVal)
         exlib::string type;
         hr = GetArgumentValue(isolate, v->TypeOf(isolate->m_isolate), type);
         if (hr.failed())
-            return CHECK_ERROR(hr);
+            return hr;
         if (type != "object" && type != "function") {
             retVal = true;
         }

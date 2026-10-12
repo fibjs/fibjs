@@ -46,7 +46,7 @@ public:
         };
 
         if (root < registry_base::C_CLASSES_ROOT || root > registry_base::C_CURRENT_CONFIG)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         skey = utf8to16String(sk);
 
@@ -66,10 +66,10 @@ public:
                 DWORD dwFunc;
 
                 if (!InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION))
-                    return CHECK_ERROR(LastError());
+                    return result_t::from_system(LastError());
 
                 if (!SetSecurityDescriptorDacl(&SD, true, 0, false))
-                    return CHECK_ERROR(LastError());
+                    return result_t::from_system(LastError());
 
                 SA.nLength = sizeof(SA);
                 SA.lpSecurityDescriptor = &SD;
@@ -80,12 +80,12 @@ public:
                     &dwFunc);
 
                 if (lResult != ERROR_SUCCESS)
-                    return CHECK_ERROR(-lResult);
+                    return result_t::from_system(-lResult);
 
                 return 0;
             }
 
-            return CHECK_ERROR(-lResult);
+            return result_t::from_system(-lResult);
         }
 
         return 0;
@@ -171,7 +171,7 @@ public:
 
         LONG lResult = RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, NULL, &dwSize);
         if (lResult != ERROR_SUCCESS)
-            return CHECK_ERROR(-lResult);
+            return result_t::from_system(-lResult);
 
         switch (dwType) {
         case REG_DWORD: {
@@ -244,7 +244,7 @@ public:
             break;
         }
         default:
-            return CHECK_ERROR(CALL_E_RETURN_TYPE);
+            return result_t(CALL_E_RETURN_TYPE);
         }
 
         return 0;
@@ -305,7 +305,7 @@ result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data
 
     LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
     if (lResult != ERROR_SUCCESS)
-        return CHECK_ERROR(-lResult);
+        return result_t::from_system(-lResult);
 
     return 0;
 }
@@ -313,7 +313,7 @@ result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data
 result_t registry_base::set(int32_t root, exlib::string key, double value, int32_t type)
 {
     if (type != REG_DWORD && type != REG_QWORD)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     int64_t v = (int64_t)value;
     return set_reg(root, key, type, &v,
@@ -323,7 +323,7 @@ result_t registry_base::set(int32_t root, exlib::string key, double value, int32
 result_t registry_base::set(int32_t root, exlib::string key, exlib::string value, int32_t type)
 {
     if (type != REG_SZ && type != REG_EXPAND_SZ)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     exlib::wstring wvalue = utf8to16String(value);
     return set_reg(root, key, type, wvalue.c_str(),
@@ -368,7 +368,7 @@ result_t set_reg(int32_t root, exlib::string key, exlib::string name, int32_t ty
 
     LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
     if (lResult != ERROR_SUCCESS)
-        return CHECK_ERROR(-lResult);
+        return result_t::from_system(-lResult);
 
     return 0;
 }
@@ -376,7 +376,7 @@ result_t set_reg(int32_t root, exlib::string key, exlib::string name, int32_t ty
 result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, double value, int32_t type)
 {
     if (type != REG_DWORD && type != REG_QWORD)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     int64_t v = (int64_t)value;
     return set_reg(root, key, name, type, &v,
@@ -386,7 +386,7 @@ result_t registry_base::set(int32_t root, exlib::string key, exlib::string name,
 result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, exlib::string value, int32_t type)
 {
     if (type != REG_SZ && type != REG_EXPAND_SZ)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     exlib::wstring wvalue = utf8to16String(value);
     return set_reg(root, key, name, type, wvalue.c_str(),
@@ -473,7 +473,7 @@ result_t registry_base::del(int32_t root, exlib::string key)
         lResult = RegDeleteKeyW(r.hKey, (const wchar_t*)r.skey.c_str());
 
     if (lResult != ERROR_SUCCESS)
-        return CHECK_ERROR(-lResult);
+        return result_t::from_system(-lResult);
 
     return 0;
 }
@@ -490,7 +490,7 @@ result_t registry_base::del(int32_t root, exlib::string key, exlib::string name)
         lResult = RegDeleteKeyW(r.hKey, (const wchar_t*)r.skey.c_str());
 
     if (lResult != ERROR_SUCCESS)
-        return CHECK_ERROR(-lResult);
+        return result_t::from_system(-lResult);
 
     return 0;
 }

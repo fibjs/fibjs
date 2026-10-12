@@ -156,7 +156,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
 #endif
         ;
     else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
 #ifdef _WIN32
     fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
@@ -198,7 +198,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
-        return CHECK_ERROR(LastError("fcntl", fname));
+        return LastError("fcntl", fname);
 #endif
     return 0;
 }
@@ -278,7 +278,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
-        return CHECK_ERROR(LastError("fcntl", fname));
+        return LastError("fcntl", fname);
 #endif
     return 0;
 }

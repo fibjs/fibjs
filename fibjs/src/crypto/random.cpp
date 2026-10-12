@@ -25,7 +25,7 @@ result_t randomBytes(uint8_t* buf, int32_t size)
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal)
 {
     if (size < 1)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("randomBytes: size must be >= 1, got %d.", size).with_result(CALL_E_OUTRANGE));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("randomBytes: size must be >= 1, got %d.", size).with_result(CALL_E_OUTRANGE));
 
     obj_ptr<Buffer> buf_rand = new Buffer(NULL, size);
     uint8_t* buf = buf_rand->data();
@@ -42,7 +42,7 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
     obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
 
@@ -58,12 +58,12 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
     int32_t len = Buffer::Cast(buf)->length();
 
     if (offset < 0 || offset > len)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("randomFill: offset %d is out of range [0, %d].", offset, len).with_result(CALL_E_OUTRANGE));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("randomFill: offset %d is out of range [0, %d].", offset, len).with_result(CALL_E_OUTRANGE));
 
     if (size < 0)
         size = len - offset;
     else if (size + offset > len)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("randomFill: offset(%d) + size(%d) exceeds buffer length %d.", offset, size, len).with_result(CALL_E_OUTRANGE));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("randomFill: offset(%d) + size(%d) exceeds buffer length %d.", offset, size, len).with_result(CALL_E_OUTRANGE));
 
     if (size == 0) {
         retVal = buf;

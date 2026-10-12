@@ -288,7 +288,7 @@ result_t console_base::get_width(int32_t& retVal)
     CONSOLE_SCREEN_BUFFER_INFO info;
 
     if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info))
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     retVal = info.dwSize.X;
 
@@ -300,7 +300,7 @@ result_t console_base::get_height(int32_t& retVal)
     CONSOLE_SCREEN_BUFFER_INFO info;
 
     if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info))
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     retVal = info.srWindow.Bottom - info.srWindow.Top + 1;
 
@@ -310,14 +310,14 @@ result_t console_base::get_height(int32_t& retVal)
 result_t console_base::moveTo(int32_t row, int32_t column)
 {
     if (row < 1 || column < 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     CONSOLE_SCREEN_BUFFER_INFO info;
     HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
 
     flushLog();
     if (!GetConsoleScreenBufferInfo(hd, &info))
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     COORD pos = {
         (short)(column - 1),
@@ -362,7 +362,7 @@ result_t console_base::clear()
     DWORD dwConSize;
 
     if (!GetConsoleScreenBufferInfo(hd, &csbi))
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
 
@@ -370,7 +370,7 @@ result_t console_base::clear()
         coordScreen, &cCharsWritten);
 
     if (!GetConsoleScreenBufferInfo(hd, &csbi))
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     FillConsoleOutputAttribute(hd, csbi.wAttributes, dwConSize,
         coordScreen, &cCharsWritten);
@@ -391,7 +391,7 @@ result_t console_base::get_width(int32_t& retVal)
     while (err == -1 && errno == EINTR);
 
     if (err == -1)
-        return CHECK_ERROR(LastError("ioctl"));
+        return LastError("ioctl");
 
     retVal = ws.ws_col;
 
@@ -408,7 +408,7 @@ result_t console_base::get_height(int32_t& retVal)
     while (err == -1 && errno == EINTR);
 
     if (err == -1)
-        return CHECK_ERROR(LastError("ioctl"));
+        return LastError("ioctl");
 
     retVal = ws.ws_row;
 
@@ -418,7 +418,7 @@ result_t console_base::get_height(int32_t& retVal)
 result_t console_base::moveTo(int32_t row, int32_t column)
 {
     if (row < 1 || column < 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     char numStr[64];
 
@@ -456,7 +456,7 @@ bool g_in_readline = false;
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
 
     flushLog();
 
@@ -474,7 +474,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
         g_in_readline = false;
 
         if (!line)
-            return CHECK_ERROR(LastError());
+            return result_t::from_system(LastError());
 
         if (no_echo)
             puts("");
@@ -493,7 +493,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
 
     if (fgets(text, INPUT_BUFFER_SIZE, stdin) == NULL) {
         free(text);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     int32_t textLen = (int32_t)qstrlen(text);
@@ -508,7 +508,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
 
     flushLog();
     std_logger::out(msg);
@@ -532,7 +532,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
 
         if (!r) {
             free(utext);
-            return CHECK_ERROR(LastError());
+            return result_t::from_system(LastError());
         }
 
         if (textLen > 0 && utext[textLen - 1] == '\n')
@@ -550,7 +550,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
 
     if (fgets(text, INPUT_BUFFER_SIZE, stdin) == NULL) {
         free(text);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     int32_t textLen = (int32_t)qstrlen(text);

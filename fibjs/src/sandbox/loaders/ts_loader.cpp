@@ -46,18 +46,18 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
                 // Loaded through the CJS path from an ES module importer: leave
                 // the sentinel behind so esm_importer::resove_module() retries
                 // this file as ESM. Same contract as js_Loader.
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: ESM syntax detected; retry as ES module."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: ESM syntax detected; retry as ES module."));
             }
 
             // Not ESM syntax: restore the original error, which is the one the
             // author needs to see (a strip error, a genuine syntax error, ...).
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
         }
 
         return hr;
     } else if (info.type == SandBox::kESModule)
         return m_mts.run(ctx, src, name, arg_names, args, in_cjs);
 
-    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file format."));
+    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file format."));
 }
 }

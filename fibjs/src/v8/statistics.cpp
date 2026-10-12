@@ -16,7 +16,7 @@ result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
     v8::HeapCodeStatistics hcs;
 
     if (!isolate->m_isolate->GetHeapCodeAndMetadataStatistics(&hcs))
-        return CHECK_ERROR(CALL_E_INTERNAL);
+        return result_t(CALL_E_INTERNAL);
 
     v8::Local<v8::Context> context = isolate->context();
 
@@ -41,7 +41,7 @@ result_t v8_base::getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatist
         v8::HeapSpaceStatistics hss;
 
         if (!isolate->m_isolate->GetHeapSpaceStatistics(&hss, i))
-            return CHECK_ERROR(CALL_E_INTERNAL);
+            return result_t(CALL_E_INTERNAL);
 
         obj_ptr<GetHeapSpaceStatisticsType> item = new GetHeapSpaceStatisticsType();
 

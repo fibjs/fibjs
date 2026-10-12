@@ -55,7 +55,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             for (char& c : m_upper)
                 c = toupper((unsigned char)c);
             if (m_upper == "GET" || m_upper == "HEAD")
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body"));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body"));
         }
 
         hr = GetConfigValue(opts, "headers", headers);
@@ -191,7 +191,7 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool re
         if (req->get_body(req_body_stream).has_value()) {
             body = SeekableStream_base::getInstance(req_body_stream);
             if (!body)
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: request body must be seekable."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: request body must be seekable."));
         }
     }
 
@@ -299,7 +299,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     if (method == "GET" || method == "HEAD") {
         obj_ptr<Stream_base> body;
         if (req->get_body(body).has_value())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body"));
     }
 
     retVal = req;
@@ -372,7 +372,7 @@ result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -678,7 +678,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new AsyncEnd(this, retVal, std::move(ac)))->post(0);
 }
@@ -726,7 +726,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(0);
 }
@@ -776,7 +776,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
@@ -826,7 +826,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
@@ -865,7 +865,7 @@ result_t HttpRequest::clear()
 result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string strCommand = m_method;
     exlib::string strProtocol;
@@ -905,20 +905,20 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
         ON_STATE(asyncReadFrom, command)
         {
             if (n.is_return_null())
-                return CHECK_ERROR(CALL_E_CLOSED);
+                return result_t::closed();
 
             _parser p(m_strLine);
             result_t hr;
 
             if (!p.getWord(m_pThis->m_method))
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad method."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad method."));
 
             p.skipSpace();
 
             exlib::string& addr = m_pThis->m_address;
 
             if (!p.getWord(addr, '?'))
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad address."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad address."));
 
             if (!qstricmp(addr.c_str(), "http://", 7)) {
                 const char* p = qstrchr(addr.c_str() + 7, '/');
@@ -933,7 +933,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
             p.skipSpace();
 
             if (p.end())
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad protocol version."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: bad protocol version."));
 
             hr = m_pThis->set_protocol(p.now());
             if (hr.failed())
@@ -949,11 +949,11 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: only accept BufferedStream object."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: only accept BufferedStream object."));
 
     return (new asyncReadFrom(this, _stm, std::move(ac)))->post(0);
 }
@@ -1095,22 +1095,22 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
             bool bUpload = false;
 
             if (firstHeader("Content-Type", strType).is_return_null())
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: Content-Type is missing."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: Content-Type is missing."));
 
             if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
                 bUpload = true;
             else if (qstricmp(strType.c_str(),
                          "application/x-www-form-urlencoded", 33))
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: unknown form format: " + strType));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: unknown form format: " + strType));
 
             obj_ptr<Buffer_base> buf;
             obj_ptr<Stream_base> _body_stream;
 
             if (get_body(_body_stream).is_return_null() || !_body_stream)
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: body is empty."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: body is empty."));
             obj_ptr<SeekableStream_base> _body = SeekableStream_base::getInstance(_body_stream);
             if (!_body)
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: body must be seekable."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: body must be seekable."));
             _body->rewind();
             result_t hr = _body->cc_readBuffer((int32_t)len, buf);
             if (hr.failed())

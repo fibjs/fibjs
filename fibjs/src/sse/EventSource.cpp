@@ -428,7 +428,7 @@ result_t EventSource::close(AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_readyState == sse_base::C_OPEN) {
         m_readyState = sse_base::C_CLOSED;
@@ -463,11 +463,11 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opts;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     if (m_readyState != sse_base::C_SENDER) {
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: can only be called when readyState is sse.SENDER"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: can only be called when readyState is sse.SENDER"));
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -498,7 +498,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     int32_t retry_len = 0;
     if (opts->retry.has_value()) {
         if (*opts->retry < 0)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: retry must be a positive integer."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: retry must be a positive integer."));
         retry_len = snprintf(retry_str, sizeof(retry_str), "%d", *opts->retry);
         buf_size += retry_len + 8; // "retry: \n"
     }

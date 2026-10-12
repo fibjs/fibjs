@@ -47,22 +47,22 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     int32_t code_len = (int32_t)code->length() - sizeof(int32_t);
 
     if (code_len < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
     if (*(int32_t*)(code->data() + code_len) != jsc_version)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc version."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc version."));
 
     code_len -= sizeof(int32_t);
 
     if (code_len < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
     exlib::string s_temp_source;
     int32_t src_len = *(int32_t*)(code->data() + code_len);
     int32_t i;
 
     if (src_len < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
     s_temp_source.resize(src_len);
     char* _temp_source = s_temp_source.data();
@@ -73,12 +73,12 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     code_len -= sizeof(int32_t);
 
     if (code_len < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
     int32_t line_count = *(int32_t*)(code->data() + code_len);
 
     if (line_count < 0 || (int64_t)line_count * (int64_t)sizeof(int32_t) > (int64_t)code_len)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
     code_len -= sizeof(int32_t) * line_count;
 
@@ -135,7 +135,7 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
         // wraps around to a huge length, and Vector::length() (called by
         // Checksum) CHECK-fails and aborts the process.
         if (code_len < (int32_t)kHeaderSize)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: bad jsc file."));
 
         // Update the source hash in the cache data
         uint32_t* hash_ptr = (uint32_t*)(writable_cache + kSourceHashOffset);
@@ -172,7 +172,7 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
             return throwSyntaxError(try_catch);
         
         if (cache->rejected) {
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: code cache was rejected."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: code cache was rejected."));
         }
     }
 

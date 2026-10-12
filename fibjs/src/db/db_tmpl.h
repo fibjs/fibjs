@@ -21,7 +21,7 @@ namespace fibjs {
 // finishing or breaking
 inline result_t db_stmt_busy_error()
 {
-    return CHECK_ERROR(result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection; release the iterator "
+    return result_t(result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection; release the iterator "
         "(call iterator.return() or finish the for...of iteration) before "
         "executing other statements"));
 }
@@ -50,7 +50,7 @@ public:
                     v8::Local<v8::Value> v = args[cnt];
 
                     if (v->IsFunction())
-                        return CHECK_ERROR(CALL_E_INVALIDARG);
+                        return result_t::invalid_arg();
 
                     appendValue(str, v);
                 } else
@@ -168,10 +168,10 @@ public:
     result_t use(exlib::string dbName, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         obj_ptr<NArray> retVal;
         exlib::string s("USE ", 4);
@@ -182,10 +182,10 @@ public:
     result_t begin(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         obj_ptr<NArray> retVal;
 
@@ -203,10 +203,10 @@ public:
     result_t commit(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         obj_ptr<NArray> retVal;
 
@@ -220,10 +220,10 @@ public:
     result_t rollback(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         obj_ptr<NArray> retVal;
 
@@ -247,7 +247,7 @@ public:
     result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
         if (m_activeStmt)
-            return CHECK_ERROR(result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection"));
+            return result_t(result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection"));
 
         return CALL_E_INVALID_CALL;
     }
@@ -264,11 +264,11 @@ public:
             ac.ctxv().resize(1);
             ac.ctxv()[0] = str;
 
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
         }
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         result_t ctx_hr = ac.ctx(0);
         if (ctx_hr.failed())
@@ -292,11 +292,11 @@ public:
             ac.ctxv().resize(1);
             ac.ctxv()[0] = str;
 
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
         }
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         result_t ctx_hr = ac.ctx(0);
         if (ctx_hr.failed())
@@ -383,10 +383,10 @@ public:
         AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         if (m_activeStmt)
             return db_stmt_busy_error();
@@ -409,11 +409,11 @@ public:
                 if (hr.failed())
                     return hr;
             }
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
         }
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         result_t ctx_hr = ac.ctx(0);
         if (ctx_hr.failed())

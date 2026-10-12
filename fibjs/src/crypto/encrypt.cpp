@@ -180,7 +180,7 @@ result_t crypto_base::privateDecrypt(Union_privateDecrypt_privateKey privateKey,
     // a string buffer is declared together with the options object only: it is
     // decoded with the `encoding` option, which a plain key cannot carry
     if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
 
@@ -219,7 +219,7 @@ result_t crypto_base::privateEncrypt(Union_privateEncrypt_privateKey privateKey,
     // a string buffer is declared together with the options object only: it is
     // decoded with the `encoding` option, which a plain key cannot carry
     if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
 
@@ -258,7 +258,7 @@ result_t crypto_base::publicDecrypt(Union_publicDecrypt_publicKey privateKey, Un
     // a string buffer is declared together with the options object only: it is
     // decoded with the `encoding` option, which a plain key cannot carry
     if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
 
@@ -297,7 +297,7 @@ result_t crypto_base::publicEncrypt(Union_publicEncrypt_publicKey privateKey, Un
     // a string buffer is declared together with the options object only: it is
     // decoded with the `encoding` option, which a plain key cannot carry
     if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
 

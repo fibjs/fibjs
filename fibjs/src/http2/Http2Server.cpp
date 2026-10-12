@@ -127,11 +127,11 @@ public:
         };
 
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
         if (stm == NULL)
-            return CHECK_ERROR(CALL_E_BADVARTYPE);
+            return result_t::bad_vartype();
 
         Isolate* isolate = ac.isolate();
         return (new asyncInvoke(this, stm, isolate, std::move(ac)))->post(0);
@@ -259,7 +259,7 @@ result_t Http2Server::start()
 result_t Http2Server::stop(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     class asyncStop : public AsyncState {
     public:

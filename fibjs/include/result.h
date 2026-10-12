@@ -193,9 +193,9 @@ public:
         return result_t(CALL_E_GUICALL);
     }
 
-    // The frequent error codes as named constructions (the CHECK_ERROR
-    // macro's retirement): a guard that fails reads its code by name instead
-    // of wrapping a raw int; the raw codes stay for the predicates.
+    // The frequent error codes as named constructions: a guard that fails
+    // reads its code by name instead of wrapping a raw int; the raw codes
+    // stay for the predicates.
     static result_t invalid_call()
     {
         return result_t(CALL_E_INVALID_CALL);

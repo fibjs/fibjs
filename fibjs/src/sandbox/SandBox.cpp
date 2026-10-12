@@ -263,7 +263,7 @@ result_t SandBox::addBuiltinModules()
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 {
     if (is_relative(id))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: does not accept relative path."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: does not accept relative path."));
 
     path_base::normalize(id, id);
     util_base::clone(mod, mod);
@@ -366,7 +366,7 @@ static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v
 result_t SandBox::freeze()
 {
     if (!m_global)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     v8::Local<v8::Object> global = GetPrivate("_global").As<v8::Object>();
     return deepFreeze(holder(), global, global);
@@ -375,17 +375,17 @@ result_t SandBox::freeze()
 result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
 {
     if (!m_global)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     v8::Local<v8::Object> _global = GetPrivate("_global").As<v8::Object>();
 
     v8::Local<v8::Context> context;
     if (!_global->GetCreationContext().ToLocal(&context))
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     v8::Local<v8::Value> sandbox_obj = context->GetEmbedderData(kSandboxObject);
     if (sandbox_obj.IsEmpty() || !sandbox_obj->IsObject())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     retVal = sandbox_obj.As<v8::Object>();
     return 0;

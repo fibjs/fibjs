@@ -55,10 +55,10 @@ result_t db_base::openPSQL(exlib::string connString, obj_ptr<DbConnection_base>&
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "psql:", 5))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openPSQL: connection string must start with 'psql:'.").with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("openPSQL: connection string must start with 'psql:'.").with_result(CALL_E_INVALIDARG));
 
 #ifdef _WIN32
     const char* driver = "PostgreSQL UNICODE";

@@ -315,7 +315,7 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHa
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(path, safe_name);
@@ -330,7 +330,7 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHan
         return 0;
 
     if (!isolate->m_enable_FileSystem)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     AutoReq req;
     int32_t ret = uv_fs_lstat(NULL, &req, safe_name.c_str(), NULL);
@@ -357,7 +357,7 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
         // (non-callback) forms; the async forms always report the error.
         ac.ctxv()[0] = throwIfNoEntry || ac.callType() == AsyncEvent::kAsyncCallBack;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -377,7 +377,7 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(path, safe_name);
@@ -392,7 +392,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHand
         return 0;
 
     if (!isolate->m_enable_FileSystem)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     AutoReq req;
     int32_t ret = uv_fs_stat(NULL, &req, safe_name.c_str(), NULL);
@@ -419,7 +419,7 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
         // (non-callback) forms; the async forms always report the error.
         ac.ctxv()[0] = throwIfNoEntry || ac.callType() == AsyncEvent::kAsyncCallBack;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -455,7 +455,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);
@@ -482,7 +482,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
     }
 
     if (!isolate->m_enable_FileSystem)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     obj_ptr<FileStream> pFile = new FileStream();
     hr = pFile->open(safe_name, flags);
@@ -498,10 +498,10 @@ static result_t open_file_int(exlib::string fname, int32_t flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!ac.isolate()->m_enable_FileSystem)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     exlib::string safe_name;
     result_t hr = normalize_file_path_like(fname, safe_name);

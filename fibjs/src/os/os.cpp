@@ -25,7 +25,7 @@ result_t os_base::type(exlib::string& retVal)
     uv_utsname_t info;
     int32_t ret = uv_os_uname(&info);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     retVal = info.sysname;
     return 0;
@@ -36,7 +36,7 @@ result_t os_base::release(exlib::string& retVal)
     uv_utsname_t info;
     int32_t ret = uv_os_uname(&info);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     retVal = info.release;
     return 0;
@@ -47,7 +47,7 @@ result_t os_base::hostname(exlib::string& retVal)
     char s[255];
 
     if (gethostname(s, 255) < 0)
-        return CHECK_ERROR(LastError("gethostname"));
+        return LastError("gethostname");
 
     retVal = s;
     return 0;
@@ -144,7 +144,7 @@ result_t os_base::dateAdd(date_t d, int32_t num, exlib::string part, date_t& ret
     else if (part == "second")
         retVal.add(num, date_t::_SECOND);
     else
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Invalid date part: '%s'.", part.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Invalid date part: '%s'.", part.c_str()).with_result(CALL_E_INVALIDARG));
 
     return 0;
 }
@@ -163,7 +163,7 @@ result_t os_base::cpuNumbers(int32_t& retVal)
         uv_cpu_info_t* cpu_infos;
         int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
         if (ret < 0)
-            return CHECK_ERROR(ret);
+            return result_t::from_system(ret);
         uv_free_cpu_info(cpu_infos, s_cpus);
     }
 
@@ -176,7 +176,7 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
     uv_cpu_info_t* cpu_infos;
     int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -221,7 +221,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
     int32_t ret = uv_interface_addresses(&interfaces, &ifs);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -307,7 +307,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
 
     int32_t ret = uv_os_get_passwd(&pwd);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     homedir.assign(pwd.homedir);
     username.assign(pwd.username);
@@ -390,7 +390,7 @@ result_t os_base::homedir(exlib::string& retVal)
 
     int32_t ret = uv_os_homedir(buf, &size);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
     retVal = buf;
 
     return 0;
@@ -404,7 +404,7 @@ result_t os_base::tmpdir(exlib::string& retVal)
 
     int32_t ret = uv_os_tmpdir(buf, &size);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
     retVal = buf;
 
     return 0;

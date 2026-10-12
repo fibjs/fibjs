@@ -326,7 +326,7 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
 result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     m_lock.lock();
     if (m_offer_description) {
@@ -343,7 +343,7 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
 result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     m_lock.lock();
     if (m_answer_description) {
@@ -360,7 +360,7 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
 result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<NMap> stats = new NMap();
 

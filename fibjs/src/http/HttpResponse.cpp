@@ -137,7 +137,7 @@ result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -617,7 +617,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
         ON_STATE(asyncReadFrom, command)
         {
             if (n.is_return_null())
-                return CHECK_ERROR(CALL_E_CLOSED);
+                return result_t::closed();
 
             result_t hr;
             const char* c_str = m_strLine.c_str();
@@ -626,7 +626,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
             if (len < 12 || c_str[8] != ' '
                 || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
                 || qisdigit(c_str[12]))
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: bad protocol: " + m_strLine));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: bad protocol: " + m_strLine));
 
             m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
             m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
@@ -650,11 +650,11 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object."));
 
     return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(0);
 }
@@ -679,7 +679,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
         ac.ctxv().resize(1);
         ac.ctxv()[0] = _options;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     exlib::string strCommand = prepareHeaders();
@@ -705,7 +705,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options,
         ac.ctxv().resize(1);
         ac.ctxv()[0] = _options;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     if (ac.ctxv().size() == 1) {
@@ -852,7 +852,7 @@ result_t HttpResponse::redirect(exlib::string url)
 result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 {
     if (statusCode != 301 && statusCode != 302 && statusCode != 307)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
 
     m_statusCode = statusCode;
     setHeader("Location", url);
@@ -945,7 +945,7 @@ result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
 result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string strCommand = prepareHeaders();
     return m_message->sendHeader(stm, strCommand, content_length, std::move(ac));
@@ -955,7 +955,7 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
 {
     // Streaming responses cannot be cloned (body is a live socket stream)
     if (m_message->m_bodyStream)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Response body is a streaming body and cannot be cloned."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Response body is a streaming body and cannot be cloned."));
 
     obj_ptr<HttpResponse> resp = new HttpResponse();
 

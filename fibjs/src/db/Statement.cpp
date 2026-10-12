@@ -18,7 +18,7 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
         result_t hr = stashArgs(args, ac);
         if (hr.failed())
             return hr;
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
     }
 
     bool hasResult = false;
@@ -50,7 +50,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
         result_t hr = stashArgs(args, ac);
         if (hr.failed())
             return hr;
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
     }
 
     bool hasResult = false;
@@ -98,7 +98,7 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
         result_t hr = stashArgs(args, ac);
         if (hr.failed())
             return hr;
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
     }
 
     bool hasResult = false;
@@ -144,7 +144,7 @@ result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncH
         result_t hr = stashArgs(args, ac);
         if (hr.failed())
             return hr;
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
     }
 
     return iteratePrepared(ac.ctxv(), retVal);
@@ -172,7 +172,7 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
 result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (!m_impl)
-        return CHECK_ERROR(CALL_E_CLOSED);
+        return result_t::closed();
 
     return m_impl->columns(retVal);
 }
@@ -196,7 +196,7 @@ result_t Statement::close(AsyncHandle ac)
 result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
 
     if (m_done) {
         retVal = new NextType();

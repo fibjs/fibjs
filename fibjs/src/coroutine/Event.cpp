@@ -74,7 +74,7 @@ result_t Event::wait(AsyncHandle ac)
         return 0;
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     m_event.wait();
     return 0;

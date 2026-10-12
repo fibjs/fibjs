@@ -33,7 +33,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
         result_t pack(v8::Local<v8::Value> element)
         {
             if (element.IsEmpty() || element->IsFunction())
-                return CHECK_ERROR(CALL_E_BADVARTYPE);
+                return result_t::bad_vartype();
             else if (element->IsNull() || element->IsUndefined())
                 msgpack_pack_nil(&pk);
             else if (element->IsBoolean() || element->IsBooleanObject()) {

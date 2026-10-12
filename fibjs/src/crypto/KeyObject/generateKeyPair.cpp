@@ -238,7 +238,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
 
         ac.ctxv()[2] = privateKeyEncodingParam;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(2);

@@ -192,7 +192,7 @@ public:
             return result_t::make(CALL_E_EXCEPTION).with_code("ERR_ZLIB_BINDING_CLOSED").with_message("zlib binding closed");
 
         if (!is_deflate())
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         deflateParams(&m_strm, level, strategy);
         return 0;

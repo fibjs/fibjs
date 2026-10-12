@@ -14,7 +14,7 @@ result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base>& retVal,
     v8::Local<v8::Object> This)
 {
     if (value < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Semaphore value must be non-negative, received %d.", value).with_result(CALL_E_OUTRANGE));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Semaphore value must be non-negative, received %d.", value).with_result(CALL_E_OUTRANGE));
 
     retVal = new Semaphore(value);
 
@@ -54,7 +54,7 @@ result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
     }
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     retVal = m_sem.wait(timeout);
     return 0;

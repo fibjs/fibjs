@@ -261,10 +261,10 @@ result_t TcpServer::start()
     };
 
     if (!m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     if (m_running)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     m_running = true;
 
@@ -342,7 +342,7 @@ result_t TcpServer::set_timeout(int32_t newVal)
 result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     if (!m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     retVal = m_socket;
     return 0;
@@ -351,7 +351,7 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 result_t TcpServer::address(obj_ptr<AddressType>& retVal)
 {
     if (!m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     retVal = new AddressType();
 

@@ -190,73 +190,73 @@ result_t HeapSnapshot::load(exlib::string fname)
     data.resize(0);
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("nodes"))),
         nodes);
     if (hr.failed())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("edges"))),
         edges);
     if (hr.failed())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("strings"))),
         names);
     if (hr.failed())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     v = o->Get(context, isolate->NewString("snapshot"));
     if (v.IsEmpty() || !v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     o = v.As<v8::Object>();
     hr = GetConfigValue(o, "node_count", node_count);
     if (hr.failed())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetConfigValue(o, "edge_count", edge_count);
     if (hr.failed())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     v = o->Get(context, isolate->NewString("meta"));
     if (v.IsEmpty() || !v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("node_fields"))),
         node_fields);
     if (hr.failed() || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("edge_fields"))),
         edge_fields);
     if (hr.failed() || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     if (node_fields.size() * node_count != nodes.size())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     if (edge_fields.size() * edge_count != edges.size())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     v = o->Get(context, isolate->NewString("node_types"));
     if (v.IsEmpty() || !v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), node_types);
     if (hr.failed() || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     v = o->Get(context, isolate->NewString("edge_types"));
     if (v.IsEmpty() || !v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), edge_types);
     if (hr.failed() || checkArray(edge_types, edge_types_chk, ARRAYSIZE(edge_types_chk)))
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     int32_t node_pos = 0, edge_pos = 0;
 
@@ -266,7 +266,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         int32_t _node_type = nodes[_base];
         int32_t _node_name_id = nodes[_base + 1];
         if (_node_name_id < 0 || _node_name_id >= (int32_t)names.size())
-            return CHECK_ERROR(CALL_E_INVALID_DATA);
+            return result_t::invalid_data();
         exlib::string _node_name = names[_node_name_id];
         int32_t _node_id = nodes[_base + 2];
         int32_t _node_size = nodes[_base + 3];
@@ -274,7 +274,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         std::vector<obj_ptr<HeapGraphEdge_base>> _edges;
 
         if (edge_pos + _node_edge > edge_count)
-            return CHECK_ERROR(CALL_E_INVALID_DATA);
+            return result_t::invalid_data();
 
         while (_node_edge--) {
             int32_t _base = edge_pos * (int32_t)edge_fields.size();
@@ -292,7 +292,7 @@ result_t HeapSnapshot::load(exlib::string fname)
                 _edge_name = names[_edge_name_id];
 
             if (_edge_toid % node_fields.size() != 0 || _edge_toid >= (int32_t)edges.size())
-                return CHECK_ERROR(CALL_E_INVALID_DATA);
+                return result_t::invalid_data();
             _edge_toid = nodes[_edge_toid + 2];
 
             obj_ptr<HeapGraphEdge> _edge = new HeapGraphEdge(this, _edge_type,
@@ -318,7 +318,7 @@ result_t HeapSnapshot::load(exlib::string fname)
 result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     class buf_file {
     public:

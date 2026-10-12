@@ -15,7 +15,7 @@ namespace fibjs {
 
 result_t MemoryStream::CloneStream::get_fd(int32_t& retVal)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
@@ -55,7 +55,7 @@ result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
 
 result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::CloneStream::eof(bool& retVal)
@@ -66,13 +66,13 @@ result_t MemoryStream::CloneStream::eof(bool& retVal)
 
 result_t MemoryStream::CloneStream::flush(AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::CloneStream::writeBuffer(Buffer_base* data,
     AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::CloneStream::close(AsyncHandle ac)
@@ -104,7 +104,7 @@ result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
     else if (whence == fs_base::C_SEEK_END)
         m_pos = (int32_t)offset + (int32_t)m_buffer.length();
     else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (m_pos < 0)
         m_pos = 0;
@@ -134,7 +134,7 @@ result_t MemoryStream::CloneStream::size(int64_t& retVal)
 
 result_t MemoryStream::CloneStream::setTime(date_t d)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::CloneStream::clone(obj_ptr<MemoryStream_base>& retVal)

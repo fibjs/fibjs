@@ -25,7 +25,7 @@ result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
 
 #ifndef _WIN32
     if (_fd < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     int32_t hr = ::isatty(_fd);
 #else
@@ -35,14 +35,14 @@ result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
     }
 
     if (_fd < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     int32_t hr = _isatty(_fd);
     if (hr == FALSE && _lseek(_fd, 0, SEEK_CUR) < 0)
         hr = TRUE;
 #endif
     if (hr < 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     retVal = !!hr;
     return 0;
@@ -66,7 +66,7 @@ result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Obj
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
 
     retVal = new TTYInputStream(_fd);
     return 0;
@@ -108,7 +108,7 @@ result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::O
         return hr;
 
     if (!_tty)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG));
 
     retVal = new TTYOutputStream(_fd);
     return 0;
@@ -132,7 +132,7 @@ result_t TTYOutputStream::clearLine(int32_t dir)
         outLog(console_base::C_PRINT, kClearLine);
         break;
     default:
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(CALL_E_INVALIDARG));
     }
 
     return 0;
@@ -148,10 +148,10 @@ result_t TTYOutputStream::clearScreenDown()
 result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (x < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(CALL_E_INVALIDARG));
 
     char numStr[64];
 
@@ -168,7 +168,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     char numStr[64];
     char* data = numStr;

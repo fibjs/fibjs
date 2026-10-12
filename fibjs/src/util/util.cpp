@@ -75,7 +75,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -212,7 +212,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -229,7 +229,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
             continue;
 
         if (!val->IsObject())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         v8::Local<v8::Object> obj1 = val.As<v8::Object>();
         JSArray keys = obj1->GetPropertyNames(context);
@@ -268,7 +268,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
@@ -319,7 +319,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
 
@@ -382,7 +382,7 @@ result_t util_base::intersection(OptArgs arrs,
         }
 
         if (!v0->IsArray())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         v8::Local<v8::Array> base = v0.As<v8::Array>();
         int32_t len = base->Length();
@@ -396,7 +396,7 @@ result_t util_base::intersection(OptArgs arrs,
         for (i = 1; left > 0 && i < argc; i++) {
             v0 = arrs[i];
             if (!v0->IsArray())
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return result_t::invalid_arg();
 
             v8::Local<v8::Array> other = v0.As<v8::Array>();
             int32_t len1 = other->Length();
@@ -443,7 +443,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
@@ -469,7 +469,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
@@ -499,7 +499,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
@@ -523,7 +523,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
@@ -552,7 +552,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
     v8::Local<v8::Array> arr = v.As<v8::Array>();
@@ -601,7 +601,7 @@ result_t util_base::_union(OptArgs arrs,
         v8::Local<v8::Value> a = arrs[i];
 
         if (!a->IsArray())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         v8::Local<v8::Array> arr1 = a.As<v8::Array>();
         int32_t len = arr1->Length();
@@ -627,7 +627,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
     v8::Local<v8::Array>& retVal, QuickArray<JSValue>& flatten_list)
 {
     if (!list->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     flatten_list.append(list);
 
@@ -644,7 +644,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
     v8::Local<v8::Object> o = list.As<v8::Object>();
     JSValue v = o->Get(context, isolate->NewString("length"));
     if (IsEmpty(v))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     int32_t len = isolate->toInt32Value(v);
     int32_t cnt = retVal->Length();
@@ -660,7 +660,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
             else {
                 for (j = 0; j < (int32_t)flatten_list.size(); j++)
                     if (flatten_list[j]->StrictEquals(o1))
-                        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("util: circular reference object."));
+                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("util: circular reference object."));
 
                 result_t hr = util_flatten(o1, shallow, retVal, flatten_list);
                 if (hr.failed())
@@ -686,7 +686,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     v8::Local<v8::Array>& retVal)
 {
     if (!arr->IsObject())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -694,7 +694,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     v8::Local<v8::Object> o = arr.As<v8::Object>();
     JSValue v = o->Get(context, isolate->NewString("length"));
     if (IsEmpty(v))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     int32_t len = isolate->toInt32Value(v);
 
@@ -734,7 +734,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
         for (j = 0; j < argc; j++) {
             v8::Local<v8::Value> o = arrs[j];
             if (!o->IsArray())
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return result_t::invalid_arg();
 
             v8::Local<v8::Array> without = o.As<v8::Array>();
             len1 = without->Length();
@@ -1023,7 +1023,7 @@ result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
         retVal = ts_strip::strip(code);
         return 0;
     } catch (const std::exception& e) {
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(e.what()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(e.what()));
     }
 }
 

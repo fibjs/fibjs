@@ -54,7 +54,7 @@ public:
         exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
-            return CHECK_ERROR(CALL_E_BADINDEX);
+            return result_t::bad_index();
 
         if (offset + count > (int32_t)_data.length())
             count = (int32_t)_data.length() - offset;
@@ -74,7 +74,7 @@ public:
         exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
-            return CHECK_ERROR(CALL_E_BADINDEX);
+            return result_t::bad_index();
 
         _data = _data.substr(0, offset) + utf8to16String(arg) + _data.substr(offset);
         m_data = utf16to8String(_data);
@@ -86,7 +86,7 @@ public:
         exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
-            return CHECK_ERROR(CALL_E_BADINDEX);
+            return result_t::bad_index();
 
         if (offset + count > (int32_t)_data.length())
             count = (int32_t)_data.length() - offset;
@@ -101,7 +101,7 @@ public:
         exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
-            return CHECK_ERROR(CALL_E_BADINDEX);
+            return result_t::bad_index();
 
         if (offset + count > (int32_t)_data.length())
             count = (int32_t)_data.length() - offset;
@@ -116,7 +116,7 @@ public:
         exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
-            return CHECK_ERROR(CALL_E_BADINDEX);
+            return result_t::bad_index();
 
         retVal = utf16to8String(_data.substr(offset));
         _data = _data.substr(0, offset);

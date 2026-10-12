@@ -97,7 +97,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncCopy(from, to, bytes, retVal, std::move(ac)))->post(0);
 }
@@ -205,7 +205,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     new AsyncData(stm1, stm2, std::move(ac));
     return result_t::pending();

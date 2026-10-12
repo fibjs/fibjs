@@ -172,7 +172,7 @@ result_t process_base::umask(Union_umask_mask mask, int32_t& retVal)
             char c = str[i];
 
             if (c > '7' || c < '0')
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("process: invalid octal string"));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: invalid octal string"));
 
             oct *= 8;
             oct += c - '0';
@@ -226,7 +226,7 @@ result_t process_base::get_execPath(exlib::string& retVal)
 
     int32_t ret = uv_exepath(buf, &size);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     retVal = buf;
 
@@ -407,7 +407,7 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
     size_t rss;
     int32_t ret = uv_resident_set_memory(&rss);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss)).IsJust();
 
@@ -442,7 +442,7 @@ result_t process_base::uptime(double& retVal)
 {
     int32_t ret = uv_uptime(&retVal);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
     return 0;
 }
 
@@ -458,7 +458,7 @@ result_t process_base::cwd(exlib::string& retVal)
 
         if (uv_cwd(buf, &size)) {
             s_cwd_lock.unlock();
-            return CHECK_ERROR(LastError("uv_cwd"));
+            return LastError("uv_cwd");
         }
 
         s_cwd = buf;
@@ -471,7 +471,7 @@ result_t process_base::cwd(exlib::string& retVal)
 result_t process_base::chdir(exlib::string directory)
 {
     if (uv_chdir(directory.c_str()))
-        return CHECK_ERROR(LastError("chdir"));
+        return LastError("chdir");
 
     s_cwd_lock.lock();
     s_cwd.clear();
@@ -696,7 +696,7 @@ result_t process_base::disconnect()
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_channel)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("process: IPC channel is already disconnected."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: IPC channel is already disconnected."));
 
     obj_ptr<Stream_base> _channel = isolate->m_channel;
     isolate->m_channel.Release();
@@ -716,7 +716,7 @@ result_t process_base::send(v8::Local<v8::Value> msg)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_channel)
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("process.send: IPC channel is not available."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("process.send: IPC channel is not available."));
 
     return ChildProcess::Ipc::send(isolate->m_channel, msg);
 }
@@ -863,7 +863,7 @@ static result_t kill_numeric(int32_t pid, int32_t signal)
 
     int err = uv_kill(pid, signal);
     if (err)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("process: kill failed with error: " + exlib::string(uv_strerror(err))));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: kill failed with error: " + exlib::string(uv_strerror(err))));
 
     return 0;
 }
@@ -876,7 +876,7 @@ result_t process_base::kill(int32_t pid, Union_kill_signal signal)
     exlib::string name = std::get<exlib::string>(signal);
     int32_t signo = sig_name_to_number(name);
     if (signo < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("process: Unknown signal: " + name));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: Unknown signal: " + name));
 
     return kill_numeric(pid, signo);
 }

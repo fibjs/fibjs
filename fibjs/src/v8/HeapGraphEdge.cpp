@@ -33,7 +33,7 @@ result_t HeapGraphEdge::get_description(exlib::string& retVal)
 result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
     if (!m_snapshot)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return m_snapshot->getNodeById(m_fromId, retVal);
 }
@@ -41,7 +41,7 @@ result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
 result_t HeapGraphEdge::getToNode(obj_ptr<HeapGraphNode_base>& retVal)
 {
     if (!m_snapshot)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return m_snapshot->getNodeById(m_toId, retVal);
 }

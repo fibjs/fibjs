@@ -75,7 +75,7 @@ private:
                 if (code)
                     return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(zError(err));
 
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(zError(err)));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message(zError(err)));
             }
 
             if (m_pThis->strm.avail_out == ZLIB_CHUNK)

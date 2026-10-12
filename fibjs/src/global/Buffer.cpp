@@ -106,7 +106,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
 
             hr = GetArgumentValue(isolate, v, num);
             if (hr.failed())
-                return CHECK_ERROR(hr);
+                return hr;
 
             _str[i] = (uint8_t)num;
         }
@@ -877,15 +877,15 @@ result_t Buffer_base::compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& ret
 result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t max_length = 0;
     int32_t buffer_length = (int32_t)Buffer::length();
 
     if (offset < 0 || length < -1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     if (buffer_length < offset)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     if (buffer_length == offset || length == 0) {
         retVal = 0;
@@ -923,7 +923,7 @@ result_t Buffer::fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffe
     if (std::holds_alternative<int32_t>(v)) {
         result_t hr = generateEnd((int32_t)length(), offset, end);
         if (hr.failed())
-            return CHECK_ERROR(hr);
+            return hr;
 
         memset(data() + offset, std::get<int32_t>(v) & 255, end - offset);
     } else {
@@ -945,7 +945,7 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
 
     result_t hr = generateEnd((int32_t)length(), offset, end);
     if (hr.failed())
-        return CHECK_ERROR(hr);
+        return hr;
 
     uint8_t* _data = data();
     if (sz == 1)
@@ -968,7 +968,7 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
@@ -997,7 +997,7 @@ result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
 {
     result_t hr = generateEnd((int32_t)length(), offset, end);
     if (hr.failed())
-        return CHECK_ERROR(hr);
+        return hr;
 
     memset(data() + offset, v & 255, end - offset);
 
@@ -1017,7 +1017,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     exlib::string strBuf;
     result_t hr = commonDecode(codec, v, strBuf);
@@ -1045,10 +1045,10 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
     int32_t sourceEnd, int32_t& retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     if (sourceStart > (int32_t)length())
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     Buffer* buf = Buffer::Cast(targetBuffer);
     int32_t bufLen = buf->length();
@@ -1078,7 +1078,7 @@ result_t Buffer::set(Buffer_base* src, int32_t start, int32_t& retVal)
     Buffer* buf = Buffer::Cast(src);
     int32_t len = buf->length();
     if (len + start > (int32_t)length())
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Source is too large: %d bytes at offset %d exceeds buffer size %d.", len, start, (int32_t)length()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Source is too large: %d bytes at offset %d exceeds buffer size %d.", len, start, (int32_t)length()));
 
     return src->copy(this, start, 0, -1, retVal);
 }
@@ -1089,10 +1089,10 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     size_t data_len = length();
 
     if (offset < 0 || (size_t)offset > data_len)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     if (offset + size > (int32_t)data_len)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     const char* _data = (const char*)data() + offset;
 
@@ -1256,10 +1256,10 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
     int32_t value_size, bool le, int32_t& retVal)
 {
     if (offset < 0 || (size_t)offset > length())
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     if (offset + size > (int32_t)length())
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     retVal = size + offset;
 
@@ -1468,7 +1468,7 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
 
     result_t hr = validOffset(buf_length, offset);
     if (hr.failed())
-        return CHECK_ERROR(hr);
+        return hr;
 
     const uint8_t* _data = data();
 
@@ -1515,7 +1515,7 @@ result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
 
     result_t hr = validOffset(buf_length, offset);
     if (hr.failed())
-        return CHECK_ERROR(hr);
+        return hr;
 
     const uint8_t* _data = data();
 
@@ -1699,7 +1699,7 @@ result_t Buffer::toString(exlib::string& retVal)
 result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t sz = (int32_t)length();
 
@@ -1721,7 +1721,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Buffer: Unknown codec: '%s'.", codec.c_str()));
 
     int32_t sz = (int32_t)length();
 

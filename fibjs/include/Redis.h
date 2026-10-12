@@ -164,7 +164,7 @@ public:
         result_t add(v8::Local<v8::Object> kvs)
         {
             if (kvs->IsArray())
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return result_t::invalid_arg();
 
             v8::Local<v8::Context> context;
             if (!kvs->GetCreationContext().ToLocal(&context))
@@ -226,7 +226,7 @@ public:
 
             hr = GetArgumentValue(Isolate::current(), v, str);
             if (hr.failed())
-                return CHECK_ERROR(hr);
+                return hr;
             return add(str);
         }
 
@@ -277,7 +277,7 @@ public:
     static result_t retValue(Variant& v, obj_ptr<Buffer_base>& retVal)
     {
         retVal = Buffer_base::getInstance(v.object());
-        return retVal ? result_t(0) : CHECK_ERROR(CALL_E_INVALID_CALL);
+        return retVal ? result_t(0) : result_t::invalid_call();
     }
 
     static result_t retValue(Variant& v, exlib::string& retVal)
@@ -291,7 +291,7 @@ public:
     static result_t retValue(Variant& v, obj_ptr<NArray>& retVal)
     {
         retVal = (NArray*)v.object();
-        return retVal ? result_t(0) : CHECK_ERROR(CALL_E_INVALID_CALL);
+        return retVal ? result_t(0) : result_t::invalid_call();
     }
 
     static result_t retValue(Variant& v, bool& retVal)
@@ -322,13 +322,13 @@ public:
     result_t chkCommand(exlib::string cmd)
     {
         if (!m_sock)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         if (m_subMode) {
             if (qstricmp(cmd.c_str(), "SUBSCRIBE") && qstricmp(cmd.c_str(), "UNSUBSCRIBE")
                 && qstricmp(cmd.c_str(), "PSUBSCRIBE") && qstricmp(cmd.c_str(), "PUNSUBSCRIBE")
                 && qstricmp(cmd.c_str(), "CLOSE"))
-                return CHECK_ERROR(CALL_E_INVALID_CALL);
+                return result_t::invalid_call();
         }
 
         return 0;

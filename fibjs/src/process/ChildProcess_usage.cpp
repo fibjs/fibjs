@@ -26,7 +26,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     struct rusage_info_v2 ri;
     int rusage_status = proc_pid_rusage(m_process.pid, RUSAGE_INFO_V2, (rusage_info_t*)&ri);
     if (rusage_status != 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -51,7 +51,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     snprintf(stat_filepath, sizeof(stat_filepath), "/proc/%d/stat", m_process.pid);
     FILE* fpstat = fopen(stat_filepath, "r");
     if (fpstat == NULL)
-        return CHECK_ERROR(LastError("open", stat_filepath));
+        return LastError("open", stat_filepath);
 
     long unsigned int utime_ticks = 0;
     long unsigned int stime_ticks = 0;
@@ -62,7 +62,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
             &utime_ticks, &stime_ticks, &rss)
         == EOF) {
         fclose(fpstat);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
     fclose(fpstat);
 
@@ -94,19 +94,19 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     ret = GetProcessTimes(m_process.process_handle, &createTime, &exitTime, &kernelTime, &userTime);
     if (ret == 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     ret = FileTimeToSystemTime(&kernelTime, &kernelSystemTime);
     if (ret == 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     ret = FileTimeToSystemTime(&userTime, &userSystemTime);
     if (ret == 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     ret = GetProcessMemoryInfo(m_process.process_handle, &memCounters, sizeof(memCounters));
     if (ret == 0)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     double utime_ticks = MICROS_PER_SEC * (userSystemTime.wHour * 3600 + userSystemTime.wMinute * 60 + userSystemTime.wSecond)
         + userSystemTime.wMilliseconds * 1000;

@@ -410,7 +410,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
             return hr;
 
         if (v.IsEmpty() || !v->IsObject())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + module_name1 + "'"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + module_name1 + "'"));
 
         v8::Local<v8::Object> o = v.As<v8::Object>();
 
@@ -551,15 +551,15 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
             if (!resolve_export(exports)) {
                 if (script_name.empty())
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
                 else
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Package subpath '" + script_name + "' is not defined by 'exports' in '" + module_name1 + "'"));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Package subpath '" + script_name + "' is not defined by 'exports' in '" + module_name1 + "'"));
             }
         } else if (script_name.empty()) {
             JSValue main = o->Get(context, isolate->NewString("main", 4));
             if (!IsEmpty(main)) {
                 if (!main->IsString() && !main->IsStringObject())
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'main' in '" + module_name1 + "' must be a string"));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: 'main' in '" + module_name1 + "' must be a string"));
 
                 script_name = isolate->toString(main);
             }
@@ -644,7 +644,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
                 return hr;
 
             if (v.IsEmpty() || !v->IsObject())
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + fname1 + "'"));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json file '" + fname1 + "'"));
 
             // Read "type" field directly instead of GetConfigValue.
             // GetConfigValue sets Runtime::m_error to the key name ("type")
@@ -749,7 +749,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
         if (extname == predefine_exts[i])
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: '" + extname + "' is reserved extension name!"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: '" + extname + "' is reserved extension name!"));
 
     obj_ptr<ExtLoader> loader;
 
@@ -895,7 +895,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 
             split_path(id, paths);
             if (paths.size() == 0)
-                return CHECK_ERROR(CALL_E_PATH_NOT_FOUND);
+                return result_t(CALL_E_PATH_NOT_FOUND);
             else if (paths.size() == 1) {
                 module_name = paths[0];
             } else if (paths[0][0] == '@') {

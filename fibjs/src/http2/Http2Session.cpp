@@ -354,7 +354,7 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
         AsyncHandle hac = std::move(stream->m_headers_ac);
         stream->m_headers_lock.unlock();
         if (hac)
-            hac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
+            hac.apost(result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
     }
     m_stream_lock.unlock();
 }
@@ -940,7 +940,7 @@ result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
 result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_destroyed || !m_nghttp2)
         return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
@@ -995,7 +995,7 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
 result_t Http2Session::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_closed)
         return 0;

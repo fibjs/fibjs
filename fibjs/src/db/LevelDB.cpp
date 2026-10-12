@@ -16,7 +16,7 @@ result_t db_base::openLevelDB(exlib::string connString,
     obj_ptr<LevelDB_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     result_t hr;
     const char* c_str = connString.c_str();
@@ -51,7 +51,7 @@ result_t LevelDB::open(const char* connString)
 
     leveldb::Status s = leveldb::DB::Open(options, connString, &m_db);
     if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     return 0;
 }
@@ -84,10 +84,10 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
 result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -105,7 +105,7 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
         retVal = false;
         return 0;
     } else if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     retVal = true;
 
@@ -115,10 +115,10 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
 result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -135,7 +135,7 @@ result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHand
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     retVal = new Buffer(value.c_str(), value.length());
 
@@ -161,7 +161,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
         if (s.IsNotFound())
             list->append(nil);
         else if (!s.ok())
-            return CHECK_ERROR(error(s));
+            return error(s);
         else {
             obj_ptr<Buffer_base> buf = new Buffer(value.c_str(), value.length());
             list->append(buf);
@@ -176,7 +176,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
 result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 {
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     std::vector<exlib::string> ks;
     int32_t len = keys->Length();
@@ -202,7 +202,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 
         hr = GetArgumentValue(isolate, v, s);
         if (hr.failed())
-            return CHECK_ERROR(hr);
+            return hr;
 
         ks[i] = s;
     }
@@ -213,11 +213,11 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     leveldb::Status s = db()->Write(leveldb::WriteOptions(), batch);
     if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     return 0;
 }
@@ -225,10 +225,10 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
 result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -248,7 +248,7 @@ result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
     leveldb::Status s = Set(leveldb::Slice((const char*)buf_key->data(), buf_key->length()),
         leveldb::Slice((const char*)buf_val->data(), buf_val->length()));
     if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     return 0;
 }
@@ -256,7 +256,7 @@ result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
 result_t LevelDB::mset(v8::Local<v8::Object> map)
 {
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
@@ -290,7 +290,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
 result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 {
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -319,10 +319,10 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     obj_ptr<Buffer_base> keyBuf;
 
@@ -335,7 +335,7 @@ result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
     exlib::string value;
     leveldb::Status s = Delete(leveldb::Slice((const char*)buf->data(), buf->length()));
     if (!s.ok())
-        return CHECK_ERROR(error(s));
+        return error(s);
 
     return 0;
 }
@@ -343,10 +343,10 @@ result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
 result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
     it->SeekToFirst();
@@ -364,10 +364,10 @@ result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
     it->SeekToLast();
@@ -491,7 +491,7 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
 result_t LevelDB::forEach(v8::Local<v8::Function> func)
 {
     if (!db())
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     return Iter(db()).iter(holder(), func);
 }
@@ -586,7 +586,7 @@ result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::
 result_t LevelDB::begin(obj_ptr<LevelDB_base>& retVal)
 {
     if (!m_db)
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
 
     obj_ptr<LevelDB> db = new LevelDB();
 
@@ -601,7 +601,7 @@ result_t LevelDB::begin(obj_ptr<LevelDB_base>& retVal)
 result_t LevelDB::commit()
 {
     if (!db() || !m_batch)
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed or no active transaction."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed or no active transaction."));
 
     result_t hr = ac__commit(m_batch);
     cc_close();
@@ -625,7 +625,7 @@ result_t LevelDB::close(AsyncHandle ac)
         return 0;
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     delete m_db;
     m_db = NULL;

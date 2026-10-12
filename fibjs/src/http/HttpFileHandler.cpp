@@ -416,12 +416,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
 
     if (req == NULL)
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+        return result_t::bad_vartype();
 
     return (new asyncInvoke(this, req, m_autoIndex, std::move(ac)))->post(0);
 }

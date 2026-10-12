@@ -402,9 +402,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
             if (n == SOCKET_ERROR) {
                 int32_t nError = errno;
                 if (nError == EINPROGRESS)
-                    return CHECK_ERROR(result_t::pending());
+                    return result_t::pending();
 
-                return CHECK_ERROR(-nError);
+                return result_t::from_system(-nError);
             }
 
             return 0;
@@ -428,10 +428,10 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
 
@@ -444,7 +444,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
             return hr;
 
         if (addr_info.addr(strAddr) < 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
     }
 
     return (new asyncConnect(m_fd, addr_info, std::move(ac), m_lockRecv, m_RecvOpt, timeout, this))->request();
@@ -468,7 +468,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
             intptr_t c = ::accept(m_sockfd, (sockaddr*)&ai, &sz);
             if (c == INVALID_SOCKET) {
                 int32_t nError = errno;
-                return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
+                return (nError == EWOULDBLOCK) ? result_t::pending() : result_t::from_system(-nError);
             }
 
             fcntl(c, F_SETFL, fcntl(c, F_GETFL, 0) | O_NONBLOCK);
@@ -493,10 +493,10 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncAccept(m_fd, retVal, std::move(ac), m_lockRecv, m_RecvOpt))->request();
 }
@@ -540,9 +540,9 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                             m_read_buf.Release();
 
                         if (nError == EWOULDBLOCK)
-                            return CHECK_ERROR(result_t::pending());
+                            return result_t::pending();
 
-                        return CHECK_ERROR(-nError);
+                        return result_t::from_system(-nError);
                     }
                 }
 
@@ -573,10 +573,10 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncRecv(m_fd, bytes, retVal, std::move(ac), m_family, bRead, m_lockRecv, m_RecvOpt, timeout, this))->request();
 }
@@ -609,8 +609,8 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     if (nError == EWOULDBLOCK)
-                        return CHECK_ERROR(result_t::pending());
-                    return CHECK_ERROR(-nError);
+                        return result_t::pending();
+                    return result_t::from_system(-nError);
                 }
 
                 m_sz -= n;
@@ -628,10 +628,10 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncSend(m_fd, data, std::move(ac), m_family, m_lockSend, m_SendOpt, timeout, this))->request();
 }

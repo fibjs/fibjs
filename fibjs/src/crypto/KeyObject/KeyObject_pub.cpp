@@ -37,7 +37,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
             return hr;
 
         if (hr.is(1))
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
     } else {
@@ -48,7 +48,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
             return hr;
 
         if (hr.is(1))
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Public key not recognized"));
 
         hr = keyObj->fixSM2PublicKey();
     }

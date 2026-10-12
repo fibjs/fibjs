@@ -34,10 +34,10 @@ public:
     virtual result_t begin(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::longsync());
+            return result_t::longsync();
 
         if (!m_conn)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         obj_ptr<NArray> retVal;
 

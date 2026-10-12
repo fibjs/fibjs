@@ -312,7 +312,7 @@ public:
         if (this_fiber->m_termed) {
             this_fiber->m_termed = false;
             m_isolate->m_isolate->CancelTerminateExecution();
-            return CHECK_ERROR(CALL_E_TIMEOUT);
+            return result_t(CALL_E_TIMEOUT);
         }
 
         return hr;

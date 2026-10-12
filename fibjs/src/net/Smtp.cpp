@@ -59,7 +59,7 @@ public:
         if (qisdigit(strLine[0]) && qisdigit(strLine[1]) && qisdigit(strLine[2])
             && strLine[3] == ' ') {
             if (strLine[0] == '5')
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(strLine));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message(strLine));
 
             return recv_ok();
         }
@@ -209,10 +209,10 @@ result_t Smtp::connect(exlib::string url, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncConnect(this, url, std::move(ac)))->post(0);
 }
@@ -221,10 +221,10 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncCommand(this, cmd, arg, retVal, std::move(ac)))->post(0);
 }
@@ -232,10 +232,10 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
 result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncCommand(this, cmd, arg, std::move(ac)))->post(0);
 }
@@ -322,10 +322,10 @@ result_t Smtp::hello(exlib::string hostname, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncHello(this, hostname, std::move(ac)))->post(0);
 }
@@ -396,10 +396,10 @@ result_t Smtp::login(exlib::string username, exlib::string password,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncLogin(this, username, password, std::move(ac)))->post(0);
 }
@@ -474,10 +474,10 @@ result_t Smtp::data(exlib::string txt, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return (new asyncData(this, txt, std::move(ac)))->post(0);
 }

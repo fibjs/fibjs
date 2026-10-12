@@ -90,7 +90,7 @@ result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncHandle
 result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -227,7 +227,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
             int32_t blen;
 
             if (n.is_return_null())
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
 
             Buffer* buf = Buffer::Cast(m_buf);
             if (m_mask != 0) {
@@ -259,7 +259,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncCopy(from, to, bytes, mask, std::move(ac)))->post(0);
 }
@@ -400,7 +400,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle 
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(0);
 }
@@ -441,7 +441,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
         {
             if (n.is_return_null()) {
                 m_pThis->m_error = 1001;
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
             }
 
             uint8_t ch;
@@ -462,7 +462,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
                 m_pThis->m_compress = true;
             } else if (ch & 0x70) {
                 m_pThis->m_error = 1007;
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: non-zero RSV values."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: non-zero RSV values."));
             }
 
             m_fin = (ch & 0x80) != 0;
@@ -470,7 +470,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
             if (m_fragmented) {
                 if ((ch & 0x0f) != WebSocket_base::C_CONTINUE) {
                     m_pThis->m_error = 1007;
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
                 }
             } else
                 m_pThis->set_type(ch & 0x0f);
@@ -480,7 +480,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
             if (m_fragmented) {
                 if (m_masked != (m_pThis->m_masked = (ch & 0x80) != 0)) {
                     m_pThis->m_error = 1007;
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
                 }
             } else
                 m_masked = m_pThis->m_masked = (ch & 0x80) != 0;
@@ -505,7 +505,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
         {
             if (n.is_return_null()) {
                 m_pThis->m_error = 1007;
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: payload processing failed."));
             }
 
             Buffer* buf = Buffer::Cast(m_buffer);
@@ -531,7 +531,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
         {
             if (m_fullsize + m_size > m_pThis->m_maxSize) {
                 m_pThis->m_error = 1009;
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: Message Too Big."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketMessage: Message Too Big."));
             }
 
             return WebSocketMessage::copy(m_stm, m_zip, m_size, m_mask, next(copy_end));
@@ -590,7 +590,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     m_stm = stm;
 
@@ -683,7 +683,7 @@ result_t WebSocketMessage::get_maxSize(int32_t& retVal)
 result_t WebSocketMessage::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("maxSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("maxSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
 
     m_maxSize = newVal;
     return 0;

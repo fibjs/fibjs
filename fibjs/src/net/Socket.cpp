@@ -158,7 +158,7 @@ result_t Socket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 result_t Socket::create(int32_t family)
 {
     if (m_aio.m_fd != INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     m_aio.m_family = family;
 
@@ -167,18 +167,18 @@ result_t Socket::create(int32_t family)
     else if (family == net_base::C_AF_INET6)
         family = AF_INET6;
     else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
 #ifdef _WIN32
     m_aio.m_fd = WSASocketW(family, SOCK_STREAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError("socket"));
+        return SocketError("socket");
 
     CreateIoCompletionPort((HANDLE)m_aio.m_fd, s_hIocp, 0, 0);
 #else
     m_aio.m_fd = socket(family, SOCK_STREAM, 0);
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError("socket"));
+        return SocketError("socket");
 
     fcntl(m_aio.m_fd, F_SETFL, fcntl(m_aio.m_fd, F_GETFL, 0) | O_NONBLOCK);
     fcntl(m_aio.m_fd, F_SETFD, FD_CLOEXEC);
@@ -218,7 +218,7 @@ result_t Socket::flush(AsyncHandle ac)
 result_t Socket::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_aio.m_fd == INVALID_SOCKET)
         return 0;
@@ -229,7 +229,7 @@ result_t Socket::close(AsyncHandle ac)
 result_t Socket::get_family(int32_t& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     retVal = m_aio.m_family;
 
@@ -239,13 +239,13 @@ result_t Socket::get_family(int32_t& retVal)
 result_t Socket::get_remoteAddress(exlib::string& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("getpeername"));
+        return SocketError("getpeername");
 
     retVal = addr_info.str();
 
@@ -255,13 +255,13 @@ result_t Socket::get_remoteAddress(exlib::string& retVal)
 result_t Socket::get_remotePort(int32_t& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getpeername(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("getpeername"));
+        return SocketError("getpeername");
 
     retVal = addr_info.port();
 
@@ -271,13 +271,13 @@ result_t Socket::get_remotePort(int32_t& retVal)
 result_t Socket::get_localAddress(exlib::string& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("getsockname"));
+        return SocketError("getsockname");
 
     retVal = addr_info.str();
 
@@ -287,13 +287,13 @@ result_t Socket::get_localAddress(exlib::string& retVal)
 result_t Socket::get_localPort(int32_t& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
     socklen_t sz = sizeof(addr_info);
 
     if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("getsockname"));
+        return SocketError("getsockname");
 
     retVal = addr_info.port();
 
@@ -338,14 +338,14 @@ result_t Socket::abort()
 result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     inetAddr addr_info;
 
     addr_info.init(m_aio.m_family);
     addr_info.setPort(port);
     if (addr_info.addr(addr) < 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     int32_t on = 1;
 #ifndef _WIN32
@@ -362,7 +362,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 
     if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size())
         == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("bind"));
+        return SocketError("bind");
 
 #ifdef _WIN32
     m_bBind = TRUE;
@@ -374,7 +374,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 result_t Socket::bind(int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     return bind("", port, allowIPv4);
 }
@@ -382,10 +382,10 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
 result_t Socket::listen(int32_t backlog)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     if (::listen(m_aio.m_fd, backlog) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError("listen"));
+        return SocketError("listen");
 
     return 0;
 }
@@ -476,7 +476,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     startConnectEvent();
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
 #ifdef _WIN32
     if (!m_bBind) {
@@ -513,7 +513,7 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
         ac.ctxv()[0] = opts;
 
         startConnectEvent();
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -586,7 +586,7 @@ result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t Socket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -609,7 +609,7 @@ extern void setNoDelay(SOCKET sockfd, int32_t enable);
 result_t Socket::setKeepAlive(bool enable, int32_t initialDelay)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     fibjs::setKeepAlive(m_aio.m_fd, enable ? 1 : 0, initialDelay, 0, 0);
     return 0;
@@ -618,7 +618,7 @@ result_t Socket::setKeepAlive(bool enable, int32_t initialDelay)
 result_t Socket::setNoDelay(bool noDelay)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     fibjs::setNoDelay(m_aio.m_fd, noDelay ? 1 : 0);
     return 0;

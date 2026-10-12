@@ -61,10 +61,10 @@ public:
     virtual result_t read(obj_ptr<ReadType>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         if (!m_stream)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
     }
@@ -106,7 +106,7 @@ public:
     virtual result_t cancel(exlib::string reason, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         if (!m_stream)
             return 0;
@@ -118,13 +118,13 @@ public:
     {
         Isolate* isolate = holder();
         if (!isolate)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         if (m_closed_promise.IsEmpty()) {
             v8::Local<v8::Context> context = isolate->context();
             v8::Local<v8::Promise::Resolver> resolver;
             if (!v8::Promise::Resolver::New(context).ToLocal(&resolver))
-                return CHECK_ERROR(CALL_E_JAVASCRIPT);
+                return result_t(CALL_E_JAVASCRIPT);
             m_closed_resolver.Reset(isolate->m_isolate, resolver);
             m_closed_promise.Reset(isolate->m_isolate, resolver->GetPromise());
         }

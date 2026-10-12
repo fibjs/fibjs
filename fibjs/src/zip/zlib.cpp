@@ -116,7 +116,7 @@ result_t zlib_base::deflate(Union_deflate_data data, Union_deflate_level level, 
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(level)
             ? parse_level_option(std::get<v8::Local<v8::Object>>(level), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -142,7 +142,7 @@ result_t zlib_base::deflate(Union_deflate_data data, Union_deflate_level level, 
 result_t zlib_base::deflateTo(Union_deflateTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<def>(data, stm, level, std::move(ac));
 }
@@ -153,7 +153,7 @@ result_t zlib_base::inflate(Union_inflate_data data, Union_inflate_maxSize maxSi
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(maxSize)
             ? parse_max_output_option(std::get<v8::Local<v8::Object>>(maxSize), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -179,7 +179,7 @@ result_t zlib_base::inflate(Union_inflate_data data, Union_inflate_maxSize maxSi
 result_t zlib_base::inflateTo(Union_inflateTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<inf>(data, stm, maxSize, std::move(ac));
 }
@@ -206,7 +206,7 @@ result_t zlib_base::gzip(Union_gzip_data data, v8::Local<v8::Object> options, ob
 result_t zlib_base::gzipTo(Union_gzipTo_data data, Stream_base* stm, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<gz>(data, stm, -1, std::move(ac));
 }
@@ -218,7 +218,7 @@ result_t zlib_base::gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize,
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(maxSize)
             ? parse_max_output_option(std::get<v8::Local<v8::Object>>(maxSize), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -245,7 +245,7 @@ result_t zlib_base::gunzip(Union_gunzip_data data, Union_gunzip_maxSize maxSize,
 result_t zlib_base::gunzipTo(Union_gunzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<gunz>(data, stm, maxSize, std::move(ac));
 }
@@ -256,7 +256,7 @@ result_t zlib_base::deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_leve
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(level)
             ? parse_level_option(std::get<v8::Local<v8::Object>>(level), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -283,7 +283,7 @@ result_t zlib_base::deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_leve
 result_t zlib_base::deflateRawTo(Union_deflateRawTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<defraw>(data, stm, level, std::move(ac));
 }
@@ -295,7 +295,7 @@ result_t zlib_base::inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxS
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(maxSize)
             ? parse_max_output_option(std::get<v8::Local<v8::Object>>(maxSize), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -322,7 +322,7 @@ result_t zlib_base::inflateRaw(Union_inflateRaw_data data, Union_inflateRaw_maxS
 result_t zlib_base::inflateRawTo(Union_inflateRawTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<infraw>(data, stm, maxSize, std::move(ac));
 }
@@ -345,7 +345,7 @@ result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buff
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(level)
             ? parse_level_option(std::get<v8::Local<v8::Object>>(level), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -372,7 +372,7 @@ result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buff
 result_t zlib_base::zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<fibjs::zip>(data, stm, level, std::move(ac));
 }
@@ -384,7 +384,7 @@ result_t zlib_base::unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, ob
     if (ac.isSync())
         return std::holds_alternative<v8::Local<v8::Object>>(maxSize)
             ? parse_max_output_option(std::get<v8::Local<v8::Object>>(maxSize), std::move(ac))
-            : CHECK_ERROR(result_t::nosync());
+            : result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
@@ -411,7 +411,7 @@ result_t zlib_base::unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, ob
 result_t zlib_base::unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return process_to<fibjs::unzip>(data, stm, maxSize, std::move(ac));
 }

@@ -141,17 +141,17 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
 
     n = isolate->toNumber(actual);
     if (std::isnan(n))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     n1 = isolate->toNumber(expected);
     if (std::isnan(n1))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     n -= n1;
 
     n1 = isolate->toNumber(delta);
     if (std::isnan(n1))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (n < 0)
         n = -n;
@@ -168,17 +168,17 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
 
     n = isolate->toNumber(actual);
     if (std::isnan(n))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     n1 = isolate->toNumber(expected);
     if (std::isnan(n1))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     n -= n1;
 
     n1 = isolate->toNumber(delta);
     if (std::isnan(n1))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (n < 0)
         n = -n;
@@ -221,7 +221,7 @@ result_t assert_base::lessThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (std::isnan(r))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     return _test(r < 0, "lessThan", actual, expected, msg);
 }
@@ -232,7 +232,7 @@ result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (std::isnan(r))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     return _test(r >= 0, "notLessThan", actual, expected, msg);
 }
@@ -243,7 +243,7 @@ result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (std::isnan(r))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     return _test(r > 0, "notLessThan", actual, expected, msg);
 }
@@ -254,7 +254,7 @@ result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
     double r = valcmp(actual, expected);
 
     if (std::isnan(r))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     return _test(r <= 0, "notGreaterThan", actual, expected, msg);
 }
@@ -393,7 +393,7 @@ result_t assert_base::typeOf(v8::Local<v8::Value> actual, exlib::string type,
     if ((type == "undefined"))
         return isUndefined(actual, msg);
 
-    return CHECK_ERROR(CALL_E_INVALIDARG);
+    return result_t::invalid_arg();
 }
 
 result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, exlib::string type,
@@ -416,14 +416,14 @@ result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, exlib::string type,
     if ((type == "undefined"))
         return isDefined(actual, msg);
 
-    return CHECK_ERROR(CALL_E_INVALIDARG);
+    return result_t::invalid_arg();
 }
 
 result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
     bool& retVal)
 {
     if ((!v->IsObject() && !v->IsString()) || !prop->IsString())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     retVal = v.As<v8::Object>()->Has(isolate->context(), prop).FromMaybe(false);
@@ -457,7 +457,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     bool& retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -509,7 +509,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     v8::Local<v8::Value> value, bool& retVal, v8::Local<v8::Value>& got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -555,7 +555,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     v8::Local<v8::Value> value, bool& retVal, v8::Local<v8::Value>& got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();

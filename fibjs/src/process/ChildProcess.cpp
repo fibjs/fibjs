@@ -307,7 +307,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
     }
 
     if (pty_cnt > 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: every element of stdio must be \'pty\'."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: every element of stdio must be \'pty\'."));
 
     for (i = 0; i < count; i++) {
         if (stddefs[i].type() == Variant::VT_Integer
@@ -317,7 +317,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
             int32_t fd = stddefs[i].intVal();
 
             if (fd_num < 0 || fd_num != (double)fd)
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: stdio fd must be a non-negative integer."));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: stdio fd must be a non-negative integer."));
 
             stdios[i].flags = UV_INHERIT_FD;
             stdios[i].data.fd = fd;
@@ -743,7 +743,7 @@ result_t ChildProcess::kill(exlib::string signal)
 result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     class WaitExitCode : public AsyncEvent {
     public:
@@ -790,7 +790,7 @@ result_t ChildProcess::get_connected(bool& retVal)
 result_t ChildProcess::disconnect()
 {
     if (!m_channel)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: IPC channel is already disconnected."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("ChildProcess: IPC channel is already disconnected."));
 
     obj_ptr<Stream_base> _channel = m_channel;
     m_channel.Release();
@@ -832,7 +832,7 @@ result_t ChildProcess::stop()
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
 {
     if (m_ipc < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("send: IPC channel is not available."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("send: IPC channel is not available."));
 
     return Ipc::send(m_stdio[3], msg);
 }
@@ -861,7 +861,7 @@ result_t ChildProcess::get_exitCode(int32_t& retVal)
 result_t ChildProcess::get_stdin(obj_ptr<Stream_base>& retVal)
 {
     if (m_stdio[0] == NULL)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return result_t::return_null();
 
     retVal = m_stdio[0];
 
@@ -871,7 +871,7 @@ result_t ChildProcess::get_stdin(obj_ptr<Stream_base>& retVal)
 result_t ChildProcess::get_stdout(obj_ptr<Stream_base>& retVal)
 {
     if (m_stdio[1] == NULL)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return result_t::return_null();
 
     retVal = m_stdio[1];
 
@@ -881,7 +881,7 @@ result_t ChildProcess::get_stdout(obj_ptr<Stream_base>& retVal)
 result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 {
     if (m_stdio[2] == NULL)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return result_t::return_null();
 
     retVal = m_stdio[2];
 
@@ -907,13 +907,13 @@ result_t ChildProcess::get_stdio(v8::Local<v8::Array>& retVal)
 result_t ChildProcess::resize(int32_t cols, int32_t rows)
 {
     if (!m_pty)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("resize() only available in PTY mode"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("resize() only available in PTY mode"));
 
     if (cols <= 0 || rows <= 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows).with_result(CALL_E_INVALIDARG));
 
     if (m_stdinfd == -1 && m_stdoutfd == -1)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("PTY not available"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("PTY not available"));
 
     // Update stored cols and rows
     m_cols = cols;
@@ -922,7 +922,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
 #ifdef _WIN32
     // Call resize function with process handle on Windows
     int result = pty_resize(&m_process, cols, rows);
-    return result == 0 ? result_t(0) : CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("resize failed"));
+    return result == 0 ? result_t(0) : result_t(result_t::make(CALL_E_EXCEPTION).with_message("resize failed"));
 #else
     // On POSIX systems, call ioctl directly
     struct winsize winsize;
@@ -934,14 +934,14 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
     // Use whichever fd is available (both should point to the same pty)
     int fd_to_use = (m_stdinfd != -1) ? m_stdinfd : m_stdoutfd;
     int result = ioctl(fd_to_use, TIOCSWINSZ, &winsize);
-    return result == 0 ? result_t(0) : CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("resize failed"));
+    return result == 0 ? result_t(0) : result_t(result_t::make(CALL_E_EXCEPTION).with_message("resize failed"));
 #endif
 }
 
 result_t ChildProcess::get_cols(int32_t& retVal)
 {
     if (!m_pty)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("cols property only available in PTY mode"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("cols property only available in PTY mode"));
     retVal = m_cols;
     return 0;
 }
@@ -949,7 +949,7 @@ result_t ChildProcess::get_cols(int32_t& retVal)
 result_t ChildProcess::get_rows(int32_t& retVal)
 {
     if (!m_pty)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("rows property only available in PTY mode"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("rows property only available in PTY mode"));
     retVal = m_rows;
     return 0;
 }

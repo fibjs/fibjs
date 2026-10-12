@@ -163,7 +163,7 @@ public:
     // Body already consumed path: throw TypeError
     ON_STATE(asyncConsumeBody, alreadyUsed)
     {
-        return next(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("body has already been consumed")));
+        return next(result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("body has already been consumed")));
     }
 
 private:
@@ -188,7 +188,7 @@ result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
@@ -200,7 +200,7 @@ result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, type, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
@@ -230,7 +230,7 @@ result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t Message::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
 
@@ -244,7 +244,7 @@ result_t Message::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     // Buffer 构造是纯 C++（不触碰 V8）：直接在 async 相位完成，不必把转换
     // 结果挤进 m_ctx（见 plans/async-phase-discipline-audit-2026-10-05.md §2）
@@ -258,7 +258,7 @@ result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac
 result_t Message::text(exlib::string& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
@@ -270,7 +270,7 @@ result_t Message::text(exlib::string& retVal, AsyncHandle ac)
 result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
@@ -308,7 +308,7 @@ result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
 result_t Message::json(Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
@@ -324,7 +324,7 @@ result_t Message::json(Variant& retVal, AsyncHandle ac)
 result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, std::move(fn), std::move(ac)))->post(0);
 }
@@ -357,7 +357,7 @@ result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
 result_t Message::pack(Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         if (n.is_return_null() || !data)
@@ -436,17 +436,17 @@ result_t Message::clear()
 
 result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t Message::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t Message::get_stream(obj_ptr<Stream_base>& retVal)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t Message::get_lastError(exlib::string& retVal)
@@ -489,7 +489,7 @@ result_t Message::onEventChange(exlib::string type, exlib::string ev, v8::Local<
 result_t Message::clone(obj_ptr<Message_base>& retVal)
 {
     // Message is an abstract base class, cannot be cloned directly
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t Message::setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal)

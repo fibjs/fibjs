@@ -102,12 +102,12 @@ public:
 
                 hr = GetArgumentValue(isolate, l, num);
                 if (hr.failed())
-                    return CHECK_ERROR(hr);
+                    return hr;
 
                 if (num >= 0 && num < console_base::C_NOTSET)
                     m_levels[num] = true;
                 else
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("console: too many logger."));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("console: too many logger."));
             }
 
             m_levels[console_base::C_PRINT] = true;

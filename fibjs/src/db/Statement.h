@@ -74,7 +74,7 @@ public:
     result_t fetchRow(obj_ptr<NObject>& row, bool& done)
     {
         if (!m_impl)
-            return CHECK_ERROR(CALL_E_CLOSED);
+            return result_t::closed();
 
         row = new NObject();
         return m_impl->fetchRow(row, done);
@@ -142,7 +142,7 @@ private:
     result_t openImpl(std::vector<Variant>& args, bool& hasResult)
     {
         if (!m_impl)
-            return CHECK_ERROR(CALL_E_CLOSED);
+            return result_t::closed();
 
         result_t hr = m_impl->open(args, hasResult);
         if (hr.failed()) {

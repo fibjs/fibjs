@@ -13,7 +13,7 @@ namespace fibjs {
 result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
 {
     if (sms->IsArray())
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     v8::Local<v8::Context> context;
     if (!sms->GetCreationContext().ToLocal(&context))
@@ -37,7 +37,7 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
 result_t RedisSortedSet::add(OptArgs sms, int32_t& retVal)
 {
     if (sms.Length() & 1)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     std::vector<v8::Local<v8::Value>> mss;
     sms.GetData(mss);

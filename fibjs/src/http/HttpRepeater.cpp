@@ -19,13 +19,13 @@ result_t add_url(std::vector<obj_ptr<Url>>& urls, exlib::string& url)
         return hr;
 
     if (u->hostname().empty())
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: hostname is empty."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: hostname is empty."));
 
     if (!u->search().empty())
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: query is not empty."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: query is not empty."));
 
     if (!u->hash().empty())
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: hash is not empty."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: hash is not empty."));
 
     urls.push_back(u);
 
@@ -75,7 +75,7 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
     v8::Local<v8::Context> context = isolate->context();
 
     if (len == 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: urls must not be empty.").with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: urls must not be empty.").with_result(CALL_E_INVALIDARG));
 
     for (int32_t i = 0; i < len; i++) {
         hr = add_url(_urls, urls[i]);
@@ -207,12 +207,12 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
 
     if (req == NULL)
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+        return result_t::bad_vartype();
 
     return (new asyncInvoke(this, req, std::move(ac)))->post(0);
 }

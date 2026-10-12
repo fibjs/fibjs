@@ -37,7 +37,7 @@ static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_ba
 {
     int32_t family = get_family(type);
     if (family < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     result_t hr = s->create(family, 0);
@@ -90,7 +90,7 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     int32_t family = get_family(type);
     if (family < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));
@@ -163,7 +163,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
 {
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     return bind_core(port, addr);
@@ -174,7 +174,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
 result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
 {
     if (m_bound)
-        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already bound."));
+        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already bound."));
 
     inetAddr addr_info;
 
@@ -183,13 +183,13 @@ result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
 
     if (addr_info.addr(addr) < 0) {
         m_holder.Release();
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     int32_t ret = uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR));
     if (ret) {
         m_holder.Release();
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
     }
 
     if (m_recvbuf_size > 0)
@@ -229,7 +229,7 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
         ac.ctxv()[0] = port;
         ac.ctxv()[1] = addr;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -259,7 +259,7 @@ result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string addres
     int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
@@ -313,7 +313,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     }
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     inetAddr addr_info;
 
@@ -330,7 +330,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             return hr;
 
         if (addr_info.addr(strAddr.c_str()) < 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
     }
 
     AsyncSend* _send = new AsyncSend(msg, port, retVal, std::move(ac));
@@ -340,7 +340,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
         retVal = status;
         return 0;
     } else if (status != UV_ENOSYS && status != UV_EAGAIN)
-        return CHECK_ERROR(status);
+        return status;
 
     return uv_async([&] {
         return uv_udp_send(_send, &m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info, AsyncSend::callback);
@@ -360,10 +360,10 @@ result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, in
     exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (offset < 0 || length <= 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
@@ -380,10 +380,10 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (offset < 0 || length <= 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     result_t hr;
     if (!m_bound) {
@@ -405,7 +405,7 @@ result_t DgramSocket::address(obj_ptr<AddressType>& retVal)
 
     int32_t ret = uv_udp_getsockname(&m_udp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return CHECK_ERROR(ret);
+        return result_t::from_system(ret);
 
     retVal = new AddressType();
 

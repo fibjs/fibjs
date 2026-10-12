@@ -36,7 +36,7 @@ result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::
 
     result_t hr = GetArgumentValue(isolate, fileContent, strScript, true);
     if (hr.failed())
-        return CHECK_ERROR(hr);
+        return hr;
     // read filecontent and compile to strScript :end
 
     obj_ptr<Buffer_base> buf = new Buffer(strScript.c_str(), strScript.length());

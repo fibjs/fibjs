@@ -33,7 +33,7 @@ result_t Lock::acquire(bool blocking, bool& retVal, AsyncHandle ac)
     }
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     retVal = true;
     m_lock.lock();

@@ -1471,7 +1471,7 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
 
     DWORD utf16_len = GetFullPathNameW((LPCWSTR)str.c_str(), MAX_PATH, (LPWSTR)utf16_buffer, NULL);
     if (!utf16_len)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
 

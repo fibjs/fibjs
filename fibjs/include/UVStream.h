@@ -411,7 +411,7 @@ public:
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         uv_post(new AsyncRead(this, true, bytes, retVal, std::move(ac)));
         return result_t::pending();
@@ -426,7 +426,7 @@ public:
             return AsyncStream<T>::read(bytes, retVal, std::move(ac));
 
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, std::move(ac)))->post(0);
         return result_t::pending();
@@ -486,7 +486,7 @@ public:
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         uv_post(new AsyncWrite(this, data, std::move(ac), m_timeout));
         return result_t::pending();
@@ -531,7 +531,7 @@ public:
     virtual result_t flush(AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         // The uv callback outlives this frame, so the continuation travels in a
         // heap box (the box is the unique holder; the callback moves it out or
@@ -567,7 +567,7 @@ public:
     virtual result_t close(AsyncHandle ac)
     {
         if (ac && ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         // Same heap-box rule as flush(): the uv callback owns the continuation.
         auto h = std::make_shared<AsyncHandle>(std::move(ac));

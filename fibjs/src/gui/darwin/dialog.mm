@@ -31,7 +31,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opts;
 
-        return CHECK_ERROR(result_t::guicall());
+        return result_t::guicall();
     }
 
     DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();

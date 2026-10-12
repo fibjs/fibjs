@@ -37,7 +37,7 @@ result_t Service_base::install(exlib::string name, exlib::string cmd, exlib::str
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = CreateServiceW(schSCManager, UTF8_W(name), UTF8_W(displayName),
         SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
@@ -45,7 +45,7 @@ result_t Service_base::install(exlib::string name, exlib::string cmd, exlib::str
         UTF8_W(cmd), NULL, NULL, NULL, NULL, NULL);
     if (!schService) {
         CloseServiceHandle(schSCManager);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     exlib::wstring wdescription = utf8to16String(description);
@@ -67,12 +67,12 @@ result_t Service_base::remove(exlib::string name)
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     DeleteService(schService);
@@ -90,12 +90,12 @@ result_t Service_base::start(exlib::string name)
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     StartService(schService, 0, NULL);
@@ -114,12 +114,12 @@ result_t Service_base::stop(exlib::string name)
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     if (ControlService(schService, SERVICE_CONTROL_STOP, &ssStatus)) {
@@ -159,7 +159,7 @@ result_t Service_base::isInstalled(exlib::string name, bool& retVal)
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (schService) {
@@ -181,7 +181,7 @@ result_t Service_base::isRunning(exlib::string name, bool& retVal)
 
     schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (!schSCManager)
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
 
     schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (schService) {
@@ -278,11 +278,11 @@ result_t Service::run(AsyncHandle ac)
 {
     if (ac.isSync()) {
         if (s_srv.CompareAndSwap(NULL, this) != NULL)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
+            return result_t::invalid_call();
 
         s_isolate = holder();
 
-        return CHECK_ERROR(result_t::longsync());
+        return result_t::longsync();
     }
 
     exlib::wstring wname = utf8to16String(m_name);
@@ -290,7 +290,7 @@ result_t Service::run(AsyncHandle ac)
 
     if (!StartServiceCtrlDispatcherW(s_dispatchTable)) {
         s_srv = NULL;
-        return CHECK_ERROR(LastError());
+        return result_t::from_system(LastError());
     }
 
     s_srv = NULL;

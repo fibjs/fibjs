@@ -88,11 +88,11 @@ result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
     if (stm == NULL)
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+        return result_t::bad_vartype();
 
     return (new asyncInvoke(this, stm, std::move(ac)))->post(0);
 }

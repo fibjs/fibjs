@@ -24,7 +24,7 @@ result_t AbortSignal_base::any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal
 
         AbortSignal_base* src = AbortSignal_base::getInstance(item);
         if (!src)
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return result_t::type_mismatch();
 
         AbortSignal* src_signal = static_cast<AbortSignal*>(src);
         if (src_signal->is_aborted()) {

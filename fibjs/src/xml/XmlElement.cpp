@@ -296,7 +296,7 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     int32_t parentType;
     parent->get_nodeType(parentType);
     if (parentType == xml_base::C_DOCUMENT_NODE)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: The element is a direct child of a document."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: The element is a direct child of a document."));
 
     // Parse the new HTML content
     obj_ptr<XmlDocument> doc = new XmlDocument(false);
@@ -538,13 +538,13 @@ result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::s
 result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
 {
     if (id.empty())
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return result_t::return_null();
 
     result_t hr = getElementByIdImpl(id, false, retVal);
     if (!hr.is_return_null())
         return hr;
 
-    return CHECK_ERROR(CALL_RETURN_NULL);
+    return result_t::return_null();
 }
 
 result_t XmlElement::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
@@ -817,7 +817,7 @@ result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_ba
 {
     int32_t pos = parsePosition(position);
     if (pos < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
 
     obj_ptr<XmlNode_base> result;
     result_t hr;
@@ -859,7 +859,7 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
 {
     int32_t pos = parsePosition(position);
     if (pos < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
 
     if (html.empty())
         return 0;
@@ -971,7 +971,7 @@ result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string te
 {
     int32_t pos = parsePosition(position);
     if (pos < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument"));
 
     // Create text node
     obj_ptr<XmlText_base> textNode;

@@ -62,7 +62,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
         return 0;
     }
 
-    return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHash: unknown algorithm '%s'.", algo.c_str()));
+    return result_t(result_t::make(CALL_E_INVALID_CALL).with_format("createHash: unknown algorithm '%s'.", algo.c_str()));
 }
 
 static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
@@ -71,13 +71,13 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
     const EVP_MD* md = _evp_md_type(algo.c_str());
     if (md) {
         if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
-            return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str()));
+            return result_t(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str()));
 
         retVal = new Digest(md, key, keylen);
         return 0;
     }
 
-    return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: unknown algorithm '%s'.", algo.c_str()));
+    return result_t(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: unknown algorithm '%s'.", algo.c_str()));
 }
 
 // a string alternative of a KDF argument is decoded as utf8, once, in the
@@ -98,7 +98,7 @@ result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
         if (ko->type() != KeyObject::kKeyTypeSecret)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("createHmac: Invalid key type"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("createHmac: Invalid key type"));
 
         return _createHmac(algo, (const char*)ko->data(), ko->length(), retVal);
     }
@@ -117,7 +117,7 @@ result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("hash: unknown algorithm '%s'.", algorithm.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("hash: unknown algorithm '%s'.", algorithm.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<Buffer_base> dataBuf;
     result_t hr = union_to_buffer(data, dataBuf);
@@ -136,14 +136,14 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
     Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (size < 1)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("hkdf: size must be positive, received %d.", size).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("hkdf: size must be positive, received %d.", size).with_result(CALL_E_INVALIDARG));
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("hkdf: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("hkdf: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<Buffer_base> passwordBuf, saltOut, infoOut;
     result_t hr;
@@ -186,14 +186,14 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (iterations < 1 || size < 1)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("pbkdf2: iterations and size must be positive.").with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("pbkdf2: iterations and size must be positive.").with_result(CALL_E_INVALIDARG));
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("pbkdf2: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("pbkdf2: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG));
 
     obj_ptr<Buffer_base> passwordBuf, saltOut;
     result_t hr;
@@ -242,11 +242,11 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
     // Validate N is a power of 2 and greater than 1
     uint64_t N = opt->N.value();
     if (N < 2 || (N & (N - 1)) != 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N));
 
     // Validate r and p are not zero
     if (opt->r.value() == 0 || opt->p.value() == 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("scrypt: r and p must be positive.").with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("scrypt: r and p must be positive.").with_result(CALL_E_INVALIDARG));
 
     ac.ctxv().resize(1);
     ac.ctxv()[0] = opt;
@@ -261,7 +261,7 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
         return scrypt_load_options(options, ac);
 
     if (keylen < 1)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("scrypt: keylen must be positive, received %d.", keylen).with_result(CALL_E_INVALIDARG));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("scrypt: keylen must be positive, received %d.", keylen).with_result(CALL_E_INVALIDARG));
 
     result_t ctx_hr = ac.ctx(0);
     if (ctx_hr.failed())

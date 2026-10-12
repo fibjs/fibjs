@@ -31,7 +31,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
@@ -64,7 +64,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
 
     if (r < 0) {
         delete resolver;
-        return CHECK_ERROR(r);
+        return result_t::from_system(r);
     }
 
     return result_t::pending();
@@ -122,7 +122,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opt;
 
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -206,7 +206,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
 
     if (r < 0) {
         delete resolver;
-        return CHECK_ERROR(r);
+        return result_t::from_system(r);
     }
 
     return result_t::pending();

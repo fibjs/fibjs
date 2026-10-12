@@ -11,13 +11,13 @@ namespace fibjs {
 
 result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return result_t::invalid_call();
 }
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     // Node.js compatibility: a negative length is treated as zero
     if (len < 0)
@@ -27,7 +27,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
     // reported instead of being created
     int32_t fd = _wopen(UTF8_W(path), _O_BINARY | _O_RDWR);
     if (fd < 0)
-        return CHECK_ERROR(LastError("ftruncate", path));
+        return LastError("ftruncate", path);
 
     AutoReq req;
     int32_t ret = uv_fs_ftruncate(NULL, &req, fd, len, NULL);

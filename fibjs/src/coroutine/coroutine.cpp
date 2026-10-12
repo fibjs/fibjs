@@ -98,7 +98,7 @@ private:
         m_retVal.Reset();
         m_async_ctx.Reset();
 
-        return m_error ? CHECK_ERROR(CALL_E_INTERNAL) : result_t(0);
+        return m_error ? result_t(CALL_E_INTERNAL) : result_t(0);
     }
 
 public:
@@ -119,7 +119,7 @@ public:
         for (i = 0; i < m_count; i++) {
             JSValue v = funcs->Get(context, i);
             if (v.IsEmpty() || !v->IsFunction())
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return result_t::invalid_arg();
         }
 
         m_datas.Reset(m_isolate->m_isolate, funcs);
@@ -242,7 +242,7 @@ result_t coroutine_base::sleep(int32_t ms, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::Fiber::sleep(ms, new AcyncSleep(std::move(ac)));
     return result_t::pending();

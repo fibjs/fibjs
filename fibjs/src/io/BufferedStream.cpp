@@ -109,7 +109,7 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 return 0;
             }
 
-            return CHECK_ERROR(result_t::pending());
+            return result_t::pending();
         }
 
         virtual result_t process(bool streamEnd)
@@ -140,7 +140,7 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
 }
@@ -195,7 +195,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
                 return 0;
             }
 
-            return CHECK_ERROR(result_t::pending());
+            return result_t::pending();
         }
 
         virtual result_t process(bool streamEnd)
@@ -213,7 +213,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncRead(this, size, retVal, std::move(ac)))->post(0);
 }
@@ -315,7 +315,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
             if (maxlen > 0
                 && ((int32_t)pThis->m_strbuf.size() + (pos - pThis->m_pos)
                     > maxlen + mklen))
-                return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("readUntil: input data too long"));
+                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("readUntil: input data too long"));
 
             pThis->append(pos - pThis->m_pos);
 
@@ -334,7 +334,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
                 return streamEnd && (retVal.length() == 0) ? CALL_RETURN_NULL : 0;
             }
 
-            return CHECK_ERROR(result_t::pending());
+            return result_t::pending();
         }
 
         virtual result_t process(bool streamEnd)
@@ -353,7 +353,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncRead(this, mk, maxlen, retVal, std::move(ac)))->post(0);
 }
@@ -361,7 +361,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string strBuf;
 
@@ -378,7 +378,7 @@ result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncHand
 result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     exlib::string strBuf;
 
@@ -426,7 +426,7 @@ result_t BufferedStream::set_EOL(exlib::string newVal)
     else if (newVal[1] == '\0' && (newVal[0] == '\r' || newVal[0] == '\n'))
         m_eol.assign(newVal.c_str(), 1);
     else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     return 0;
 }

@@ -98,7 +98,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
         method[i] = (char)toupper((unsigned char)method[i]);
 
     if (method != "GET" && method != "HEAD")
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported"));
 
     FileStream file;
     hr = file.open(path, "r");
@@ -189,7 +189,7 @@ public:
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
 
         if (m_first) {
             Buffer* buf = Buffer::Cast(m_first);
@@ -544,7 +544,7 @@ result_t HttpClient::get_maxHeadersCount(int32_t& retVal)
 result_t HttpClient::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -559,7 +559,7 @@ result_t HttpClient::get_maxHeaderSize(int32_t& retVal)
 result_t HttpClient::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     m_maxHeaderSize = newVal;
     return 0;
@@ -574,7 +574,7 @@ result_t HttpClient::get_maxChunkSize(int32_t& retVal)
 result_t HttpClient::set_maxChunkSize(int32_t newVal)
 {
     if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
+        return result_t::out_of_range();
 
     m_maxChunkSize = newVal;
     return 0;
@@ -636,10 +636,10 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_http_proxy = newVal;
     }
@@ -673,10 +673,10 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (u->host().empty())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_https_proxy = newVal;
     }
@@ -1134,7 +1134,7 @@ public:
         };
 
         if (ac.isSync())
-            return CHECK_ERROR(result_t::nosync());
+            return result_t::nosync();
         return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
     }
 
@@ -1310,7 +1310,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncRequest(this, conn, req, retVal, std::move(ac)))->post(0);
 }
@@ -1409,7 +1409,7 @@ public:
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted)
-                return CHECK_ERROR(setAbortError(m_o->signal.get()));
+                return setAbortError(m_o->signal.get());
         }
 
         bool _domain = false;
@@ -1433,10 +1433,10 @@ public:
                 m_connUrl = "tcp://";
             }
         } else
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str()));
 
         if (host.empty())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host"));
 
         m_connUrl.append(host);
 
@@ -1674,13 +1674,13 @@ public:
     ON_STATE(asyncRequest, socks_connect)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         exlib::string strBuffer;
 
         m_buffer->toString(strBuffer);
         if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 handshake failed."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 handshake failed."));
 
         obj_ptr<Url> u = new Url();
         u->parse(m_connUrl);
@@ -1716,12 +1716,12 @@ public:
     ON_STATE(asyncRequest, socks_connect_res_5_bytes)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         Buffer* buf = Buffer::Cast(m_buffer);
         const uint8_t* p = buf->data();
         if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 connect failed."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 connect failed."));
 
         uint8_t len = 0;
 
@@ -1739,7 +1739,7 @@ public:
     ON_STATE(asyncRequest, socks_connected)
     {
         if (n.is_return_null())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server."));
 
         // discard socks server response
 
@@ -1766,7 +1766,7 @@ public:
             exlib::string msg;
 
             resp->get_statusMessage(msg);
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: " + msg));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: " + msg));
         }
 
         m_reqConn.Release();
@@ -1873,7 +1873,7 @@ public:
             m_h2session->m_remote_settings_event.wait();
 
         if (m_h2session->m_closed || m_h2session->m_destroyed)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session closed during SETTINGS exchange"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session closed during SETTINGS exchange"));
 
         return next(h2_request);
     }
@@ -2206,7 +2206,7 @@ public:
 
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed"));
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -2222,7 +2222,7 @@ public:
         m_o->u->toString(m_url);
 
         if (m_urls.find(m_url) != m_urls.end())
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle"));
+            return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle"));
 
         // 303: per spec force GET and clear request body
         if (status == 303) {
@@ -2477,14 +2477,14 @@ private:
 result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     // Reject immediately if signal is already aborted
     if (o->signal) {
         bool aborted;
         o->signal->get_aborted(aborted);
         if (aborted)
-            return CHECK_ERROR(setAbortError(o->signal.get()));
+            return setAbortError(o->signal.get());
     }
 
     if (o->u->protocol() == "file:")
@@ -2515,7 +2515,7 @@ public:
 result_t HttpClient::request(HttpRequest::Options* o, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new asyncRequest(o, std::move(ac)))->post(0);
 }
@@ -2524,7 +2524,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
     o->agent = this;
@@ -2572,7 +2572,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
 
     ac.ctxv()[0] = o;
 
-    return CHECK_ERROR(result_t::nosync());
+    return result_t::nosync();
 }
 
 result_t HttpClient::requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
@@ -3368,7 +3368,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
 
         ac.ctxv().resize(1);
         ac.ctxv()[0] = o;
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);

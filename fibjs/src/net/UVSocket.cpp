@@ -20,7 +20,7 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
     if (family != net_base::C_AF_INET
         && family != net_base::C_AF_INET6
         && family != net_base::C_AF_UNIX)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     obj_ptr<UVSocket> sock = new UVSocket(family);
 
@@ -40,7 +40,7 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 result_t UVSocket::close(AsyncHandle ac)
 {
     if (ac && ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     result_t hr = UVStream_tmpl<Socket_base>::close(std::move(ac));
 
@@ -93,7 +93,7 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
 
     int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getpeername"));
+        return result_t(result_t::from_system(ret).with_syscall("getpeername"));
 
     retVal = addr_info.str();
 
@@ -107,7 +107,7 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
 
     int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getpeername"));
+        return result_t(result_t::from_system(ret).with_syscall("getpeername"));
 
     retVal = addr_info.port();
 
@@ -121,7 +121,7 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
 
     int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getsockname"));
+        return result_t(result_t::from_system(ret).with_syscall("getsockname"));
 
     retVal = addr_info.str();
 
@@ -135,7 +135,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 
     int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getsockname"));
+        return result_t(result_t::from_system(ret).with_syscall("getsockname"));
 
     retVal = addr_info.port();
 
@@ -156,7 +156,7 @@ result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
         addr_info.init(m_family);
         addr_info.setPort(port);
         if (addr_info.addr(addr) < 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         int32_t ret = uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
                                   m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
@@ -341,7 +341,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     startConnectEvent();
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     retVal = this;
     bool use_path = m_family == net_base::C_AF_UNIX || port == 0;
@@ -370,7 +370,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 return hr;
 
             if (addr_info.addr(strAddr) < 0)
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+                return result_t::invalid_arg();
         }
 
         if (!m_connect_event)
@@ -404,7 +404,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         ac.ctxv()[0] = opts;
 
         startConnectEvent();
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -458,14 +458,14 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
 result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     result_t hr = 0;
 
     m_lock.lock();
 
     if (uv_is_closing(&m_handle))
-        hr = CHECK_ERROR(CALL_E_INVALID_CALL);
+        hr = result_t::invalid_call();
     else if (m_socks.size() > 0) {
         retVal = m_socks.front();
         m_socks.pop_front();
@@ -497,7 +497,7 @@ result_t UVSocket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -513,7 +513,7 @@ result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     uv_post(new AsyncRead(this, false, bytes, retVal, std::move(ac)));
     return result_t::pending();
@@ -522,11 +522,11 @@ result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle
 result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
 {
     if (m_family == net_base::C_AF_UNIX)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     int32_t hr = uv_tcp_keepalive(&m_tcp, enable ? 1 : 0, initialDelay);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return hr;
 
     return 0;
 }
@@ -534,11 +534,11 @@ result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
 result_t UVSocket::setNoDelay(bool noDelay)
 {
     if (m_family == net_base::C_AF_UNIX)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     int32_t hr = uv_tcp_nodelay(&m_tcp, noDelay ? 1 : 0);
     if (hr < 0)
-        return CHECK_ERROR(hr);
+        return hr;
 
     return 0;
 }

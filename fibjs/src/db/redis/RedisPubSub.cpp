@@ -117,7 +117,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         JSValue value = map->Get(context, channel);
 
         if (!value->IsFunction())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         v8::Local<v8::Function> func = value.As<v8::Function>();
 

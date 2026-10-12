@@ -658,7 +658,7 @@ result_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> desti
     v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
 {
     if (m_pipe_fn.IsEmpty())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     v8::Local<v8::Function> pipe_fn = v8::Local<v8::Function>::New(m_isolate, m_pipe_fn);
     v8::Local<v8::Value> argv[] = { src, destination, options };

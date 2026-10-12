@@ -272,7 +272,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 m_stream->m_read_lock.unlock(this);
                 m_locked = false;
                 if (m_stream->m_error_code != 0)
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset"));
+                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset"));
                 return next(CALL_RETURN_NULL);
             }
 
@@ -303,7 +303,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
 }
@@ -311,7 +311,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
 result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_closed || m_destroyed)
         return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream is closed.");
@@ -334,14 +334,14 @@ result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 result_t Http2Stream::flush(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
     return 0;
 }
 
 result_t Http2Stream::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (!m_closed) {
         m_recv_lock.lock();
@@ -400,7 +400,7 @@ void Http2Stream::onHeaders(obj_ptr<NObject> headers)
 result_t Http2Stream::waitHeaders(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     m_headers_lock.lock();
 
@@ -411,7 +411,7 @@ result_t Http2Stream::waitHeaders(AsyncHandle ac)
 
     if (m_closed || m_destroyed || (m_session && (m_session->m_closed || m_session->m_destroyed))) {
         m_headers_lock.unlock();
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received"));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received"));
     }
 
     m_headers_ac = std::move(ac);
@@ -429,7 +429,7 @@ void Http2Stream::onClose(uint32_t error_code)
     m_recv_lock.unlock();
     if (rac) {
         if (error_code != 0)
-            rac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset")));
+            rac.apost(result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset")));
         else
             rac.apost(CALL_RETURN_NULL);
     }
@@ -439,7 +439,7 @@ void Http2Stream::onClose(uint32_t error_code)
     AsyncHandle hac = std::move(m_headers_ac);
     m_headers_lock.unlock();
     if (hac)
-        hac.apost(CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
+        hac.apost(result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
 
     if (m_session)
         m_session->removeStream(m_stream_id);

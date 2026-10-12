@@ -277,15 +277,15 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
     obj_ptr<XmlNode_base>& retVal)
 {
     if (!m_this)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pRef = checkChild(refChild);
     if (!pNew || !pRef)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (pRef->m_parent != m_this)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node before which the new node is to be inserted is not a child of this node."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node before which the new node is to be inserted is not a child of this node."));
 
     // Handle DocumentFragment: insert all its children instead of itself
     if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
@@ -324,7 +324,7 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
     }
 
     if (!checkNew(pNew))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t idx = pRef->m_index;
@@ -349,15 +349,15 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
     obj_ptr<XmlNode_base>& retVal)
 {
     if (!m_this)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pRef = checkChild(refChild);
     if (!pNew || !pRef)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (pRef->m_parent != m_this)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node after which the new node is to be inserted is not a child of this node."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node after which the new node is to be inserted is not a child of this node."));
 
     // Handle DocumentFragment: insert all its children instead of itself
     if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
@@ -396,7 +396,7 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
     }
 
     if (!checkNew(pNew))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t idx = pRef->m_index + 1;
@@ -421,15 +421,15 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
     obj_ptr<XmlNode_base>& retVal)
 {
     if (!m_this)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pOld = checkChild(oldChild);
     if (!pNew || !pOld)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (pOld->m_parent != m_this)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node to be replaced is not a child of this node."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node to be replaced is not a child of this node."));
 
     // Handle DocumentFragment: replace with all its children
     if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
@@ -479,7 +479,7 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
     }
 
     if (!checkNew(pNew))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
 
     int32_t idx = pOld->m_index;
 
@@ -495,14 +495,14 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
 result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
 {
     if (!m_this)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     XmlNodeImpl* pOld = checkChild(oldChild);
     if (!pOld)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     if (pOld->m_parent != m_this)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node to be removed is not a child of this node."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The node to be removed is not a child of this node."));
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -523,11 +523,11 @@ result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
 result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
     if (!m_this)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return result_t::invalid_call();
 
     XmlNodeImpl* pNew = checkChild(newChild);
     if (!pNew)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     // Handle DocumentFragment: append all its children instead of itself
     if (pNew->m_type == xml_base::C_DOCUMENT_FRAGMENT_NODE) {
@@ -549,7 +549,7 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
     }
 
     if (!checkNew(pNew))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlNodeList: The new child element contains the parent."));
 
     pNew->setParent(m_this, (int32_t)m_childs.size());
     m_childs.push_back(pNew);

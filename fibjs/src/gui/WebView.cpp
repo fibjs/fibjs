@@ -226,7 +226,7 @@ result_t WebView::check_status(AsyncHandle& ac)
 {
     if (ac.isSync()) {
         m_ready->ac_wait();
-        return CHECK_ERROR(result_t::guicall());
+        return result_t::guicall();
     }
 
     if (!m_window)

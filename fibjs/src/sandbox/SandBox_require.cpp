@@ -101,7 +101,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     Scope _scope(this);
 
     if (is_relative(srcname))
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: AddScript does not accept relative path."));
+        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: AddScript does not accept relative path."));
 
     path_base::normalize(srcname, srcname);
 

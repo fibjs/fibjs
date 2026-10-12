@@ -217,7 +217,7 @@ result_t makeUUID_v3(int32_t ns, const exlib::string& name, obj_ptr<Buffer_base>
     init_namespaces();
 
     if (ns < 0 || ns > 3) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     // Create MD5 hash of namespace UUID + name
@@ -245,7 +245,7 @@ result_t makeUUID_v5(int32_t ns, const exlib::string& name, obj_ptr<Buffer_base>
     init_namespaces();
 
     if (ns < 0 || ns > 3) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     // Create SHA1 hash of namespace UUID + name
@@ -286,7 +286,7 @@ result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,
     obj_ptr<Buffer_base>& retVal)
 {
     if (ns < uuid_base::C_DNS || ns > uuid_base::C_X509)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
 
     switch (vers) {
     case 1: // UUID_MAKE_V1
@@ -311,7 +311,7 @@ result_t uuid_base::parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal)
     uint8_t uuid_bytes[16];
 
     if (!uuid_from_string(uuid.c_str(), uuid_bytes)) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     return toBuffer(uuid_bytes, retVal);
@@ -334,7 +334,7 @@ result_t uuid_base::stringify(Union_stringify_arr arr, int32_t offset, exlib::st
         std::get<obj_ptr<Buffer_base>>(arr)->toString(data);
 
     if ((size_t)(offset + 16) > data.length())
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return result_t::invalid_data();
 
     const uint8_t* uuid = (const uint8_t*)data.c_str() + offset;
     uuid_to_string(uuid, retVal);
@@ -499,13 +499,13 @@ result_t uuid_base::v3(exlib::string name, Union_v3_ns ns, exlib::string& retVal
         init_namespaces();
 
         if (!uuid_from_string(std::get<exlib::string>(ns).c_str(), ns_bytes))
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         ns_data = ns_bytes;
     } else {
         Buffer* p = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(ns));
         if (p->length() < 16)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         ns_data = p->data();
     }
@@ -541,13 +541,13 @@ result_t uuid_base::v5(exlib::string name, Union_v5_ns ns, exlib::string& retVal
         init_namespaces();
 
         if (!uuid_from_string(std::get<exlib::string>(ns).c_str(), ns_bytes))
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         ns_data = ns_bytes;
     } else {
         Buffer* p = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(ns));
         if (p->length() < 16)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            return result_t::invalid_arg();
 
         ns_data = p->data();
     }
@@ -578,7 +578,7 @@ result_t uuid_base::version(exlib::string uuid, int32_t& retVal)
 {
     uint8_t uuid_bytes[16];
     if (!uuid_from_string(uuid.c_str(), uuid_bytes)) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
     
     retVal = (uuid_bytes[6] >> 4) & 0x0F;
@@ -738,12 +738,12 @@ result_t uuid_base::v1ToV6(exlib::string uuid_v1, exlib::string& retVal)
 {
     uint8_t v1_bytes[16];
     if (!uuid_from_string(uuid_v1.c_str(), v1_bytes)) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     // Check if it's actually a v1 UUID
     if (((v1_bytes[6] >> 4) & 0x0F) != 1) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     uint8_t v6_bytes[16];
@@ -775,12 +775,12 @@ result_t uuid_base::v6ToV1(exlib::string uuid_v6, exlib::string& retVal)
 {
     uint8_t v6_bytes[16];
     if (!uuid_from_string(uuid_v6.c_str(), v6_bytes)) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     // Check if it's actually a v6 UUID
     if (((v6_bytes[6] >> 4) & 0x0F) != 6) {
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return result_t::invalid_arg();
     }
 
     uint8_t v1_bytes[16];

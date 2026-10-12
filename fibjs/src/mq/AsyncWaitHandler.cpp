@@ -25,19 +25,19 @@ result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(result_t::nosync());
+        return result_t::nosync();
 
     if (m_invoked.xchg(1) != 0)
         return 0;
 
     m_as = new asyncWaiter(std::move(ac));
     if (m_stat.CompareAndSwap(AC_INIT, AC_WAIT) == AC_INIT)
-        return CHECK_ERROR(result_t::pending());
+        return result_t::pending();
 
     delete m_as;
     m_as = NULL;
 
-    return CHECK_ERROR(CALL_RETURN_NULL);
+    return result_t::return_null();
 }
 
 result_t AsyncWaitHandler::end()
