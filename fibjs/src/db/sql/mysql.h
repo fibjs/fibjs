@@ -12,6 +12,7 @@ extern "C" {
 #include <umysql/include/umysql.h>
 }
 #include <umysql/src/Connection.h>
+#include "Socket_api.h"
 #include "../db_tmpl.h"
 
 namespace fibjs {
@@ -120,7 +121,7 @@ private:
                 b = std::move(b).with_errno(errCode);
             return result_t(std::move(b).with_message(errorMessage ? exlib::string(errorMessage) : exlib::string()));
         }
-        return Runtime::errNumber();
+        return socket::last_error();
     }
 };
 

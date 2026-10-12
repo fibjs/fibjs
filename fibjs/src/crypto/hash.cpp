@@ -62,7 +62,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
         return 0;
     }
 
-    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("createHash: unknown algorithm '%s'.", algo.c_str()).with_result(CALL_E_INVALID_CALL));
+    return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHash: unknown algorithm '%s'.", algo.c_str()));
 }
 
 static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
@@ -71,13 +71,13 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
     const EVP_MD* md = _evp_md_type(algo.c_str());
     if (md) {
         if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str()).with_result(CALL_E_INVALID_CALL));
+            return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str()));
 
         retVal = new Digest(md, key, keylen);
         return 0;
     }
 
-    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("createHmac: unknown algorithm '%s'.", algo.c_str()).with_result(CALL_E_INVALID_CALL));
+    return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: unknown algorithm '%s'.", algo.c_str()));
 }
 
 // a string alternative of a KDF argument is decoded as utf8, once, in the

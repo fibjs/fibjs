@@ -2250,12 +2250,6 @@ public:
 
         // Attach request diagnostics to the terminal error, carrying them on
         // the value itself (they cross threads and fibers with it).
-        //
-        // The description of a CALL_E_EXCEPTION (name/message) is per-thread as
-        // well, so it is captured here and restored in the emit fiber: without
-        // it an aborted request would report "[0] Success" there.
-        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-
         {
             exlib::string url_str = sanitize_url_for_error(m_o->u);
 
@@ -2273,10 +2267,8 @@ public:
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {
             obj_ptr<HttpRequest> req = m_req;
-            req->holder()->sync([req, v, desc]() -> int32_t {
+            req->holder()->sync([req, v]() -> int32_t {
                 JSFiber::EnterJsScope s;
-
-                Runtime::applyErrorDescription(desc, v.payload());
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
@@ -3175,20 +3167,16 @@ public:
     {
         // Per Fetch spec, network errors are TypeErrors; an abort however keeps
         // its AbortError/TimeoutError DOMException. The description rides with
-        // the value; a bare sentinel falls back to the thread state, which the
-        // errTypeName()/errMessage() reads consume (so each is read once).
+        // the value.
         exlib::string type_name;
         exlib::string msg;
 
         if (v.is_exception()) {
             const ErrorPayload* p = v.payload();
 
-            if (p && !p->empty()) {
+            if (p) {
                 type_name = p->error_type_name;
                 msg = p->message;
-            } else {
-                type_name = Runtime::errTypeName();
-                msg = Runtime::errMessage();
             }
         }
 

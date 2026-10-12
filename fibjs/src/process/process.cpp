@@ -716,7 +716,7 @@ result_t process_base::send(v8::Local<v8::Value> msg)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_channel)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("process.send: IPC channel is not available.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("process.send: IPC channel is not available."));
 
     return ChildProcess::Ipc::send(isolate->m_channel, msg);
 }

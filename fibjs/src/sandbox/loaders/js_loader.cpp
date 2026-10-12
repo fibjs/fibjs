@@ -31,10 +31,12 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
 
         // If CJS compilation failed, check if the source uses ESM syntax
         // and retry as ESM (supporting require(esm) like Node.js v22.12+).
-        // CALL_E_EXCEPTION indicates a stored Runtime error (syntax error),
-        // as opposed to CALL_E_JAVASCRIPT (pending V8 exception at runtime).
+        // CALL_E_EXCEPTION indicates a stored description (syntax error), as
+        // opposed to CALL_E_JAVASCRIPT (pending V8 exception at runtime). The
+        // description rides with the value.
         if (hr.is_exception()) {
-            exlib::string err_msg = Runtime::errMessage();
+            const ErrorPayload* p = hr.payload();
+            exlib::string err_msg = p ? p->message : exlib::string();
 
             // Detection is only for files nothing else has classified. When
             // package.json says "type": "commonjs", `export` in the file is an

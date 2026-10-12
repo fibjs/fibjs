@@ -33,13 +33,6 @@ class ErrorPayload;
 class Variant;
 class object_base;
 
-// The interim thread-state mirror (utils.cpp): reproduces the old
-// Runtime::setError side effects (m_code / m_error / m_errorTypeName) at
-// builder landing, so the still existing errCode / errMessage readers (the
-// CALL_E_EXCEPTION sentinel) keep working while the sentinel narrows; 5c
-// resolves it against the real pending JS exception.
-void mirror_error_state(const ErrorPayload& payload);
-
 #define CALL_RETURN_NULL 100000
 #define CALL_RETURN_UNDEFINED 100001
 #define CALL_E_MAX -20000
@@ -349,6 +342,14 @@ struct ErrorPayload : public obj_base {
     exlib::string hostname;
     exlib::string code;
     exlib::string message;
+    // Diagnostic: the C++ function that snapshotted a JS exception into this
+    // description (decision 4: the sentinel snapshot carries type / message /
+    // code / func). Never rendered on its own, like args a read-only detail.
+    exlib::string func;
+    // The carried code for the producers whose code belongs to the overload
+    // retry band (CALL_E_MIN_ARG, CALL_E_MAX): it must not become the value's
+    // code or the METHOD_OVER machinery would read it as "this variant did not
+    // apply" and try the next variant. The boundary resolves it (resolveException).
     result_t result_code = 0;
     bool has_errno = false;
     int32_t errno_value = 0;
@@ -405,17 +406,10 @@ private:
         message = value;
         return this;
     }
-
     obj_ptr<ErrorPayload> with_errno(int32_t value)
     {
         has_errno = true;
         errno_value = value;
-        return this;
-    }
-
-    obj_ptr<ErrorPayload> result(result_t code)
-    {
-        result_code = code;
         return this;
     }
 
@@ -510,6 +504,14 @@ public:
         return std::move(*this);
     }
 
+    // The C++ function that snapshotted a JS exception into the description
+    // (call sites pass __func__); a diagnostic field, not rendered.
+    builder&& with_func(const char* value) &&
+    {
+        ensure()->func = value;
+        return std::move(*this);
+    }
+
     builder&& with_errno(int32_t value) &&
     {
         ErrorPayload* p = ensure();
@@ -529,6 +531,8 @@ public:
         return std::move(*this);
     }
 
+    // The code rides the payload instead of the value: only for the overload
+    // retry band (see ErrorPayload::result_code).
     builder&& with_result(result_t code) &&
     {
         ensure()->result_code = code;
@@ -654,8 +658,8 @@ inline result_t::builder result_t::inherit(result_t&& base)
 }
 
 // Take over a base value's description and land it under a different code: the
-// JS boundary resolving a sentinel to the real code the description carries
-// (resolveException), the description kept on the value.
+// boundary resolving a sentinel to the payload-carried code (resolveException),
+// the description kept on the value.
 inline result_t::builder result_t::inherit_as(result_t&& base, result_t code)
 {
     builder b(code.code());
@@ -668,13 +672,6 @@ inline result_t::result_t(builder&& b)
     : m_code(b.m_code)
 {
     m_payload = std::move(b.m_payload);
-
-    // The interim thread-state mirror (5c narrows it to the real-exception
-    // sentinel): the description also lands in the per-thread state, which the
-    // readers that do not hold the value yet (errCode / errMessage) still peek.
-    // Success values carry no description, so nothing lands for them.
-    if (m_payload)
-        mirror_error_state(*m_payload);
 }
 
 }

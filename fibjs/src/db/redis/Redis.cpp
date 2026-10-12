@@ -520,7 +520,7 @@ result_t Redis::restore(Union_restore_key key, Union_restore_data data, int64_t 
 result_t Redis::close()
 {
     if (!m_sock)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Redis: connection is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("Redis: connection is closed."));
 
     m_sock->ac_close();
 

@@ -316,14 +316,7 @@ void AsyncCallBack::processPromiseResult()
 
         resolver->Resolve(m_isolate->context(), result).IsJust();
     } else {
-        // The failing value carries its own description; the sentinel state
-        // was snapshotted into it by the producing path.
-        if (m_v.is_exception())
-            m_v = result_t(result_t::inherit(std::move(m_v))
-                    .with_type_name(m_error_type_name)
-                    .with_result(m_error_code)
-                    .with_message(m_error));
-
+        // The failing value carries its own description.
         v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
         resolver->Reject(m_isolate->context(), FillError(m_v, stack)).IsJust();
     }
@@ -363,12 +356,6 @@ result_t AsyncCallBack::syncFunc()
             args[0] = v8::Null(m_isolate->m_isolate);
             to_args(args);
         } else {
-            if (m_v.is_exception())
-                m_v = result_t(result_t::inherit(std::move(m_v))
-                        .with_type_name(m_error_type_name)
-                        .with_result(m_error_code)
-                        .with_message(m_error));
-
             args.resize(1);
             v8::Local<v8::StackTrace> stack = m_stack_trace.Get(m_isolate->m_isolate);
             args[0] = FillError(m_v, stack);
@@ -423,12 +410,6 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
         }
 
         if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
-            if (hr.is_exception()) {
-                m_error_code = Runtime::errCode();
-                m_error_type_name = Runtime::errTypeName();
-                m_error = Runtime::errMessage();
-            }
-
             m_v = hr;
             processPromiseResult();
 

@@ -13,6 +13,22 @@
 namespace fibjs {
 namespace socket {
 
+    // The per-thread failure slot of the C ABI (replaces the retired Runtime
+    // thread state): a callback reports the failure code and the driver reads
+    // it back on the same thread. A non-consuming read mirrors the old m_code
+    // semantics (the code stays until the next failure overwrites it).
+    static thread_local result_t s_last_socket_error;
+
+    void set_last_error(result_t hr)
+    {
+        s_last_socket_error = hr;
+    }
+
+    result_t last_error()
+    {
+        return s_last_socket_error;
+    }
+
     void* create()
     {
         obj_ptr<Socket_base> s;
@@ -31,7 +47,7 @@ namespace socket {
     int32_t c_connect(void* sock, const char* host, int32_t port)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            set_last_error(CALL_E_INVALID_CALL);
             return 0;
         }
 
@@ -40,7 +56,7 @@ namespace socket {
         obj_ptr<Stream_base> retVal;
         result_t hr = ((Socket_base*)sock)->cc_connect(port, host, 0, retVal);
         if (hr.failed()) {
-            Runtime::setError(hr);
+            set_last_error(hr);
             return 0;
         }
 
@@ -63,7 +79,7 @@ namespace socket {
     int32_t c_recv(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            set_last_error(CALL_E_INVALID_CALL);
             return -1;
         }
 
@@ -73,7 +89,7 @@ namespace socket {
 
         result_t hr = ((Socket_base*)sock)->cc_recv(cbBuffer, retVal);
         if (hr.failed()) {
-            Runtime::setError(hr);
+            set_last_error(hr);
             return -1;
         }
 
@@ -89,7 +105,7 @@ namespace socket {
     int32_t c_read(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            set_last_error(CALL_E_INVALID_CALL);
             return -1;
         }
 
@@ -102,7 +118,7 @@ namespace socket {
 
         result_t hr = ((Socket_base*)sock)->cc_readBuffer(cbBuffer, retVal);
         if (hr.failed()) {
-            Runtime::setError(hr);
+            set_last_error(hr);
             return -1;
         }
 
@@ -121,7 +137,7 @@ namespace socket {
     int32_t c_send(void* sock, const void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            Runtime::setError(CALL_E_INVALID_CALL);
+            set_last_error(CALL_E_INVALID_CALL);
             return -1;
         }
 
@@ -135,7 +151,7 @@ namespace socket {
         int32_t len;
         result_t hr = ((Socket_base*)sock)->cc_send(buf, len);
         if (hr.failed()) {
-            Runtime::setError(hr);
+            set_last_error(hr);
             return -1;
         }
 

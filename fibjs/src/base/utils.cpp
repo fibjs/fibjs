@@ -97,16 +97,11 @@ static const char* getDefaultErrorTypeName(result_t hr)
 
 exlib::string getResultMessage(result_t hr)
 {
-    if (hr.is_exception()) {
-        exlib::string s = Runtime::errMessage();
+    if (hr.is_param_missing()) {
+        const ErrorPayload* p = hr.payload();
 
-        if (s.length() > 0)
-            return s;
-    } else if (hr.is_param_missing()) {
-        exlib::string s = Runtime::errMessage();
-
-        if (s.length() > 0)
-            return "property " + s + " is not optional.";
+        if (p && !p->message.empty())
+            return p->message; // the producer renders "property X is not optional."
     }
 
     if (hr.has_error_info())
@@ -252,20 +247,8 @@ static v8::Local<v8::Value> MakeException(Isolate* isolate, const exlib::string&
     return v8::Exception::Error(v8msg);
 }
 
-// The interim thread-state mirror: reproduces the old Runtime::setError side
-// effects (m_code / m_error / m_errorTypeName) at builder landing, so the
-// readers that do not hold the value yet (errCode / errMessage at the
-// CALL_E_EXCEPTION sentinel) keep working; 5c resolves the sentinel against
-// the real pending JS exception and this goes away with it.
-void mirror_error_state(const ErrorPayload& payload)
-{
-    Runtime* rt = Runtime::current();
-
-    rt->m_code = payload.result_code.has_value() ? result_t(CALL_E_EXCEPTION) : payload.result_code;
-    rt->m_error = payload.message;
-    rt->m_errorTypeName = payload.error_type_name;
-}
-
+// The builder-landing thread mirror (m_code / m_error / m_errorTypeName) is
+// gone: the description rides with the value and the boundary reads it there.
 
 // ---------------------------------------------------------------------------
 // ErrorPayload builder: formatted messages and bounded parameter summaries.
@@ -661,11 +644,9 @@ static void resolveException(result_t& hr, exlib::string& type_name, exlib::stri
         const ErrorPayload* p = hr.payload();
 
         if (p && !p->empty()) {
-            // Value-carried description (producers build it). result_code == 0
-            // means "no explicit code": the generic sentinel keeps hr. The
-            // strings are copied out first, then the sentinel advances to the
-            // real code with the description kept -- the boundary reads it
-            // right after this (number / code / errno / fields).
+            // type / message ride with the value; the strings are copied out
+            // first, then a payload-carried code (the overload retry band) is
+            // resolved onto the sentinel with the description kept.
             type_name = p->error_type_name;
             msg = p->message;
 
@@ -675,10 +656,6 @@ static void resolveException(result_t& hr, exlib::string& type_name, exlib::stri
             }
             return;
         }
-
-        hr = Runtime::errCode();
-        type_name = Runtime::errTypeName();
-        msg = Runtime::errMessage();
     }
 }
 v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
@@ -889,7 +866,9 @@ result_t throwSyntaxError(TryCatch& try_catch)
     if (message.IsEmpty())
         ThrowError(isolate->toString(try_catch.Exception()));
     else {
-        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true));
+        // The snapshot of a pending V8 exception: type / message ride with the
+        // value, and the producing function is kept for diagnostics.
+        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__);
     }
 
     return CALL_E_JAVASCRIPT;

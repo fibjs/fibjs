@@ -137,7 +137,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     try_catch.ReThrow();
                     return CALL_E_JAVASCRIPT;
                 } else
-                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)));
+                    return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__));
             }
         }
 

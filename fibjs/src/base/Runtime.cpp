@@ -189,9 +189,15 @@ Runtime* Runtime::current()
     return s_rt;
 }
 
-result_t setRuntimeError(result_t code, const char* err)
+// The strict-option failure: the property name rides the value as the rendered
+// message (the thread-state channel is retired; getResultMessage reads the
+// payload). Without a name the bare code keeps its canned table message.
+result_t setRuntimeError(int32_t code, const char* err)
 {
-    return Runtime::setParamError(err);
+    if (err)
+        return result_t::make(code).with_message(exlib::string("property ") + err + " is not optional.");
+
+    return code;
 }
 
 } /* namespace fibjs */

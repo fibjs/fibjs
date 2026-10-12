@@ -174,7 +174,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
 result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
 {
     if (m_bound)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("dgram: socket is already bound.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already bound."));
 
     inetAddr addr_info;
 
@@ -427,7 +427,7 @@ static void on_close(uv_handle_t* handle)
 result_t DgramSocket::close()
 {
     if (uv_is_closing(&m_handle))
-        return result_t::make(CALL_E_EXCEPTION).with_message("dgram: socket is already closing.").with_result(CALL_E_INVALID_CALL);
+        return result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already closing.");
 
     return uv_call([&] {
         uv_close(&m_handle, on_close);

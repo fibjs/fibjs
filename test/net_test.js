@@ -403,19 +403,24 @@ function test_net(eng, use_uv) {
 
                 s1.connect(unusedPort, net_config.address);
 
-                errorEvent.wait();
-                assert.ok(errorReceived !== null);
-                // the Windows uv socket reports the refusal without the
-                // syscall summary the other backends carry
-                if (!(isWin32 && use_uv)) {
-                    assert.equal(errorReceived.syscall, 'connect');
-                    assert.equal(errorReceived.args.host, net_config.address);
-                    assert.equal(errorReceived.args.port, String(unusedPort));
+                try {
+                    errorEvent.wait();
+                    assert.ok(errorReceived !== null);
+                    // the Windows uv socket reports the refusal without the
+                    // syscall summary the other backends carry
+                    if (!(isWin32 && use_uv)) {
+                        assert.equal(errorReceived.syscall, 'connect');
+                        assert.equal(errorReceived.args.host, net_config.address);
+                        assert.equal(errorReceived.args.port, String(unusedPort));
+                    }
+                } finally {
+                    // Release before the leak assertion: a failing assert above
+                    // must not leak the socket into the next case.
+                    s1 = null;
+                    errorReceived = null;
                 }
 
                 // Verify socket is released after error
-                s1 = null;
-                errorReceived = null;
                 test_util.gc();
                 assert.equal(socketCount, test_util.countObject('Socket'));
             });

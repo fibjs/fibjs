@@ -99,7 +99,7 @@ result_t odbc_close(void*& conn, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
 
     odbc_disconnect(conn);
     conn = NULL;
@@ -387,7 +387,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
 
     if (activeStmt && *activeStmt)
         return db_stmt_busy_error();
@@ -882,7 +882,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: columns() requires a prepared statement (v2)").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: columns() requires a prepared statement (v2)"));
     }
 
     // Cursor reset: release the HSTMT (connection stays usable), impl is
@@ -925,7 +925,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     const OdbcEscape& esc, obj_ptr<Statement_base>& retVal)
 {
     if (!conn)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: database is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: database is closed."));
 
     obj_ptr<Statement> stmt = new Statement(sql,
         new OdbcStmtImpl(conn, activeStmt, sql, esc));
@@ -939,7 +939,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -990,7 +990,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (!conn)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("ODBC: connection is closed.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
 
     SQLRETURN hr;
     SQLHSTMT stmt;

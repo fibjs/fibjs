@@ -32,7 +32,8 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         // nearest package.json happens to say "type": "module" - which is what
         // Node.js does too, but Node reaches the same conclusion by itself.
         if (hr.is_exception()) {
-            exlib::string err_msg = Runtime::errMessage();
+            const ErrorPayload* p = hr.payload();
+            exlib::string err_msg = p ? p->message : exlib::string();
 
             // Detection is only for files nothing else has classified. When
             // package.json says "type": "commonjs", `export` in the file is an

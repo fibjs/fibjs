@@ -315,21 +315,12 @@ public:
                 : m_h(std::move(h))
                 , m_hr(hr)
             {
-                // The description rides with the value; only the sentinel's
-                // scalar state is thread/fiber-local, so it is captured here,
-                // in the caller's context, and restored on the pool fiber -
-                // otherwise a failed delivery across the hop would be
-                // resolved against the receiving thread's (empty) state.
-                // Same cross-thread rule as AsyncBackgroundWrite's emit path.
-                if (hr.failed())
-                    m_desc = Runtime::captureErrorDescription(hr);
+                // The description rides with the value across the hop: there is
+                // no other error context to carry.
             }
 
             virtual void invoke() override
             {
-                if (m_hr.failed())
-                    Runtime::applyErrorDescription(m_desc, m_hr.payload());
-
                 m_h.post(m_hr);
                 delete this;
             }
@@ -337,7 +328,6 @@ public:
         private:
             AsyncHandle m_h;
             result_t m_hr;
-            Runtime::ErrorDescription m_desc;
         };
 
         (new AsyncPost(std::move(*this), hr))->async(mode);
@@ -376,12 +366,6 @@ public:
 
     virtual result_t post(result_t v)
     {
-        if (v.is_exception()) {
-            m_error_code = Runtime::errCode();
-            m_error_type_name = Runtime::errTypeName();
-            m_error = Runtime::errMessage();
-        }
-
         m_v = v;
         weak.set();
 
@@ -412,12 +396,6 @@ public:
         else
             m_v = hr;
 
-        if (m_v.is_exception())
-            m_v = result_t(result_t::inherit(std::move(m_v))
-                    .with_type_name(m_error_type_name)
-                    .with_result(m_error_code)
-                    .with_message(m_error));
-
         return m_v;
     }
 
@@ -426,9 +404,6 @@ protected:
     void** args;
 
 private:
-    exlib::string m_error;
-    result_t m_error_code = 0;
-    exlib::string m_error_type_name;
     result_t m_v;
 };
 
@@ -447,12 +422,6 @@ public:
 
     virtual result_t post(result_t v)
     {
-        if (v.is_exception()) {
-            m_error_code = Runtime::errCode();
-            m_error_type_name = Runtime::errTypeName();
-            m_error = Runtime::errMessage();
-        }
-
         m_v = v;
         weak.set();
 
@@ -469,11 +438,6 @@ public:
             return hr;
 
         weak.wait();
-        if (m_v.is_exception())
-            m_v = result_t(result_t::inherit(std::move(m_v))
-                    .with_type_name(m_error_type_name)
-                    .with_result(m_error_code)
-                    .with_message(m_error));
 
         return m_v;
     }
@@ -483,9 +447,6 @@ protected:
     void** args;
 
 private:
-    exlib::string m_error;
-    result_t m_error_code = 0;
-    exlib::string m_error_type_name;
     result_t m_v;
 };
 
@@ -1056,12 +1017,6 @@ public:
 public:
     result_t post_result(result_t v)
     {
-        if (v.is_exception()) {
-            m_error_code = Runtime::errCode();
-            m_error_type_name = Runtime::errTypeName();
-            m_error = Runtime::errMessage();
-        }
-
         m_v = v;
         m_isolate->sync([this]() -> result_t {
             return syncFunc();
@@ -1111,9 +1066,6 @@ protected:
     obj_ptr<NType> m_result;
 
 private:
-    exlib::string m_error;
-    result_t m_error_code = 0;
-    exlib::string m_error_type_name;
     v8::Global<v8::StackTrace> m_stack_trace;
     v8::Global<v8::Value> m_async_ctx;  // Captured async context for AsyncLocalStorage
     result_t m_v;

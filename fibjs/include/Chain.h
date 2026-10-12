@@ -104,8 +104,10 @@ public:
                 JSFiber::EnterJsScope s;
 
                 m_hr = js_run();
-                if (m_hr.is_exception())
-                    m_message = Runtime::errMessage();
+                if (m_hr.is_exception()) {
+                    const ErrorPayload* p = m_hr.payload();
+                    m_message = p ? p->message : exlib::string();
+                }
             }
 
             // 持票回投（唤醒等待中的状态机）。票只借用（机器自持自删），

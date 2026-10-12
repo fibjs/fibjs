@@ -1103,7 +1103,7 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant
     return getVariantValue(isolate, v, n, bStrict, std::index_sequence_for<Ts...>());
 }
 
-result_t setRuntimeError(result_t code, const char* err = nullptr);
+result_t setRuntimeError(int32_t code, const char* err = nullptr);
 
 template <typename T>
 result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)

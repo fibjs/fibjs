@@ -42,11 +42,16 @@ public:
     bool m_allowHalfOpen = false;
     exlib::atomic m_closeEmitted = 0;
 
-    void emitClose(Stream_base* stream)
+    void emitClose(Stream_base* stream, bool hadError = false)
     {
         if (m_closeEmitted.CompareAndSwap(0, 1) != 0)
             return;
-        stream->_emit("close");
+
+        // Node.js passes hadError to the close listener (true when the stream
+        // is closed because of an error). The Variant overload marshals the
+        // argument across threads on its own.
+        Variant arg = hadError;
+        stream->_emit("close", arg);
     }
 
     exlib::spinlock m_lock;
@@ -322,6 +327,22 @@ public:
             return v;
         }
 
+        // The read loop never started (m_wait is still kWaitStart): this failure
+        // is the connect handoff, and the net layer's own path has already
+        // delivered it (the 'error' event in the event mode, the API return
+        // value otherwise). The reader only finishes the stream - close with
+        // hadError, so a listener can tell a failed connect from a clean close
+        // (Node.js: one 'error' plus one 'close' per failure, never two errors).
+        if (m_wait == kWaitStart) {
+            m_base->m_readEnded = true;
+            m_base->m_ended = true;
+            if (!m_base->m_destroyed) {
+                m_base->m_destroyed = true;
+                m_base->emitClose(m_this, true);
+            }
+            return v;
+        }
+
         if (v.is(CALL_E_BAD_FILE) || v.is(CALL_E_INVALID_CALL)
             || v.is(CALL_E_NETNAME_DELETED) || v.is(CALL_E_CLOSED_SOCKET)) {
             m_base->m_readEnded = true;
@@ -347,13 +368,9 @@ public:
         }
 
         obj_ptr<Stream_base> stream = m_this;
-        // The description rides with the value; only the sentinel state belongs
-        // to this thread, so it is carried into the emit fiber explicitly.
-        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-        m_isolate->sync([stream, v, desc]() -> int32_t {
+        // The description rides with the value into the emit fiber.
+        m_isolate->sync([stream, v]() -> int32_t {
             JSFiber::EnterJsScope s;
-
-            Runtime::applyErrorDescription(desc, v.payload());
 
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;

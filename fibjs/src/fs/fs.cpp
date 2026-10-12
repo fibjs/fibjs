@@ -3664,15 +3664,10 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     obj_ptr<SeekableStream_base> stm = failed;
     Isolate* isolate = failed->holder();
 
-    // The error description rides with the value; only the sentinel state
-    // belongs to this thread, so it is carried into the emit explicitly.
-    Runtime::ErrorDescription desc = Runtime::captureErrorDescription(hr);
-
-    async([stm, hr, desc, isolate]() {
+    // The error description rides with the value into the emit.
+    async([stm, hr, isolate]() {
         // the emit must run on the JS thread with a valid context
-        isolate->sync([stm, hr, desc]() -> int {
-            Runtime::applyErrorDescription(desc, hr.payload());
-
+        isolate->sync([stm, hr]() -> int {
             v8::Local<v8::Value> err = FillError(hr);
             bool retVal;
 

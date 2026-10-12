@@ -297,7 +297,8 @@ private:
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
                 if (hr.is_exception()) {
-                    exlib::string err_msg = Runtime::errMessage();
+                    const ErrorPayload* p = hr.payload();
+                    exlib::string err_msg = p ? p->message : exlib::string();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
@@ -305,9 +306,7 @@ private:
                         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
-                    // Return directly to let it propagate — do NOT read
-                    // Runtime::errMessage() which may contain a stale message
-                    // from an earlier GetConfigValue call (e.g. "type").
+                    // Return directly to let it propagate.
                     return hr;
                 }
             }
@@ -355,7 +354,8 @@ private:
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
                 if (hr.is_exception()) {
-                    exlib::string err_msg = Runtime::errMessage();
+                    const ErrorPayload* p = hr.payload();
+                    exlib::string err_msg = p ? p->message : exlib::string();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
@@ -363,9 +363,7 @@ private:
                         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
-                    // Return directly to let it propagate — do NOT read
-                    // Runtime::errMessage() which may contain a stale message
-                    // from an earlier GetConfigValue call (e.g. "type").
+                    // Return directly to let it propagate.
                     return hr;
                 }
             }

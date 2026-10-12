@@ -425,7 +425,7 @@ public:
             m_sock->isolate_unref();
     }
 
-// The connect failure with its Node.js context; the value carries it to
+        // The connect failure with its Node.js context; the value carries it to
         // both consumers: the caller (m_ac.post) and the reader's error emit
         // (on_connected).
         result_t error_value(result_t v) const
@@ -447,16 +447,20 @@ public:
                 if (v.failed()) {
                     v = error_value(v);
 
-                (new EventInfo(m_sock, "error", v))->emit();
-                m_sock->on_connected(v);
-            } else {
-                m_sock->on_connected(0);
-                (new EventInfo(m_sock, "connect"))->emit();
+                    (new EventInfo(m_sock, "error", v))->emit();
+                    // Node.js: a failed connect closes with hadError, right
+                    // after the single error delivery (the reader's own close
+                    // is then a no-op behind the one-shot guard).
+                    m_sock->emitClose(m_sock, true);
+                    m_sock->on_connected(v);
+                } else {
+                    m_sock->on_connected(0);
+                    (new EventInfo(m_sock, "connect"))->emit();
+                }
             }
+            delete this;
+            return 0;
         }
-        delete this;
-        return 0;
-    }
 
 private:
     obj_ptr<Socket> m_sock;

@@ -274,20 +274,14 @@ public:
 
         // The SNI / verification host is the key context for a failed handshake:
         // enrich the value itself (it crosses into the emit fiber, which may run
-        // on another thread, and the sync/callback path reads it too). The error
-        // description travels the same way as in the other emit paths: the value
-        // carries it, only the sentinel state is thread-local.
-        Runtime::ErrorDescription desc = Runtime::captureErrorDescription(v);
-
+        // on another thread, and the sync/callback path reads it too).
         if (!m_server_name.empty())
             v = result_t(result_t::inherit(std::move(v)).arg("servername", m_server_name));
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;
-            m_isolate->sync([sock, v, desc]() -> int32_t {
+            m_isolate->sync([sock, v]() -> int32_t {
                 JSFiber::EnterJsScope s;
-
-                Runtime::applyErrorDescription(desc, v.payload());
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;

@@ -822,7 +822,7 @@ result_t ChildProcess::stop()
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
 {
     if (m_ipc < 0)
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("send: IPC channel is not available.").with_result(CALL_E_INVALID_CALL));
+        return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("send: IPC channel is not available."));
 
     return Ipc::send(m_stdio[3], msg);
 }

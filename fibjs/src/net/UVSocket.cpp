@@ -330,16 +330,24 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
             result_t err = status < 0 ? error_value(status) : result_t(0);
 
-            m_sock->on_connected(err);
-
-            if (!m_bEvent) {
-                m_ac.apost(err);
-            } else {
-                if (status < 0)
+            // Deliver before handing the error to the reader (same order as the
+            // ev backend): the error event is the single delivery of a failed
+            // connect, the reader only finishes the stream (close(hadError)).
+            if (m_bEvent) {
+                if (status < 0) {
                     (new EventInfo(m_sock, "error", err))->emit();
-                else
+                    // Node.js: a failed connect closes with hadError, right
+                    // after the single error delivery (the reader's own close
+                    // is then a no-op behind the one-shot guard).
+                    m_sock->emitClose(m_sock, true);
+                } else
                     (new EventInfo(m_sock, "connect"))->emit();
             }
+
+            m_sock->on_connected(err);
+
+            if (!m_bEvent)
+                m_ac.apost(err);
 
             if (m_timer_started)
                 uv_close((uv_handle_t*)(uv_timer_t*)this, on_timer_closed);
