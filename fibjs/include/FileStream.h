@@ -167,24 +167,26 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
     if (fd < 0) {
-        result_t hr = LastError();
+        int32_t err = LastError();
 
 #ifdef _WIN32
         // Node.js compatibility: opening a directory as a file reports EISDIR.
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        if (hr == -ERROR_ACCESS_DENIED) {
+        if (err == -ERROR_ACCESS_DENIED) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
-                return UV_EISDIR;
+                return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
         }
 #endif
 
-        if (hr.is_system_error())
-            return result_t::from_system(hr).with_syscall("open").with_path(fname).arg("flags", flags);
+        // the single construction point of an open failure: syscall, path and
+        // flags are all known right here (R-4 本层构建)
+        if (err < 0 && err > CALL_E_MAX)
+            return result_t::from_system(err).with_syscall("open").with_path(fname).arg("flags", flags);
 
-        return hr;
+        return err;
     }
 
 #ifndef _WIN32
@@ -195,7 +197,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         ::_close(fd);
         fd = -1;
         // Node.js compatibility: opening a directory as a file reports EISDIR
-        return UV_EISDIR;
+        return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
@@ -245,24 +247,26 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     fd = ::open(fname.c_str(), _flags, mode);
 #endif
     if (fd < 0) {
-        result_t hr = LastError();
+        int32_t err = LastError();
 
 #ifdef _WIN32
         // Node.js compatibility: opening a directory as a file reports EISDIR.
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        if (hr == -ERROR_ACCESS_DENIED) {
+        if (err == -ERROR_ACCESS_DENIED) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
-                return UV_EISDIR;
+                return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
         }
 #endif
 
-        if (hr.is_system_error())
-            return result_t::from_system(hr).with_syscall("open").with_path(fname).arg("flags", flags);
+        // the single construction point of an open failure: syscall, path and
+        // flags are all known right here (R-4 本层构建)
+        if (err < 0 && err > CALL_E_MAX)
+            return result_t::from_system(err).with_syscall("open").with_path(fname).arg("flags", flags);
 
-        return hr;
+        return err;
     }
 
 #ifndef _WIN32
@@ -273,7 +277,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
         ::_close(fd);
         fd = -1;
         // Node.js compatibility: opening a directory as a file reports EISDIR
-        return UV_EISDIR;
+        return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
     }
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))

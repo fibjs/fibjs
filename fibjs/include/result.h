@@ -154,8 +154,13 @@ public:
     // ----- creation: the builder is the only writable shape -----
     class builder;
     static builder make(int32_t code);
+    // The system-error factories: the primary form takes the raw code while the
+    // caller still holds it as int32_t (single-shot creation -- no intermediate
+    // value is wrapped and reopened); a uv status and an errno are the same
+    // domain (the code IS -errno), so one name covers both. The result_t form
+    // re-codes a value carried across a layer boundary (the transports).
+    static builder from_system(int32_t errno_code);
     static builder from_system(result_t hr);
-    static builder from_uv(int32_t status);
     static builder inherit(result_t&& base);
     static builder inherit_as(result_t&& base, result_t code);
 
@@ -632,19 +637,19 @@ inline result_t::builder result_t::make(int32_t code)
     return builder(code);
 }
 
-inline result_t::builder result_t::from_system(result_t hr)
+inline result_t::builder result_t::from_system(int32_t errno_code)
 {
-    builder b(hr.code());
+    builder b(errno_code);
     ErrorPayload* p = b.ensure();
 
     p->has_errno = true;
-    p->errno_value = hr.code();
+    p->errno_value = errno_code;
     return b;
 }
 
-inline result_t::builder result_t::from_uv(int32_t status)
+inline result_t::builder result_t::from_system(result_t hr)
 {
-    return from_system(status);
+    return from_system(hr.code());
 }
 
 // Take over a base value's description and keep building on it (the augment

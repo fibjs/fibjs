@@ -334,15 +334,8 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHan
 
     AutoReq req;
     int32_t ret = uv_fs_lstat(NULL, &req, safe_name.c_str(), NULL);
-    if (ret < 0) {
-        result_t hr_err = ret;
-        if (!hr_err.is_system_error())
-            return hr_err;
-        return result_t(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("lstat")
-            .with_path(path));
-    }
+    if (ret < 0)
+        return result_t::from_system(ret).with_syscall("lstat").with_path(path);
 
     obj_ptr<Stat> pStat = new Stat();
 
@@ -403,15 +396,8 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHand
 
     AutoReq req;
     int32_t ret = uv_fs_stat(NULL, &req, safe_name.c_str(), NULL);
-    if (ret < 0) {
-        result_t hr_err = ret;
-        if (!hr_err.is_system_error())
-            return hr_err;
-        return result_t(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("stat")
-            .with_path(path));
-    }
+    if (ret < 0)
+        return result_t::from_system(ret).with_syscall("stat").with_path(path);
 
     obj_ptr<Stat> pStat = new Stat();
 

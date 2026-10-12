@@ -25,23 +25,22 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
     obj_ptr<UVSocket> sock = new UVSocket(family);
 
     result_t hr = uv_call([&] {
+        int32_t ret;
+
         if (family == net_base::C_AF_UNIX)
-            return uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
+            ret = uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
         else
-            return uv_tcp_init(s_uv_loop, &sock->m_tcp);
+            ret = uv_tcp_init(s_uv_loop, &sock->m_tcp);
+
+        if (ret < 0)
+            return result_t(result_t::from_system(ret).with_syscall("socket"));
+
+        return result_t();
     });
-    if (hr.failed()) {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return hr_err;
-        return result_t(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("socket"));
-    }
 
     retVal = sock;
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::close(AsyncHandle ac)
@@ -98,15 +97,9 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
     inetAddr addr_info;
     int32_t sz = sizeof(addr_info);
 
-    result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed()) {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return CHECK_ERROR(hr_err);
-        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("getpeername"));
-    }
+    int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
+    if (ret < 0)
+        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getpeername"));
 
     retVal = addr_info.str();
 
@@ -118,15 +111,9 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
     inetAddr addr_info;
     int32_t sz = sizeof(addr_info);
 
-    result_t hr = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed()) {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return CHECK_ERROR(hr_err);
-        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("getpeername"));
-    }
+    int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
+    if (ret < 0)
+        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getpeername"));
 
     retVal = addr_info.port();
 
@@ -138,15 +125,9 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
     inetAddr addr_info;
     int32_t sz = sizeof(addr_info);
 
-    result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed()) {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return CHECK_ERROR(hr_err);
-        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("getsockname"));
-    }
+    int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
+    if (ret < 0)
+        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getsockname"));
 
     retVal = addr_info.str();
 
@@ -158,15 +139,9 @@ result_t UVSocket::get_localPort(int32_t& retVal)
     inetAddr addr_info;
     int32_t sz = sizeof(addr_info);
 
-    result_t hr = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
-    if (hr.failed()) {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return CHECK_ERROR(hr_err);
-        return CHECK_ERROR(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("getsockname"));
-    }
+    int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
+    if (ret < 0)
+        return CHECK_ERROR(result_t::from_system(ret).with_syscall("getsockname"));
 
     retVal = addr_info.port();
 
@@ -176,14 +151,11 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_family == net_base::C_AF_UNIX) {
-        {
-            result_t hr_err = uv_pipe_bind(&m_pipe, addr.c_str());
-            if (!hr_err.is_system_error())
-                return hr_err;
-            return result_t(result_t::inherit(std::move(hr_err))
-                .with_system_errno()
-                .with_syscall("bind"));
-        }
+        int32_t ret = uv_pipe_bind(&m_pipe, addr.c_str());
+        if (ret < 0)
+            return result_t::from_system(ret).with_syscall("bind");
+
+        return result_t();
     } else {
         inetAddr addr_info;
 
@@ -192,15 +164,12 @@ result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
         if (addr_info.addr(addr) < 0)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        {
-            result_t hr_err = uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
-                                         m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
-            if (!hr_err.is_system_error())
-                return hr_err;
-            return result_t(result_t::inherit(std::move(hr_err))
-                .with_system_errno()
-                .with_syscall("bind"));
-        }
+        int32_t ret = uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
+                                  m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+        if (ret < 0)
+            return result_t::from_system(ret).with_syscall("bind");
+
+        return result_t();
     }
 }
 
@@ -250,14 +219,11 @@ void UVSocket::on_listen(uv_stream_t* server, int status)
 result_t UVSocket::listen(int32_t backlog)
 {
     return uv_call([&] {
-        {
-            result_t hr_err = uv_listen(&m_stream, backlog, on_listen);
-            if (!hr_err.is_system_error())
-                return hr_err;
-            return result_t(result_t::inherit(std::move(hr_err))
-                .with_system_errno()
-                .with_syscall("listen"));
-        }
+        int32_t ret = uv_listen(&m_stream, backlog, on_listen);
+        if (ret < 0)
+            return result_t(result_t::from_system(ret).with_syscall("listen"));
+
+        return result_t();
     });
 }
 

@@ -30,19 +30,14 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
         return CHECK_ERROR(LastError("ftruncate", path));
 
     AutoReq req;
-    result_t hr = uv_fs_ftruncate(NULL, &req, fd, len, NULL);
+    int32_t ret = uv_fs_ftruncate(NULL, &req, fd, len, NULL);
 
     ::_close(fd);
 
-    {
-        result_t hr_err = hr;
-        if (!hr_err.is_system_error())
-            return hr_err;
-        return result_t(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("ftruncate")
-            .with_path(path));
-    }
+    if (ret < 0)
+        return result_t::from_system(ret).with_syscall("ftruncate").with_path(path);
+
+    return result_t();
 }
 }
 

@@ -114,7 +114,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
                     code = "ENOTFOUND";
 
-                resolver->_ac.post(result_t::from_uv(status)
+                resolver->_ac.post(result_t::from_system(status)
                                        .with_syscall("getaddrinfo")
                                        .with_hostname(hostname)
                                        .with_code(code)

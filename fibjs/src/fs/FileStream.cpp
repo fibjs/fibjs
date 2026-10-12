@@ -196,12 +196,12 @@ result_t FileStream::Write(const char* p, int32_t sz)
     while (sz) {
         int32_t n = (int32_t)::_write(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
         if (n < 0) {
-            result_t hr = LastError();
+            int32_t err = LastError();
 
-            if (hr.is_system_error())
-                return CHECK_ERROR(result_t::from_system(hr).with_syscall("write").with_path(name).arg("length", sz));
+            if (err < 0 && err > CALL_E_MAX)
+                return CHECK_ERROR(result_t::from_system(err).with_syscall("write").with_path(name).arg("length", sz));
 
-            return CHECK_ERROR(hr);
+            return CHECK_ERROR(err);
         }
 
         sz -= n;

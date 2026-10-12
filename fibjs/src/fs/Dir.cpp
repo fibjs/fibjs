@@ -43,15 +43,8 @@ result_t Dir::load()
 
     AutoReq req;
     int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
-    if (ret < 0) {
-        result_t hr_err = ret;
-        if (!hr_err.is_system_error())
-            return hr_err;
-        return result_t(result_t::inherit(std::move(hr_err))
-            .with_system_errno()
-            .with_syscall("scandir")
-            .with_path(m_path));
-    }
+    if (ret < 0)
+        return result_t::from_system(ret).with_syscall("scandir").with_path(m_path);
 
     uv_dirent_t dirent;
     while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {

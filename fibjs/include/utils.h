@@ -1350,7 +1350,10 @@ inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
     return ThrowEvalError(msg.c_str());
 }
 
-inline result_t LastError()
+// The raw errno-domain code, not yet a value: the code stays int32_t until the
+// enrichment overload below constructs the result_t (single-shot creation, at
+// the failing layer -- upper layers forward, they do not rebuild).
+inline int32_t LastError()
 {
 #ifdef _WIN32
     return -(int32_t)GetLastError();
@@ -1361,18 +1364,16 @@ inline result_t LastError()
 
 // Node.js compatible system-error context (errno + syscall + path/hostname).
 // A non-system error carries no such context and passes through untouched: the
-// fields only describe errno-domain failures, and marking a success value would
-// allocate a description that nothing can ever read.
+// fields only describe errno-domain failures, so there is nothing to attach.
 inline result_t LastError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    result_t hr = LastError();
+    int32_t err = LastError();
 
-    if (!hr.is_system_error())
-        return hr;
+    if (err >= 0 || err <= CALL_E_MAX)
+        return err;
 
-    return result_t::inherit(std::move(hr))
-        .with_system_errno()
+    return result_t::from_system(err)
         .with_syscall(syscall)
         .with_path(path)
         .with_hostname(hostname);
@@ -1381,7 +1382,7 @@ inline result_t LastError(const char* syscall, const exlib::string& path = exlib
 // Error of a failed read(2). POSIX reports EBADF when the descriptor was opened
 // write-only, Windows fails the same read with ERROR_ACCESS_DENIED, so it is
 // translated here the way libuv does in its fs__read.
-inline result_t ReadError()
+inline int32_t ReadError()
 {
 #ifdef _WIN32
     DWORD err = GetLastError();
@@ -1398,19 +1399,18 @@ inline result_t ReadError()
 inline result_t ReadError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    result_t hr = ReadError();
+    int32_t err = ReadError();
 
-    if (!hr.is_system_error())
-        return hr;
+    if (err >= 0 || err <= CALL_E_MAX)
+        return err;
 
-    return result_t::inherit(std::move(hr))
-        .with_system_errno()
+    return result_t::from_system(err)
         .with_syscall(syscall)
         .with_path(path)
         .with_hostname(hostname);
 }
 
-inline result_t SocketError()
+inline int32_t SocketError()
 {
 #ifdef _WIN32
     return -WSAGetLastError();
@@ -1422,13 +1422,12 @@ inline result_t SocketError()
 inline result_t SocketError(const char* syscall, const exlib::string& path = exlib::string(),
     const exlib::string& hostname = exlib::string())
 {
-    result_t hr = SocketError();
+    int32_t err = SocketError();
 
-    if (!hr.is_system_error())
-        return hr;
+    if (err >= 0 || err <= CALL_E_MAX)
+        return err;
 
-    return result_t::inherit(std::move(hr))
-        .with_system_errno()
+    return result_t::from_system(err)
         .with_syscall(syscall)
         .with_path(path)
         .with_hostname(hostname);
