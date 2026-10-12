@@ -295,7 +295,7 @@ public:
         // crosses into the emit fiber, which may run on another thread, and the
         // sync/callback path reads it too).
         if (v.is_system_error() && !m_server_name.empty())
-            v = result_t(result_t::from_system(std::move(v)).arg("servername", m_server_name));
+            v = result_t::from_system(std::move(v)).arg("servername", m_server_name);
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;

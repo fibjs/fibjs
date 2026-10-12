@@ -20,7 +20,7 @@ result_t db_base::openDM(exlib::string connString, obj_ptr<DbConnection_base>& r
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "dm:", 3))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("openDM: connection string must start with 'dm:'.").with_result(CALL_E_INVALIDARG));
+        return result_t::make(CALL_E_EXCEPTION).with_message("openDM: connection string must start with 'dm:'.").with_result(CALL_E_INVALIDARG);
 
 #ifdef _WIN32
     const char* driver = "DM8 ODBC DRIVER";

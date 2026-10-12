@@ -248,10 +248,12 @@ public:
         return result_t(CALL_RETURN_UNDEFINED);
     }
 
-    // The landing (defined below the builder): converts a builder into this
-    // immutable value. A constructor (rather than a conversion operator) so
-    // that direct-initialization forms -- the explicit landing at a return
-    // (`result_t(<chain>)`) -- resolve too.
+    // The landing (defined below the builder): a builder is a value under
+    // construction, and its factories spell that construction (make /
+    // from_system / the named forms) -- so completing it into the immutable
+    // value happens implicitly at the boundary (a return, an initialization,
+    // an argument); the constructor stays non-explicit by design. Landing a
+    // named builder spells it out: `result_t(std::move(b))`.
     result_t(builder&& b);
 
     // Semantic checks (P2 replaces the hard coded comparisons with these).

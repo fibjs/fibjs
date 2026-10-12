@@ -256,7 +256,7 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParse
 
     XML_Parser xml_parser = XML_ParserCreate(NULL);
     if (!xml_parser)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("XmlParser: unable to create Expat parser."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("XmlParser: unable to create Expat parser.");
 
     parser.m_xml_parser = (XML_ParserStruct*)xml_parser;
 
@@ -285,9 +285,9 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParse
         // A limit aborted the parse; report the limit, not expat's "aborted"
         // error code.
         if (parser.m_aborted)
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message(parser.m_abort_msg));
+            return result_t::make(CALL_E_EXCEPTION).with_message(parser.m_abort_msg);
 
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(msg));
+        return result_t::make(CALL_E_EXCEPTION).with_message(msg);
     }
 
     XML_ParserFree(xml_parser);

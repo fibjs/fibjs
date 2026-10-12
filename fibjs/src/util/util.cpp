@@ -660,7 +660,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
             else {
                 for (j = 0; j < (int32_t)flatten_list.size(); j++)
                     if (flatten_list[j]->StrictEquals(o1))
-                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("util: circular reference object."));
+                        return result_t::make(CALL_E_EXCEPTION).with_message("util: circular reference object.");
 
                 result_t hr = util_flatten(o1, shallow, retVal, flatten_list);
                 if (hr.failed())
@@ -1023,7 +1023,7 @@ result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
         retVal = ts_strip::strip(code);
         return 0;
     } catch (const std::exception& e) {
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(e.what()));
+        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 }
 

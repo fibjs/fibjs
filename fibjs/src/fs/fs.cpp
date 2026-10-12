@@ -631,7 +631,7 @@ result_t FileHandle::close(AsyncHandle ac)
         return result_t::nosync();
 
     if (m_fd == -1)
-        return result_t(result_t::from_system(UV_EBADF).with_syscall("close"));
+        return result_t::from_system(UV_EBADF).with_syscall("close");
 
     int32_t fd = m_fd;
     m_fd = -1;
@@ -641,7 +641,7 @@ result_t FileHandle::close(AsyncHandle ac)
     // instead of the thread error, which would report whatever the previous call
     // left behind.
     if (::_close(fd))
-        return result_t(result_t::from_system(UV_EBADF).with_syscall("close"));
+        return result_t::from_system(UV_EBADF).with_syscall("close");
 
     return result_t();
 }
@@ -1417,11 +1417,11 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
                 int32_t err = LastError();
 
                 if (err < 0 && err > CALL_E_MAX)
-                    return result_t(result_t::from_system(err)
-                                           .with_syscall("write")
-                                           .arg("buffer", buffer)
-                                           .arg("length", length)
-                                           .arg("position", position));
+                    return result_t::from_system(err)
+                        .with_syscall("write")
+                        .arg("buffer", buffer)
+                        .arg("length", length)
+                        .arg("position", position);
 
                 return err;
             }
@@ -2394,9 +2394,9 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
             if (force && ret == UV_ENOENT)
                 return result_t();
 
-            return result_t(result_t::from_system(ret)
+            return result_t::from_system(ret)
                 .with_syscall("lstat")
-                .with_path(path));
+                .with_path(path);
         }
 
         if (S_ISDIR(req.statbuf.st_mode)) {
@@ -2415,9 +2415,9 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
         {
             int32_t ret = uv_fs_unlink(NULL, &req, path.c_str(), NULL);
             if (ret < 0)
-                return result_t(result_t::from_system(ret)
+                return result_t::from_system(ret)
                     .with_syscall("unlink")
-                    .with_path(path));
+                    .with_path(path);
 
             return result_t();
         }
@@ -3093,7 +3093,7 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
 
         // Node.js: copying onto itself is refused up front.
         if (src == dest)
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str()));
+            return result_t::make(CALL_E_EXCEPTION).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
@@ -3273,7 +3273,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
     os_normalize(path, path, true);
 
     if (withFileTypes && encoding != "" && encoding != "utf8" && encoding != "utf-8")
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t::make(CALL_E_EXCEPTION).with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(CALL_E_INVALIDARG);
 
     QuickArray<exlib::string> paths;
     retVal = new NArray();

@@ -319,7 +319,7 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
         // across this junction and the server layer -- the one that knows the
         // user-visible operation -- builds the value once.
         if (hr.is_system_error())
-            hr = result_t(result_t::from_system(hr).with_syscall("listen"));
+            hr = result_t::from_system(hr).with_syscall("listen");
 
         return hr;
     }

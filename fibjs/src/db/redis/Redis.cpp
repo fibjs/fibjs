@@ -190,7 +190,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
         ON_STATE(asyncCommand, read_ok)
         {
             if (m_strLine.length() == 0)
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Redis: Invalid response."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("Redis: Invalid response.");
 
             char ch = m_strLine[0];
 
@@ -200,7 +200,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
             }
 
             if (ch == '-')
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message(m_strLine.substr(1)));
+                return result_t::make(CALL_E_EXCEPTION).with_message(m_strLine.substr(1));
 
             if (ch == ':') {
                 m_val.parseInt(m_strLine.c_str() + 1);
@@ -237,7 +237,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
                 return next(read);
             }
 
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Redis: Invalid response."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("Redis: Invalid response.");
         }
 
         ON_STATE(asyncCommand, bulk_ok)
@@ -520,7 +520,7 @@ result_t Redis::restore(Union_restore_key key, Union_restore_data data, int64_t 
 result_t Redis::close()
 {
     if (!m_sock)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("Redis: connection is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("Redis: connection is closed.");
 
     m_sock->ac_close();
 

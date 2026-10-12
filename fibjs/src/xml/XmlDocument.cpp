@@ -29,7 +29,7 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG);
 
     obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
     retVal = doc;
@@ -60,7 +60,7 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
             return 0;
 
         if (!v->IsNumber())
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_format("xml: option '%s' must be a number.", name).with_result(CALL_E_INVALIDARG));
+            return result_t::make(CALL_E_EXCEPTION).with_format("xml: option '%s' must be a number.", name).with_result(CALL_E_INVALIDARG);
 
         double d = v->NumberValue(context).FromMaybe(0);
 
@@ -93,7 +93,7 @@ result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Loca
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG));
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG);
 
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);

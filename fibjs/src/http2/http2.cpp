@@ -73,7 +73,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
 
         exlib::string proto = u->protocol();
         if (proto != "https:")
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("http2.connect: authority must use https:// scheme."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("http2.connect: authority must use https:// scheme.");
 
         exlib::string hostname = u->hostname();
         exlib::string port_str = u->port();

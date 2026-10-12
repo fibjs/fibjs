@@ -93,7 +93,7 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
 
     int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return result_t(result_t::from_system(ret).with_syscall("getpeername"));
+        return result_t::from_system(ret).with_syscall("getpeername");
 
     retVal = addr_info.str();
 
@@ -107,7 +107,7 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
 
     int32_t ret = ::uv_tcp_getpeername(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return result_t(result_t::from_system(ret).with_syscall("getpeername"));
+        return result_t::from_system(ret).with_syscall("getpeername");
 
     retVal = addr_info.port();
 
@@ -121,7 +121,7 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
 
     int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return result_t(result_t::from_system(ret).with_syscall("getsockname"));
+        return result_t::from_system(ret).with_syscall("getsockname");
 
     retVal = addr_info.str();
 
@@ -135,7 +135,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 
     int32_t ret = ::uv_tcp_getsockname(&m_tcp, (sockaddr*)&addr_info, &sz);
     if (ret < 0)
-        return result_t(result_t::from_system(ret).with_syscall("getsockname"));
+        return result_t::from_system(ret).with_syscall("getsockname");
 
     retVal = addr_info.port();
 

@@ -111,7 +111,7 @@ result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Func
 
     func1 = isolate->NewFunction("async_promise", async_promise, func);
     if (func1.IsEmpty())
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
 
     func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func1);
     func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), func);

@@ -90,7 +90,7 @@ result_t KeyObject::ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buf
     BIOPointer bio(BIO_new_mem_buf(key_pem, key_pem_len));
     m_pkey = PEM_read_bio_PrivateKey(bio, nullptr, PasswordCallback, passphrase);
     if (m_pkey == nullptr)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Private key not recognized"));
+        return result_t::make(CALL_E_EXCEPTION).with_message("Private key not recognized");
 
     m_keyType = kKeyTypePrivate;
 

@@ -60,7 +60,7 @@ result_t net_base::getDefaultAutoSelectFamilyAttemptTimeout(int32_t& retVal)
 result_t net_base::setDefaultAutoSelectFamilyAttemptTimeout(int32_t milliseconds)
 {
     if (milliseconds < 10)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got %d.", milliseconds).with_result(CALL_E_OUTRANGE));
+        return result_t::make(CALL_E_EXCEPTION).with_format("setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got %d.", milliseconds).with_result(CALL_E_OUTRANGE);
 
     s_autoSelectFamilyAttemptTimeout = milliseconds;
     return 0;
@@ -78,7 +78,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         return result_t::nosync();
 
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("resolve: invalid address family %d.", family));
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("resolve: invalid address family %d.", family);
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
@@ -115,11 +115,11 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                     code = "ENOTFOUND";
 
                 resolver->_ac.post(result_t::from_system(status)
-                                       .with_syscall("getaddrinfo")
-                                       .with_hostname(hostname)
-                                       .with_code(code)
-                                       .arg("hostname", hostname)
-                                       .arg("family", family));
+                    .with_syscall("getaddrinfo")
+                    .with_hostname(hostname)
+                    .with_code(code)
+                    .arg("hostname", hostname)
+                    .arg("family", family));
                 delete resolver;
                 return;
             }
@@ -139,17 +139,17 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                 int32_t family = resolver->_family;
 #ifdef _WIN32
                 resolver->_ac.post(result_t::from_system(-WSAHOST_NOT_FOUND)
-                                       .with_syscall("getaddrinfo")
-                                       .with_hostname(hostname)
-                                       .with_code("ENOTFOUND")
-                                       .arg("hostname", hostname)
-                                       .arg("family", family));
+                    .with_syscall("getaddrinfo")
+                    .with_hostname(hostname)
+                    .with_code("ENOTFOUND")
+                    .arg("hostname", hostname)
+                    .arg("family", family));
 #else
                 resolver->_ac.post(result_t::from_system(-ETIME)
-                                       .with_syscall("getaddrinfo")
-                                       .with_hostname(hostname)
-                                       .arg("hostname", hostname)
-                                       .arg("family", family));
+                    .with_syscall("getaddrinfo")
+                    .with_hostname(hostname)
+                    .arg("hostname", hostname)
+                    .arg("family", family));
 #endif
             } else
                 resolver->_ac.post(0);
@@ -190,7 +190,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return result_t::nosync();
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: unknown protocol in url '%s'.", url.c_str()));
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: unknown protocol in url '%s'.", url.c_str());
 
     if (!qstrcmp(url.c_str(), "tcp:", 4)) {
         obj_ptr<Url> u = new Url();
@@ -201,7 +201,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
         exlib::string port = u->port();
         if (port.length() == 0)
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: missing port in url '%s'.", url.c_str()));
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: missing port in url '%s'.", url.c_str());
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;

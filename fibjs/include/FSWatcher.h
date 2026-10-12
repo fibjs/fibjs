@@ -128,7 +128,7 @@ public:
     result_t start()
     {
         if (m_closed)
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("watch: cannot re-start one closed FSWatcher."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("watch: cannot re-start one closed FSWatcher.");
 
         if (m_started)
             return 0;

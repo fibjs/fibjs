@@ -61,7 +61,7 @@ public:
                 p.skipSpace();
 
                 if (!qisxdigit(p.get()))
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad chunk size."));
+                    return result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad chunk size.");
 
                 while (qisxdigit(ch = p.get())) {
                     sz = (sz << 4) + qhex(ch);
@@ -69,16 +69,16 @@ public:
                 }
 
                 if (sz < 0)
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad chunk size."));
+                    return result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: bad chunk size.");
 
                 if (sz > 0) {
                     if (sz > (int64_t)m_pThis->m_maxChunkSize * 1024 * 1024)
-                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: chunk is too huge."));
+                        return result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: chunk is too huge.");
 
                     m_pThis->m_contentLength += sz;
                     if (m_pThis->m_maxBodySize >= 0
                         && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)
-                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is too huge."));
+                        return result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: body is too huge.");
 
                     return m_pThis->m_stm->readBuffer(sz, m_pThis->m_data, next(chunk_body_end));
                 }

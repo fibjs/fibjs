@@ -636,7 +636,7 @@ result_t SandBox::run_main(exlib::string fname)
                     return hr;
 
                 if (v.IsEmpty() || !v->IsObject())
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json"));
+                    return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid package.json");
 
                 v8::Local<v8::Object> o = v.As<v8::Object>();
                 v8::Local<v8::Value> scripts = o->Get(context, isolate->NewString("scripts", 7)).FromMaybe(v8::Local<v8::Value>());
@@ -689,7 +689,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
 
     path_base::isAbsolute(fname, isAbs);
     if (!isAbs)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name.");
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
@@ -721,7 +721,7 @@ result_t SandBox::run_worker_source(exlib::string fname, exlib::string source, W
 
     path_base::isAbsolute(fname, isAbs);
     if (!isAbs)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name.");
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin = new Buffer(source.c_str(), source.length());
@@ -752,7 +752,7 @@ result_t SandBox::run(exlib::string fname, bool in_cjs)
 
     path_base::isAbsolute(fname, isAbs);
     if (!isAbs)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: Invalid file name.");
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;

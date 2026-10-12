@@ -89,7 +89,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             argv[len + 1] = resArg;
         argv[len + 1 + extra] = isolate->NewFunction("done", _done, retVal->wrap());
         if (argv[len + 1 + extra].IsEmpty())
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
 
         proc.Call(v8::Undefined(isolate->m_isolate), len + 2 + extra, argv.data());
         return 0;
@@ -137,7 +137,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     try_catch.ReThrow();
                     return CALL_E_JAVASCRIPT;
                 } else
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__));
+                    return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__);
             }
         }
 

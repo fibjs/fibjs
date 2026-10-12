@@ -118,10 +118,10 @@ result_t normalize_protocols(const std::vector<exlib::string>& input, std::vecto
         exlib::string protocol = trim_protocol(rawProtocol);
 
         if (!is_valid_protocol(protocol))
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid protocol."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid protocol.");
 
         if (contains_protocol(protocols, protocol))
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: duplicated protocol."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("websocket: duplicated protocol.");
 
         protocols.push_back(protocol);
     }
@@ -391,7 +391,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 url = "http://" + m_this->m_url.substr(5);
             else {
                 m_this->endConnect(1002, "unknown protocol");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: unknown protocol"));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: unknown protocol");
             }
 
             m_headers->append("Upgrade", "websocket");
@@ -438,7 +438,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             m_httprep->get_statusCode(status);
             if (status != 101) {
                 m_this->endConnect(1002, "server error.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: server error."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: server error.");
             }
 
             hr = m_httprep->firstHeader("Upgrade", v);
@@ -447,19 +447,19 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             if (hr.is_return_null()) {
                 m_this->endConnect(1002, "missing Upgrade header.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Upgrade header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Upgrade header.");
             }
 
             if (qstricmp(v.c_str(), "websocket")) {
                 m_this->endConnect(1002, "invalid Upgrade header.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Upgrade header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Upgrade header.");
             }
 
             bool bUpgrade;
             m_httprep->get_upgrade(bUpgrade);
             if (!bUpgrade) {
                 m_this->endConnect(1002, "invalid connection header.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid connection header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid connection header.");
             }
 
             hr = m_httprep->firstHeader("Sec-WebSocket-Accept", v);
@@ -468,12 +468,12 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             if (hr.is_return_null()) {
                 m_this->endConnect(1002, "missing Sec-WebSocket-Accept header.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Sec-WebSocket-Accept header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Sec-WebSocket-Accept header.");
             }
 
             if (v != m_accept) {
                 m_this->endConnect(1002, "invalid Sec-WebSocket-Accept header.");
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Sec-WebSocket-Accept header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Sec-WebSocket-Accept header.");
             }
 
             hr = m_httprep->firstHeader("Sec-WebSocket-Protocol", v);
@@ -486,12 +486,12 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
                 if (hr.is_return_null()) {
                     m_this->endConnect(1002, "missing Sec-WebSocket-Protocol header.");
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Sec-WebSocket-Protocol header."));
+                    return result_t::make(CALL_E_EXCEPTION).with_message("websocket: missing Sec-WebSocket-Protocol header.");
                 }
 
                 if (!contains_protocol(requested, v)) {
                     m_this->endConnect(1002, "invalid Sec-WebSocket-Protocol header.");
-                    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Sec-WebSocket-Protocol header."));
+                    return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid Sec-WebSocket-Protocol header.");
                 }
 
                 m_this->m_protocol = v;
@@ -633,7 +633,7 @@ void WebSocket::startRecv(Isolate* isolate)
             m_msg->get_masked(masked);
             if (masked == m_this->m_masked) {
                 m_msg->m_error = 1007;
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: Payload data is not masked."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: Payload data is not masked.");
             }
 
             int32_t type;
@@ -795,7 +795,7 @@ result_t WebSocket::stop()
 result_t WebSocket::close(int32_t code, exlib::string reason)
 {
     if (code != 1000 && (code < 3000 || code > 4999))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: The code must be either 1000, or between 3000 and 4999."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: The code must be either 1000, or between 3000 and 4999.");
 
     if (m_readyState.CompareAndSwap(WebSocket_base::C_OPEN, WebSocket_base::C_CLOSING) != WebSocket_base::C_OPEN)
         return 0;
@@ -808,11 +808,11 @@ result_t WebSocket::send_text(exlib::string data)
 {
     switch (m_readyState) {
     case WebSocket_base::C_CONNECTING:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CONNECTING state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CONNECTING state.");
     case WebSocket_base::C_CLOSING:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSING state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSING state.");
     case WebSocket_base::C_CLOSED:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state.");
     }
 
     (new asyncSend(this, data))->post(0);
@@ -823,11 +823,11 @@ result_t WebSocket::send_binary(Buffer_base* data)
 {
     switch (m_readyState) {
     case WebSocket_base::C_CONNECTING:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CONNECTING state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CONNECTING state.");
     case WebSocket_base::C_CLOSING:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSING state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSING state.");
     case WebSocket_base::C_CLOSED:
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state.");
     }
 
     (new asyncSend(this, data))->post(0);

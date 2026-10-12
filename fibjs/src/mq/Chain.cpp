@@ -51,7 +51,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         return result_t::nosync();
 
     if (m_array.size() == 0)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Chain: empty chain."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("Chain: empty chain.");
 
     return (new asyncInvoke(m_array, v, std::move(ac)))->post(0);
 }

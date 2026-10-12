@@ -303,7 +303,7 @@ private:
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
-                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
+                        return result_t::make(CALL_E_EXCEPTION).with_message(err_msg);
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate.
@@ -338,7 +338,7 @@ private:
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod);
         if (hr.is_not_found())
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module));
+            return result_t::make(CALL_E_EXCEPTION).with_message("Cannot find module '" + id + "' imported from " + m_sb->m_pending_module);
 
         if (hr.failed())
             return hr;
@@ -360,7 +360,7 @@ private:
                     // file with import/export but no "type": "module" in package.json),
                     // treat it as ESM: leave mod empty so the caller loads it as ESM.
                     if (err_msg.find("ESM syntax detected; retry as ES module.") == exlib::string::npos)
-                        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(err_msg));
+                        return result_t::make(CALL_E_EXCEPTION).with_message(err_msg);
                 } else if (hr.failed()) {
                     // CALL_E_JAVASCRIPT: a V8 exception is already pending.
                     // Return directly to let it propagate.

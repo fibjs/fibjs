@@ -626,7 +626,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
             if (len < 12 || c_str[8] != ' '
                 || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
                 || qisdigit(c_str[12]))
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: bad protocol: " + m_strLine));
+                return result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: bad protocol: " + m_strLine);
 
             m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
             m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
@@ -654,7 +654,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object.");
 
     return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(0);
 }
@@ -852,7 +852,7 @@ result_t HttpResponse::redirect(exlib::string url)
 result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 {
     if (statusCode != 301 && statusCode != 302 && statusCode != 307)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode));
+        return result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode);
 
     m_statusCode = statusCode;
     setHeader("Location", url);
@@ -955,7 +955,7 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
 {
     // Streaming responses cannot be cloned (body is a live socket stream)
     if (m_message->m_bodyStream)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Response body is a streaming body and cannot be cloned."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("Response body is a streaming body and cannot be cloned.");
 
     obj_ptr<HttpResponse> resp = new HttpResponse();
 

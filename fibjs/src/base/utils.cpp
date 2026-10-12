@@ -914,7 +914,7 @@ result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
             p++;
         }
         if (!p[0])
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("unknown option \'") + *k + "\'."));
+            return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("unknown option \'") + *k + "\'.");
     }
 
     return 0;

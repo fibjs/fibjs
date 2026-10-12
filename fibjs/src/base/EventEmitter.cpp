@@ -417,7 +417,7 @@ result_t JSTrigger::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, 
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
 
     wrap->Set(context, NewString("_func"), func).IsJust();
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
@@ -449,7 +449,7 @@ result_t JSTrigger::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::F
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("function alloc error."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
 
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
 
@@ -723,7 +723,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (hr.failed())
         return hr;
 
-    return !msg.empty() ? result_t(result_t::make(CALL_E_EXCEPTION).with_message(msg)) : result_t(0);
+    return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t(0);
 }
 
 result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -770,7 +770,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 
         if (hr.failed())
             return hr;
-        return !msg.empty() ? result_t(result_t::make(CALL_E_EXCEPTION).with_message(msg)) : result_t(0);
+        return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t(0);
     }
 
     // String path: convert to exlib::string and use _emit (handles "error" etc.)

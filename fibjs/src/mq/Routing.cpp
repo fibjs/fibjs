@@ -224,7 +224,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     }
 
     pcre2_match_data_free(match_data);
-    return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Routing: unknown routing: " + value));
+    return result_t::make(CALL_E_EXCEPTION).with_message("Routing: unknown routing: " + value);
 }
 
 result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
@@ -439,7 +439,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Union_appe
         pcre2_get_error_message(errcode, errbuf, sizeof(errbuf));
 
         snprintf(buf, sizeof(buf), "Routing: Compilation failed at offset %d: %s.", (int)erroffset, errbuf);
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(buf));
+        return result_t::make(CALL_E_EXCEPTION).with_message(buf);
     }
 
     load_route_group_names(re, info);

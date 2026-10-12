@@ -112,7 +112,7 @@ result_t uv_call(std::function<int32_t(void)> proc)
             int32_t ret = m_proc();
 
             if (ret < 0)
-                m_res = result_t(result_t::from_system(ret));
+                m_res = result_t::from_system(ret);
             else
                 m_res = result_t();
 

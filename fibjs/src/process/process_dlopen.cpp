@@ -33,7 +33,7 @@ result_t process_base::dlopen(v8::Local<v8::Object> module, exlib::string filena
 #ifdef WIN32
         return result_t::from_system(LastError());
 #else
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message(dlerror()));
+        return result_t::make(CALL_E_EXCEPTION).with_message(dlerror());
 #endif
 
     Isolate* isolate = Isolate::current();
@@ -54,14 +54,14 @@ result_t process_base::dlopen(v8::Local<v8::Object> module, exlib::string filena
             mp->nm_register_func(exports, module, mp->nm_priv);
         } else {
             ::dlclose(handle_);
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: invalid module."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("process: invalid module.");
         }
     } else {
         napi_addon_register_func register_func;
         register_func = (napi_addon_register_func)::dlsym(handle_, "napi_register_module_v1");
         if (register_func == nullptr) {
             ::dlclose(handle_);
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("process: invalid module."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("process: invalid module.");
         }
 
         int32_t module_api_version = NODE_API_DEFAULT_MODULE_API_VERSION;

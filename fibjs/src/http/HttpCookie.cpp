@@ -61,7 +61,7 @@ result_t HttpCookie::parse_ex(exlib::string header, bool bDecode)
     p.skipSpace();
     p.getWord(tmp, '=');
     if (!p.want('=') || tmp.empty())
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpCookie: bad cookie format."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("HttpCookie: bad cookie format.");
     if (bDecode)
         Url::decodeURI(tmp, m_name);
     else

@@ -71,7 +71,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(CALL_E_INVALIDARG));
+        return result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(CALL_E_INVALIDARG);
 
     obj_ptr<Odbc> conn = new Odbc();
 
@@ -99,7 +99,7 @@ result_t odbc_close(void*& conn, AsyncHandle ac)
         return result_t::longsync();
 
     if (!conn)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
 
     odbc_disconnect(conn);
     conn = NULL;
@@ -362,7 +362,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         str = v.string();
         driver = str.c_str();
     } else if (driver == NULL)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("odbc: no driver specified."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("odbc: no driver specified.");
 
     exlib::string pathname = u->pathname();
     
@@ -391,7 +391,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         return result_t::longsync();
 
     if (!conn)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
 
     if (activeStmt && *activeStmt)
         return db_stmt_busy_error();
@@ -886,7 +886,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: columns() requires a prepared statement (v2)"));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: columns() requires a prepared statement (v2)");
     }
 
     // Cursor reset: release the HSTMT (connection stays usable), impl is
@@ -929,7 +929,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     const OdbcEscape& esc, obj_ptr<Statement_base>& retVal)
 {
     if (!conn)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: database is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: database is closed.");
 
     obj_ptr<Statement> stmt = new Statement(sql,
         new OdbcStmtImpl(conn, activeStmt, sql, esc));
@@ -943,7 +943,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
         return result_t::longsync();
 
     if (!conn)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -994,7 +994,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         return result_t::longsync();
 
     if (!conn)
-        return result_t(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
+        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -1023,7 +1023,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
             if (hr2 == SQL_NO_DATA)
                 break;
             if (hr2 < 0)
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message(odbc_error(SQL_HANDLE_STMT, stmt)));
+                return result_t::make(CALL_E_EXCEPTION).with_message(odbc_error(SQL_HANDLE_STMT, stmt));
 
             res->beginRow();
 

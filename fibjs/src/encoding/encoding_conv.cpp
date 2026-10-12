@@ -58,7 +58,7 @@ result_t encoding_conv::encode(exlib::string data, exlib::string& retVal)
         return 0;
     }
 
-    return result_t(result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str()));
+    return result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());
 }
 
 result_t encoding_conv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -102,7 +102,7 @@ result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVa
         return 0;
     }
 
-    return result_t(result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str()));
+    return result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());
 }
 
 result_t encoding_conv::decode(const exlib::string& data, exlib::string& retVal)

@@ -354,7 +354,7 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
         AsyncHandle hac = std::move(stream->m_headers_ac);
         stream->m_headers_lock.unlock();
         if (hac)
-            hac.apost(result_t(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received")));
+            hac.apost(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream closed before headers received"));
     }
     m_stream_lock.unlock();
 }

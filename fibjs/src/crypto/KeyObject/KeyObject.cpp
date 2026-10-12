@@ -238,7 +238,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
         }
 
         puts(param->format.c_str());
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("The property 'options.format' must be one of: undefined, 'buffer', 'jwk'."));
+        return result_t::make(CALL_E_EXCEPTION).with_message("The property 'options.format' must be one of: undefined, 'buffer', 'jwk'.");
     case kKeyTypePublic:
         return ExportPublicKey(param, retVal, false); // Use Buffer for crypto module compatibility
     case kKeyTypePrivate:

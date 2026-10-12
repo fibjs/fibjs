@@ -150,12 +150,12 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                     code = "ENOTFOUND";
 
                 resolver->_ac.post(result_t::from_system(status)
-                                       .with_syscall("getaddrinfo")
-                                       .with_hostname(hostname)
-                                       .with_code(code)
-                                       .arg("hostname", hostname)
-                                       .arg("family", family)
-                                       .arg("all", all));
+                    .with_syscall("getaddrinfo")
+                    .with_hostname(hostname)
+                    .with_code(code)
+                    .arg("hostname", hostname)
+                    .arg("family", family)
+                    .arg("all", all));
                 delete resolver;
                 return;
             }

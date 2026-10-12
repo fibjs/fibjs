@@ -281,7 +281,7 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
         data);
 
     if (maybeFunc.IsEmpty())
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_message("Failed to create restore function"));
+        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to create restore function");
 
     retVal = maybeFunc.ToLocalChecked();
     return 0;

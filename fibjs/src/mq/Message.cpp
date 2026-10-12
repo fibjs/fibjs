@@ -163,7 +163,7 @@ public:
     // Body already consumed path: throw TypeError
     ON_STATE(asyncConsumeBody, alreadyUsed)
     {
-        return next(result_t(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("body has already been consumed")));
+        return next(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("body has already been consumed"));
     }
 
 private:

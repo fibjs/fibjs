@@ -101,16 +101,16 @@ result_t normalize_protocols(std::vector<exlib::string>& protocols)
         exlib::string protocol = trim_protocol(protocols[i]);
 
         if (protocol.empty())
-            return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: protocol must not be empty."));
+            return result_t::make(CALL_E_EXCEPTION).with_message("websocket: protocol must not be empty.");
 
         for (size_t k = 0; k < protocol.length(); k++) {
             if (is_protocol_separator(protocol[k]))
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid protocol."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: invalid protocol.");
         }
 
         for (size_t j = 0; j < normalizedProtocols.size(); j++) {
             if (normalizedProtocols[j] == protocol)
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("websocket: duplicated protocol."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("websocket: duplicated protocol.");
 
         }
 
@@ -224,32 +224,32 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return hr;
 
             if (hr.is_return_null())
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Upgrade header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Upgrade header.");
 
             if (qstricmp(v.c_str(), "websocket"))
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid Upgrade header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid Upgrade header.");
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Version", v);
             if (hr.failed())
                 return hr;
 
             if (hr.is_return_null())
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Sec-WebSocket-Version header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Sec-WebSocket-Version header.");
 
             if (qstricmp(v.c_str(), "13"))
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid Sec-WebSocket-Version header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid Sec-WebSocket-Version header.");
 
             bool bUpgrade;
             m_httpreq->get_upgrade(bUpgrade);
             if (!bUpgrade)
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid connection header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: invalid connection header.");
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Key", v);
             if (hr.failed())
                 return hr;
 
             if (hr.is_return_null())
-                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Sec-WebSocket-Key header."));
+                return result_t::make(CALL_E_EXCEPTION).with_message("WebSocketHandler: missing Sec-WebSocket-Key header.");
 
             exlib::string key(v);
 

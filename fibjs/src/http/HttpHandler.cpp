@@ -778,7 +778,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         if (!m_rep->get_body(m_body).is_return_null() && m_body) {
                             obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);
                             if (!seekable)
-                                return result_t(result_t::make(CALL_E_EXCEPTION).with_message("HttpHandler: response body must be seekable for compression."));
+                                return result_t::make(CALL_E_EXCEPTION).with_message("HttpHandler: response body must be seekable for compression.");
                             seekable->rewind();
 
                             m_zip = new MemoryStream();
@@ -882,7 +882,7 @@ result_t HttpHandler::get_maxHeadersCount(int32_t& retVal)
 result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
 
     m_maxHeadersCount = newVal;
     return 0;
@@ -897,7 +897,7 @@ result_t HttpHandler::get_maxHeaderSize(int32_t& retVal)
 result_t HttpHandler::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t(result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE));
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
 
     m_maxHeaderSize = newVal;
     return 0;
